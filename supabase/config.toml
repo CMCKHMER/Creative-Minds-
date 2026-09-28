@@ -1,0 +1,10 @@
+project_id = "replace-with-your-supabase-project-ref"
+
+[functions.capture-lead]
+verify_jwt = false
+
+[functions.member-mini-mock]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true

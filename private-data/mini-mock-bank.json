@@ -1,0 +1,111 @@
+[
+  {
+    "id": "read-01",
+    "skill": "Reading",
+    "passage": [
+      "At the edge of a city, a school converted a flat rooftop into a teaching garden. The project began with a practical problem: heavy rain carried soil and litter from nearby streets into storm drains. Volunteers added shallow planters, native grasses, and lightweight soil designed to hold water.",
+      "During the first year, a sensor showed that the roof released stormwater more slowly after rain. The garden did not eliminate runoff, and staff had to choose plants that could survive wind and shallow soil. Science classes also used the site to compare moisture and temperature on planted and bare sections. The project team plans to collect measurements across several seasons before estimating the garden's long-term effect."
+    ],
+    "prompt": "Which choice best states the main idea of the passage?",
+    "choices": [
+      "The school proved that rooftop gardens can prevent all city flooding.",
+      "A school garden showed promising stormwater and learning benefits, but its long-term effects still need study.",
+      "Native grasses are the only plants that can survive on a rooftop.",
+      "Science classes replaced the school's regular stormwater equipment."
+    ],
+    "correctIndex": 1,
+    "explanation": "The passage describes slower stormwater release and classroom use, then notes that the team needs measurements across more seasons."
+  },
+  {
+    "id": "read-02",
+    "skill": "Reading",
+    "passage": [
+      "At the edge of a city, a school converted a flat rooftop into a teaching garden. The project began with a practical problem: heavy rain carried soil and litter from nearby streets into storm drains. Volunteers added shallow planters, native grasses, and lightweight soil designed to hold water.",
+      "During the first year, a sensor showed that the roof released stormwater more slowly after rain. The garden did not eliminate runoff, and staff had to choose plants that could survive wind and shallow soil. Science classes also used the site to compare moisture and temperature on planted and bare sections. The project team plans to collect measurements across several seasons before estimating the garden's long-term effect."
+    ],
+    "prompt": "Why does the project team plan to collect measurements across several seasons?",
+    "choices": [
+      "To determine whether the garden's effects continue under different conditions over time.",
+      "To find out which students prefer gardening to science class.",
+      "To prove the sensor works only during the winter.",
+      "To decide whether the storm drains should be moved to the roof."
+    ],
+    "correctIndex": 0,
+    "explanation": "A longer set of observations gives the team more evidence before it estimates the garden's long-term effect."
+  },
+  {
+    "id": "read-03",
+    "skill": "Reading",
+    "passage": [
+      "At the edge of a city, a school converted a flat rooftop into a teaching garden. The project began with a practical problem: heavy rain carried soil and litter from nearby streets into storm drains. Volunteers added shallow planters, native grasses, and lightweight soil designed to hold water.",
+      "During the first year, a sensor showed that the roof released stormwater more slowly after rain. The garden did not eliminate runoff, and staff had to choose plants that could survive wind and shallow soil. Science classes also used the site to compare moisture and temperature on planted and bare sections. The project team plans to collect measurements across several seasons before estimating the garden's long-term effect."
+    ],
+    "prompt": "What can be inferred about the native grasses selected for the rooftop?",
+    "choices": [
+      "They need deep, rich soil and protection from wind.",
+      "They were selected at least partly because they can handle the rooftop's challenging conditions.",
+      "They prevent every raindrop from reaching the storm drain.",
+      "They grow only when students measure them."
+    ],
+    "correctIndex": 1,
+    "explanation": "The passage says staff needed plants that could survive wind and shallow soil, so the selected plants had to suit those conditions."
+  },
+  {
+    "id": "listen-01",
+    "skill": "Listening",
+    "prompt": "What does the teacher want the students to keep the same at both creek locations?",
+    "choices": [
+      "The number of students and the color of their notebooks.",
+      "The measurement steps, including the thermometer type and waiting time.",
+      "The amount of rain that fell during the previous week.",
+      "The distance between the two locations."
+    ],
+    "correctIndex": 1,
+    "audioScript": "Teacher: We have one afternoon to compare water temperature at two points in the creek. Start at the shaded bend, then go to the open bank. Bring identical thermometers, wait two minutes at each location, and record the time. Student: Can I take three readings at the open bank and one at the bend? Teacher: Take three at each. Repeating reduces the chance that one unusual reading changes our comparison. If a rain shower starts, stop and reschedule both locations for another day, because rain could affect the sites differently. Student: So we need to visit both points under comparable conditions. Teacher: Exactly.",
+    "explanation": "The teacher asks students to use identical thermometers, wait two minutes at each site, and record the time so the comparison is fair."
+  },
+  {
+    "id": "listen-02",
+    "skill": "Listening",
+    "prompt": "Why does the teacher ask the student to take three readings at each location?",
+    "choices": [
+      "To finish the field work before the first period ends.",
+      "To make sure both sites have exactly the same temperature.",
+      "To reduce the effect of one unusual measurement.",
+      "To practice using three different thermometers."
+    ],
+    "correctIndex": 2,
+    "audioScript": "Teacher: We have one afternoon to compare water temperature at two points in the creek. Start at the shaded bend, then go to the open bank. Bring identical thermometers, wait two minutes at each location, and record the time. Student: Can I take three readings at the open bank and one at the bend? Teacher: Take three at each. Repeating reduces the chance that one unusual reading changes our comparison. If a rain shower starts, stop and reschedule both locations for another day, because rain could affect the sites differently. Student: So we need to visit both points under comparable conditions. Teacher: Exactly.",
+    "explanation": "Repeated readings make it less likely that one unusual result will change the comparison."
+  },
+  {
+    "id": "listen-03",
+    "skill": "Listening",
+    "prompt": "What should the students do if a rain shower starts during the comparison?",
+    "choices": [
+      "Finish one location and guess the temperature at the other.",
+      "Reschedule both locations for another day.",
+      "Move every thermometer into the creek.",
+      "Take twice as many readings at the open bank."
+    ],
+    "correctIndex": 1,
+    "audioScript": "Teacher: We have one afternoon to compare water temperature at two points in the creek. Start at the shaded bend, then go to the open bank. Bring identical thermometers, wait two minutes at each location, and record the time. Student: Can I take three readings at the open bank and one at the bend? Teacher: Take three at each. Repeating reduces the chance that one unusual reading changes our comparison. If a rain shower starts, stop and reschedule both locations for another day, because rain could affect the sites differently. Student: So we need to visit both points under comparable conditions. Teacher: Exactly.",
+    "explanation": "Rain could affect the two locations differently, so the teacher recommends rescheduling both visits under comparable conditions."
+  },
+  {
+    "id": "language-01",
+    "skill": "Language Use",
+    "prompt": "Neither the rooftop planters nor the soil layer _____ designed to eliminate runoff completely.",
+    "choices": ["were", "are", "was", "have been"],
+    "correctIndex": 2,
+    "explanation": "In a neither/nor construction, the verb commonly agrees with the nearer subject. The soil layer is singular, so was is the best choice."
+  },
+  {
+    "id": "language-02",
+    "skill": "Language Use",
+    "prompt": "The first measurements were encouraging, _____ the researchers avoided making a long-term claim.",
+    "choices": ["because", "so that", "although", "but"],
+    "correctIndex": 3,
+    "explanation": "But introduces the contrast between encouraging early measurements and the decision not to overstate what they prove."
+  }
+]
