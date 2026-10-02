@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { QuickDrawer } from './components/QuickDrawer';
 import { Hero } from './components/Hero';
@@ -13,16 +13,19 @@ import { Pricing } from './components/Pricing';
 import { FaqSection } from './components/FaqSection';
 import { CtaSection } from './components/CtaSection';
 import { Footer } from './components/Footer';
-import { TeacherPassModal } from './components/TeacherPassModal';
-import { StudentDemoModal } from './components/StudentDemoModal';
-import { MiniMockTest } from './components/MiniMockTest';
 import { ToeflJuniorAssessments } from './components/ToeflJuniorAssessments';
-import { LearningGamesPage } from './components/LearningGamesPage';
 import { DailyAssessmentCard } from './components/DailyAssessmentCard';
 import { KidGradeHub } from './components/KidGradeHub';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { supabase } from './lib/supabase';
+
+// Lazy-load heavy modals and the games route into separate chunks so they
+// don't bloat the initial landing-page download. They load on demand.
+const TeacherPassModal = lazy(() => import('./components/TeacherPassModal').then(m => ({ default: m.TeacherPassModal })));
+const StudentDemoModal = lazy(() => import('./components/StudentDemoModal').then(m => ({ default: m.StudentDemoModal })));
+const MiniMockTest = lazy(() => import('./components/MiniMockTest').then(m => ({ default: m.MiniMockTest })));
+const LearningGamesPage = lazy(() => import('./components/LearningGamesPage').then(m => ({ default: m.LearningGamesPage })));
 
 export function App() {
   const [quickDrawerOpen, setQuickDrawerOpen] = useState(false);
