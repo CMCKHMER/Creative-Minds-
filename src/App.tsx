@@ -103,7 +103,11 @@ export function App() {
     }
   };
 
-  if (isGamesPage) return <LearningGamesPage onBackHome={returnHome} />;
+    if (isGamesPage) return (
+    <Suspense fallback={null}>
+      <LearningGamesPage onBackHome={returnHome} />
+    </Suspense>
+  );
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col relative selection:bg-cyan-500 selection:text-white">
