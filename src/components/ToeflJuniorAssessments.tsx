@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { Suspense, lazy, useMemo, useState } from 'react';
 import { ArrowDownToLine, ArrowRight, BookOpen, CheckCircle2, Headphones, Mic2, PenLine, Volume2 } from 'lucide-react';
 import { TOEFL_JUNIOR_ASSESSMENTS, type JuniorAssessment, type JuniorAssessmentSkill } from '../data/toeflJuniorAssessments';
-import { AssignmentPreview } from './AssignmentPreview';
+
+// The full assessment text and its print/PDF/audio preview are only needed once a
+// teacher clicks "Open assessment", so keep them out of the landing-page chunk.
+const AssignmentPreview = lazy(() =>
+  import('./AssignmentPreview').then((m) => ({ default: m.AssignmentPreview })),
+);
 
 const skillTabs: Array<{ id: 'All' | JuniorAssessmentSkill; label: string; icon: typeof BookOpen }> = [
   { id: 'All', label: 'All skills', icon: CheckCircle2 },
@@ -23,10 +28,20 @@ function questionCount(assessment: JuniorAssessment) {
 export function ToeflJuniorAssessments() {
   const [activeSkill, setActiveSkill] = useState<'All' | JuniorAssessmentSkill>('All');
   const [selectedAssessment, setSelectedAssessment] = useState<JuniorAssessment | null>(null);
-  const assessments = TOEFL_JUNIOR_ASSESSMENTS.filter((item) => activeSkill === 'All' || item.skill === activeSkill);
-  const speakingCount = TOEFL_JUNIOR_ASSESSMENTS.filter((item) => item.skill === 'Speaking').length;
-  const listeningCount = TOEFL_JUNIOR_ASSESSMENTS.filter((item) => item.skill === 'Listening').length;
-  const writingCount = TOEFL_JUNIOR_ASSESSMENTS.filter((item) => item.skill === 'Writing').length;
+
+  // Derived lists are recomputed only when the filter changes instead of on every render.
+  const assessments = useMemo(
+    () => TOEFL_JUNIOR_ASSESSMENTS.filter((item) => activeSkill === 'All' || item.skill === activeSkill),
+    [activeSkill],
+  );
+  const skillCounts = useMemo(() => {
+    const counts: Record<JuniorAssessmentSkill, number[]> = { Speaking: [], Listening: [], Writing: [] };
+    TOEFL_JUNIOR_ASSESSMENTS.forEach((item) => counts[item.skill].push(item.id));
+    return counts;
+  }, []);
+  const speakingCount = skillCounts.Speaking.length;
+  const listeningCount = skillCounts.Listening.length;
+  const writingCount = skillCounts.Writing.length;
 
   return (
     <section id="toefl-junior-assessments" className="cmc-section relative scroll-mt-24 overflow-hidden border-t border-slate-800/80 bg-[#09131e] py-20 sm:py-24 lg:py-28">
@@ -68,7 +83,7 @@ export function ToeflJuniorAssessments() {
             <article key={assessment.id} className="group flex flex-col border-b border-white/10 py-6 transition-colors hover:border-cyan-200/25">
               <div className="flex items-center justify-between gap-3">
                 <span className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[9px] font-bold tracking-[0.12em] uppercase ${skillTone(assessment.skill)}`}>
-                  {String(TOEFL_JUNIOR_ASSESSMENTS.filter((item) => item.skill === assessment.skill).findIndex((item) => item.id === assessment.id) + 1).padStart(2, '0')} <span aria-hidden="true">/</span> {assessment.skill}
+                  {String(skillCounts[assessment.skill].indexOf(assessment.id) + 1).padStart(2, '0')} <span aria-hidden="true">/</span> {assessment.skill}
                 </span>
                 <span className="font-mono text-[10px] text-slate-500">{assessment.assignment.duration}</span>
               </div>
@@ -93,7 +108,11 @@ export function ToeflJuniorAssessments() {
         <div className="mt-8 flex items-start gap-3 rounded-xl border border-white/8 bg-white/[0.02] p-4 text-[10px] leading-relaxed text-slate-500"><ArrowDownToLine className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" /><p>Open any set to preview its student copy and teacher guide separately. Listening transcripts appear only in the teacher key. Use Print / save PDF for a browser-generated paper copy.</p></div>
       </div>
 
-      {selectedAssessment && <AssignmentPreview assignment={selectedAssessment.assignment} onClose={() => setSelectedAssessment(null)} />}
+      {selectedAssessment && (
+        <Suspense fallback={null}>
+          <AssignmentPreview assignment={selectedAssessment.assignment} onClose={() => setSelectedAssessment(null)} />
+        </Suspense>
+      )}
     </section>
   );
 }
