@@ -5,10 +5,15 @@ import {
 } from 'lucide-react';
 import { RESOURCE_CATALOG } from '../data/landingData';
 import { CLASSROOM_ASSIGNMENTS } from '../data/assignments';
-import { AssignmentPreview } from './AssignmentPreview';
 import { downloadAssignment } from '../utils/assignmentDocument';
 import type { ClassroomAssignment } from '../types/assignment';
 import type { ResourceCategory } from '../types';
+
+// Only fetched when a teacher opens a pack preview, keeping the (large) assignment
+// renderer and its audio/print helpers out of the initial bundle.
+const AssignmentPreview = lazy(() =>
+  import('./AssignmentPreview').then((m) => ({ default: m.AssignmentPreview })),
+);
 
 export const ResourceLibrary: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ResourceCategory>('All');
