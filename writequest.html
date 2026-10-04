@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WriteCraft — Guided Writing Studio</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --bg: #131110; --bg2: #1e1b18; --card: #272320; --card-h: #312c27;
+  --border: #3d3630; --text: #f0e8dd; --muted: #8a7e70;
+  --accent: #d4952a; --accent-l: #e8b04a; --accent-d: #a06f1a;
+  --success: #4a9e8e; --error: #c75450; --info: #5a8ec7;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Source Sans 3',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+h1,h2,h3,h4 { font-family:'Playfair Display',serif; }
+
+/* Background */
+.bg-glow { position:fixed; inset:0; pointer-events:none; z-index:0; }
+.bg-glow::before { content:''; position:absolute; top:-20%; left:-10%; width:60%; height:60%; background:radial-gradient(ellipse, rgba(212,149,42,0.06) 0%, transparent 70%); }
+.bg-glow::after { content:''; position:absolute; bottom:-20%; right:-10%; width:50%; height:50%; background:radial-gradient(ellipse, rgba(74,158,142,0.04) 0%, transparent 70%); }
+.bg-particle { position:fixed; border-radius:50%; background:var(--accent); pointer-events:none; z-index:0; }
+
+/* Header */
+header { position:sticky; top:0; z-index:50; background:rgba(19,17,16,0.85); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); }
+.logo-text { font-family:'Playfair Display',serif; font-weight:900; font-size:1.4rem; background:linear-gradient(135deg, var(--accent-l), var(--accent-d)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.stat-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:600; }
+.stat-score { background:rgba(212,149,42,0.12); color:var(--accent-l); }
+.stat-streak { background:rgba(199,84,80,0.12); color:var(--error); }
+
+/* Views */
+.view { display:none; position:relative; z-index:1; }
+.view.active { display:block; animation:fadeUp 0.4s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+/* Cards */
+.act-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px; cursor:pointer; transition:all 0.3s ease; position:relative; overflow:hidden; }
+.act-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:4px 0 0 4px; transition:width 0.3s ease; }
+.act-card:hover { background:var(--card-h); border-color:rgba(212,149,42,0.3); transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,0.3); }
+.act-card:hover::before { width:6px; }
+.act-card.c1::before { background:var(--accent); }
+.act-card.c2::before { background:var(--success); }
+.act-card.c3::before { background:var(--info); }
+.act-card.c4::before { background:var(--error); }
+.act-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; margin-bottom:16px; }
+.c1 .act-icon { background:rgba(212,149,42,0.12); color:var(--accent); }
+.c2 .act-icon { background:rgba(74,158,142,0.12); color:var(--success); }
+.c3 .act-icon { background:rgba(90,142,199,0.12); color:var(--info); }
+.c4 .act-icon { background:rgba(199,84,80,0.12); color:var(--error); }
+
+/* Buttons */
+.btn { display:inline-flex; align-items:center; gap:8px; padding:10px 22px; border-radius:10px; font-weight:600; font-size:0.9rem; border:none; cursor:pointer; transition:all 0.25s ease; font-family:inherit; }
+.btn-primary { background:var(--accent); color:#131110; }
+.btn-primary:hover { background:var(--accent-l); transform:translateY(-1px); box-shadow:0 4px 16px rgba(212,149,42,0.3); }
+.btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--border); }
+.btn-ghost:hover { color:var(--text); border-color:var(--muted); background:rgba(255,255,255,0.03); }
+.btn-success { background:var(--success); color:#131110; }
+.btn-success:hover { background:#5ab89e; }
+.btn-sm { padding:6px 14px; font-size:0.82rem; border-radius:8px; }
+.btn:disabled { opacity:0.4; cursor:not-allowed; transform:none !important; }
+
+/* Word Chips */
+.chip { display:inline-flex; align-items:center; padding:8px 16px; border-radius:8px; background:var(--bg2); border:1px solid var(--border); cursor:pointer; transition:all 0.2s ease; font-size:0.95rem; user-select:none; }
+.chip:hover { border-color:var(--accent); background:rgba(212,149,42,0.08); transform:translateY(-2px); }
+.chip.used { opacity:0.25; pointer-events:none; transform:scale(0.95); }
+.chip.selected { background:rgba(212,149,42,0.15); border-color:var(--accent); color:var(--accent-l); }
+.chip.correct { background:rgba(74,158,142,0.15); border-color:var(--success); color:var(--success); }
+.chip.wrong { background:rgba(199,84,80,0.15); border-color:var(--error); color:var(--error); animation:shake 0.4s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+
+/* Sentence cards for paragraph puzzle */
+.sent-card { padding:14px 18px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; cursor:pointer; transition:all 0.2s ease; font-size:0.92rem; line-height:1.5; user-select:none; }
+.sent-card:hover { border-color:var(--accent); background:rgba(212,149,42,0.05); }
+.sent-card.used { opacity:0.2; pointer-events:none; }
+.sent-card.ordered { border-color:var(--success); background:rgba(74,158,142,0.06); }
+.sent-card.correct-pos { border-color:var(--success); background:rgba(74,158,142,0.1); }
+.sent-card.wrong-pos { border-color:var(--error); background:rgba(199,84,80,0.08); }
+.sent-num { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:var(--accent); color:#131110; font-size:0.75rem; font-weight:700; margin-right:10px; flex-shrink:0; }
+
+/* Word Power */
+.word-target { display:inline-block; padding:2px 6px; border-bottom:2px dashed var(--accent); color:var(--accent-l); cursor:pointer; transition:all 0.2s; }
+.word-target:hover { background:rgba(212,149,42,0.1); }
+.word-target.replaced { border-bottom-style:solid; color:var(--success); border-color:var(--success); }
+.wp-option { padding:10px 18px; background:var(--bg2); border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all 0.2s; text-align:center; font-weight:500; }
+.wp-option:hover { border-color:var(--accent); background:rgba(212,149,42,0.06); }
+.wp-option.chosen { border-color:var(--accent); background:rgba(212,149,42,0.12); color:var(--accent-l); }
+.wp-option.best-pick { border-color:var(--success); background:rgba(74,158,142,0.12); color:var(--success); }
+.wp-option.good-pick { border-color:var(--info); background:rgba(90,142,199,0.1); color:var(--info); }
+
+/* Creative Studio */
+.template-section { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:16px; transition:border-color 0.2s; }
+.template-section:focus-within { border-color:var(--accent); }
+.template-section label { display:flex; align-items:center; gap:8px; font-weight:600; font-size:0.85rem; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; }
+.template-section textarea { width:100%; background:transparent; border:none; color:var(--text); font-family:'Source Sans 3',sans-serif; font-size:1rem; line-height:1.7; resize:vertical; min-height:70px; outline:none; }
+.template-section textarea::placeholder { color:rgba(138,126,112,0.5); }
+.stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:14px 18px; text-align:center; }
+.stat-val { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; color:var(--accent-l); }
+.stat-label { font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+.tip-item { padding:10px 14px; background:rgba(212,149,42,0.06); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; font-size:0.88rem; line-height:1.5; color:var(--muted); margin-bottom:8px; }
+.tip-item i { color:var(--accent); margin-right:6px; }
+
+/* Progress bar */
+.progress-bar { height:4px; background:var(--bg2); border-radius:4px; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg, var(--accent-d), var(--accent-l)); border-radius:4px; transition:width 0.5s ease; }
+
+/* Compiled text */
+.compiled-text { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:28px; line-height:1.9; font-size:1.05rem; color:var(--text); white-space:pre-wrap; }
+
+/* Toast */
+.toast-container { position:fixed; top:80px; right:20px; z-index:100; display:flex; flex-direction:column; gap:8px; }
+.toast { padding:12px 20px; border-radius:10px; font-size:0.88rem; font-weight:500; animation:slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; display:flex; align-items:center; gap:8px; backdrop-filter:blur(10px); }
+.toast-success { background:rgba(74,158,142,0.2); border:1px solid rgba(74,158,142,0.3); color:var(--success); }
+.toast-error { background:rgba(199,84,80,0.2); border:1px solid rgba(199,84,80,0.3); color:var(--error); }
+.toast-info { background:rgba(212,149,42,0.2); border:1px solid rgba(212,149,42,0.3); color:var(--accent-l); }
+@keyframes slideIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+@keyframes fadeOut { to { opacity:0; transform:translateX(30px); } }
+
+/* Category pills */
+.cat-pill { padding:8px 18px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:0.85rem; font-weight:500; transition:all 0.2s; font-family:inherit; }
+.cat-pill:hover { border-color:var(--accent); color:var(--text); }
+.cat-pill.active { background:var(--accent); color:#131110; border-color:var(--accent); font-weight:600; }
+
+/* Difficulty dots */
+.diff-dots { display:flex; gap:4px; }
+.diff-dot { width:8px; height:8px; border-radius:50%; background:var(--border); }
+.diff-dot.filled { background:var(--accent); }
+
+/* Level complete overlay */
+.level-overlay { position:fixed; inset:0; z-index:80; background:rgba(19,17,16,0.9); display:flex; align-items:center; justify-content:center; animation:fadeUp 0.4s ease; }
+.level-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:40px; text-align:center; max-width:400px; width:90%; }
+
+/* Responsive */
+@media(max-width:768px) {
+  .act-card { padding:20px; }
+  .stat-val { font-size:1.2rem; }
+  .compiled-text { padding:18px; font-size:0.95rem; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+  .bg-particle { display:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-glow" aria-hidden="true"></div>
+<div id="particles" aria-hidden="true"></div>
+
+<!-- Header -->
+<header>
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <button id="backBtn" class="btn btn-ghost btn-sm hidden" onclick="goHome()" aria-label="Go back"><i class="fas fa-arrow-left"></i></button>
+      <span class="logo-text">WriteCraft</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="stat-badge stat-score"><i class="fas fa-coins"></i> <span id="scoreDisplay">0</span></span>
+      <span class="stat-badge stat-streak"><i class="fas fa-fire"></i> <span id="streakDisplay">0</span></span>
+    </div>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="max-w-5xl mx-auto px-4 py-8">
+
+  <!-- HOME -->
+  <div id="view-home" class="view active">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-black mb-4" style="line-height:1.15">Master the Art<br>of <span style="color:var(--accent-l)">Writing</span></h1>
+      <p class="text-lg max-w-xl mx-auto" style="color:var(--muted)">Improve your sentence structure, paragraph organization, and creative expression through interactive challenges.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
+      <div class="act-card c1" onclick="startActivity('sentence')" role="button" tabindex="0" aria-label="Sentence Builder">
+        <div class="act-icon"><i class="fas fa-font"></i></div>
+        <h3 class="text-lg font-bold mb-2">Sentence Builder</h3>
+        <p style="color:var(--muted);font-size:0.9rem;line-height:1.6" class="mb-4">Arrange scrambled words into well-structured sentences. Progress from simple to complex constructions.</p>
+        <div class="flex items-center justify-between">
+          <div class="diff-dots"><div class="diff-dot filled"></div><div class="diff-dot filled"></div><div class="diff-dot filled"></div><div class="diff-dot filled"></div></div>
+          <span class="text-sm font-semibold" style="color:var(--accent)"><i class="fas fa-play mr-1"></i>Start</span>
+        </div>
+      </div>
+      <div class="act-card c2" onclick="startActivity('paragraph')" role="button" tabindex="0" aria-label="Paragraph Puzzle">
+        <div class="act-icon"><i class="fas fa-paragraph"></i></div>
+        <h3 class="text-lg font-bold mb-2">Paragraph Puzzle</h3>
+        <p style="color:var(--muted);font-size:0.9rem;line-height:1.6" class="mb-4">Put jumbled sentences in the right order to form coherent paragraphs. Learn logical flow and organization.</p>
+        <div class="flex items-center justify-between">
+          <div class="diff-dots"><div class="diff-dot filled"></div><div class="diff-dot filled"></div><div class="diff-dot filled"></div><div class="diff-dot"></div></div>
+          <span class="text-sm font-semibold" style="color:var(--success)"><i class="fas fa-play mr-1"></i>Start</span>
+        </div>
+      </div>
+      <div class="act-card c3" onclick="startActivity('studio')" role="button" tabindex="0" aria-label="Creative Studio">
+        <div class="act-icon"><i class="fas fa-pen-fancy"></i></div>
+        <h3 class="text-lg font-bold mb-2">Creative Studio</h3>
+        <p style="color:var(--muted);font-size:0.9rem;line-height:1.6" class="mb-4">Write with guided prompts and structured templates. Get real-time feedback on your writing quality.</p>
+        <div class="flex items-center justify-between">
+          <div class="diff-dots"><div class="diff-dot filled"></div><div class="diff-dot"></div><div class="diff-dot"></div><div class="diff-dot"></div></div>
+          <span class="text-sm font-semibold" style="color:var(--info)"><i class="fas fa-play mr-1"></i>Start</span>
+        </div>
+      </div>
+      <div class="act-card c4" onclick="startActivity('wordpower')" role="button" tabindex="0" aria-label="Word Power">
+        <div class="act-icon"><i class="fas fa-bolt"></i></div>
+        <h3 class="text-lg font-bold mb-2">Word Power</h3>
+        <p style="color:var(--muted);font-size:0.9rem;line-height:1.6" class="mb-4">Replace weak, generic words with vivid, powerful alternatives. Strengthen your vocabulary and expression.</p>
+        <div class="flex items-center justify-between">
+          <div class="diff-dots"><div class="diff-dot filled"></div><div class="diff-dot filled"></div><div class="diff-dot"></div><div class="diff-dot"></div></div>
+          <span class="text-sm font-semibold" style="color:var(--error)"><i class="fas fa-play mr-1"></i>Start</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENTENCE BUILDER -->
+  <div id="view-sentence" class="view">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-2xl font-bold">Sentence Builder</h2>
+      <span id="sentProgress" class="text-sm" style="color:var(--muted)"></span>
+    </div>
+    <p id="sentHint" class="text-sm mb-4" style="color:var(--accent)"></p>
+    <div class="progress-bar mb-6"><div id="sentProgBar" class="progress-fill" style="width:0%"></div></div>
+    <div id="sentBuilding" class="min-h-[60px] mb-6 p-4 rounded-xl" style="background:var(--bg2);border:1px dashed var(--border);display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <span style="color:var(--muted);font-size:0.9rem" id="sentPlaceholder">Click words below to build your sentence...</span>
+    </div>
+    <div id="sentPool" class="flex flex-wrap gap-3 mb-8"></div>
+    <div class="flex gap-3">
+      <button id="sentCheckBtn" class="btn btn-primary" onclick="checkSentence()" disabled><i class="fas fa-check"></i> Check</button>
+      <button class="btn btn-ghost" onclick="resetSentence()"><i class="fas fa-redo"></i> Reset</button>
+      <button id="sentNextBtn" class="btn btn-success hidden" onclick="nextSentence()"><i class="fas fa-arrow-right"></i> Next</button>
+    </div>
+  </div>
+
+  <!-- PARAGRAPH PUZZLE -->
+  <div id="view-paragraph" class="view">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-2xl font-bold">Paragraph Puzzle</h2>
+      <span id="paraProgress" class="text-sm" style="color:var(--muted)"></span>
+    </div>
+    <p id="paraTitle" class="text-sm mb-4" style="color:var(--accent)"></p>
+    <div class="progress-bar mb-6"><div id="paraProgBar" class="progress-fill" style="width:0%"></div></div>
+    <h4 class="text-sm font-semibold mb-3" style="color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Available Sentences</h4>
+    <div id="paraPool" class="flex flex-col gap-3 mb-8"></div>
+    <h4 class="text-sm font-semibold mb-3" style="color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Your Order</h4>
+    <div id="paraOrdered" class="flex flex-col gap-3 mb-8 min-h-[50px] p-3 rounded-xl" style="background:var(--bg2);border:1px dashed var(--border)">
+      <span style="color:var(--muted);font-size:0.88rem" id="paraPlaceholder">Click sentences above to place them in order...</span>
+    </div>
+    <div class="flex gap-3">
+      <button id="paraCheckBtn" class="btn btn-primary" onclick="checkParagraph()" disabled><i class="fas fa-check"></i> Check Order</button>
+      <button class="btn btn-ghost" onclick="resetParagraph()"><i class="fas fa-redo"></i> Reset</button>
+      <button id="paraNextBtn" class="btn btn-success hidden" onclick="nextParagraph()"><i class="fas fa-arrow-right"></i> Next</button>
+    </div>
+  </div>
+
+  <!-- CREATIVE STUDIO -->
+  <div id="view-studio" class="view">
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+      <h2 class="text-2xl font-bold">Creative Studio</h2>
+      <button class="btn btn-ghost btn-sm" onclick="newPrompt()"><i class="fas fa-shuffle"></i> New Prompt</button>
+    </div>
+    <div class="flex flex-wrap gap-2 mb-5">
+      <button class="cat-pill active" data-cat="story" onclick="setStudioCat('story',this)">Story</button>
+      <button class="cat-pill" data-cat="descriptive" onclick="setStudioCat('descriptive',this)">Descriptive</button>
+      <button class="cat-pill" data-cat="persuasive" onclick="setStudioCat('persuasive',this)">Persuasive</button>
+      <button class="cat-pill" data-cat="reflective" onclick="setStudioCat('reflective',this)">Reflective</button>
+    </div>
+    <div id="promptBox" class="p-5 rounded-xl mb-6" style="background:linear-gradient(135deg, rgba(212,149,42,0.08), rgba(74,158,142,0.05));border:1px solid var(--border)">
+      <span class="text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Writing Prompt</span>
+      <p id="promptText" class="mt-2 text-lg" style="line-height:1.6"></p>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2">
+        <div id="templateSections"></div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn btn-primary" onclick="compileWriting()"><i class="fas fa-scroll"></i> Compile & Review</button>
+          <button class="btn btn-ghost" onclick="clearStudio()"><i class="fas fa-eraser"></i> Clear All</button>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-sm font-semibold mb-3" style="color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Writing Stats</h4>
+        <div class="grid grid-cols-2 gap-3 mb-5" id="studioStats">
+          <div class="stat-card"><div class="stat-val" id="statWords">0</div><div class="stat-label">Words</div></div>
+          <div class="stat-card"><div class="stat-val" id="statSentences">0</div><div class="stat-label">Sentences</div></div>
+          <div class="stat-card"><div class="stat-val" id="statAvgLen">0</div><div class="stat-label">Avg Length</div></div>
+          <div class="stat-card"><div class="stat-val" id="statUnique">0%</div><div class="stat-label">Unique</div></div>
+        </div>
+        <h4 class="text-sm font-semibold mb-3" style="color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Tips</h4>
+        <div id="studioTips"><div class="tip-item"><i class="fas fa-lightbulb"></i> Start writing to receive personalized tips.</div></div>
+      </div>
+    </div>
+    <div id="compiledOutput" class="mt-8 hidden">
+      <h3 class="text-xl font-bold mb-4">Your Completed Writing</h3>
+      <div id="compiledText" class="compiled-text"></div>
+      <button class="btn btn-primary mt-4" onclick="submitWriting()"><i class="fas fa-paper-plane"></i> Submit for Points</button>
+    </div>
+  </div>
+
+  <!-- WORD POWER -->
+  <div id="view-wordpower" class="view">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-2xl font-bold">Word Power</h2>
+      <span id="wpProgress" class="text-sm" style="color:var(--muted)"></span>
+    </div>
+    <p class="text-sm mb-4" style="color:var(--muted)">Choose the most vivid, powerful replacement for each highlighted word.</p>
+    <div class="progress-bar mb-6"><div id="wpProgBar" class="progress-fill" style="width:0%"></div></div>
+    <div id="wpSentence" class="text-2xl font-semibold text-center py-8 px-6 rounded-xl mb-8" style="background:var(--bg2);border:1px solid var(--border);line-height:1.8;font-family:'Playfair Display',serif"></div>
+    <div id="wpChallenges" class="space-y-6 mb-8"></div>
+    <div class="flex gap-3">
+      <button id="wpCheckBtn" class="btn btn-primary" onclick="checkWordPower()" disabled><i class="fas fa-check"></i> Check Choices</button>
+      <button class="btn btn-ghost" onclick="resetWordPower()"><i class="fas fa-redo"></i> Reset</button>
+      <button id="wpNextBtn" class="btn btn-success hidden" onclick="nextWordPower()"><i class="fas fa-arrow-right"></i> Next</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast container -->
+<div class="toast-container" id="toasts"></div>
+
+<!-- Level complete overlay (hidden) -->
+<div id="levelOverlay" class="level-overlay" style="display:none">
+  <div class="level-card">
+    <div style="font-size:3rem;margin-bottom:16px;color:var(--accent)"><i class="fas fa-trophy"></i></div>
+    <h2 class="text-2xl font-bold mb-2" id="lvlTitle">Well Done</h2>
+    <p class="mb-6" style="color:var(--muted)" id="lvlMsg"></p>
+    <div id="lvlStats" class="flex justify-center gap-6 mb-6"></div>
+    <button class="btn btn-primary" onclick="closeLevelOverlay()">Continue</button>
+  </div>
+</div>
+
+<script>
+/* ===== DATA ===== */
+
+const sentencePuzzles = [
+  { words:["The","cat","sat","on","the","warm","mat"], hint:"Descriptive — simple subject-verb-object", level:1 },
+  { words:["Rain","fell","softly","on","the","green","grass"], hint:"Nature scene — adverb + adjective", level:1 },
+  { words:["She","read","a","book","by","the","window"], hint:"Action — prepositional phrase", level:1 },
+  { words:["The","old","man","carefully","crossed","the","busy","street"], hint:"Character action — adjectives + adverb", level:2 },
+  { words:["Bright","stars","appeared","in","the","dark","midnight","sky"], hint:"Atmospheric — layered description", level:2 },
+  { words:["A","gentle","breeze","rustled","the","autumn","leaves","quietly"], hint:"Sensory detail — personification", level:2 },
+  { words:["Despite","the","heavy","rain,","the","determined","runner","finished","the","marathon"], hint:"Concession — complex structure", level:3 },
+  { words:["The","mysterious","stranger,","wearing","a","dark","coat,","vanished","into","the","fog"], hint:"Mystery — appositive + participle", level:3 },
+  { words:["While","the","children","played","outside,","their","mother","prepared","a","delicious","dinner"], hint:"Contrast — dependent clause first", level:3 },
+  { words:["Although","she","had","never","visited","before,","the","ancient","city","felt","strangely","familiar","to","her"], hint:"Concession + compound adjective", level:4 },
+  { words:["The","professor,","who","had","spent","decades","studying","the","phenomenon,","finally","published","his","groundbreaking","research"], hint:"Relative clause + academic tone", level:4 },
+  { words:["Not","only","did","the","team","win","the","championship,","but","they","also","broke","every","single","record"], hint:"Correlative conjunction — emphasis", level:4 },
+];
+
+const paragraphPuzzles = [
+  { title:"How to Plant a Seed", sentences:["First, gather all your supplies: a pot, soil, seeds, and water.","Next, fill the pot with moist potting soil, leaving an inch at the top.","Then, press two or three seeds gently into the soil about half an inch deep.","After that, water the soil lightly and place the pot in a sunny spot.","Finally, check daily and keep the soil damp until seedlings appear."], level:1 },
+  { title:"Getting Ready for School", sentences:["Start by setting your alarm for an appropriate time the night before.","When you wake up, make your bed and head to the bathroom to freshen up.","Then, get dressed in the outfit you picked out previously.","After dressing, eat a nutritious breakfast to fuel your morning.","Before leaving, double-check your backpack for all necessary books and supplies."], level:1 },
+  { title:"Why Reading Is Important", sentences:["Reading is one of the most valuable habits a person can develop.","First, it expands our vocabulary and improves our language skills naturally.","Furthermore, reading exposes us to different perspectives and cultures around the world.","Additionally, studies show that regular reading improves focus and concentration.","Therefore, making time to read each day is an investment in your personal growth."], level:2 },
+  { title:"The Water Cycle", sentences:["The water cycle is a continuous process that recycles Earth's water supply.","It begins when the sun heats water in oceans, lakes, and rivers, causing evaporation.","As the water vapor rises, it cools and condenses into tiny droplets, forming clouds.","When the clouds become heavy enough, precipitation falls as rain, snow, or hail.","The water then flows back into bodies of water, and the cycle begins again."], level:2 },
+  { title:"A Day at the Beach", sentences:["The moment we arrived, the salty breeze hit our faces and the sound of waves filled the air.","We spread our blanket on the warm sand and applied sunscreen generously.","Soon after, the kids ran straight into the sparkling water, laughing and splashing.","Around noon, we built an impressive sandcastle complete with a moat and towers.","As the afternoon faded, we watched the sky turn orange and pink during a breathtaking sunset."], level:3 },
+  { title:"The Science Fair Project", sentences:["When Mr. Chen announced the science fair, Maya immediately knew she wanted to study plant growth.","She spent a week researching how different light conditions affect bean sprouts.","Her hypothesis was that plants under blue light would grow taller than those under red light.","Over the next three weeks, she carefully measured and recorded the growth of each plant group.","To her surprise, the red-light group actually grew the tallest, teaching her that results don't always match expectations."], level:3 },
+  { title:"Why Schools Should Have Longer Recess", sentences:["Recess is a critical part of the school day that is often undervalued by administrators.","Research consistently shows that physical activity improves students' ability to concentrate in class.","Moreover, unstructured play helps children develop social skills like cooperation and conflict resolution.","Critics argue that more recess takes time away from academics, but studies suggest the opposite is true.","In fact, schools that increased recess time saw measurable improvements in test scores and classroom behavior.","For these reasons, extending recess should be a priority for any school serious about student success."], level:4 },
+  { title:"The Benefits of Learning a Second Language", sentences:["In an increasingly connected world, speaking a second language is more valuable than ever.","Beyond the obvious advantage of communicating with more people, bilingualism offers surprising cognitive benefits.","Studies have shown that bilingual individuals tend to have better problem-solving skills and greater mental flexibility.","Additionally, learning another language deepens our understanding of other cultures and fosters empathy.","From a career standpoint, bilingual candidates are often preferred in our globalized economy.","While becoming fluent takes years of practice, even basic proficiency opens doors that would otherwise remain closed."], level:4 },
+];
+
+const wordPowerChallenges = [
+  { sentence:"The man walked to the store.", challenges:[{word:"man",options:["stranger","gentleman","elder","figure"],best:0},{word:"walked",options:["strolled","rushed","trudged","moved"],best:0}] },
+  { sentence:"She said she was happy about the news.", challenges:[{word:"said",options:["exclaimed","muttered","remarked","noted"],best:0},{word:"happy",options:["thrilled","content","pleased","satisfied"],best:0}] },
+  { sentence:"The food at the restaurant was good.", challenges:[{word:"good",options:["exquisite","decent","acceptable","fine"],best:0},{word:"restaurant",options:["bistro","eatery","diner","cafe"],best:0}] },
+  { sentence:"He looked at the painting on the wall.", challenges:[{word:"looked",options:["examined","glanced","noticed","stared"],best:0},{word:"painting",options:["masterpiece","artwork","portrait","canvas"],best:0}] },
+  { sentence:"The house was big and old.", challenges:[{word:"big",options:["sprawling","spacious","large","roomy"],best:0},{word:"old",options:["ancient","weathered","aged","historic"],best:0}] },
+  { sentence:"They went to the beach on a hot day.", challenges:[{word:"went",options:["rushed","hurried","wandered","drove"],best:2},{word:"hot",options:["scorching","warm","balmy","stifling"],best:0}] },
+  { sentence:"The dog made a loud noise.", challenges:[{word:"loud",options:["deafening","boisterous","noisy","thunderous"],best:0},{word:"noise",options:["racket","bark","commotion","din"],best:0}] },
+  { sentence:"She made a nice dinner for her family.", challenges:[{word:"nice",options:["sumptuous","elegant","delightful","pleasant"],best:0},{word:"made",options:["prepared","whipped up","crafted","assembled"],best:0}] },
+  { sentence:"The movie was interesting from start to finish.", challenges:[{word:"interesting",options:["captivating","engaging","amusing","absorbing"],best:0},{word:"movie",options:["film","cinematic experience","feature","production"],best:0}] },
+  { sentence:"He was a good leader who helped people.", challenges:[{word:"good",options:["inspiring","capable","reliable","effective"],best:0},{word:"helped",options:["empowered","supported","guided","assisted"],best:0}] },
+];
+
+const writingPrompts = {
+  story:["The old lighthouse had been abandoned for decades, but tonight its light flickered on.","She found a note tucked inside a library book that changed everything.","The last person on Earth sat alone in a room. There was a knock on the door.","When the clock struck midnight, everyone in the town froze — except him.","The map showed a place that didn't exist, yet here she was, standing in it."],
+  descriptive:["Describe a marketplace at sunset, using all five senses.","Paint a picture with words of an abandoned amusement park in winter.","Describe the moment a thunderstorm breaks over the ocean.","Capture the atmosphere of a cozy bookshop on a rainy afternoon.","Describe a city street at 3 AM when most people are asleep."],
+  persuasive:["Convince your principal to allow students to choose their own seats in class.","Write an argument for why art and music classes are essential, not optional.","Persuade your community to create more green spaces and public parks.","Argue why everyone should learn to cook at least basic meals.","Make a case for why handwritten letters are more meaningful than digital messages."],
+  reflective:["Write about a time when a small act of kindness had a big impact on you.","Reflect on how a favorite place from your childhood has changed over the years.","Describe a moment when you changed your mind about something important.","Write about a skill you struggled to learn and what the process taught you.","Reflect on a piece of advice that initially seemed wrong but turned out to be wise."]
+};
+
+const templates = {
+  story:[{id:"hook",label:"Opening Hook",placeholder:"Grab the reader's attention with an intriguing first line..."},{id:"scene",label:"Setting the Scene",placeholder:"Where and when does this take place? What's the atmosphere?"},{id:"rising",label:"Rising Action",placeholder:"What happens next? Build tension and interest..."},{id:"climax",label:"Climax",placeholder:"The turning point or most intense moment..."},{id:"resolution",label:"Resolution",placeholder:"How does the situation resolve?"},{id:"closing",label:"Closing Reflection",placeholder:"A final thought or image that lingers..."}],
+  descriptive:[{id:"overall",label:"Overall Impression",placeholder:"What's the dominant feeling or image of this scene?"},{id:"visual",label:"Visual Details",placeholder:"Colors, shapes, movement, light and shadow..."},{id:"sound",label:"Sound Details",placeholder:"What do you hear? Near sounds, far sounds, silence..."},{id:"sensory",label:"Smell & Touch",placeholder:"Scents, textures, temperature..."},{id:"emotion",label:"Emotional Atmosphere",placeholder:"What mood does this place create? How does it feel?"},{id:"closing",label:"Closing Image",placeholder:"End with a vivid, lasting image..."}],
+  persuasive:[{id:"hook",label:"Attention-Grabbing Opening",placeholder:"Start with a surprising fact, question, or bold statement..."},{id:"position",label:"State Your Position",placeholder:"Clearly state what you believe and why it matters..."},{id:"reason1",label:"Reason 1 with Evidence",placeholder:"Your strongest argument with supporting details..."},{id:"reason2",label:"Reason 2 with Evidence",placeholder:"A second compelling argument..."},{id:"counter",label:"Address Counterargument",placeholder:"Acknowledge the other side and explain why you disagree..."},{id:"conclusion",label:"Strong Conclusion",placeholder:"Restate your position powerfully and end with a call to action..."}],
+  reflective:[{id:"event",label:"The Experience",placeholder:"What happened? Describe the event or moment..."},{id:"initial",label:"Initial Thoughts",placeholder:"What did you think or feel at the time?"},{id:"analysis",label:"Deeper Analysis",placeholder:"Looking back, what was really going on?"},{id:"learned",label:"What You Learned",placeholder:"What insight or lesson did this experience give you?"},{id:"changed",label:"How It Changed You",placeholder:"How did this affect your thinking or behavior since?"},{id:"forward",label:"Looking Forward",placeholder:"How will you carry this lesson into the future?"}]
+};
+
+/* ===== STATE ===== */
+const state = {
+  view:'home', score:0, streak:0,
+  sent:{ idx:0, selected:[], checked:false },
+  para:{ idx:0, ordered:[], checked:false },
+  wp:{ idx:0, choices:{}, checked:false },
+  studio:{ cat:'story', promptIdx:0, submitted:false }
+};
+
+/* ===== UTILITIES ===== */
+function shuffle(arr) { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function toast(msg, type='info') {
+  const c=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  const icons={success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle'};
+  t.innerHTML=`<i class="fas ${icons[type]}"></i> ${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+function addScore(pts) {
+  state.score += pts;
+  state.streak++;
+  document.getElementById('scoreDisplay').textContent = state.score;
+  document.getElementById('streakDisplay').textContent = state.streak;
+}
+
+function breakStreak() {
+  state.streak = 0;
+  document.getElementById('streakDisplay').textContent = 0;
+}
+
+function updateScoreDisplay() {
+  document.getElementById('scoreDisplay').textContent = state.score;
+  document.getElementById('streakDisplay').textContent = state.streak;
+}
+
+/* ===== NAVIGATION ===== */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.getElementById('backBtn').classList.toggle('hidden', name==='home');
+  state.view = name;
+}
+
+function goHome() { showView('home'); }
+
+function startActivity(type) {
+  if(type==='sentence') { state.sent={idx:0,selected:[],checked:false}; renderSentence(); }
+  else if(type==='paragraph') { state.para={idx:0,ordered:[],checked:false}; renderParagraph(); }
+  else if(type==='studio') { state.studio.submitted=false; document.getElementById('compiledOutput').classList.add('hidden'); renderStudio(); }
+  else if(type==='wordpower') { state.wp={idx:0,choices:{},checked:false}; renderWordPower(); }
+  showView(type);
+}
+
+/* ===== SENTENCE BUILDER ===== */
+function renderSentence() {
+  const p = sentencePuzzles[state.sent.idx];
+  const total = sentencePuzzles.length;
+  document.getElementById('sentProgress').textContent = `Puzzle ${state.sent.idx+1} of ${total} — Level ${p.level}`;
+  document.getElementById('sentHint').innerHTML = `<i class="fas fa-lightbulb"></i> ${p.hint}`;
+  document.getElementById('sentProgBar').style.width = ((state.sent.idx)/total*100)+'%';
+  document.getElementById('sentCheckBtn').classList.remove('hidden');
+  document.getElementById('sentCheckBtn').disabled = true;
+  document.getElementById('sentNextBtn').classList.add('hidden');
+  state.sent = { idx:state.sent.idx, selected:[], checked:false };
+
+  const building = document.getElementById('sentBuilding');
+  building.innerHTML = '<span style="color:var(--muted);font-size:0.9rem" id="sentPlaceholder">Click words below to build your sentence...</span>';
+
+  const pool = document.getElementById('sentPool');
+  const shuffled = shuffle(p.words);
+  pool.innerHTML = '';
+  shuffled.forEach((w,i) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = w;
+    chip.dataset.idx = i;
+    chip.dataset.word = w;
+    chip.onclick = () => selectWord(chip);
+    pool.appendChild(chip);
+  });
+}
+
+function selectWord(chip) {
+  if(state.sent.checked) return;
+  chip.classList.add('used');
+  state.sent.selected.push(chip.dataset.word);
+
+  const building = document.getElementById('sentBuilding');
+  const ph = document.getElementById('sentPlaceholder');
+  if(ph) ph.remove();
+
+  const bchip = document.createElement('span');
+  bchip.className = 'chip selected';
+  bchip.textContent = chip.dataset.word;
+  bchip.dataset.sourceIdx = chip.dataset.idx;
+  bchip.onclick = () => deselectWord(bchip, chip);
+  building.appendChild(bchip);
+
+  const p = sentencePuzzles[state.sent.idx];
+  document.getElementById('sentCheckBtn').disabled = state.sent.selected.length < p.words.length;
+}
+
+function deselectWord(bchip, poolChip) {
+  if(state.sent.checked) return;
+  bchip.remove();
+  poolChip.classList.remove('used');
+  state.sent.selected = state.sent.selected.filter(w => w !== poolChip.dataset.word);
+  document.getElementById('sentCheckBtn').disabled = true;
+
+  const building = document.getElementById('sentBuilding');
+  if(building.children.length === 0) {
+    building.innerHTML = '<span style="color:var(--muted);font-size:0.9rem" id="sentPlaceholder">Click words below to build your sentence...</span>';
+  }
+}
+
+function checkSentence() {
+  if(state.sent.checked) return;
+  state.sent.checked = true;
+  const p = sentencePuzzles[state.sent.idx];
+  const building = document.getElementById('sentBuilding');
+  const chips = building.querySelectorAll('.chip');
+  let correct = 0;
+
+  chips.forEach((c,i) => {
+    if(c.dataset.sourceIdx !== undefined) {
+      // Find the original index of this word
+      const origIdx = p.words.indexOf(c.dataset.sourceIdx !== undefined ? c.textContent : '');
+    }
+    if(c.textContent === p.words[i]) {
+      c.classList.remove('selected');
+      c.classList.add('correct');
+      correct++;
+    } else {
+      c.classList.remove('selected');
+      c.classList.add('wrong');
+    }
+    c.onclick = null;
+  });
+
+  const total = p.words.length;
+  const pct = correct / total;
+  if(pct === 1) {
+    const pts = p.level * 100;
+    addScore(pts);
+    toast(`Perfect! +${pts} points`, 'success');
+  } else if(pct >= 0.7) {
+    const pts = Math.floor(p.level * 50);
+    addScore(pts);
+    toast(`${correct}/${total} correct. +${pts} points`, 'info');
+  } else {
+    breakStreak();
+    toast(`Only ${correct}/${total} correct. Try again!`, 'error');
+  }
+
+  document.getElementById('sentCheckBtn').classList.add('hidden');
+  document.getElementById('sentNextBtn').classList.remove('hidden');
+}
+
+function resetSentence() {
+  if(state.sent.checked) return;
+  state.sent.selected = [];
+  renderSentence();
+}
+
+function nextSentence() {
+  state.sent.idx++;
+  if(state.sent.idx >= sentencePuzzles.length) {
+    showLevelComplete('Sentence Builder', 'You completed all sentence puzzles!', state.score);
+    state.sent.idx = 0;
+    return;
+  }
+  renderSentence();
+}
+
+/* ===== PARAGRAPH PUZZLE ===== */
+function renderParagraph() {
+  const p = paragraphPuzzles[state.para.idx];
+  const total = paragraphPuzzles.length;
+  document.getElementById('paraProgress').textContent = `Puzzle ${state.para.idx+1} of ${total} — Level ${p.level}`;
+  document.getElementById('paraTitle').innerHTML = `<i class="fas fa-bookmark"></i> ${p.title}`;
+  document.getElementById('paraProgBar').style.width = ((state.para.idx)/total*100)+'%';
+  document.getElementById('paraCheckBtn').disabled = true;
+  document.getElementById('paraCheckBtn').classList.remove('hidden');
+  document.getElementById('paraNextBtn').classList.add('hidden');
+  state.para = { idx:state.para.idx, ordered:[], checked:false };
+
+  const shuffled = shuffle(p.sentences.map((s,i)=>({text:s,origIdx:i})));
+
+  const pool = document.getElementById('paraPool');
+  pool.innerHTML = '';
+  shuffled.forEach((s,i) => {
+    const card = document.createElement('div');
+    card.className = 'sent-card';
+    card.textContent = s.text;
+    card.dataset.origIdx = s.origIdx;
+    card.dataset.poolIdx = i;
+    card.onclick = () => orderSentence(card);
+    pool.appendChild(card);
+  });
+
+  const ordered = document.getElementById('paraOrdered');
+  ordered.innerHTML = '<span style="color:var(--muted);font-size:0.88rem" id="paraPlaceholder">Click sentences above to place them in order...</span>';
+}
+
+function orderSentence(card) {
+  if(state.para.checked || card.classList.contains('used')) return;
+  card.classList.add('used');
+  state.para.ordered.push({ text:card.textContent, origIdx:parseInt(card.dataset.origIdx), el:card });
+
+  const ordered = document.getElementById('paraOrdered');
+  const ph = document.getElementById('paraPlaceholder');
+  if(ph) ph.remove();
+
+  const item = document.createElement('div');
+  item.className = 'sent-card ordered flex items-center';
+  item.innerHTML = `<span class="sent-num">${state.para.ordered.length}</span><span>${card.textContent}</span>`;
+  item.onclick = () => unorderSentence(item, state.para.ordered.length-1);
+  ordered.appendChild(item);
+
+  const p = paragraphPuzzles[state.para.idx];
+  document.getElementById('paraCheckBtn').disabled = state.para.ordered.length < p.sentences.length;
+}
+
+function unorderSentence(item, pos) {
+  if(state.para.checked) return;
+  const removed = state.para.ordered.splice(pos, 1)[0];
+  removed.el.classList.remove('used');
+  item.remove();
+
+  // Renumber
+  const ordered = document.getElementById('paraOrdered');
+  const items = ordered.querySelectorAll('.sent-card');
+  items.forEach((it,i) => it.querySelector('.sent-num').textContent = i+1);
+
+  if(state.para.ordered.length === 0) {
+    ordered.innerHTML = '<span style="color:var(--muted);font-size:0.88rem" id="paraPlaceholder">Click sentences above to place them in order...</span>';
+  }
+  document.getElementById('paraCheckBtn').disabled = true;
+}
+
+function checkParagraph() {
+  if(state.para.checked) return;
+  state.para.checked = true;
+  const p = paragraphPuzzles[state.para.idx];
+  let correct = 0;
+
+  const ordered = document.getElementById('paraOrdered');
+  const items = ordered.querySelectorAll('.sent-card');
+  items.forEach((item,i) => {
+    const origIdx = state.para.ordered[i].origIdx;
+    if(origIdx === i) {
+      item.classList.add('correct-pos');
+      correct++;
+    } else {
+      item.classList.add('wrong-pos');
+    }
+    item.onclick = null;
+  });
+
+  const total = p.sentences.length;
+  const pct = correct / total;
+  if(pct === 1) {
+    const pts = p.level * 120;
+    addScore(pts);
+    toast(`Perfect order! +${pts} points`, 'success');
+  } else if(pct >= 0.6) {
+    const pts = Math.floor(p.level * 60);
+    addScore(pts);
+    toast(`${correct}/${total} in correct position. +${pts} points`, 'info');
+  } else {
+    breakStreak();
+    toast(`Only ${correct}/${total} correct. Keep trying!`, 'error');
+  }
+
+  document.getElementById('paraCheckBtn').classList.add('hidden');
+  document.getElementById('paraNextBtn').classList.remove('hidden');
+}
+
+function resetParagraph() {
+  if(state.para.checked) return;
+  renderParagraph();
+}
+
+function nextParagraph() {
+  state.para.idx++;
+  if(state.para.idx >= paragraphPuzzles.length) {
+    showLevelComplete('Paragraph Puzzle', 'You completed all paragraph puzzles!', state.score);
+    state.para.idx = 0;
+    return;
+  }
+  renderParagraph();
+}
+
+/* ===== WORD POWER ===== */
+function renderWordPower() {
+  const ch = wordPowerChallenges[state.wp.idx];
+  const total = wordPowerChallenges.length;
+  document.getElementById('wpProgress').textContent = `Challenge ${state.wp.idx+1} of ${total}`;
+  document.getElementById('wpProgBar').style.width = ((state.wp.idx)/total*100)+'%';
+  document.getElementById('wpCheckBtn').disabled = true;
+  document.getElementById('wpCheckBtn').classList.remove('hidden');
+  document.getElementById('wpNextBtn').classList.add('hidden');
+  state.wp = { idx:state.wp.idx, choices:{}, checked:false };
+
+  // Render sentence with highlighted words
+  const sentEl = document.getElementById('wpSentence');
+  let html = ch.sentence;
+  ch.challenges.forEach((c,i) => {
+    html = html.replace(c.word, `<span class="word-target" id="wpt-${i}">${c.word}</span>`);
+  });
+  sentEl.innerHTML = html;
+
+  // Render choice panels
+  const cont = document.getElementById('wpChallenges');
+  cont.innerHTML = '';
+  ch.challenges.forEach((c,i) => {
+    const panel = document.createElement('div');
+    panel.innerHTML = `
+      <p class="text-sm font-semibold mb-3" style="color:var(--muted)">Replace "<span style="color:var(--accent-l)">${c.word}</span>" with:</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="wpOpts-${i}">
+        ${c.options.map((o,oi) => `<div class="wp-option" data-ch="${i}" data-opt="${oi}" onclick="pickWPOption(${i},${oi},this)">${o}</div>`).join('')}
+      </div>`;
+    cont.appendChild(panel);
+  });
+}
+
+function pickWPOption(chIdx, optIdx, el) {
+  if(state.wp.checked) return;
+  state.wp.choices[chIdx] = optIdx;
+  const parent = document.getElementById('wpOpts-'+chIdx);
+  parent.querySelectorAll('.wp-option').forEach(o => o.classList.remove('chosen'));
+  el.classList.add('chosen');
+
+  // Update sentence display
+  const ch = wordPowerChallenges[state.wp.idx].challenges[chIdx];
+  const wpt = document.getElementById('wpt-'+chIdx);
+  wpt.textContent = ch.options[optIdx];
+  wpt.classList.add('replaced');
+
+  // Enable check if all chosen
+  const total = wordPowerChallenges[state.wp.idx].challenges.length;
+  document.getElementById('wpCheckBtn').disabled = Object.keys(state.wp.choices).length < total;
+}
+
+function checkWordPower() {
+  if(state.wp.checked) return;
+  state.wp.checked = true;
+  const ch = wordPowerChallenges[state.wp.idx];
+  let totalScore = 0;
+  const maxScore = ch.challenges.length * 30;
+
+  ch.challenges.forEach((c,i) => {
+    const chosen = state.wp.choices[i];
+    const parent = document.getElementById('wpOpts-'+i);
+    parent.querySelectorAll('.wp-option').forEach((o,oi) => {
+      o.onclick = null;
+      if(oi === c.best) o.classList.add('best-pick');
+      else if(oi === chosen && chosen !== c.best) o.classList.add('good-pick');
+    });
+    if(chosen === c.best) totalScore += 30;
+    else if(chosen !== undefined) totalScore += 15;
+  });
+
+  const pct = totalScore / maxScore;
+  if(pct === 1) {
+    addScore(150);
+    toast('Excellent word choices! +150 points', 'success');
+  } else if(pct >= 0.5) {
+    addScore(75);
+    toast(`Good effort! +75 points. The best picks are highlighted in green.`, 'info');
+  } else {
+    breakStreak();
+    toast('Try to pick more vivid, specific words!', 'error');
+  }
+
+  document.getElementById('wpCheckBtn').classList.add('hidden');
+  document.getElementById('wpNextBtn').classList.remove('hidden');
+}
+
+function resetWordPower() {
+  if(state.wp.checked) return;
+  renderWordPower();
+}
+
+function nextWordPower() {
+  state.wp.idx++;
+  if(state.wp.idx >= wordPowerChallenges.length) {
+    showLevelComplete('Word Power', 'You completed all word power challenges!', state.score);
+    state.wp.idx = 0;
+    return;
+  }
+  renderWordPower();
+}
+
+/* ===== CREATIVE STUDIO ===== */
+function renderStudio() {
+  const cat = state.studio.cat;
+  const prompts = writingPrompts[cat];
+  const prompt = prompts[state.studio.promptIdx % prompts.length];
+  document.getElementById('promptText').textContent = prompt;
+
+  const sections = templates[cat];
+  const cont = document.getElementById('templateSections');
+  cont.innerHTML = '';
+  sections.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'template-section';
+    div.innerHTML = `<label><i class="fas fa-pen-nib" style="color:var(--accent);font-size:0.75rem"></i> ${s.label}</label>
+      <textarea id="ts-${s.id}" placeholder="${s.placeholder}" rows="2" oninput="updateStudioStats()"></textarea>`;
+    cont.appendChild(div);
+  });
+
+  updateStudioStats();
+}
+
+function setStudioCat(cat, btn) {
+  state.studio.cat = cat;
+  state.studio.promptIdx = 0;
+  state.studio.submitted = false;
+  document.getElementById('compiledOutput').classList.add('hidden');
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderStudio();
+}
+
+function newPrompt() {
+  state.studio.promptIdx++;
+  state.studio.submitted = false;
+  document.getElementById('compiledOutput').classList.add('hidden');
+  renderStudio();
+  toast('New prompt loaded!', 'info');
+}
+
+function clearStudio() {
+  document.querySelectorAll('#templateSections textarea').forEach(ta => ta.value = '');
+  state.studio.submitted = false;
+  document.getElementById('compiledOutput').classList.add('hidden');
+  updateStudioStats();
+}
+
+function getStudioText() {
+  let text = '';
+  document.querySelectorAll('#templateSections textarea').forEach(ta => {
+    if(ta.value.trim()) text += ta.value.trim() + ' ';
+  });
+  return text.trim();
+}
+
+function updateStudioStats() {
+  const text = getStudioText();
+  const words = text ? text.split(/\s+/).filter(w=>w.length>0) : [];
+  const wordCount = words.length;
+
+  // Sentence count (rough: split by . ! ?)
+  const sentences = text.split(/[.!?]+/).filter(s=>s.trim().length>0);
+  const sentCount = sentences.length;
+
+  const avgLen = sentCount > 0 ? Math.round(wordCount / sentCount) : 0;
+
+  const uniqueWords = new Set(words.map(w=>w.toLowerCase().replace(/[^a-z']/g,'')));
+  const uniquePct = wordCount > 0 ? Math.round((uniqueWords.size / wordCount) * 100) : 0;
+
+  document.getElementById('statWords').textContent = wordCount;
+  document.getElementById('statSentences').textContent = sentCount;
+  document.getElementById('statAvgLen').textContent = avgLen;
+  document.getElementById('statUnique').textContent = uniquePct + '%';
+
+  // Tips
+  const tips = [];
+  if(wordCount === 0) {
+    tips.push('<i class="fas fa-lightbulb"></i> Start writing to receive personalized tips.');
+  } else {
+    if(avgLen > 28) tips.push('<i class="fas fa-ruler"></i> Some sentences are quite long. Consider breaking them up for clarity.');
+    if(avgLen > 0 && avgLen < 8) tips.push('<i class="fas fa-ruler"></i> Try combining some short sentences for better flow.');
+    if(uniquePct < 55 && wordCount > 20) tips.push('<i class="fas fa-spell-check"></i> Your vocabulary could be more diverse. Try using synonyms.');
+    if(uniquePct > 75) tips.push('<i class="fas fa-star"></i> Excellent vocabulary variety!');
+    // Check sentence starters
+    const starters = sentences.map(s => s.trim().split(/\s+/)[0]?.toLowerCase()).filter(Boolean);
+    const starterCounts = {};
+    starters.forEach(s => starterCounts[s] = (starterCounts[s]||0)+1);
+    const repeated = Object.entries(starterCounts).filter(([,c])=>c>1);
+    if(repeated.length > 0 && wordCount > 30) {
+      tips.push(`<i class="fas fa-random"></i> Several sentences start with "${repeated[0][0]}". Vary your openings.`);
+    }
+    // Check for transitions
+    const transWords = ['however','moreover','furthermore','therefore','meanwhile','although','nevertheless','consequently','similarly','in addition'];
+    const hasTrans = transWords.some(t => text.toLowerCase().includes(t));
+    if(!hasTrans && wordCount > 50) tips.push('<i class="fas fa-link"></i> Consider adding transition words for better flow between ideas.');
+    if(wordCount > 80) tips.push('<i class="fas fa-check-circle"></i> Good length! Consider compiling your writing for a full review.');
+  }
+
+  const tipsEl = document.getElementById('studioTips');
+  tipsEl.innerHTML = tips.map(t => `<div class="tip-item">${t}</div>`).join('');
+}
+
+function compileWriting() {
+  const text = getStudioText();
+  if(text.length < 10) {
+    toast('Write more content before compiling!', 'error');
+    return;
+  }
+
+  const sections = templates[state.studio.cat];
+  let compiled = '';
+  sections.forEach(s => {
+    const ta = document.getElementById('ts-'+s.id);
+    if(ta && ta.value.trim()) {
+      compiled += ta.value.trim() + '\n\n';
+    }
+  });
+  compiled = compiled.trim();
+
+  document.getElementById('compiledText').textContent = compiled;
+  document.getElementById('compiledOutput').classList.remove('hidden');
+  document.getElementById('compiledOutput').scrollIntoView({ behavior:'smooth', block:'start' });
+  toast('Writing compiled successfully!', 'success');
+}
+
+function submitWriting() {
+  if(state.studio.submitted) {
+    toast('Already submitted this piece!', 'error');
+    return;
+  }
+  const text = getStudioText();
+  const words = text.split(/\s+/).filter(w=>w.length>0).length;
+
+  if(words < 20) {
+    toast('Write at least 20 words to earn points.', 'error');
+    return;
+  }
+
+  state.studio.submitted = true;
+  let pts = Math.min(words * 2, 500);
+  if(words > 100) pts += 100;
+  if(words > 200) pts += 100;
+
+  addScore(pts);
+  toast(`Writing submitted! +${pts} points for ${words} words.`, 'success');
+
+  // Disable submit button
+  const btn = document.querySelector('#compiledOutput .btn-primary');
+  if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-check"></i> Submitted'; }
+}
+
+/* ===== LEVEL COMPLETE ===== */
+function showLevelComplete(title, msg, score) {
+  document.getElementById('lvlTitle').textContent = 'Well Done!';
+  document.getElementById('lvlMsg').textContent = msg;
+  document.getElementById('lvlStats').innerHTML = `
+    <div class="text-center"><div class="stat-val">${score}</div><div class="stat-label">Total Score</div></div>
+    <div class="text-center"><div class="stat-val">${state.streak}</div><div class="stat-label">Streak</div></div>`;
+  document.getElementById('levelOverlay').style.display = 'flex';
+}
+
+function closeLevelOverlay() {
+  document.getElementById('levelOverlay').style.display = 'none';
+  goHome();
+}
+
+/* ===== BACKGROUND PARTICLES ===== */
+function createParticles() {
+  const cont = document.getElementById('particles');
+  for(let i=0; i<18; i++) {
+    const p = document.createElement('div');
+    p.className = 'bg-particle';
+    const size = Math.random()*4 + 2;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      opacity:${Math.random()*0.04 + 0.01};
+      animation: float ${Math.random()*20+15}s ease-in-out infinite;
+      animation-delay: ${Math.random()*-20}s;
+    `;
+    cont.appendChild(p);
+  }
+}
+
+/* ===== INIT ===== */
+function init() {
+  createParticles();
+  updateScoreDisplay();
+
+  // Keyboard support for activity cards
+  document.querySelectorAll('.act-card').forEach(card => {
+    card.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
