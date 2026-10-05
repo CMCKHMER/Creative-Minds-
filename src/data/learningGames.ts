@@ -50,10 +50,7 @@ export const LEARNING_GAMES: LearningGame[] = [
     badge: 'Live',
     questions: [],
   },
-  {
-    id: 'affix-architect',
-    ... (rest of your existing affix-architect entry continues here unchanged)
-    id: 'affix-architect',
+    {
     id: 'affix-architect',
     title: 'Affix Architect',
     skill: 'Vocabulary',
