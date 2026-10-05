@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, Headphones, Lightbulb, RotateCcw, Sparkles, XCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, RotateCcw, Sparkles, XCircle } from 'lucide-react';
 import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 
@@ -150,16 +150,18 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
             const Icon = gameIcon(game.skill);
             return (
               <article key={game.id} className="group flex min-h-[280px] flex-col border-b border-white/10 py-6 transition-colors hover:border-cyan-200/25">
-                <div className="flex items-center justify-between gap-3"><span className={`grid h-10 w-10 place-items-center rounded-xl border bg-gradient-to-br ${accent(index)}`}><Icon className="h-4.5 w-4.5" aria-hidden="true" /></span><span className="rounded-md border border-white/8 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-slate-400 uppercase">{game.skill}</span></div>
-                <h3 className="mt-4 font-[var(--font-display)] text-lg font-bold text-white transition group-hover:text-cyan-100">{game.title}</h3>
+                <div className="flex items-center justify-between gap-3"><span className={`grid h-10 w-10 place-items-center rounded-xl border bg-gradient-to-br ${accent(index)}`}><Icon className="h-4.5 w-4.5" aria-hidden="true" /></span><span className="flex items-center gap-2">{game.badge && <span className="rounded-md border border-cyan-200/30 bg-cyan-200/10 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-cyan-200 uppercase">{game.badge}</span>}<span className="rounded-md border border-white/8 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-slate-400 uppercase">{game.skill}</span></span></div>
                 <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-400">{game.description}</p>
                 <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>{game.level}</span><span aria-hidden="true">·</span><span>{game.duration}</span></div>
-                <button type="button" onClick={() => chooseGame(game)} className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">Read & play <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" /></button>
+                               {game.externalUrl ? (
+                  <a href={game.externalUrl} target="_blank" rel="noopener noreferrer" className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+                    Open game
+                    <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
+                  </a>
+                ) : (
+                  <button type="button" onClick={() => chooseGame(game)} className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">Read &amp; play <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" /></button>
+                )}
               </article>
-            );
-          })}
-        </div>
-
         {selectedGame && <GamePlay key={selectedGame.id} game={selectedGame} onExit={() => setSelectedGame(null)} />}
 
         <p className="mt-8 text-center text-[10px] leading-relaxed text-slate-600">Original classroom practice activities. These games do not collect or store student answers.</p>
