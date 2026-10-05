@@ -2,13 +2,20 @@ import { describe, expect, it } from 'vitest';
 import { LEARNING_GAMES } from './learningGames';
 
 describe('student learning games', () => {
-  it('provides six distinct selectable games', () => {
-    expect(LEARNING_GAMES).toHaveLength(6);
-    expect(new Set(LEARNING_GAMES.map((game) => game.id)).size).toBe(6);
+  it('provides at least six distinct selectable games', () => {
+    expect(LEARNING_GAMES.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(LEARNING_GAMES.map((game) => game.id)).size).toBe(LEARNING_GAMES.length);
   });
 
-  it('has valid answer keys, explanations, and at least three rounds per game', () => {
-    for (const game of LEARNING_GAMES) {
+    it('has valid answer keys, explanations, and at least three rounds per in-page game', () => {
+        for (const game of LEARNING_GAMES) {
+      // External-link games (e.g. WriteQuest) open in a new tab and have no
+      // in-page questions, so skip the question-shape assertions for them.
+      if (game.externalUrl) {
+        expect(game.externalUrl.trim()).not.toBe('');
+        expect(game.description.trim()).not.toBe('');
+        continue;
+      }
       expect(game.questions.length).toBeGreaterThanOrEqual(3);
       expect(game.description.trim()).not.toBe('');
       for (const question of game.questions) {
