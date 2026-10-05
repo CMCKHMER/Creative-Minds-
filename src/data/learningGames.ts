@@ -20,6 +20,14 @@ export interface LearningGame {
   passage?: string[];
   audioScript?: string;
   questions: LearningGameQuestion[];
+  /**
+   * Optional link to a standalone HTML game (e.g. ./writequest.html).
+   * When present, the card renders as an anchor that opens the URL in a new tab
+   * instead of launching the in-page React question player.
+   */
+  externalUrl?: string;
+  /** Optional badge label for external/featured cards (e.g. "Live", "Featured"). */
+  badge?: string;
 }
 
 const courtyardPassage = [
@@ -31,6 +39,21 @@ const listeningGameScript = 'Teacher: The model wind turbine will be ready for t
 
 export const LEARNING_GAMES: LearningGame[] = [
   {
+    id: 'writequest',
+    title: 'WriteQuest · Guided Writing Studio',
+    skill: 'Vocabulary',
+    level: 'Grades 5–9',
+    duration: 'Self-paced · about 8 min',
+    description: 'A standalone writing studio: draft a short response, get rubric-style feedback on sentence variety and word count, then revise. Opens in a new tab — no login, no student data.',
+    instructions: 'Open WriteQuest in a new tab and follow the prompts inside the studio.',
+    externalUrl: './writequest.html',
+    badge: 'Live',
+    questions: [],
+  },
+  {
+    id: 'affix-architect',
+    ... (rest of your existing affix-architect entry continues here unchanged)
+    id: 'affix-architect',
     id: 'affix-architect',
     title: 'Affix Architect',
     skill: 'Vocabulary',
