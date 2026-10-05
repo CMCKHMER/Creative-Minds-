@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy } from 'react';
 import { 
   Search, Download,
   Sparkles, GraduationCap, ArrowRight, BookOpen
@@ -12,7 +12,8 @@ import type { ResourceCategory } from '../types';
 // Only fetched when a teacher opens a pack preview, keeping the (large) assignment
 // renderer and its audio/print helpers out of the initial bundle.
 const AssignmentPreview = lazy(() =>
-  import React, { useState, lazy } from 'react';
+  import('./AssignmentPreview').then((m) => ({ default: m.AssignmentPreview })),
+);
 
 export const ResourceLibrary: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ResourceCategory>('All');
