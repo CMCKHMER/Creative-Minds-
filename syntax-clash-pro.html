@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Syntax Clash Pro — Grammar Hacker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Space+Grotesk:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script>tailwind.config={theme:{extend:{fontFamily:{mono:['JetBrains Mono','monospace'],sans:['Space Grotesk','sans-serif']}}}}</script>
+<style>
+:root{
+  --bg:#0a0e17;--cd:#0f1623;--sf:#151d2e;--bd:#1c2740;--tx:#c9d1d9;--mt:#484f58;
+  --ac:#10b981;--ag:rgba(16,185,129,.25);--er:#f85149;--eg:rgba(248,81,73,.25);
+  --wn:#d29922;--cy:#39d2c0;--pp:#c084fc;--ppg:rgba(192,132,252,.25);
+}
+[data-theme="matrix"]{--bg:#000;--cd:#001200;--sf:#001a00;--bd:#003300;--tx:#33ff66;--mt:#006633;--ac:#00ff66;--ag:rgba(0,255,102,.2);--er:#ff3333;--eg:rgba(255,51,51,.2);--wn:#ffcc00;--cy:#66ff99;--pp:#00ffaa;--ppg:rgba(0,255,170,.2)}
+[data-theme="synthwave"]{--bg:#1a0a2e;--cd:#2a1340;--sf:#3d1a5c;--bd:#4a2070;--tx:#f0e6ff;--mt:#9a7fcf;--ac:#ff2e88;--ag:rgba(255,46,136,.25);--er:#ff5757;--eg:rgba(255,87,87,.25);--wn:#ffcc33;--cy:#00f0ff;--pp:#c084fc;--ppg:rgba(192,132,252,.25)}
+[data-theme="terminal"]{--bg:#0a0a0a;--cd:#141414;--sf:#1e1e1e;--bd:#2a2a2a;--tx:#d4d4d4;--mt:#666;--ac:#ffaa00;--ag:rgba(255,170,0,.25);--er:#ff3333;--eg:rgba(255,51,51,.25);--wn:#ffcc00;--cy:#66ccff;--pp:#ff66cc;--ppg:rgba(255,102,204,.25)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .4s,color .4s}
+body::before{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.025)1px,transparent 1px);background-size:32px 32px}
+#fx{position:fixed;inset:0;z-index:50;pointer-events:none}
+.amb{position:fixed;top:-30%;left:50%;transform:translateX(-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,var(--ag)0%,transparent 70%);filter:blur(80px);pointer-events:none;z-index:2;transition:background .6s}.amb.em{background:radial-gradient(circle,var(--eg)0%,transparent 70%)}
+#gl{position:fixed;inset:0;z-index:100;pointer-events:none;opacity:0}#gl.on{animation:gA .4s steps(6) forwards}
+@keyframes gA{0%{opacity:0;clip-path:inset(20% 0 60% 0);transform:translateX(-4px);background:rgba(248,81,73,.08)}15%{opacity:1;clip-path:inset(60% 0 10% 0);transform:translateX(4px)}30%{opacity:1;clip-path:inset(40% 0 30% 0);transform:translateX(-2px);background:rgba(248,81,73,.1)}50%{opacity:1;clip-path:inset(10% 0 70% 0);transform:translateX(6px)}70%{opacity:1;clip-path:inset(70% 0 5% 0);transform:translateX(-3px);background:rgba(248,81,73,.08)}100%{opacity:0}}
+#app{position:relative;z-index:10}
+.ec{background:var(--cd);border:1px solid var(--bd);border-radius:12px;overflow:hidden;transition:border-color .4s,box-shadow .4s}.ec.gg{border-color:var(--ac);box-shadow:0 0 30px var(--ag)}.ec.gr{border-color:var(--er);box-shadow:0 0 30px var(--eg)}
+.etb{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;align-items:center;gap:8px}
+.dt{width:12px;height:12px;border-radius:50%}.dt.r{background:#f85149}.dt.y{background:#d29922}.dt.g{background:#10b981}
+.etab{margin-left:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mt);background:var(--cd);padding:3px 12px;border-radius:6px 6px 0 0;border:1px solid var(--bd);border-bottom:none}
+.eby{padding:20px 0;font-family:'JetBrains Mono',monospace;min-height:70px;display:flex}
+.ln{padding:0 14px 0 18px;color:var(--mt);font-size:13px;line-height:2;text-align:right;user-select:none;border-right:1px solid var(--bd);min-width:44px}
+.sa{padding:0 20px;font-size:17px;line-height:2;flex:1;color:#e6edf3;transition:color .3s}
+.ttk{height:4px;background:var(--sf);border-radius:2px;overflow:hidden;margin:0 20px}.tfl{height:100%;border-radius:2px;background:var(--ac);will-change:width}.tfl.dg{background:var(--er)}
+.ck{display:inline-block;padding:6px 14px;margin:4px;border:1px solid var(--bd);border-radius:8px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;transition:all .15s;background:transparent;color:var(--tx)}.ck:hover{border-color:var(--cy);color:var(--cy);transform:translateY(-1px)}.ck.wrg{border-color:var(--er)!important;color:var(--er)!important;background:rgba(248,81,73,.1)!important}.ck.crr{border-color:var(--ac)!important;color:var(--ac)!important;background:rgba(16,185,129,.1)!important}.ck.dis{pointer-events:none;opacity:.5}
+.bj{padding:14px 20px;border:2px solid var(--bd);border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--tx);display:flex;align-items:center;justify-content:center;gap:8px}.bj.bc:hover{border-color:var(--ac);color:var(--ac);background:rgba(16,185,129,.06);transform:translateY(-2px)}.bj.bi:hover{border-color:var(--er);color:var(--er);background:rgba(248,81,73,.06);transform:translateY(-2px)}.bj.bs{flex:1}
+.co{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;padding:14px 20px;background:rgba(0,0,0,.3);border-top:1px solid var(--bd);min-height:0;overflow:hidden;transition:min-height .3s}.co.on{min-height:70px}
+.cl{opacity:0;transform:translateY(6px);animation:cI .25s forwards}.cl:nth-child(1){animation-delay:.05s}.cl:nth-child(2){animation-delay:.18s}.cl:nth-child(3){animation-delay:.3s}.cl:nth-child(4){animation-delay:.42s}@keyframes cI{to{opacity:1;transform:translateY(0)}}
+.cp{color:var(--cy)}.cs{color:var(--ac)}.cer{color:var(--er)}.cw{color:var(--wn)}.cm{color:var(--mt)}.cpp{color:var(--pp)}
+.ht{transition:all .3s;display:inline-block}.ht.lo{color:var(--mt)!important;transform:scale(.7);opacity:.3}.ht.br{animation:hB .4s ease-out}@keyframes hB{0%{transform:scale(1)}30%{transform:scale(1.3);color:var(--er)}100%{transform:scale(.7);opacity:.3}}
+.sf{animation:fP .6s ease-in-out infinite alternate}@keyframes fP{from{text-shadow:0 0 4px var(--wn)}to{text-shadow:0 0 12px var(--wn),0 0 24px rgba(210,153,34,.4)}}
+.sp{position:fixed;pointer-events:none;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;animation:sP 1s ease-out forwards;z-index:60}@keyframes sP{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+.shk{animation:shk .4s ease-out}@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.si{animation:si .35s ease-out}@keyframes si{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+.tc{display:inline-block;animation:tB .5s ease-out forwards;opacity:0}@keyframes tB{0%{opacity:0;transform:translateY(30px) scale(.5)}60%{transform:translateY(-5px) scale(1.05)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.bp{background:var(--ac);color:var(--bg);font-weight:700;padding:14px 36px;border-radius:10px;border:none;font-size:17px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s}.bp:hover{filter:brightness(1.15);transform:translateY(-2px);box-shadow:0 8px 24px var(--ag)}
+.bp2{background:transparent;color:var(--tx);border:2px solid var(--bd);font-weight:700;padding:14px 28px;border-radius:10px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:16px;transition:all .2s}.bp2:hover{border-color:var(--cy);color:var(--cy);transform:translateY(-2px)}
+.sl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--mt);font-weight:600}.sv{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px}
+.db{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:4px}
+.d1{background:rgba(16,185,129,.15);color:var(--ac)}.d2{background:rgba(210,153,34,.15);color:var(--wn)}.d3{background:rgba(248,81,73,.15);color:var(--er)}
+.ms{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:24px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}.ms:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,0,0,.4);border-color:var(--cy)}.ms::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0;transition:opacity .3s}.ms:hover::before{opacity:1}
+.ms-ic{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:18px}
+.ms-tg{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:5px}
+.ms-pr{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--mt);line-height:1.6;padding:12px;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid var(--bd);margin-top:14px;white-space:pre-line}
+.ms-pr .hl{color:var(--er);text-decoration:underline wavy var(--er);text-underline-offset:3px}.ms-pr .fx{color:var(--ac);font-weight:700}
+.bb{position:fixed;top:16px;left:16px;z-index:60;background:rgba(15,22,35,.9);backdrop-filter:blur(8px);border:1px solid var(--bd);color:var(--mt);padding:10px 18px;border-radius:10px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;transition:all .2s;display:none;align-items:center;gap:8px}.bb.vis{display:flex}.bb:hover{border-color:var(--cy);color:var(--cy)}
+.tb{position:fixed;top:16px;right:16px;z-index:60;display:none;align-items:center;gap:8px}.tb.vis{display:flex}
+.tbi{background:rgba(15,22,35,.9);backdrop-filter:blur(8px);border:1px solid var(--bd);color:var(--mt);width:40px;height:40px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:15px}.tbi:hover{border-color:var(--cy);color:var(--cy)}
+.ml{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cy);background:rgba(57,210,192,.1);padding:2px 8px;border-radius:4px}
+.trm{background:#080c12;border:1px solid rgba(16,185,129,.3);border-radius:12px;overflow:hidden;font-family:'JetBrains Mono',monospace}
+.trm-hd{background:rgba(16,185,129,.08);border-bottom:1px solid rgba(16,185,129,.2);padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.trm-bd{padding:20px;min-height:140px}
+.trm-sent{font-size:15px;color:#e6edf3;line-height:1.8;margin:10px 0}
+.trm-sent .bk{color:var(--ac);border-bottom:2px solid var(--ac);padding:0 8px;margin:0 2px;font-weight:700;background:rgba(16,185,129,.1);border-radius:4px}
+.trm-pr{color:var(--ac);font-size:14px;margin-top:14px;display:flex;align-items:center}
+.trm-pr input{background:transparent;border:none;color:var(--ac);font-family:'JetBrains Mono',monospace;font-size:14px;outline:none;caret-color:var(--ac);flex:1;padding:0}
+.trm-ft{background:rgba(0,0,0,.3);border-top:1px solid rgba(16,185,129,.15);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.al-trk{width:120px;height:8px;background:var(--sf);border-radius:4px;overflow:hidden}.al-fl{height:100%;border-radius:4px;transition:width .3s,background .3s}
+.ldot{width:12px;height:12px;border-radius:50%;display:inline-block;margin:0 2px;transition:all .3s}.ldot.on{background:var(--ac);box-shadow:0 0 8px var(--ag)}.ldot.off{background:var(--bd)}
+.ag-t{font-size:20px;font-weight:700;letter-spacing:3px;opacity:0}.ag-t.gr{color:var(--ac);animation:agA .5s ease-out forwards}.ag-t.dn{color:var(--er);animation:agA .5s ease-out forwards}@keyframes agA{0%{opacity:0;transform:scale(.8)}30%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+.hc{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:18px;cursor:pointer;transition:all .25s;overflow:hidden;position:relative}.hc:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.3);border-color:var(--cy)}.hc.done{border-color:rgba(16,185,129,.3)}.hc.done::after{content:'BREACHED';position:absolute;top:10px;right:10px;font-size:8px;font-weight:700;letter-spacing:1px;color:var(--ac);background:rgba(16,185,129,.15);padding:2px 6px;border-radius:4px}
+.emb{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .3s}.emb.on{color:var(--ac);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);box-shadow:0 0 16px var(--ag)}.emb.off{color:var(--bd);background:var(--sf);border:1px solid var(--bd)}
+.sheet{position:fixed;inset:0;z-index:55;background:var(--bg);overflow-y:auto;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);opacity:0}.sheet.on{transform:translateX(0);opacity:1}
+.xbar{width:100%;height:6px;background:var(--sf);border-radius:3px;overflow:hidden}.xbar-fl{height:100%;background:linear-gradient(90deg,var(--ac),var(--cy));transition:width .5s}
+.ach{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;transition:all .25s}
+.ach.un{border-color:var(--wn);background:rgba(210,153,34,.05)}.ach.un .achi{color:var(--wn);background:rgba(210,153,34,.15)}
+.ach.lk{opacity:.55}
+.achi{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--sf);color:var(--mt);flex-shrink:0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--cd);border:1px solid var(--ac);color:var(--tx);padding:14px 22px;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;z-index:200;opacity:0;transition:all .35s;box-shadow:0 8px 32px var(--ag);display:flex;align-items:center;gap:10px;max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast .ti{width:32px;height:32px;border-radius:8px;background:rgba(210,153,34,.2);color:var(--wn);display:flex;align-items:center;justify-content:center;font-size:14px}
+.modal-bg{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .25s}
+.modal-bg.on{display:flex;opacity:1}
+.modal{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:28px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;transform:translateY(20px);transition:transform .3s}
+.modal-bg.on .modal{transform:translateY(0)}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--bd)}
+.thm-pick{display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;border-radius:8px;border:1px solid var(--bd);transition:all .2s}
+.thm-pick.act{border-color:var(--cy);box-shadow:0 0 12px var(--ag)}
+.thm-swatch{width:18px;height:18px;border-radius:4px;border:1px solid rgba(255,255,255,.1)}
+kbd{padding:2px 8px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace;background:var(--sf);border:1px solid var(--bd);color:var(--mt)}
+.ref-cat{background:var(--sf);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.ref-hd{padding:12px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-weight:600;color:var(--tx);transition:color .2s}
+.ref-hd:hover{color:var(--cy)}
+.ref-bd{padding:0 18px 14px;color:var(--mt);font-size:13px;line-height:1.7;display:none}
+.ref-cat.open .ref-bd{display:block}
+.ref-cat.open .ref-chev{transform:rotate(90deg)}
+.ref-chev{transition:transform .25s;color:var(--mt)}
+.stat-box{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:18px;text-align:center}
+.conf{position:fixed;pointer-events:none;z-index:90;width:8px;height:14px;animation:cf 1.5s linear forwards}@keyframes cf{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(500px) rotate(720deg)}}
+.tab-bar{display:flex;gap:4px;background:var(--sf);padding:4px;border-radius:10px;border:1px solid var(--bd)}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--mt);transition:all .2s}
+.tab.act{background:var(--cd);color:var(--ac);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px}
+.bar-col{flex:1;background:linear-gradient(180deg,var(--ac),var(--cy));border-radius:4px 4px 0 0;min-height:4px;transition:height .5s;position:relative}
+.bar-col:hover::after{content:attr(data-v);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--cd);color:var(--tx);padding:4px 8px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace;border:1px solid var(--bd);white-space:nowrap}
+.skd{animation:skd 1.2s ease-in-out infinite}@keyframes skd{0%,100%{opacity:.5}50%{opacity:1}}
+@media(max-width:640px){.sa{font-size:14px;padding:0 14px}.sv{font-size:17px}.ms{padding:18px}.ms-ic{width:44px;height:44px;font-size:18px}.trm-sent{font-size:13px}.bj{font-size:14px;padding:12px 16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="amb" id="ambG"></div>
+<div id="gl"></div>
+<button class="bb" id="backBtn"><i class="fa-solid fa-arrow-left"></i> Menu</button>
+<div class="tb" id="topBtns">
+  <button class="tbi" id="pauseBtn" title="Pause (Esc)"><i class="fa-solid fa-pause"></i></button>
+  <button class="tbi" id="settingsBtn" title="Settings"><i class="fa-solid fa-gear"></i></button>
+  <button class="tbi" id="muteBtn" title="Toggle Sound (M)"><i class="fa-solid fa-volume-high"></i></button>
+</div>
+<div class="toast" id="toast"><div class="ti"><i class="fa-solid fa-trophy"></i></div><div id="toastMsg"></div></div>
+<div class="modal-bg" id="modalBg"><div class="modal" id="modalContent"></div></div>
+<div id="app"></div>
+<script>
+/* === SECTION_1: SOUND SYSTEM === */
+var sC=null, sVol=0.7, sMute=false;
+try{sVol=parseFloat(localStorage.getItem('sc_vol'));if(isNaN(sVol))sVol=0.7;sMute=localStorage.getItem('sc_mute')==='1'}catch(e){}
+function iS(){if(!sC)sC=new(window.AudioContext||window.webkitAudioContext)();if(sC.state==='suspended')sC.resume()}
+function snd(t){if(!sC||sMute||sVol<=0)return;var n=sC.currentTime,v=sVol;
+function tone(freq,dur,type,vol,dec){var o=sC.createOscillator(),g=sC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(freq,n);g.gain.setValueAtTime(vol*v,n);g.gain.exponentialRampToValueAtTime(.001,n+dur);o.connect(g);g.connect(sC.destination);o.start(n);o.stop(n+dur)}
+if(t==='click'){var o=sC.createOscillator(),g=sC.createGain();o.type='sine';o.frequency.setValueAtTime(800,n);o.frequency.exponentialRampToValueAtTime(400,n+.05);g.gain.setValueAtTime(.06*v,n);g.gain.exponentialRampToValueAtTime(.001,n+.05);o.connect(g);g.connect(sC.destination);o.start(n);o.stop(n+.05)}
+if(t==='correct'){[523,659,784].forEach(function(f,i){var o=sC.createOscillator(),g=sC.createGain();o.type='sine';o.frequency.setValueAtTime(f,n+i*.08);g.gain.setValueAtTime(.08*v,n+i*.08);g.gain.exponentialRampToValueAtTime(.001,n+i*.08+.22);o.connect(g);g.connect(sC.destination);o.start(n+i*.08);o.stop(n+i*.08+.22)})}
+if(t==='wrong'){var o=sC.createOscillator(),g=sC.createGain();o.type='sawtooth';o.frequency.setValueAtTime(200,n);o.frequency.exponentialRampToValueAtTime(80,n+.25);g.gain.setValueAtTime(.06*v,n);g.gain.exponentialRampToValueAtTime(.001,n+.25);o.connect(g);g.connect(sC.destination);o.start(n);o.stop(n+.25)}
+if(t==='grant'){[659,784,988,1175,1319].forEach(function(f,i){var o=sC.createOscillator(),g=sC.createGain();o.type='sine';o.frequency.setValueAtTime(f,n+i*.07);g.gain.setValueAtTime(.06*v,n+i*.07);g.gain.exponentialRampToValueAtTime(.001,n+i*.07+.25);o.connect(g);g.connect(sC.destination);o.start(n+i*.07);o.stop(n+i*.07+.25)})}
+if(t==='over'){[440,370,311,261].forEach(function(f,i){var o=sC.createOscillator(),g=sC.createGain();o.type='sine';o.frequency.setValueAtTime(f,n+i*.2);g.gain.setValueAtTime(.08*v,n+i*.2);g.gain.exponentialRampToValueAtTime(.001,n+i*.2+.35);o.connect(g);g.connect(sC.destination);o.start(n+i*.2);o.stop(n+i*.2+.35)})}
+if(t==='key'){var o=sC.createOscillator(),g=sC.createGain();o.type='sine';o.frequency.setValueAtTime(1200,n);g.gain.setValueAtTime(.015*v,n);g.gain.exponentialRampToValueAtTime(.001,n+.02);o.connect(g);g.connect(sC.destination);o.start(n);o.stop(n+.02)}
+if(t==='achieve'){[523,659,784,988,1175,1319,1568].forEach(function(f,i){var o=sC.createOscillator(),g=sC.createGain();o.type='triangle';o.frequency.setValueAtTime(f,n+i*.06);g.gain.setValueAtTime(.07*v,n+i*.06);g.gain.exponentialRampToValueAtTime(.001,n+i*.06+.3);o.connect(g);g.connect(sC.destination);o.start(n+i*.06);o.stop(n+i*.06+.3)})}
+if(t==='tick'){tone(1000,.04,'square',.04)}
+if(t==='warn'){tone(220,.15,'sawtooth',.05);setTimeout(function(){tone(180,.15,'sawtooth',.05)},160)}
+if(t==='levelup'){[523,659,784,1047].forEach(function(f,i){var o=sC.createOscillator(),g=sC.createGain();o.type='triangle';o.frequency.setValueAtTime(f,n+i*.1);g.gain.setValueAtTime(.07*v,n+i*.1);g.gain.exponentialRampToValueAtTime(.001,n+i*.1+.4);o.connect(g);g.connect(sC.destination);o.start(n+i*.1);o.stop(n+i*.1+.4)})}}
+/* === SECTION_2: PARTICLES & HELPERS === */
+var fxC=document.getElementById('fx').getContext('2d'),fxP=[];
+function spB(x,y,c,n){n=n||25;for(var i=0;i<n;i++){var a=Math.random()*Math.PI*2,sp=2+Math.random()*5;fxP.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,li:1,dc:.02+Math.random()*.02,sz:2+Math.random()*4,col:c,sh:Math.random()>.5?'s':'c',gv:.08})}}
+function dFx(){fxC.clearRect(0,0,innerWidth,innerHeight);for(var i=fxP.length-1;i>=0;i--){var p=fxP[i];p.x+=p.vx;p.y+=p.vy;p.vy+=p.gv;p.vx*=.98;p.li-=p.dc;if(p.li<=0){fxP.splice(i,1);continue}fxC.save();fxC.globalAlpha=p.li;fxC.fillStyle=p.col;if(p.sh==='c'){fxC.beginPath();fxC.arc(p.x,p.y,Math.max(.5,p.sz*p.li),0,Math.PI*2);fxC.fill()}else{var s=Math.max(.5,p.sz*p.li);fxC.translate(p.x,p.y);fxC.rotate(p.li*3);fxC.fillRect(-s/2,-s/2,s,s)}fxC.restore()}}
+function aL(){dFx();requestAnimationFrame(aL)}aL();
+function confetti(x,y,n){n=n||60;var cols=['#10b981','#d29922','#39d2c0','#c084fc','#f85149','#ffcc33','#00f0ff'];for(var i=0;i<n;i++){var d=document.createElement('div');d.className='conf';d.style.left=(x+(Math.random()-.5)*80)+'px';d.style.top=y+'px';d.style.background=cols[Math.floor(Math.random()*cols.length)];d.style.transform='rotate('+(Math.random()*360)+'deg)';d.style.animationDuration=(1+Math.random()*1.2)+'s';d.style.animationDelay=(Math.random()*.2)+'s';document.body.appendChild(d);(function(dd){setTimeout(function(){dd.remove()},2800)})(d)}}
+function trigG(){var e=document.getElementById('gl');e.classList.remove('on');void e.offsetWidth;e.classList.add('on');setTimeout(function(){e.classList.remove('on')},500)}
+function eC(){var c=document.getElementById('edC');if(!c)return{x:innerWidth/2,y:innerHeight/2};var r=c.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function nS(s){return s.toLowerCase().trim().replace(/['\u2019]/g,"'")}
+function sSP(t,c){var e=document.createElement('div');e.className='sp';e.textContent=t;e.style.color=c;var s=document.getElementById('sD');if(s){var r=s.getBoundingClientRect();e.style.left=r.left+'px';e.style.top=(r.top-10)+'px';e.style.position='fixed';e.style.zIndex='100';document.body.appendChild(e);setTimeout(function(){e.remove()},1100)}}
+function brkH(){var h=document.querySelectorAll('.ht:not(.lo)');if(h.length)h[h.length-1].classList.add('br');setTimeout(function(){document.querySelectorAll('.ht.br').forEach(function(x){x.classList.remove('br');x.classList.add('lo')})},400)}
+function toast(msg,icon){var t=document.getElementById('toast');document.getElementById('toastMsg').innerHTML=msg;if(icon){t.querySelector('.ti').innerHTML='<i class="fa-solid '+icon+'"></i>'}t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3200)}
+function fmtTime(ms){var s=Math.floor(ms/1000);var m=Math.floor(s/60);s=s%60;return m+':'+(s<10?'0':'')+s}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function dateStr(d){var y=d.getFullYear(),m=(d.getMonth()+1),da=d.getDate();return y+'-'+(m<10?'0':'')+m+'-'+(da<10?'0':'')+da}
+function hash(str){var h=0;for(var i=0;i<str.length;i++){h=((h<<5)-h)+str.charCodeAt(i);h|=0}return Math.abs(h)}
+function rand(min,max){return Math.random()*(max-min)+min}
+/* === SECTION_3: GRAMMAR RULES === */
+var GR=[function(s){
+  /* Subject-Verb Agreement */
+  var p=[
+    {re:/\b(she|he|it)\s+don't\b/i,w:"don't",r:"doesn't",m:function(t){return'"'+t[1]+'" is 3rd person singular — use "doesn\'t"'}},
+    {re:/\b(they|we|you)\s+doesn't\b/i,w:"doesn't",r:"don't",m:function(t){return'"'+t[1]+'" is plural — use "don\'t"'}},
+    {re:/\b(they|we)\s+is\s/i,w:"is",r:"are",m:function(t){return'"'+t[1]+'" is plural — use "are"'}},
+    {re:/\b(she|he|it)\s+are\s/i,w:"are",r:"is",m:function(t){return'"'+t[1]+'" is singular — use "is"'}},
+    {re:/\b(he|she|it)\s+have\s/i,w:"have",r:"has",m:function(t){return'"'+t[1]+'" is 3rd person singular — use "has"'}},
+    {re:/\b(they|we|you)\s+has\s/i,w:"has",r:"have",m:function(t){return'"'+t[1]+'" takes "have"'}},
+    {re:/\b(we|they)\s+was\s/i,w:"was",r:"were",m:function(t){return'"'+t[1]+'" is plural — use "were"'}},
+    {re:/\bi\s+are\s/i,w:"are",r:"am",m:function(){return'"I" takes "am"'}},
+    {re:/\bit\s+are\s/i,w:"are",r:"is",m:function(){return'"It" is singular — use "is"'}},
+    {re:/\b(everyone|everybody|someone|somebody|anyone|anybody|nobody|no one)\s+(are|have|were)\b/i,w:'',r:'',m:function(t){return'"'+t[1]+'" is singular — use a singular verb'}},
+    {re:/\b(each|every)\s+\w+\s+(are|have|were)\b/i,w:'',r:'',m:function(){return'"Each" / "every" is singular — use a singular verb'}}
+  ];
+  var pn=['children','cats','dogs','students','players','friends','people','birds','cars','men','women','feet','teeth','mice','geese'];
+  for(var i=0;i<pn.length;i++){(function(n){p.push({re:new RegExp('\\b'+n+'\\s+(is|has|was)\\b','i'),w:'singular verb',r:'plural verb',m:function(){return'"'+n+'" is plural — requires plural verb'}})})(pn[i])}
+  for(var j=0;j<p.length;j++){var m=s.match(p[j].re);if(m)return{rule:'Subject-Verb Agreement',wrongWord:p[j].w,correctWord:p[j].r,explanation:p[j].m(m)}}
+  return null
+},function(s){
+  /* Pronoun Case */
+  var c=[
+    {re:/^\s*me\s+and\s+(him|her|them)\s/i,e:'"Me" and objective pronouns cannot be the subject — use "I" and the subjective form.'},
+    {re:/\bbetween\s+you\s+and\s+i\b/i,e:'After "between", use "me", not "I" — prepositions take objective case.'},
+    {re:/\bwhom\s+do\s+you\s+think\b/i,e:'Use "who" for subjects of verbs.'},
+    {re:/\bwhom\s+(is|are|was|were|will)\b/i,e:'Use "who" as the subject — "whom" is for objects.'},
+    {re:/\bfor\s+you\s+and\s+i\b/i,e:'After "for", use "me", not "I" — prepositions take objective case.'},
+    {re:/\b(between|with|to|for|from|by)\\s+my\s+friend\s+and\s+i\b/i,e:'After a preposition, use "me".'},
+    {re:/\b(my|his|her|their)\s+and\s+my\s+friend\b/i,e:'Put "my friend" first: "my friend and I/me".'}
+  ];
+  for(var i=0;i<c.length;i++){if(c[i].re.test(s))return{rule:'Pronoun Case',explanation:c[i].e}}
+  return null
+},function(s){
+  /* Common Confusion: their/they're, your/you're, its/it's, affect/effect */
+  var c=[
+    {re:/\btheir\s+(going|coming|running|playing|walking|talking|eating|sleeping|working|leaving|arriving|happy|sad|angry|tired|ready|here|there)\b/i,w:'their',r:"they're",e:'"Their" is possessive — use "they\'re" (= they are).'},
+    {re:/\byour\s+(the|a|very|really|so|not|my|his|her|our|their|best|going|being|doing|right|wrong|welcome|here|there|amazing|awesome|great|awful)\b/i,w:'your',r:"you're",e:'"Your" is possessive — use "you\'re" (= you are).'},
+    {re:/\bits\s+(been|a|an|the|not|going|time|great|important|okay|fine|cold|hot|late|early)\b/i,w:'its',r:"it's",e:'"Its" is possessive — use "it\'s" (= it is).'},
+    {re:/\bit's\s+(fur|tail|legs|wings|head|body|name|color|eyes|ears|shape|size|beak|paws|leaves|branches|bark)\b/i,w:"it's",r:"its",e:'"It\'s" means "it is" — use "its" for possession.'},
+    {re:/\bthe\s+affect\s+of\b/i,w:'affect',r:'effect',e:'Use "effect" as a noun — "affect" is usually a verb.'},
+    {re:/\bwill\s+effect\b/i,w:'effect',r:'affect',e:'Use "affect" as a verb meaning "to influence".'},
+    {re:/\btheir\s+are\b/i,w:'their',r:'there',e:'Use "there" for existence — "their" is possessive.'},
+    {re:/\bthey\'re\s+(house|car|dog|cat|books|shoes|clothes|lives|family|parents|friends)\b/i,w:"they're",r:'their',e:'"They\'re" = "they are" — use "their" for possession.'},
+    {re:/\byour\s+welcome\b/i,w:'your',r:"you're",e:'"You\'re welcome" means "you are welcome".'},
+    {re:/\balot\b/i,w:'alot',r:'a lot',e:'"A lot" is two words.'}
+  ];
+  for(var i=0;i<c.length;i++){if(c[i].re.test(s))return{rule:'Common Confusion',wrongWord:c[i].w,correctWord:c[i].r,explanation:c[i].e}}
+  return null
+},function(s){
+  /* Verb Form: could/would/should of */
+  var m=s.match(/\b(could|would|should|might|must)\s+of\b/i);
+  if(m)return{rule:'Verb Form',wrongWord:'of',correctWord:'have',explanation:'"'+m[1]+' of" → "'+m[1]+' have" (sounds alike, different word)'};
+  return null
+},function(s){
+  /* Less vs Fewer */
+  var m=s.match(/\bless\s+(students|people|friends|players|children|cats|dogs|books|cars|errors|words|coins|hours|days|minutes|apples|tickets|chances|points|items|objects)\b/i);
+  if(m)return{rule:'Less vs. Fewer',wrongWord:'less',correctWord:'fewer',explanation:'"'+m[1]+'" is countable — use "fewer".'};
+  var m2=s.match(/\bfewer\s+(water|money|time|sugar|salt|sand|rice|love|happiness|knowledge|information|advice|furniture|equipment)\b/i);
+  if(m2)return{rule:'Less vs. Fewer',wrongWord:'fewer',correctWord:'less',explanation:'"'+m2[1]+'" is uncountable — use "less".'};
+  return null
+},function(s){
+  /* Subjunctive mood */
+  var m=s.match(/\bi\s+wish\s+i\s+was\b/i);
+  if(m)return{rule:'Subjunctive',wrongWord:'was',correctWord:'were',explanation:'After "wish", use "were" for hypothetical situations.'};
+  m=s.match(/\bif\s+i\s+was\s+(you|rich|taller|braver|smarter|king|president)\b/i);
+  if(m)return{rule:'Subjunctive',wrongWord:'was',correctWord:'were',explanation:'Hypothetical "if" — use "were".'};
+  m=s.match(/\bif\s+(she|he|it|they|we)\s+was\b/i);
+  if(m)return{rule:'Subjunctive',wrongWord:'was',correctWord:'were',explanation:'Hypothetical "if" — use "were".'};
+  m=s.match(/\bi\s+wish\s+(she|he|it|they|we)\s+was\b/i);
+  if(m)return{rule:'Subjunctive',wrongWord:'was',correctWord:'were',explanation:'After "wish", use "were" for hypotheticals.'};
+  return null
+},function(s){
+  /* Lay vs Lie */
+  var m=s.match(/\b(i|she|he|we|they|the\s+\w+|a\s+\w+)\s+laid\s+(on|in|under|by|near|down|beside|on\s+top)\b/i);
+  if(m)return{rule:'Lay vs. Lie',wrongWord:'laid',correctWord:'lay',explanation:'Past tense of "lie" (recline) is "lay".'};
+  m=s.match(/\b\w+\s+lay\s+(the|a|an|some|my|his|her|their|our)\s+\w+/i);
+  if(m)return{rule:'Lay vs. Lie',wrongWord:'lay',correctWord:'laid',explanation:'Past tense of "lay" (put) is "laid".'};
+  return null
+},function(s){
+  /* Linking verb: feel bad/badly */
+  var m=s.match(/\b(i|she|he|they|we|you)\s+feel\s+badly\b/i);
+  if(m)return{rule:'Linking Verb',wrongWord:'badly',correctWord:'bad',explanation:'After linking verb "feel", use adjective "bad", not adverb "badly".'};
+  m=s.match(/\blooks\s+badly\b/i);
+  if(m)return{rule:'Linking Verb',wrongWord:'badly',correctWord:'bad',explanation:'"Looks" is a linking verb — use "bad".'};
+  return null
+},function(s){
+  /* Then vs Than */
+  var m=s.match(/\b(better|faster|slower|bigger|smaller|taller|shorter|smarter|older|younger|more\s+\w+|less\s+\w+)\s+then\b/i);
+  if(m)return{rule:'Then vs. Than',wrongWord:'then',correctWord:'than',explanation:'Comparisons use "than", not "then".'};
+  return null
+},function(s){
+  /* Who vs Whom */
+  var m=s.match(/\bwho\s+(did|should|will|can|could|would|must)\s+(you|i|she|he|they|we)\s+\w+\b/i);
+  if(m)return{rule:'Who vs. Whom',wrongWord:'who',correctWord:'whom',explanation:'"Whom" is the object — when "you" / "I" follows, use "whom".'};
+  m=s.match(/\bwhom\s+(is|are|was|were|will|did|has|have|can|could|should|would)\b/i);
+  if(m)return{rule:'Who vs. Whom',wrongWord:'whom',correctWord:'who',explanation:'"Who" is the subject — use it before verbs.'};
+  return null
+},function(s){
+  /* Collective nouns */
+  var m=s.match(/\b(the\s+)?(committee|team|family|group|jury|audience|class|staff|public|herd|flock|crowd)\s+(are|were|have)\b/i);
+  if(m)return{rule:'Collective Noun',wrongWord:m[2],r:'is',correctWord:'is',explanation:'"'+m[2]+'" is usually treated as singular in American English.'};
+  return null
+},function(s){
+  /* Plural foreign nouns */
+  var m=s.match(/\b(criteria|phenomena|data|media|analyses|theses|crises|axes|bases|stimuli)\s+(is|was|has)\b/i);
+  if(m)return{rule:'Foreign Plural',wrongWord:m[1],r:'are',correctWord:'are',explanation:'"'+m[1]+'" is already plural — use a plural verb.'};
+  m=s.match(/\b(criterion|phenomenon|datum|medium|analysis|thesis|crisis|axis|basis|stimulus)\s+(are|were|have)\b/i);
+  if(m)return{rule:'Foreign Plural',wrongWord:m[1],r:'is',correctWord:'is',explanation:'"'+m[1]+'" is singular — use a singular verb.'};
+  return null
+},function(s){
+  /* Comparatives/Superlatives */
+  var m=s.match(/\bmore\s+(better|worse|faster|slower|bigger|smaller|taller|shorter|smarter|older|younger|nicer|easier|harder|simpler)\b/i);
+  if(m)return{rule:'Comparative Form',wrongWord:'more',correctWord:m[1].replace(/er$/,''),explanation:'"'+m[1]+'" is already comparative — drop "more".'};
+  m=s.match(/\bmost\s+(best|worst|fastest|biggest|smallest|tallest|smartest|oldest|easiest|hardest)\b/i);
+  if(m)return{rule:'Superlative Form',wrongWord:'most',correctWord:m[1].replace(/est$/,''),explanation:'"'+m[1]+'" is already superlative — drop "most".'};
+  m=s.match(/\b(most|more)\s+(unique|perfect|complete|infinite|eternal|impossible|final|ideal|universal|absolute|fatal|supreme|pristine|flawless|empty|full|round|square|dead|alive|married|single|daily|weekly|monthly|annual)\b/i);
+  if(m)return{rule:'Absolute Adjective',wrongWord:m[1],correctWord:'',explanation:'"'+m[2]+'" is an absolute adjective — it cannot be compared.'};
+  return null
+},function(s){
+  /* Double negatives */
+  var m=s.match(/\b(i|we|they|you|he|she|it)\s+(don\'t|doesn\'t|didn\'t|can\'t|won\'t|isn\'t|aren\'t|wasn\'t|weren\'t|hasn\'t|haven\'t)\s+\w+\s+(no|nothing|nobody|nowhere|never|none|neither|nor)\b/i);
+  if(m)return{rule:'Double Negative',wrongWord:'double negative',correctWord:'positive',explanation:'Two negatives cancel out — use one negative or rephrase.'};
+  return null
+},function(s){
+  /* A vs An */
+  var m=s.match(/\ba\s+(apple|orange|hour|honest|idea|elephant|umbrella|uncle|egg|ice|eye|ear|easy|awful|awards?|email|essay|ocean|ostrich|engine|engineer|eight|eighteen|eighty|honor|honorable|herb|herbal)\b/i);
+  if(m)return{rule:'A vs. An',wrongWord:'a',correctWord:'an',explanation:'Use "an" before vowel sounds.'};
+  m=s.match(/\ban\s+(university|unique|uniform|unicorn|user|unit|useful|european|one|once|one-way)\b/i);
+  if(m)return{rule:'A vs. An',wrongWord:'an',correctWord:'a',explanation:'Use "a" before consonant sounds (even if vowel letter).'};
+  return null
+},function(s){
+  /* Punctuation: apostrophes */
+  var m=s.match(/\b(its|the|my|your|his|her|our|their)\s+(books|cars|dogs|cats|toys|shoes|houses|children|parents|friends|students|teachers)\s+(going|coming|running|playing|walking|talking|eating|sleeping|working)\b/i);
+  if(m)return{rule:'Missing Apostrophe',wrongWord:'',correctWord:"'",explanation:'Possessive noun needs an apostrophe.'};
+  return null
+},function(s){
+  /* Neither/Either */
+  var m=s.match(/\b(neither|either)\s+of\s+\w+\s+(are|were|have)\b/i);
+  if(m)return{rule:'Neither/Either',wrongWord:m[2],correctWord:'is',explanation:'"'+m[1]+' of" is singular — use a singular verb.'};
+  return null
+},function(s){
+  /* Each / Every */
+  var m=s.match(/\bevery\s+one\s+of\s+\w+\s+(are|have|were)\b/i);
+  if(m)return{rule:'Each/Every',wrongWord:m[3],correctWord:'has',explanation:'"Every one of" is singular — use a singular verb.'};
+  return null
+},function(s){
+  /* Me vs I in compound subjects */
+  var m=s.match(/^\s*(me|him|her|them)\s+and\s+(she|he|they|i|we)\s/i);
+  if(m)return{rule:'Pronoun Order',wrongWord:m[1],correctWord:'I',explanation:'Subject pronoun needed; put the other person first.'};
+  m=s.match(/^\s*(she|he|they|we)\s+and\s+me\s+(went|are|were|will|have|go|play|walk|run|eat)\b/i);
+  if(m)return{rule:'Pronoun Case',wrongWord:'me',correctWord:'I',explanation:'In a compound subject, use "I" not "me".'};
+  return null
+}];
+function valG(s){var e=[];for(var i=0;i<GR.length;i++){var r=GR[i](s);if(r)e.push(r)}return{correct:e.length===0,errors:e}}
+/* === SECTION_4: SENTENCE DATABASE === */
+var DB=[
+/* === Difficulty 1 (Easy) === */
+{t:"She don't like pizza.",w:["She","don't","like","pizza."],e:1,fx:"doesn't",d:1},
+{t:"They are going to the park.",c:true,d:1},
+{t:"They is going to the park.",w:["They","is","going","to","the","park."],e:1,fx:"are",d:1},
+{t:"He has a beautiful dog.",c:true,d:1},
+{t:"He have a beautiful dog.",w:["He","have","a","beautiful","dog."],e:1,fx:"has",d:1},
+{t:"We were at the store.",c:true,d:1},
+{t:"We was at the store.",w:["We","was","at","the","store."],e:1,fx:"were",d:1},
+{t:"The children are playing.",c:true,d:1},
+{t:"The children is playing.",w:["The","children","is","playing."],e:2,fx:"are",d:1},
+{t:"I am very happy today.",c:true,d:1},
+{t:"I are very happy today.",w:["I","are","very","happy","today."],e:1,fx:"am",d:1},
+{t:"You have to try harder.",c:true,d:1},
+{t:"You has to try harder.",w:["You","has","to","try","harder."],e:1,fx:"have",d:1},
+{t:"It is raining outside.",c:true,d:1},
+{t:"It are raining outside.",w:["It","are","raining","outside."],e:1,fx:"is",d:1},
+{t:"He don't know the answer.",w:["He","don't","know","the","answer."],e:1,fx:"doesn't",d:1},
+{t:"She doesn't play tennis.",c:true,d:1},
+{t:"She don't play tennis.",w:["She","don't","play","tennis."],e:1,fx:"doesn't",d:1},
+{t:"The cats are sleeping.",c:true,d:1},
+{t:"The cats is sleeping.",w:["The","cats","is","sleeping."],e:1,fx:"are",d:1},
+{t:"My friends are coming.",c:true,d:1},
+{t:"My friends is coming.",w:["My","friends","is","coming."],e:1,fx:"are",d:1},
+{t:"They were very happy.",c:true,d:1},
+{t:"They was very happy.",w:["They","was","very","happy."],e:1,fx:"were",d:1},
+{t:"The dogs bark loudly.",c:true,d:1},
+{t:"The dogs barks loudly.",w:["The","dogs","barks","loudly."],e:1,fx:"bark",d:1},
+{t:"We are best friends.",c:true,d:1},
+{t:"We is best friends.",w:["We","is","best","friends."],e:1,fx:"are",d:1},
+{t:"The players have won.",c:true,d:1},
+{t:"The players has won.",w:["The","players","has","won."],e:1,fx:"have",d:1},
+{t:"I have two brothers.",c:true,d:1},
+{t:"I has two brothers.",w:["I","has","two","brothers."],e:1,fx:"have",d:1},
+{t:"He has three sisters.",c:true,d:1},
+{t:"He have three sisters.",w:["He","have","three","sisters."],e:1,fx:"has",d:1},
+{t:"You are very kind.",c:true,d:1},
+{t:"You is very kind.",w:["You","is","very","kind."],e:1,fx:"are",d:1},
+{t:"She is my teacher.",c:true,d:1},
+{t:"She are my teacher.",w:["She","are","my","teacher."],e:1,fx:"is",d:1},
+{t:"The students are ready.",c:true,d:1},
+{t:"The students is ready.",w:["The","students","is","ready."],e:1,fx:"are",d:1},
+{t:"They don't care.",c:true,d:1},
+{t:"They doesn't care.",w:["They","doesn't","care."],e:1,fx:"don't",d:1},
+{t:"We don't need help.",c:true,d:1},
+{t:"We doesn't need help.",w:["We","doesn't","need","help."],e:1,fx:"don't",d:1},
+
+/* === Difficulty 2 (Medium) === */
+{t:"Their house is on the corner.",c:true,d:2},
+{t:"Their going to the beach.",w:["Their","going","to","the","beach."],e:0,fx:"They're",d:2},
+{t:"You're the best player.",c:true,d:2},
+{t:"Your the best player.",w:["Your","the","best","player."],e:0,fx:"You're",d:2},
+{t:"It's been wonderful.",c:true,d:2},
+{t:"Its been wonderful.",w:["Its","been","wonderful."],e:0,fx:"It's",d:2},
+{t:"Its fur is soft.",c:true,d:2},
+{t:"It's fur is soft.",w:["It's","fur","is","soft."],e:0,fx:"Its",d:2},
+{t:"He and I went to the movies.",c:true,d:2},
+{t:"Me and him went to the movies.",w:["Me","and","him","went","to","the","movies."],e:0,fx:"I",d:2},
+{t:"I could have done better.",c:true,d:2},
+{t:"I could of done better.",w:["I","could","of","done","better."],e:2,fx:"have",d:2},
+{t:"The effect was immediate.",c:true,d:2},
+{t:"The affect was immediate.",w:["The","affect","was","immediate."],e:1,fx:"effect",d:2},
+{t:"Between you and me, this is bad.",c:true,d:2},
+{t:"Between you and I, this is bad.",w:["Between","you","and","I",",","this","is","bad."],e:3,fx:"me",d:2},
+{t:"The dog lay on the rug.",c:true,d:2},
+{t:"The dog laid on the rug.",w:["The","dog","laid","on","the","rug."],e:2,fx:"lay",d:2},
+{t:"There are many reasons.",c:true,d:2},
+{t:"Their are many reasons.",w:["Their","are","many","reasons."],e:0,fx:"There",d:2},
+{t:"You're welcome anytime.",c:true,d:2},
+{t:"Your welcome anytime.",w:["Your","welcome","anytime."],e:0,fx:"You're",d:2},
+{t:"It's important to arrive on time.",c:true,d:2},
+{t:"Its important to arrive on time.",w:["Its","important","to","arrive","on","time."],e:0,fx:"It's",d:2},
+{t:"They're going home now.",c:true,d:2},
+{t:"Their going home now.",w:["Their","going","home","now."],e:0,fx:"They're",d:2},
+{t:"The book is theirs.",c:true,d:2},
+{t:"The book is their's.",w:["The","book","is","their's."],e:3,fx:"theirs",d:2},
+{t:"My sister and I went.",c:true,d:2},
+{t:"My sister and me went.",w:["My","sister","and","me","went."],e:3,fx:"I",d:2},
+{t:"He should have listened.",c:true,d:2},
+{t:"He should of listened.",w:["He","should","of","listened."],e:2,fx:"have",d:2},
+{t:"She would have helped.",c:true,d:2},
+{t:"She would of helped.",w:["She","would","of","helped."],e:2,fx:"have",d:2},
+{t:"You must have been tired.",c:true,d:2},
+{t:"You must of been tired.",w:["You","must","of","been","tired."],e:2,fx:"have",d:2},
+{t:"I have a lot of friends.",c:true,d:2},
+{t:"I have alot of friends.",w:["I","have","alot","of","friends."],e:2,fx:"a lot",d:2},
+{t:"There's a problem here.",c:true,d:2},
+{t:"Their's a problem here.",w:["Their's","a","problem","here."],e:0,fx:"There's",d:2},
+{t:"It's a beautiful day.",c:true,d:2},
+{t:"Its a beautiful day.",w:["Its","a","beautiful","day."],e:0,fx:"It's",d:2},
+{t:"Your friends are here.",c:true,d:2},
+{t:"You're friends are here.",w:["You're","friends","are","here."],e:0,fx:"Your",d:2},
+{t:"She is taller than me.",c:true,d:2},
+{t:"She is taller then me.",w:["She","is","taller","then","me."],e:3,fx:"than",d:2},
+{t:"I feel bad about it.",c:true,d:2},
+{t:"I feel badly about it.",w:["I","feel","badly","about","it."],e:2,fx:"bad",d:2},
+
+/* === Difficulty 3 (Hard) === */
+{t:"Who do you think will win?",c:true,d:3},
+{t:"Whom do you think will win?",w:["Whom","do","you","think","will","win?"],e:0,fx:"Who",d:3},
+{t:"Fewer students attended.",c:true,d:3},
+{t:"Less students attended.",w:["Less","students","attended."],e:0,fx:"Fewer",d:3},
+{t:"I wish I were taller.",c:true,d:3},
+{t:"I wish I was taller.",w:["I","wish","I","was","taller."],e:3,fx:"were",d:3},
+{t:"If I were you, I would accept.",c:true,d:3},
+{t:"If I was you, I would accept.",w:["If","I","was","you",",","I","would","accept."],e:2,fx:"were",d:3},
+{t:"He has fewer friends.",c:true,d:3},
+{t:"He has less friends.",w:["He","has","less","friends."],e:2,fx:"fewer",d:3},
+{t:"Every one of the players has a jersey.",c:true,d:3},
+{t:"Every one of the players have a jersey.",w:["Every","one","of","the","players","have","a","jersey."],e:5,fx:"has",d:3},
+{t:"The number of applicants has increased.",c:true,d:3},
+{t:"The number of applicants have increased.",w:["The","number","of","applicants","have","increased."],e:4,fx:"has",d:3},
+{t:"She is the person whom I called.",c:true,d:3},
+{t:"She is the person who I called.",w:["She","is","the","person","who","I","called."],e:4,fx:"whom",d:3},
+{t:"Neither of the students was prepared.",c:true,d:3},
+{t:"Neither of the students were prepared.",w:["Neither","of","the","students","were","prepared."],e:4,fx:"was",d:3},
+{t:"The criteria were established.",c:true,d:3},
+{t:"The criteria was established.",w:["The","criteria","was","established."],e:2,fx:"were",d:3},
+{t:"The data show interesting trends.",c:true,d:3},
+{t:"The data shows interesting trends.",w:["The","data","shows","interesting","trends."],e:1,fx:"show",d:3},
+{t:"The committee has decided.",c:true,d:3},
+{t:"The committee have decided.",w:["The","committee","have","decided."],e:2,fx:"has",d:3},
+{t:"Either of the options is fine.",c:true,d:3},
+{t:"Either of the options are fine.",w:["Either","of","the","options","are","fine."],e:3,fx:"is",d:3},
+{t:"He is faster than her.",c:true,d:3},
+{t:"He is faster then her.",w:["He","is","faster","then","her."],e:2,fx:"than",d:3},
+{t:"This is the most unique design.",w:["This","is","the","most","unique","design."],e:3,fx:"unique",d:3},
+{t:"She is the best player on the team.",c:true,d:3},
+{t:"She is the most best player.",w:["She","is","the","most","best","player."],e:3,fx:"best",d:3},
+{t:"He runs faster than I do.",c:true,d:3},
+{t:"He runs faster then I do.",w:["He","runs","faster","then","I","do."],e:3,fx:"than",d:3},
+{t:"I don't have any money.",c:true,d:3},
+{t:"I don't have no money.",w:["I","don't","have","no","money."],e:2,fx:"any",d:3},
+{t:"There is nobody here.",c:true,d:3},
+{t:"There isn't nobody here.",w:["There","isn't","nobody","here."],e:1,fx:"anybody",d:3},
+{t:"She has done nothing wrong.",c:true,d:3},
+{t:"She hasn't done nothing wrong.",w:["She","hasn't","done","nothing","wrong."],e:1,fx:"anything",d:3},
+{t:"The team is winning.",c:true,d:3},
+{t:"The team are winning.",w:["The","team","are","winning."],e:1,fx:"is",d:3},
+{t:"The family is on vacation.",c:true,d:3},
+{t:"The family are on vacation.",w:["The","family","are","on","vacation."],e:1,fx:"is",d:3},
+{t:"I have an idea.",c:true,d:3},
+{t:"I have a idea.",w:["I","have","a","idea."],e:2,fx:"an",d:3},
+{t:"She is an honest person.",c:true,d:3},
+{t:"She is a honest person.",w:["She","is","a","honest","person."],e:2,fx:"an",d:3},
+{t:"He is a university student.",c:true,d:3},
+{t:"He is an university student.",w:["He","is","an","university","student."],e:2,fx:"a",d:3},
+{t:"I wish she were here.",c:true,d:3},
+{t:"I wish she was here.",w:["I","wish","she","was","here."],e:2,fx:"were",d:3},
+{t:"If he were taller, he could reach.",c:true,d:3},
+{t:"If he was taller, he could reach.",w:["If","he","was","taller",",","he","could","reach."],e:1,fx:"were",d:3},
+{t:"The dog lay there all day.",c:true,d:3},
+{t:"The dog laid there all day.",w:["The","dog","laid","there","all","day."],e:2,fx:"lay",d:3},
+{t:"I am taller than he is.",c:true,d:3},
+{t:"I am taller then he is.",w:["I","am","taller","then","he","is."],e:2,fx:"than",d:3},
+{t:"He laid the book on the table.",c:true,d:3},
+{t:"He lay the book on the table.",w:["He","lay","the","book","on","the","table."],e:1,fx:"laid",d:3},
+{t:"To whom did you speak?",c:true,d:3},
+{t:"To who did you speak?",w:["To","who","did","you","speak?"],e:1,fx:"whom",d:3},
+{t:"The phenomena are fascinating.",c:true,d:3},
+{t:"The phenomena is fascinating.",w:["The","phenomena","is","fascinating."],e:2,fx:"are",d:3},
+{t:"This criterion is reliable.",c:true,d:3},
+{t:"This criterion are reliable.",w:["This","criterion","are","reliable."],e:1,fx:"is",d:3},
+{t:"The analysis was thorough.",c:true,d:3},
+{t:"The analyses was thorough.",w:["The","analyses","was","thorough."],e:1,fx:"were",d:3},
+{t:"Everyone has their own opinion.",c:true,d:3},
+{t:"Everyone have their own opinion.",w:["Everyone","have","their","own","opinion."],e:1,fx:"has",d:3},
+{t:"Anyone can join the club.",c:true,d:3},
+{t:"Anyone are welcome to join.",w:["Anyone","are","welcome","to","join."],e:1,fx:"is",d:3}
+];
+
+/* Sentence categories for stats */
+var CATS={
+  'Subject-Verb Agreement':'SVA',
+  'Pronoun Case':'PRN',
+  'Common Confusion':'CFS',
+  'Verb Form':'VBF',
+  'Less vs. Fewer':'L/F',
+  'Subjunctive':'SBJ',
+  'Lay vs. Lie':'LAY',
+  'Linking Verb':'LNK',
+  'Then vs. Than':'T/T',
+  'Who vs. Whom':'W/W',
+  'Collective Noun':'COL',
+  'Foreign Plural':'FPL',
+  'Comparative Form':'CMP',
+  'Superlative Form':'SUP',
+  'Double Negative':'NEG',
+  'A vs. An':'A/A',
+  'Pronoun Order':'PO',
+  'Each/Every':'ECH',
+  'Neither/Either':'NEI'
+};
+/* === SECTION_5: HEIST TARGETS === */
+var TGTS=[
+  {id:'bank',name:'Global Bank',desc:'Offshore accounts holding millions.',icon:'fa-building-columns',layers:4,reward:5000,emb:'fa-shield-halved',embN:'Firewall Breaker',col:'#10b981',bg:'rgba(16,185,129,.15)',diff:1,lore:'A shadowy offshore bank. Their grammar-based firewall is weak. Type the right words, get the cash.'},
+  {id:'corp',name:'NexaCorp',desc:'Corporate secrets on the black market.',icon:'fa-industry',layers:5,reward:8000,emb:'fa-microchip',embN:'Code Cracker',col:'#d29922',bg:'rgba(210,153,34,.15)',diff:2,lore:'A megacorp with hardened security layers. Their internal memos are riddled with errors — exploit them.'},
+  {id:'vault',name:'The Vault',desc:'Legendary treasure awaits.',icon:'fa-vault',layers:6,reward:15000,emb:'fa-crown',embN:'Vault Master',col:'#c084fc',bg:'rgba(192,132,252,.15)',diff:3,lore:'The mythical Vault. Only the grammar elite have breached it. Six layers of pure torture.'},
+  {id:'gov',name:'GovernNet',desc:'Classified intelligence databases.',icon:'fa-landmark',layers:7,reward:25000,emb:'fa-user-secret',embN:'Ghost Operative',col:'#39d2c0',bg:'rgba(57,210,192,.15)',diff:3,lore:'Government intel servers. Seven layers of bureaucratic grammar. Bring your A-game.'},
+  {id:'main',name:'The Mainframe',desc:'The holy grail of all systems.',icon:'fa-server',layers:8,reward:50000,emb:'fa-skull',embN:'Mainframe God',col:'#f85149',bg:'rgba(248,81,73,.15)',diff:3,lore:'The Mainframe itself. Eight impossible layers. Legendary status for those who succeed.'}
+];
+var RANKS=[
+  ['Script Kiddie',0],
+  ['Novice',5000],
+  ['Hacker',15000],
+  ['Expert',30000],
+  ['Elite',50000],
+  ['Legend',100000],
+  ['Mythic',250000],
+  ['Ghost',500000]
+];
+/* === SECTION_6: ACHIEVEMENTS === */
+var ACH=[
+  {id:'first',name:'First Blood',desc:'Complete your first round.',icon:'fa-droplet',check:function(s){return s.totalRounds>=1}},
+  {id:'streak5',name:'On Fire',desc:'Get a 5-round streak.',icon:'fa-fire',check:function(s){return s.bestStreak>=5}},
+  {id:'streak10',name:'Unstoppable',desc:'Get a 10-round streak.',icon:'fa-bolt',check:function(s){return s.bestStreak>=10}},
+  {id:'streak20',name:'Grammar God',desc:'Get a 20-round streak.',icon:'fa-crown',check:function(s){return s.bestStreak>=20}},
+  {id:'streak50',name:'Machine',desc:'Get a 50-round streak.',icon:'fa-robot',check:function(s){return s.bestStreak>=50}},
+  {id:'rounds100',name:'Centurion',desc:'Play 100 rounds total.',icon:'fa-shield',check:function(s){return s.totalRounds>=100}},
+  {id:'rounds500',name:'Veteran',desc:'Play 500 rounds total.',icon:'fa-medal',check:function(s){return s.totalRounds>=500}},
+  {id:'rounds1000',name:'Addicted',desc:'Play 1000 rounds total.',icon:'fa-skull',check:function(s){return s.totalRounds>=1000}},
+  {id:'perfect',name:'Flawless',desc:'Get a perfect S grade in any mode.',icon:'fa-star',check:function(s){return s.perfectGames>=1}},
+  {id:'perfect5',name:'Perfectionist',desc:'Get 5 perfect S grades.',icon:'fa-gem',check:function(s){return s.perfectGames>=5}},
+  {id:'survivor',name:'Survivor',desc:'Reach 20 rounds in Survival.',icon:'fa-heart-pulse',check:function(s){return s.survivalBest>=20}},
+  {id:'survivor50',name:'Untouchable',desc:'Reach 50 rounds in Survival.',icon:'fa-ghost',check:function(s){return s.survivalBest>=50}},
+  {id:'heist1',name:'First Heist',desc:'Breach your first target.',icon:'fa-mask',check:function(s){return s.emblems.length>=1}},
+  {id:'heist3',name:'Master Thief',desc:'Breach 3 different targets.',icon:'fa-user-ninja',check:function(s){return s.emblems.length>=3}},
+  {id:'heist5',name:'Mainframe God',desc:'Breach all 5 targets.',icon:'fa-server',check:function(s){return s.emblems.length>=5}},
+  {id:'rich',name:'Made Bank',desc:'Accumulate $100,000.',icon:'fa-coins',check:function(s){return s.money>=100000}},
+  {id:'rich500',name:'Tycoon',desc:'Accumulate $500,000.',icon:'fa-money-bill',check:function(s){return s.money>=500000}},
+  {id:'speed',name:'Quick Draw',desc:'Win a round in under 2 seconds.',icon:'fa-stopwatch',check:function(s){return s.fastestRound>0&&s.fastestRound<2000}},
+  {id:'allrules',name:'Polymath',desc:'See every grammar rule at least once.',icon:'fa-graduation-cap',check:function(s){return s.rulesSeen&&s.rulesSeen.length>=15}},
+  {id:'judge100',name:'The Judge',desc:'Score 100 in Syntax Judge.',icon:'fa-gavel',check:function(s){return (s.modeScores.judge||0)>=100}},
+  {id:'fix100',name:'The Mechanic',desc:'Score 100 in Error Fix.',icon:'fa-wrench',check:function(s){return (s.modeScores.fix||0)>=100}},
+  {id:'spot100',name:'Eagle Eye',desc:'Score 100 in Spot the Error.',icon:'fa-crosshairs',check:function(s){return (s.modeScores.spot||0)>=100}},
+  {id:'timeattack',name:'Speed Demon',desc:'Score 500 in Time Attack.',icon:'fa-gauge-high',check:function(s){return (s.modeScores.time||0)>=500}},
+  {id:'daily',name:'Daily Discipline',desc:'Complete 7 daily challenges.',icon:'fa-calendar-check',check:function(s){return s.dailyDone>=7}},
+  {id:'comeback',name:'Comeback Kid',desc:'Win 5 in a row after losing a life.',icon:'fa-arrow-trend-up',check:function(s){return s.comeback>=5}}
+];
+
+function checkAch(){
+  var newUnlocks=[];
+  for(var i=0;i<ACH.length;i++){
+    var a=ACH[i];
+    if(STATS.ach.indexOf(a.id)===-1&&a.check(STATS)){
+      STATS.ach.push(a.id);
+      newUnlocks.push(a);
+    }
+  }
+  if(newUnlocks.length){
+    saveStats();
+    snd('achieve');
+    var c=eC();
+    confetti(c.x,c.y,80);
+    for(var j=0;j<newUnlocks.length;j++){
+      (function(a,delay){setTimeout(function(){toast('<b>Achievement Unlocked!</b><br>'+a.name+' — '+a.desc,a.icon)},delay*1200)})(newUnlocks[j],j);
+    }
+  }
+}
+/* === SECTION_7: GAME STATE === */
+/* Persistent stats stored in localStorage */
+var STATS={
+  money:0,emblems:[],
+  totalRounds:0,bestStreak:0,perfectGames:0,survivalBest:0,
+  fastestRound:0,comeback:0,dailyDone:0,
+  rulesSeen:[],
+  ach:[],
+  history:[],
+  modeScores:{judge:0,fix:0,spot:0,survival:0,time:0,speed:0,daily:0,practice:0},
+  modePlays:{judge:0,fix:0,spot:0,survival:0,time:0,speed:0,daily:0,practice:0},
+  theme:'cyber',
+  lastDaily:null
+};
+function loadStats(){
+  try{
+    var s=JSON.parse(localStorage.getItem('sc_stats'));
+    if(s)for(var k in s)if(s.hasOwnProperty(k))STATS[k]=s[k];
+    STATS.money=parseInt(localStorage.getItem('sc_m'))||0;
+    STATS.emblems=JSON.parse(localStorage.getItem('sc_e'))||[];
+  }catch(e){}
+}
+function saveStats(){
+  try{
+    localStorage.setItem('sc_stats',JSON.stringify(STATS));
+    localStorage.setItem('sc_m',''+STATS.money);
+    localStorage.setItem('sc_e',JSON.stringify(STATS.emblems));
+  }catch(e){}
+}
+loadStats();
+
+/* Heist state */
+var H={target:null,layers:[],li:0,alerts:0,maxA:3,typed:'',phase:'input',lastWrong:[]};
+try{if(localStorage.getItem('sc_h'))H=Object.assign(H,JSON.parse(localStorage.getItem('sc_h')))}catch(e){}
+
+/* Game mode state */
+var GM={
+  mode:null,score:0,streak:0,best:0,lives:3,round:0,lv:1,plv:1,
+  cur:null,ans:false,used:{},ts:0,td:0,tr:0,tc:0,tw:0,pool:[],opts:[],lastTk:0,
+  /* Time Attack */
+  timeLeft:0,timeStart:0,
+  /* Speed Run */
+  speedTarget:20,speedStart:0,
+  /* Daily */
+  dailySeed:0,
+  /* Pause */
+  paused:false
+};
+
+function getPool(mode,lv){
+  var a=[];
+  for(var i=0;i<DB.length;i++){
+    if(mode==='judge'||mode==='survival'||mode==='time'||mode==='speed'||mode==='daily'||mode==='practice')a.push(DB[i]);
+    else if(mode==='fix'){if(DB[i].w&&DB[i].fx&&DB[i].fx!=='—')a.push(DB[i])}
+    else if(mode==='spot'){if(DB[i].w)a.push(DB[i])}
+    else a.push(DB[i]);
+  }
+  return a;
+}
+function gLv(r){return r<=6?1:r<=14?2:3}
+var TD=[15000,12000,9000],DL=['','Easy','Medium','Hard'],DM=[0,1,1.5,2];
+function getRank(){var r=RANKS[0];for(var i=RANKS.length-1;i>=0;i--){if(STATS.money>=RANKS[i][1]){r=RANKS[i];break}}return r}
+
+/* Seeded random for Daily Challenge */
+function seededRand(seed){var x=Math.sin(seed)*10000;return x-Math.floor(x)}
+function pickSeeded(pool,seed,used){
+  var avail=[];for(var i=0;i<pool.length;i++)if(!used[i])avail.push(i);
+  if(!avail.length){return -1}
+  var idx=Math.floor(seededRand(seed+GM.round)*avail.length);
+  return avail[idx];
+}
+
+function genL(t){
+  var pool=[];
+  for(var i=0;i<DB.length;i++){if(DB[i].w&&DB[i].fx&&DB[i].fx!=='—'&&DB[i].d===t.diff)pool.push(DB[i])}
+  if(pool.length<t.layers){
+    for(var j=0;j<DB.length;j++){
+      if(DB[j].w&&DB[j].fx&&DB[j].fx!=='—'&&Math.abs(DB[j].d-t.diff)<=1&&pool.indexOf(DB[j])===-1)pool.push(DB[j]);
+    }
+  }
+  shuffle(pool);
+  var res=[];
+  for(var m=0;m<t.layers&&m<pool.length;m++){
+    var s=pool[m],w=s.w.slice();
+    w[s.e]='___';
+    res.push({d:w.join(' '),a:s.fx,b:s.w[s.e]});
+  }
+  return res;
+}
+/* === SECTION_8: SHEET SYSTEM === */
+var sheets={},activeSheet=null;
+function createSheet(id){var el=document.createElement('div');el.className='sheet';el.id='sheet-'+id;document.body.appendChild(el);sheets[id]=el;return el}
+
+function openSheet(id,param){
+  iS();snd('click');
+  if(activeSheet&&activeSheet!==id&&sheets[activeSheet])sheets[activeSheet].classList.remove('on');
+  var el=sheets[id];if(!el)el=createSheet(id);
+  document.getElementById('backBtn').classList.add('vis');
+  document.getElementById('topBtns').classList.add('vis');
+  activeSheet=id;
+  var gameModes=['judge','fix','spot','survival','time','speed','daily','practice'];
+  if(gameModes.indexOf(id)!==-1)initMode(id);
+  if(id==='heist'&&param)doStartHeist(param);
+  if(id==='hres')renderHRes();
+  if(id==='over')renderOver(el);
+  else renderSheet(id);
+  setTimeout(function(){el.classList.add('on')},20);
+  window.scrollTo(0,0);
+}
+
+function closeSheet(){
+  if(activeSheet&&sheets[activeSheet])sheets[activeSheet].classList.remove('on');
+  stopT();
+  document.getElementById('backBtn').classList.remove('vis');
+  document.getElementById('topBtns').classList.remove('vis');
+  activeSheet=null;
+  renderMenu();
+}
+
+function openModal(html){
+  var m=document.getElementById('modalBg');
+  document.getElementById('modalContent').innerHTML=html;
+  m.classList.add('on');
+  setTimeout(function(){m.style.opacity='1'},10);
+}
+function closeModal(){
+  var m=document.getElementById('modalBg');
+  m.style.opacity='0';
+  setTimeout(function(){m.classList.remove('on')},250);
+}
+document.getElementById('modalBg').addEventListener('click',function(e){if(e.target===this)closeModal()});
+/* === SECTION_9: GAME LOGIC === */
+function initMode(mode){
+  GM.mode=mode;
+  GM.score=0;GM.streak=0;GM.best=0;
+  GM.lives=(mode==='survival')?99:(mode==='practice'||mode==='time'||mode==='speed'||mode==='daily')?99:3;
+  GM.round=0;GM.lv=1;GM.plv=1;GM.ans=false;GM.used={};
+  GM.tc=0;GM.tw=0;GM.lastTk=0;
+  GM.paused=false;
+  GM.pool=getPool(mode);
+  GM.comebackSinceLoss=0;
+  if(mode==='time'){GM.timeLeft=60000;GM.timeStart=performance.now()}
+  if(mode==='speed'){GM.speedStart=performance.now()}
+  if(mode==='daily'){
+    var d=new Date();
+    GM.dailySeed=hash(dateStr(d));
+    if(STATS.lastDaily===dateStr(d)){
+      /* Already done today — show results directly */
+      activeSheet='daily';
+      renderSheet('daily');
+      return;
+    }
+  }
+  nextRound();
+}
+
+function pick(){
+  var av=[];
+  if(GM.mode==='daily'){
+    /* Use seeded picking */
+    for(var i=0;i<GM.pool.length;i++)if(!GM.used[i])av.push(i);
+    if(av.length<3){GM.used={};return pick()}
+    var idx=av[Math.floor(seededRand(GM.dailySeed+GM.round)*av.length)];
+    GM.used[idx]=true;return GM.pool[idx];
+  }
+  for(var i=0;i<GM.pool.length;i++){if(GM.pool[i].d===GM.lv&&!GM.used[i])av.push(i)}
+  if(av.length<3&&GM.lv>1)for(var j=0;j<GM.pool.length;j++){if(GM.pool[j].d===GM.lv-1&&!GM.used[j]&&av.indexOf(j)===-1)av.push(j)}
+  if(av.length<3&&GM.lv<3)for(var k=0;k<GM.pool.length;k++){if(GM.pool[k].d===GM.lv+1&&!GM.used[k]&&av.indexOf(k)===-1)av.push(k)}
+  if(av.length<2){GM.used={};return pick()}
+  var idx=av[Math.floor(Math.random()*av.length)];
+  GM.used[idx]=true;return GM.pool[idx];
+}
+
+function mkOpts(c){
+  var opts=[{text:c,correct:true}];
+  var pl=['its',"it's",'their',"they're",'your',"you're",'were','was','have','has','is','are',"don't","doesn't",'less','fewer','who','whom','effect','affect','bad','badly','lay','laid','I','me','him','he','There','Their','then','than','a','an','were','was','have','has','any','nothing','nobody'];
+  var tr=0;
+  while(opts.length<4&&tr<40){
+    var w=pl[Math.floor(Math.random()*pl.length)];
+    var dp=false;
+    for(var i=0;i<opts.length;i++){if(opts[i].text.toLowerCase()===w.toLowerCase())dp=true}
+    if(!dp&&w.toLowerCase()!==c.toLowerCase())opts.push({text:w,correct:false});
+    tr++;
+  }
+  shuffle(opts);
+  return opts;
+}
+
+function nextRound(){
+  GM.round++;
+  GM.plv=GM.lv;
+  GM.lv=gLv(GM.round);
+  GM.cur=pick();
+  GM.ans=false;
+  if(GM.mode==='fix'&&GM.cur&&GM.cur.w)GM.opts=mkOpts(GM.cur.fx);
+  else if(GM.mode==='spot'&&GM.cur&&GM.cur.w){
+    GM.opts=[];
+    for(var i=0;i<GM.cur.w.length;i++)GM.opts.push({text:GM.cur.w[i],idx:i});
+  }
+  else GM.opts=[];
+  if(GM.mode==='time')GM.td=Math.max(5000,12000-Math.floor(GM.round*200));
+  else if(GM.mode==='speed')GM.td=10000;
+  else if(GM.mode==='daily')GM.td=8000;
+  else startT(TD[GM.lv-1]);
+}
+
+function doWin(){
+  GM.streak++;
+  if(GM.streak>GM.best)GM.best=GM.streak;
+  GM.tc++;
+  STATS.totalRounds++;
+  if(GM.streak>STATS.bestStreak)STATS.bestStreak=GM.streak;
+  var el=performance.now()-GM.ts;
+  if(STATS.fastestRound===0||el<STATS.fastestRound)STATS.fastestRound=el;
+  /* Track rules seen */
+  if(GM.cur&&!GM.cur.c){
+    var an=valG(GM.cur.t);
+    if(an.errors.length){
+      var rule=an.errors[0].rule;
+      if(STATS.rulesSeen.indexOf(rule)===-1)STATS.rulesSeen.push(rule);
+    }
+  }
+  /* Track comeback */
+  if(GM.comebackSinceLoss>0)GM.comebackSinceLoss++;
+  if(GM.comebackSinceLoss>STATS.comeback)STATS.comeback=GM.comebackSinceLoss;
+  snd('correct');
+  var tr=Math.max(0,GM.td-el),tb=Math.floor(tr/1000)*10,sb=Math.min(GM.streak,10)*20,pt=Math.floor((100+tb+sb)*DM[GM.lv]);
+  GM.score+=pt;
+  return pt;
+}
+
+function doLose(){
+  GM.streak=0;
+  GM.tw++;
+  snd('wrong');
+  GM.comebackSinceLoss=0;
+  if(GM.mode!=='survival'&&GM.mode!=='practice'&&GM.mode!=='time'&&GM.mode!=='speed'&&GM.mode!=='daily')GM.lives--;
+}
+
+function hJ(pc){
+  if(GM.ans||GM.paused)return;
+  GM.ans=true;stopT();snd('click');
+  var s=GM.cur,pr=pc===(s.c===true),an=valG(s.t),ct=eC();
+  if(pr){var pt=doWin();spB(ct.x,ct.y,'#10b981',25);showR('correct',an,pt)}
+  else{doLose();trigG();spB(ct.x,ct.y,'#f85149',20);showR('wrong',an,0);if(GM.lives<=0){setTimeout(function(){snd('over');endGame()},2200);return}}
+  renderSheet(GM.mode);
+}
+
+function hFi(oi){
+  if(GM.ans||GM.paused)return;
+  GM.ans=true;stopT();snd('click');
+  var opt=GM.opts[oi],ct=eC();
+  if(opt.correct){var pt=doWin();spB(ct.x,ct.y,'#10b981',25);showFR('correct',opt)}
+  else{doLose();trigG();spB(ct.x,ct.y,'#f85149',20);showFR('wrong',opt);if(GM.lives<=0){setTimeout(function(){snd('over');endGame()},2200);return}}
+  renderSheet(GM.mode);
+}
+
+function hSp(wi){
+  if(GM.ans||GM.paused)return;
+  GM.ans=true;stopT();snd('click');
+  var ct=eC();
+  if(wi===GM.cur.e){var pt=doWin();spB(ct.x,ct.y,'#10b981',25);showSR('correct')}
+  else{doLose();trigG();spB(ct.x,ct.y,'#f85149',20);showSR('wrong');if(GM.lives<=0){setTimeout(function(){snd('over');endGame()},2200);return}}
+  renderSheet(GM.mode);
+}
+
+function hTm(){
+  if(GM.ans||GM.paused)return;
+  GM.ans=true;GM.streak=0;GM.tw++;snd('wrong');spB(eC().x,eC().y,'#d29922',18);
+  if(GM.mode==='survival'||GM.mode==='time'||GM.mode==='speed'||GM.mode==='daily')GM.lives=0;
+  else if(GM.mode!=='practice')GM.lives--;
+  GM.comebackSinceLoss=0;
+  if(GM.mode==='fix')showFR('timeout',null);
+  else if(GM.mode==='spot')showSR('timeout');
+  else showR('timeout',valG(GM.cur.t),0);
+  if(GM.lives<=0){setTimeout(function(){snd('over');endGame()},2200)}
+}
+
+function showR(type,an,pts){
+  var card=document.getElementById('edC'),gl=document.getElementById('ambG'),out=document.getElementById('cO'),btns=document.getElementById('jB');
+  if(btns)btns.style.display='none';
+  out.classList.add('on');
+  var s=GM.cur,h='';
+  if(type==='correct'){
+    card.classList.add('gg');gl.classList.remove('em');
+    if(pts>0)sSP('+'+pts,'var(--ac)');
+    h+='<div class="cl"><span class="cp">&gt;</span> Compiling...</div>';
+    if(s.c){
+      h+='<div class="cl"><span class="cs">&#10003;</span> Build successful</div>';
+    } else if(an.errors.length>0){
+      var e=an.errors[0];
+      h+='<div class="cl"><span class="cs">&#10003;</span> Bug: <span class="cw">'+e.rule+'</span></div><div class="cl"><span class="cm">&nbsp;&nbsp;'+esc(e.explanation)+'</span></div>';
+    } else if(s.fx){
+      h+='<div class="cl"><span class="cs">&#10003;</span> Bug found — fix: <span style="color:var(--ac)">'+esc(s.fx)+'</span></div>';
+    } else {
+      h+='<div class="cl"><span class="cs">&#10003;</span> Bug found</div>';
+    }
+    h+='<div class="cl"><span class="cm">&nbsp;&nbsp;+'+pts+' pts'+(GM.streak>1?' ('+GM.streak+'x)':'')+'</span></div>';
+  } else {
+    card.classList.add('gr','shk');gl.classList.add('em');
+    h+='<div class="cl"><span class="cp">&gt;</span> Compiling...</div>';
+    h+=type==='timeout'?'<div class="cl"><span class="cer">&#10007;</span> TimeoutError</div>':'<div class="cl"><span class="cer">&#10007;</span> Wrong judgment</div>';
+    if(!s.c){
+      if(an.errors.length>0){
+        var e2=an.errors[0];
+        h+='<div class="cl"><span class="cm">&nbsp;&nbsp;HAS error — <span class="cw">'+e2.rule+'</span></span></div><div class="cl"><span class="cm">&nbsp;&nbsp;'+esc(e2.explanation)+'</span></div>';
+      } else if(s.fx){
+        h+='<div class="cl"><span class="cm">&nbsp;&nbsp;Has an error — fix: <span style="color:var(--ac)">'+esc(s.fx)+'</span></span></div>';
+      } else {
+        h+='<div class="cl"><span class="cm">&nbsp;&nbsp;Has an error</span></div>';
+      }
+    }
+    else h+='<div class="cl"><span class="cm">&nbsp;&nbsp;Actually correct</span></div>';
+    if(GM.mode!=='survival'&&GM.mode!=='practice'&&GM.mode!=='time'&&GM.mode!=='speed'&&GM.mode!=='daily')h+='<div class="cl"><span class="cer">&nbsp;&nbsp;-1 life</span></div>';
+    brkH();
+  }
+  out.innerHTML=h;
+  if(GM.lives>0)setTimeout(function(){card.classList.remove('gg','gr','shk');gl.classList.remove('em');nextRound();renderSheet(GM.mode)},2000);
+}
+
+function showFR(type,opt){
+  var card=document.getElementById('edC'),gl=document.getElementById('ambG'),out=document.getElementById('cO'),btns=document.getElementById('jB');
+  if(btns)btns.style.display='none';
+  out.classList.add('on');
+  var s=GM.cur,h='';
+  if(type==='correct'){
+    card.classList.add('gg');gl.classList.remove('em');
+    sSP('+'+GM.score,'var(--ac)');
+    h+='<div class="cl"><span class="cp">&gt;</span> Patching...</div><div class="cl"><span class="cs">&#10003;</span> Fix: <span style="color:var(--ac);font-weight:700">'+esc(opt.text)+'</span></div>';
+    mkFB(opt.text);
+  } else {
+    card.classList.add('gr','shk');gl.classList.add('em');
+    h+='<div class="cl"><span class="cp">&gt;</span> Patching...</div>';
+    h+=type==='timeout'?'<div class="cl"><span class="cer">&#10007;</span> Timeout</div>':'<div class="cl"><span class="cer">&#10007;</span> Failed</div>';
+    h+='<div class="cl"><span class="cm">&nbsp;&nbsp;Correct: <span style="color:var(--ac);font-weight:700">'+esc(s.fx)+'</span></span></div>';
+    if(GM.mode!=='survival'&&GM.mode!=='practice'&&GM.mode!=='time'&&GM.mode!=='speed'&&GM.mode!=='daily')h+='<div class="cl"><span class="cer">&nbsp;&nbsp;-1 life</span></div>';
+    mkFB(null);
+    brkH();
+  }
+  out.innerHTML=h;
+  if(GM.lives>0)setTimeout(function(){card.classList.remove('gg','gr','shk');gl.classList.remove('em');nextRound();renderSheet(GM.mode)},2000);
+}
+
+function showSR(type){
+  var card=document.getElementById('edC'),gl=document.getElementById('ambG'),out=document.getElementById('cO'),btns=document.getElementById('jB');
+  if(btns)btns.style.display='none';
+  out.classList.add('on');
+  var s=GM.cur,h='';
+  if(type==='correct'){
+    card.classList.add('gg');gl.classList.remove('em');
+    h+='<div class="cl"><span class="cp">&gt;</span> Scanning...</div><div class="cl"><span class="cs">&#10003;</span> Error: <span style="color:var(--er)">'+esc(s.w[s.e])+'</span> → '+esc(s.fx)+'</div>';
+    mkSB(s.e);
+  } else {
+    card.classList.add('gr','shk');gl.classList.add('em');
+    h+='<div class="cl"><span class="cp">&gt;</span> Scanning...</div>';
+    h+=type==='timeout'?'<div class="cl"><span class="cer">&#10007;</span> Timeout</div>':'<div class="cl"><span class="cer">&#10007;</span> Wrong word</div>';
+    h+='<div class="cl"><span class="cm">&nbsp;&nbsp;Error: <span style="color:var(--er)">'+esc(s.w[s.e])+'</span> → <span style="color:var(--ac)">'+esc(s.fx)+'</span></span></div>';
+    if(GM.mode!=='survival'&&GM.mode!=='practice'&&GM.mode!=='time'&&GM.mode!=='speed'&&GM.mode!=='daily')h+='<div class="cl"><span class="cer">&nbsp;&nbsp;-1 life</span></div>';
+    mkSB(s.e);
+    brkH();
+  }
+  out.innerHTML=h;
+  if(GM.lives>0)setTimeout(function(){card.classList.remove('gg','gr','shk');gl.classList.remove('em');nextRound();renderSheet(GM.mode)},2000);
+}
+
+function mkFB(ct){var b=document.querySelectorAll('#jB .ck');for(var i=0;i<b.length;i++){b[i].classList.add('dis');if(b[i].getAttribute('data-v')===ct)b[i].classList.add('crr')}}
+function mkSB(ci){var b=document.querySelectorAll('#jB .ck');for(var i=0;i<b.length;i++){b[i].classList.add('dis');if(parseInt(b[i].getAttribute('data-i'))===ci)b[i].style.borderColor='var(--er)'}}
+
+function startT(dur){
+  GM.td=dur;GM.ts=performance.now();GM.lastTk=0;uT();
+  /* For time attack, separate timer */
+  if(GM.mode==='time'&&!GM.timeRAF){
+    GM.timeStart=performance.now()-((GM.mode==='time')?(60000-GM.timeLeft):0);
+    uTTime();
+  }
+  if(GM.mode==='speed'&&!GM.speedRAF){uTTime()}
+}
+function uT(){
+  if(GM.ans||GM.paused)return;
+  var el=performance.now()-GM.ts;
+  var pct=Math.max(0,1-el/GM.td);
+  var bar=document.getElementById('tFl');
+  if(bar){bar.style.width=(pct*100)+'%';bar.classList.toggle('dg',pct<.25)}
+  if(pct<=0){hTm();return}
+  GM.tr=requestAnimationFrame(uT);
+}
+function stopT(){cancelAnimationFrame(GM.tr);cancelAnimationFrame(GM.timeRAF);GM.timeRAF=null;GM.speedRAF=null}
+
+function uTTime(){
+  if(GM.paused)return;
+  if(GM.mode==='time'){
+    var elapsed=performance.now()-GM.timeStart;
+    GM.timeLeft=Math.max(0,60000-elapsed);
+    var bar=document.getElementById('gT');
+    if(bar)bar.style.width=(GM.timeLeft/60000*100)+'%';
+    var td=document.getElementById('gTVal');
+    if(td)td.textContent=Math.ceil(GM.timeLeft/1000)+'s';
+    if(GM.timeLeft<=0){endGame();return}
+    GM.timeRAF=requestAnimationFrame(uTTime);
+  } else if(GM.mode==='speed'){
+    var el=performance.now()-GM.speedStart;
+    var bar=document.getElementById('gT');
+    if(bar)bar.textContent=fmtTime(el);
+    GM.speedRAF=requestAnimationFrame(uTTime);
+  }
+}
+
+function endGame(){
+  stopT();
+  /* Save mode stats */
+  if(GM.mode){
+    STATS.modeScores[GM.mode]=(STATS.modeScores[GM.mode]||0)+GM.score;
+    STATS.modePlays[GM.mode]=(STATS.modePlays[GM.mode]||0)+1;
+  }
+  if(GM.mode==='survival'&&GM.round>STATS.survivalBest)STATS.survivalBest=GM.round;
+  /* Track perfect games */
+  var total=GM.tc+GM.tw;
+  var acc=total>0?Math.round(GM.tc/total*100):0;
+  if(acc>=90&&total>=10)STATS.perfectGames++;
+  /* Daily challenge */
+  if(GM.mode==='daily'){
+    var d=new Date();
+    if(STATS.lastDaily!==dateStr(d)){
+      STATS.lastDaily=dateStr(d);
+      STATS.dailyDone=(STATS.dailyDone||0)+1;
+    }
+  }
+  /* Track history */
+  STATS.history.unshift({mode:GM.mode,score:GM.score,rounds:GM.round,acc:acc,date:Date.now()});
+  if(STATS.history.length>20)STATS.history.pop();
+  saveStats();
+  checkAch();
+  openSheet('over');
+}
+/* === SECTION_10: RENDERERS === */
+function renderSheet(id){
+  var el=sheets[id];if(!el)return;
+  var gameModes=['judge','fix','spot','survival','time','speed','daily','practice'];
+  if(gameModes.indexOf(id)!==-1)renderGame(el,id);
+  else if(id==='heist')renderHeist();
+  else if(id==='over')renderOver(el);
+}
+
+function renderGame(el,mode){
+  var s=GM.cur;
+  if(!s){
+    /* Could be daily already done */
+    if(mode==='daily'&&STATS.lastDaily===dateStr(new Date())){
+      el.innerHTML='<div class="min-h-screen flex flex-col items-center justify-center px-4 py-10"><div class="text-center mb-6"><div class="font-mono text-sm tracking-[4px] uppercase mb-2" style="color:var(--wn)">Daily Done</div><div class="font-mono font-bold text-5xl mb-2" style="color:var(--wn)">COME BACK TOMORROW</div><div class="text-sm mt-4" style="color:var(--mt)">You\'ve already completed today\'s challenge.<br>Check back after midnight!</div></div><button class="bp2" onclick="closeSheet()"><i class="fa-solid fa-arrow-left mr-2"></i>Back to Menu</button></div>';
+    } else {
+      el.innerHTML='<div class="min-h-screen flex items-center justify-center"><p style="color:var(--mt)">Loading...</p></div>';
+    }
+    return;
+  }
+
+  var hearts='';
+  if(mode!=='survival'&&mode!=='practice'&&mode!=='time'&&mode!=='speed'&&mode!=='daily'){
+    for(var i=0;i<3;i++)hearts+='<span class="ht '+(i>=GM.lives?'lo':'')+'" style="color:var(--er);font-size:18px"><i class="fa-solid fa-heart"></i></span>';
+  }
+  var mn={judge:'Syntax Judge',fix:'Error Fix',spot:'Spot the Error',survival:'Survival',time:'Time Attack',speed:'Speed Run',daily:'Daily Challenge',practice:'Practice'};
+  var h='<div class="min-h-screen flex flex-col items-center justify-center px-4 py-4">';
+  /* Top stats row */
+  h+='<div class="w-full max-w-2xl flex items-center justify-between mb-4 flex-wrap gap-2"><div class="flex items-center gap-3"><div><div class="sl">Score</div><div class="sv" id="sD" style="color:var(--ac)">'+GM.score+'</div></div><div><div class="sl">Streak</div><div class="sv '+(GM.streak>=5?'sf':'')+'" style="color:'+(GM.streak>=5?'var(--wn)':'var(--tx)')+'">'+GM.streak+'<span class="text-sm font-normal" style="color:var(--mt)">x</span></div></div>';
+  if(mode==='time'){
+    h+='<div><div class="sl">Time</div><div class="sv" id="gTVal" style="color:var(--cy)">60s</div></div>';
+  }
+  if(mode==='speed'){
+    h+='<div><div class="sl">Time</div><div class="sv" id="gT" style="color:var(--cy);font-family:JetBrains Mono">0:00</div></div>';
+  }
+  h+='</div><div class="flex items-center gap-3"><div class="text-right"><div class="sl">Round</div><div class="sv">'+GM.round+'</div></div><div class="text-right"><div class="sl">Level</div><div class="db d'+GM.lv+'">'+DL[GM.lv]+'</div></div>';
+  if(mode==='survival')h+='<div style="color:var(--mt);font-size:12px"><i class="fa-solid fa-skull" style="color:#c084fc"></i> No lives</div>';
+  else if(mode==='practice')h+='<div style="color:var(--mt);font-size:12px"><i class="fa-solid fa-book" style="color:var(--cy)"></i> No penalty</div>';
+  else if(mode==='time')h+='<div style="color:var(--mt);font-size:12px"><i class="fa-solid fa-stopwatch" style="color:var(--cy)"></i> 60s</div>';
+  else if(mode==='speed')h+='<div style="color:var(--mt);font-size:12px"><i class="fa-solid fa-flag-checkered" style="color:var(--cy)"></i> 20 rounds</div>';
+  else if(mode==='daily')h+='<div style="color:var(--mt);font-size:12px"><i class="fa-solid fa-calendar-day" style="color:var(--wn)"></i> Today</div>';
+  else if(hearts)h+='<div class="flex gap-1">'+hearts+'</div>';
+  h+='</div></div>';
+
+  /* Time attack bar */
+  if(mode==='time'){
+    h+='<div class="w-full max-w-2xl mb-2"><div class="tfl" style="height:6px;background:var(--sf);border-radius:3px;overflow:hidden"><div id="gT" style="height:100%;width:100%;background:var(--cy);transition:width .1s"></div></div></div>';
+  }
+
+  /* Code editor */
+  h+='<div class="ec w-full max-w-2xl si" id="edC"><div class="etb"><span class="dt r"></span><span class="dt y"></span><span class="dt g"></span><span class="etab">sentence_'+GM.round+'.syn</span><div style="flex:1"></div><span class="ml">'+mn[mode]+'</span></div><div class="ttk"><div class="tfl" id="tFl" style="width:100%"></div></div><div class="eby"><div class="ln">1</div><div class="sa" id="sA">'+esc(s.t)+'</div></div><div class="co" id="cO"></div></div>';
+  /* Buttons */
+  h+='<div id="jB" style="width:100%;max-width:42rem">';
+  if(mode==='judge'||mode==='survival'||mode==='time'||mode==='speed'||mode==='daily'||mode==='practice'){
+    h+='<div class="flex gap-4 mt-4"><button class="bj bi bs" onclick="hJ(false)"><i class="fa-solid fa-xmark"></i> Incorrect <kbd class="ml-2">A</kbd></button><button class="bj bc bs" onclick="hJ(true)"><i class="fa-solid fa-check"></i> Correct <kbd class="ml-2">D</kbd></button></div>';
+  }
+  else if(mode==='fix'&&GM.opts.length){
+    h+='<div class="flex flex-wrap gap-3 mt-4 justify-center">';
+    for(var fi=0;fi<GM.opts.length;fi++)h+='<button class="ck" data-v="'+esc(GM.opts[fi].text)+'" onclick="hFi('+fi+')">'+esc(GM.opts[fi].text)+'</button>';
+    h+='<span class="text-xs self-center" style="color:var(--mt)">1-'+GM.opts.length+'</span></div>';
+  }
+  else if(mode==='spot'&&s.w){
+    h+='<div class="flex flex-wrap gap-2 mt-4 justify-center">';
+    for(var si2=0;si2<s.w.length;si2++)h+='<button class="ck" data-i="'+si2+'" onclick="hSp('+si2+')">'+esc(s.w[si2])+'</button>';
+    h+='</div>';
+  }
+  h+='</div>';
+  /* Help text */
+  if(mode==='practice'){
+    h+='<div class="mt-4 text-center text-xs" style="color:var(--mt);max-width:42rem">Practice mode: No lives lost, no timer pressure. Hover or click to learn. Press <kbd>A</kbd> / <kbd>D</kbd> to answer.</div>';
+  } else if(mode==='time'){
+    h+='<div class="mt-4 text-center text-xs" style="color:var(--mt);max-width:42rem">Time Attack: 60 seconds. Round timer shrinks each round. Score as much as possible!</div>';
+  } else if(mode==='speed'){
+    h+='<div class="mt-4 text-center text-xs" style="color:var(--mt);max-width:42rem">Speed Run: Clear 20 rounds as fast as possible. The clock stops when you finish.</div>';
+  } else if(mode==='daily'){
+    h+='<div class="mt-4 text-center text-xs" style="color:var(--mt);max-width:42rem">Daily Challenge: Same seed for everyone today. One shot per day.</div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+  /* Start timer after render */
+  if(!GM.ans){
+    if(mode==='time'){GM.td=Math.max(5000,12000-Math.floor(GM.round*200));startT(GM.td)}
+    else if(mode==='speed'){GM.td=10000;startT(GM.td)}
+    else if(mode==='daily'){GM.td=8000;startT(GM.td)}
+    else if(mode==='practice'){GM.td=99999999;startT(GM.td)}
+    else startT(TD[GM.lv-1]);
+  }
+}
+
+function renderHeist(){
+  var el=sheets.heist;
+  if(!H.target||!H.layers.length){el.innerHTML='<div class="min-h-screen flex items-center justify-center"><p style="color:var(--mt)">No target selected.</p></div>';return}
+  var t=H.target,l=H.layers[H.li],pct=(H.li/t.layers)*100,alerts='';
+  for(var i=0;i<H.maxA;i++)alerts+='<span class="ldot '+(i<H.maxA-H.alerts?'on':'off')+'"></span>';
+  var sent=l.d.replace('___','<span class="bk">'+esc(H.typed)+'</span>');
+  var agText='';
+  if(H.phase==='ok')agText='<div class="ag-t gr">ACCESS GRANTED</div>';
+  if(H.phase==='no')agText='<div class="ag-t dn">ACCESS DENIED</div>';
+  var h='<div class="min-h-screen flex flex-col items-center justify-center px-4 py-4">';
+  h+='<div class="w-full max-w-2xl flex items-center justify-between mb-3 flex-wrap gap-2"><div><div class="sl">Target</div><div class="font-bold text-lg" style="color:'+t.col+'"><i class="fa-solid '+t.icon+' mr-2"></i>'+t.name+'</div></div><div class="flex items-center gap-3"><div class="text-right"><div class="sl">Layer</div><div class="font-mono font-bold">'+(H.li+1)+'/'+t.layers+'</div></div><div class="text-right"><div class="sl">Alerts</div><div>'+alerts+'</div></div></div></div>';
+  /* Lore line */
+  h+='<div class="w-full max-w-2xl mb-3 text-xs italic" style="color:var(--mt);font-family:JetBrains Mono">'+esc(t.lore)+'</div>';
+  h+='<div class="trm w-full max-w-2xl si"><div class="trm-hd"><div class="flex items-center gap-2"><span class="dt r"></span><span class="dt y"></span><span class="dt g"></span><span class="font-mono text-xs" style="color:var(--mt);margin-left:8px">breach_protocol</span></div><span class="ml">LAYER '+(H.li+1)+'</span></div>';
+  h+='<div class="trm-bd"><div class="trm-sent">'+sent+'</div>'+agText;
+  if(H.phase==='input')h+='<div class="trm-pr"><span style="color:var(--cy);margin-right:8px">$</span><input type="text" id="hIn" value="'+esc(H.typed)+'" oninput="H.typed=this.value;snd(\'key\')" onkeydown="if(event.key===\'Enter\'){event.preventDefault();submitH()}" autocomplete="off" spellcheck="false" placeholder="type the correct word..."></div>';
+  h+='</div><div class="trm-ft"><div class="flex items-center gap-3"><span class="text-xs" style="color:var(--mt)">Progress</span><div class="al-trk"><div class="al-fl" style="width:'+pct+'%;background:'+t.col+'"></div></div><span class="font-mono text-xs" style="color:var(--mt)">'+Math.round(pct)+'%</span></div><div class="font-mono text-xs" style="color:var(--wn)">$'+t.reward.toLocaleString()+'</div></div></div>';
+  h+='<div class="text-center mt-3 text-xs" style="color:var(--mt)">Type the correct word and press <kbd>Enter</kbd> — typos cost alerts</div></div>';
+  el.innerHTML=h;
+  if(H.phase==='input')setTimeout(function(){var inp=document.getElementById('hIn');if(inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length)}},50);
+}
+
+function renderHRes(){
+  var el=sheets['hres'];if(!H.target){el.innerHTML='';return}
+  var t=H.target,won=H.li>=t.layers,rk=getRank();
+  var embs='';
+  for(var i=0;i<TGTS.length;i++){var tg=TGTS[i],has=STATS.emblems.indexOf(tg.id)!==-1;embs+='<div class="emb '+(has?'on':'off')+'" title="'+tg.embN+'"><i class="fa-solid '+tg.emb+'"></i></div>'}
+  var h='<div class="min-h-screen flex flex-col items-center justify-center px-4 py-8">';
+  if(won){
+    h+='<div class="text-center mb-6"><div class="font-mono text-sm tracking-[4px] uppercase mb-2" style="color:var(--ac)">System Breached</div><div class="font-mono font-bold text-6xl mb-2" style="color:var(--ac)">$'+t.reward.toLocaleString()+'</div><div class="text-sm" style="color:var(--mt)">Transferred to account</div></div>';
+    var c=eC();confetti(c.x,c.y,80);
+  }
+  else h+='<div class="text-center mb-6"><div class="font-mono text-sm tracking-[4px] uppercase mb-2" style="color:var(--er)">Connection Terminated</div><div class="font-mono font-bold text-5xl mb-2" style="color:var(--er)">DISCONNECTED</div></div>';
+  h+='<div class="grid grid-cols-2 gap-4 w-full max-w-sm mb-6"><div class="stat-box"><div class="sl mb-1">Rank</div><div class="sv" style="color:var(--ac)">'+rk[0]+'</div></div><div class="stat-box"><div class="sl mb-1">Balance</div><div class="sv" style="color:var(--wn)">$'+STATS.money.toLocaleString()+'</div></div></div>';
+  h+='<div class="text-center mb-6"><div class="sl mb-2">Emblems</div><div class="flex gap-3 justify-center">'+embs+'</div></div>';
+  h+='<div class="flex gap-4 justify-center flex-wrap"><button class="bp" onclick="closeSheet();openSheet(\'heist\',\''+t.id+'\')"><i class="fa-solid fa-rotate-right mr-2"></i>Retry</button><button class="bp2" onclick="closeSheet()">Menu</button></div>';
+  el.innerHTML=h;
+}
+
+function renderOver(el){
+  if(!el)el=sheets['over'];
+  var total=GM.tc+GM.tw,acc=total>0?Math.round(GM.tc/total*100):0,grade,gc;
+  var mn={judge:'Syntax Judge',fix:'Error Fix',spot:'Spot the Error',survival:'Survival',time:'Time Attack',speed:'Speed Run',daily:'Daily Challenge',practice:'Practice'};
+  if(GM.mode==='survival'){grade=GM.round+' rounds';gc='#c084fc'}
+  else if(GM.mode==='time'){grade=GM.score+' pts';gc='var(--cy)'}
+  else if(GM.mode==='speed'){
+    if(GM.round>=20){var tt=performance.now()-GM.speedStart;grade=fmtTime(tt);gc='var(--cy)'}
+    else{grade=GM.round+'/20';gc='var(--er)'}
+  }
+  else{
+    if(acc>=90){grade='S';gc='var(--ac)'}
+    else if(acc>=75){grade='A';gc='var(--cy)'}
+    else if(acc>=60){grade='B';gc='var(--wn)'}
+    else if(acc>=40){grade='C';gc='var(--tx)'}
+    else{grade='F';gc='var(--er)'}
+  }
+  var h='<div class="min-h-screen flex flex-col items-center justify-center px-4 py-10">';
+  h+='<div class="text-center mb-6"><div class="font-mono text-sm tracking-[4px] uppercase mb-2" style="color:var(--mt)">'+mn[GM.mode]+' — '+(GM.mode==='survival'?'Terminated':(GM.mode==='time'?'Time\'s Up':(GM.mode==='speed'?'Finished':'Failed')))+'</div><div class="font-mono font-bold text-7xl mb-2" style="color:'+gc+'">'+grade+'</div><div class="text-sm" style="color:var(--mt)">'+(GM.mode==='survival'?'Final Rounds':(GM.mode==='time'?'Final Score':(GM.mode==='speed'?'Time':'Final Grade')))+'</div></div>';
+  h+='<div class="grid grid-cols-2 gap-4 w-full max-w-sm mb-8"><div class="stat-box"><div class="sl mb-1">Score</div><div class="sv" style="color:var(--ac)">'+GM.score+'</div></div><div class="stat-box"><div class="sl mb-1">Rounds</div><div class="sv">'+GM.round+'</div></div><div class="stat-box"><div class="sl mb-1">Accuracy</div><div class="sv">'+acc+'%</div></div><div class="stat-box"><div class="sl mb-1">Best Streak</div><div class="sv" style="color:'+(GM.best>=5?'var(--wn)':'var(--tx)')+'">'+GM.best+'x</div></div></div>';
+  /* Best score so far for this mode */
+  var bs=STATS.modeScores[GM.mode]||0;
+  h+='<div class="text-center mb-6 text-xs" style="color:var(--mt)">Total '+mn[GM.mode]+' score: <span style="color:var(--ac);font-family:JetBrains Mono">'+bs+'</span> across '+(STATS.modePlays[GM.mode]||0)+' games</div>';
+  h+='<div class="flex gap-4 flex-wrap justify-center"><button class="bp" onclick="closeSheet();openSheet(\''+GM.mode+'\')"><i class="fa-solid fa-rotate-right mr-2"></i>Replay</button><button class="bp2" onclick="closeSheet()">Menu</button></div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+/* === SECTION_11: HEIST LOGIC === */
+function doStartHeist(tid){
+  var t=null;
+  for(var i=0;i<TGTS.length;i++){if(TGTS[i].id===tid){t=TGTS[i];break}}
+  if(!t)return;
+  H.target=t;H.layers=genL(t);H.li=0;H.alerts=0;H.typed='';H.phase='input';
+  renderHeist();
+  setTimeout(function(){var inp=document.getElementById('hIn');if(inp)inp.focus()},80);
+}
+
+function submitH(){
+  if(H.phase!=='input'||!H.layers.length)return;
+  var l=H.layers[H.li];
+  if(nS(H.typed)===nS(l.a)){
+    H.phase='ok';snd('grant');
+    var c=eC();spB(c.x,c.y,'#10b981',25);
+    renderHeist();
+    setTimeout(function(){
+      H.li++;
+      if(H.li>=H.layers){
+        STATS.money+=H.target.reward;
+        if(STATS.emblems.indexOf(H.target.id)===-1)STATS.emblems.push(H.target.id);
+        saveStats();checkAch();
+        closeSheet();openSheet('hres');
+      } else {
+        H.typed='';H.phase='input';renderHeist();
+        setTimeout(function(){var inp=document.getElementById('hIn');if(inp)inp.focus()},80);
+      }
+    },1400);
+  } else {
+    H.alerts++;snd('wrong');trigG();H.phase='no';renderHeist();
+    if(H.alerts>=H.maxA){
+      setTimeout(function(){snd('over');closeSheet();openSheet('hres')},1800);
+    } else {
+      setTimeout(function(){H.typed='';H.phase='input';renderHeist();
+        setTimeout(function(){var inp=document.getElementById('hIn');if(inp)inp.focus()},80);
+      },1800);
+    }
+  }
+}
+/* === SECTION_12: NEW MODES === */
+/* Speed mode check: if 20 rounds completed, end game */
+var origNextRound=nextRound;
+nextRound=function(){
+  if(GM.mode==='speed'&&GM.round>=GM.speedTarget){
+    endGame();return;
+  }
+  origNextRound();
+};
+
+/* Skip current round (costs streak, used in practice/time/speed) */
+function skipRound(){
+  if(GM.ans||GM.paused)return;
+  if(GM.mode!=='practice'&&GM.mode!=='time'&&GM.mode!=='speed')return;
+  GM.ans=true;stopT();GM.streak=0;snd('warn');
+  GM.tw++;
+  var ct=eC();spB(ct.x,ct.y,'#d29922',12);
+  var out=document.getElementById('cO');
+  if(out){
+    out.classList.add('on');
+    var s=GM.cur,an=valG(s.t),h='<div class="cl"><span class="cp">&gt;</span> Skipping...</div>';
+    if(!s.c){
+      if(an.errors.length>0){var e=an.errors[0];h+='<div class="cl"><span class="cw">Skipped: '+esc(s.t)+'</span></div><div class="cl"><span class="cm">&nbsp;&nbsp;'+esc(e.explanation)+'</span></div>'}
+      else if(s.fx)h+='<div class="cl"><span class="cw">Skipped: '+esc(s.t)+'</span></div><div class="cl"><span class="cm">&nbsp;&nbsp;Fix: '+esc(s.fx)+'</span></div>';
+      else h+='<div class="cl"><span class="cw">Skipped</span></div>';
+    }
+    else h+='<div class="cl"><span class="cs">Was correct already</span></div>';
+    out.innerHTML=h;
+  }
+  var btns=document.getElementById('jB');if(btns)btns.style.display='none';
+  setTimeout(function(){
+    var card=document.getElementById('edC');
+    if(card)card.classList.remove('gg','gr','shk');
+    nextRound();renderSheet(GM.mode);
+  },1800);
+}
+
+/* Pause game */
+function togglePause(){
+  if(!activeSheet||['judge','fix','spot','survival','time','speed','daily','practice'].indexOf(activeSheet)===-1)return;
+  GM.paused=!GM.paused;
+  var pb=document.getElementById('pauseBtn');
+  if(GM.paused){
+    pb.innerHTML='<i class="fa-solid fa-play"></i>';
+    openModal('<h3 class="font-bold text-xl mb-3" style="color:var(--ac)"><i class="fa-solid fa-pause mr-2"></i>Paused</h3><p class="mb-4" style="color:var(--mt)">Game paused. The timer is frozen.</p><button class="bp w-full" onclick="togglePause();closeModal()"><i class="fa-solid fa-play mr-2"></i>Resume</button>');
+  } else {
+    pb.innerHTML='<i class="fa-solid fa-pause"></i>';
+    closeModal();
+    /* Restart timer relative to now */
+    if(!GM.ans){GM.ts=performance.now()-(GM.td-(GM.td-(performance.now()-GM.ts)));uT()}
+    if(GM.mode==='time'){GM.timeStart=performance.now()-(60000-GM.timeLeft);uTTime()}
+  }
+}
+/* === SECTION_13: STATS & SETTINGS === */
+function applyTheme(theme){
+  STATS.theme=theme;
+  saveStats();
+  if(theme==='cyber')document.body.removeAttribute('data-theme');
+  else document.body.setAttribute('data-theme',theme);
+}
+applyTheme(STATS.theme||'cyber');
+
+function showStats(){
+  iS();
+  var total=STATS.totalRounds;
+  var acc=total>0?Math.round((STATS.totalRounds-(STATS.history.reduce(function(a,h){return a+h.rounds*(100-h.acc)/100},0)))/total*100):0;
+  /* Mode breakdown */
+  var modeNames={judge:'Syntax Judge',fix:'Error Fix',spot:'Spot the Error',survival:'Survival',time:'Time Attack',speed:'Speed Run',daily:'Daily',practice:'Practice'};
+  var modeCards='';
+  ['judge','fix','spot','survival','time','speed','daily','practice'].forEach(function(m){
+    var plays=STATS.modePlays[m]||0,score=STATS.modeScores[m]||0;
+    modeCards+='<div class="stat-box"><div class="sl mb-1">'+modeNames[m]+'</div><div class="sv" style="color:var(--ac);font-size:16px">'+score+'</div><div class="text-xs mt-1" style="color:var(--mt)">'+plays+' plays</div></div>';
+  });
+  /* Recent history chart */
+  var histChart='<div class="bar-chart mt-3">';
+  var recent=STATS.history.slice(0,10).reverse();
+  var maxScore=Math.max(1);
+  recent.forEach(function(h){if(h.score>maxScore)maxScore=h.score});
+  if(recent.length===0){
+    histChart+='<div class="text-center text-xs w-full" style="color:var(--mt)">No games yet</div>';
+  } else {
+    recent.forEach(function(h){
+      var pct=Math.round(h.score/maxScore*100);
+      histChart+='<div class="bar-col" style="height:'+pct+'%" data-v="'+h.score+' pts — '+modeNames[h.mode]+'"></div>';
+    });
+  }
+  histChart+='</div>';
+  var html='<h3 class="font-bold text-xl mb-1" style="color:var(--ac)"><i class="fa-solid fa-chart-line mr-2"></i>Statistics</h3><p class="text-xs mb-4" style="color:var(--mt)">All-time stats across all sessions.</p>';
+  html+='<div class="grid grid-cols-2 gap-3 mb-4"><div class="stat-box"><div class="sl mb-1">Total Rounds</div><div class="sv" style="color:var(--cy)">'+STATS.totalRounds+'</div></div><div class="stat-box"><div class="sl mb-1">Best Streak</div><div class="sv" style="color:var(--wn)">'+STATS.bestStreak+'x</div></div><div class="stat-box"><div class="sl mb-1">Perfect Games</div><div class="sv" style="color:var(--ac)">'+STATS.perfectGames+'</div></div><div class="stat-box"><div class="sl mb-1">Survival Best</div><div class="sv" style="color:#c084fc">'+STATS.survivalBest+'</div></div><div class="stat-box"><div class="sl mb-1">Fastest Round</div><div class="sv" style="color:var(--cy)">'+(STATS.fastestRound?(STATS.fastestRound/1000).toFixed(2)+'s':'—')+'</div></div><div class="stat-box"><div class="sl mb-1">Rules Learned</div><div class="sv" style="color:var(--ac)">'+(STATS.rulesSeen?STATS.rulesSeen.length:0)+'/19</div></div></div>';
+  html+='<div class="mb-3"><div class="sl mb-2">Recent Scores (last 10 games)</div>'+histChart+'</div>';
+  html+='<div class="mb-3"><div class="sl mb-2">Mode Breakdown</div><div class="grid grid-cols-2 gap-2 sm:grid-cols-4">'+modeCards+'</div></div>';
+  /* Recent activity */
+  html+='<div class="mb-3"><div class="sl mb-2">Recent Activity</div>';
+  if(!STATS.history.length)html+='<div class="text-xs" style="color:var(--mt)">No games played yet.</div>';
+  else{
+    html+='<div class="space-y-1">';
+    STATS.history.slice(0,5).forEach(function(h){
+      var ago=Math.round((Date.now()-h.date)/60000);
+      var timeAgo=ago<60?ago+'m ago':Math.round(ago/60)+'h ago';
+      html+='<div class="flex items-center justify-between text-xs px-3 py-2 rounded" style="background:var(--sf);border:1px solid var(--bd)"><span>'+modeNames[h.mode]+'</span><span style="color:var(--ac);font-family:JetBrains Mono">'+h.score+' pts</span><span style="color:var(--mt)">'+h.acc+'% · '+timeAgo+'</span></div>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  html+='<div class="text-center mt-4"><button class="bp2" onclick="closeModal()">Close</button></div>';
+  openModal(html);
+}
+
+function showAchievements(){
+  iS();
+  var unlocked=0;
+  var cards=ACH.map(function(a){
+    var has=STATS.ach.indexOf(a.id)!==-1;
+    if(has)unlocked++;
+    return '<div class="ach '+(has?'un':'lk')+'"><div class="achi" style="'+(has?'':'opacity:.4')+'"><i class="fa-solid '+a.icon+'"></i></div><div class="flex-1"><div class="font-bold text-sm">'+a.name+'</div><div class="text-xs" style="color:var(--mt)">'+a.desc+'</div></div>'+(has?'<i class="fa-solid fa-check" style="color:var(--ac)"></i>':'<i class="fa-solid fa-lock" style="color:var(--mt)"></i>')+'</div>';
+  }).join('');
+  var html='<h3 class="font-bold text-xl mb-1" style="color:var(--wn)"><i class="fa-solid fa-trophy mr-2"></i>Achievements</h3><p class="text-xs mb-4" style="color:var(--mt)">'+unlocked+' / '+ACH.length+' unlocked</p>';
+  html+='<div class="space-y-2">'+cards+'</div>';
+  html+='<div class="text-center mt-4"><button class="bp2" onclick="closeModal()">Close</button></div>';
+  openModal(html);
+}
+
+function showReference(){
+  iS();
+  var html='<h3 class="font-bold text-xl mb-1" style="color:var(--cy)"><i class="fa-solid fa-book mr-2"></i>Grammar Reference</h3><p class="text-xs mb-4" style="color:var(--mt)">Tap a category to expand. Study before you breach.</p>';
+  var refs=[
+    {t:'Subject-Verb Agreement',b:'A verb must agree with its subject in number. Singular subjects take singular verbs (he runs, she has, it is). Plural subjects take plural verbs (they run, we have, you are). Watch out for collective plurals like "children", "people", "police" — they\'re always plural.'},
+    {t:'Pronoun Case (I vs me)',b:'Use "I" / "he" / "she" / "they" as the SUBJECT of a verb. Use "me" / "him" / "her" / "them" as the OBJECT. After prepositions (between, for, to, with, by), always use the object form: "between you and me" (not "I"). In compound subjects, put yourself last: "My friend and I went."'},
+    {t:'Their / They\'re / There',b:'"Their" = possessive ("their house"). "They\'re" = "they are" ("they\'re going"). "There" = location or existential ("there is a problem"). Saying "their going" or "their are many" mixes these up.'},
+    {t:'Your / You\'re',b:'"Your" = possessive ("your book"). "You\'re" = "you are" ("you\'re welcome"). "Your welcome" is wrong — it should be "you\'re welcome".'},
+    {t:'Its / It\'s',b:'"Its" = possessive ("its fur", "its name"). "It\'s" = "it is" ("it\'s raining"). Possessive pronouns don\'t take apostrophes: his, hers, its, ours, theirs.'},
+    {t:'Could/Would/Should of',b:'The correct phrase is "could have", "would have", "should have". The contracted form "could\'ve" sounds like "could of", which is wrong. Always use "have".'},
+    {t:'Less vs Fewer',b:'Use "fewer" with COUNTABLE nouns (fewer students, fewer books, fewer apples). Use "less" with UNCOUNTABLE nouns (less water, less money, less time). Supermarket "10 items or less" is actually grammatically wrong!'},
+    {t:'Subjunctive Mood',b:'After "wish" or in hypothetical "if" clauses, use "were" for all subjects: "I wish I were taller", "If I were you", "If she were here". The indicative "was" is wrong in these contexts.'},
+    {t:'Lay vs Lie',b:'"Lie" (recline) — present: lie / past: lay / participle: lain. "Lay" (put) — present: lay / past: laid / participle: laid. So "The dog lay on the rug" (past tense of "lie"). "She laid the book down" (past tense of "lay").'},
+    {t:'Then vs Than',b:'"Then" refers to TIME or SEQUENCE ("first this, then that"). "Than" is for COMPARISONS ("better than", "faster than"). "She is taller then me" is wrong.'},
+    {t:'Who vs Whom',b:'"Who" is the SUBJECT of a verb ("Who is there?"). "Whom" is the OBJECT ("To whom did you speak?"). Quick test: try replacing with "he" or "him" — if "him" fits, use "whom".'},
+    {t:'Affect vs Effect',b:'"Affect" is usually a VERB meaning "to influence" ("The weather affects my mood"). "Effect" is usually a NOUN meaning "the result" ("The effect was immediate").'},
+    {t:'Collective Nouns',b:'Words like committee, team, family, jury, audience are usually SINGULAR in American English ("The team is winning"). Treat them as a single unit.'},
+    {t:'Foreign Plurals',b:'Many borrowed Latin/Greek words have irregular plurals: criterion→criteria, phenomenon→phenomena, datum→data, medium→media, analysis→analyses, thesis→theses. The plural form takes a plural verb.'},
+    {t:'Comparative & Superlative',b:'Short adjectives add -er / -est (big → bigger → biggest). Long adjectives use more / most (beautiful → more beautiful → most beautiful). NEVER combine: "more bigger" or "most best" are wrong.'},
+    {t:'Double Negatives',b:'Two negatives cancel out, making the meaning positive. "I don\'t have no money" technically means "I do have money". Use one negative: "I don\'t have any money" or "I have no money".'},
+    {t:'A vs An',b:'Use "an" before VOWEL SOUNDS ("an apple", "an hour" - silent h). Use "a" before CONSONANT SOUNDS ("a university" - starts with /y/ sound, "a one-way street").'},
+    {t:'Each / Every',b:'"Each" and "every" are SINGULAR even when followed by a plural noun: "Each of the students has a book", "Every one of the players has a jersey".'},
+    {t:'Neither / Either',b:'"Neither of" and "Either of" take SINGULAR verbs: "Neither of the options is good". Though informal speech often uses plural, formal grammar prefers singular.'}
+  ];
+  var cats=refs.map(function(r,i){
+    return '<div class="ref-cat'+(i===0?' open':'')+'"><div class="ref-hd" onclick="this.parentElement.classList.toggle(\'open\')"><span>'+r.t+'</span><i class="fa-solid fa-chevron-right ref-chev"></i></div><div class="ref-bd">'+r.b+'</div></div>';
+  }).join('');
+  html+=cats;
+  html+='<div class="text-center mt-4"><button class="bp2" onclick="closeModal()">Close</button></div>';
+  openModal(html);
+}
+
+function showSettings(){
+  iS();
+  var themes=[
+    {id:'cyber',name:'Cyber Green',bg:'#0a0e17',ac:'#10b981'},
+    {id:'matrix',name:'Matrix',bg:'#000',ac:'#00ff66'},
+    {id:'synthwave',name:'Synthwave',bg:'#1a0a2e',ac:'#ff2e88'},
+    {id:'terminal',name:'Terminal Amber',bg:'#0a0a0a',ac:'#ffaa00'}
+  ];
+  var thmHtml=themes.map(function(t){
+    var act=STATS.theme===t.id;
+    return '<div class="thm-pick '+(act?'act':'')+'" onclick="applyTheme(\''+t.id+'\');showSettings()"><span class="thm-swatch" style="background:'+t.bg+';box-shadow:inset 0 0 0 2px '+t.ac+'"></span><span class="text-sm">'+t.name+'</span>'+(act?'<i class="fa-solid fa-check ml-2" style="color:var(--ac)"></i>':'')+'</div>';
+  }).join('');
+  var html='<h3 class="font-bold text-xl mb-1" style="color:var(--cy)"><i class="fa-solid fa-gear mr-2"></i>Settings</h3><p class="text-xs mb-4" style="color:var(--mt)">Customize your breach experience.</p>';
+  html+='<div class="mb-4"><div class="sl mb-2">Theme</div><div class="grid grid-cols-2 gap-2">'+thmHtml+'</div></div>';
+  html+='<div class="set-row"><div><div class="font-bold text-sm">Sound Volume</div><div class="text-xs" style="color:var(--mt)">Adjust audio level</div></div><div class="flex items-center gap-2"><input type="range" id="volSlider" min="0" max="100" value="'+Math.round(sVol*100)+'" oninput="setVol(this.value)" style="width:120px"><span class="text-xs font-mono" id="volVal" style="color:var(--ac);width:36px;text-align:right">'+Math.round(sVol*100)+'%</span></div></div>';
+  html+='<div class="set-row"><div><div class="font-bold text-sm">Mute Sounds</div><div class="text-xs" style="color:var(--mt)">Silence all audio</div></div><button class="bp2" id="muteToggle" onclick="toggleMute()" style="padding:8px 16px;font-size:14px"><i class="fa-solid '+(sMute?'fa-volume-xmark':'fa-volume-high')+' mr-2"></i>'+(sMute?'Unmute':'Mute')+'</button></div>';
+  html+='<div class="set-row"><div><div class="font-bold text-sm">Reset Progress</div><div class="text-xs" style="color:var(--mt)">Wipe all stats, money, emblems</div></div><button class="bp2" style="padding:8px 16px;font-size:14px;border-color:var(--er);color:var(--er)" onclick="confirmReset()"><i class="fa-solid fa-trash mr-2"></i>Reset</button></div>';
+  html+='<div class="text-center mt-4"><button class="bp2" onclick="closeModal()">Close</button></div>';
+  openModal(html);
+}
+function setVol(v){
+  sVol=v/100;
+  try{localStorage.setItem('sc_vol',sVol)}catch(e){}
+  var el=document.getElementById('volVal');
+  if(el)el.textContent=v+'%';
+  if(!sMute)snd('click');
+}
+function toggleMute(){
+  sMute=!sMute;
+  try{localStorage.setItem('sc_mute',sMute?'1':'0')}catch(e){}
+  var btn=document.getElementById('muteBtn');
+  if(btn)btn.innerHTML='<i class="fa-solid '+(sMute?'fa-volume-xmark':'fa-volume-high')+'"></i>';
+  showSettings();
+}
+function confirmReset(){
+  openModal('<h3 class="font-bold text-lg mb-2" style="color:var(--er)"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Reset All Progress?</h3><p class="text-sm mb-4" style="color:var(--mt)">This will erase all your stats, money, emblems, achievements, and history. This cannot be undone.</p><div class="flex gap-2"><button class="bp2" style="flex:1;border-color:var(--er);color:var(--er)" onclick="doReset()"><i class="fa-solid fa-trash mr-1"></i>Yes, Reset</button><button class="bp" style="flex:1" onclick="showSettings()"><i class="fa-solid fa-xmark mr-1"></i>Cancel</button></div>');
+}
+function doReset(){
+  try{
+    localStorage.removeItem('sc_stats');localStorage.removeItem('sc_m');localStorage.removeItem('sc_e');localStorage.removeItem('sc_h');
+  }catch(e){}
+  STATS.money=0;STATS.emblems=[];STATS.totalRounds=0;STATS.bestStreak=0;STATS.perfectGames=0;STATS.survivalBest=0;STATS.fastestRound=0;STATS.comeback=0;STATS.dailyDone=0;STATS.rulesSeen=[];STATS.ach=[];STATS.history=[];
+  STATS.modeScores={judge:0,fix:0,spot:0,survival:0,time:0,speed:0,daily:0,practice:0};
+  STATS.modePlays={judge:0,fix:0,spot:0,survival:0,time:0,speed:0,daily:0,practice:0};
+  STATS.lastDaily=null;
+  closeModal();
+  closeSheet();
+  toast('<b>Progress reset.</b><br>Starting fresh.','fa-rotate-right');
+}
+/* === SECTION_14: MENU === */
+function renderMenu(){
+  var app=document.getElementById('app');
+  var th='',title='SYNTAX CLASH';
+  for(var i=0;i<title.length;i++)th+='<span class="tc" style="animation-delay:'+(i*.06)+'s">'+(title[i]===' '?'&nbsp;&nbsp;':esc(title[i]))+'</span>';
+  var modes=[
+    {id:'judge',name:'Syntax Judge',desc:'Decide if each sentence is correct or has an error.',icon:'fa-gavel',color:'var(--ac)',tag:'Classic',tb:'rgba(16,185,129,.15)',tc2:'var(--ac)',pr:'She don\'t like pizza.\n<span class="hl">don\'t</span> → <span class="fx">doesn\'t</span>'},
+    {id:'fix',name:'Error Fix',desc:'Pick the correct replacement for the wrong word.',icon:'fa-wrench',color:'var(--wn)',tag:'Precision',tb:'rgba(210,153,34,.15)',tc2:'var(--wn)',pr:'Their going to the beach.\n<span class="hl">Their</span> → <span class="fx">They\'re</span>'},
+    {id:'spot',name:'Spot the Error',desc:'Click the exact word that is incorrect.',icon:'fa-crosshairs',color:'var(--er)',tag:'Focus',tb:'rgba(248,81,73,.15)',tc2:'var(--er)',pr:'Between you and I, this is bad.\nError: <span class="hl">I</span>'},
+    {id:'survival',name:'Survival',desc:'No lives — one mistake ends it.',icon:'fa-skull',color:'#c084fc',tag:'Endless',tb:'rgba(192,132,252,.15)',tc2:'#c084fc',pr:'One wrong answer\nand it\'s over.'},
+    {id:'time',name:'Time Attack',desc:'60 seconds. Score as much as you can. Timer shrinks each round.',icon:'fa-stopwatch',color:'var(--cy)',tag:'NEW',tb:'rgba(57,210,192,.15)',tc2:'var(--cy)',pr:'60s · max score\nround timer shrinks'},
+    {id:'speed',name:'Speed Run',desc:'Clear 20 rounds as fast as possible.',icon:'fa-flag-checkered',color:'#c084fc',tag:'NEW',tb:'rgba(192,132,252,.15)',tc2:'#c084fc',pr:'20 rounds\nbeat the clock'},
+    {id:'daily',name:'Daily Challenge',desc:'Same seed for everyone. Once per day. Hard.',icon:'fa-calendar-day',color:'var(--wn)',tag:'NEW',tb:'rgba(210,153,34,.15)',tc2:'var(--wn)',pr:'8s per round\nsame sentences for all'},
+    {id:'practice',name:'Practice',desc:'No timer, no lives. Learn grammar stress-free.',icon:'fa-book',color:'var(--ac)',tag:'NEW',tb:'rgba(16,185,129,.15)',tc2:'var(--ac)',pr:'No pressure\njust learn'},
+    {id:'heist',name:'Terminal Heist',desc:'Type correct words to breach security, steal money, collect emblems.',icon:'fa-terminal',color:'var(--cy)',tag:'Heist',tb:'rgba(57,210,192,.15)',tc2:'var(--cy)',pr:'Type: <span class="fx">doesn\'t</span>\nto bypass the firewall\nand access the vault'}
+  ];
+  var cards='';
+  for(var m=0;m<modes.length;m++){
+    var d=modes[m];
+    var isNew=d.tag==='NEW'?'<span class="ml" style="margin-left:6px">NEW</span>':'';
+    cards+='<div class="ms" onclick="openSheet(\''+d.id+'\')" tabindex="0" role="button"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+d.color+';opacity:0;transition:opacity .3s"></div><div class="ms-ic" style="background:'+d.tb+';color:'+d.color+'"><i class="fa-solid '+d.icon+'"></i></div><div class="flex items-center gap-2 mb-1"><span class="font-bold text-lg" style="color:#e6edf3">'+d.name+'</span><span class="ms-tg" style="background:'+d.tb+';color:'+d.tc2+'">'+d.tag+'</span></div><p class="text-sm mb-2" style="color:var(--mt)">'+d.desc+'</p><div class="ms-pr">'+d.pr+'</div></div>';
+  }
+  var rk=getRank();
+  var embs='';
+  for(var e=0;e<TGTS.length;e++){var t=TGTS[e],has=STATS.emblems.indexOf(t.id)!==-1;embs+='<div class="emb '+(has?'on':'off')+'" title="'+t.embN+'"><i class="fa-solid '+t.emb+'"></i></div>'}
+  /* Compute next rank */
+  var nextRank='',nextThresh=0;
+  for(var i=0;i<RANKS.length;i++){
+    if(STATS.money<RANKS[i][1]){nextRank=RANKS[i][0];nextThresh=RANKS[i][1];break}
+  }
+  var rankPct=0;
+  if(nextThresh){
+    var prevThresh=0;
+    for(var i=RANKS.length-1;i>=0;i--){if(STATS.money>=RANKS[i][1]){prevThresh=RANKS[i][1];break}}
+    rankPct=Math.min(100,Math.round((STATS.money-prevThresh)/(nextThresh-prevThresh)*100));
+  } else {rankPct=100}
+  /* Achievement count */
+  var achUnlocked=STATS.ach.length;
+  var achTotal=ACH.length;
+  /* Daily challenge status */
+  var dailyDone=STATS.lastDaily===dateStr(new Date());
+
+  var h='<div class="min-h-screen flex flex-col items-center px-4 py-10">';
+  h+='<div class="text-center mb-8"><div class="font-mono text-xs tracking-[6px] uppercase mb-3" style="color:var(--mt)">Grammar Validation Game · <span style="color:var(--cy)">PRO</span></div><h1 class="font-mono font-bold text-5xl md:text-7xl tracking-tight mb-3" style="color:#e6edf3">'+th+'</h1><div class="font-mono text-sm" style="color:var(--mt)">Hack the system. Master the language.</div></div>';
+  /* Quick action bar */
+  h+='<div class="flex items-center justify-center gap-3 mb-6 flex-wrap"><button class="bp2" style="padding:10px 18px;font-size:13px" onclick="showStats()"><i class="fa-solid fa-chart-line mr-2"></i>Stats</button><button class="bp2" style="padding:10px 18px;font-size:13px" onclick="showAchievements()"><i class="fa-solid fa-trophy mr-2" style="color:var(--wn)"></i>Achievements ('+achUnlocked+'/'+achTotal+')</button><button class="bp2" style="padding:10px 18px;font-size:13px" onclick="showReference()"><i class="fa-solid fa-book mr-2" style="color:var(--cy)"></i>Reference</button><button class="bp2" style="padding:10px 18px;font-size:13px" onclick="showSettings()"><i class="fa-solid fa-gear mr-2" style="color:var(--cy)"></i>Settings</button></div>';
+  /* Modes grid */
+  h+='<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-5xl mb-8">'+cards+'</div>';
+  /* Player profile / stats bar */
+  h+='<div class="w-full max-w-5xl" style="border-top:1px solid var(--bd);padding-top:24px">';
+  h+='<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">';
+  /* Rank card */
+  h+='<div class="stat-box text-left" style="padding:18px"><div class="sl mb-1">Current Rank</div><div class="flex items-center justify-between mb-2"><span class="sv" style="color:var(--ac);font-size:18px">'+rk[0]+'</span><span class="text-xs" style="color:var(--mt)">'+STATS.totalRounds+' rounds played</span></div>'+(nextThresh?'<div class="xbar"><div class="xbar-fl" style="width:'+rankPct+'%"></div></div><div class="flex justify-between mt-1 text-xs" style="color:var(--mt)"><span>$'+STATS.money.toLocaleString()+'</span><span>$'+nextThresh.toLocaleString()+' → '+nextRank+'</span></div>':'<div class="text-xs mt-1" style="color:var(--wn)"><i class="fa-solid fa-crown mr-1"></i>Max rank achieved!</div>')+'</div>';
+  /* Balance card */
+  h+='<div class="stat-box" style="padding:18px"><div class="sl mb-1">Balance</div><div class="sv" style="color:var(--wn);font-size:24px">$'+STATS.money.toLocaleString()+'</div><div class="text-xs mt-2" style="color:var(--mt)">Best streak: <span style="color:var(--ac);font-family:JetBrains Mono">'+STATS.bestStreak+'x</span> · Survival: <span style="color:#c084fc;font-family:JetBrains Mono">'+STATS.survivalBest+'</span></div></div>';
+  /* Daily status card */
+  if(dailyDone){
+    h+='<div class="stat-box" style="padding:18px;border-color:rgba(210,153,34,.3);background:rgba(210,153,34,.05)"><div class="sl mb-1" style="color:var(--wn)">Daily Challenge</div><div class="sv" style="color:var(--wn);font-size:18px"><i class="fa-solid fa-check mr-2"></i>Done Today</div><div class="text-xs mt-2" style="color:var(--mt)">Completed '+STATS.dailyDone+' daily challenges</div></div>';
+  } else {
+    h+='<div class="stat-box" style="padding:18px;border-color:rgba(57,210,192,.3);background:rgba(57,210,192,.05);cursor:pointer" onclick="openSheet(\'daily\')"><div class="sl mb-1" style="color:var(--cy)">Daily Challenge</div><div class="sv" style="color:var(--cy);font-size:18px"><i class="fa-solid fa-bolt mr-2"></i>Available</div><div class="text-xs mt-2" style="color:var(--mt)">Click to play today\'s challenge</div></div>';
+  }
+  h+='</div>';
+  /* Emblems */
+  h+='<div class="flex items-center gap-4 flex-wrap mb-4"><div><div class="sl mb-2">Emblems</div><div class="flex gap-3">'+embs+'</div></div></div>';
+  /* Heist targets */
+  h+='<div class="mt-2"><div class="sl mb-3">Heist Targets</div><div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">';
+  for(var hi=0;hi<TGTS.length;hi++){var tg=TGTS[hi];
+    h+='<div class="hc '+(STATS.emblems.indexOf(tg.id)!==-1?'done':'')+'" onclick="openSheet(\'heist\',\''+tg.id+'\')"><div class="flex items-center gap-2 mb-1"><i class="fa-solid '+tg.icon+'" style="color:'+tg.col+'"></i><span class="font-bold text-sm" style="color:#e6edf3">'+tg.name+'</span></div><div class="text-xs" style="color:var(--mt)">'+tg.layers+' layers · '+['','Easy','Med','Hard'][tg.diff]+'</div><div class="font-mono text-xs font-bold mt-1" style="color:var(--wn)">$'+tg.reward.toLocaleString()+'</div></div>';
+  }
+  h+='</div></div>';
+  h+='</div></div>';
+  app.innerHTML=h;
+  /* Mode card hover effect */
+  setTimeout(function(){document.querySelectorAll('.ms').forEach(function(c){c.addEventListener('mouseenter',function(){var bar=c.querySelector('div[style*="height:3px"]');if(bar)bar.style.opacity='1'});c.addEventListener('mouseleave',function(){var bar=c.querySelector('div[style*="height:3px"]');if(bar)bar.style.opacity='0'})})},100);
+}
+
+/* === SECTION_15: INIT === */
+document.getElementById('backBtn').addEventListener('click',closeSheet);
+document.getElementById('pauseBtn').addEventListener('click',togglePause);
+document.getElementById('settingsBtn').addEventListener('click',showSettings);
+document.getElementById('muteBtn').addEventListener('click',function(){
+  sMute=!sMute;
+  try{localStorage.setItem('sc_mute',sMute?'1':'0')}catch(e){}
+  var btn=document.getElementById('muteBtn');
+  if(btn)btn.innerHTML='<i class="fa-solid '+(sMute?'fa-volume-xmark':'fa-volume-high')+'"></i>';
+  if(!sMute){iS();snd('click')}
+});
+
+document.addEventListener('keydown',function(e){
+  /* Close modal on Esc */
+  if(e.key==='Escape'){
+    var m=document.getElementById('modalBg');
+    if(m.classList.contains('on')){closeModal();return}
+    /* Toggle pause in game */
+    if(activeSheet&&['judge','fix','spot','survival','time','speed','daily','practice'].indexOf(activeSheet)!==-1&&!GM.ans){
+      togglePause();
+    }
+    return;
+  }
+  if(e.key==='m'||e.key==='M'){
+    if(e.target.tagName!=='INPUT'){
+      sMute=!sMute;
+      try{localStorage.setItem('sc_mute',sMute?'1':'0')}catch(e){}
+      var btn=document.getElementById('muteBtn');
+      if(btn)btn.innerHTML='<i class="fa-solid '+(sMute?'fa-volume-xmark':'fa-volume-high')+'"></i>';
+      if(!sMute){iS();snd('click')}
+    }
+    return;
+  }
+  if(activeSheet&&(activeSheet==='judge'||activeSheet==='fix'||activeSheet==='spot'||activeSheet==='survival'||activeSheet==='time'||activeSheet==='speed'||activeSheet==='daily'||activeSheet==='practice')&&!GM.ans&&!GM.paused){
+    if(activeSheet==='judge'||activeSheet==='survival'||activeSheet==='time'||activeSheet==='speed'||activeSheet==='daily'||activeSheet==='practice'){
+      if(e.key==='a'||e.key==='A'||e.key==='ArrowLeft'){e.preventDefault();hJ(false)}
+      else if(e.key==='d'||e.key==='D'||e.key==='ArrowRight'){e.preventDefault();hJ(true)}
+      else if(e.key==='s'||e.key==='S'){if(activeSheet==='time'||activeSheet==='speed'||activeSheet==='practice'){e.preventDefault();skipRound()}}
+    }
+    else if(activeSheet==='fix'){
+      var n=parseInt(e.key);
+      if(n>=1&&n<=GM.opts.length){e.preventDefault();hFi(n-1)}
+    }
+    else if(activeSheet==='spot'){
+      var n2=parseInt(e.key);
+      if(n2>=1&&n2<=GM.cur.w.length){e.preventDefault();hSp(n2-1)}
+    }
+  }
+  if(activeSheet==='over'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();closeSheet();openSheet(GM.mode)}
+});
+
+createSheet('hres');
+createSheet('over');
+renderMenu();
+</script>
+</body>
+</html>
