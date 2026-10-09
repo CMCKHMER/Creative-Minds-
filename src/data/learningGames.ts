@@ -50,7 +50,19 @@ export const LEARNING_GAMES: LearningGame[] = [
     badge: 'Live',
     questions: [],
   },
-    {
+  {
+    id: 'syntax-clash-pro',
+    title: 'Syntax Clash Pro · Grammar Hacker',
+    skill: 'Grammar',
+    level: 'Grades 5–12',
+    duration: 'Endless · about 5 min/run',
+    description: 'A self-contained grammar arcade: judge sentences, fix errors, spot the wrong word, and breach security layers in the Terminal Heist. Nine modes, five heist targets, daily challenge, 25 achievements, four themes. Opens in a new tab — no login, no student data.',
+    instructions: 'Open Syntax Clash Pro in a new tab and pick a mode from the menu. Try Daily Challenge for a shared seed, or Terminal Heist to earn money and emblems.',
+    externalUrl: './syntax-clash-pro.html',
+    badge: 'New',
+    questions: [],
+  },
+  {
     id: 'affix-architect',
     title: 'Affix Architect',
     skill: 'Vocabulary',

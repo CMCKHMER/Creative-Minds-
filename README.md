@@ -85,9 +85,17 @@ skill rubric.
 ## Learning Games
 
 The **Learning Games** card opens a separate in-app `#games` hero page. Students
-can browse six mini-games, filter by skill, read the challenge brief, play each
+can browse seven mini-games, filter by skill, read the challenge brief, play each
 round, and review immediate feedback. These games run in the browser and do not
 save student responses.
+
+Two of the seven games are standalone HTML pages that open in a new tab:
+**WriteQuest · Guided Writing Studio** (`./writequest.html`) and **Syntax Clash Pro
+· Grammar Hacker** (`./syntax-clash-pro.html`). Syntax Clash Pro is a self-contained
+grammar validation arcade with nine modes (Syntax Judge, Error Fix, Spot the Error,
+Survival, Time Attack, Speed Run, Daily Challenge, Practice, Terminal Heist), five
+heist targets, 25 achievements, four switchable themes, and a per-browser progress
+save. No login, no server, no student data leaves the device.
 
 ## Daily Student Assessment Records
 

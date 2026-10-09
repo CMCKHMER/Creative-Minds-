@@ -93,7 +93,7 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     id: 'learning-games',
     title: 'Creative Minds Play Lab',
     category: 'Student Engagement',
-    badge: '6 games',
+    badge: '7 games',
     description: 'Open a dedicated student game room with vocabulary, reading, grammar, listening, and phonics mini-games.',
     iconName: 'Gamepad2',
     path: '#games'
