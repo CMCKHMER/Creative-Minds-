@@ -85,17 +85,23 @@ skill rubric.
 ## Learning Games
 
 The **Learning Games** card opens a separate in-app `#games` hero page. Students
-can browse seven mini-games, filter by skill, read the challenge brief, play each
+can browse eight mini-games, filter by skill, read the challenge brief, play each
 round, and review immediate feedback. These games run in the browser and do not
 save student responses.
 
-Two of the seven games are standalone HTML pages that open in a new tab:
-**WriteQuest · Guided Writing Studio** (`./writequest.html`) and **Syntax Clash Pro
-· Grammar Hacker** (`./syntax-clash-pro.html`). Syntax Clash Pro is a self-contained
+Three of the eight games open in a new tab as standalone experiences:
+**WriteQuest · Guided Writing Studio** (`./writequest.html`), **Syntax Clash Pro
+· Grammar Hacker** (`./syntax-clash-pro.html`), and **Tense Master · 12 English
+Tenses** (`https://cmckhmer.github.io/TenseMaster/`). Both bundled HTML games
+and the separately-hosted Tense Master share the CMC visual family (slate-950
+background, cyan/teal/violet gradient accents, Plus Jakarta Sans + Syne +
+Space Grotesk typography). Syntax Clash Pro is a self-contained
 grammar validation arcade with nine modes (Syntax Judge, Error Fix, Spot the Error,
 Survival, Time Attack, Speed Run, Daily Challenge, Practice, Terminal Heist), five
 heist targets, 25 achievements, four switchable themes, and a per-browser progress
-save. No login, no server, no student data leaves the device.
+save. Tense Master teaches all 12 English verb tenses with progressive level
+unlocking, best-streak tracking, mistake review, and keyboard shortcuts. No login,
+no server, no student data leaves the device.
 
 ## Daily Student Assessment Records
 

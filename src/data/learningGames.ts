@@ -63,6 +63,18 @@ export const LEARNING_GAMES: LearningGame[] = [
     questions: [],
   },
   {
+    id: 'tense-master',
+    title: 'Tense Master · 12 English Tenses',
+    skill: 'Grammar',
+    level: 'Grades 5–12',
+    duration: '12 tenses · about 4 min per tense',
+    description: 'Learn all 12 English verb tenses with explanations, examples, signal words, and quizzes. Progressive unlock from Basic to Expert. Best-streak tracking, mistake review, keyboard shortcuts. Same CMC visual family — opens in a new tab, no login, no student data.',
+    instructions: 'Open Tense Master in a new tab. Read the lesson, take the 6-question quiz, then move on. Keys 1-4 or A-D answer, Enter advances, Esc goes back.',
+    externalUrl: 'https://cmckhmer.github.io/TenseMaster/',
+    badge: 'New',
+    questions: [],
+  },
+  {
     id: 'affix-architect',
     title: 'Affix Architect',
     skill: 'Vocabulary',
