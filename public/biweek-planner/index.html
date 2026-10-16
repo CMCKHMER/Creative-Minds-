@@ -142,6 +142,18 @@ html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,13
 html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 
 </style>
+
+<!-- Google Analytics 4 (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){window.dataLayer.push(arguments)}
+  window.gtag=gtag;
+  gtag('js',new Date());
+  gtag('config','G-XXXXXXXXXX',{send_page_view:true});
+  // cmcTrack helper — safe to call before/after gtag loads.
+  window.cmcTrack=function(ev,params){try{if(typeof window.gtag==='function'){window.gtag('event',ev,params||{})}}catch(e){}};
+</script>
 </head>
 <body>
 <a href="https://cmckhmer.github.io/Creative-Minds-/" style="position:fixed;top:16px;right:16px;z-index:99995;display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;background:rgba(15,23,42,.9);backdrop-filter:blur(8px);border:1px solid rgba(56,189,248,.3);color:#67e8f9;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;text-decoration:none;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.3)" onmouseover="this.style.borderColor='rgba(56,189,248,.6)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(56,189,248,.3)';this.style.transform=''">
@@ -149,7 +161,7 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 </a>
 <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark"><i class="fas fa-sun"></i></button>
 <script>
-function toggleTheme(){var h=document.documentElement;var dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');try{localStorage.setItem('biweek-theme',dark?'light':'dark')}catch(e){}document.getElementById('themeToggle').innerHTML=dark?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'}
+function toggleTheme(){var h=document.documentElement;var dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');try{localStorage.setItem('biweek-theme',dark?'light':'dark')}catch(e){}document.getElementById('themeToggle').innerHTML=dark?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>';cmcTrack('theme_toggle',{theme:dark?'light':'dark'})}
 try{var saved=localStorage.getItem('biweek-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);window.addEventListener('DOMContentLoaded',function(){document.getElementById('themeToggle').innerHTML=saved==='light'?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'})}}catch(e){}
 </script>
 
@@ -338,15 +350,14 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
     a.addEventListener('click',function(){
       var svc=a.getAttribute('data-share');
       if(svc==='email'){a.href=buildURL('email');return}
-      a.href=buildURL(svc);
-    });
+      a.href=buildURL(svc);cmcTrack('share_click',{service:svc});});
   });
   var copyBtn=document.getElementById('cmc-share-copy');
   if(copyBtn){
     copyBtn.addEventListener('click',function(){
       var label=copyBtn.querySelector('span');
       var done=function(){if(label){var orig=label.textContent;label.textContent='Copied!';setTimeout(function(){label.textContent=orig},1500)}};
-      try{navigator.clipboard.writeText(window.location.href).then(done).catch(function(){done()})}catch(e){done()}
+      try{navigator.clipboard.writeText(window.location.href).then(done).catch(function(){done()});cmcTrack('share_click',{service:'copy_link'})}catch(e){done()}
     });
   }
 })();

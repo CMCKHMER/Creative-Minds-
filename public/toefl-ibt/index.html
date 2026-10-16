@@ -1712,6 +1712,18 @@ html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,13
 html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 
 </style>
+
+<!-- Google Analytics 4 (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){window.dataLayer.push(arguments)}
+  window.gtag=gtag;
+  gtag('js',new Date());
+  gtag('config','G-XXXXXXXXXX',{send_page_view:true});
+  // cmcTrack helper — safe to call before/after gtag loads.
+  window.cmcTrack=function(ev,params){try{if(typeof window.gtag==='function'){window.gtag('event',ev,params||{})}}catch(e){}};
+</script>
 </head>
 <body>
 
@@ -1721,7 +1733,7 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 </a>
 
 <script>
-function toggleTheme(){var h=document.documentElement;var dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');try{localStorage.setItem('toefl-theme',dark?'light':'dark')}catch(e){}document.getElementById('themeToggle').innerHTML=dark?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'}
+function toggleTheme(){var h=document.documentElement;var dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');try{localStorage.setItem('toefl-theme',dark?'light':'dark')}catch(e){}document.getElementById('themeToggle').innerHTML=dark?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>';cmcTrack('theme_toggle',{theme:dark?'light':'dark'})}
 try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('themeToggle');if(b)b.innerHTML=saved==='light'?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'})}}catch(e){}
 </script>
 <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark"><i class="fas fa-sun"></i></button>
@@ -5524,15 +5536,14 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
     a.addEventListener('click',function(){
       var svc=a.getAttribute('data-share');
       if(svc==='email'){a.href=buildURL('email');return}
-      a.href=buildURL(svc);
-    });
+      a.href=buildURL(svc);cmcTrack('share_click',{service:svc});});
   });
   var copyBtn=document.getElementById('cmc-share-copy');
   if(copyBtn){
     copyBtn.addEventListener('click',function(){
       var label=copyBtn.querySelector('span');
       var done=function(){if(label){var orig=label.textContent;label.textContent='Copied!';setTimeout(function(){label.textContent=orig},1500)}};
-      try{navigator.clipboard.writeText(window.location.href).then(done).catch(function(){done()})}catch(e){done()}
+      try{navigator.clipboard.writeText(window.location.href).then(done).catch(function(){done()});cmcTrack('share_click',{service:'copy_link'})}catch(e){done()}
     });
   }
 })();

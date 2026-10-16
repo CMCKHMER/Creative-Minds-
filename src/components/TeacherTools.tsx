@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dice5, Dice3, RefreshCw, Play, Plus, X, Sparkles, Users, RotateCcw } from 'lucide-react';
+import { trackDiceRoll, trackWheelSpin } from '../lib/analytics';
 
 /* =========================================================================
    3D DICE ROLLER
@@ -122,6 +123,11 @@ function DiceRoller() {
     // Pre-compute final values so the cube animates toward them
     const newValues = Array.from({ length: diceCount }, () => Math.floor(Math.random() * 6) + 1);
     setValues(newValues);
+    trackDiceRoll({
+      diceCount,
+      total: newValues.reduce((a, b) => a + b, 0),
+      values: newValues,
+    });
     setTimeout(() => {
       setRolling(false);
       setHistory((h) =>
@@ -298,6 +304,8 @@ function WheelSpinPicker() {
     const n = names.length;
     const sliceAngle = (Math.PI * 2) / n;
     const winnerIdx = Math.floor(Math.random() * n);
+    // Fire the analytics event — we already know the winner now.
+    trackWheelSpin({ namesCount: n, winner: names[winnerIdx] });
     // We want slice midpoint aligned to the pointer (top, -90deg).
     // Pointer is at angle -Math.PI/2 (top). Want: winnerIdx * sliceAngle + sliceAngle/2 + rotation === -PI/2 (mod 2PI).
     // Solve for rotation: rotation = -PI/2 - (winnerIdx * sliceAngle + sliceAngle/2)  + extra full spins.

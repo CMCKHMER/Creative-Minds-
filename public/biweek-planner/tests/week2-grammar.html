@@ -165,6 +165,18 @@ html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,13
 html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 
 </style>
+
+<!-- Google Analytics 4 (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){window.dataLayer.push(arguments)}
+  window.gtag=gtag;
+  gtag('js',new Date());
+  gtag('config','G-XXXXXXXXXX',{send_page_view:true});
+  // cmcTrack helper — safe to call before/after gtag loads.
+  window.cmcTrack=function(ev,params){try{if(typeof window.gtag==='function'){window.gtag('event',ev,params||{})}}catch(e){}};
+</script>
 </head>
 <body>
 <!-- Top nav -->
@@ -174,7 +186,7 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 </div>
 <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark"><i class="fas fa-sun"></i></button>
 <script>
-function toggleTheme(){var h=document.documentElement;var dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');try{localStorage.setItem('biweek-theme',dark?'light':'dark')}catch(e){}document.getElementById('themeToggle').innerHTML=dark?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'}
+function toggleTheme(){var h=document.documentElement;var dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');try{localStorage.setItem('biweek-theme',dark?'light':'dark')}catch(e){}document.getElementById('themeToggle').innerHTML=dark?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>';cmcTrack('theme_toggle',{theme:dark?'light':'dark'})}
 try{var saved=localStorage.getItem('biweek-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);window.addEventListener('DOMContentLoaded',function(){document.getElementById('themeToggle').innerHTML=saved==='light'?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'})}}catch(e){}
 </script>
 
@@ -320,7 +332,7 @@ form.addEventListener('submit',e=>{
   const mc=cards.find(c=>!c.querySelector('input:checked'));
   if(mc){mc.classList.add('needs-answer');result.textContent='Answer every question before submitting. The first unanswered question is highlighted.';result.classList.remove('hidden');result.style.background='rgba(248,113,113,.1)';result.style.color='#f87171';mc.scrollIntoView({behavior:'smooth',block:'center'});return}
   const score=cards.filter(c=>[...c.querySelectorAll('input:checked')].map(i=>i.value).sort().join('|')===c.dataset.answer).length;
-  result.textContent=`\u2713 Score: ${score}/${cards.length} (${Math.round(score/cards.length*100)}%) — ${config.title}`;
+  cmcTrack('drill_complete',{drill_slug:window.location.pathname.split('/').pop(),drill_title:config.title,drill_source:'biweek-planner',score_pct:Math.round(score/cards.length*100),correct_count:score,total_count:cards.length});result.textContent=`\u2713 Score: ${score}/${cards.length} (${Math.round(score/cards.length*100)}%) — ${config.title}`;
   result.classList.remove('hidden');result.style.background='rgba(16,185,129,.1)';result.style.color='#6ee7b7';
   submit.disabled=true;setTimeout(()=>submit.disabled=false,2000);
 });
@@ -364,15 +376,14 @@ form.addEventListener('submit',e=>{
     a.addEventListener('click',function(){
       var svc=a.getAttribute('data-share');
       if(svc==='email'){a.href=buildURL('email');return}
-      a.href=buildURL(svc);
-    });
+      a.href=buildURL(svc);cmcTrack('share_click',{service:svc});});
   });
   var copyBtn=document.getElementById('cmc-share-copy');
   if(copyBtn){
     copyBtn.addEventListener('click',function(){
       var label=copyBtn.querySelector('span');
       var done=function(){if(label){var orig=label.textContent;label.textContent='Copied!';setTimeout(function(){label.textContent=orig},1500)}};
-      try{navigator.clipboard.writeText(window.location.href).then(done).catch(function(){done()})}catch(e){done()}
+      try{navigator.clipboard.writeText(window.location.href).then(done).catch(function(){done()});cmcTrack('share_click',{service:'copy_link'})}catch(e){done()}
     });
   }
 })();
