@@ -15,6 +15,7 @@ import { CtaSection } from './components/CtaSection';
 import { Footer } from './components/Footer';
 import { ToeflJuniorAssessments } from './components/ToeflJuniorAssessments';
 import { DailyAssessmentCard } from './components/DailyAssessmentCard';
+import { TOEFLiBTCard } from './components/TOEFLiBTCard';
 import { KidGradeHub } from './components/KidGradeHub';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
@@ -131,6 +132,9 @@ export function App() {
 
         {/* Main-hero themed link to the separate daily student record workspace */}
         <DailyAssessmentCard />
+
+        {/* Full TOEFL iBT mock test card — opens 4-section practice exam in a new tab */}
+        <TOEFLiBTCard />
 
         {/* Available learning materials and skills */}
         <SocialProof />

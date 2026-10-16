@@ -29,6 +29,15 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     path: '#toefl-mini-test'
   },
   {
+    id: 'toefl-ibt-mock',
+    title: 'TOEFL iBT Full Mock Test',
+    category: 'Assessment & Tests',
+    badge: 'Full exam',
+    description: 'Open the complete four-section TOEFL iBT mock test in a new tab — Reading, Listening (audio), Speaking (mic recording), and Writing.',
+    iconName: 'BookOpen',
+    path: '#toefl-ibt-mock'
+  },
+  {
     id: 'toefl-assessments',
     title: 'TOEFL Junior Skill Assessments',
     category: 'Assessment & Tests',

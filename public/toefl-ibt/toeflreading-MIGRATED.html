@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEFL iBT - Reading Section</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Shared TOEFL Design System -->
+    <link rel="stylesheet" href="toefl-styles.css">
+    <link rel="stylesheet" href="toefl-section-colors.css">
+    
+    <style>
+        /* Reading-specific styles only */
+        /* (none needed - uses shared components) */
+    </style>
+<base target="_blank">
+
+    <!-- ==================== CMC THEME OVERRIDE ==================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23020617'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='100%25' stop-color='%236366f1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='34' fill='url(%23g)'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' font-family='sans-serif' font-weight='900' font-size='24' fill='white'%3ETOEFL%3C/text%3E%3C/svg%3E" />
+    <style id="cmc-theme-override">
+      body,
+      .light-theme-bg,
+      .light-theme-bg.dashboard-bg {
+          background: #020617 !important;
+          background-image:
+              radial-gradient(ellipse 80% 50% at 10% 20%, rgba(34, 211, 238, 0.10) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 90% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+              radial-gradient(ellipse 70% 60% at 80% 80%, rgba(94, 234, 212, 0.08) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 40% at 20% 70%, rgba(125, 211, 252, 0.08) 0%, transparent 50%),
+              linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+      }
+      .light-theme-bg::before, .light-theme-bg::after, body::before, body::after { display: none !important; background: none !important; }
+      .floating-shape { display: none !important; }
+      body { color: #f1f5f9 !important; }
+      .text-slate-900, .text-slate-800, .text-slate-700 { color: #f1f5f9 !important; }
+      .text-slate-600, .text-slate-500 { color: #cbd5e1 !important; }
+      .text-slate-400 { color: #94a3b8 !important; }
+      h1, h2, h3, h4 { color: #f8fafc !important; }
+      label, .form-label { color: #cbd5e1 !important; }
+      p { color: #cbd5e1 !important; }
+      .glass-frame, .glass-card, .card, .panel {
+          background: rgba(255, 255, 255, 0.04) !important;
+          backdrop-filter: blur(12px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          color: #f1f5f9 !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+      }
+      .glass-frame::before { display: none !important; background: none !important; }
+      h1, h2, .display-title { font-family: 'Syne', 'Plus Jakarta Sans', sans-serif !important; letter-spacing: -0.02em !important; }
+      body, button, input, select, textarea, label, p, span, div { font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important; }
+      .font-display, .text-display { font-family: 'Syne', 'Plus Jakarta Sans', sans-serif !important; }
+      input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
+          background: rgba(255, 255, 255, 0.05) !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          color: #f1f5f9 !important;
+          padding: 10px 14px !important;
+          border-radius: 10px !important;
+          transition: border-color 0.2s ease, background 0.2s ease !important;
+      }
+      input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+          background: rgba(34, 211, 238, 0.06) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+          outline: none !important;
+      }
+      input::placeholder, textarea::placeholder { color: #64748b !important; }
+      .btn-primary, button.btn-primary, .primary-btn {
+          background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%) !important;
+          color: #0f172a !important;
+          border: none !important;
+          font-weight: 700 !important;
+          padding: 12px 24px !important;
+          border-radius: 10px !important;
+          box-shadow: 0 8px 24px rgba(56, 189, 248, 0.25) !important;
+          transition: all 0.2s ease !important;
+          cursor: pointer !important;
+      }
+      .btn-primary:hover, button.btn-primary:hover, .primary-btn:hover {
+          filter: brightness(1.15) !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 0 12px 32px rgba(56, 189, 248, 0.4) !important;
+      }
+      .btn-secondary, button.btn-secondary, .secondary-btn {
+          background: rgba(255, 255, 255, 0.06) !important;
+          color: #f1f5f9 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          font-weight: 600 !important;
+          padding: 12px 24px !important;
+          border-radius: 10px !important;
+          transition: all 0.2s ease !important;
+          cursor: pointer !important;
+      }
+      .btn-secondary:hover, button.btn-secondary:hover, .secondary-btn:hover {
+          background: rgba(255, 255, 255, 0.10) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+          color: #67e8f9 !important;
+      }
+      button:not(.btn-primary):not(.btn-secondary):not(.btn-danger):not(.btn-success):not(.icon-btn):not([class*="bg-red"]):not([class*="bg-green"]) {
+          background: rgba(255, 255, 255, 0.06) !important;
+          color: #f1f5f9 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          font-weight: 600 !important;
+          border-radius: 10px !important;
+          transition: all 0.2s ease !important;
+      }
+      button:not(.btn-primary):not(.btn-secondary):not(.btn-danger):not(.btn-success):not(.icon-btn):hover {
+          background: rgba(34, 211, 238, 0.10) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+      }
+      .status-pill { background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.10) !important; color: #cbd5e1 !important; }
+      .status-pill.completed { background: rgba(16, 185, 129, 0.18) !important; color: #6ee7b7 !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+      .status-pill.pending { background: rgba(245, 158, 11, 0.18) !important; color: #fcd34d !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; }
+      .status-pill.recording { background: rgba(239, 68, 68, 0.18) !important; color: #fca5a5 !important; border: 1px solid rgba(239, 68, 68, 0.4) !important; }
+      .card, .section-card, .answer-card, .question-card, .nav-item, .section-nav-item {
+          background: rgba(255, 255, 255, 0.04) !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          color: #f1f5f9 !important;
+          border-radius: 12px !important;
+          transition: all 0.25s ease !important;
+      }
+      .card:hover, .section-card:hover, .answer-card:hover, .question-card:hover, .nav-item:hover, .section-nav-item:hover {
+          background: rgba(34, 211, 238, 0.06) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+      }
+      .answer-card.selected, .question-card.selected, .nav-item.active, .section-nav-item.active {
+          background: rgba(34, 211, 238, 0.10) !important;
+          border-color: rgba(34, 211, 238, 0.5) !important;
+          box-shadow: 0 0 24px rgba(34, 211, 238, 0.18) !important;
+      }
+      a, .link { color: #67e8f9 !important; }
+      a:hover, .link:hover { color: #a5f3fc !important; }
+      .brand-text, .brand-name {
+          background: linear-gradient(100deg, #a5f3fc 0%, #5eead4 45%, #a5b4fc 100%) !important;
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          color: transparent !important;
+      }
+      .reading-passage, .passage-text, .article-text, [class*="reading-text"] {
+          background: rgba(15, 23, 42, 0.7) !important;
+          color: #e2e8f0 !important;
+          border: 1px solid rgba(255, 255, 255, 0.06) !important;
+          padding: 24px !important;
+          border-radius: 12px !important;
+          line-height: 1.7 !important;
+      }
+      .reading-passage p, .passage-text p, .article-text p { color: #cbd5e1 !important; }
+      audio {
+          background: rgba(15, 23, 42, 0.8) !important;
+          border-radius: 10px !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      }
+      audio::-webkit-media-controls-panel { background: rgba(15, 23, 42, 0.9) !important; }
+      .writing-area, .writing-textarea, .response-area {
+          background: rgba(255, 255, 255, 0.04) !important;
+          color: #f1f5f9 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          border-radius: 10px !important;
+      }
+      .timer, .section-timer, .countdown {
+          background: rgba(15, 23, 42, 0.85) !important;
+          color: #67e8f9 !important;
+          border: 1px solid rgba(34, 211, 238, 0.3) !important;
+          font-family: 'Space Grotesk', monospace !important;
+          font-weight: 700 !important;
+      }
+      .timer.warning { color: #fbbf24 !important; border-color: rgba(245, 158, 11, 0.4) !important; }
+      .timer.critical { color: #f87171 !important; border-color: rgba(239, 68, 68, 0.5) !important; }
+      ::-webkit-scrollbar { width: 10px; height: 10px; }
+      ::-webkit-scrollbar-track { background: #020617; }
+      ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(34, 211, 238, 0.3), rgba(99, 102, 241, 0.3)); border-radius: 5px; }
+      ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, rgba(34, 211, 238, 0.5), rgba(99, 102, 241, 0.5)); }
+      ::selection { background: rgba(34, 211, 238, 0.3); color: #fff; }
+      .tab-bar, .section-tabs { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 12px !important; }
+      .tab-btn, .section-tab { color: #cbd5e1 !important; background: transparent !important; border: none !important; }
+      .tab-btn.active, .section-tab.active { background: rgba(34, 211, 238, 0.12) !important; color: #67e8f9 !important; }
+      .progress-bar, .progress-track { background: rgba(255, 255, 255, 0.08) !important; }
+      .progress-fill { background: linear-gradient(90deg, #38bdf8 0%, #5eead4 50%, #818cf8 100%) !important; }
+      .navbar, .top-nav, .header-bar {
+          background: rgba(2, 6, 23, 0.85) !important;
+          backdrop-filter: blur(12px) !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      }
+      .navbar a, .top-nav a { color: #cbd5e1 !important; }
+      .navbar a:hover, .top-nav a:hover { color: #67e8f9 !important; }
+      .security-warning-card {
+          background: rgba(15, 23, 42, 0.96) !important;
+          border: 2px solid rgba(239, 68, 68, 0.5) !important;
+          color: #fca5a5 !important;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 60px rgba(239, 68, 68, 0.2) !important;
+      }
+      .security-warning-card h2, .security-warning-card h3 { color: #fca5a5 !important; }
+      .recording-indicator, .rec-indicator {
+          background: rgba(239, 68, 68, 0.15) !important;
+          color: #fca5a5 !important;
+          border: 1px solid rgba(239, 68, 68, 0.4) !important;
+      }
+      .recording-dot { background: #ef4444 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important; }
+      .mcq-option, .question-option {
+          background: rgba(255, 255, 255, 0.04) !important;
+          color: #e2e8f0 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          border-radius: 10px !important;
+          transition: all 0.2s ease !important;
+      }
+      .mcq-option:hover, .question-option:hover { background: rgba(34, 211, 238, 0.06) !important; border-color: rgba(34, 211, 238, 0.4) !important; }
+      .mcq-option.selected, .question-option.selected { background: rgba(34, 211, 238, 0.10) !important; border-color: rgba(34, 211, 238, 0.5) !important; }
+      .mcq-option.correct, .question-option.correct { background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(16, 185, 129, 0.5) !important; color: #6ee7b7 !important; }
+      .mcq-option.incorrect, .question-option.incorrect { background: rgba(239, 68, 68, 0.15) !important; border-color: rgba(239, 68, 68, 0.5) !important; color: #fca5a5 !important; }
+      input, textarea, select { font-size: 16px !important; }
+      .muted-text, .text-muted, .helper-text { color: #94a3b8 !important; }
+    </style>
+</head>
+<body class="section-reading">
+    <!-- Header -->
+    <header class="toefl-header">
+        <div class="toefl-header-content">
+            <div class="toefl-brand">
+                <div class="toefl-logo">
+                    <i class="fas fa-graduation-cap toefl-logo-icon"></i>
+                    <div class="toefl-logo-text">
+                        <h1>TOEFL iBT</h1>
+                        <p>Reading Section</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toefl-header-actions">
+                <div class="timer-display" id="timer">00:00</div>
+                <button onclick="submitReading()" class="btn-3d">
+                    <i class="fas fa-paper-plane mr-2"></i>Submit
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="toefl-container">
+        <!-- Sidebar -->
+        <aside class="toefl-sidebar">
+            <div class="toefl-sidebar-content">
+                <div class="glass-frame p-6">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-6">
+                        <i class="fas fa-chart-pie mr-2" style="color: var(--section-primary);"></i>Progress
+                    </h3>
+
+                    <div class="flex justify-between text-sm mb-3">
+                        <span class="text-slate-400">Completed</span>
+                        <span id="progress-text" class="font-bold" style="color: var(--section-primary);">0%</span>
+                    </div>
+                    <div class="progress-container h-3">
+                        <div id="progress-bar" class="progress-fill" style="width: 0%"></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-6">
+                        <div class="stat-card" style="border-left: 3px solid var(--success);">
+                            <div id="correct-count" class="text-2xl font-bold text-emerald-400">0</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Correct</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 3px solid var(--error);">
+                            <div id="incorrect-count" class="text-2xl font-bold text-red-400">0</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Incorrect</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-700">
+                        <h4 class="text-sm font-bold text-slate-300 mb-4">Modules</h4>
+                        <div class="flex gap-2">
+                            <button onclick="switchModule(1)" id="mod1-btn" class="module-btn active flex-1">Module 1</button>
+                            <button onclick="switchModule(2)" id="mod2-btn" class="module-btn flex-1">Module 2</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="toefl-main">
+            <!-- Module 1 -->
+            <div id="module-1" class="module-content fade-in">
+                <div class="glass-frame p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fas fa-book-open" style="color: var(--section-primary);"></i>
+                        Reading Module 1
+                    </h2>
+                    <p class="text-slate-400 mt-2">Answer questions to demonstrate how well you understand academic and non-academic texts.</p>
+                </div>
+
+                <!-- Fill in the blanks -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-blue"><i class="fas fa-pen mr-1"></i>Complete the Words</span>
+                        <span class="text-slate-500 text-sm">Questions 1-10</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-6">Fill in the missing letters in the paragraph.</h3>
+                    <div class="text-slate-300 leading-loose text-lg">
+                        <p>Early civilizations, including those in Mesopotamia, Egypt, the Indus Valley, and China, emerged around river valleys, where fertile land and water resources supported agriculture. 
+                        <input type="text" id="r1q1" class="fill-input" placeholder="Th__" onchange="checkFillBlank(this, 'ey')"> developed 
+                        <input type="text" id="r1q2" class="fill-input" placeholder="sophis_______" onchange="checkFillBlank(this, 'ticated')"> social 
+                        <input type="text" id="r1q3" class="fill-input" placeholder="struc_____" onchange="checkFillBlank(this, 'tures')">, written 
+                        <input type="text" id="r1q4" class="fill-input" placeholder="lang_____" onchange="checkFillBlank(this, 'uages')">, and 
+                        <input type="text" id="r1q5" class="fill-input" placeholder="adva____" onchange="checkFillBlank(this, 'nced')"> technologies, 
+                        <input type="text" id="r1q6" class="fill-input" placeholder="wh___" onchange="checkFillBlank(this, 'ich')"> allowed 
+                        <input type="text" id="r1q7" class="fill-input" placeholder="th__" onchange="checkFillBlank(this, 'em')"> to 
+                        <input type="text" id="r1q8" class="fill-input" placeholder="thr___" onchange="checkFillBlank(this, 'ive')"> and 
+                        <input type="text" id="r1q9" class="fill-input" placeholder="esta---" onchange="checkFillBlank(this, 'blish')"> cities, 
+                        <input type="text" id="r1q10" class="fill-input" placeholder="tr___" onchange="checkFillBlank(this, 'ade')"> networks, and even empires. Just as important were their significant contributions to fields like art, science, and law. These developments were crucial in shaping the course of human history.</p>
+                    </div>
+                </div>
+
+                <!-- Notice Questions -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-green"><i class="fas fa-envelope mr-1"></i>Read in Daily Life</span>
+                        <span class="text-slate-500 text-sm">Questions 11-12</span>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-8 border-l-4 border-l-blue-500">
+                        <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                            <i class="fas fa-bullhorn text-blue-400"></i>
+                            Read a notice:
+                        </h4>
+                        <p class="text-slate-300 italic leading-relaxed">This is to let all employees know that the staff meeting scheduled for Wednesday, August 10th at 2:00 PM has been rescheduled. The meeting will now take place on Friday, August 12th at 3:00 PM in the main conference room. Please be on time. Thank you.</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">11</div>
+                                <p class="font-medium text-white text-lg">What is the main purpose of the notice?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q11', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) To introduce new employees to staff</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q11', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) To announce a change in a meeting schedule</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q11', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) To apologize for a scheduling conflict</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q11', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) To inform employees of a conference opportunity</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">12</div>
+                                <p class="font-medium text-white text-lg">When will the staff meeting take place?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q12', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Wednesday, August 10th at 2:00 PM</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q12', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Wednesday, August 10th at 3:00 PM</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q12', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Friday, August 12th at 2:00 PM</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q12', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) Friday, August 12th at 3:00 PM</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Questions 13-15 -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-green"><i class="fas fa-envelope mr-1"></i>Read in Daily Life</span>
+                        <span class="text-slate-500 text-sm">Questions 13-15</span>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-8 border-l-4 border-l-blue-500">
+                        <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                            <i class="fas fa-envelope text-blue-400"></i>
+                            Read an email:
+                        </h4>
+                        <div class="text-slate-300 leading-relaxed space-y-3">
+                            <p><strong>Subject:</strong> RE: inquiry</p>
+                            <p>Dear Mr. Santiago,</p>
+                            <p>We are pleased that you are considering our facility for your mother's birthday celebration.</p>
+                            <p>Our outdoor area includes a playground and picnic tables, which can be set up to your preference. We offer a variety of dining options that suit different dietary needs. Please find the menu attached to this email.</p>
+                            <p>Our team can organize activities for people of all ages, including arts and crafts, board games, and more. We do not have photographers on staff, but we have worked with external professional photographers in the past and are happy to provide you with recommendations.</p>
+                            <p>To secure your date, we require a down payment of 30 percent of the total cost. If you need to cancel your booking, please notify us at least fourteen days in advance. Cancellations made outside this window will forfeit the down payment.</p>
+                            <p>Regards,<br>Rebecca Yang</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">13</div>
+                                <p class="font-medium text-white text-lg">What can be inferred about Mr. Santiago?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q13', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) He is about to celebrate his birthday.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q13', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) He has used Rebecca Yang's facility in the past.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q13', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) He is a professional event organizer.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q13', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) He has requested information about Rebecca Yang's facility.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">14</div>
+                                <p class="font-medium text-white text-lg">Rebecca Yang's team does NOT include:</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q14', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Cooks</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q14', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Professional photographers</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q14', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) People who can facilitate children's games</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q14', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) People who can set up picnic tables</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">15</div>
+                                <p class="font-medium text-white text-lg">What information is being provided along with the email message?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q15', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Food choices</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q15', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Types of arts and crafts activities</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q15', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Dates available for booking</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r1q15', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) Contact information of photographers</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Passage -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-purple"><i class="fas fa-university mr-1"></i>Academic Passage</span>
+                        <span class="text-slate-500 text-sm">Questions 16-20</span>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-white mb-6">The Effects of Urbanization on Bird Populations</h3>
+
+                    <div class="glass-frame p-6 mb-8 text-slate-300 leading-relaxed space-y-4">
+                        <p>Urbanization has had a profound impact on bird populations worldwide. As cities expand, natural habitats are replaced with buildings, roads, and other infrastructure. This leads to a significant reduction in the availability of nesting sites and food sources for birds.</p>
+                        <p>Some species, such as pigeons and sparrows, have adapted well to urban environments, taking advantage of the new resources and structures. However, many other species struggle to survive in these altered landscapes. Therefore, it is imperative to find solutions that help birds adapt to city life.</p>
+                        <p>One notable effect of urbanization is the change in bird song. Birds living in cities often sing at higher pitches and volumes than their rural counterparts. This adaptation helps them communicate over the noise of traffic and human activity. Additionally, the artificial lighting in cities can disrupt the natural circadian (daily time-related) rhythms of birds, affecting their breeding and feeding behaviors.</p>
+                        <p>Conservationists are working to mitigate the negative effects of urbanization on birds. Initiatives such as creating urban green spaces, constructing bird-friendly buildings, and reducing light pollution are being implemented. These efforts aim to create a more hospitable environment for birds, allowing them to coexist with humans in urban settings.</p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">16</div>
+                                <p class="font-medium text-white text-lg">The word "mitigate" in the passage is closest in meaning to:</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q16', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) understand</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q16', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) analyze</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q16', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) communicate</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q16', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) reduce</span></label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">17</div>
+                                <p class="font-medium text-white text-lg">Which of the following is NOT mentioned as an effect of urbanization on birds?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q17', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) Reduced availability of nesting sites</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q17', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) Changes in bird song</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q17', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) Increased food sources</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q17', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) Disrupted circadian rhythms</span></label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">18</div>
+                                <p class="font-medium text-white text-lg">Why does the author mention pigeons and sparrows?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q18', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) To identify birds that struggle to survive in urban environments</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q18', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) To give examples of birds that have adjusted to living in urban settings</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q18', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) To highlight the diversity of urban bird species</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q18', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) To suggest that all birds can adapt to cities</span></label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">19</div>
+                                <p class="font-medium text-white text-lg">What is one initiative mentioned in the passage to help birds in urban areas?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q19', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) Introducing new bird species to urban areas</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q19', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) Providing human-made food sources to birds</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q19', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) Creating urban green spaces</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q19', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) Decreasing the amount of noise made by traffic</span></label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">20</div>
+                                <p class="font-medium text-white text-lg">What can be inferred about the impact artificial lighting in cities has on birds?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r1q20', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) It disrupts the natural behaviors of birds.</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q20', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) It allows birds to find food at night.</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q20', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) It helps birds to adapt to urban environments.</span></label>
+                                <label class="option-3d" onclick="selectOption('r1q20', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) It increases the population of urban birds.</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module 2 -->
+            <div id="module-2" class="module-content hidden">
+                <div class="glass-frame p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fas fa-book-open text-blue-500"></i>
+                        Reading Module 2
+                    </h2>
+                    <p class="text-slate-400 mt-2">Continue with the next set of reading questions.</p>
+                </div>
+
+                <!-- Fill in the blanks Module 2 -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-blue"><i class="fas fa-pen mr-1"></i>Complete the Words</span>
+                        <span class="text-slate-500 text-sm">Questions 1-10</span>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-6">Fill in the missing letters in the paragraph.</h3>
+                    <div class="text-slate-300 leading-loose text-lg">
+                        <p>Consciousness is the state of being aware of and able to think about one's own existence, thoughts, and surroundings. 
+                        <input type="text" id="r2q1" class="fill-input" placeholder="Wh__" onchange="checkFillBlank(this, 'en')"> you 
+                        <input type="text" id="r2q2" class="fill-input" placeholder="lo__" onchange="checkFillBlank(this, 'ok')"> in a 
+                        <input type="text" id="r2q3" class="fill-input" placeholder="mir___" onchange="checkFillBlank(this, 'ror')"> and recognize your 
+                        <input type="text" id="r2q4" class="fill-input" placeholder="____" onchange="checkFillBlank(this, 'self')">, you 
+                        <input type="text" id="r2q5" class="fill-input" placeholder="exh____" onchange="checkFillBlank(this, 'ibit')"> self-awareness, 
+                        <input type="text" id="r2q6" class="fill-input" placeholder="wh___" onchange="checkFillBlank(this, 'ich')"> is 
+                        <input type="text" id="r2q7" class="fill-input" placeholder="n__" onchange="checkFillBlank(this, 'ot')"> unique 
+                        <input type="text" id="r2q8" class="fill-input" placeholder="t_" onchange="checkFillBlank(this, 'o')"> humans 
+                        <input type="text" id="r2q9" class="fill-input" placeholder="b__" onchange="checkFillBlank(this, 'ut')"> is 
+                        <input type="text" id="r2q10" class="fill-input" placeholder="al__" onchange="checkFillBlank(this, 'so')"> found in dolphins and great apes. Consciousness is not to be confused with cognition. The latter refers to mental processes involved in gaining knowledge and solving problems, like thinking, judging, and remembering.</p>
+                    </div>
+                </div>
+
+                <!-- Email Questions 11-12 -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-green"><i class="fas fa-envelope mr-1"></i>Read in Daily Life</span>
+                        <span class="text-slate-500 text-sm">Questions 11-12</span>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-8 border-l-4 border-l-blue-500">
+                        <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                            <i class="fas fa-envelope text-blue-400"></i>
+                            Read an email:
+                        </h4>
+                        <div class="text-slate-300 leading-relaxed space-y-3">
+                            <p>Dear Ms. Simmons,</p>
+                            <p>We are delighted to confirm your reservation for the Italian cooking class on June 25th at 4:00 PM. Please arrive fifteen minutes early for registration. Bring an apron, a chef's knife, and a notebook. We'll provide a cutting board.</p>
+                            <p>Best regards,<br>Lily Evans</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">11</div>
+                                <p class="font-medium text-white text-lg">What is the main purpose of the e-mail?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q11', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) To request attendance at a class</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q11', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) To confirm a reservation for a class</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q11', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) To update travel plans</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q11', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) To provide registration instructions</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">12</div>
+                                <p class="font-medium text-white text-lg">What is Ms. Simmons NOT required to bring?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q12', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) An apron</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q12', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) A cutting board</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q12', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) A chef's knife</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q12', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) A notebook</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Questions 13-15 -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-green"><i class="fas fa-envelope mr-1"></i>Read in Daily Life</span>
+                        <span class="text-slate-500 text-sm">Questions 13-15</span>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-8 border-l-4 border-l-blue-500">
+                        <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                            <i class="fas fa-envelope text-blue-400"></i>
+                            Read an email:
+                        </h4>
+                        <div class="text-slate-300 leading-relaxed space-y-3">
+                            <p><strong>Subject:</strong> Annual conference</p>
+                            <p>Dear Ms. Adams,</p>
+                            <p>We are pleased to invite you to the annual educational psychology conference taking place on October 15-16.</p>
+                            <p>This year's conference theme is "Emotions and Psychological Processes." The keynote speaker will be Dr. Jane Smith. We will also organize four panel discussions with leading scholars as well as interactive workshops. More details will be shared soon.</p>
+                            <p>We are excited to announce the return of poster sessions this year, where graduate students and early-career researchers will present their work. If you would like to present your research in the poster session, please submit an extended abstract for review by the conference committee by August 1st.</p>
+                            <p>Breakfast and lunch will be provided for a nominal fee with a variety of options to accommodate different dietary needs. Additionally, all attendees will receive a conference packet, including materials from the sessions and a certificate of attendance.</p>
+                            <p>Regards,<br>Michael Brown</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">13</div>
+                                <p class="font-medium text-white text-lg">What is the main purpose of the email?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q13', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) To request information about Ms. Adams' research</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q13', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) To invite Ms. Adams to speak at a conference</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q13', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) To provide details about an event</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q13', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) To announce participants of the poster sessions</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">14</div>
+                                <p class="font-medium text-white text-lg">Dr. Jane Smith will:</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q14', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) lead panel discussions</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q14', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) organize interactive workshops</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q14', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) talk about research about emotions</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q14', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) present her research in the poster session</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">15</div>
+                                <p class="font-medium text-white text-lg">What can be inferred about the poster session?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q15', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) It has been part of the conference in the past.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q15', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) It is for leading scholars of the field.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q15', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) It is open to the public.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('r2q15', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) It will be held on August 1st.</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Passage Module 2 -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-purple"><i class="fas fa-university mr-1"></i>Academic Passage</span>
+                        <span class="text-slate-500 text-sm">Questions 16-20</span>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-white mb-6">The History of Photography</h3>
+
+                    <div class="glass-frame p-6 mb-8 text-slate-300 leading-relaxed space-y-4">
+                        <p>The history of photography is marked by significant technological progress and artistic innovation. It began in the early nineteenth century with the invention of the camera obscura, a device that projected images onto a surface. The first permanent photograph was created by Joseph-Nicéphore Niépce in 1826 using a process called heliography, which required several hours of exposure to light. Photography quickly evolved with the development of daguerreotypes, introduced by Louis Daguerre in 1839. This method produced detailed images on silver-plated copper, but daguerreotypes needed delicate handling, and the exposure times required, although much shorter, still remained impractical for recording images of moving objects.</p>
+                        <p>The invention of the calotype by William Henry Fox Talbot in the 1840s allowed for multiple copies of an image to be made from a single negative, revolutionizing the field. (A) In the late nineteenth and early twentieth centuries, the introduction of film and roll cameras made photography more accessible to the public. (B) George Eastman's establishment of the Kodak company in 1888 played a crucial role in this democratization, as his cameras were simple to use and affordable. (C) Today, digital photography has further transformed the medium, allowing instant image capture and sharing. (D)</p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">16</div>
+                                <p class="font-medium text-white text-lg">The word "innovation" in the passage is closest in meaning to:</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q16', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) success</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q16', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) advancement</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q16', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) activity</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q16', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) expression</span></label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">17</div>
+                                <p class="font-medium text-white text-lg">What is suggested about daguerreotypes?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q17', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) They were introduced by Joseph-Nicéphore Niépce.</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q17', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) They allowed for multiple copies of an image.</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q17', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) They required shorter exposure times than heliographs did.</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q17', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) They made it unnecessary to use silver-plated copper.</span></label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">18</div>
+                                <p class="font-medium text-white text-lg">How did the calotype revolutionize photography?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q18', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) By enabling instant image capture</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q18', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) By reducing the need for delicate handling</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q18', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) By providing detailed images on silver-plated copper</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q18', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) By allowing multiple copies from a single negative</span></label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">19</div>
+                                <p class="font-medium text-white text-lg">Why does the author mention George Eastman's establishment of the Kodak company?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q19', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) To highlight the role of Kodak in making photography accessible to the public</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q19', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) To criticize the challenges of early photographic methods</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q19', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) To explain how film was invented</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q19', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) To suggest that Kodak introduced digital photography</span></label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">20</div>
+                                <p class="font-medium text-white text-lg">There are four locations (A, B, C, and D) in the passage that indicate where the following sentence could be added: "These developments have rendered the use of film and many types of cameras obsolete." Where would the sentence best fit?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('r2q20', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) Option A</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q20', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) Option B</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q20', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) Option C</span></label>
+                                <label class="option-3d" onclick="selectOption('r2q20', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) Option D</span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div class="mt-8 text-center">
+            <button onclick="submitReading()" class="btn-3d">
+                <i class="fas fa-paper-plane mr-2"></i>Submit
+            </button>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="results-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-frame max-w-lg w-full p-8 text-center">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
+                <i class="fas fa-trophy text-3xl text-white"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Reading Section Complete!</h3>
+            <p class="text-slate-400 mb-8">Here is your performance summary:</p>
+
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--success);">
+                    <div id="result-correct" class="text-3xl font-bold text-emerald-400">0</div>
+                    <div class="text-sm text-slate-400 mt-1">Correct</div>
+                </div>
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--error);">
+                    <div id="result-incorrect" class="text-3xl font-bold text-red-400">0</div>
+                    <div class="text-sm text-slate-400 mt-1">Incorrect</div>
+                </div>
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--primary-blue);">
+                    <div id="result-score" class="text-3xl font-bold text-blue-400">0%</div>
+                    <div class="text-sm text-slate-400 mt-1">Score</div>
+                </div>
+            </div>
+
+            <button onclick="closeResults()" class="btn-3d px-8 py-3">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        // Answer Key
+        const answerKey = {
+            // Module 1
+            'r1q1': 'ey', 'r1q2': 'ticated', 'r1q3': 'tures', 'r1q4': 'uages', 'r1q5': 'nced',
+            'r1q6': 'ich', 'r1q7': 'em', 'r1q8': 'ive', 'r1q9': 'blish', 'r1q10': 'ade',
+            'r1q11': 'B', 'r1q12': 'D', 'r1q13': 'D', 'r1q14': 'B', 'r1q15': 'A',
+            'r1q16': 'D', 'r1q17': 'C', 'r1q18': 'B', 'r1q19': 'C', 'r1q20': 'A',
+            // Module 2
+            'r2q1': 'en', 'r2q2': 'ok', 'r2q3': 'ror', 'r2q4': 'self', 'r2q5': 'ibit',
+            'r2q6': 'ich', 'r2q7': 'ot', 'r2q8': 'o', 'r2q9': 'ut', 'r2q10': 'so',
+            'r2q11': 'B', 'r2q12': 'B', 'r2q13': 'C', 'r2q14': 'C', 'r2q15': 'A',
+            'r2q16': 'B', 'r2q17': 'C', 'r2q18': 'D', 'r2q19': 'A', 'r2q20': 'D'
+        };
+
+        let userAnswers = {};
+        let seconds = 0;
+        let timerInterval;
+
+        // Start Timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = mins + ':' + secs;
+            }, 1000);
+        }
+
+        // Switch Module
+        function switchModule(module) {
+            document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('module-' + module).classList.remove('hidden');
+            document.getElementById('module-' + module).classList.add('fade-in');
+
+            document.getElementById('mod1-btn').className = module === 1 ? 'module-btn active flex-1' : 'module-btn flex-1';
+            document.getElementById('mod2-btn').className = module === 2 ? 'module-btn active flex-1' : 'module-btn flex-1';
+        }
+
+        // Select Option
+        function selectOption(qid, value, element) {
+            userAnswers[qid] = value;
+            const container = element.parentElement;
+            container.querySelectorAll('.option-3d').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            updateProgress();
+        }
+
+        // Check Fill Blank
+        function checkFillBlank(input, correct) {
+            const value = input.value.trim().toLowerCase();
+            const qid = input.id;
+            userAnswers[qid] = value;
+
+            if (value === correct.toLowerCase()) {
+                input.classList.add('correct');
+                input.classList.remove('incorrect');
+            } else {
+                input.classList.add('incorrect');
+                input.classList.remove('correct');
+            }
+            updateProgress();
+        }
+
+        // Update Progress
+        function updateProgress() {
+            const totalQuestions = Object.keys(answerKey).length;
+            const answered = Object.keys(userAnswers).length;
+            const progress = Math.round((answered / totalQuestions) * 100);
+
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = progress + '%';
+
+            let correct = 0;
+            let incorrect = 0;
+            for (const qid in userAnswers) {
+                if (answerKey[qid]) {
+                    if (userAnswers[qid].toLowerCase() === answerKey[qid].toLowerCase()) {
+                        correct++;
+                    } else {
+                        incorrect++;
+                    }
+                }
+            }
+            document.getElementById('correct-count').textContent = correct;
+            document.getElementById('incorrect-count').textContent = incorrect;
+        }
+
+        // Submit Reading
+        function submitReading() {
+            let correct = 0;
+            let incorrect = 0;
+
+            for (const qid in userAnswers) {
+                if (answerKey[qid]) {
+                    if (userAnswers[qid].toLowerCase() === answerKey[qid].toLowerCase()) {
+                        correct++;
+                    } else {
+                        incorrect++;
+                    }
+                }
+            }
+
+            const totalAnswered = correct + incorrect;
+            const score = totalAnswered > 0 ? Math.round((correct / totalAnswered) * 100) : 0;
+
+            document.getElementById('result-correct').textContent = correct;
+            document.getElementById('result-incorrect').textContent = incorrect;
+            document.getElementById('result-score').textContent = score + '%';
+            document.getElementById('results-modal').classList.remove('hidden');
+            clearInterval(timerInterval);
+        }
+
+        // Close Results
+        function closeResults() {
+            document.getElementById('results-modal').classList.add('hidden');
+        }
+
+        // Close modal on outside click
+        window.onclick = function(e) {
+            const modal = document.getElementById('results-modal');
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            startTimer();
+            updateProgress();
+        });
+    </script>
+</body>
+</html>

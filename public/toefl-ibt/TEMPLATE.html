@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEFL iBT - [SECTION NAME]</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Shared TOEFL Styles -->
+    <link rel="stylesheet" href="toefl-styles.css">
+    
+    <!-- Section Colors (Choose one based on section) -->
+    <link rel="stylesheet" href="toefl-section-colors.css">
+    
+    <style>
+        /* Page-specific styles only */
+        /* Keep this minimal - most styles come from shared CSS */
+    </style>
+</head>
+
+<!-- Add the appropriate section class to body -->
+<!-- Options: section-reading | section-listening | section-speaking | section-writing -->
+<body class="section-[SECTION NAME]">
+
+    <!-- ========================================
+         HEADER (Consistent across all sections)
+         ======================================== -->
+    <header class="toefl-header">
+        <div class="toefl-header-content">
+            <!-- Brand/Logo -->
+            <div class="toefl-brand">
+                <div class="toefl-logo">
+                    <!-- Change icon based on section:
+                         Reading: fa-graduation-cap
+                         Listening: fa-headphones
+                         Speaking: fa-microphone
+                         Writing: fa-pen-fancy
+                    -->
+                    <i class="fas fa-[SECTION_ICON] toefl-logo-icon"></i>
+                    <div class="toefl-logo-text">
+                        <h1>TOEFL iBT</h1>
+                        <p>[SECTION NAME] Section</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="toefl-header-actions">
+                <div class="timer-display" id="timer">00:00</div>
+                <button onclick="submitTest()" class="btn-3d">
+                    <i class="fas fa-paper-plane mr-2"></i>Submit
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================
+         MAIN CONTAINER
+         ======================================== -->
+    <div class="toefl-container">
+        
+        <!-- SIDEBAR (Consistent across all sections) -->
+        <aside class="toefl-sidebar">
+            <div class="toefl-sidebar-content">
+                <div class="glass-frame p-6">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-6">
+                        <i class="fas fa-chart-pie text-[SECTION_COLOR] mr-2"></i>Progress
+                    </h3>
+
+                    <!-- Progress Bar -->
+                    <div class="flex justify-between text-sm mb-3">
+                        <span class="text-slate-400">Completed</span>
+                        <span id="progress-text" class="font-bold" style="color: var(--section-primary)">0%</span>
+                    </div>
+                    <div class="progress-container h-3">
+                        <div id="progress-bar" class="progress-fill" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-2 gap-3 mt-6">
+                        <div class="stat-card" style="border-left: 3px solid var(--success);">
+                            <div id="correct-count" class="text-2xl font-bold text-emerald-400">0</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Correct</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 3px solid var(--error);">
+                            <div id="incorrect-count" class="text-2xl font-bold text-red-400">0</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Incorrect</div>
+                        </div>
+                    </div>
+
+                    <!-- Module Navigation -->
+                    <div class="mt-8 pt-6 border-t border-slate-700">
+                        <h4 class="text-sm font-bold text-slate-300 mb-4">Modules</h4>
+                        <div class="space-y-2">
+                            <button onclick="switchModule(1)" id="mod1-btn" class="module-btn active">
+                                Module 1
+                            </button>
+                            <button onclick="switchModule(2)" id="mod2-btn" class="module-btn">
+                                Module 2
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Instructions Box -->
+                    <div class="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <p class="text-xs text-slate-400 mb-2">
+                            <i class="fas fa-info-circle text-[SECTION_COLOR] mr-1"></i> Instructions
+                        </p>
+                        <p class="text-xs text-slate-500">[Section-specific instructions here]</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="toefl-main">
+            
+            <!-- MODULE 1 -->
+            <div id="module-1" class="module-content fade-in">
+                
+                <!-- Module Header -->
+                <div class="glass-frame p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fas fa-[ICON]" style="color: var(--section-primary)"></i>
+                        [MODULE 1 TITLE]
+                    </h2>
+                    <p class="text-slate-400 mt-2">[Module description]</p>
+                </div>
+
+                <!-- Question Frame Example -->
+                <div class="question-frame">
+                    <!-- Question Header -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question Type</span>
+                            <span class="text-slate-500 text-sm">Questions 1-5</span>
+                        </div>
+                        <span class="status-badge status-pending" id="status-q1">
+                            <i class="fas fa-clock"></i> Pending
+                        </span>
+                    </div>
+
+                    <!-- Question Content -->
+                    <div class="flex items-start gap-4 mb-4">
+                        <div class="q-number">1</div>
+                        <p class="font-medium text-white text-lg">[Question text here]</p>
+                    </div>
+
+                    <!-- Options (for multiple choice) -->
+                    <div class="space-y-3 ml-12">
+                        <label class="option-3d" onclick="selectOption('q1', 'A', this)">
+                            <div class="option-radio"></div>
+                            <span class="text-slate-300">(A) Option text</span>
+                        </label>
+                        <label class="option-3d" onclick="selectOption('q1', 'B', this)">
+                            <div class="option-radio"></div>
+                            <span class="text-slate-300">(B) Option text</span>
+                        </label>
+                        <label class="option-3d" onclick="selectOption('q1', 'C', this)">
+                            <div class="option-radio"></div>
+                            <span class="text-slate-300">(C) Option text</span>
+                        </label>
+                        <label class="option-3d" onclick="selectOption('q1', 'D', this)">
+                            <div class="option-radio"></div>
+                            <span class="text-slate-300">(D) Option text</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- MODULE 2 (Hidden by default) -->
+            <div id="module-2" class="module-content hidden">
+                <!-- Similar structure... -->
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ========================================
+         RESULTS MODAL
+         ======================================== -->
+    <div id="results-modal" class="modal-backdrop hidden">
+        <div class="modal-content text-center">
+            <div class="modal-icon">
+                <i class="fas fa-trophy text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">[SECTION] Section Complete!</h3>
+            <p class="text-slate-400 mb-8">Here is your performance summary:</p>
+
+            <!-- Results Stats -->
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--success);">
+                    <div id="result-correct" class="text-3xl font-bold text-emerald-400">0</div>
+                    <div class="text-sm text-slate-400 mt-1">Correct</div>
+                </div>
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--error);">
+                    <div id="result-incorrect" class="text-3xl font-bold text-red-400">0</div>
+                    <div class="text-sm text-slate-400 mt-1">Incorrect</div>
+                </div>
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--section-primary);">
+                    <div id="result-score" class="text-3xl font-bold" style="color: var(--section-primary)">0%</div>
+                    <div class="text-sm text-slate-400 mt-1">Score</div>
+                </div>
+            </div>
+
+            <button onclick="closeResults()" class="btn-3d px-8 py-3">
+                Continue
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================
+         JAVASCRIPT
+         ======================================== -->
+    <script>
+        // Global variables
+        let userAnswers = {};
+        let seconds = 0;
+        let timerInterval;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            startTimer();
+            updateProgress();
+        });
+
+        // Timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = mins + ':' + secs;
+            }, 1000);
+        }
+
+        // Module Switching
+        function switchModule(module) {
+            document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('module-' + module).classList.remove('hidden');
+            document.getElementById('module-' + module).classList.add('fade-in');
+
+            document.getElementById('mod1-btn').className = module === 1 ? 'module-btn active' : 'module-btn';
+            document.getElementById('mod2-btn').className = module === 2 ? 'module-btn active' : 'module-btn';
+        }
+
+        // Select Option (Multiple Choice)
+        function selectOption(qid, value, element) {
+            userAnswers[qid] = value;
+            const container = element.parentElement;
+            container.querySelectorAll('.option-3d').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            updateProgress();
+        }
+
+        // Update Progress
+        function updateProgress() {
+            const totalQuestions = 20; // Adjust based on your total
+            const answered = Object.keys(userAnswers).length;
+            const progress = Math.round((answered / totalQuestions) * 100);
+
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = progress + '%';
+        }
+
+        // Submit Test
+        function submitTest() {
+            document.getElementById('results-modal').classList.remove('hidden');
+            clearInterval(timerInterval);
+        }
+
+        // Close Results
+        function closeResults() {
+            document.getElementById('results-modal').classList.add('hidden');
+        }
+
+        // Close modal on outside click
+        window.onclick = function(e) {
+            const modal = document.getElementById('results-modal');
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        }
+    </script>
+
+</body>
+</html>
