@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1545,7 +1545,124 @@
           transform: translateY(-2px) !important;
           box-shadow: 0 12px 32px rgba(56, 189, 248, 0.40) !important;
       }
-    </style>
+    
+/* ===== LIGHT THEME ===== */
+html[data-theme="light"] body,
+html[data-theme="light"] .light-theme-bg,
+html[data-theme="light"] #login-screen,
+html[data-theme="light"] #security-notice,
+html[data-theme="light"] #dashboard-screen,
+html[data-theme="light"] #reading-section,
+html[data-theme="light"] #listening-section,
+html[data-theme="light"] #speaking-section,
+html[data-theme="light"] #writing-section {
+    background: #f8fafc !important;
+    background-image: radial-gradient(ellipse 60% 40% at 10% 10%, rgba(14,165,233,.06), transparent 50%), radial-gradient(ellipse 50% 40% at 90% 90%, rgba(168,85,247,.04), transparent 50%) !important;
+    color: #1e293b !important;
+}
+html[data-theme="light"] .glass-frame,
+html[data-theme="light"] .login-card,
+html[data-theme="light"] .security-info-card,
+html[data-theme="light"] .glass-card,
+html[data-theme="light"] .card,
+html[data-theme="light"] .panel {
+    background: rgba(255,255,255,0.85) !important;
+    border: 1px solid rgba(0,0,0,0.10) !important;
+    color: #1e293b !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
+}
+html[data-theme="light"] .login-card::before { background: linear-gradient(90deg, #0284c7, #6366f1) !important; }
+html[data-theme="light"] .login-input,
+html[data-theme="light"] input.login-input,
+html[data-theme="light"] input[type="text"],
+html[data-theme="light"] input[type="email"],
+html[data-theme="light"] input[type="password"],
+html[data-theme="light"] input[type="number"],
+html[data-theme="light"] textarea,
+html[data-theme="light"] select {
+    background: #fff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+}
+html[data-theme="light"] .login-input:focus { border-color: #0284c7 !important; background: rgba(2,132,199,.04) !important; }
+html[data-theme="light"] .login-input::placeholder,
+html[data-theme="light"] input::placeholder { color: #94a3b8 !important; }
+html[data-theme="light"] .text-slate-900,
+html[data-theme="light"] .text-slate-800,
+html[data-theme="light"] .text-slate-700,
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3 { color: #1e293b !important; }
+html[data-theme="light"] .text-slate-600,
+html[data-theme="light"] .text-slate-500,
+html[data-theme="light"] p { color: #475569 !important; }
+html[data-theme="light"] .text-slate-400 { color: #64748b !important; }
+html[data-theme="light"] .text-white,
+html[data-theme="light"] .text-slate-100,
+html[data-theme="light"] .text-slate-200 { color: #1e293b !important; }
+html[data-theme="light"] .btn-primary,
+html[data-theme="light"] button.btn-primary,
+html[data-theme="light"] .primary-btn {
+    background: linear-gradient(135deg, #0284c7, #6366f1) !important;
+    color: #fff !important;
+}
+html[data-theme="light"] .btn-secondary,
+html[data-theme="light"] button.btn-secondary,
+html[data-theme="light"] button:not(.btn-primary):not(.btn-secondary):not(.btn-danger):not(.btn-success):not(.icon-btn):not([class*="bg-red"]):not([class*="bg-green"]) {
+    background: #fff !important;
+    color: #1e293b !important;
+    border: 1px solid #cbd5e1 !important;
+}
+html[data-theme="light"] .section-card {
+    background: rgba(255,255,255,0.6) !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+}
+html[data-theme="light"] .section-card:hover {
+    background: rgba(2,132,199,0.06) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+}
+html[data-theme="light"] .security-rule {
+    background: rgba(0,0,0,0.03) !important;
+    border-left: 3px solid #f59e0b !important;
+}
+html[data-theme="light"] .security-rule p { color: #475569 !important; }
+html[data-theme="light"] .security-warning-card {
+    background: rgba(255,255,255,0.9) !important;
+    border: 2px solid rgba(239,68,68,0.4) !important;
+    color: #991b1b !important;
+}
+html[data-theme="light"] audio { background: #f1f5f9 !important; }
+html[data-theme="light"] .toefl-header {
+    background: rgba(255,255,255,0.9) !important;
+    border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+}
+html[data-theme="light"] .toefl-header h1 { color: #1e293b !important; }
+html[data-theme="light"] .toefl-header p { color: #64748b !important; }
+html[data-theme="light"] .timer-display { background: #1e293b !important; color: #fff !important; }
+html[data-theme="light"] .reading-passage,
+html[data-theme="light"] .passage-text {
+    background: rgba(255,255,255,0.8) !important;
+    color: #334155 !important;
+}
+html[data-theme="light"] .question-card,
+html[data-theme="light"] .mcq-option,
+html[data-theme="light"] .question-option {
+    background: rgba(0,0,0,0.02) !important;
+    border: 1px solid rgba(0,0,0,0.10) !important;
+    color: #1e293b !important;
+}
+html[data-theme="light"] .mcq-option:hover,
+html[data-theme="light"] .question-option:hover {
+    border-color: rgba(2,132,199,0.4) !important;
+    background: rgba(2,132,199,0.04) !important;
+}
+html[data-theme="light"] ::-webkit-scrollbar-track { background: #f1f5f9; }
+/* Theme toggle button */
+.theme-toggle{position:fixed;top:16px;right:160px;z-index:99996;width:40px;height:40px;border-radius:10px;background:rgba(15,23,42,.9);backdrop-filter:blur(8px);border:1px solid rgba(56,189,248,.3);color:#67e8f9;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+html[data-theme="light"] .theme-toggle{background:rgba(255,255,255,.9);border-color:rgba(2,132,199,.2);color:#0284c7}
+.theme-toggle:hover{transform:scale(1.1)}
+
+</style>
 </head>
 <body>
 
@@ -1553,6 +1670,12 @@
 <a href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''">
     <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
 </a>
+
+<script>
+function toggleTheme(){var h=document.documentElement;var dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');try{localStorage.setItem('toefl-theme',dark?'light':'dark')}catch(e){}document.getElementById('themeToggle').innerHTML=dark?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'}
+try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('themeToggle');if(b)b.innerHTML=saved==='light'?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'})}}catch(e){}
+</script>
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark"><i class="fas fa-sun"></i></button>
 
     <!-- ==================== SECURITY NOTICE (Shown after login) ==================== -->
     <div id="security-notice" class="section-view light-theme-bg" style="display: none; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">

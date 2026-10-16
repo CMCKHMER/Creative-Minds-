@@ -117,18 +117,18 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     path: '#games'
   },
   {
-    id: 'pre-kid',
-    title: 'Pre-Kid Foundation Hub',
+    id: 'gep-program',
+    title: 'GEP Program',
     category: 'Curriculum Paths',
-    description: 'Browse the early-reading sound detective assignment for sh/ch and short vowels.',
-    iconName: 'Baby',
-    path: '#resources'
+    description: 'General English Program resources — vocabulary, dictation worksheets, and reading practice across multiple levels.',
+    iconName: 'GraduationCap',
+    path: '#kid-grades'
   },
   {
-    id: 'kid-program',
-    title: 'Kid Program · Grades 5–12',
+    id: 'isec-program',
+    title: 'ISEC Program',
     category: 'Curriculum Paths',
-    description: 'Browse all eight grade spaces. Kid 6 currently links to Reading Future Connect 2 vocabulary review; materials for other grades can be added later.',
+    description: 'Intensive English Course (L12B) — TOEFL drills, grammar, listening with audio, and C2-level reading comprehension.',
     iconName: 'BookOpen',
     path: '#kid-grades'
   },

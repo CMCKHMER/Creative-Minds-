@@ -29,8 +29,8 @@ const shortcuts = [
   },
   {
     id: 'kid-grades',
-    title: 'Kid Program · Grades 5–12',
-    description: 'Grade-by-grade resource pathway. Kid 6 has a live worksheet link.',
+    title: 'GEP & ISEC Programs',
+    description: 'General English and Intensive English Course materials, TOEFL drills, and worksheets.',
     icon: ClipboardCheck,
   },
 ];
