@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play, Sparkles, PenLine } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play, Sparkles } from 'lucide-react';
 
 interface HeroProps {
   onExploreTools: () => void;
@@ -114,13 +114,11 @@ export const Hero = ({
         </div>
 
         <div className="cmc-hero-content relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
-          <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-            {/* LEFT: existing text — unchanged */}
-            <div className="max-w-[780px]">
-              <div className="cmc-hero-enter cmc-hero-eyebrow mb-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200/90 sm:mb-8">
-                <span className="h-px w-9 bg-cyan-300/80" aria-hidden="true" />
-                Creative Minds Network
-              </div>
+          <div className="max-w-[780px]">
+            <div className="cmc-hero-enter cmc-hero-eyebrow mb-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200/90 sm:mb-8">
+              <span className="h-px w-9 bg-cyan-300/80" aria-hidden="true" />
+              Creative Minds Network
+            </div>
 
               <h1 className="cmc-title" aria-label="Everything a teacher needs in one place.">
                 <span className="cmc-title-row cmc-title-row-first">
@@ -180,49 +178,6 @@ export const Hero = ({
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
-
-            {/* RIGHT: 3D teacher illustration + floating UI bubbles (LearnAI vibe) */}
-            <div className="relative hidden lg:block">
-              <a
-                href="#teacher-tools"
-                aria-label="Open the Teacher Tools area — 3D Dice Roller and Wheel of Names"
-                className="group relative block mx-auto aspect-[4/3] w-full max-w-[520px] rounded-2xl transition-transform duration-300 hover:-translate-y-1"
-              >
-                {/* Glow ring behind the illustration — intensifies on hover */}
-                <div className="absolute inset-[-8%] rounded-2xl bg-gradient-to-br from-cyan-400/20 via-violet-500/15 to-transparent blur-3xl transition-opacity duration-300 group-hover:opacity-150" />
-                {/* Solid panel card — opaque background so the 3D illustration doesn't float transparent over the hero scene */}
-                <div className="relative z-10 aspect-[4/3] w-full overflow-hidden rounded-2xl border border-cyan-200/30 bg-[#0b1724] shadow-[0_30px_60px_-20px_rgba(56,189,248,0.45)] transition-all duration-300 group-hover:border-cyan-200/55 group-hover:shadow-[0_38px_70px_-18px_rgba(56,189,248,0.65)]">
-                  {/* Subtle gradient backdrop inside the card so the 3D illustration has a polished frame */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.06] via-transparent to-violet-500/[0.06]" />
-                  {/* The 3D illustration */}
-                  <img
-                    src="./images/upgrade/hero-3d-teacher.png"
-                    alt="Teacher at a desk with a friendly robot assistant, surrounded by floating UI cards: Auto-Grader, Class Roster, TOEFL Drill — click to open Teacher Tools"
-                    className="relative z-10 h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-                    decoding="async"
-                    loading="lazy"
-                  />
-                  {/* Hover hint badge — bottom-center of the card, fades in on hover */}
-                  <div className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full border border-cyan-300/40 bg-slate-950/85 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-200 opacity-0 transition-opacity duration-300 backdrop-blur-sm group-hover:opacity-100">
-                    <Sparkles className="h-3 w-3" aria-hidden="true" /> Teacher Tools <ArrowRight className="h-3 w-3" aria-hidden="true" />
-                  </div>
-                </div>
-                {/* Floating UI bubbles — LearnAI-style */}
-                <span className="cmc-bubble cmc-bubble--cyan" style={{ top: '8%', left: '-6%', animationDelay: '0s' }}>
-                  <Sparkles className="h-3.5 w-3.5" /> Auto-Grader ready
-                </span>
-                <span className="cmc-bubble cmc-bubble--violet" style={{ top: '36%', right: '-8%', animationDelay: '1.2s' }}>
-                  <GraduationCap className="h-3.5 w-3.5" /> TOEFL drill assigned
-                </span>
-                <span className="cmc-bubble cmc-bubble--emerald" style={{ bottom: '14%', left: '-4%', animationDelay: '2.4s' }}>
-                  <ClipboardCheck className="h-3.5 w-3.5" /> Class roster synced
-                </span>
-                <span className="cmc-bubble cmc-bubble--amber" style={{ bottom: '-2%', right: '6%', animationDelay: '3.6s' }}>
-                  <PenLine className="h-3.5 w-3.5" /> Worksheet generated
-                </span>
-              </a>
-            </div>
-          </div>
         </div>
 
         <div className="cmc-scroll-hint absolute bottom-9 left-1/2 z-10 hidden -translate-x-1/2 items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 md:flex">
