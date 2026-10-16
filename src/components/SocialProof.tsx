@@ -105,15 +105,15 @@ export const SocialProof: React.FC = () => {
                   key={index}
                   href={card.link}
                   {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  className={`group relative flex flex-col gap-3 rounded-2xl border ${accent.border} ${accent.bg} p-5 transition-all duration-300 hover:-translate-y-1 hover:border-opacity-50 hover:shadow-lg`}
+                  className={`cmc-glass group relative flex flex-col gap-3 p-5 ${accent.border}`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <span className={`grid h-10 w-10 place-items-center rounded-xl border ${accent.border} ${accent.bg} ${accent.text}`}>
+                      <span className={`cmc-icon-glow grid h-10 w-10 place-items-center rounded-xl border ${accent.border} ${accent.bg} ${accent.text}`}>
                         <Icon className="h-5 w-5" aria-hidden="true" />
                       </span>
                       <div>
-                        <span className={`font-[var(--font-display)] text-2xl font-bold ${accent.stat}`}>{card.stat}</span>
+                        <span className={`cmc-stat-num text-2xl`}>{card.stat}</span>
                         <span className="ml-2 text-xs font-semibold text-slate-300">{card.statLabel}</span>
                       </div>
                     </div>

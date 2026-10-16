@@ -114,69 +114,101 @@ export const Hero = ({
         </div>
 
         <div className="cmc-hero-content relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
-          <div className="max-w-[780px]">
-            <div className="cmc-hero-enter cmc-hero-eyebrow mb-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200/90 sm:mb-8">
-              <span className="h-px w-9 bg-cyan-300/80" aria-hidden="true" />
-              Creative Minds Network
-            </div>
+          <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+            {/* LEFT: existing text — unchanged */}
+            <div className="max-w-[780px]">
+              <div className="cmc-hero-enter cmc-hero-eyebrow mb-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200/90 sm:mb-8">
+                <span className="h-px w-9 bg-cyan-300/80" aria-hidden="true" />
+                Creative Minds Network
+              </div>
 
-            <h1 className="cmc-title" aria-label="Everything a teacher needs in one place.">
-              <span className="cmc-title-row cmc-title-row-first">
-                <span className="cmc-title-outline" aria-hidden="true">EVERYTHING A TEACHER</span>
-                <span className="cmc-title-solid">EVERYTHING A TEACHER</span>
-              </span>
-              <span className="cmc-title-row cmc-title-row-second">
-                <span className="cmc-title-outline" aria-hidden="true">NEEDS IN ONE PLACE.</span>
-                <span className="cmc-title-solid">NEEDS IN ONE PLACE.</span>
-              </span>
-            </h1>
+              <h1 className="cmc-title" aria-label="Everything a teacher needs in one place.">
+                <span className="cmc-title-row cmc-title-row-first">
+                  <span className="cmc-title-outline" aria-hidden="true">EVERYTHING A TEACHER</span>
+                  <span className="cmc-title-solid">EVERYTHING A TEACHER</span>
+                </span>
+                <span className="cmc-title-row cmc-title-row-second">
+                  <span className="cmc-title-outline" aria-hidden="true">NEEDS IN ONE PLACE.</span>
+                  <span className="cmc-title-solid">NEEDS IN ONE PLACE.</span>
+                </span>
+              </h1>
 
-            <div className="cmc-hero-enter cmc-hero-after-title mt-8 sm:mt-10">
-              <p className="font-[var(--font-display)] text-xl font-medium tracking-tight text-white sm:text-2xl lg:text-[1.75rem]">
-                Resources, games, and <span className="text-cyan-200">TOEFL practice</span> for the modern classroom.
-              </p>
-              <p className="mt-4 max-w-[550px] text-sm leading-[1.8] text-slate-200/90 sm:text-base">
-                From full TOEFL iBT mock tests to learning games and ready-to-use assignment packs — built for teachers, free for classrooms.
-              </p>
-            </div>
+              <div className="cmc-hero-enter cmc-hero-after-title mt-8 sm:mt-10">
+                <p className="font-[var(--font-display)] text-xl font-medium tracking-tight text-white sm:text-2xl lg:text-[1.75rem]">
+                  Resources, games, and <span className="text-cyan-200">TOEFL practice</span> for the modern classroom.
+                </p>
+                <p className="mt-4 max-w-[550px] text-sm leading-[1.8] text-slate-200/90 sm:text-base">
+                  From full TOEFL iBT mock tests to learning games and ready-to-use assignment packs — built for teachers, free for classrooms.
+                </p>
+              </div>
 
-            {/* Stats row */}
-            <div className="cmc-hero-enter mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-slate-300/90 sm:text-sm">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="text-base font-bold text-cyan-300">8</span> learning games
-              </span>
-              <span className="text-slate-600" aria-hidden="true">·</span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="text-base font-bold text-violet-300">4-section</span> TOEFL mock
-              </span>
-              <span className="text-slate-600" aria-hidden="true">·</span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="text-base font-bold text-teal-300">15</span> assessment packs
-              </span>
-            </div>
+              {/* Stats row */}
+              <div className="cmc-hero-enter mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-slate-300/90 sm:text-sm">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="text-base font-bold text-cyan-300">8</span> learning games
+                </span>
+                <span className="text-slate-600" aria-hidden="true">·</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="text-base font-bold text-violet-300">4-section</span> TOEFL mock
+                </span>
+                <span className="text-slate-600" aria-hidden="true">·</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="text-base font-bold text-teal-300">15</span> assessment packs
+                </span>
+              </div>
 
-            <div className="cmc-hero-enter cmc-hero-actions mt-8 flex flex-wrap items-center gap-3 sm:mt-10">
-              <button type="button" onClick={onExploreTools} className="cmc-btn-primary group">
-                Explore teacher tools
-                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+              <div className="cmc-hero-enter cmc-hero-actions mt-8 flex flex-wrap items-center gap-3 sm:mt-10">
+                <button type="button" onClick={onExploreTools} className="cmc-btn-primary group">
+                  Explore teacher tools
+                  <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                </button>
+                <button type="button" onClick={onOpenTeacherPass} className="cmc-btn-ghost group">
+                  Create a teacher account
+                  <ArrowRight className="h-4 w-4 text-cyan-200 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={onOpenStudentDemo}
+                className="cmc-hero-enter cmc-hero-demo mt-6 inline-flex items-center gap-2 text-xs font-medium text-slate-200/80 transition-colors hover:text-white"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/30 bg-white/10 transition-colors group-hover:bg-white/20">
+                  <Play className="h-3 w-3 fill-current" aria-hidden="true" />
+                </span>
+                Or take a look at the student experience
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
-              <button type="button" onClick={onOpenTeacherPass} className="cmc-btn-ghost group">
-                Create a teacher account
-                <ArrowRight className="h-4 w-4 text-cyan-200 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={onOpenStudentDemo}
-              className="cmc-hero-enter cmc-hero-demo mt-6 inline-flex items-center gap-2 text-xs font-medium text-slate-200/80 transition-colors hover:text-white"
-            >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/30 bg-white/10 transition-colors group-hover:bg-white/20">
-                <Play className="h-3 w-3 fill-current" aria-hidden="true" />
-              </span>
-              Or take a look at the student experience
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </button>
+            {/* RIGHT: NEW 3D teacher illustration + floating UI bubbles (LearnAI vibe) */}
+            <div className="relative hidden lg:block" aria-hidden="true">
+              <div className="relative mx-auto aspect-[4/3] w-full max-w-[520px]">
+                {/* Glow ring behind the illustration */}
+                <div className="absolute inset-[-8%] rounded-full bg-gradient-to-br from-cyan-400/20 via-violet-500/15 to-transparent blur-3xl" />
+                {/* The 3D illustration */}
+                <img
+                  src="./images/upgrade/hero-teacher.png"
+                  alt="Teacher at a desk with a friendly robot assistant, surrounded by floating UI cards: Auto-Grader, Class Roster, TOEFL Drill"
+                  className="relative z-10 h-full w-full object-contain drop-shadow-[0_30px_60px_rgba(56,189,248,0.25)]"
+                  decoding="async"
+                  loading="lazy"
+                />
+                {/* Floating UI bubbles — LearnAI-style */}
+                <span className="cmc-bubble cmc-bubble--cyan" style={{ top: '8%', left: '-6%', animationDelay: '0s' }}>
+                  <Sparkles className="h-3.5 w-3.5" /> Auto-Grader ready
+                </span>
+                <span className="cmc-bubble cmc-bubble--violet" style={{ top: '36%', right: '-8%', animationDelay: '1.2s' }}>
+                  <GraduationCap className="h-3.5 w-3.5" /> TOEFL drill assigned
+                </span>
+                <span className="cmc-bubble cmc-bubble--emerald" style={{ bottom: '14%', left: '-4%', animationDelay: '2.4s' }}>
+                  <ClipboardCheck className="h-3.5 w-3.5" /> Class roster synced
+                </span>
+                <span className="cmc-bubble cmc-bubble--amber" style={{ bottom: '-2%', right: '6%', animationDelay: '3.6s' }}>
+                  <PenLine className="h-3.5 w-3.5" /> Worksheet generated
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -32,12 +32,27 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onSuccess }) => {
 
   return (
     <section className="cmc-section relative scroll-mt-24 overflow-hidden bg-slate-950 py-20 sm:py-24 lg:py-28">
-      {/* Background radial glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-r from-cyan-600/20 via-indigo-600/20 to-purple-600/20 rounded-full blur-[140px] pointer-events-none" />
+      {/* Background horizon image — teacher aspiration scene */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <img
+          src="./images/upgrade/final-cta-horizon.png"
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover opacity-30"
+          decoding="async"
+          loading="lazy"
+        />
+        {/* Dark gradient overlay so text stays readable */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-slate-950/70" />
+      </div>
+
+      {/* Background radial glow (kept, slightly dialed back) */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-r from-cyan-600/15 via-indigo-600/15 to-purple-600/15 rounded-full blur-[140px] pointer-events-none z-0" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        <div className="rounded-3xl p-8 sm:p-14 lg:p-16 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950/90 border border-cyan-500/30 shadow-2xl shadow-cyan-950/40 relative overflow-hidden text-center">
+
+        <div className="rounded-3xl p-8 sm:p-14 lg:p-16 bg-gradient-to-br from-slate-900/80 via-slate-900/50 to-slate-950/80 border border-cyan-500/30 shadow-2xl shadow-cyan-950/40 relative overflow-hidden text-center backdrop-blur-xl">
           
           <div className="max-w-3xl mx-auto space-y-5">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-800/80 text-xs font-semibold text-cyan-300">
