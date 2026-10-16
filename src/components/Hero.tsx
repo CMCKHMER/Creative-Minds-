@@ -186,14 +186,19 @@ export const Hero = ({
               <div className="relative mx-auto aspect-[4/3] w-full max-w-[520px]">
                 {/* Glow ring behind the illustration */}
                 <div className="absolute inset-[-8%] rounded-2xl bg-gradient-to-br from-cyan-400/20 via-violet-500/15 to-transparent blur-3xl" />
-                {/* The 3D illustration — rendered as a contained image (transparent background) */}
-                <img
-                  src="./images/upgrade/hero-3d-teacher.png"
-                  alt="Teacher at a desk with a friendly robot assistant, surrounded by floating UI cards: Auto-Grader, Class Roster, TOEFL Drill"
-                  className="relative z-10 h-full w-full object-contain drop-shadow-[0_30px_60px_rgba(56,189,248,0.25)]"
-                  decoding="async"
-                  loading="lazy"
-                />
+                {/* Solid panel card — opaque background so the 3D illustration doesn't float transparent over the hero scene */}
+                <div className="relative z-10 aspect-[4/3] w-full overflow-hidden rounded-2xl border border-cyan-200/30 bg-[#0b1724] shadow-[0_30px_60px_-20px_rgba(56,189,248,0.45)]">
+                  {/* Subtle gradient backdrop inside the card so the 3D illustration has a polished frame */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.06] via-transparent to-violet-500/[0.06]" />
+                  {/* The 3D illustration */}
+                  <img
+                    src="./images/upgrade/hero-3d-teacher.png"
+                    alt="Teacher at a desk with a friendly robot assistant, surrounded by floating UI cards: Auto-Grader, Class Roster, TOEFL Drill"
+                    className="relative z-10 h-full w-full object-contain"
+                    decoding="async"
+                    loading="lazy"
+                  />
+                </div>
                 {/* Floating UI bubbles — LearnAI-style */}
                 <span className="cmc-bubble cmc-bubble--cyan" style={{ top: '8%', left: '-6%', animationDelay: '0s' }}>
                   <Sparkles className="h-3.5 w-3.5" /> Auto-Grader ready
