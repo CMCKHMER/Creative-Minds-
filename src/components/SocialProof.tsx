@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Check, ClipboardCheck, Feather, Headphones, Shapes } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Check, ClipboardCheck, Feather, Gamepad2, GraduationCap, Headphones, Mic, PenLine, Shapes } from 'lucide-react';
 import { CLASSROOM_ASSIGNMENTS } from '../data/assignments';
 import { TOEFL_JUNIOR_ASSESSMENTS } from '../data/toeflJuniorAssessments';
 
@@ -10,6 +10,60 @@ const practiceAreas = [
   { label: 'Speaking', icon: Feather },
   { label: 'Writing', icon: ClipboardCheck },
 ];
+
+const contentCards = [
+  {
+    stat: '06',
+    statLabel: 'Classroom assignment packs',
+    title: 'Ready-to-use assignments',
+    description: 'Six original packs covering reading comprehension, vocabulary, grammar, and writing. Each includes a printable student copy and a separate teacher key with suggested answers.',
+    icon: BookOpen,
+    accent: 'cyan',
+    link: '#resources',
+    linkText: 'Browse assignments',
+    features: ['Student + teacher editions', 'Printable HTML format', 'Answer keys included'],
+  },
+  {
+    stat: '15',
+    statLabel: 'TOEFL Junior assessments',
+    title: 'TOEFL Junior practice studio',
+    description: 'Five speaking, five listening, and five writing assessment packs. Every listening set ships with a full audio player — play, pause, replay at adjustable speed, with live sentence tracking.',
+    icon: GraduationCap,
+    accent: 'teal',
+    link: '#toefl-junior-assessments',
+    linkText: 'Explore assessments',
+    features: ['Audio playback with speed control', 'Speaking + writing rubrics', 'Student and teacher keys'],
+  },
+  {
+    stat: '04',
+    statLabel: 'TOEFL iBT sections',
+    title: 'TOEFL iBT full mock test',
+    description: 'A complete four-section TOEFL iBT exam — Reading, Listening (with audio), Speaking (with microphone recording), and Writing. Includes a per-section timer, progress tracking, and a security-notice flow that simulates the real exam.',
+    icon: GraduationCap,
+    accent: 'violet',
+    link: '#toefl-ibt-mock',
+    linkText: 'Start the mock test',
+    features: ['36 audio MP3 files', 'Microphone recording', 'Per-section timers'],
+  },
+  {
+    stat: '08',
+    statLabel: 'Learning games',
+    title: 'Learning Games Play Lab',
+    description: 'Eight browser-based mini-games for vocabulary, reading, grammar, listening, and early literacy. Includes Syntax Clash Pro (grammar arcade), Tense Master (verb tenses), WriteQuest (writing studio), and five in-page games.',
+    icon: Gamepad2,
+    accent: 'amber',
+    link: '#games',
+    linkText: 'Play games',
+    features: ['No login required', 'Progress saved locally', 'Grammar + vocabulary + reading'],
+  },
+];
+
+const accentMap: Record<string, { border: string; text: string; bg: string; stat: string }> = {
+  cyan: { border: 'border-cyan-300/25', text: 'text-cyan-300', bg: 'bg-cyan-300/5', stat: 'text-cyan-200' },
+  teal: { border: 'border-teal-300/25', text: 'text-teal-300', bg: 'bg-teal-300/5', stat: 'text-teal-200' },
+  violet: { border: 'border-violet-300/25', text: 'text-violet-300', bg: 'bg-violet-300/5', stat: 'text-violet-200' },
+  amber: { border: 'border-amber-300/25', text: 'text-amber-300', bg: 'bg-amber-300/5', stat: 'text-amber-200' },
+};
 
 export const SocialProof: React.FC = () => {
   const classroomPackCount = Object.keys(CLASSROOM_ASSIGNMENTS).length;
@@ -25,21 +79,50 @@ export const SocialProof: React.FC = () => {
               A practical toolkit, ready to explore.
             </h2>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-400">
-              {classroomPackCount} general classroom packs and {assessmentCount} TOEFL Junior-style speaking, listening, and writing assessments, each with student and teacher editions.
+              {classroomPackCount} classroom assignment packs, {assessmentCount} TOEFL Junior assessments, a full TOEFL iBT mock test, and {`8`} learning games — all free, all in the browser, no account required for most content.
             </p>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <div className="border-l border-cyan-300/30 pl-5">
-              <span className="font-[var(--font-display)] text-4xl font-bold tracking-tight text-white">{String(classroomPackCount).padStart(2, '0')}</span>
-              <p className="mt-1 text-sm font-semibold text-slate-200">Classroom assignment packs</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500">Student copy plus a separate suggested-answer guide.</p>
-            </div>
-            <div className="border-l border-teal-300/30 pl-5">
-              <span className="font-[var(--font-display)] text-4xl font-bold tracking-tight text-white">{String(assessmentCount).padStart(2, '0')}</span>
-              <p className="mt-1 text-sm font-semibold text-slate-200">TOEFL Junior skill assessments</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500">Five speaking, five listening, five writing.</p>
-            </div>
+            {contentCards.map((card, index) => {
+              const accent = accentMap[card.accent] || accentMap.cyan;
+              const Icon = card.icon;
+              return (
+                <a
+                  key={index}
+                  href={card.link}
+                  className={`group relative flex flex-col gap-3 rounded-2xl border ${accent.border} ${accent.bg} p-5 transition-all duration-300 hover:-translate-y-1 hover:border-opacity-50 hover:shadow-lg`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className={`grid h-10 w-10 place-items-center rounded-xl border ${accent.border} ${accent.bg} ${accent.text}`}>
+                        <Icon className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <div>
+                        <span className={`font-[var(--font-display)] text-2xl font-bold ${accent.stat}`}>{card.stat}</span>
+                        <span className="ml-2 text-xs font-semibold text-slate-300">{card.statLabel}</span>
+                      </div>
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-slate-500 opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">{card.title}</h3>
+                    <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{card.description}</p>
+                  </div>
+                  <div className="mt-auto flex flex-wrap gap-1.5 pt-2">
+                    {card.features.map((feat, fi) => (
+                      <span key={fi} className={`inline-flex items-center gap-1 rounded-md border ${accent.border} px-2 py-0.5 text-[10px] font-medium ${accent.text}`}>
+                        <Check className="h-2.5 w-2.5" aria-hidden="true" />
+                        {feat}
+                      </span>
+                    ))}
+                  </div>
+                  <span className={`mt-1 text-xs font-bold ${accent.text} group-hover:underline`}>
+                    {card.linkText} →
+                  </span>
+                </a>
+              );
+            })}
           </div>
         </div>
 
