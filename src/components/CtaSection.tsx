@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Sparkles, ArrowRight, CheckCircle2, Mail } from 'lucide-react';
 import { captureLead } from '../lib/leads';
+import { Reveal } from './Reveal';
 
 interface CtaSectionProps {
   onSuccess: () => void;
@@ -52,6 +53,7 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onSuccess }) => {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
+        <Reveal>
         <div className="rounded-3xl p-8 sm:p-14 lg:p-16 bg-gradient-to-br from-slate-900/80 via-slate-900/50 to-slate-950/80 border border-cyan-500/30 shadow-2xl shadow-cyan-950/40 relative overflow-hidden text-center backdrop-blur-xl">
           
           <div className="max-w-3xl mx-auto space-y-5">
@@ -125,6 +127,7 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onSuccess }) => {
           </div>
 
         </div>
+        </Reveal>
 
       </div>
     </section>

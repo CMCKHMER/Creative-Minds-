@@ -1,5 +1,6 @@
 import { ArrowUpRight, BookOpen, CheckCircle2, Clock3, GraduationCap, Layers3, Sparkles } from 'lucide-react';
 import { KID_GRADE_RESOURCES } from '../data/kidGradeResources';
+import { Reveal } from './Reveal';
 
 export function KidGradeHub() {
   const availableResourceCount = KID_GRADE_RESOURCES.reduce((sum, grade) => sum + grade.materials.length, 0);
@@ -11,6 +12,7 @@ export function KidGradeHub() {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:42px_42px] [mask-image:radial-gradient(ellipse_at_50%_35%,black,transparent_78%)]" />
 
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
+        <Reveal>
         <header className="grid gap-9 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="max-w-3xl">
             <span className="cmc-eyebrow"><GraduationCap className="h-3.5 w-3.5" aria-hidden="true" /> Kid Program · Grades 5–12</span>
@@ -22,8 +24,9 @@ export function KidGradeHub() {
             <p><strong className="font-semibold text-slate-200">One grade, one place.</strong><br />{availableResourceCount} existing worksheet links across two grade groups. New materials can be added as they are created.</p>
           </div>
         </header>
+        </Reveal>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Reveal stagger className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {KID_GRADE_RESOURCES.map((resource) => {
             const isAvailable = resource.status === 'available' && resource.materials.length > 0;
             return (
@@ -57,9 +60,11 @@ export function KidGradeHub() {
               </article>
             );
           })}
-        </div>
+        </Reveal>
 
-        <p className="mt-5 flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 11 links open separate Reading Future pages. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP & ISEC Program Resources section below.</span></p>
+        <Reveal className="mt-5">
+        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 11 links open separate Reading Future pages. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP & ISEC Program Resources section below.</span></p>
+        </Reveal>
       </div>
     </section>
   );

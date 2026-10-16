@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play } from 'lucide-react';
+import { useCountUp } from '../hooks/useReveal';
 
 interface HeroProps {
   onExploreTools: () => void;
@@ -12,6 +13,12 @@ interface HeroProps {
    * daily news side panel.
    */
   sidePanel?: ReactNode;
+}
+
+/** Inline animated stat number — counts up from 0 to `target` when scrolled into view. */
+function AnimatedStat({ target, suffix = '', className = '' }: { target: number; suffix?: string; className?: string }) {
+  const { ref, value } = useCountUp<HTMLSpanElement>(target, { duration: 1200 });
+  return <span ref={ref} className={className}>{value}{suffix}</span>;
 }
 
 const shortcuts = [
@@ -151,7 +158,7 @@ export const Hero = ({
               {/* Stats row */}
               <div className="cmc-hero-enter mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-slate-300/90 sm:text-sm">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-base font-bold text-cyan-300">8</span> learning games
+                  <AnimatedStat target={8} className="text-base font-bold text-cyan-300" /> learning games
                 </span>
                 <span className="text-slate-600" aria-hidden="true">·</span>
                 <span className="inline-flex items-center gap-1.5">
@@ -159,7 +166,7 @@ export const Hero = ({
                 </span>
                 <span className="text-slate-600" aria-hidden="true">·</span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="text-base font-bold text-teal-300">15</span> assessment packs
+                  <AnimatedStat target={15} className="text-base font-bold text-teal-300" /> assessment packs
                 </span>
               </div>
 
@@ -186,9 +193,11 @@ export const Hero = ({
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
-            {/* RIGHT: side panel (news) — only on lg+ screens alongside the hero text */}
+            {/* RIGHT: side panel (news) — only on lg+ screens, nudged down so it
+                aligns with the H1 (after the eyebrow) instead of butting against
+                the very top of the hero. */}
             {sidePanel && (
-              <div className="cmc-hero-enter hidden lg:block">
+              <div className="cmc-hero-enter hidden lg:mt-12 lg:block lg:pt-2">
                 {sidePanel}
               </div>
             )}

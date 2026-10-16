@@ -146,7 +146,7 @@ export function NewsSidePanel({ onSeeAll }: { onSeeAll: () => void }) {
   return (
     <aside
       aria-labelledby="news-side-panel-title"
-      className="cmc-glass relative flex max-h-[640px] flex-col overflow-hidden rounded-2xl"
+      className="cmc-glass cmc-float relative flex max-h-[640px] flex-col overflow-hidden rounded-2xl"
       style={{ width: '100%', maxWidth: '340px' }}
     >
       {/* Header row — compact */}

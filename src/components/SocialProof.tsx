@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowUpRight, BookOpen, Check, ClipboardCheck, Feather, Gamepad2, GraduationCap, Headphones, Headset, Mic, PenLine, Shapes } from 'lucide-react';
 import { CLASSROOM_ASSIGNMENTS } from '../data/assignments';
 import { TOEFL_JUNIOR_ASSESSMENTS } from '../data/toeflJuniorAssessments';
+import { Reveal } from './Reveal';
 
 const practiceAreas = [
   { label: 'Reading', icon: BookOpen },
@@ -83,9 +84,13 @@ export const SocialProof: React.FC = () => {
 
   return (
     <section aria-labelledby="preview-materials-title" className="cmc-section scroll-mt-24 border-y border-slate-800/80 bg-slate-900/35 py-20 sm:py-24 lg:py-28">
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
+      {/* Animated gradient orbs — soft cyan + violet atmosphere */}
+      <div aria-hidden="true" className="cmc-orb cmc-orb--cyan" style={{ width: 360, height: 360, top: '-8rem', left: '-6rem' }} />
+      <div aria-hidden="true" className="cmc-orb cmc-orb--violet" style={{ width: 320, height: 320, bottom: '-8rem', right: '-4rem' }} />
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 relative">
         <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
-          <div>
+          <Reveal>
+            <div>
             <p className="text-[10px] font-bold tracking-[0.2em] text-cyan-300 uppercase">A look inside</p>
             <h2 id="preview-materials-title" className="mt-3 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">
               A practical toolkit, ready to explore.
@@ -93,9 +98,10 @@ export const SocialProof: React.FC = () => {
             <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-400">
               {classroomPackCount} classroom assignment packs, {assessmentCount} TOEFL Junior assessments, a full TOEFL iBT mock test, {`8`} learning games, and 6 Oxford Skills World listening worksheets — all free, all in the browser.
             </p>
-          </div>
+            </div>
+          </Reveal>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Reveal stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {contentCards.map((card, index) => {
               const accent = accentMap[card.accent] || accentMap.cyan;
               const Icon = card.icon;
@@ -137,10 +143,10 @@ export const SocialProof: React.FC = () => {
                 </a>
               );
             })}
-          </div>
+          </Reveal>
         </div>
 
-        <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-white/8 pt-5">
+        <Reveal className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-white/8 pt-5">
           <span className="text-[9px] font-bold tracking-[0.15em] text-slate-500 uppercase">Practice areas</span>
           {practiceAreas.map(({ label, icon: Icon }) => (
             <span key={label} className="inline-flex items-center gap-2 text-xs text-slate-400">
@@ -149,7 +155,7 @@ export const SocialProof: React.FC = () => {
             </span>
           ))}
           <span className="ml-auto inline-flex items-center gap-2 text-[10px] text-slate-500"><Check className="h-3.5 w-3.5 text-teal-300" aria-hidden="true" /> Original practice material</span>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

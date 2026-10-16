@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Dice3, Dice5, Plus, RefreshCw, RotateCcw, Sparkles, X } from 'lucide-react';
 import { trackDiceRoll, trackWheelSpin } from '../lib/analytics';
+import { Reveal } from './Reveal';
 
 /* =========================================================================
    3D DICE ROLLER — compact UI
@@ -444,8 +445,8 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-13rem] -z-10 h-[32rem] w-[32rem] rounded-full bg-cyan-500/[0.10] blur-[135px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-14rem] -z-10 h-[32rem] w-[32rem] rounded-full bg-amber-500/[0.10] blur-[135px]" />
 
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 relative">
+        <Reveal stagger className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           {/* Left: copy + CTA */}
           <div>
             <span className="cmc-eyebrow"><Dice5 className="h-3.5 w-3.5" aria-hidden="true" /> Quick Classroom Tools</span>
@@ -525,7 +526,7 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
               </p>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

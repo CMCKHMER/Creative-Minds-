@@ -1,4 +1,5 @@
 import { ArrowUpRight, BookOpen, CheckCircle2, Clock3, GraduationCap, Layers3, Sparkles, Headphones, PenLine, BookMarked } from 'lucide-react';
+import { Reveal } from './Reveal';
 
 interface Program {
   id: string;
@@ -73,7 +74,8 @@ export function GEPISecHub() {
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-14rem] -z-10 h-[36rem] w-[36rem] rounded-full bg-violet-500/[0.14] blur-[135px]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:42px_42px] [mask-image:radial-gradient(ellipse_at_50%_35%,black,transparent_78%)]" />
 
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 relative">
+        <Reveal>
         <header className="grid gap-9 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="max-w-3xl">
             <span className="cmc-eyebrow"><Layers3 className="h-3.5 w-3.5" aria-hidden="true" /> Academic Programs</span>
@@ -85,8 +87,9 @@ export function GEPISecHub() {
             <p><strong className="font-semibold text-slate-200">Two programs, one hub.</strong><br />4 ISEC resources linked so far. GEP worksheet pages will be added as they are built.</p>
           </div>
         </header>
+        </Reveal>
 
-        <div className="mt-10 grid gap-5 lg:grid-cols-2">
+        <Reveal stagger className="mt-10 grid gap-5 lg:grid-cols-2">
           {PROGRAMS.map((program) => {
             const isAvailable = program.status === 'available' && program.resources.length > 0;
             return (
@@ -142,9 +145,11 @@ export function GEPISecHub() {
               </article>
             );
           })}
-        </div>
+        </Reveal>
 
-        <p className="mt-5 flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-300/60" aria-hidden="true" /><span>ISEC resources link to the Bi-Weekly Planner test pages on the CMC site. GEP worksheet pages are being prepared and will be linked here as they go live. For younger learners (Kid 5–12), see the Kid Program section above.</span></p>
+        <Reveal className="mt-5">
+        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-300/60" aria-hidden="true" /><span>ISEC resources link to the Bi-Weekly Planner test pages on the CMC site. GEP worksheet pages are being prepared and will be linked here as they go live. For younger learners (Kid 5–12), see the Kid Program section above.</span></p>
+        </Reveal>
       </div>
     </section>
   );
