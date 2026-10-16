@@ -1413,6 +1413,138 @@
       /* Global instruction text bump — slate-400 is borderline AA on slate-950 */
       .text-slate-500, .text-slate-600 { color: #cbd5e1 !important; }
       .text-slate-400 { color: #94a3b8 !important; }
+
+      /* ============================================================
+         SECURITY NOTICE PANEL — match login card dark glass aesthetic
+         Original: .security-info-card is bright white, .security-rule
+         rows are light grey. Text uses text-slate-700/800/600 (dark).
+         Override everything to dark glass matching the login panel.
+         ============================================================ */
+
+      /* The outer info card: dark glass (same as .login-card) */
+      .security-info-card,
+      .light-theme-bg .security-info-card,
+      body .security-info-card {
+          background: rgba(15, 23, 42, 0.96) !important;
+          border: 1px solid rgba(245, 158, 11, 0.30) !important;
+          border-radius: 20px !important;
+          padding: 32px !important;
+          box-shadow:
+              0 25px 50px rgba(0, 0, 0, 0.6),
+              0 0 100px rgba(245, 158, 11, 0.10),
+              inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+          color: #f1f5f9 !important;
+      }
+
+      /* The security notice wrapper: dark bg (already themed by light-theme-bg
+         override, but add an explicit rule to be sure) */
+      #security-notice {
+          background: #020617 !important;
+          background-image:
+              radial-gradient(ellipse 80% 50% at 50% 20%, rgba(245, 158, 11, 0.12) 0%, transparent 55%),
+              radial-gradient(ellipse 60% 40% at 50% 90%, rgba(239, 68, 68, 0.10) 0%, transparent 50%),
+              linear-gradient(180deg, #020617 0%, #0f172a 100%) !important;
+      }
+
+      /* Shield icon header: keep the amber→red gradient (matches warning theme) */
+      #security-notice .w-20.h-20.rounded-2xl {
+          background: linear-gradient(135deg, #f59e0b, #ef4444) !important;
+          box-shadow: 0 10px 30px rgba(245, 158, 11, 0.25) !important;
+      }
+
+      /* Security notice title + subtitle */
+      #security-notice h1.text-slate-800,
+      #security-notice .text-3xl.font-bold {
+          color: #f8fafc !important;
+      }
+      #security-notice p.text-slate-600 {
+          color: #94a3b8 !important;
+      }
+
+      /* "Important Rules" heading — already text-white, keep it */
+      .security-info-card h3 {
+          color: #f8fafc !important;
+      }
+      .security-info-card h3 i.fa-exclamation-triangle {
+          color: #fbbf24 !important;
+      }
+
+      /* Body paragraph inside the info card */
+      .security-info-card p.text-slate-700 {
+          color: #cbd5e1 !important;
+      }
+
+      /* Each security rule row: dark glass instead of light grey */
+      .security-rule,
+      .light-theme-bg .security-rule,
+      body .security-rule {
+          background: rgba(255, 255, 255, 0.04) !important;
+          border-left: 3px solid #f59e0b !important;
+          border-radius: 12px !important;
+          padding: 14px 16px !important;
+          margin-bottom: 10px !important;
+          transition: background 0.2s ease, border-color 0.2s ease !important;
+      }
+      .security-rule:hover {
+          background: rgba(245, 158, 11, 0.06) !important;
+          border-left-color: #fbbf24 !important;
+      }
+
+      /* Rule icons: keep amber */
+      .security-rule i {
+          color: #f59e0b !important;
+      }
+
+      /* Rule text: title + description — flip from dark to light */
+      .security-rule p.text-slate-800,
+      .security-rule .font-medium {
+          color: #f1f5f9 !important;
+          font-weight: 600 !important;
+      }
+      .security-rule p.text-slate-600,
+      .security-rule p.text-sm {
+          color: #94a3b8 !important;
+      }
+
+      /* 3-Strike Warning box: dark glass with red accent */
+      #security-notice .p-4.rounded-xl[style*="rgba(239, 68, 68"],
+      .security-info-card > .mt-6.p-4.rounded-xl {
+          background: rgba(239, 68, 68, 0.08) !important;
+          border: 1px solid rgba(239, 68, 68, 0.25) !important;
+          border-radius: 12px !important;
+      }
+      /* 3-Strike heading + body text */
+      #security-notice .p-4 .text-slate-800,
+      #security-notice .p-4 .font-semibold {
+          color: #fca5a5 !important;
+      }
+      #security-notice .p-4 .text-slate-600,
+      #security-notice .p-4 .text-sm {
+          color: #94a3b8 !important;
+      }
+      #security-notice .p-4 strong.text-red-500 {
+          color: #f87171 !important;
+      }
+
+      /* "I Understand & Agree" button — CMC gradient */
+      #security-notice button.btn-3d,
+      #security-notice button[onclick*="acknowledgeSecurity"] {
+          background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%) !important;
+          color: #0f172a !important;
+          border: none !important;
+          font-weight: 700 !important;
+          padding: 14px 48px !important;
+          border-radius: 12px !important;
+          box-shadow: 0 8px 24px rgba(56, 189, 248, 0.25) !important;
+          cursor: pointer !important;
+          transition: all 0.2s ease !important;
+      }
+      #security-notice button.btn-3d:hover,
+      #security-notice button[onclick*="acknowledgeSecurity"]:hover {
+          filter: brightness(1.12) !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 0 12px 32px rgba(56, 189, 248, 0.40) !important;
+      }
     </style>
 </head>
 <body>
