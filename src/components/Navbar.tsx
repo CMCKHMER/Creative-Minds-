@@ -105,17 +105,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               </a>
             </div>
 
-            {/* Middle Nav Links - Desktop (kept tight; the rest lives in Quick Links) */}
-            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex" aria-label="Primary">
+            {/* Middle Nav Links - Desktop (consolidated to 4 primary links;
+                the rest live in Quick Links drawer to avoid clutter) */}
+            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 xl:flex" aria-label="Primary">
               <a href="#features" className="cmc-nav-link">Features</a>
               <a href="#toefl-junior-assessments" className="cmc-nav-link flex items-center gap-1.5 text-cyan-200">
                 <GraduationCap className="h-3.5 w-3.5" aria-hidden="true" />
                 Assessments
               </a>
-              <a href="#kid-grades" className="cmc-nav-link">Kid 5–12</a>
+              <a href="#toefl-ibt-mock" className="cmc-nav-link flex items-center gap-1.5 text-violet-200" title="TOEFL iBT Full Mock Test">
+                <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-violet-950/80 text-violet-300 border border-violet-800/40">NEW</span>
+                TOEFL iBT
+              </a>
               <a href="#games" className="cmc-nav-link">Games</a>
-              <a href="#resources" className="cmc-nav-link">Resources</a>
-              <a href="#pricing" className="cmc-nav-link">Pricing</a>
               <a href="#faq" className="cmc-nav-link">FAQ</a>
             </nav>
 
