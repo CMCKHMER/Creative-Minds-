@@ -248,6 +248,18 @@ html[data-theme="light"] .question-card, html[data-theme="light"] .mcq-option { 
 html[data-theme="light"] .theme-toggle{background:rgba(255,255,255,.9);border-color:rgba(2,132,199,.2);color:#0284c7}
 .theme-toggle:hover{transform:scale(1.1)}
 
+
+/* AI-generated dashboard/section background overlay */
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url('img/hero-bg.png');
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  opacity:.10;mix-blend-mode:screen;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 80%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 80%)}
+html[data-theme="light"] body::after{opacity:.06;mix-blend-mode:multiply;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 85%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 85%)}
+
 </style>
 </head>
 <body class="section-listening">

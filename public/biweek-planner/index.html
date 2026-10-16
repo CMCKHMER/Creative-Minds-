@@ -104,6 +104,18 @@ html[data-theme="light"] h1 span[style*="-webkit-background-clip:text"]{
 /* selection */
 html[data-theme="light"] ::selection{background:rgba(2,132,199,.25);color:#fff}
 html[data-theme="light"] body{color:#1e293b}
+
+/* AI-generated dashboard hero background */
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url('img/dashboard-bg.png');
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  opacity:.18;mix-blend-mode:screen;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 75%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 75%)}
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 80%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 80%)}
+
 </style>
 </head>
 <body>
