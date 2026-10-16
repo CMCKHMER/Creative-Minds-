@@ -18,6 +18,7 @@ import { DailyAssessmentCard } from './components/DailyAssessmentCard';
 import { TOEFLiBTCard } from './components/TOEFLiBTCard';
 import { BiWeekPlannerCard } from './components/BiWeekPlannerCard';
 import { KidGradeHub } from './components/KidGradeHub';
+import { GEPISecHub } from './components/GEPISecHub';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { supabase } from './lib/supabase';
@@ -86,6 +87,8 @@ export function App() {
       scrollToSection('interactive-demo');
     } else if (toolId === 'kid-program') {
       scrollToSection('kid-grades');
+    } else if (toolId === 'gep-program' || toolId === 'isec-program') {
+      scrollToSection('gep-isec');
     } else if (toolId === 'pre-kid' || toolId === 'chinese-language') {
       scrollToSection('resources');
     } else {
@@ -143,8 +146,11 @@ export function App() {
         {/* Available learning materials and skills */}
         <SocialProof />
 
-        {/* Kid Program grade 5-12 resource pathway; currently Kid 6 is linked. */}
+        {/* Kid Program grade 5-12 resource pathway; Kid 6 + Kid 11 currently linked. */}
         <KidGradeHub />
+
+        {/* GEP & ISEC adult-level program resources (Bi-Weekly Planner + ISEC drills). */}
+        <GEPISecHub />
 
         {/* Live Interactive Sandbox: Auto-Grader, Worksheet Generator & Roster */}
         <InteractiveShowcase />

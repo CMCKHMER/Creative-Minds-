@@ -117,20 +117,31 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     path: '#games'
   },
   {
+    id: 'kid-program',
+    title: 'Kid Program · Grades 5–12',
+    category: 'Curriculum Paths',
+    badge: 'Kid 6 + Kid 11',
+    description: 'Open the grade pathway for Kid 5 through Kid 12. Kid 6 links to Reading Future Connect 2; Kid 11 links to Reading Future Create 3.',
+    iconName: 'GraduationCap',
+    path: '#kid-grades'
+  },
+  {
     id: 'gep-program',
     title: 'GEP Program',
     category: 'Curriculum Paths',
-    description: 'General English Program resources — vocabulary, dictation worksheets, and reading practice across multiple levels.',
+    badge: 'Planned',
+    description: 'General English Program resources — vocabulary, dictation worksheets, and reading practice for older learners across multiple levels.',
     iconName: 'GraduationCap',
-    path: '#kid-grades'
+    path: '#gep-isec'
   },
   {
     id: 'isec-program',
     title: 'ISEC Program',
     category: 'Curriculum Paths',
-    description: 'Intensive English Course (L12B) — TOEFL drills, grammar, listening with audio, and C2-level reading comprehension.',
+    badge: '4 resources',
+    description: 'Intensive English Course (L12B) — TOEFL Bi-Weekly Planner, business listening, C2 grammar, and C2 reading comprehension.',
     iconName: 'BookOpen',
-    path: '#kid-grades'
+    path: '#gep-isec'
   },
   {
     id: 'chinese-language',

@@ -29,8 +29,8 @@ const shortcuts = [
   },
   {
     id: 'kid-grades',
-    title: 'GEP & ISEC Programs',
-    description: 'General English and Intensive English Course materials, TOEFL drills, and worksheets.',
+    title: 'Kid 5–12 Pathway',
+    description: 'Grade-by-grade Reading Future worksheets. Kid 6 + Kid 11 live; other grades planned.',
     icon: ClipboardCheck,
   },
 ];
