@@ -182,22 +182,30 @@ export const Hero = ({
             </div>
 
             {/* RIGHT: 3D teacher illustration + floating UI bubbles (LearnAI vibe) */}
-            <div className="relative hidden lg:block" aria-hidden="true">
-              <div className="relative mx-auto aspect-[4/3] w-full max-w-[520px]">
-                {/* Glow ring behind the illustration */}
-                <div className="absolute inset-[-8%] rounded-2xl bg-gradient-to-br from-cyan-400/20 via-violet-500/15 to-transparent blur-3xl" />
+            <div className="relative hidden lg:block">
+              <a
+                href="#teacher-tools"
+                aria-label="Open the Teacher Tools area — 3D Dice Roller and Wheel of Names"
+                className="group relative block mx-auto aspect-[4/3] w-full max-w-[520px] rounded-2xl transition-transform duration-300 hover:-translate-y-1"
+              >
+                {/* Glow ring behind the illustration — intensifies on hover */}
+                <div className="absolute inset-[-8%] rounded-2xl bg-gradient-to-br from-cyan-400/20 via-violet-500/15 to-transparent blur-3xl transition-opacity duration-300 group-hover:opacity-150" />
                 {/* Solid panel card — opaque background so the 3D illustration doesn't float transparent over the hero scene */}
-                <div className="relative z-10 aspect-[4/3] w-full overflow-hidden rounded-2xl border border-cyan-200/30 bg-[#0b1724] shadow-[0_30px_60px_-20px_rgba(56,189,248,0.45)]">
+                <div className="relative z-10 aspect-[4/3] w-full overflow-hidden rounded-2xl border border-cyan-200/30 bg-[#0b1724] shadow-[0_30px_60px_-20px_rgba(56,189,248,0.45)] transition-all duration-300 group-hover:border-cyan-200/55 group-hover:shadow-[0_38px_70px_-18px_rgba(56,189,248,0.65)]">
                   {/* Subtle gradient backdrop inside the card so the 3D illustration has a polished frame */}
                   <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.06] via-transparent to-violet-500/[0.06]" />
                   {/* The 3D illustration */}
                   <img
                     src="./images/upgrade/hero-3d-teacher.png"
-                    alt="Teacher at a desk with a friendly robot assistant, surrounded by floating UI cards: Auto-Grader, Class Roster, TOEFL Drill"
-                    className="relative z-10 h-full w-full object-contain"
+                    alt="Teacher at a desk with a friendly robot assistant, surrounded by floating UI cards: Auto-Grader, Class Roster, TOEFL Drill — click to open Teacher Tools"
+                    className="relative z-10 h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
                     decoding="async"
                     loading="lazy"
                   />
+                  {/* Hover hint badge — bottom-center of the card, fades in on hover */}
+                  <div className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full border border-cyan-300/40 bg-slate-950/85 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-200 opacity-0 transition-opacity duration-300 backdrop-blur-sm group-hover:opacity-100">
+                    <Sparkles className="h-3 w-3" aria-hidden="true" /> Teacher Tools <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                  </div>
                 </div>
                 {/* Floating UI bubbles — LearnAI-style */}
                 <span className="cmc-bubble cmc-bubble--cyan" style={{ top: '8%', left: '-6%', animationDelay: '0s' }}>
@@ -212,7 +220,7 @@ export const Hero = ({
                 <span className="cmc-bubble cmc-bubble--amber" style={{ bottom: '-2%', right: '6%', animationDelay: '3.6s' }}>
                   <PenLine className="h-3.5 w-3.5" /> Worksheet generated
                 </span>
-              </div>
+              </a>
             </div>
           </div>
         </div>
