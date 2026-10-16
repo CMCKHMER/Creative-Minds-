@@ -92,7 +92,7 @@ export const Hero = ({
       >
         <div className="cmc-hero-photo-plane" aria-hidden="true">
           <img
-            src="./images/classroom-hero.jpg"
+            src="./images/classroom-hero-renaissance.png"
             alt=""
             className="cmc-hero-photo"
             fetchPriority="high"
@@ -181,23 +181,19 @@ export const Hero = ({
               </button>
             </div>
 
-            {/* RIGHT: NEW teacher illustration + floating UI bubbles (LearnAI vibe) */}
+            {/* RIGHT: 3D teacher illustration + floating UI bubbles (LearnAI vibe) */}
             <div className="relative hidden lg:block" aria-hidden="true">
               <div className="relative mx-auto aspect-[4/3] w-full max-w-[520px]">
                 {/* Glow ring behind the illustration */}
                 <div className="absolute inset-[-8%] rounded-2xl bg-gradient-to-br from-cyan-400/20 via-violet-500/15 to-transparent blur-3xl" />
-                {/* The teacher illustration — framed as a rounded card with a cyan border glow */}
-                <div className="relative z-10 aspect-[4/3] w-full overflow-hidden rounded-2xl border border-cyan-200/25 shadow-[0_30px_60px_-20px_rgba(56,189,248,0.35)]">
-                  <img
-                    src="./images/upgrade/hero-teacher.png"
-                    alt="Teacher guiding students in a Renaissance-style classroom — Aii Language Center"
-                    className="h-full w-full object-cover"
-                    decoding="async"
-                    loading="lazy"
-                  />
-                  {/* Subtle cyan tint overlay so the warm-toned scene blends with the cool CMC palette */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 via-transparent to-violet-500/10 pointer-events-none" />
-                </div>
+                {/* The 3D illustration — rendered as a contained image (transparent background) */}
+                <img
+                  src="./images/upgrade/hero-3d-teacher.png"
+                  alt="Teacher at a desk with a friendly robot assistant, surrounded by floating UI cards: Auto-Grader, Class Roster, TOEFL Drill"
+                  className="relative z-10 h-full w-full object-contain drop-shadow-[0_30px_60px_rgba(56,189,248,0.25)]"
+                  decoding="async"
+                  loading="lazy"
+                />
                 {/* Floating UI bubbles — LearnAI-style */}
                 <span className="cmc-bubble cmc-bubble--cyan" style={{ top: '8%', left: '-6%', animationDelay: '0s' }}>
                   <Sparkles className="h-3.5 w-3.5" /> Auto-Grader ready

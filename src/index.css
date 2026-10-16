@@ -274,7 +274,7 @@
   height: 100%;
   object-fit: cover;
   object-position: 58% center;
-  filter: saturate(0.91) contrast(1.06);
+  filter: saturate(0.85) contrast(1.10) brightness(0.78);
   animation: cmc-photo-breathe 22s ease-in-out infinite alternate;
 }
 
