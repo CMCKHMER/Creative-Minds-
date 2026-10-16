@@ -1094,6 +1094,133 @@
 
       /* ===== Reduce harsh contrast on text-only paragraphs ===== */
       .muted-text, .text-muted, .helper-text { color: #94a3b8 !important; }
+
+      /* ===== LOGIN SCREEN SPECIFIC OVERRIDES =====
+         The login card + inputs use highly specific selectors (.login-card,
+         .login-input, .glass-frame inside .light-theme-bg) that beat my
+         generic dark-glass rules. Override them directly so the login
+         card and name/ID inputs match the dark theme.
+         Also: login-page-bg is the login-screen wrapper. */
+      .login-page-bg,
+      #login-screen {
+          background: #020617 !important;
+          background-image:
+              radial-gradient(ellipse 80% 50% at 50% 20%, rgba(56, 189, 248, 0.16) 0%, transparent 55%),
+              radial-gradient(ellipse 60% 40% at 50% 90%, rgba(139, 92, 246, 0.14) 0%, transparent 50%),
+              linear-gradient(180deg, #020617 0%, #0f172a 100%) !important;
+      }
+
+      /* Login card: dark glass instead of bright white */
+      .login-card,
+      .light-theme-bg .login-card,
+      body .login-card,
+      .light-theme-bg .glass-frame,
+      body .glass-frame,
+      .light-theme-bg .glass-frame::before,
+      body .glass-frame::before {
+          background: rgba(15, 23, 42, 0.96) !important;
+          background-image: none !important;
+          border: 1px solid rgba(34, 211, 238, 0.20) !important;
+          box-shadow:
+              0 25px 50px rgba(0, 0, 0, 0.6),
+              0 0 100px rgba(56, 189, 248, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+          color: #f1f5f9 !important;
+      }
+      .login-card::before {
+          background: linear-gradient(90deg, #38bdf8, #8b5cf6, #5eead4, #fbbf24) !important;
+      }
+
+      /* Login card headings + paragraphs */
+      .login-card h1,
+      .login-card h2,
+      .login-card .text-slate-800,
+      .login-card .text-slate-900 {
+          color: #f8fafc !important;
+      }
+      .login-card p,
+      .login-card .text-slate-500,
+      .login-card .text-slate-600 {
+          color: #94a3b8 !important;
+      }
+
+      /* Login inputs: dark glass, light text */
+      .login-input,
+      input.login-input,
+      .light-theme-bg .login-input,
+      body .login-input {
+          background: rgba(255, 255, 255, 0.05) !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          color: #f1f5f9 !important;
+          border-radius: 10px !important;
+          padding: 12px 16px !important;
+          font-size: 15px !important;
+          transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+      }
+      .login-input:focus,
+      input.login-input:focus,
+      .light-theme-bg .login-input:focus,
+      body .login-input:focus {
+          background: rgba(34, 211, 238, 0.06) !important;
+          border-color: rgba(34, 211, 238, 0.5) !important;
+          outline: none !important;
+          box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12), 0 4px 12px rgba(34, 211, 238, 0.10) !important;
+      }
+      .login-input::placeholder,
+      input.login-input::placeholder {
+          color: #64748b !important;
+      }
+      /* Make sure text inside the inputs is visible while typing */
+      .login-input:not(:placeholder-shown),
+      input.login-input:not(:placeholder-shown) {
+          color: #f8fafc !important;
+      }
+
+      /* Login form labels */
+      .login-card label,
+      .login-card .form-label,
+      .login-card .field-label {
+          color: #cbd5e1 !important;
+      }
+
+      /* Login-screen icon header (graduation cap) */
+      #login-screen .w-20.h-20.rounded-2xl {
+          background: linear-gradient(135deg, #38bdf8, #8b5cf6) !important;
+          box-shadow: 0 10px 30px rgba(56, 189, 248, 0.25) !important;
+      }
+
+      /* Hide the floating-shape + corner-decoration + wave-decoration
+         decorations on the login screen — they were designed for the
+         light theme and clash on dark. */
+      .login-page-bg .floating-shape,
+      .login-page-bg .corner-decoration,
+      .login-page-bg .wave-decoration,
+      #login-screen .floating-shape,
+      #login-screen .corner-decoration,
+      #login-screen .wave-decoration {
+          display: none !important;
+      }
+
+      /* Start Test button on the login screen — keep CMC gradient */
+      #login-screen .btn-primary,
+      #login-screen button[type="submit"],
+      #login-screen button:not(.btn-secondary):not(.btn-danger):not(.btn-success):not(.icon-btn) {
+          background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%) !important;
+          color: #0f172a !important;
+          border: none !important;
+          font-weight: 700 !important;
+          padding: 12px 24px !important;
+          border-radius: 10px !important;
+          box-shadow: 0 8px 24px rgba(56, 189, 248, 0.30) !important;
+          cursor: pointer !important;
+      }
+      #login-screen .btn-primary:hover,
+      #login-screen button[type="submit"]:hover,
+      #login-screen button:not(.btn-secondary):not(.btn-danger):not(.btn-success):not(.icon-btn):hover {
+          filter: brightness(1.12) !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 0 12px 32px rgba(56, 189, 248, 0.45) !important;
+      }
     </style>
 </head>
 <body>
