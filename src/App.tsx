@@ -20,6 +20,7 @@ import { BiWeekPlannerCard } from './components/BiWeekPlannerCard';
 import { KidGradeHub } from './components/KidGradeHub';
 import { GEPISecHub } from './components/GEPISecHub';
 import { TeacherToolsCard, TeacherToolsPage } from './components/TeacherTools';
+import { NewsWindow } from './components/NewsWindow';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { supabase } from './lib/supabase';
@@ -151,6 +152,9 @@ export function App() {
           onOpenTeacherPass={() => openMemberAuth('sign-up')}
           onSelectFeatureCard={handleHeroFeatureSelect}
         />
+
+        {/* Daily Cambodia education news window — auto-refreshed by news-scraper GitHub Action */}
+        <NewsWindow />
 
         {/* Main-hero themed link to the separate daily student record workspace */}
         <DailyAssessmentCard />
