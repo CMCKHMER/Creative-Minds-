@@ -19,6 +19,7 @@ import { TOEFLiBTCard } from './components/TOEFLiBTCard';
 import { BiWeekPlannerCard } from './components/BiWeekPlannerCard';
 import { KidGradeHub } from './components/KidGradeHub';
 import { GEPISecHub } from './components/GEPISecHub';
+import { TeacherTools } from './components/TeacherTools';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { supabase } from './lib/supabase';
@@ -89,6 +90,8 @@ export function App() {
       scrollToSection('kid-grades');
     } else if (toolId === 'gep-program' || toolId === 'isec-program') {
       scrollToSection('gep-isec');
+    } else if (toolId === 'teacher-tools') {
+      scrollToSection('teacher-tools');
     } else if (toolId === 'pre-kid' || toolId === 'chinese-language') {
       scrollToSection('resources');
     } else {
@@ -151,6 +154,9 @@ export function App() {
 
         {/* GEP & ISEC adult-level program resources (Bi-Weekly Planner + ISEC drills). */}
         <GEPISecHub />
+
+        {/* Teacher Tools: 3D dice + Wheel of Names picker */}
+        <TeacherTools />
 
         {/* Live Interactive Sandbox: Auto-Grader, Worksheet Generator & Roster */}
         <InteractiveShowcase />

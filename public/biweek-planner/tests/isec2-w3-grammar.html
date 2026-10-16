@@ -141,6 +141,29 @@ html[data-theme="light"] body::after{opacity:.06;mix-blend-mode:multiply;
   -webkit-mask-image:radial-gradient(ellipse 60% 50% at 50% 30%,black 0%,transparent 85%);
   mask-image:radial-gradient(ellipse 60% 50% at 50% 30%,black 0%,transparent 85%)}
 
+
+/* CMC SHARE BUTTON */
+#cmc-share-btn{position:fixed;left:16px;bottom:16px;z-index:99994;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:17px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+#cmc-share-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 30px rgba(56,189,248,.4)}
+#cmc-share-panel{position:fixed;left:16px;bottom:70px;z-index:99994;min-width:240px;padding:10px;border-radius:14px;background:rgba(15,23,42,.96);backdrop-filter:blur(16px);border:1px solid rgba(56,189,248,.25);box-shadow:0 12px 40px rgba(0,0,0,.5);color:#f1f5f9;font-family:'Plus Jakarta Sans',sans-serif;display:none}
+#cmc-share-panel.open{display:block;animation:cmcShareIn .18s ease-out}
+@keyframes cmcShareIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#cmc-share-panel .share-title{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#67e8f9;padding:4px 8px 8px}
+#cmc-share-panel a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;text-decoration:none;transition:all .15s}
+#cmc-share-panel a:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel a i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel .share-copy{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;cursor:pointer;transition:all .15s}
+#cmc-share-panel .share-copy:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel .share-copy i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel hr{border:none;border-top:1px solid rgba(255,255,255,.10);margin:6px 0}
+html[data-theme="light"] #cmc-share-panel{background:rgba(255,255,255,.96);border-color:rgba(2,132,199,.2);color:#1e293b;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+html[data-theme="light"] #cmc-share-panel .share-title{color:#0284c7}
+html[data-theme="light"] #cmc-share-panel a{color:#334155}
+html[data-theme="light"] #cmc-share-panel a:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel .share-copy{color:#334155}
+html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
+
 </style>
 </head>
 <body>
@@ -300,5 +323,58 @@ form.addEventListener('submit',e=>{
   submit.disabled=true;setTimeout(()=>submit.disabled=false,2000);
 });
 </script>
+
+<!-- CMC SHARE BUTTON -->
+<button id="cmc-share-btn" title="Share this page" aria-label="Share this page"><i class="fas fa-share-nodes"></i></button>
+<div id="cmc-share-panel" role="menu" aria-label="Share options">
+  <div class="share-title">Share this page</div>
+  <a data-share="facebook" target="_blank" rel="noopener"><i class="fab fa-facebook" style="color:#1877f2"></i> Facebook</a>
+  <a data-share="x" target="_blank" rel="noopener"><i class="fab fa-x-twitter" style="color:#e2e8f0"></i> X (Twitter)</a>
+  <a data-share="whatsapp" target="_blank" rel="noopener"><i class="fab fa-whatsapp" style="color:#25d366"></i> WhatsApp</a>
+  <a data-share="telegram" target="_blank" rel="noopener"><i class="fab fa-telegram" style="color:#229ed9"></i> Telegram</a>
+  <a data-share="linkedin" target="_blank" rel="noopener"><i class="fab fa-linkedin" style="color:#0a66c2"></i> LinkedIn</a>
+  <a data-share="email"><i class="fas fa-envelope" style="color:#f59e0b"></i> Email</a>
+  <hr>
+  <div class="share-copy" id="cmc-share-copy"><i class="fas fa-link" style="color:#67e8f9"></i> <span>Copy link</span></div>
+</div>
+
+
+<script>
+(function(){
+  var btn=document.getElementById('cmc-share-btn');
+  var panel=document.getElementById('cmc-share-panel');
+  if(!btn||!panel)return;
+  btn.addEventListener('click',function(e){e.stopPropagation();panel.classList.toggle('open')});
+  document.addEventListener('click',function(e){if(!panel.contains(e.target)&&e.target!==btn)panel.classList.remove('open')});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')panel.classList.remove('open')});
+  function buildURL(svc){
+    var u=encodeURIComponent(window.location.href);
+    var t=encodeURIComponent(document.title||'CMC Network practice page');
+    if(svc==='facebook')return 'https://www.facebook.com/sharer/sharer.php?u='+u;
+    if(svc==='x')return 'https://twitter.com/intent/tweet?url='+u+'&text='+t;
+    if(svc==='whatsapp')return 'https://api.whatsapp.com/send?text='+t+'%20'+u;
+    if(svc==='telegram')return 'https://t.me/share/url?url='+u+'&text='+t;
+    if(svc==='linkedin')return 'https://www.linkedin.com/sharing/share-offsite/?url='+u;
+    if(svc==='email')return 'mailto:?subject='+t+'&body='+u;
+    return '#';
+  }
+  panel.querySelectorAll('a[data-share]').forEach(function(a){
+    a.addEventListener('click',function(){
+      var svc=a.getAttribute('data-share');
+      if(svc==='email'){a.href=buildURL('email');return}
+      a.href=buildURL(svc);
+    });
+  });
+  var copyBtn=document.getElementById('cmc-share-copy');
+  if(copyBtn){
+    copyBtn.addEventListener('click',function(){
+      var label=copyBtn.querySelector('span');
+      var done=function(){if(label){var orig=label.textContent;label.textContent='Copied!';setTimeout(function(){label.textContent=orig},1500)}};
+      try{navigator.clipboard.writeText(window.location.href).then(done).catch(function(){done()})}catch(e){done()}
+    });
+  }
+})();
+</script>
+
 </body>
 </html>

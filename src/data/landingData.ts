@@ -117,6 +117,15 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     path: '#games'
   },
   {
+    id: 'teacher-tools',
+    title: 'Teacher Tools · Dice & Wheel of Names',
+    category: 'Classroom Tools',
+    badge: 'Live',
+    description: 'Two instant classroom pickers — roll up to five 3D dice, or spin a fair wheel of names. Everything runs in your browser; nothing is saved.',
+    iconName: 'Sparkles',
+    path: '#teacher-tools'
+  },
+  {
     id: 'kid-program',
     title: 'Kid Program · Grades 5–12',
     category: 'Curriculum Paths',
