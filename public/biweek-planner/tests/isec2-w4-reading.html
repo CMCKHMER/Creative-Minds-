@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ISEC II · C2 Reading: Corporate Epistemology · TOEFL ITP</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--bg:#020617;--card:rgba(255,255,255,.04);--border:rgba(255,255,255,.10);--accent:#38bdf8;--text:#f1f5f9;--muted:#94a3b8}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(56,189,248,.10),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(139,92,246,.10),transparent 50%)}
+.font-display{font-family:'Syne',sans-serif;letter-spacing:-0.02em}
+.glass{background:var(--card);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:14px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);text-decoration:none}
+.btn:hover{background:rgba(56,189,248,.10);border-color:rgba(56,189,248,.4)}
+.btn-primary{background:linear-gradient(135deg,#38bdf8,#6366f1);color:#0f172a;border:none;font-weight:700}
+.btn-primary:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 8px 24px rgba(56,189,248,.3)}
+.btn-primary:disabled{opacity:.5;cursor:wait}
+.question-card{padding:16px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.03);transition:all .2s}
+.question-card.needs-answer{border-color:#f87171;background:rgba(248,113,113,.05)}
+.option{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.02);cursor:pointer;line-height:1.4;transition:all .15s}
+.option:hover{border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.04)}
+.option:has(input:checked){border-color:var(--accent);background:rgba(56,189,248,.08)}
+.option input{accent-color:var(--accent);margin-top:3px;flex:none}
+.option-letter{font-weight:700;color:var(--accent);min-width:20px}
+.timer-face{font-variant-numeric:tabular-nums}
+.timer-face.warning{background:#f87171!important}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(56,189,248,.3),rgba(139,92,246,.3));border-radius:5px}
+::selection{background:rgba(56,189,248,.3);color:#fff}
+</style>
+</head>
+<body>
+<!-- Top nav -->
+<div style="position:fixed;top:16px;right:16px;z-index:99995;display:flex;gap:8px">
+  <a href="../index.html" class="btn" style="background:rgba(15,23,42,.9);backdrop-filter:blur(8px)"><i class="fas fa-arrow-left text-xs"></i> Back to Planner</a>
+  <a href="https://cmckhmer.github.io/Creative-Minds-/" class="btn" style="background:rgba(15,23,42,.9);backdrop-filter:blur(8px);color:#67e8f9;border-color:rgba(56,189,248,.3)"><i class="fas fa-home text-xs"></i> CMC</a>
+</div>
+
+<div class="relative z-10 max-w-4xl mx-auto px-4 py-10 sm:px-6">
+  <div id="test-header"></div>
+<div class="glass rounded-lg p-4 mb-4 border-l-2" style="border-left-color:#fbbf24"><h4 class="text-xs font-bold text-amber-300 mb-2">Reading Passage</h4><p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed">The modern knowledge economy has necessitated a radical departure from traditional, co-located operational paradigms. As organizations transition into fluid, globally distributed networks, the locus of institutional knowledge has shifted from centralized repositories to decentralized, tacitly maintained communication streams. This decentralization presents a profound challenge to corporate epistemology—the study of how an organization knows what it knows.
+
+In a physical office, serendipitous collisions at the watercooler or the spontaneous visibility of a colleague's white board serve as low-friction conduits for the transfer of non-codified expertise. Conversely, asynchronous digital environments rely on deliberate documentation, which frequently creates a false sense of cognitive security. Leadership teams often mistake the proliferation of archived Slack threads and cloud-stored wikis for actual organizational comprehension.
+
+Furthermore, the algorithmic oversight accompanying remote infrastructural frameworks introduces a paradox of transparency. Telemetry data tracking keystrokes, login frequencies, and project commit velocities promises an unprecedented vista into worker productivity. Yet, this quantification reduces complex cognitive labor to crude proxies, incentivizing a culture of performative output rather than substantive innovation. Consequently, the putative democratization of work via digital tooling frequently hardens into a neo-Taylorism, where the worker is simultaneously hyper-visible in metric terms and profoundly opaque in cognitive reality.</p></div>
+  <form id="test-form" novalidate></form>
+</div>
+
+<script>
+window.TEST_CONFIG={
+  title:'ISEC II · C2 Reading: Corporate Epistemology',
+  kicker:'Week 4 · L12B · Reading',
+  color:'#fbbf24',
+  icon:'fa-book-open',
+  instructions:'C2 Reading Drill on workplace-related inference. Read the passage about the evolution of corporate epistemology in distributed architectures and answer 5 inference questions.',
+  fields:['name', 'date'],
+  transcript:'',
+  groups:[
+    {'id':'isec2-w4-list','title':'Reading Questions (5 questions)'}
+  ]
+};
+const BANKS = {
+"isec2-w4-list":[
+["Based on the first paragraph, what can be inferred about the author's view of physical office environments?",["They exclusively foster formal, rigid channels of communication that suppress creativity.","They inherently support the transmission of unarticulated knowledge through incidental interactions.","They are structurally superior to digital environments for long-term data archiving.","They eliminate the need for deliberate documentation among leadership teams."],1],
+["What does the author imply about leadership teams that rely heavily on archived Slack threads and cloud wikis?",["They possess an accurate, holistic understanding of their organization's intellectual capital.","They confuse the physical storage of information with genuine organizational understanding.","They deliberately sabotage the socio-cultural context of their workforce.","They struggle with the technical implementation of distributed frameworks."],1],
+["It can be inferred from the second paragraph that algorithmic oversight of remote workers tends to:",["Encourage employees to focus on deep, unmeasured strategic innovation.","Accurately quantify the true cognitive complexity of modern labor.","Induce behaviors designed to satisfy metrics rather than achieve real progress.","Eliminate the visibility gap between management and worker cognition."],2],
+['The use of the term "neo-Taylorism" in the final sentence implies that modern digital tooling has:',["Revived traditional scientific management principles under the guise of technological progress.","Successfully liberated knowledge workers from the constraints of industrial oversight.","Rendered quantitative measurement completely obsolete in contemporary corporations.","Established a totally transparent, harmonious relationship between labor and management."],0],
+['Which of the following can be inferred regarding the "false sense of cognitive security" mentioned in paragraph 1?',["It arises because digital repositories are inherently vulnerable to cyber threats.","It leads leadership to believe that information availability equals true collective insight.","It is intentionally cultivated by employees to avoid managerial scrutiny.","It prevents companies from adopting distributed operational paradigms."],1]
+]};
+window.TEST_BANKS = BANKS;
+</script>
+<script>
+// Each test page defines its config + banks before this script runs
+// by setting window.TEST_CONFIG and window.TEST_BANKS
+
+const config=window.TEST_CONFIG;
+const banks=window.TEST_BANKS;
+
+// Render header
+document.getElementById('test-header').innerHTML=`
+  <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-semibold mb-4" style="color:${config.color}">
+    <i class="fas ${config.icon} text-xs"></i> ${config.kicker}
+  </div>
+  <h1 class="font-display text-3xl sm:text-4xl font-extrabold text-white mb-3">${config.title}</h1>
+  <p class="text-sm text-slate-400 max-w-2xl leading-relaxed mb-4">${config.instructions}</p>
+  ${config.transcript?`<div class="glass rounded-lg p-4 mb-4 border-l-2" style="border-left-color:#5eead4"><h4 class="text-xs font-bold text-teal-300 mb-1">Transcript</h4><p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed">${config.transcript}</p></div>`:''}
+`;
+
+// Render form
+const form=document.getElementById('test-form');
+const fieldsHtml=config.fields.includes('id')?`
+  <div class="grid gap-2 rounded-lg glass p-3 sm:grid-cols-3">
+    <div><label class="text-xs text-slate-400 mb-1 block font-semibold">Student Name</label><input id="t-name" required type="text" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm" placeholder="Enter your name"></div>
+    <div><label class="text-xs text-slate-400 mb-1 block font-semibold">Date</label><input id="t-date" required type="date" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm"></div>
+    <div><label class="text-xs text-slate-400 mb-1 block font-semibold">Student ID</label><input id="t-id" required type="text" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm" placeholder="Enter your ID"></div>
+  </div>`:`
+  <div class="grid gap-2 rounded-lg glass p-3 sm:grid-cols-2">
+    <div><label class="text-xs text-slate-400 mb-1 block font-semibold">Student Name</label><input id="t-name" required type="text" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm" placeholder="Enter your name"></div>
+    <div><label class="text-xs text-slate-400 mb-1 block font-semibold">Date</label><input id="t-date" required type="date" class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm"></div>
+  </div>`;
+
+const groupsHtml=config.groups.map(g=>`
+  <div class="mt-4">
+    <h3 class="font-display text-sm font-bold text-white mb-1">${g.title}</h3>
+    ${g.focus?`<p class="text-xs text-slate-500 mb-2">${g.focus}</p>`:''}
+    ${g.dirs?`<p class="text-xs text-slate-500 mb-2">${g.dirs}</p>`:''}
+    <div id="${g.id}" class="grid gap-2 lg:grid-cols-2"></div>
+  </div>`).join('');
+
+form.innerHTML=fieldsHtml+`
+  <div class="mt-3 flex flex-wrap items-end gap-2 rounded-lg glass p-3">
+    <div class="min-w-[120px] flex-1"><p class="progress-text font-bold text-xs text-slate-300" aria-live="polite">0 answered</p><div class="mt-1 h-1.5 overflow-hidden rounded-full bg-white/8"><div class="progress-bar h-full rounded-full transition-all" style="width:0%;background:linear-gradient(90deg,#38bdf8,#8b5cf6)"></div></div></div>
+    <label class="flex flex-col gap-1 text-xs text-slate-400"><span>Minutes</span><input class="timer-minutes w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-white" type="number" min="1" max="180" value="20"></label>
+    <button class="timer-start btn" type="button"><i class="fas fa-play text-xs"></i> Start</button>
+    <button class="timer-stop btn" type="button" disabled><i class="fas fa-stop text-xs"></i> Stop</button>
+    <span class="timer-face rounded-lg px-3 py-1.5 font-bold text-white text-sm" style="background:rgba(15,23,42,.85);border:1px solid rgba(56,189,248,.2)" role="timer">20:00</span>
+  </div>
+  ${groupsHtml}
+  <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-white/8 pt-3">
+    <button class="btn-primary btn" type="submit"><i class="fas fa-paper-plane text-xs"></i> Submit Answers</button>
+    <p id="t-result" class="hidden w-full rounded-lg p-3 text-sm" role="status" aria-live="polite"></p>
+  </div>`;
+
+// Render questions
+const counts={};
+function addQ(target,number,prompt,choices,answer,kind='radio',values=null){
+  const card=document.createElement('div');
+  card.className='question-card';
+  card.dataset.answer=Array.isArray(answer)?answer.map(String).sort().join('|'):String(answer);
+  const optsHtml=choices.map((choice,i)=>{
+    const input=document.createElement('input');
+    input.type=kind;input.name=`${target.id}-q${number}`;input.value=String(values?values[i]:i);
+    return `<label class="option"><input type="${kind}" name="${target.id}-q${number}" value="${values?values[i]:i}"><span class="option-letter text-xs">${kind==='checkbox'?'□':String.fromCharCode(65+i)+'.'}</span><span class="text-xs text-slate-300">${choice}</span></label>`;
+  }).join('');
+  card.innerHTML=`<p class="font-semibold text-sm text-slate-200 mb-2">${number}. ${prompt}</p><div class="grid gap-1.5">${optsHtml}</div>`;
+  target.appendChild(card);
+}
+
+Object.entries(banks).forEach(([tid,rows])=>{
+  const target=document.getElementById(tid);
+  if(!target)return;
+  rows.forEach((r,i)=>addQ(target,(counts[tid]=(counts[tid]||0)+1),r[0],r[1],r[2]));
+});
+
+// Handle special question types (rhetorical)
+if(window.RHETORICAL_A){
+  const rA=document.getElementById('rhetorical-a-list');
+  if(rA)window.RHETORICAL_A.forEach((r,i)=>addQ(rA,i+1,r[0],["Error (1) · Reason","Error (1) · Explanation","Error (1) · Justification","Error (2) · Reason","Error (2) · Explanation","Error (2) · Justification","Error (3) · Reason","Error (3) · Explanation","Error (3) · Justification","Error (4) · Reason","Error (4) · Explanation","Error (4) · Justification"],`${r[1]}:${r[2]}`,'radio',Array.from({length:12},(_,j)=>`${Math.floor(j/3)+1}:${j%3}`)));
+}
+if(window.RHETORICAL_B){
+  const rB=document.getElementById('rhetorical-b-list');
+  if(rB)window.RHETORICAL_B.forEach((r,i)=>addQ(rB,(window.RHETORICAL_A?.length||0)+i+1,r[0],["1 = reason","2 = explanation","3 = justification","4 = cause-and-effect or purpose"],r[1],'checkbox',[1,2,3,4]));
+}
+
+// Timer + scoring
+const cards=[...form.querySelectorAll('.question-card')];
+const minutes=document.querySelector('.timer-minutes');
+const progress=document.querySelector('.progress-text');
+const bar=document.querySelector('.progress-bar');
+const face=document.querySelector('.timer-face');
+const startBtn=document.querySelector('.timer-start');
+const stopBtn=document.querySelector('.timer-stop');
+let remaining=1200,interval=null;
+function renderTime(){face.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`;face.classList.toggle('warning',remaining>0&&remaining<=60)}
+minutes.addEventListener('change',()=>{if(!interval){minutes.value=String(Math.min(180,Math.max(1,Number(minutes.value)||20)));remaining=Number(minutes.value)*60;renderTime()}});
+startBtn.addEventListener('click',()=>{clearInterval(interval);remaining=Math.min(180,Math.max(1,Number(minutes.value)||20))*60;renderTime();startBtn.disabled=true;stopBtn.disabled=false;interval=setInterval(()=>{remaining=Math.max(0,remaining-1);renderTime();if(!remaining){clearInterval(interval);interval=null;startBtn.disabled=false;stopBtn.disabled=true;face.classList.add('warning');face.textContent='TIME UP';try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[0,.22,.44].forEach(d=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=740;g.gain.setValueAtTime(.0001,ctx.currentTime+d);g.gain.exponentialRampToValueAtTime(.14,ctx.currentTime+d+.02);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+d+.18);o.connect(g).connect(ctx.destination);o.start(ctx.currentTime+d);o.stop(ctx.currentTime+d+.2)});setTimeout(()=>ctx.close(),1200)}catch(e){}}},1000)});
+stopBtn.addEventListener('click',()=>{clearInterval(interval);interval=null;startBtn.disabled=false;stopBtn.disabled=true});
+function updateProgress(){const ans=cards.filter(c=>c.querySelector('input:checked')).length;progress.textContent=`${ans} of ${cards.length} answered`;bar.style.width=`${Math.round(ans/cards.length*100)}%`}
+form.addEventListener('change',updateProgress);updateProgress();
+const result=document.getElementById('t-result');
+const submit=form.querySelector('button[type="submit"]');
+form.addEventListener('submit',e=>{
+  e.preventDefault();if(submit.disabled)return;
+  const name=document.getElementById('t-name'),date=document.getElementById('t-date'),sid=document.getElementById('t-id');
+  const missing=[name,date,...(sid?[sid]:[])].find(f=>!f.value.trim());
+  if(missing){result.textContent='Please fill in your name and date.';result.classList.remove('hidden');result.style.background='rgba(248,113,113,.1)';result.style.color='#f87171';missing.focus();return}
+  const mc=cards.find(c=>!c.querySelector('input:checked'));
+  if(mc){mc.classList.add('needs-answer');result.textContent='Answer every question before submitting. The first unanswered question is highlighted.';result.classList.remove('hidden');result.style.background='rgba(248,113,113,.1)';result.style.color='#f87171';mc.scrollIntoView({behavior:'smooth',block:'center'});return}
+  const score=cards.filter(c=>[...c.querySelectorAll('input:checked')].map(i=>i.value).sort().join('|')===c.dataset.answer).length;
+  result.textContent=`\u2713 Score: ${score}/${cards.length} (${Math.round(score/cards.length*100)}%) — ${config.title}`;
+  result.classList.remove('hidden');result.style.background='rgba(16,185,129,.1)';result.style.color='#6ee7b7';
+  submit.disabled=true;setTimeout(()=>submit.disabled=false,2000);
+});
+</script>
+</body>
+</html>
