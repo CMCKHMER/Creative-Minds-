@@ -1,6 +1,13 @@
-# Creative Minds Network — CMC Network Hub
+# Creative Minds Network
 
-Teacher-resource landing page and assessment studio for **Creative Minds Network (CMC)**, built with React, Vite and Tailwind CSS v4.
+Creative Minds Network is a learning and assessment hub for CMC students, teachers, and program administrators. The project combines a polished landing page, classroom resources, practice assessments, interactive learning games, and member-focused workflows into a single React + Vite experience.
+
+## Overview
+
+- Purpose: Teacher-resource landing page and assessment studio for Creative Minds Network (CMC)
+- Audience: classroom teachers, students, and learning program staff
+- Main features: ready-to-use assignments, Kid Program resources for grades 5–12, TOEFL Junior-style assessments, browser games, and Supabase-powered member access flows
+- Tech stack: React, Vite, TypeScript, Tailwind CSS v4, HTML, CSS, and PostgreSQL/Supabase integration for member and lead management
 
 ## Run locally
 
