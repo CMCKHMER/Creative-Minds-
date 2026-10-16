@@ -50,12 +50,12 @@ window.TEST_CONFIG={
   kicker:'Week 4 · Structure',
   color:'#f87171',
   icon:'fa-pen-fancy',
-  instructions:'Identify the rhetorical purpose of each underlined part. Part A: match the error to its purpose. Part B: identify the purpose type.',
+  instructions:'Identify the rhetorical purpose of each underlined part.',
   fields:['name', 'date'],
   transcript:'',
   groups:[
-    {'id':'rhetorical-a-list','title':'Part A · Error & Purpose Matching','dirs':'For each sentence, identify which numbered part contains an error and what its rhetorical purpose is (Reason, Explanation, or Justification).'},
-    {'id':'rhetorical-b-list','title':'Part B · Purpose Identification','dirs':'For each sentence, identify the rhetorical purpose of the underlined part. Select all that apply.'}
+    {'id':'rhetorical-a-list','title':'Part A · Error & Purpose Matching','dirs':'Identify which numbered part contains an error and its rhetorical purpose.'},
+    {'id':'rhetorical-b-list','title':'Part B · Purpose Identification','dirs':'Identify the rhetorical purpose. Select all that apply.'}
   ]
 };
 const BANKS = {
@@ -75,7 +75,6 @@ const BANKS = {
 "short-conversations-list":[["What does the woman mean when she says the report is due tomorrow?",["She submitted it.","She needs to finish it today.","She lost it.","She canceled the meeting."],1],["Why does the man suggest taking the earlier train?",["The later train is cheaper.","The station is closed.","Traffic may make them late.","He dislikes traveling."],2],["What will the student probably do next?",["Return a library book.","Ask the professor for clarification.","Drop the course.","Buy a computer."],1],["What does the woman imply about the restaurant?",["It is too expensive.","It moved.","It is closed.","It serves only breakfast."],0]]
 };
 window.TEST_BANKS = BANKS;
-
 const RHET_A=[["Because the library was closed, (1) so we studied at the park, (2) where it was quiet, and (3) we finished our project. (4)",1,0],["The teacher explained the water cycle, (1) using a diagram (2) so that students could understood how rain forms. (3) (4)",3,1],["The team practiced every day, (1) so that they could improve their passing, (2) shooting, and they wanted to defend better. (3) (4)",3,2]];
 const RHET_B=[["The game was canceled because lightning struck the field.",[1,4]],["The author repeats the word home to show the narrator's longing.",[2,3]],["We must wear uniforms so that everyone feels equal.",[3,4]]];
 window.RHETORICAL_A=RHET_A;window.RHETORICAL_B=RHET_B;
