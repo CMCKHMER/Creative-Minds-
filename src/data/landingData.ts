@@ -38,6 +38,15 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     path: '#toefl-ibt-mock'
   },
   {
+    id: 'toefl-itp-planner',
+    title: 'TOEFL ITP Bi-Weekly Planner',
+    category: 'Assessment & Tests',
+    badge: '8-week plan',
+    description: 'A structured 8-week TOEFL ITP study plan with practice drills, timers, and auto-scoring across all three sections.',
+    iconName: 'CalendarCheck',
+    path: './biweek-planner/'
+  },
+  {
     id: 'toefl-assessments',
     title: 'TOEFL Junior Skill Assessments',
     category: 'Assessment & Tests',
