@@ -34,17 +34,18 @@ export const Navbar: React.FC<NavbarProps> = ({
       {bannerVisible && (
         <div className="bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium relative z-50 flex items-center justify-center gap-2">
           <span className="inline-flex items-center gap-1.5 bg-white/20 px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase">
-            <Sparkles className="w-3 h-3 text-cyan-200" /> Teacher resources preview
+            <Sparkles className="w-3 h-3 text-cyan-200" /> New
           </span>
-          <span className="hidden sm:inline">Original assignments and a protected member mini mock.</span>
-          <span className="sm:hidden">Original teacher resources.</span>
-          <button 
-            onClick={onOpenTeacherPass}
+          <span className="hidden sm:inline">TOEFL iBT Full Mock Test is live.</span>
+          <span className="sm:hidden">TOEFL iBT mock test live.</span>
+          <a
+            href="#toefl-ibt-mock"
+            onClick={() => setBannerVisible(false)}
             className="underline font-semibold hover:text-cyan-100 transition inline-flex items-center gap-0.5 ml-1"
           >
-            Create an account <ArrowRight className="w-3.5 h-3.5 inline" />
-          </button>
-          <button 
+            Try it now <ArrowRight className="w-3.5 h-3.5 inline" />
+          </a>
+          <button
             onClick={() => setBannerVisible(false)}
             aria-label="Close notification"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-1 rounded"

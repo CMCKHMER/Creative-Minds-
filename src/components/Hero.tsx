@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, BarChart2, BookOpen, ClipboardCheck, GraduationCap, Play, Sparkles, Users } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play, Sparkles, PenLine } from 'lucide-react';
 
 interface HeroProps {
   onExploreTools: () => void;
@@ -10,41 +10,28 @@ interface HeroProps {
 
 const shortcuts = [
   {
-    id: 'auto-grading',
-    title: 'Feedback preview',
-    description: 'Try an example of local, word-count-based feedback.',
-    icon: Sparkles,
+    id: 'toefl-ibt-mock',
+    title: 'TOEFL iBT Full Mock Test',
+    description: 'Complete 4-section exam with audio, recording, and timer. ~3 hours.',
+    icon: GraduationCap,
   },
   {
-    id: 'class-mgmt',
-    title: 'Roster sample',
-    description: 'See the demo layout; it is not connected to real student records.',
-    icon: Users,
-  },
-  {
-    id: 'analytics',
-    title: 'Insight preview',
-    description: 'Explore sample indicators that are not linked to learners.',
-    icon: BarChart2,
+    id: 'games',
+    title: 'Learning Games',
+    description: '8 playable games: grammar, vocabulary, reading, listening, and more.',
+    icon: Gamepad2,
   },
   {
     id: 'resources',
-    title: 'Ready-to-use resources',
-    description: 'From first phonics to original TOEFL Junior-style practice.',
+    title: 'Assignment Packs',
+    description: 'Ready-to-use classroom handouts with separate teacher keys and rubrics.',
     icon: BookOpen,
-  },
-  {
-    id: 'daily-assessment',
-    title: 'Daily student assessment',
-    description: 'Open the separate student-record workspace.',
-    icon: ClipboardCheck,
-    href: 'https://cmckhmer.github.io/Student-Assesment-Records/',
   },
   {
     id: 'kid-grades',
     title: 'Kid Program · Grades 5–12',
-    description: 'See the grade-by-grade resource pathway; Kid 6 has a live worksheet link.',
-    icon: GraduationCap,
+    description: 'Grade-by-grade resource pathway. Kid 6 has a live worksheet link.',
+    icon: ClipboardCheck,
   },
 ];
 
@@ -130,27 +117,42 @@ export const Hero = ({
           <div className="max-w-[780px]">
             <div className="cmc-hero-enter cmc-hero-eyebrow mb-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200/90 sm:mb-8">
               <span className="h-px w-9 bg-cyan-300/80" aria-hidden="true" />
-              A brighter way to teach
+              Creative Minds Network
             </div>
 
-            <h1 className="cmc-title" aria-label="Creative Minds Network">
+            <h1 className="cmc-title" aria-label="Everything a teacher needs in one place.">
               <span className="cmc-title-row cmc-title-row-first">
-                <span className="cmc-title-outline" aria-hidden="true">CREATIVE MINDS</span>
-                <span className="cmc-title-solid">CREATIVE MINDS</span>
+                <span className="cmc-title-outline" aria-hidden="true">EVERYTHING A TEACHER</span>
+                <span className="cmc-title-solid">EVERYTHING A TEACHER</span>
               </span>
               <span className="cmc-title-row cmc-title-row-second">
-                <span className="cmc-title-outline" aria-hidden="true">NETWORK</span>
-                <span className="cmc-title-solid">NETWORK</span>
+                <span className="cmc-title-outline" aria-hidden="true">NEEDS IN ONE PLACE.</span>
+                <span className="cmc-title-solid">NEEDS IN ONE PLACE.</span>
               </span>
             </h1>
 
             <div className="cmc-hero-enter cmc-hero-after-title mt-8 sm:mt-10">
               <p className="font-[var(--font-display)] text-xl font-medium tracking-tight text-white sm:text-2xl lg:text-[1.75rem]">
-                Empowering educators. <span className="text-cyan-200">Engaging students.</span>
+                Resources, games, and <span className="text-cyan-200">TOEFL practice</span> for the modern classroom.
               </p>
               <p className="mt-4 max-w-[550px] text-sm leading-[1.8] text-slate-200/90 sm:text-base">
-                Original classroom resources and TOEFL Junior-style practice, with meaningful explanations and more room for the teaching moments that matter.
+                From full TOEFL iBT mock tests to learning games and ready-to-use assignment packs — built for teachers, free for classrooms.
               </p>
+            </div>
+
+            {/* Stats row */}
+            <div className="cmc-hero-enter mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-slate-300/90 sm:text-sm">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-base font-bold text-cyan-300">8</span> learning games
+              </span>
+              <span className="text-slate-600" aria-hidden="true">·</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-base font-bold text-violet-300">4-section</span> TOEFL mock
+              </span>
+              <span className="text-slate-600" aria-hidden="true">·</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-base font-bold text-teal-300">15</span> assessment packs
+              </span>
             </div>
 
             <div className="cmc-hero-enter cmc-hero-actions mt-8 flex flex-wrap items-center gap-3 sm:mt-10">
@@ -179,7 +181,7 @@ export const Hero = ({
         </div>
 
         <div className="cmc-scroll-hint absolute bottom-9 left-1/2 z-10 hidden -translate-x-1/2 items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 md:flex">
-          <span>Scroll to explore</span>
+          <span>See what's inside</span>
           <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
         </div>
       </section>
