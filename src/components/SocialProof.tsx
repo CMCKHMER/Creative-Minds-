@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight, BookOpen, Check, ClipboardCheck, Feather, Gamepad2, GraduationCap, Headphones, Mic, PenLine, Shapes } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Check, ClipboardCheck, Feather, Gamepad2, GraduationCap, Headphones, Headset, Mic, PenLine, Shapes } from 'lucide-react';
 import { CLASSROOM_ASSIGNMENTS } from '../data/assignments';
 import { TOEFL_JUNIOR_ASSESSMENTS } from '../data/toeflJuniorAssessments';
 
@@ -56,6 +56,17 @@ const contentCards = [
     linkText: 'Play games',
     features: ['No login required', 'Progress saved locally', 'Grammar + vocabulary + reading'],
   },
+  {
+    stat: '06',
+    statLabel: 'OSW listening worksheets',
+    title: 'Oxford Skills World · Listening 3',
+    description: 'Six interactive listening worksheets from Oxford Skills World Level 3 — Angelo and the Musician, Showing Your Colors, How Big Is That Book?, and more. Each has Parts A/B/C with MCQ, ordering, and yes/no questions, plus an audio player and auto-scoring.',
+    icon: Headset,
+    accent: 'sky',
+    link: 'https://cmckhmer.github.io/OSW-Listen-with-speaking/',
+    linkText: 'Open worksheets',
+    features: ['Audio player with speed control', 'Auto-scoring + progress', '6 topics · Parts A/B/C'],
+  },
 ];
 
 const accentMap: Record<string, { border: string; text: string; bg: string; stat: string }> = {
@@ -63,6 +74,7 @@ const accentMap: Record<string, { border: string; text: string; bg: string; stat
   teal: { border: 'border-teal-300/25', text: 'text-teal-300', bg: 'bg-teal-300/5', stat: 'text-teal-200' },
   violet: { border: 'border-violet-300/25', text: 'text-violet-300', bg: 'bg-violet-300/5', stat: 'text-violet-200' },
   amber: { border: 'border-amber-300/25', text: 'text-amber-300', bg: 'bg-amber-300/5', stat: 'text-amber-200' },
+  sky: { border: 'border-sky-300/25', text: 'text-sky-300', bg: 'bg-sky-300/5', stat: 'text-sky-200' },
 };
 
 export const SocialProof: React.FC = () => {
@@ -79,18 +91,20 @@ export const SocialProof: React.FC = () => {
               A practical toolkit, ready to explore.
             </h2>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-400">
-              {classroomPackCount} classroom assignment packs, {assessmentCount} TOEFL Junior assessments, a full TOEFL iBT mock test, and {`8`} learning games — all free, all in the browser, no account required for most content.
+              {classroomPackCount} classroom assignment packs, {assessmentCount} TOEFL Junior assessments, a full TOEFL iBT mock test, {`8`} learning games, and 6 Oxford Skills World listening worksheets — all free, all in the browser.
             </p>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {contentCards.map((card, index) => {
               const accent = accentMap[card.accent] || accentMap.cyan;
               const Icon = card.icon;
+              const isExternal = card.link.startsWith('http');
               return (
                 <a
                   key={index}
                   href={card.link}
+                  {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   className={`group relative flex flex-col gap-3 rounded-2xl border ${accent.border} ${accent.bg} p-5 transition-all duration-300 hover:-translate-y-1 hover:border-opacity-50 hover:shadow-lg`}
                 >
                   <div className="flex items-start justify-between">
