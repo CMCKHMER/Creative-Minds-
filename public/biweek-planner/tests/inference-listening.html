@@ -44,6 +44,91 @@ html[data-theme="light"] .option:has(input:checked){border-color:var(--accent);b
 html[data-theme="light"] input{color:#1e293b}
 html[data-theme="light"] input::placeholder{color:#94a3b8}
 html[data-theme="light"] .btn-primary{color:#fff}
+
+/* ===== COMPREHENSIVE LIGHT MODE OVERRIDES (biweek-planner) ===== */
+html[data-theme="light"] h1.text-white,
+html[data-theme="light"] h2.text-white,
+html[data-theme="light"] h3.text-white,
+html[data-theme="light"] h4.text-white,
+html[data-theme="light"] p.text-white,
+html[data-theme="light"] span.text-white,
+html[data-theme="light"] button.text-white,
+html[data-theme="light"] label.text-white,
+html[data-theme="light"] .text-white{color:#1e293b!important}
+html[data-theme="light"] .text-slate-100{color:#1e293b!important}
+html[data-theme="light"] .text-slate-200{color:#334155!important}
+html[data-theme="light"] .text-slate-300{color:#475569!important}
+html[data-theme="light"] .text-slate-400{color:#64748b!important}
+html[data-theme="light"] .text-slate-500{color:#94a3b8!important}
+html[data-theme="light"] .text-slate-600{color:#a8b3c2!important}
+html[data-theme="light"] .text-cyan-50{color:#0c4a6e!important}
+html[data-theme="light"] .text-cyan-100{color:#0369a1!important}
+html[data-theme="light"] .text-cyan-200{color:#0e7490!important}
+html[data-theme="light"] .text-cyan-300{color:#0891b2!important}
+html[data-theme="light"] .text-cyan-400{color:#0284c7!important}
+html[data-theme="light"] .text-violet-100{color:#5b21b6!important}
+html[data-theme="light"] .text-violet-200{color:#6d28d9!important}
+html[data-theme="light"] .text-violet-300{color:#7c3aed!important}
+html[data-theme="light"] .text-emerald-100{color:#047857!important}
+html[data-theme="light"] .text-rose-100{color:#9f1239!important}
+html[data-theme="light"] .text-rose-400{color:#e11d48!important}
+html[data-theme="light"] .text-amber-100{color:#92400e!important}
+html[data-theme="light"] .text-amber-400{color:#b45309!important}
+html[data-theme="light"] .text-teal-300{color:#0d9488!important}
+
+html[data-theme="light"] .bg-white\/5,
+html[data-theme="light"] .bg-white\/8,
+html[data-theme="light"] .bg-white\/10,
+html[data-theme="light"] .bg-white\/6,
+html[data-theme="light"] .bg-white\/3,
+html[data-theme="light"] .bg-white\/2{background-color:rgba(0,0,0,.04)!important}
+html[data-theme="light"] .border-white\/7,
+html[data-theme="light"] .border-white\/8,
+html[data-theme="light"] .border-white\/10{border-color:rgba(0,0,0,.10)!important}
+
+html[data-theme="light"] input.text-white,
+html[data-theme="light"] input[type="text"].text-white,
+html[data-theme="light"] input[type="date"].text-white,
+html[data-theme="light"] input[type="number"].text-white{color:#1e293b!important;background-color:#fff!important;border-color:rgba(0,0,0,.12)!important}
+html[data-theme="light"] input.text-white::placeholder{color:#94a3b8!important}
+
+html[data-theme="light"] .timer-face{background:#fff!important;border-color:rgba(0,0,0,.10)!important;color:#1e293b!important}
+html[data-theme="light"] .timer-face.warning{background:#f87171!important;color:#fff!important}
+
+/* top-nav buttons (Back to Planner, CMC) — override inline dark bg */
+html[data-theme="light"] .btn[style*="rgba(15,23,42"],
+html[data-theme="light"] a[style*="rgba(15,23,42"],
+html[data-theme="light"] a[style*="background:rgba(15,23,42"]{background:rgba(255,255,255,.9)!important;border-color:rgba(2,132,199,.2)!important;color:#0284c7!important;backdrop-filter:blur(8px)}
+html[data-theme="light"] a[style*="color:#67e8f9"]{color:#0284c7!important}
+
+/* kicker pills with inline color (text-cyan-300, text-teal-300) on test pages */
+html[data-theme="light"] .inline-flex[style*="color:"]{background:rgba(2,132,199,.08)!important}
+
+/* week cards on dashboard */
+html[data-theme="light"] .week-card{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.10)!important;box-shadow:0 4px 16px rgba(0,0,0,.04)}
+html[data-theme="light"] .week-card:hover{box-shadow:0 12px 32px rgba(0,0,0,.10);border-color:rgba(2,132,199,.4)!important}
+html[data-theme="light"] .filter-btn{color:#64748b;background:transparent;border-color:rgba(0,0,0,.10)}
+html[data-theme="light"] .filter-btn:hover{color:#1e293b;border-color:rgba(2,132,199,.3)}
+html[data-theme="light"] .filter-btn.active{background:#0284c7;color:#fff;border-color:#0284c7}
+
+/* transcript block */
+html[data-theme="light"] .glass[style*="border-left-color:#5eead4"] h4{color:#0d9488!important}
+html[data-theme="light"] .glass[style*="border-left-color:#5eead4"] p{color:#475569!important}
+
+/* glass cards */
+html[data-theme="light"] .glass{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.10)!important;color:#1e293b}
+html[data-theme="light"] .glass *{color:inherit}
+html[data-theme="light"] .glass h1,
+html[data-theme="light"] .glass h2,
+html[data-theme="light"] .glass h3,
+html[data-theme="light"] .glass h4{color:#1e293b}
+
+/* selection */
+html[data-theme="light"] ::selection{background:rgba(2,132,199,.25);color:#fff}
+
+/* body bg already set by :root, but re-emphasize */
+html[data-theme="light"] body{color:#1e293b}
+
 </style>
 </head>
 <body>
