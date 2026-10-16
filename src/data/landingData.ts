@@ -126,6 +126,15 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     path: '#teacher-tools'
   },
   {
+    id: 'cambodia-news',
+    title: 'Cambodia Education News',
+    category: 'Daily Briefing',
+    badge: 'Daily',
+    description: 'Daily Cambodia education headlines indexed from Khmer Times, UNICEF, UNESCO, Cambodianess, and more. Refreshed every morning at 8 am Phnom Penh time.',
+    iconName: 'Sparkles',
+    path: '#news'
+  },
+  {
     id: 'kid-program',
     title: 'Kid Program · Grades 5–12',
     category: 'Curriculum Paths',

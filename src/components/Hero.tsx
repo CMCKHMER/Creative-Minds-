@@ -1,11 +1,17 @@
-import { useEffect, useRef, useState, type PointerEvent } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play, Sparkles } from 'lucide-react';
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play } from 'lucide-react';
 
 interface HeroProps {
   onExploreTools: () => void;
   onOpenStudentDemo: () => void;
   onOpenTeacherPass: () => void;
   onSelectFeatureCard: (feature: string) => void;
+  /**
+   * Optional side panel rendered on the right side of the hero on lg+
+   * screens (mobile/tablet stacks it below the text). Used to host the
+   * daily news side panel.
+   */
+  sidePanel?: ReactNode;
 }
 
 const shortcuts = [
@@ -40,6 +46,7 @@ export const Hero = ({
   onOpenStudentDemo,
   onOpenTeacherPass,
   onSelectFeatureCard,
+  sidePanel,
 }: HeroProps) => {
   const shortcutsRef = useRef<HTMLElement>(null);
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
@@ -114,7 +121,8 @@ export const Hero = ({
         </div>
 
         <div className="cmc-hero-content relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
-          <div className="max-w-[780px]">
+          <div className={sidePanel ? 'grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start' : ''}>
+            <div className="max-w-[780px]">
             <div className="cmc-hero-enter cmc-hero-eyebrow mb-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-200/90 sm:mb-8">
               <span className="h-px w-9 bg-cyan-300/80" aria-hidden="true" />
               Creative Minds Network
@@ -178,6 +186,13 @@ export const Hero = ({
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
+            {/* RIGHT: side panel (news) — only on lg+ screens alongside the hero text */}
+            {sidePanel && (
+              <div className="cmc-hero-enter hidden lg:block">
+                {sidePanel}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="cmc-scroll-hint absolute bottom-9 left-1/2 z-10 hidden -translate-x-1/2 items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 md:flex">

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-16T17:55:03Z",
+  "generated_at": "2026-10-16T18:08:53Z",
   "source": "Google News RSS — Cambodia education (CMC scraper)",
   "queries": [
     "Cambodia education OR school OR university OR MoEYS",
@@ -7,7 +7,7 @@
     "Phnom Penh education OR school OR university",
     "Cambodia សិក្សា OR សាលា OR សិស្ស OR គ្រូ"
   ],
-  "count": 15,
+  "count": 30,
   "headlines": [
     {
       "title": "Girls are students, not brides, say youth advocates",
@@ -22,23 +22,15 @@
       "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPZkMtTG9NVjBFdHR4SExtR2Z0SmNSNnRTc05xUnN5TW44VGstSnF3Yy1PS3gtSlBSNDZyUURJRlB3aTdXb0xvamZXNEpHSDlHXy12MWl0VmdwQkdlZnEtZ1VudFE4MG1lUlBPZWhlYUZyWEZfQUJPTlB2VHk0US1oWkx1Z2J0dzd4MkVZVGkzbHBhU2xzdGRueDRKYXlzcHotM2ww?oc=5",
       "source": "UNESCO",
       "published": "2026-10-16T09:56:39Z",
-      "published_relative": "7 hours ago",
+      "published_relative": "8 hours ago",
       "snippet": "UNESCO trains policymakers on the role of education in addressing violent pasts&nbsp;&nbsp;UNESCO"
     },
     {
-      "title": "UNICEF warns 1.3 million Cambodian children at risk from El Niño",
-      "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxQX05zY2RjMDdibUl2SzZ5Y0JScDVhdkJKR1Z3ZmZYdzlKMXFCWWFHQlZGWEpSQjhfbHBKWXRMcmQ1RUtRNkVOWHA0QmhVTHZLYVhsSlZaRjBDa1NZRi0yb1RsSTNFTlQzcGRsNEJTR0RzVVRmQ3VnVVo5OXVHdUY0aVpfUUF4cC1GTVRMaXJWX3dkaU13Ulptd2xBN1hkVE5vU2pxRnpTOA?oc=5",
-      "source": "Khmer Times",
-      "published": "2026-10-16T09:31:11Z",
-      "published_relative": "8 hours ago",
-      "snippet": "UNICEF warns 1.3 million Cambodian children at risk from El Niño&nbsp;&nbsp;Khmer Times"
-    },
-    {
       "title": "Cambodia, Israel agree to strengthen bilateral consultations and cooperation",
-      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPNG5FY3BBYVFybkNhU0F2NlphRVVKVTZoS0xGUTdxbFhlTTc1cmwzY1Vub0ViakNJR2Mxb0RkUUF1dHdRbmFpcmdodFVRVl9jMUZCSHdId1dveFc0b1V2N3cwR1ZWZGVneTdJT3AtcnFrejJtYWNFOW9TSFE2ZnBzd0R4LUtVSklCcHd3RFJZLWZJbGh2SThheWFjam96Z05PSElkTTlPUnNFTFB4U0tlUG5Hek9LQQ?oc=5",
+      "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxQMXhZQ0ZrTEhqY3A3VDBwczA1dVhLT05WNmlISjA1bWdSZ1B6anNYVjZDeUJvRng2a0FYdGY2R1ZrZWpmdGdIaXBPa1ZmMDNvMFQzQkdsTENxQm9fV3dhTlFxVElfVGtIRjhaYmJObzQ1N3VFOU5kYjhmdGE1OGZWZTJOZ2podmZueTNldW1QSVRPc1BYaDlhNTR1RDRRejM1ZDZ5X0ZRZTVvNXBtd2Y3NEdOdw?oc=5",
       "source": "Khmer Times",
       "published": "2026-10-16T08:01:04Z",
-      "published_relative": "9 hours ago",
+      "published_relative": "10 hours ago",
       "snippet": "Cambodia, Israel agree to strengthen bilateral consultations and cooperation&nbsp;&nbsp;Khmer Times"
     },
     {
@@ -46,7 +38,7 @@
       "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQSFloMk9XYl9odzVuckFuakRiV3U1bnpZYTJEMVVPT1B2T0pWUjkwZWZZQjBsTHpCT0hNMGhYai16cmxfTWxhYjJ0UmxoS1p6SHcwbkRSMExNcmphUzFMdWRJbkxYcEJTdW9pZkRvRTczRFpGdlNaZ2l4aEhaZ3M5MDlGVkswbEt3Z2M0SkxZcnFpbnV1N1E?oc=5",
       "source": "EDP24",
       "published": "2026-10-16T04:00:00Z",
-      "published_relative": "13 hours ago",
+      "published_relative": "14 hours ago",
       "snippet": "Springwood students explore Cambodia and teach local children during 16-day trip&nbsp;&nbsp;EDP24"
     },
     {
@@ -114,6 +106,14 @@
       "snippet": "EDF officials, AFD launch entrepreneurship study in Paris&nbsp;&nbsp;Khmer Times"
     },
     {
+      "title": "MoEYS reviews sports coaching and training plans for 2027",
+      "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxObzUweWtzOTdwLUFGU1RETF9TdVhjNkFVME9NMzdrM1VBZWlld21iSEdDX2FKcE1aV1RsUTBuOV9qTVc0NjZzR0tnLS1RRlZOZjFEMV85RTdzR3kwT2JuTWJWODFZWXdxM2dQN0dkSnh3b3o0SnQyRzcxOEI2bHkwTXl6QUJiMWJTbjc3MC1sQjVJeDZIUnQ3eURNSjJvQQ?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-15T05:04:18Z",
+      "published_relative": "yesterday",
+      "snippet": "MoEYS reviews sports coaching and training plans for 2027&nbsp;&nbsp;Khmer Times"
+    },
+    {
       "title": "Germany opens doors to skilled Southeast Asian workforce in new labour push",
       "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxQV1haNGc0UnhYQzVhMjZxQ1FoRVpsODdrXy1HMFdndFEzTlZ1X3BKNWJPWUVTSHNnUlB1dnNmbV9WVS1ueFZvWk5PczJJeGZueUVsbF9GZk1SRzI1RWZkbnVid0xjZEV5OFNhdElmWHVET05ZRXpnb0RJMGIyaU9QOUJFcmx4d2RCNWdvQkx6aTkxdEFnTmlFQlVQa2lzbVVNTjJvdmdrVUp5SmxyNkV2R2JWRG5EQQ?oc=5",
       "source": "Khmer Times",
@@ -128,6 +128,126 @@
       "published": "2026-10-15T00:11:54Z",
       "published_relative": "yesterday",
       "snippet": "Cambodia and Vietnam Sign $8 Million Accord to Build Bilateral Friendship School&nbsp;&nbsp;Construction & Property News"
+    },
+    {
+      "title": "Preah Ang Duong Hospital holds free eye health checks, glasses distribution and surgeries for 5,000 citizens",
+      "link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxQV1gxRmV5WUZ2VFlUZGFOUVZaMTZIME1zVFpnVzE0dHJYQmRPUTIzVlFHdTBfd2ZDRzQ4VHgtS0dickVCMkFKcmt4N3dWeWh1SXlhVXgwdzVTZTMtOUtQVk1TX1c3S0l5dWVZX3dkS1VpaTlvZ25uSlBaN0Y3MG1ZenA3bVV6enBya1dpVlBxc2ZHTmJfS2hpOTd4NHR2Z3lLelp2WXpJWW81YjI2TWw1ZWRSdzd3Zmg5Zm5qa0tKUXJIWTJCMWdmbVF6c1F2d0Z0MHNKd3FMSENMNWJFVEJF?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-14T23:00:31Z",
+      "published_relative": "yesterday",
+      "snippet": "Preah Ang Duong Hospital holds free eye health checks, glasses distribution and surgeries for 5,000 citizens&nbsp;&nbsp;Khmer Times"
+    },
+    {
+      "title": "Cambodia, Germany seek stronger cooperation in skills training, labour and social protection",
+      "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxQeDdIT2RtY1QzOXhmZ1pRcUxtWXZ5eHNSZWRnTDJBRjlOUjJjbXZaUW4wUDEtcDR3UmZDUk9yNm1fVUYtZEhXNUpqa2ZGeDV1VnB4NUZia2FUR2U3dTY4SThwb3FXN1VoQjg0dHpMd2w4MzBjN0ZwY2xtYy0tZ1pueDR6YnVqTGx1dlo1NUVEMEZEMUUtMGlHTV8zQ0RGTkloSVJsUkpqdk96bU8tREVkZHJZU0FMaXhiSUZfUUFuMk5jNnhmcld6dWRR?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-14T22:56:00Z",
+      "published_relative": "yesterday",
+      "snippet": "Cambodia, Germany seek stronger cooperation in skills training, labour and social protection&nbsp;&nbsp;Khmer Times"
+    },
+    {
+      "title": "Cambodia, Azerbaijan seek to deepen bilateral cooperation",
+      "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOeGRjRjFxU1dhS3ZISDF5RUY0U0RWWDZBTGZhZlZDbnZ2Zi1jODJlMkdtV0drS3RaUzdBajNjTE9fbU5iRlpXZkh1Q3A4Z1pOOXlFbkJLMmlLekltcFIzem4tcFNBZmxQT1J2Ry1CVDdPQ0Z4Rkh2dF9jWVVyd0dOYXRnc3FMeDRlN0wybkpmbTRVdWt4WVNUZDhNcU4?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-14T22:50:09Z",
+      "published_relative": "yesterday",
+      "snippet": "Cambodia, Azerbaijan seek to deepen bilateral cooperation&nbsp;&nbsp;Khmer Times"
+    },
+    {
+      "title": "Cambodia explores Atomy partnership to support school health and education",
+      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQWWNPalN5NVBGeEdsM256WWxNdG5QSDg4Vnd4MGxZU1htVExuQm9Mc3VicWhSVlZ1WE5OS2M2RlV0V0NIWWYyNDZFR3hwQlJkYkdabFREVGg5TXdwYmhISGQ3bE0tc0Z1QzRKc0RiX21qajJYMGZ0dVB5bmpvU0tJWmlzSUlTSnJlbTVLejhzdUdXZEpYS051c3NsRGM4cWtFVTBMc3JacmNSaTkxLTFRVjNaRU8?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-14T17:50:39Z",
+      "published_relative": "2 days ago",
+      "snippet": "Cambodia explores Atomy partnership to support school health and education&nbsp;&nbsp;Khmer Times"
+    },
+    {
+      "title": "VIDEO: Over 1,000 teachers sit exam for transfers to Phnom Penh",
+      "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNS3RfdUdrVGZhdUZoQ2E5eUJZR3EycF94TnFmeWR2N2dQRVk5RUl6T2djYS0teVowX2pfbm9HZURfZGt3Z3dfMGh1NC1nbG04aDF4ek5aUUFfN29MZXRuUS0tNFdnUmhzZ2h6d2FmTGVJYjl5ZUZlam1yNDlpeWJ5U0paUG5paFdqN044MnhBbWFwa29TRWczM015ZFZTUWhQRTY4?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-14T17:04:32Z",
+      "published_relative": "2 days ago",
+      "snippet": "VIDEO: Over 1,000 teachers sit exam for transfers to Phnom Penh&nbsp;&nbsp;Khmer Times"
+    },
+    {
+      "title": "Peace Corps alum, former educator in Cambodia, visits Valley",
+      "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxQS0hZVTFEeGkyZkl0bWtxRHFjMWxkd0dWd2dVU2R5UDJKYTY0ZzRiMVdROHhPRTZUZ0YwblRUM3R6WFMydVpyWkdqNzhIR1F3cjFvdzFkX2gtMzhRMHBDdFAwOENhTXJ6ZlRjRlVJc19CTGRlWDNYTXlWbGhfdThFLXBKZ2JRWmJrSHJhQUlTUXU3TjRnb3RFMzdZVEJTT1dBaWJr?oc=5",
+      "source": "Wet Mountain Tribune",
+      "published": "2026-10-14T15:01:12Z",
+      "published_relative": "2 days ago",
+      "snippet": "Peace Corps alum, former educator in Cambodia, visits Valley&nbsp;&nbsp;Wet Mountain Tribune"
+    },
+    {
+      "title": "Phnom Penh Contemporary: Cambodian contemporary art comes to the Royal University of Fine Arts",
+      "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNWXFSc090WDk2ZDNDYlR2UV9rV3paY1FTZDlLZTBveFJfOUZZY3NCR21pV1lrRWdLV0EwWkRhdVZRdkRqTVVNbzVfWGlkT0NJMnl0LTkxWVlIZ1hVaVl6cEpvMDBCRHBXbm9rb1J4V2kzQzhmTXl5eDJ6VFRMei1EUDRpWmY2aVdiUVVyMlRmX3JtV2l5RHpXU1dPTTJobTBPejN5STVtTm5RR1FYdDhkUEhyMkpPNU5rVEMzWmF5OTlfOWQ1eGoxcg?oc=5",
+      "source": "Cambodgemag",
+      "published": "2026-10-14T08:02:21Z",
+      "published_relative": "2 days ago",
+      "snippet": "Phnom Penh Contemporary: Cambodian contemporary art comes to the Royal University of Fine Arts&nbsp;&nbsp;Cambodgemag"
+    },
+    {
+      "title": "NOCC assures global runners of safety ahead of Angkor Wat race",
+      "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxOWjJNWFlObnp3YVByNHBlR3U3WUhUSFNvQm52QjdlZ3lhSUpTQ2F2bmU4SV9panZodXdoTXNTX25zcmtSMDAwd3B2eTNjSVRNaHp6WUlmRXhCb3VtelhvTDZNd0c3V1MyUGVoMFg0MzdmM1BMdlFVUHZRdldzNnNGR0hrb1B5bWxYZDdVUlpaVjlyTndnYTROQ0VfR2c0Q0kxZFhTMw?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-14T07:40:56Z",
+      "published_relative": "2 days ago",
+      "snippet": "NOCC assures global runners of safety ahead of Angkor Wat race&nbsp;&nbsp;Khmer Times"
+    },
+    {
+      "title": "National Games set to prepare Cambodia for 2028 university event",
+      "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPNC1QamtuX2xLTzk2SUdIcDFDV3Rwa0xuQnZWREpwUm5PVW5ZY09wcnN1Z2g2TW1JM0JLcWEtQVFIOHBKQ3NkUXR2dk1QRFVNMmRFZE1tZDV5NXV5cUp6OHNhU2tiQUw5VERjOVluaTZuMExhRlY5OHl0ckIySlB5Wm9UVVRuN0FUdnJwMVBwOVplZ3ZMYlVTSGRzcXVURURRSjA1SU11WQ?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-14T07:14:41Z",
+      "published_relative": "2 days ago",
+      "snippet": "National Games set to prepare Cambodia for 2028 university event&nbsp;&nbsp;Khmer Times"
+    },
+    {
+      "title": "Cambodia, EU promote TVET-Employer links to meet industry skills needs",
+      "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPV0o5UjduSzVvZ3Q4bXJQNDRUbGRMckhrQUxMcUlWTW9RckVYR3hVOVJxOFBPLWVHbFBNb2E4NnpSX1BoUWhkLU0wMV94aXBrOFhYRFpjbHZySGNVbTdkd1dtdE40TVdLWVIyaDRsVlptNWxTZ3RUdk9MZ1RLSUl4VVdHZjkwcjVHUG00RnFRd3VDR1dndk01WVJvaTBybWNETF96ajJFdjJwR1FZV0E?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-14T06:47:35Z",
+      "published_relative": "2 days ago",
+      "snippet": "Cambodia, EU promote TVET-Employer links to meet industry skills needs&nbsp;&nbsp;Khmer Times"
+    },
+    {
+      "title": "Cambodia and Vietnam pledge to strengthen defence cooperation and turn border areas into zones of peace",
+      "link": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxPMDJMUkdvN2F4aTEzRmxjdkRVU1FXMkVSVmw2SzdYQ2x1U0hQOTdPd3I3Ykg2SjAzWlBrZnYzTTZ6MldXTVZBbjBfaTFrZU5FaGlmc0tSbWJzblUtYWRrR25JYnRRakRGWmhpWTBOLTlRSWYyOUlIY3VjNkU5VHczVU9YV3cwWDRSZlAxVGsxUHlqTHlUSjZwUzY4VURGMjNmVHYyNjU4Y0w3eGFqU2N3dXBpRGxMTzFwd3FkQ1k4SWdYQmFleGpqbGIyOG9UUC1XekJTTUFPamh2alk?oc=5",
+      "source": "Khmer Times",
+      "published": "2026-10-14T05:26:54Z",
+      "published_relative": "2 days ago",
+      "snippet": "Cambodia and Vietnam pledge to strengthen defence cooperation and turn border areas into zones of peace&nbsp;&nbsp;Khmer Times"
+    },
+    {
+      "title": "Should young Americans study in China? President Xi’s invitation reignites debate over risks and rewards",
+      "link": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxNRGdRaS1vOFFZTjRvUncxWlViSjhaMlpsVW1XTnExZTdBM0ZvaThfN1R3RWpyNGF5MHR5M2ZXazJOMlRlNUN0VV9yN05STHd5dVozdW1vZlg4aXJoN19MSFZHYmlzR0NWZzhjbm5keGgxbmFPTVR4cTFYSGhlUXRiY0NoanBTdWc0ejZyLXl2STllS0ZMRjUxZUdPa2NzSFBKRVpQZUxsR3Q2YnY3RnhwTXViVk1YWWFIamZOb3UzS0lIN2JNMEt4S0lzQTZBaVdIaW56WEJ6eXI5aEk?oc=5",
+      "source": "Phnom Penh Post",
+      "published": "2026-10-14T04:49:30Z",
+      "published_relative": "2 days ago",
+      "snippet": "Should young Americans study in China? President Xi’s invitation reignites debate over risks and rewards&nbsp;&nbsp;Phnom Penh Post"
+    },
+    {
+      "title": "Games’ opening ceremony aims to counter Thai cultural claims by showcasing Khmer sbai",
+      "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOaGFfajR6UnlpWl9nZFZqWXRvTFBoQldvbkdsSTFjLUs2WHJneWNsaldsU09WNHUtajJqUTNBcml4YWxxaXBLOGtBT05kcTFBSlVadnRSTEwwQjk2YTVsOUQ3RVNWM0xUUEZRQ3ZPa3RvaDFlVlU1VXBUbmJDMXVpUXJRNElRYXdXb0tFVElCREJuOEtGLWRSTnBHcklDcTVTSTFfdW1uZ09GTUN4Zld1TF9YLVBUUTVKTzFocDNNVWVWc2VKc0JKaWVCeWNMXzA?oc=5",
+      "source": "Phnom Penh Post",
+      "published": "2026-10-14T03:46:52Z",
+      "published_relative": "2 days ago",
+      "snippet": "Games’ opening ceremony aims to counter Thai cultural claims by showcasing Khmer sbai&nbsp;&nbsp;Phnom Penh Post"
+    },
+    {
+      "title": "Opinion: Cambodia’s LDC Graduation – International Partnerships Still Matter",
+      "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPMnZKUWtrMVF4V3NGNDhOTExFUmRHSlUtcjhHNTlyQ0xPbmxRZlJTREJTWW9zV0NST2xmcEF4d1NKd3RlTHdCRlBzQ2pOQldzNGNaLUxyWmlZVW5fZGE5c2V4UERyd2s5NktVbG5CSGZUSW9Ld09kQ0dYVjROUEljZld5eFRfZ0hyTC00NHhiR3VMUkFKZzg4LU40RzU3OWFJMXk3NEtXZzNSOW5pRDN1b0xURXJjcDgtNzVQQkdR?oc=5",
+      "source": "Cambodia Investment Review",
+      "published": "2026-10-14T03:34:46Z",
+      "published_relative": "2 days ago",
+      "snippet": "Opinion: Cambodia’s LDC Graduation – International Partnerships Still Matter&nbsp;&nbsp;Cambodia Investment Review"
+    },
+    {
+      "title": "Over 1.3 million Cambodian children at risk from El Niño-related hazards, says UNICEF",
+      "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQd3FscVQ4b1BYUHltVVY2MjU4WXFiZFo2Wmt1bkh2aDRFWGVfWWZEU1NpS3k4TVNSWS0wd1JIMG42SHo1Sk1xdExTbXVaemx0VGRPSF92VDNqN2FjRXpEREdQNnBwSEptQnozc0xWQ0R0NkF4a3NOZXJqVDBKRE0yWEN2TGEwNExQeFRaMC1MTTJtanA2RE45djFEa1hfdWJwZWNOb2pSZE96MkZSUGMw?oc=5",
+      "source": "Asia News Network",
+      "published": "2026-10-14T01:43:43Z",
+      "published_relative": "2 days ago",
+      "snippet": "Over 1.3 million Cambodian children at risk from El Niño-related hazards, says UNICEF&nbsp;&nbsp;Asia News Network"
     }
   ]
 }

@@ -35,7 +35,7 @@ jobs:
       - name: Run the news scraper
         id: scrape
         run: |
-          python3 scripts/news_scraper.py --indent --total-keep 15
+          python3 scripts/news_scraper.py --indent --total-keep 30
           # Read back the generated file to surface a summary in the workflow log
           python3 - <<'PY'
           import json

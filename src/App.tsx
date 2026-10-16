@@ -20,7 +20,7 @@ import { BiWeekPlannerCard } from './components/BiWeekPlannerCard';
 import { KidGradeHub } from './components/KidGradeHub';
 import { GEPISecHub } from './components/GEPISecHub';
 import { TeacherToolsCard, TeacherToolsPage } from './components/TeacherTools';
-import { NewsWindow } from './components/NewsWindow';
+import { NewsSidePanel, NewsPage } from './components/NewsWindow';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { supabase } from './lib/supabase';
@@ -40,11 +40,13 @@ export function App() {
   const memberAuth = useMemberAuth();
   const [isGamesPage, setIsGamesPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#games');
   const [isTeacherToolsPage, setIsTeacherToolsPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#teacher-tools');
+  const [isNewsPage, setIsNewsPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#news');
 
   useEffect(() => {
     const syncRoute = () => {
       setIsGamesPage(window.location.hash === '#games');
       setIsTeacherToolsPage(window.location.hash === '#teacher-tools');
+      setIsNewsPage(window.location.hash === '#news');
     };
     window.addEventListener('hashchange', syncRoute);
     return () => window.removeEventListener('hashchange', syncRoute);
@@ -67,9 +69,14 @@ export function App() {
     window.location.hash = 'teacher-tools';
   };
 
+  const openNewsPage = () => {
+    window.location.hash = 'news';
+  };
+
   const returnHome = () => {
     setIsGamesPage(false);
     setIsTeacherToolsPage(false);
+    setIsNewsPage(false);
     window.location.hash = 'top';
   };
 
@@ -102,6 +109,8 @@ export function App() {
       scrollToSection('gep-isec');
     } else if (toolId === 'teacher-tools') {
       openTeacherToolsPage();
+    } else if (toolId === 'cambodia-news') {
+      openNewsPage();
     } else if (toolId === 'pre-kid' || toolId === 'chinese-language') {
       scrollToSection('resources');
     } else {
@@ -133,6 +142,12 @@ export function App() {
     </Suspense>
   );
 
+    if (isNewsPage) return (
+    <Suspense fallback={null}>
+      <NewsPage onBackHome={returnHome} />
+    </Suspense>
+  );
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col relative selection:bg-cyan-500 selection:text-white">
       
@@ -145,16 +160,14 @@ export function App() {
 
       {/* Main Content Sections */}
       <main className="flex-1">
-        {/* Hero Section with Quick Feature Cards */}
+        {/* Hero Section with Quick Feature Cards + News side panel (lg+) */}
         <Hero
           onExploreTools={() => scrollToSection('features')}
           onOpenStudentDemo={() => setStudentDemoModalOpen(true)}
           onOpenTeacherPass={() => openMemberAuth('sign-up')}
           onSelectFeatureCard={handleHeroFeatureSelect}
+          sidePanel={<NewsSidePanel onSeeAll={openNewsPage} />}
         />
-
-        {/* Daily Cambodia education news window — auto-refreshed by news-scraper GitHub Action */}
-        <NewsWindow />
 
         {/* Main-hero themed link to the separate daily student record workspace */}
         <DailyAssessmentCard />
