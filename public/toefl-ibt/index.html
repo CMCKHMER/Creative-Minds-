@@ -4640,6 +4640,7 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
             
             // Show answered count only (no answer key for correct/incorrect)
             document.getElementById('reading-correct').textContent = answered;
+;try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title},drillSource:{stringValue:'toefl-ibt'},studentName:{stringValue:_sn},scorePct:{integerValue:'0'},correctCount:{integerValue:'0'},totalCount:{integerValue:'0'},submittedAt:{timestampValue:new Date().toISOString()}}}})}).catch(function(e){})}}catch(e){}
             document.getElementById('reading-incorrect').textContent = total - answered;
         }
         

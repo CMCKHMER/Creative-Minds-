@@ -111,6 +111,10 @@ kbd{padding:2px 8px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono
 </style>
 </head>
 <body>
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
+    <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
+</a>
+
 <canvas id="fx"></canvas>
 <div class="amb" id="ambG"></div>
 <div id="gl"></div>
@@ -620,7 +624,7 @@ var GM={
   dailySeed:0,
   /* Pause */
   paused:false
-};
+};;try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title.split('—')[0].trim()},drillSource:{stringValue:'learning-games'},studentName:{stringValue:_sn},scorePct:{integerValue:String(0)},correctCount:{integerValue:String(0)},totalCount:{integerValue:String(0)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
 
 function getPool(mode,lv){
   var a=[];
