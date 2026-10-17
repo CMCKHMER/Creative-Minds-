@@ -110,11 +110,8 @@ export function FirebaseDashboard() {
                 + Create Class
               </button>
             )}
-            {!isStudent && !isTeacher && (
-              <button onClick={() => { setStudentAuthMode('sign-up'); setShowStudentAuth(true); }} className="rounded-lg border border-cyan-500/30 bg-cyan-500/5 px-4 py-2.5 text-xs font-bold text-cyan-200 transition hover:bg-cyan-500/10">
-                Student Sign Up
-              </button>
-            )}
+            {/* Note: not-signed-in users get their sign-in CTA in the body
+                card below — no button here to avoid the 3-buttons redundancy. */}
             {isStudent && (
               <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2.5 text-xs font-bold text-emerald-200">
                 ✓ {studentAuth.student?.displayName || 'Student'}
@@ -243,14 +240,18 @@ export function FirebaseDashboard() {
             <p className="mt-2 text-xs text-slate-500 max-w-md mx-auto">
               Teachers can create classes and see live student scores. Students can track their drill history and scores.
             </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-3">
-              <button onClick={() => { setStudentAuthMode('sign-up'); setShowStudentAuth(true); }} className="rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2.5 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5">
-                Student Sign Up
-              </button>
-              <button onClick={() => { setStudentAuthMode('sign-in'); setShowStudentAuth(true); }} className="rounded-lg border border-cyan-500/30 bg-cyan-500/5 px-4 py-2.5 text-xs font-bold text-cyan-200 transition hover:bg-cyan-500/10">
-                Student Sign In
+            {/* Single sign-in CTA — the modal has its own "Sign in / Create
+                account" toggle inside, so we don't need two separate buttons
+                here. Defaults to sign-in (most common intent); users who need
+                to create an account can click the toggle inside the modal. */}
+            <div className="mt-4">
+              <button onClick={() => { setStudentAuthMode('sign-in'); setShowStudentAuth(true); }} className="rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5">
+                Sign in as student
               </button>
             </div>
+            <p className="mt-3 text-[10px] text-slate-500">
+              New here? Click the button, then choose "Create an account" inside. Teachers: use the "Create a teacher account" button in the hero above with a work email ending in .edu or .edu.kh.
+            </p>
           </div>
         )}
       </div>
