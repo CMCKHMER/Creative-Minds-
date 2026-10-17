@@ -926,6 +926,7 @@ let cropRect=null;
 /* Image objects — placed images that can be moved and resized */
 let imgObjects=[], selectedImg=-1, draggingImg=false, resizingImg=false, resizeHandle=null,
     imgMoved=false, imgDragOff={dx:0,dy:0};
+let resizeStartBounds=null; // stores original x,y,w,h when resize begins
 
 /* Spreadsheet state */
 let sheets = [ { name: 'Sheet1', rows: 30, cols: 12, cells: {} } ];
@@ -1326,10 +1327,11 @@ function drawSelection(){ pctx.clearRect(0,0,W,H);
   // Text selection
   if(selected>=0 && texts[selected]){ const b=textBBox(texts[selected]); pctx.save(); pctx.strokeStyle='#4cc9f0'; pctx.lineWidth=1.5; pctx.setLineDash([5,4]); pctx.strokeRect(b.x-5,b.y-5,b.w+10,b.h+10); pctx.restore(); }
   // Image selection with resize handles
-  if(selectedImg>=0 && imgObjects[selectedImg]){ const im=imgObjects[selectedImg]; pctx.save(); pctx.strokeStyle='#ffb454'; pctx.lineWidth=1.5; pctx.setLineDash([4,3]); pctx.strokeRect(im.x-4,im.y-4,im.w+8,im.h+8); pctx.setLineDash([]); pctx.fillStyle='#ffb454';
-    // 8 resize handles
+  if(selectedImg>=0 && imgObjects[selectedImg]){ const im=imgObjects[selectedImg]; pctx.save(); pctx.strokeStyle='#ffb454'; pctx.lineWidth=2; pctx.setLineDash([6,4]); pctx.strokeRect(im.x-4,im.y-4,im.w+8,im.h+8); pctx.setLineDash([]);
+    // Draw 8 resize handles — larger and more visible
+    pctx.fillStyle='#ffb454'; pctx.strokeStyle='#fff'; pctx.lineWidth=1.5;
     const handles=[['nw',im.x-4,im.y-4],['ne',im.x+im.w+4,im.y-4],['sw',im.x-4,im.y+im.h+4],['se',im.x+im.w+4,im.y+im.h+4],['n',im.x+im.w/2,im.y-4],['s',im.x+im.w/2,im.y+im.h+4],['w',im.x-4,im.y+im.h/2],['e',im.x+im.w+4,im.y+im.h/2]];
-    handles.forEach(([h,hx,hy])=>{ pctx.fillRect(hx-4,hy-4,8,8); });
+    handles.forEach(([h,hx,hy])=>{ pctx.fillRect(hx-6,hy-6,12,12); pctx.strokeRect(hx-6,hy-6,12,12); });
     pctx.restore();
   }
 }
@@ -1341,8 +1343,15 @@ function hitImgHandle(pt){
   if(selectedImg<0 || !imgObjects[selectedImg]) return null;
   const im=imgObjects[selectedImg];
   const handles=[['nw',im.x-4,im.y-4],['ne',im.x+im.w+4,im.y-4],['sw',im.x-4,im.y+im.h+4],['se',im.x+im.w+4,im.y+im.h+4],['n',im.x+im.w/2,im.y-4],['s',im.x+im.w/2,im.y+im.h+4],['w',im.x-4,im.y+im.h/2],['e',im.x+im.w+4,im.y+im.h/2]];
-  for(const [h,hx,hy] of handles){ if(Math.abs(pt.x-hx)<=8 && Math.abs(pt.y-hy)<=8) return h; }
+  for(const [h,hx,hy] of handles){ if(Math.abs(pt.x-hx)<=10 && Math.abs(pt.y-hy)<=10) return h; }
   return null;
+}
+function handleCursor(h){
+  if(h==='nw'||h==='se') return 'nwse-resize';
+  if(h==='ne'||h==='sw') return 'nesw-resize';
+  if(h==='n'||h==='s') return 'ns-resize';
+  if(h==='w'||h==='e') return 'ew-resize';
+  return 'default';
 }
 function syncPanelToText(t){ fontFam.value=t.family; tSizeEl.value=t.size; tSizeOut.textContent=t.size; tFont=t.family; tBold=t.bold; tItalic=t.italic; tUnderline=t.underline||false; tAlign=t.align; if (t.letterSpacing !== undefined) { letterSpacingEl.value = t.letterSpacing; lsOut.textContent = t.letterSpacing; } if (t.lineHeight !== undefined) { lineHeightEl.value = t.lineHeight * 100; lhOut.textContent = t.lineHeight.toFixed(2); } tglB.classList.toggle('on',tBold); tglI.classList.toggle('on',tItalic); tglU.classList.toggle('on',tUnderline); tglUpper.classList.toggle('on', t.transform === 'upper'); tglLower.classList.toggle('on', t.transform === 'lower'); tglCap.classList.toggle('on', t.transform === 'cap'); alL.classList.toggle('on',tAlign==='left'); alC.classList.toggle('on',tAlign==='center'); alR.classList.toggle('on',tAlign==='right'); if (t.stroke !== undefined) { textStrokeEl.value = t.stroke; strokeOut.textContent = t.stroke; } if (t.strokeColor) strokeColorEl.value = t.strokeColor; }
 function applyToSelected(props){ if(selected<0 || !texts[selected]) return; Object.assign(texts[selected], props); renderTexts(); drawSelection(); }
@@ -1631,7 +1640,7 @@ preview.addEventListener('pointerdown',e=>{
 
   // Image object handling — check resize handles first, then hit-test
   const handle = hitImgHandle(pt);
-  if (handle) { resizingImg = true; resizeHandle = handle; startPt = pt; pushUndo('Resize image'); return; }
+  if (handle) { resizingImg = true; resizeHandle = handle; startPt = pt; const im = imgObjects[selectedImg]; resizeStartBounds = {x: im.x, y: im.y, w: im.w, h: im.h}; pushUndo('Resize image'); return; }
   const imgIdx = hitImg(pt);
   if (imgIdx >= 0) { selectedImg = imgIdx; selected = -1; draggingImg = true; imgMoved = false; imgDragOff = {dx: pt.x - imgObjects[imgIdx].x, dy: pt.y - imgObjects[imgIdx].y}; drawSelection(); return; }
   // Clicking empty space deselects images
@@ -1647,22 +1656,26 @@ preview.addEventListener('pointerdown',e=>{
 preview.addEventListener('pointermove',e=>{
   const pt=getPos(e); coords.textContent=`x ${Math.round(pt.x)} · y ${Math.round(pt.y)}`; updateRing(e);
 
-  // Image resize
-  if (resizingImg && selectedImg >= 0 && imgObjects[selectedImg]) {
+  // Image resize — use original bounds (resizeStartBounds) so dragging
+  // is consistent from the start point, not compounding each frame.
+  if (resizingImg && selectedImg >= 0 && imgObjects[selectedImg] && resizeStartBounds) {
     const im = imgObjects[selectedImg];
-    const aspect = im.w / im.h;
+    const orig = resizeStartBounds;
+    const aspect = orig.w / orig.h;
+    const dx = pt.x - startPt.x; // how far mouse moved since resize started
+    const dy = pt.y - startPt.y;
     const h = resizeHandle;
-    if (h === 'nw') { const nw = startPt.x - pt.x + im.w; const nh = startPt.y - pt.y + im.h; im.w = Math.max(10, nw); im.h = Math.max(10, im.w / aspect); im.x = pt.x; im.y = pt.y; }
-    else if (h === 'ne') { const nw = pt.x - im.x; im.w = Math.max(10, nw); im.h = Math.max(10, im.w / aspect); }
-    else if (h === 'sw') { const nh = startPt.y - pt.y + im.h; im.h = Math.max(10, nh); im.w = Math.max(10, im.h * aspect); im.x = pt.x; im.y = pt.y; }
-    else if (h === 'se') { im.w = Math.max(10, pt.x - im.x); im.h = Math.max(10, im.w / aspect); }
-    else if (h === 'n') { const nh = startPt.y - pt.y + im.h; im.h = Math.max(10, nh); im.y = pt.y; }
-    else if (h === 's') { im.h = Math.max(10, pt.y - im.y); }
-    else if (h === 'w') { const nw = startPt.x - pt.x + im.w; im.w = Math.max(10, nw); im.x = pt.x; }
-    else if (h === 'e') { im.w = Math.max(10, pt.x - im.x); }
+    if (h === 'nw') { const nw = Math.max(10, orig.w - dx); im.w = nw; im.h = nw / aspect; im.x = orig.x + (orig.w - im.w); im.y = orig.y + (orig.h - im.h); }
+    else if (h === 'ne') { const nw = Math.max(10, orig.w + dx); im.w = nw; im.h = nw / aspect; im.x = orig.x; im.y = orig.y + (orig.h - im.h); }
+    else if (h === 'sw') { const nh = Math.max(10, orig.h - dy); im.h = nh; im.w = nh * aspect; im.x = orig.x + (orig.w - im.w); im.y = orig.y + (orig.h - im.h); }
+    else if (h === 'se') { im.w = Math.max(10, orig.w + dx); im.h = im.w / aspect; im.x = orig.x; im.y = orig.y; }
+    else if (h === 'n') { const nh = Math.max(10, orig.h - dy); im.h = nh; im.y = orig.y + (orig.h - im.h); im.w = orig.w; }
+    else if (h === 's') { im.h = Math.max(10, orig.h + dy); im.y = orig.y; im.w = orig.w; }
+    else if (h === 'w') { const nw = Math.max(10, orig.w - dx); im.w = nw; im.x = orig.x + (orig.w - im.w); im.h = orig.h; }
+    else if (h === 'e') { im.w = Math.max(10, orig.w + dx); im.x = orig.x; im.h = orig.h; }
     // Render preview with resize handles
     pctx.clearRect(0,0,W,H);
-    pctx.save(); pctx.drawImage(im.img, im.x, im.y, im.w, im.h); pctx.restore();
+    pctx.save(); if (im.img && im.img.complete) pctx.drawImage(im.img, im.x, im.y, im.w, im.h); pctx.restore();
     drawSelection();
     return;
   }
@@ -1673,6 +1686,15 @@ preview.addEventListener('pointermove',e=>{
     return;
   }
   if(draggingText && selected>=0){ if(!textMoved && Math.hypot(pt.x-(startPt?.x??pt.x), pt.y-(startPt?.y??pt.y))>2){ textMoved=true; pushUndo('Move text'); } if(textMoved){ texts[selected].x=pt.x-dragOff.dx; texts[selected].y=pt.y-dragOff.dy; renderTexts(); drawSelection(); } return; }
+  // Hover cursor feedback for image objects (when not actively drawing/dragging)
+  if(!drawing && !draggingText && !draggingImg && !resizingImg) {
+    const hoverHandle = hitImgHandle(pt);
+    if (hoverHandle) { preview.style.cursor = handleCursor(hoverHandle); return; }
+    const hoverImg = hitImg(pt);
+    if (hoverImg >= 0) { preview.style.cursor = 'move'; return; }
+    preview.style.cursor = (tool === 'brush' || tool === 'eraser') ? 'none' : 'crosshair';
+    return;
+  }
   if(!drawing) return;
   const ctx = activeCtx();
   if(tool==='brush'||tool==='eraser'){ const mid={x:(lastPt.x+pt.x)/2, y:(lastPt.y+pt.y)/2}; ctx.beginPath(); ctx.moveTo(prevMid.x,prevMid.y); ctx.quadraticCurveTo(lastPt.x,lastPt.y,mid.x,mid.y); ctx.stroke(); prevMid=mid; lastPt=pt; composite(); }
@@ -1682,7 +1704,7 @@ preview.addEventListener('pointermove',e=>{
 });
 preview.addEventListener('pointerup',e=>{
   const pt=getPos(e);
-  if (resizingImg) { resizingImg = false; resizeHandle = null; pctx.clearRect(0,0,W,H); renderTexts(); drawSelection(); return; }
+  if (resizingImg) { resizingImg = false; resizeHandle = null; resizeStartBounds = null; pctx.clearRect(0,0,W,H); renderTexts(); drawSelection(); return; }
   if (draggingImg) { draggingImg = false; if (!imgMoved) { /* click on image — just selected it */ } renderTexts(); drawSelection(); return; }
   if(draggingText){ draggingText=false; if(!textMoved && selected>=0) { textPosNow=pt; openText(pt, texts[selected]); } return; }
   if(pendingTextPt){ textPosNow=pendingTextPt; openText(pendingTextPt,null); pendingTextPt=null; return; }
