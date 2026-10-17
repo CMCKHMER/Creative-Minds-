@@ -204,8 +204,25 @@
   @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.3}}
   #ring{position:fixed; pointer-events:none; border:1.5px solid rgba(255,255,255,.95); border-radius:50%; transform:translate(-50%,-50%); display:none; z-index:100; box-shadow:0 0 0 1px rgba(0,0,0,.35)}
 
-  #textInput{position:absolute; z-index:30; display:none; min-width:80px; padding:2px 6px; background:rgba(255,255,255,.85); color:#111; border:1px dashed rgba(76,201,240,.7); border-radius:4px; outline:none; font-family:inherit; line-height:1.2; box-shadow:0 4px 12px rgba(0,0,0,.25)}
-  #textInput:focus{border-color:#ffb454; background:#fff}
+  /* Transparent text input — no visible textbox chrome.
+     The user clicks on the canvas and types directly; the text appears
+     live on the canvas via this transparent overlay. Only the native
+     blinking caret is visible. */
+  #textInput{
+    position:absolute; z-index:30; display:none; min-width:1px; min-height:1em;
+    padding:0; margin:0; background:transparent; color:inherit; border:none;
+    outline:none; box-shadow:none; border-radius:0;
+    font-family:inherit; font-size:inherit; line-height:1; white-space:pre;
+    caret-color:currentColor; overflow:hidden; resize:none;
+  }
+  /* Subtle caret guide — a thin vertical bar that shows where typing will
+     start, visible even before the user types the first character. */
+  #caretGuide{
+    position:absolute; z-index:29; display:none; width:1.5px;
+    background:currentColor; animation:caretBlink 1s steps(2) infinite;
+    pointer-events:none; border-radius:1px;
+  }
+  @keyframes caretBlink{0%,50%{opacity:1}50.1%,100%{opacity:0}}
 
   .modal-overlay{position:fixed; inset:0; background:rgba(10,12,18,.7); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:300}
   .modal-overlay.show{display:flex; animation:fadeIn .15s}
@@ -478,7 +495,8 @@
             <div class="transform-handle br" data-h="br"></div>
             <div class="transform-handle rot" data-h="rot"></div>
           </div>
-          <input id="textInput" autocomplete="off" spellcheck="false">
+          <div id="caretGuide"></div>
+          <div id="textInput" contenteditable="true" spellcheck="false" autocomplete="off"></div>
         </div>
       </main>
     </div>
@@ -780,6 +798,7 @@ const presets = document.getElementById('presets'), filterSliders = document.get
 const applyFilters = document.getElementById('applyFilters'), resetFilters = document.getElementById('resetFilters');
 const rulerXWrap = document.getElementById('rulerXWrap'), rulerYWrap = document.getElementById('rulerYWrap');
 const textInput = document.getElementById('textInput'), panelEl = document.getElementById('panel');
+const caretGuide = document.getElementById('caretGuide');
 const blendModeEl = document.getElementById('blendMode');
 const layerOpacityEl = document.getElementById('layerOpacity'), layerOpOut = document.getElementById('layerOpOut');
 const layerList = document.getElementById('layerList'), historyList = document.getElementById('historyList');
@@ -1045,7 +1064,7 @@ const toolNames={brush:'Brush',eraser:'Eraser',line:'Line',rect:'Rectangle',elli
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>selectTool(b.dataset.tool));
 function selectTool(t){
   if (!toolNames[t]) t = 'brush';
-  tool=t; cancelCrop(); selected=-1; textEditing=null; textInput.style.display='none';
+  tool=t; cancelCrop(); selected=-1; textEditing=null; textInput.style.display='none'; caretGuide.style.display='none';
   pctx.clearRect(0,0,W,H);
   document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));
   toolLabel.textContent=toolNames[t];
@@ -1200,6 +1219,9 @@ function fontStr(t){ return `${t.italic?'italic ':''}${t.bold?700:400} ${t.size}
 function renderTexts(){
   tctx.clearRect(0,0,W,H);
   texts.forEach(t=>{
+    // Hide the text being edited — the transparent contenteditable overlay
+    // shows it in place instead, so the user doesn't see double text.
+    if (textEditing === t) return;
     tctx.save(); tctx.globalAlpha=t.opacity || 1; tctx.fillStyle=t.color;
     tctx.font=fontStr(t); tctx.textBaseline='top'; tctx.textAlign=t.align;
     if (t.letterSpacing !== undefined) tctx.letterSpacing = t.letterSpacing + 'px';
@@ -1237,21 +1259,50 @@ function openText(pt, existing){
   textEditing=existing;
   const props=existing||{family:tFont,size:+tSizeEl.value,bold:tBold,italic:tItalic};
   const scale=preview.getBoundingClientRect().width/W;
+  // Position the transparent contenteditable exactly at the click point.
+  // No visible textbox chrome — the user sees only the blinking caret
+  // and the text appearing live on the canvas.
   textInput.style.left=(pt.x/W*100)+'%'; textInput.style.top =(pt.y/H*100)+'%';
   textInput.style.fontSize=(props.size/scale)+'px'; textInput.style.fontFamily=props.family;
   textInput.style.fontWeight=props.bold?700:400; textInput.style.fontStyle=props.italic?'italic':'normal';
-  textInput.style.color=color; textInput.value=existing?existing.text:'';
-  textInput.style.display='block'; textInput.focus();
+  textInput.style.color=color; textInput.textContent=existing?existing.text:'';
+  textInput.style.display='block';
+  // Show the caret guide — a thin blinking vertical bar at the click point
+  // so the user immediately knows where typing will start.
+  caretGuide.style.left=(pt.x/W*100)+'%';
+  caretGuide.style.top=(pt.y/H*100)+'%';
+  caretGuide.style.height=(props.size/scale)+'px';
+  caretGuide.style.color=color;
+  caretGuide.style.display='block';
+  textInput.focus();
+  // Place cursor at end of any existing text
+  if (existing && existing.text) {
+    const range = document.createRange(); const sel = window.getSelection();
+    range.selectNodeContents(textInput); range.collapse(false);
+    sel.removeAllRanges(); sel.addRange(range);
+  }
+  // Hide the original text on canvas while editing (renderTexts skips it)
+  renderTexts();
 }
 let textPosNow=null;
 function commitText(){
   if(textInput.style.display==='none') return;
-  const val=textInput.value; textInput.style.display='none';
+  const val=textInput.textContent; textInput.style.display='none'; caretGuide.style.display='none';
   if(textEditing){ const t=textEditing; textEditing=null; if(!val.trim()){ pushUndo('Delete text'); texts.splice(texts.indexOf(t),1); selected=-1; } else if(val!==t.text){ pushUndo('Edit text'); t.text=val; } }
   else if(val.trim()){ pushUndo('Add text'); texts.push({text:val, x:textPosNow.x, y:textPosNow.y, family:tFont, size:+tSizeEl.value, bold:tBold, italic:tItalic, underline:tUnderline, align:tAlign, color, opacity, stroke:tStrokeWidth, strokeColor:tStrokeColor, letterSpacing:tLetterSpacing, lineHeight:tLineHeight, transform:tTransform}); }
   renderTexts(); drawSelection();
 }
-textInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ commitText(); textInput.blur(); } if(e.key==='Escape'){ textEditing=null; textInput.value=''; textInput.style.display='none'; } });
+// Enter = commit, Escape = cancel, Shift+Enter = newline (multi-line),
+// any typing = hide the caret guide (text is now visible in the contenteditable)
+textInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); commitText(); textInput.blur(); return; }
+  if(e.key==='Escape'){ e.preventDefault(); textEditing=null; textInput.textContent=''; textInput.style.display='none'; caretGuide.style.display='none'; renderTexts(); return; }
+  // Any other key means the user has started typing — hide the caret guide
+  // (the native caret inside the contenteditable takes over).
+  if (caretGuide.style.display === 'block' && e.key.length === 1) {
+    caretGuide.style.display = 'none';
+  }
+});
 textInput.addEventListener('blur',commitText);
 
 /* ══ PHOTO FILTERS ═════════════════════════════════ */
