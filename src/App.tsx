@@ -24,6 +24,7 @@ import { NewsSidePanel, NewsPage } from './components/NewsWindow';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { supabase } from './lib/supabase';
+import { TickerBanner } from './components/TickerBanner';
 
 // Lazy-load heavy modals and the games route into separate chunks so they
 // don't bloat the initial landing-page download. They load on demand.
@@ -258,18 +259,22 @@ export function App() {
         onSelectAction={handleQuickLinkSelect}
       />
 
-      {/* Teacher Free Pass Modal */}
+      {/* Teacher Free Pass Modal — uses Firebase Authentication (Email/Password
+          + Google), independent of the Supabase member-entitlement flow that
+          gates the MiniMockTest below. */}
       <TeacherPassModal
         isOpen={teacherPassModalOpen}
         onClose={() => setTeacherPassModalOpen(false)}
-        accessStatus={memberAuth.status}
-        member={memberAuth.member}
-        initialMode={authInitialMode}
         onContinueToMockTest={() => {
           setTeacherPassModalOpen(false);
           window.requestAnimationFrame(() => scrollToSection('toefl-mini-test'));
         }}
       />
+
+      {/* Live stats + Top Teachers ticker — fixed at the bottom of the
+          viewport. Shown on the homepage only (sub-pages render their own
+          full-screen layout via early returns above). */}
+      <TickerBanner onOpenTeacherPass={() => openMemberAuth('sign-up')} />
 
       {/* Live Student Experience Demo Modal */}
       <StudentDemoModal
@@ -278,8 +283,9 @@ export function App() {
         onOpenTeacherPass={() => openMemberAuth('sign-up')}
       />
 
-      {/* Floating Quick Action Dock */}
-      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2">
+      {/* Floating Quick Action Dock — sits above the TickerBanner so
+          neither overlaps the other. */}
+      <div className="fixed bottom-24 right-6 z-40 flex items-center gap-2">
         <button
           onClick={() => setQuickDrawerOpen(true)}
           className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-cyan-500/40 text-cyan-300 text-xs font-semibold shadow-xl backdrop-blur-md transition hover:scale-105 active:scale-95 cursor-pointer"
