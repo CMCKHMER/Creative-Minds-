@@ -10,6 +10,7 @@ import {
   sendPasswordReset,
   signInWithEmail,
   signUpWithEmail,
+  type FirebaseAuthError,
   type RestoredSession,
 } from '../lib/firebaseAuth';
 
@@ -40,6 +41,7 @@ export const TeacherPassModal = ({
 }: TeacherPassModalProps) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [school, setSchool] = useState('');
   const [role, setRole] = useState('ESL / TOEFL Teacher');
@@ -99,6 +101,7 @@ export const TeacherPassModal = ({
   const resetFeedback = () => {
     setMessage('');
     setError('');
+    setErrorCode(null);
   };
 
   const handleSignUp = async (event: FormEvent<HTMLFormElement>) => {
@@ -136,7 +139,9 @@ export const TeacherPassModal = ({
         setMessage(`Account created. A verification link was sent to ${email.trim()}. You can keep using the site meanwhile; verify your email to unlock member-only features.`);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Sign-up failed. Please try again.');
+      const authErr = e as FirebaseAuthError;
+      setError(authErr instanceof Error ? authErr.message : 'Sign-up failed. Please try again.');
+      setErrorCode(authErr?.code ?? null);
     } finally {
       setBusy(false);
     }
@@ -161,7 +166,9 @@ export const TeacherPassModal = ({
       setMessage('Signed in. Member features are now unlocked across the site.');
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Sign-in failed. Please check your email and password.');
+      const authErr = e as FirebaseAuthError;
+      setError(authErr instanceof Error ? authErr.message : 'Sign-in failed. Please check your email and password.');
+      setErrorCode(authErr?.code ?? null);
     } finally {
       setBusy(false);
     }
@@ -180,7 +187,9 @@ export const TeacherPassModal = ({
       await sendPasswordReset(email.trim().toLowerCase());
       setMessage('If an account exists for this address, a password-reset link has been sent.');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Reset request failed.');
+      const authErr = e as FirebaseAuthError;
+      setError(authErr instanceof Error ? authErr.message : 'Reset request failed.');
+      setErrorCode(authErr?.code ?? null);
     } finally {
       setBusy(false);
     }
@@ -345,7 +354,40 @@ export const TeacherPassModal = ({
         )}
 
         {(error || (message && mode === 'reset')) && (
-          <p role={error ? 'alert' : 'status'} aria-live="polite" className={`mt-4 rounded-lg border p-3 text-xs leading-relaxed ${error ? 'border-rose-300/20 bg-rose-300/5 text-rose-100' : 'border-emerald-300/20 bg-emerald-300/5 text-emerald-100'}`}>{error || message}</p>
+          <div role={error ? 'alert' : 'status'} aria-live="polite" className={`mt-4 rounded-lg border p-3 text-xs leading-relaxed ${error ? 'border-rose-300/20 bg-rose-300/5 text-rose-100' : 'border-emerald-300/20 bg-emerald-300/5 text-emerald-100'}`}>
+            <p>{error || message}</p>
+            {/* Actionable next-step buttons based on the Firebase error code */}
+            {errorCode === 'EMAIL_EXISTS' && mode === 'sign-up' && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button type="button" onClick={() => switchMode('sign-in')} className="inline-flex items-center gap-1.5 rounded-md border border-cyan-200/30 bg-cyan-200/10 px-3 py-1.5 text-[11px] font-semibold text-cyan-100 transition hover:bg-cyan-200/20">
+                  Sign in instead <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                </button>
+                <button type="button" onClick={() => switchMode('reset')} className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:bg-white/10">
+                  Forgot password?
+                </button>
+              </div>
+            )}
+            {errorCode === 'EMAIL_NOT_FOUND' && mode === 'sign-in' && (
+              <div className="mt-2">
+                <button type="button" onClick={() => switchMode('sign-up')} className="inline-flex items-center gap-1.5 rounded-md border border-cyan-200/30 bg-cyan-200/10 px-3 py-1.5 text-[11px] font-semibold text-cyan-100 transition hover:bg-cyan-200/20">
+                  Create an account <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                </button>
+              </div>
+            )}
+            {errorCode === 'INVALID_PASSWORD' && mode === 'sign-in' && (
+              <div className="mt-2">
+                <button type="button" onClick={() => switchMode('reset')} className="inline-flex items-center gap-1.5 rounded-md border border-cyan-200/30 bg-cyan-200/10 px-3 py-1.5 text-[11px] font-semibold text-cyan-100 transition hover:bg-cyan-200/20">
+                  Forgot password?
+                </button>
+              </div>
+            )}
+            {errorCode === 'WEAK_PASSWORD' && (
+              <p className="mt-2 text-[10px] text-slate-400">Tip: try a mix of letters, numbers, and symbols at least 8 characters long.</p>
+            )}
+            {errorCode === 'TOO_MANY_ATTEMPTS_TRY_LATER' && (
+              <p className="mt-2 text-[10px] text-slate-400">Firebase rate-limits after several failed attempts in a short window. Wait 1–2 minutes and try again.</p>
+            )}
+          </div>
         )}
 
         {mode === 'sign-up' && <p className="mt-4 text-center text-[10px] leading-relaxed text-slate-600">Accounts are created with Firebase Authentication (Email/Password). Role is detected automatically from your email domain: any email containing "edu" (e.g., .edu.kh, .edu) becomes a teacher account; anything else becomes a student account. The session token + role are stored locally and recognized by every connected app on the site.</p>}

@@ -50,12 +50,77 @@ interface AuthError {
   };
 }
 
-function parseAuthError(e: unknown): string {
+// Firebase Identity Toolkit error codes — used to map raw API errors to
+// friendly, actionable user-facing messages. See:
+// https://firebase.google.com/docs/reference/rest/auth#section-error-codes
+export type FirebaseAuthErrorCode =
+  | 'EMAIL_EXISTS'
+  | 'EMAIL_NOT_FOUND'
+  | 'INVALID_PASSWORD'
+  | 'WEAK_PASSWORD'
+  | 'TOO_MANY_ATTEMPTS_TRY_LATER'
+  | 'OPERATION_NOT_ALLOWED'
+  | 'INVALID_EMAIL'
+  | 'USER_DISABLED'
+  | 'USER_NOT_FOUND'
+  | 'EXPIRED_ID_TOKEN'
+  | 'INVALID_ID_TOKEN'
+  | 'unknown';
+
+export interface FirebaseAuthError extends Error {
+  code: FirebaseAuthErrorCode;
+  rawMessage: string;
+}
+
+/**
+ * Map a raw Firebase Auth REST error response to a friendly error with a
+ * known code so the calling UI can branch on it (e.g., show a "Sign in
+ * instead?" button when sign-up returns EMAIL_EXISTS).
+ */
+function toAuthError(e: unknown): FirebaseAuthError {
   const err = (e as AuthError)?.error;
   const raw = err?.message || (e instanceof Error ? e.message : 'Authentication failed.');
-  // Firebase returns codes like "EMAIL_EXISTS: ..." — strip the prefix.
+
+  // Firebase REST errors look like: "EMAIL_EXISTS" or "WEAK_PASSWORD : Password
+  // should be at least 6 characters" or "INVALID_PASSWORD : The password is
+  // invalid or the user does not have a password."
   const colonIdx = raw.indexOf(':');
-  return colonIdx > 0 && colonIdx < 40 ? raw.slice(colonIdx + 1).trim() : raw;
+  const codeRaw = colonIdx > 0 && colonIdx < 40 ? raw.slice(0, colonIdx).trim() : raw.trim();
+  const detailRaw = colonIdx > 0 && colonIdx < 40 ? raw.slice(colonIdx + 1).trim() : '';
+
+  const KNOWN_CODES: readonly string[] = [
+    'EMAIL_EXISTS', 'EMAIL_NOT_FOUND', 'INVALID_PASSWORD', 'WEAK_PASSWORD',
+    'TOO_MANY_ATTEMPTS_TRY_LATER', 'OPERATION_NOT_ALLOWED', 'INVALID_EMAIL',
+    'USER_DISABLED', 'USER_NOT_FOUND', 'EXPIRED_ID_TOKEN', 'INVALID_ID_TOKEN',
+  ];
+  const code = (KNOWN_CODES.includes(codeRaw) ? codeRaw : 'unknown') as FirebaseAuthErrorCode;
+
+  // Friendly messages — leave the specific actionable guidance to the
+  // calling UI (it knows the current mode: sign-up vs sign-in vs reset).
+  const friendly: Record<FirebaseAuthErrorCode, string> = {
+    EMAIL_EXISTS: 'An account with this email already exists. Try signing in instead, or use "Forgot password?" to reset.',
+    EMAIL_NOT_FOUND: 'No account exists with this email. Try creating a new account instead.',
+    INVALID_PASSWORD: 'Wrong password. Double-check it, or use "Forgot password?" to reset.',
+    WEAK_PASSWORD: 'Password must be at least 8 characters and not commonly used. Try a longer, more unique password.',
+    TOO_MANY_ATTEMPTS_TRY_LATER: 'Too many attempts. Wait a minute or two and try again. (This protects against automated attacks.)',
+    OPERATION_NOT_ALLOWED: 'Email/Password sign-in is not enabled for this Firebase project. Contact the site administrator.',
+    INVALID_EMAIL: 'That email address looks malformed. Check for typos (e.g., missing @ or .com).',
+    USER_DISABLED: 'This account has been disabled by an administrator. Contact the site administrator.',
+    USER_NOT_FOUND: 'No account exists with this email. Try creating a new account instead.',
+    EXPIRED_ID_TOKEN: 'Your session has expired. Please sign in again.',
+    INVALID_ID_TOKEN: 'Your session is invalid. Please sign in again.',
+    unknown: detailRaw || raw || 'Authentication failed. Please try again.',
+  };
+
+  const error = new Error(friendly[code]) as FirebaseAuthError;
+  error.code = code;
+  error.rawMessage = raw;
+  return error;
+}
+
+/** For backward compatibility — anywhere that still calls parseAuthError. */
+function parseAuthError(e: unknown): string {
+  return toAuthError(e).message;
 }
 
 async function authFetch(endpoint: string, body: Record<string, unknown>): Promise<FirebaseSession> {
@@ -70,7 +135,7 @@ async function authFetch(endpoint: string, body: Record<string, unknown>): Promi
   });
   const data: RawAuthResponse | AuthError = await res.json().catch(() => ({}));
   if (!res.ok || !(data as RawAuthResponse).idToken) {
-    throw new Error(parseAuthError(data));
+    throw toAuthError(data);
   }
   const r = data as RawAuthResponse;
   const expiresInSec = Number(r.expiresIn || '3600');
@@ -141,7 +206,7 @@ export async function sendEmailVerification(idToken: string): Promise<void> {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(parseAuthError(data));
+    throw toAuthError(data);
   }
 }
 
@@ -157,7 +222,7 @@ export async function sendPasswordReset(email: string): Promise<void> {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(parseAuthError(data));
+    throw toAuthError(data);
   }
 }
 
