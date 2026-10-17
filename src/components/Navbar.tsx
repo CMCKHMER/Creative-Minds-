@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { 
+import React, { useState, useEffect, useRef } from 'react';
+import {
   Menu, X, Sparkles,
-  ExternalLink, ArrowRight, 
-  Compass, GraduationCap
+  ExternalLink, ArrowRight,
+  Compass, GraduationCap,
+  User as UserIcon, LogOut, ChevronDown,
 } from 'lucide-react';
+import { useSignedInSession } from '../hooks/useSignedInSession';
+import { clearPersistedSession } from '../lib/firebaseAuth';
 
 interface NavbarProps {
   onOpenQuickLinks: () => void;
@@ -19,6 +22,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [bannerVisible, setBannerVisible] = useState(true);
+  // User session — used to switch the "Join CMC" button to a "Hi, [name]"
+  // pill + dropdown when the user is already signed in. Re-renders on
+  // `cmc-auth-changed` events (fired by TeacherPassModal / useFirebaseAuth).
+  const session = useSignedInSession();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +36,41 @@ export const Navbar: React.FC<NavbarProps> = ({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close the user dropdown on outside click / Escape
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [userMenuOpen]);
+
+  // First-name greeting — display name might be "First Last" or just an
+  // email, so grab the first chunk to keep the pill compact.
+  const firstName = session?.displayName
+    ? session.displayName.split(' ')[0].split('@')[0]
+    : session?.email
+      ? session.email.split('@')[0]
+      : '';
+  const isTeacher = session?.role === 'teacher';
+
+  const handleSignOut = () => {
+    clearPersistedSession();
+    setUserMenuOpen(false);
+    setMobileMenuOpen(false);
+    window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
+  };
 
   return (
     <>
@@ -133,14 +177,91 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Student Demo
               </button>
 
-              {/* Primary CTA - Join CMC */}
-              <button
-                onClick={onOpenTeacherPass}
-                className="cmc-btn-primary !min-h-0 !rounded-xl !px-4 !py-2 !text-xs sm:!text-sm"
-              >
-                <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Join CMC</span>
-              </button>
+              {/* Primary CTA — switches between "Join CMC" (signed out)
+                  and a "Hi, [name] · Role" pill + dropdown (signed in).
+                  The pill is in the same spot as the Join CMC button so
+                  the visual weight stays the same; users immediately see
+                  they're logged in from any scroll position. */}
+              {session ? (
+                <div ref={userMenuRef} className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="inline-flex items-center gap-2 !min-h-0 !rounded-xl !px-3 !py-2 !text-xs sm:!text-sm font-semibold transition active:scale-95 border border-cyan-300/30 bg-gradient-to-r from-cyan-300/10 to-emerald-300/10 text-cyan-100 hover:from-cyan-300/20 hover:to-emerald-300/20"
+                    aria-label={`Signed in as ${session.email}. Click to open user menu.`}
+                    aria-expanded={userMenuOpen}
+                  >
+                    <span className={`grid h-6 w-6 place-items-center rounded-full text-[10px] font-bold ${isTeacher ? 'bg-emerald-400/20 text-emerald-200' : 'bg-cyan-400/20 text-cyan-200'}`}>
+                      {firstName.slice(0, 1).toUpperCase() || 'U'}
+                    </span>
+                    <span className="hidden sm:inline max-w-[120px] truncate">
+                      Hi, {firstName}
+                    </span>
+                    <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${isTeacher ? 'bg-emerald-400/15 text-emerald-200' : 'bg-cyan-400/15 text-cyan-200'}`}>
+                      {isTeacher ? 'Teacher' : 'Student'}
+                    </span>
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                  </button>
+                  {userMenuOpen && (
+                    <div
+                      role="menu"
+                      className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-700/80 bg-slate-900/95 backdrop-blur-xl p-2 shadow-2xl z-50"
+                    >
+                      <div className="px-3 py-2 border-b border-slate-700/60 mb-1">
+                        <div className="flex items-center gap-2">
+                          <UserIcon className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" />
+                          <span className="text-xs font-semibold text-white truncate">{session.displayName || session.email}</span>
+                        </div>
+                        {session.email && session.email !== session.displayName && (
+                          <p className="mt-1 pl-6 text-[10px] text-slate-500 truncate">{session.email}</p>
+                        )}
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${isTeacher ? 'bg-emerald-400/15 text-emerald-200' : 'bg-cyan-400/15 text-cyan-200'}`}>
+                            {isTeacher ? 'Teacher account' : 'Student account'}
+                          </span>
+                          {session.emailVerified && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
+                              ✓ Verified
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <a
+                        href="#toefl-mini-test"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                      >
+                        <GraduationCap className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        Member practice room
+                      </a>
+                      {isTeacher && (
+                        <a
+                          href="#teacher-tools"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                        >
+                          <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          Teacher Tools (Dice, Wheel, Studio)
+                        </a>
+                      )}
+                      <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-rose-200 hover:bg-rose-300/10 hover:text-rose-100 transition"
+                      >
+                        <LogOut className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        Sign out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={onOpenTeacherPass}
+                  className="cmc-btn-primary !min-h-0 !rounded-xl !px-4 !py-2 !text-xs sm:!text-sm"
+                >
+                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Join CMC</span>
+                </button>
+              )}
 
               {/* Mobile Menu Button */}
               <button
@@ -240,16 +361,72 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
 
             <div className="pt-2 border-t border-slate-800">
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenTeacherPass();
-                }}
-                className="cmc-btn-primary w-full"
-              >
-                <Sparkles className="w-4 h-4" aria-hidden="true" />
-                Claim Free Teacher Access
-              </button>
+              {session ? (
+                <div className="space-y-2">
+                  {/* Signed-in mobile card — shows name + email + role,
+                      then quick links, then Sign out. Mirrors the desktop
+                      dropdown menu's content. */}
+                  <div className="rounded-xl border border-slate-700/80 bg-slate-900/60 p-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`grid h-9 w-9 place-items-center rounded-full text-xs font-bold ${isTeacher ? 'bg-emerald-400/20 text-emerald-200' : 'bg-cyan-400/20 text-cyan-200'}`}>
+                        {firstName.slice(0, 1).toUpperCase() || 'U'}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-white">{session.displayName || session.email}</p>
+                        {session.email && session.email !== session.displayName && (
+                          <p className="truncate text-[10px] text-slate-500">{session.email}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${isTeacher ? 'bg-emerald-400/15 text-emerald-200' : 'bg-cyan-400/15 text-cyan-200'}`}>
+                        {isTeacher ? 'Teacher account' : 'Student account'}
+                      </span>
+                      {session.emailVerified && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
+                          ✓ Verified
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <a
+                    href="#toefl-mini-test"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex w-full items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-800/40 px-3 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-slate-800/80"
+                  >
+                    <GraduationCap className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" />
+                    Member practice room
+                  </a>
+                  {isTeacher && (
+                    <a
+                      href="#teacher-tools"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-800/40 px-3 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-slate-800/80"
+                    >
+                      <Sparkles className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" />
+                      Teacher Tools (Dice, Wheel, Studio)
+                    </a>
+                  )}
+                  <button
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-2 rounded-xl border border-rose-300/30 bg-rose-300/5 px-3 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-300/10"
+                  >
+                    <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenTeacherPass();
+                  }}
+                  className="cmc-btn-primary w-full"
+                >
+                  <Sparkles className="w-4 h-4" aria-hidden="true" />
+                  Claim Free Teacher Access
+                </button>
+              )}
             </div>
           </div>
         )}
