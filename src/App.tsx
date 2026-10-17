@@ -22,6 +22,7 @@ import { GEPISecHub } from './components/GEPISecHub';
 import { TeacherToolsPage } from './components/TeacherTools';
 import { NewsSidePanel, NewsPage } from './components/NewsWindow';
 import { LMSCard } from './components/LMSCard';
+import { FirebaseDashboard } from './components/FirebaseDashboard';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { supabase } from './lib/supabase';
@@ -182,6 +183,9 @@ export function App() {
 
         {/* LMS Workspace — teacher-only gated feature (requires signup) */}
         <LMSCard onOpenAuth={() => openMemberAuth('sign-up')} />
+
+        {/* Firebase real-time dashboard — live class results + student score tracking */}
+        <FirebaseDashboard />
 
         {/* TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15 test pages */}
         <BiWeekPlannerCard />
