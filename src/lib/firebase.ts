@@ -19,12 +19,12 @@ import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDemoApiKeyReplaceMe',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'creative-minds-demo.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'creative-minds-demo',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'creative-minds-demo.appspot.com',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '000000000000',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:000000000000:web:0000000000000000000000',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDNUq6ru99XKh8d887Xk63h36MP0LXWwc',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'creative-minds-cambodia.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'creative-minds-cambodia',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'creative-minds-cambodia.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '519217757765',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:519217757765:web:23e086ba196b341ce2ed2c',
 };
 
 export const firebaseConfigured = !firebaseConfig.apiKey.includes('DemoApiKey');
