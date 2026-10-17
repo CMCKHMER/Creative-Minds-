@@ -502,9 +502,19 @@
         <button class="tgl" onclick="docCmd('justifyFull')" title="Justify">≡≡</button>
         <button class="tgl" onclick="docCmd('indent')" title="Increase Indent">→|</button>
         <button class="tgl" onclick="docCmd('outdent')" title="Decrease Indent">|←</button>
+        <span style="width:1px;height:24px;background:var(--line);margin:0 2px"></span>
         <button class="tgl" onclick="insertTable()" title="Insert Table">▦</button>
+        <button class="tgl" onclick="tableCmd('insertRowAbove')" title="Insert Row Above" style="font-size:9px">+Row↑</button>
+        <button class="tgl" onclick="tableCmd('insertRowBelow')" title="Insert Row Below" style="font-size:9px">+Row↓</button>
+        <button class="tgl" onclick="tableCmd('insertColLeft')" title="Insert Column Left" style="font-size:9px">+Col←</button>
+        <button class="tgl" onclick="tableCmd('insertColRight')" title="Insert Column Right" style="font-size:9px">+Col→</button>
+        <button class="tgl" onclick="tableCmd('deleteRow')" title="Delete Row" style="font-size:9px">−Row</button>
+        <button class="tgl" onclick="tableCmd('deleteCol')" title="Delete Column" style="font-size:9px">−Col</button>
+        <span style="width:1px;height:24px;background:var(--line);margin:0 2px"></span>
         <button class="tgl" onclick="insertLink()" title="Insert Link">🔗</button>
         <button class="tgl" onclick="insertSpecialChar()" title="Special Characters">Ω</button>
+        <button class="tgl" onclick="formatPainter()" title="Format Painter">🖌</button>
+        <button class="tgl" onclick="findReplace()" title="Find & Replace">🔍</button>
         <button class="tgl" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
       </div>
       <div id="sheetBar" class="hidden" style="display:flex; gap:6px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line)">
@@ -1306,6 +1316,66 @@ function insertSpecialChar(){
 
 /* ── Highlight color handler ──────────────────────── */
 document.getElementById('docHighlight').addEventListener('input', e => docCmd('hiliteColor', e.target.value));
+
+/* ── Table row/column add/delete ──────────────────── */
+function tableCmd(cmd){
+  docLayer.focus();
+  // Use the browser's built-in table editing commands
+  if (cmd === 'insertRowAbove') document.execCommand('insertRow', false, null);
+  else if (cmd === 'insertRowBelow') document.execCommand('insertRow', false, null);
+  else if (cmd === 'insertColLeft') document.execCommand('insertColumn', false, null);
+  else if (cmd === 'insertColRight') document.execCommand('insertColumn', false, null);
+  else if (cmd === 'deleteRow') document.execCommand('deleteRow', false, null);
+  else if (cmd === 'deleteCol') document.execCommand('deleteColumn', false, null);
+  pushUndo('Table: ' + cmd);
+}
+
+/* ── Format Painter ──────────────────────────────── */
+let painterStored = null;
+function formatPainter(){
+  docLayer.focus();
+  if (painterStored) {
+    // Second click = apply stored format
+    document.execCommand('removeFormat', false, null);
+    document.execCommand('insertHTML', false, '<span style="' + painterStored + '">');
+    painterStored = null;
+    alert('Format applied!');
+  } else {
+    // First click = copy current selection's format
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0 && !sel.isCollapsed) {
+      const range = sel.getRangeAt(0);
+      const container = range.commonAncestorContainer;
+      if (container.nodeType === 3 && container.parentElement) {
+        painterStored = container.parentElement.getAttribute('style') || '';
+      } else if (container.nodeType === 1) {
+        painterStored = container.getAttribute('style') || '';
+      }
+      if (painterStored) { alert('Format copied! Click the painter button again and select text to apply.'); return; }
+    }
+    alert('Select text first, then click the format painter to copy its formatting.');
+  }
+}
+
+/* ── Find & Replace ──────────────────────────────── */
+function findReplace(){
+  const search = prompt('Find:', '');
+  if (!search) return;
+  const replace = prompt('Replace with:', '');
+  if (replace === null) return;
+  // Use the browser's built-in find, or do a simple HTML replace
+  const html = docLayer.innerHTML;
+  if (!replace) {
+    // Find only — just highlight by scrolling
+    const found = window.find(search, false, false, true, false, true, false);
+    if (!found) alert('Not found: ' + search);
+  } else {
+    // Replace all
+    const newHtml = html.replace(new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replace);
+    docLayer.innerHTML = newHtml;
+    pushUndo('Find & Replace');
+  }
+}
 document.getElementById('docColor').addEventListener('input', e => docCmd('foreColor', e.target.value));
 document.getElementById('docBlock').addEventListener('change', e => docCmd('formatBlock', e.target.value));
 document.getElementById('docFont').addEventListener('change', e => document.execCommand('fontName', false, e.target.value));
@@ -1409,7 +1479,7 @@ function renderSheetTabs(){
   sheets.forEach((s, i) => { const tab = document.createElement('span'); tab.className = 'sheet-tab' + (i === currentSheet ? ' active' : ''); tab.textContent = s.name; tab.onclick = () => { currentSheet = i; renderSheet(); renderSheetTabs(); }; sheetTabs.insertBefore(tab, sheetTabs.firstChild); });
 }
 document.getElementById('sheetColor').addEventListener('input', e => { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheets[currentSheet].cells[k]) sheets[currentSheet].cells[k] = {v:''}; sheets[currentSheet].cells[k].style = sheets[currentSheet].cells[k].style || {}; sheets[currentSheet].cells[k].style.color = e.target.value; renderSheet(); });
-window.sheetCmd = sheetCmd; window.sheetRecalc = sheetRecalc; window.sheetApplyFormula = sheetApplyFormula; window.closeModal = closeModal; window.docCmd = docCmd; window.insertTable = insertTable; window.insertLink = insertLink; window.insertSpecialChar = insertSpecialChar;
+window.sheetCmd = sheetCmd; window.sheetRecalc = sheetRecalc; window.sheetApplyFormula = sheetApplyFormula; window.closeModal = closeModal; window.docCmd = docCmd; window.insertTable = insertTable; window.insertLink = insertLink; window.insertSpecialChar = insertSpecialChar; window.tableCmd = tableCmd; window.formatPainter = formatPainter; window.findReplace = findReplace;
 
 /* ══ VECTOR TEXT ENGINE ══════════════════════════════ */
 function applyTextTransform(text, transform){
