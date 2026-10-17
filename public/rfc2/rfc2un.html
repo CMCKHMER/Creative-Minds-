@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Future Connect 2 — Unscramble Sheet</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{--bg:#05070f;--surface-2:#0d1526;--border:rgba(148,163,184,.14);--cyan:#22d3ee;--cyan-lt:#67e8f9;--violet:#8b5cf6;--violet-lt:#c4b5fd;--text:#e2e8f0;--muted:#8fa3b8;--success:#34d399;--error:#f87171;color-scheme:dark}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1100px 520px at 85% -10%,rgba(139,92,246,.16),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(34,211,238,.12),transparent 60%);min-height:100vh;padding:32px 16px;color:var(--text)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 40%,transparent 100%)}
+.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;background:rgba(9,13,24,.82);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65)}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:13px 28px;background:linear-gradient(90deg,rgba(124,58,237,.28),rgba(34,211,238,.14));border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan-lt)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.live-pill{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-lt);background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.4);border-radius:999px;padding:5px 12px}
+.live-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--violet);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.hero{padding:44px 44px 28px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan-lt);margin-bottom:16px}
+.eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,42px);line-height:1.08;text-transform:uppercase;color:#f8fafc}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan-lt),var(--violet-lt));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin-top:14px;max-width:700px;color:var(--muted);font-size:14.5px;line-height:1.7}
+.info{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:16px;padding:22px 44px;background:rgba(13,19,35,.65);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.form-group label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.form-group input,.form-group select{width:100%;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--text);background:#0a101f;border:1px solid rgba(148,163,184,.2);border-radius:10px;transition:border-color .25s,box-shadow .25s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+.content{padding:32px 44px 44px}
+.unit-head{display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.unit-head .bar{width:4px;height:30px;border-radius:2px;background:linear-gradient(180deg,var(--cyan),var(--violet));box-shadow:0 0 14px rgba(34,211,238,.5)}
+.unit-title{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#f1f5f9}
+.unit-qr{margin-left:auto;width:84px;height:84px;flex-shrink:0;border-radius:10px;border:1px solid var(--border);background:#fff;padding:6px;object-fit:contain}
+.steps-note{font-size:12.5px;color:var(--muted);margin:0 0 20px 18px;line-height:1.7}
+.steps-note b{color:var(--cyan-lt)}
+.passage-card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--border);border-radius:12px;padding:26px;margin-bottom:26px;font-size:15.5px;line-height:2.1;color:#cbd5e1}
+.gap-slot select{background:#0a101f;color:var(--cyan-lt);border:1px dashed rgba(34,211,238,.45);border-radius:6px;padding:3px 6px;font-family:inherit;font-size:13px;cursor:pointer;margin:0 3px;transition:all .2s}
+.gap-slot select:hover{border-color:var(--cyan)}
+.gap-slot select.correct{border:1px solid var(--success);background:rgba(52,211,153,.12);color:var(--success)}
+.gap-slot select.incorrect{border:1px solid var(--error);background:rgba(248,113,113,.12);color:var(--error)}
+.section-head{font-family:'Space Grotesk',sans-serif;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--violet-lt);margin:0 0 14px}
+.option-card{background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:10px;padding:16px 18px;margin-bottom:14px;transition:border-color .3s,box-shadow .3s}
+.option-card.solved{border-left-color:var(--success);box-shadow:0 0 0 1px rgba(52,211,153,.35) inset}
+.option-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.option-letter{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--violet-lt);background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0}
+.option-status{margin-left:auto;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.option-card.solved .option-status{color:var(--success)}
+.build-line{min-height:44px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:rgba(10,16,31,.7);border:1px dashed rgba(148,163,184,.25);border-radius:8px;padding:8px;margin-bottom:10px}
+.build-line .hint{font-size:11.5px;color:#5b6b80;letter-spacing:.06em}
+.bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.chip{font-size:13px;padding:6px 10px;border-radius:6px;cursor:pointer;user-select:none;transition:transform .15s,filter .15s;line-height:1.3}
+.chip:hover{transform:translateY(-1px);filter:brightness(1.2)}
+.bank .chip{background:rgba(34,211,238,.08);border:1px dashed rgba(34,211,238,.5);color:var(--cyan-lt)}
+.build-line .chip{background:rgba(139,92,246,.16);border:1px solid rgba(139,92,246,.55);color:var(--violet-lt)}
+.option-card.solved .build-line .chip{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.55);color:var(--success)}
+.action-row{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+.btn{flex:1;padding:13px;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:filter .25s,transform .25s;min-width:140px}
+.btn-check{color:#041018;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.btn-share{color:var(--cyan-lt);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4)}
+.btn-print{color:var(--violet-lt);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.45)}
+.btn-reset{color:var(--muted);background:rgba(148,163,184,.1);border:1px solid var(--border)}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.score-display{text-align:center;margin-top:16px;font-family:'Space Grotesk',sans-serif;font-size:17px;color:var(--cyan-lt);display:none}
+.share-panel{display:none;margin:22px 44px 0;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.share-panel.open{display:block}
+.share-panel h4{font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.share-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:10px;cursor:pointer;background:rgba(10,16,31,.7);border:1px solid rgba(148,163,184,.2);color:var(--text);font-size:11.5px;font-weight:600}
+.share-item .ico{font-size:18px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:50;background:rgba(13,19,35,.95);border:1px solid rgba(34,211,238,.5);color:var(--cyan-lt);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
+.placeholder .glyph{font-family:'Space Grotesk',sans-serif;font-size:44px;background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.placeholder p{margin-top:14px;color:var(--muted);font-size:15px}
+.footer{padding:16px 28px;border-top:1px solid var(--border);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
+@media (max-width:768px){.info{grid-template-columns:1fr}.hero,.info,.content{padding-left:22px;padding-right:22px}.action-row{flex-direction:column}.share-panel{margin-left:22px;margin-right:22px}.unit-qr{width:64px;height:64px}}
+@media (max-width:640px){.share-grid{grid-template-columns:repeat(2,1fr)}}
+@media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.score-display,.footer,.share-panel,.toast{display:none!important}.container{box-shadow:none;border:none;background:#fff}*{color:#111!important;background:transparent!important;border-color:#ccc!important;text-shadow:none!important}.passage-card,.option-card{break-inside:avoid}.build-line{border:1px solid #999!important}.chip{padding:2px 6px!important;font-size:12px!important;border:1px solid #999!important}.unit-qr{width:72px;height:72px;border:1px solid #ccc;background:#fff!important}}
+@page{margin:12mm}
+</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
+    <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
+</a>
+
+<div class="bg-grid"></div>
+<div class="container">
+  <div class="topbar"><div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div><div class="live-pill"><span class="pulse"></span>Live Worksheet</div></div>
+  <section class="hero">
+    <span class="eyebrow">Reading Future · Connect 2 · Unscramble Sheet</span>
+    <h1>Unscramble the sentences.<br><span class="grad">Restore the passage.</span></h1>
+    <p>Each sentence A–D is broken into scrambled chunks. Rebuild each sentence in the correct order, then place the finished sentence into the right gap (①–④) of the passage.</p>
+  </section>
+  <section class="info">
+    <div class="form-group"><label for="studentName">Student Name</label><input type="text" id="studentName" placeholder="Enter your name"></div>
+    <div class="form-group"><label for="dateField">Date</label><input type="date" id="dateField"></div>
+    <div class="form-group"><label for="unitSelect">Unit Selector</label><select id="unitSelect" onchange="loadUnit()"><option value="">— Choose a unit —</option></select></div>
+  </section>
+  <section class="content" id="content">
+    <div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load the unscramble exercise.</p></div>
+  </section>
+  <div class="share-panel" id="sharePanel">
+    <h4>Share this worksheet</h4>
+    <div class="share-grid">
+      <button class="share-item" onclick="copyLink()"><span class="ico">🔗</span>Copy Link</button>
+      <button class="share-item" onclick="shareEmail()"><span class="ico">✉️</span>Email</button>
+      <button class="share-item" onclick="shareWhatsApp()"><span class="ico">💬</span>WhatsApp</button>
+      <button class="share-item" onclick="shareX()"><span class="ico">📣</span>Post on X</button>
+    </div>
+  </div>
+  <div class="footer"><span>Reading Future Connect 2 · Unscramble Sheet</span><span>Interactive Edition · v1</span></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Unit QR code (top-right corner of every unit) ── */
+const QR_BASE64 = "";
+const QR_IMAGE = QR_BASE64 || "qr.png";
+function qrFallback(unit){
+  return `https://api.qrserver.com/v1/create-qr-code/?size=168x168&bgcolor=FFFFFF&color=05070f&data=${encodeURIComponent('Reading Future Connect 2 — ' + unit)}`;
+}
+
+const UNITS = {
+"Unit 1. New Media Art":{
+ passage:"Instead of just looking at a piece of art, you can do much more. You can interact with it. [1] New technology brings people together with the artists’ art. [2] His art is a wall full of robot faces. The robots’ eyes open when you stand close to it. [3] New media art is unique for each person. [4] Like the pieces of art, each one is special.",
+ options:{
+  A:{scrambled:["you","In other words,","the art.","become","part of"],correct:["In other words,","you","become","part of","the art."]},
+  B:{scrambled:["uses","One artist","computers","his art.","to control"],correct:["One artist","uses","computers","to control","his art."]},
+  C:{scrambled:["movements.","Then the eyes","your","follow"],correct:["Then the eyes","follow","your","movements."]},
+  D:{scrambled:["person’s experience","Every","will","be different."],correct:["Every","person’s experience","will","be different."]}},
+ answers:{1:"A",2:"B",3:"C",4:"D"}},
+"Unit 2. Music in the City":{
+ passage:"Luke Jerram is an artist. [1] First, he finds a city that wants to work with him. A city that wants his art will let him put pianos on the streets. He puts them in parks, at bus stops, and other places where people often go. [2] The sign says, “Play me, I’m yours.” [3] Many people can become street musicians. They don’t play for money. [4]",
+ options:{
+  A:{scrambled:["on it.","Each piano","has","a sign"],correct:["Each piano","has","a sign","on it."]},
+  B:{scrambled:["for fun.","They","just play"],correct:["They","just play","for fun."]},
+  C:{scrambled:["play.","person","can","Any"],correct:["Any","person","can","play."]},
+  D:{scrambled:["He","art","with pianos.","makes"],correct:["He","makes","art","with pianos."]}},
+ answers:{1:"D",2:"A",3:"C",4:"B"}},
+"Unit 3. Online Guitar Lessons":{
+ passage:"You can take online lessons any time. Online lessons can start in the morning or at night, whenever you want. [1] [2] Face-to-face lessons can cost from $25 to $50 for each hour. Online classes often cost $50 for a whole course. [3] And some online lessons are free! You can also learn alone through online lessons. [4] Many students feel less nervous when there is no one watching them.",
+ options:{
+  A:{scrambled:["also","Online lessons","can","save money."],correct:["Online lessons","can","also","save money."]},
+  B:{scrambled:["can easily cancel","or change the time","of your lesson","if you","need to.","You"],correct:["You","can easily cancel","or change the time","of your lesson","if you","need to."]},
+  C:{scrambled:["might","be","ten or more","lessons.","A course"],correct:["A course","might","be","ten or more","lessons."]},
+  D:{scrambled:["No one","will be","you","watching","practice."],correct:["No one","will be","watching","you","practice."]}},
+ answers:{1:"B",2:"A",3:"C",4:"D"}},
+"Unit 4. Twyla Tharp":{
+ passage:"In 1965, Twyla Tharp studied ballet and modern dance in New York. [1] For example, the dancers ran, walked, and skipped while they danced. [2] Many people liked her new way of dancing. [3] A lot of dancers wanted to learn from her. Now in her 70s, Tharp still works with dancers. [4] Some of her most famous dances are done regularly by ballet schools around the world even today.",
+ options:{
+  A:{scrambled:["and television.","has created","for stage, movies,","She","dances"],correct:["She","has created","dances","for stage, movies,","and television."]},
+  B:{scrambled:["Dancers","combined","in her school","ballet","and natural movement."],correct:["Dancers","in her school","combined","ballet","and natural movement."]},
+  C:{scrambled:["Tharp","because of","became","famous","it."],correct:["Tharp","became","famous","because of","it."]},
+  D:{scrambled:["hard.","Tharp","very","worked"],correct:["Tharp","worked","very","hard."]}},
+ answers:{1:"B",2:"D",3:"C",4:"A"}},
+"Unit 5. DNA from Extinct Animals":{
+ passage:"Would you like to see extinct animals living on Earth again? [1] One of the animals is the woolly mammoth, a relative of today’s elephants. In 2013, a woolly mammoth’s body was found frozen in Siberia. Scientists are studying the animal’s DNA. [2] First, they would take the DNA from the woolly mammoth. Then they would put it into an egg. [3] [4] If it works, other extinct animals could be brought back to life, too.",
+ options:{
+  A:{scrambled:["After that,","would put the egg","they","in an elephant."],correct:["After that,","they","would put the egg","in an elephant."]},
+  B:{scrambled:["want to","bring","Some scientists","some extinct","back to life.","animals"],correct:["Some scientists","want to","bring","some extinct","animals","back to life."]},
+  C:{scrambled:["They","use the DNA","want to","a copy of","to make","the animal."],correct:["They","want to","use the DNA","to make","a copy of","the animal."]},
+  D:{scrambled:["a woolly mammoth","born.","After 22 months,","would be"],correct:["After 22 months,","a woolly mammoth","would be","born."]}},
+ answers:{1:"B",2:"C",3:"A",4:"D"}},
+"Unit 6. The Clever Octopus":{
+ passage:"Inky lived in the National Aquarium of New Zealand. [1] First, it pushed out of a small gap at the top of its tank. Then it went down a pipe. [2] [3] They created their own game with a small bottle. [4]",
+ options:{
+  A:{scrambled:["escaped","Finally, it","back","into the ocean."],correct:["Finally, it","escaped","back","into the ocean."]},
+  B:{scrambled:["around.","They","the bottle","bounced and passed"],correct:["They","bounced and passed","the bottle","around."]},
+  C:{scrambled:["a way","But","it","to escape.","found"],correct:["But","it","found","a way","to escape."]},
+  D:{scrambled:["at the Seattle Aquarium","have","A group of octopuses","wanted to","some fun."],correct:["A group of octopuses","at the Seattle Aquarium","wanted to","have","some fun."]}},
+ answers:{1:"C",2:"A",3:"D",4:"B"}},
+"Unit 7. How a Frog Grows":{
+ passage:"The life cycle of a frog has four stages. It begins with an egg. [1] She lays up to 4,000 eggs. [2] Tadpoles have long tails and look a little like small fish. They have gills so that they can breathe underwater. [3] But tadpoles don’t look like fish for long. After about six weeks, they start growing back legs. [4] Their tails get smaller and their legs get bigger.",
+ options:{
+  A:{scrambled:["front legs","grow.","Then,","their"],correct:["Then,","their","front legs","grow."]},
+  B:{scrambled:["They","eat plants","swim around","and","in the pond."],correct:["They","swim around","and","eat plants","in the pond."]},
+  C:{scrambled:["of each egg.","ten days,","a tadpole","After about","comes out"],correct:["After about","ten days,","a tadpole","comes out","of each egg."]},
+  D:{scrambled:["lays","her eggs","In the spring,","a mother","frog","in a pond."],correct:["In the spring,","a mother","frog","lays","her eggs","in a pond."]}},
+ answers:{1:"D",2:"C",3:"B",4:"A"}},
+"Unit 8. Snake Skin":{
+ passage:"When an animal loses their old skin or hair, it is called shedding. [1] Snakes grow all their lives. Their skin does not stretch like other animals’. [2] Snakes shed their skin in one piece. [3] The old skin comes off when a layer of new skin grows underneath. [4]",
+ options:{
+  A:{scrambled:["their skin","The way","is unique.","shed","snakes"],correct:["The way","snakes","shed","their skin","is unique."]},
+  B:{scrambled:["like","off","a sock.","comes","It"],correct:["It","comes","off","like","a sock."]},
+  C:{scrambled:["shed","need to","keep","to","So","growing.","they","their skin"],correct:["So","they","need to","shed","their skin","to","keep","growing."]},
+  D:{scrambled:["rubs against","or a tree","its skin,","make a rip.","To shed","to","the snake","a rock"],correct:["To shed","its skin,","the snake","rubs against","a rock","or a tree","to","make a rip."]}},
+ answers:{1:"A",2:"C",3:"B",4:"D"}},
+"Unit 9. Smart Glasses for the Blind":{
+ passage:"Engineers have made smart glasses for people who are partly blind. [1] Objects appear brighter and bigger so that partly blind people can see better. In some smart glasses, a computer voice tells the person what is in front of them. They guess the feelings of the people they see. [2] They can also give directions. [3] [4]",
+ options:{
+  A:{scrambled:["They","signs, menus, and documents.","can","also read"],correct:["They","can","also read","signs, menus, and documents."]},
+  B:{scrambled:["Engineers","for people","are working on","are fully blind.","who","smart glasses"],correct:["Engineers","are working on","smart glasses","for people","who","are fully blind."]},
+  C:{scrambled:["what color clothing","They say","people","are wearing."],correct:["They say","what color clothing","people","are wearing."]},
+  D:{scrambled:["is","put on","the smart glasses.","A camera"],correct:["A camera","is","put on","the smart glasses."]}},
+ answers:{1:"D",2:"C",3:"A",4:"B"}},
+"Unit 10. Reading with Your Fingers":{
+ passage:"Usually, we read by sight. However, not everybody reads this way. [1] [2] These are letters that blind people can read with their fingers. Braille was developed around 1825 by Louis Braille. He became blind when he was a child because of an accident. [3] He learned about how French soldiers used “night writing.” [4]",
+ options:{
+  A:{scrambled:["is called","braille.","This"],correct:["This","is called","braille."]},
+  B:{scrambled:["how soldiers","in the dark.","communicated quietly","This was"],correct:["This was","how soldiers","communicated quietly","in the dark."]},
+  C:{scrambled:["Even though","he was","a good","blind,","student.","he was"],correct:["Even though","he was","blind,","he was","a good","student."]},
+  D:{scrambled:["Instead of","raised dots.","some people","read","letters,"],correct:["Instead of","letters,","some people","read","raised dots."]}},
+ answers:{1:"D",2:"A",3:"C",4:"B"}},
+"Unit 11. Stevie Wonder":{
+ passage:"One day when he was young, there was a mouse in his classroom. [1] The teacher told everyone to be quiet, so Stevie could listen carefully. [2] This taught him that his hearing was fantastic. [3] Later, he became an award-winning musician. [4]",
+ options:{
+  A:{scrambled:["He","started to learn","play music by listening.","how to"],correct:["He","started to learn","how to","play music by listening."]},
+  B:{scrambled:["Stevie","may be blind,","is not difficult","but life","for him."],correct:["Stevie","may be blind,","but life","is not difficult","for him."]},
+  C:{scrambled:["Stevie","his ears.","the mouse","using only","caught"],correct:["Stevie","caught","the mouse","using only","his ears."]},
+  D:{scrambled:["that","he","would","catch the mouse.","Stevie said"],correct:["Stevie said","that","he","would","catch the mouse."]}},
+ answers:{1:"D",2:"C",3:"A",4:"B"}},
+"Unit 12. Helen Keller":{
+ passage:"[1] When she was a baby, Helen got very sick. She became both deaf and blind. As a child, life was not easy for Helen. [2] A tutor, Anne Sullivan, started working with Helen. Anne taught Helen how to read and communicate by using her hands. [3] [4] She went to Radcliffe College, a famous women’s school.",
+ options:{
+  A:{scrambled:["Helen’s life.","changed","This"],correct:["This","changed","Helen’s life."]},
+  B:{scrambled:["born","Helen Keller","was","in 1880."],correct:["Helen Keller","was","born","in 1880."]},
+  C:{scrambled:["She","communicate","how","know","with","didn’t","to","people."],correct:["She","didn’t","know","how","to","communicate","with","people."]},
+  D:{scrambled:["hard.","new skills,","studied","Using","Helen","these"],correct:["Using","these","new skills,","Helen","studied","hard."]}},
+ answers:{1:"B",2:"C",3:"A",4:"D"}},
+"Unit 13. 3D Food Printing":{
+ passage:"Cooking can take a lot of time and effort. [1] First, you put ingredients into the printer. Next, you push a button. [2] You can already find 3D food printers in some bakeries and restaurants. [3] There is a 3D printer that uses fresh ingredients. It can make more difficult foods like pizza, pasta, and brownies. [4]",
+ options:{
+  A:{scrambled:["can fix","3D food printers","that problem."],correct:["3D food printers","can fix","that problem."]},
+  B:{scrambled:["can help","This new and","interesting way","of making food","people","save time","and effort."],correct:["This new and","interesting way","of making food","can help","people","save time","and effort."]},
+  C:{scrambled:["Then,","prints out","shapes of food","that you can eat.","the 3D printer"],correct:["Then,","the 3D printer","prints out","shapes of food","that you can eat."]},
+  D:{scrambled:["use them","People","to make nice designs","for candy, pancakes, and chocolate."],correct:["People","use them","to make nice designs","for candy, pancakes, and chocolate."]}},
+ answers:{1:"A",2:"C",3:"D",4:"B"}},
+"Unit 14. Microwave Popcorn":{
+ passage:"Here is what you need to make microwave popcorn by yourself. You need a paper bag. [1] A plain brown paper bag is fine. Then you need popcorn kernels. Popcorn kernels are pieces of dried corn. [2] Fold the top a few times. Then put the bag in the microwave for two minutes. [3] When the popping sounds stop, the popcorn is ready. [4] It is easy and you can save money this way.",
+ options:{
+  A:{scrambled:["Put","in the bag","the kernels","with a little oil","and salt."],correct:["Put","the kernels","in the bag","with a little oil","and salt."]},
+  B:{scrambled:["The next time","want to","you","eat popcorn at home,","try this."],correct:["The next time","you","want to","eat popcorn at home,","try this."]},
+  C:{scrambled:["the kernels","will hear","start to pop.","You"],correct:["You","will hear","the kernels","start to pop."]},
+  D:{scrambled:["It","a special bag.","does not","need to be"],correct:["It","does not","need to be","a special bag."]}},
+ answers:{1:"D",2:"A",3:"C",4:"B"}},
+"Unit 15. How a Factory Makes Food":{
+ passage:"Preparation. Step 1. [1] Step 2. [2] Step 3. Machines wash and dry the chips. Cooking. Step 4. Robots put the chips in 350-degree oil and cook them for four minutes. Step 5. [3] It adds salt. Packaging. Step 6. [4]",
+ options:{
+  A:{scrambled:["in bags.","Machines put","chips","the potato"],correct:["Machines put","the potato","chips","in bags."]},
+  B:{scrambled:["Machines","off","the potatoes.","the skins","peel"],correct:["Machines","peel","the skins","off","the potatoes."]},
+  C:{scrambled:["the potatoes","cut","into very thin slices.","Blades"],correct:["Blades","cut","the potatoes","into very thin slices."]},
+  D:{scrambled:["go to","a different machine","in the factory.","The chips"],correct:["The chips","go to","a different machine","in the factory."]}},
+ answers:{1:"B",2:"C",3:"D",4:"A"}},
+"Unit 16. Number Cakes":{
+ passage:"Old cookbooks show us when different foods were first made. [1] Some cookbooks called these first cupcakes “number cakes.” [2] A person just needed to remember the numbers 1, 2, 3, 4, 1, and 1 to make these cupcakes. What do the numbers mean in this recipe? First, the numbers in this recipe mean first use one cup of butter and two cups of sugar. [3] Last, add one cup of milk and one spoon of baking soda. [4]",
+ options:{
+  A:{scrambled:["This","and easiest cupcake recipes.","was","one of the first"],correct:["This","was","one of the first","and easiest cupcake recipes."]},
+  B:{scrambled:["put","of flour","in three cups","and four eggs.","Then,"],correct:["Then,","put","in three cups","of flour","and four eggs."]},
+  C:{scrambled:["came from","The name","to remember the recipe.","the easy way"],correct:["The name","came from","the easy way","to remember the recipe."]},
+  D:{scrambled:["This is how","that the first cupcakes","were made around 1800.","we know"],correct:["This is how","we know","that the first cupcakes","were made around 1800."]}},
+ answers:{1:"D",2:"C",3:"B",4:"A"}}
+};
+
+const CIRCLED = {1:"①",2:"②",3:"③",4:"④"};
+const unitSelect = document.getElementById('unitSelect');
+Object.keys(UNITS).forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;unitSelect.appendChild(o);});
+document.getElementById('dateField').valueAsDate = new Date();
+
+function loadUnit(){
+  const unit = unitSelect.value, content = document.getElementById('content');
+  document.getElementById('sharePanel').classList.remove('open');
+  if(!unit){content.innerHTML=`<div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load the unscramble exercise.</p></div>`;return;}
+  const data = UNITS[unit];
+
+  let passageHtml = data.passage;
+  [1,2,3,4].forEach(i=>{
+    passageHtml = passageHtml.replace(`[${i}]`,
+      `<span class="gap-slot"><select id="gap-${i}" data-correct="${data.answers[i]}">
+        <option value="">${CIRCLED[i]}</option><option>A</option><option>B</option><option>C</option><option>D</option>
+      </select></span>`);
+  });
+
+  let optionsHtml = "";
+  for(const [letter, opt] of Object.entries(data.options)){
+    optionsHtml += `
+      <div class="option-card" id="card-${letter}" data-letter="${letter}">
+        <div class="option-top">
+          <div class="option-letter">${letter}</div>
+          <div class="option-status" id="status-${letter}">Build the sentence</div>
+        </div>
+        <div class="build-line" id="build-${letter}"><span class="hint">Click chunks below in the correct order →</span></div>
+        <div class="bank" id="bank-${letter}"></div>
+      </div>`;
+  }
+
+  content.innerHTML = `
+    <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${unit}</h2><img class="unit-qr" src="${QR_IMAGE}" alt="Unit QR code" onerror="this.onerror=null;this.src=qrFallback('${unit}')"></div>
+    <p class="steps-note"><b>Step 1:</b> Click the scrambled chunks to rebuild sentences A–D in the correct order (click a placed chunk to send it back).
+    <b>Step 2:</b> Use the dropdowns ${CIRCLED[1]}–${CIRCLED[4]} in the passage to insert each finished sentence, then press <b>Check Answers</b>.</p>
+    <div class="passage-card">${passageHtml}</div>
+    <div class="section-head">Scrambled Sentences — rebuild each one</div>
+    ${optionsHtml}
+    <div class="action-row">
+      <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
+      <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
+      <button class="btn btn-print" onclick="printPDF()">⎙ Print / Save PDF</button>
+      <button class="btn btn-reset" onclick="loadUnit()">Reset</button>
+    </div>
+    <div class="score-display" id="scoreDisplay"></div>`;
+
+  for(const [letter, opt] of Object.entries(data.options)){
+    const bank = document.getElementById(`bank-${letter}`);
+    opt.scrambled.forEach((text, idx)=>{
+      const chip = document.createElement('span');
+      chip.className = 'chip'; chip.textContent = text; chip.dataset.orig = idx;
+      chip.onclick = ()=> moveChip(chip, letter);
+      bank.appendChild(chip);
+    });
+  }
+}
+
+function moveChip(chip, letter){
+  const bank = document.getElementById(`bank-${letter}`);
+  const build = document.getElementById(`build-${letter}`);
+  if(chip.parentElement === bank){
+    const hint = build.querySelector('.hint'); if(hint) hint.remove();
+    build.appendChild(chip);
+  }else{
+    bank.appendChild(chip);
+    [...bank.children].sort((a,b)=>a.dataset.orig-b.dataset.orig).forEach(c=>bank.appendChild(c));
+    if(!build.querySelector('.chip')) build.innerHTML = `<span class="hint">Click chunks below in the correct order →</span>`;
+  }
+  validateSentence(letter);
+}
+
+function validateSentence(letter){
+  const unit = UNITS[unitSelect.value];
+  const build = document.getElementById(`build-${letter}`);
+  const bank = document.getElementById(`bank-${letter}`);
+  const placed = [...build.querySelectorAll('.chip')].map(c=>c.textContent);
+  const solved = bank.children.length === 0 && placed.length === unit.options[letter].correct.length
+                 && placed.every((t,i)=>t === unit.options[letter].correct[i]);
+  document.getElementById(`card-${letter}`).classList.toggle('solved', solved);
+  document.getElementById(`status-${letter}`).textContent = solved ? "✓ Sentence complete" :
+      (placed.length ? `Building… ${placed.length}/${unit.options[letter].correct.length}` : "Build the sentence");
+  return solved;
+}
+
+function checkAnswers(){
+  let gapCorrect = 0, solvedCount = 0;
+  document.querySelectorAll('.gap-slot select').forEach(sel=>{
+    sel.classList.remove('correct','incorrect');
+    if(!sel.value) return;
+    if(sel.value === sel.dataset.correct){sel.classList.add('correct');gapCorrect++;}
+    else sel.classList.add('incorrect');
+  });
+  ["A","B","C","D"].forEach(l=>{ if(validateSentence(l)) solvedCount++; });
+  const disp = document.getElementById('scoreDisplay');
+  disp.style.display = 'block';
+  const perfect = (gapCorrect === 4 && solvedCount === 4);
+  disp.style.color = perfect ? 'var(--success)' : 'var(--cyan-lt)';
+  disp.innerHTML = perfect ? `✓ Perfect! Sentences rebuilt 4/4 · Gaps placed 4/4.`
+                           : `Sentences rebuilt: ${solvedCount}/4 · Gaps placed correctly: ${gapCorrect}/4 — keep going!`;try{var _stoken=localStorage.getItem('cmc-student-token');var _sname=localStorage.getItem('cmc-student-name')||'';if(_stoken&&_sname){var _url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';var _body={fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:unitSelect.value},drillSource:{stringValue:'rfc2'},studentName:{stringValue:_sname},scorePct:{integerValue:String(Math.round((gapCorrect+solvedCount)/8*100))},correctCount:{integerValue:String(gapCorrect+solvedCount)},totalCount:{integerValue:String(8)},submittedAt:{timestampValue:new Date().toISOString()}}};fetch(_url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_stoken},body:JSON.stringify(_body)}).catch(function(e){})}}catch(e){}
+}
+
+/* ── Share & Print ── */
+function shareText(){
+  const name = document.getElementById('studentName').value.trim();
+  return `Reading Future Connect 2 — Unscramble Sheet (${unitSelect.value||'all units'})${name?' · '+name:''}`;
+}
+function shareWorksheet(){
+  if(navigator.share){navigator.share({title:'Reading Future Connect 2 — Unscramble Sheet',text:shareText(),url:location.href}).catch(()=>{});return;}
+  document.getElementById('sharePanel').classList.toggle('open');
+}
+function copyLink(){
+  const url = location.href;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard'));}
+  else{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}
+}
+function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Connect 2 — Unscramble Sheet')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
+function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}
+function shareX(){window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(location.href)}`,'_blank');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
+function printPDF(){document.getElementById('sharePanel').classList.remove('open');showToast('In the dialog, choose “Save as PDF” as destination');setTimeout(()=>window.print(),400);}
+window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
+</script>
+</body>
+</html>
+

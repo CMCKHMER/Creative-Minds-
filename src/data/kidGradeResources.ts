@@ -1,4 +1,4 @@
-export type KidMaterialKind = 'Vocabulary list' | 'Dictation worksheet' | 'Review test' | 'Unscramble sheet';
+export type KidMaterialKind = 'Vocabulary list' | 'Dictation worksheet' | 'Review test' | 'Unscramble sheet' | 'Sentence unscramble';
 
 export interface KidGradeMaterial {
   id: string;
@@ -19,21 +19,35 @@ function plannedGrade(grade: number): KidGradeResource {
   return { grade, status: 'planned', materials: [] };
 }
 
+// Kid 6 — Reading Future Connect 2 worksheets, served from public/rfc2/.
+// Each worksheet is a single self-contained HTML file with a back-to-CMC
+// floating button. Dictation + Unscramble submit completion scores to the
+// `drill_attempts` Firestore collection (project: creative-minds-cambodia)
+// using the student's localStorage token, matching the biweek-planner / rfc3
+// pattern. The Word List is reference-only (no scoring, no Firestore write).
 const kid6Resources: KidGradeMaterial[] = [
   {
-    id: 'kid-6-rfc2-word-review',
-    title: 'Reading Future Connect 2 · Word Review',
+    id: 'kid-6-rfc2-word-list',
+    title: 'Reading Future Connect 2 · Word List',
     kind: 'Vocabulary list',
-    description: 'Vocabulary study list with 16 learning units.',
-    href: 'https://cmckhmer.github.io/Word-Review-RFConnect-2/',
+    description: 'Interactive 16-unit vocabulary reference with parts of speech, definitions, and example sentences.',
+    href: './rfc2/rfc2unitwords.html',
     units: 16,
   },
   {
-    id: 'kid-6-reading-future-connect-2-dictation',
-    title: 'Reading Future Connect 2 · Dictation Worksheet',
+    id: 'kid-6-rfc2-unscramble',
+    title: 'Reading Future Connect 2 · Unscramble Sheet',
+    kind: 'Sentence unscramble',
+    description: 'Rebuild scrambled sentences A–D and place each into the correct gap ①–④ of the passage.',
+    href: './rfc2/rfc2un.html',
+    units: 16,
+  },
+  {
+    id: 'kid-6-rfc2-dictation',
+    title: 'Reading Future Connect 2 · Dictation Sheet',
     kind: 'Dictation worksheet',
-    description: 'Interactive word-bank dictation worksheet, organized into 16 units.',
-    href: 'https://cmckhmer.github.io/Reading-Future-Connect-2/',
+    description: 'Listen to the unit track and fill all 10 blanks. Spelling-tolerant, multi-word aware, auto-scored.',
+    href: './rfc2/rfc2dic.html',
     units: 16,
   },
 ];

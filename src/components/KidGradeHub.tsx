@@ -17,7 +17,7 @@ export function KidGradeHub() {
           <div className="max-w-3xl">
             <span className="cmc-eyebrow"><GraduationCap className="h-3.5 w-3.5" aria-hidden="true" /> Kid Program · Grades 5–12</span>
             <h2 id="kid-grade-hub-title" className="cmc-h2">A grade-by-grade home<br /><span className="cmc-gradient-text">for what comes next.</span></h2>
-            <p className="cmc-lead">Build a clear path from Kid 5 through Kid 12. Kid 6 has two Reading Future Connect 2 resources; Kid 11 has a Reading Future Create 3 dictation worksheet.</p>
+            <p className="cmc-lead">Build a clear path from Kid 5 through Kid 12. Kid 6 has three Reading Future Connect 2 worksheets — Word List, Unscramble, and Dictation; Kid 11 has a Reading Future Create 3 dictation worksheet.</p>
           </div>
           <div className="flex max-w-md items-start gap-3 border-l border-cyan-200/25 pl-4 text-xs leading-relaxed text-slate-400 lg:mb-1">
             <Layers3 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" aria-hidden="true" />
@@ -63,7 +63,7 @@ export function KidGradeHub() {
         </Reveal>
 
         <Reveal className="mt-5">
-        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 11 links open separate Reading Future pages. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP & ISEC Program Resources section below.</span></p>
+        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 worksheets open in this site (each with a back-to-CMC button); Kid 11 links to the separate Reading Future Create 3 page. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP & ISEC Program Resources section below.</span></p>
         </Reveal>
       </div>
     </section>
