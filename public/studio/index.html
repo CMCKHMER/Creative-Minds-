@@ -384,6 +384,10 @@
         <div class="menu-item" data-action="insert-line"><span>Line</span><span class="kbd">L</span></div>
         <div class="menu-item" data-action="insert-gradient"><span>Gradient…</span></div>
         <div class="menu-sep"></div>
+        <div class="menu-item" data-action="insert-table"><span>Table…</span></div>
+        <div class="menu-item" data-action="insert-link"><span>Link…</span></div>
+        <div class="menu-item" data-action="insert-special-char"><span>Special Character…</span></div>
+        <div class="menu-sep"></div>
         <div class="menu-item" data-action="insert-header"><span>Header (page top)</span></div>
         <div class="menu-item" data-action="insert-footer"><span>Footer (page bottom)</span></div>
       </div>
@@ -474,7 +478,7 @@
   <header>
     <div class="brand"><span class="dot"></span><b>CREATIVE MINDS</b><span class="tag">studio</span></div>
     <div class="top-actions">
-      <div id="wordBar" class="hidden" style="display:flex; gap:6px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line)">
+      <div id="wordBar" class="hidden" style="display:flex; gap:4px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line); flex-wrap:wrap">
         <select id="docBlock" style="width:auto;margin:0;padding:4px 8px;font-size:12px">
           <option value="p">Paragraph</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option>
         </select>
@@ -487,12 +491,22 @@
         <button class="tgl" onclick="docCmd('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
         <button class="tgl" onclick="docCmd('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
         <button class="tgl" onclick="docCmd('strikeThrough')" title="Strikethrough"><s>S</s></button>
+        <button class="tgl" onclick="docCmd('superscript')" title="Superscript" style="font-size:10px">x²</button>
+        <button class="tgl" onclick="docCmd('subscript')" title="Subscript" style="font-size:10px">x₂</button>
         <input type="color" id="docColor" value="#000000" style="width:28px;height:28px;border:none;background:none;cursor:pointer" title="Text Color">
+        <input type="color" id="docHighlight" value="#ffff00" style="width:28px;height:28px;border:none;background:none;cursor:pointer" title="Highlight Color">
         <button class="tgl" onclick="docCmd('insertUnorderedList')" title="Bullets">•</button>
         <button class="tgl" onclick="docCmd('insertOrderedList')" title="Numbers">1.</button>
-        <button class="tgl" onclick="docCmd('justifyLeft')">L</button>
-        <button class="tgl" onclick="docCmd('justifyCenter')">C</button>
-        <button class="tgl" onclick="docCmd('justifyRight')">R</button>
+        <button class="tgl" onclick="docCmd('justifyLeft')" title="Align Left">≡←</button>
+        <button class="tgl" onclick="docCmd('justifyCenter')" title="Align Center">≡</button>
+        <button class="tgl" onclick="docCmd('justifyRight')" title="Align Right">≡→</button>
+        <button class="tgl" onclick="docCmd('justifyFull')" title="Justify">≡≡</button>
+        <button class="tgl" onclick="docCmd('indent')" title="Increase Indent">→|</button>
+        <button class="tgl" onclick="docCmd('outdent')" title="Decrease Indent">|←</button>
+        <button class="tgl" onclick="insertTable()" title="Insert Table">▦</button>
+        <button class="tgl" onclick="insertLink()" title="Insert Link">🔗</button>
+        <button class="tgl" onclick="insertSpecialChar()" title="Special Characters">Ω</button>
+        <button class="tgl" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
       </div>
       <div id="sheetBar" class="hidden" style="display:flex; gap:6px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line)">
         <button class="tgl" onclick="sheetCmd('bold')" title="Bold"><b>B</b></button>
@@ -1251,6 +1265,48 @@ function getPos(e){ const r=preview.getBoundingClientRect(); return {x:(e.client
 
 /* ══ DOCUMENT ENGINE (WORD) ══════════════════════════ */
 function docCmd(cmd, val=null){ docLayer.focus(); if(cmd === 'foreColor') document.execCommand(cmd, false, val); else if(cmd === 'formatBlock') document.execCommand(cmd, false, `<${val}>`); else document.execCommand(cmd, false, null); }
+
+/* ── Insert Table ─────────────────────────────────── */
+function insertTable(){
+  const rows = parseInt(prompt('Number of rows?', '3') || '3');
+  const cols = parseInt(prompt('Number of columns?', '4') || '4');
+  if (!rows || !cols || rows > 50 || cols > 20) return;
+  docLayer.focus();
+  let html = '<table style="border-collapse:collapse;width:100%;margin:12px 0">';
+  html += '<thead><tr>';
+  for (let c = 0; c < cols; c++) html += `<th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;font-weight:600;text-align:left">Column ${c+1}</th>`;
+  html += '</tr></thead><tbody>';
+  for (let r = 0; r < rows; r++) {
+    html += '<tr>';
+    for (let c = 0; c < cols; c++) html += `<td style="border:1px solid #ccc;padding:6px 10px">&nbsp;</td>`;
+    html += '</tr>';
+  }
+  html += '</tbody></table><p><br></p>';
+  document.execCommand('insertHTML', false, html);
+  pushUndo('Insert table');
+}
+
+/* ── Insert Link ──────────────────────────────────── */
+function insertLink(){
+  const url = prompt('Enter URL (https://…):', 'https://') || '';
+  if (!url || !url.startsWith('http')) return;
+  const text = prompt('Link text (optional — uses selected text if empty):', '') || url;
+  docLayer.focus();
+  const linkHtml = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" style="color:#06b6d4;text-decoration:underline">${escapeHtml(text)}</a>`;
+  document.execCommand('insertHTML', false, linkHtml);
+  pushUndo('Insert link');
+}
+
+/* ── Insert Special Character ─────────────────────── */
+function insertSpecialChar(){
+  const chars = ['\u00a9','\u00ae','\u2122','\u20ac','\u00a3','\u00a5','\u00a2','\u00b0','\u00b1','\u00d7','\u00f7','\u2260','\u2264','\u2265','\u221e','\u221a','\u2211','\u222b','\u03c0','\u00b5','\u03a9','\u03b1','\u03b2','\u03b3','\u03b4','\u03b5','\u03b8','\u03bb','\u03c3','\u03c6','\u03c9','\u2192','\u2190','\u2191','\u2193','\u21d2','\u21d4','\u2022','\u00b7','\u2026','\u2014','\u2013','\u00ab','\u00bb','\u201c','\u201d','\u2018','\u2019','\u00a1','\u00bf','\u00a7','\u00b6','\u2020','\u2021','\u25cb','\u25e6','\u2611','\u2713','\u2717','\u2605','\u2606','\u266a','\u266b','\u2600','\u2601','\u2602','\u2744','\u2665','\u2666','\u2663','\u2660','\u2318','\u2325','\u21e7','\u2303'];
+  const display = chars.join('  ');
+  const input = prompt('Type or paste a character, or choose from:\n' + display, '\u00a9');
+  if (input) { docLayer.focus(); document.execCommand('insertText', false, input); }
+}
+
+/* ── Highlight color handler ──────────────────────── */
+document.getElementById('docHighlight').addEventListener('input', e => docCmd('hiliteColor', e.target.value));
 document.getElementById('docColor').addEventListener('input', e => docCmd('foreColor', e.target.value));
 document.getElementById('docBlock').addEventListener('change', e => docCmd('formatBlock', e.target.value));
 document.getElementById('docFont').addEventListener('change', e => document.execCommand('fontName', false, e.target.value));
@@ -1354,7 +1410,7 @@ function renderSheetTabs(){
   sheets.forEach((s, i) => { const tab = document.createElement('span'); tab.className = 'sheet-tab' + (i === currentSheet ? ' active' : ''); tab.textContent = s.name; tab.onclick = () => { currentSheet = i; renderSheet(); renderSheetTabs(); }; sheetTabs.insertBefore(tab, sheetTabs.firstChild); });
 }
 document.getElementById('sheetColor').addEventListener('input', e => { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheets[currentSheet].cells[k]) sheets[currentSheet].cells[k] = {v:''}; sheets[currentSheet].cells[k].style = sheets[currentSheet].cells[k].style || {}; sheets[currentSheet].cells[k].style.color = e.target.value; renderSheet(); });
-window.sheetCmd = sheetCmd; window.sheetRecalc = sheetRecalc; window.sheetApplyFormula = sheetApplyFormula; window.closeModal = closeModal; window.docCmd = docCmd;
+window.sheetCmd = sheetCmd; window.sheetRecalc = sheetRecalc; window.sheetApplyFormula = sheetApplyFormula; window.closeModal = closeModal; window.docCmd = docCmd; window.insertTable = insertTable; window.insertLink = insertLink; window.insertSpecialChar = insertSpecialChar;
 
 /* ══ VECTOR TEXT ENGINE ══════════════════════════════ */
 function applyTextTransform(text, transform){
@@ -2036,7 +2092,7 @@ const ACTIONS = {
   'view-zoom-in': viewZoomIn, 'view-zoom-out': viewZoomOut, 'view-zoom-fit': viewZoomFit, 'view-zoom-100': viewZoom100, 'view-toggle-rulers': viewToggleRulers, 'view-toggle-panel': viewTogglePanel, 'view-toggle-grid': viewToggleGrid,
   'image-page-size': () => openModal('pageSizeModal'), 'image-resize': () => openModal('imageResizeModal'), 'image-extend': () => openModal('canvasExtendModal'), 'image-rotate-90-cw': () => rotateCanvas(90), 'image-rotate-90-ccw': () => rotateCanvas(-90), 'image-rotate-180': () => rotateCanvas(180), 'image-bg-remove-chroma': () => { document.getElementById('bgMethodChroma').click(); openModal('bgRemoveModal'); }, 'image-bg-remove-wand': () => { document.getElementById('bgMethodWand').click(); openModal('bgRemoveModal'); },
   'layer-new': () => { pushUndo('New layer'); layers.splice(currentLayer + 1, 0, newLayer()); currentLayer++; renderLayerList(); composite(); }, 'layer-duplicate': () => { pushUndo('Duplicate layer'); const copy = newLayer(layers[currentLayer].name + ' copy'); copy.canvas = makeBlankCanvas(W, H); copy.canvas.getContext('2d').drawImage(layers[currentLayer].canvas, 0, 0); copy.opacity = layers[currentLayer].opacity; copy.blendMode = layers[currentLayer].blendMode; layers.splice(currentLayer + 1, 0, copy); currentLayer++; renderLayerList(); composite(); }, 'layer-delete': () => { if (layers.length <= 1) return; pushUndo('Delete layer'); layers.splice(currentLayer, 1); currentLayer = Math.max(0, currentLayer - 1); renderLayerList(); composite(); }, 'layer-merge-down': () => { if (currentLayer <= 0) return; pushUndo('Merge down'); const target = layers[currentLayer - 1]; const ctx = target.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layers[currentLayer].opacity; ctx.globalCompositeOperation = layers[currentLayer].blendMode || 'source-over'; ctx.drawImage(layers[currentLayer].canvas, 0, 0); ctx.restore(); layers.splice(currentLayer, 1); currentLayer--; renderLayerList(); composite(); }, 'layer-flatten': () => { pushUndo('Flatten'); const flat = newLayer('Background'); for (const layer of layers) { const ctx = flat.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layer.opacity; ctx.globalCompositeOperation = layer.blendMode || 'source-over'; ctx.drawImage(layer.canvas, 0, 0); ctx.restore(); } layers = [flat]; currentLayer = 0; renderLayerList(); composite(); }, 'layer-effect-shadow': () => openModal('shadowModal'), 'layer-effect-glow': () => openModal('shadowModal'), 'layer-effect-clear': () => { pushUndo('Clear effects'); layers[currentLayer].effect = null; composite(); },
-  'insert-image': insertImage, 'insert-text': insertText, 'insert-doc': insertDoc, 'insert-sheet': insertSheet, 'insert-rect': insertRect, 'insert-ellipse': insertEllipse, 'insert-line': insertLine, 'insert-gradient': insertGradient, 'insert-header': insertHeader, 'insert-footer': insertFooter,
+  'insert-image': insertImage, 'insert-text': insertText, 'insert-doc': insertDoc, 'insert-sheet': insertSheet, 'insert-rect': insertRect, 'insert-ellipse': insertEllipse, 'insert-line': insertLine, 'insert-gradient': insertGradient, 'insert-header': insertHeader, 'insert-footer': insertFooter, 'insert-table': () => { selectTool('doc'); insertTable(); }, 'insert-link': () => { selectTool('doc'); insertLink(); }, 'insert-special-char': () => { selectTool('doc'); insertSpecialChar(); },
   'tool-brush': () => selectTool('brush'), 'tool-eraser': () => selectTool('eraser'), 'tool-line': () => selectTool('line'), 'tool-rect': () => selectTool('rect'), 'tool-ellipse': () => selectTool('ellipse'), 'tool-gradient': () => selectTool('gradient'), 'tool-text': () => selectTool('text'), 'tool-doc': () => selectTool('doc'), 'tool-sheet': () => selectTool('sheet'), 'tool-transform': () => selectTool('transform'), 'tool-perspective': () => selectTool('perspective'), 'tool-crop': () => selectTool('crop'), 'tool-margins': () => selectTool('margins'), 'tool-picker': () => selectTool('picker'), 'tool-select': () => selectTool('select'),
   'help-shortcuts': helpShortcuts, 'help-about': helpAbout,
 };

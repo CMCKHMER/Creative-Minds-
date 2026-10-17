@@ -682,51 +682,51 @@ export function TeacherToolsPage({ onBackHome }: { onBackHome: () => void }) {
               </span>
             </div>
 
-            {/* Content below image */}
-            <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
-              {/* Icon block */}
-              <div className="flex shrink-0 items-center gap-3">
-                <span className="grid h-12 w-12 place-items-center rounded-xl border border-violet-200/30 bg-violet-200/10 text-violet-200">
-                  <Palette className="h-6 w-6" aria-hidden="true" />
-                </span>
-              </div>
-
-              {/* Copy */}
-              <div className="min-w-0 flex-1">
-                <h3 className="font-[var(--font-display)] text-lg font-bold tracking-tight text-white sm:text-xl">
-                  Creative Minds Studio
-                </h3>
-                <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-slate-400 sm:text-sm">
-                  A full browser-based creative editor — vector drawing, photo editing with layers + 16 blend modes,
-                  page size presets (A4 / Letter / Square / HD / Story / Banner), image warping, background removal,
-                  rich-text documents (Word-style) and spreadsheets (Excel-style with formulas), 14 popular fonts,
-                  photo filters + darkroom effects, and PDF export. No login, no server, no telemetry — everything
-                  runs locally and auto-saves every 30 seconds.
-                </p>
-
-                {/* Feature chips */}
-                <div className="mt-3 flex flex-wrap gap-1.5 text-[10px]">
-                  <span className="inline-flex items-center gap-1 rounded-md border border-violet-200/20 bg-violet-200/[0.05] px-2 py-1 font-semibold text-violet-100">
-                    <Layers className="h-3 w-3" /> Layers + blend modes
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-md border border-cyan-200/20 bg-cyan-200/[0.05] px-2 py-1 font-semibold text-cyan-100">
-                    <FileImage className="h-3 w-3" /> PNG · JPG · SVG · PDF
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-md border border-amber-200/20 bg-amber-200/[0.05] px-2 py-1 font-semibold text-amber-100">
-                    <Palette className="h-3 w-3" /> 14 fonts + filters
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200/20 bg-emerald-200/[0.05] px-2 py-1 font-semibold text-emerald-100">
-                    Word + Excel modes
-                  </span>
+            {/* Content below image — tools & customization grid (no duplicate title) */}
+            <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 lg:grid-cols-4">
+              {[
+                { icon: Layers, label: 'Layers + 16 blend modes', color: 'violet' },
+                { icon: FileImage, label: 'PNG · JPG · SVG · PDF', color: 'cyan' },
+                { icon: Palette, label: '14 fonts + letter spacing', color: 'amber' },
+                { label: 'Word + Excel modes', color: 'emerald' },
+                { label: 'Photo filters + grain', color: 'rose' },
+                { label: 'Background removal', color: 'sky' },
+                { label: 'Image move + resize', color: 'teal' },
+                { label: 'Header + Footer', color: 'indigo' },
+                { label: 'Page size presets', color: 'orange' },
+                { label: 'Margins + guides', color: 'lime' },
+                { label: 'Insert tables', color: 'pink' },
+                { label: 'Link pasting', color: 'purple' },
+              ].map((item, i) => {
+              const Icon = item.icon;
+              const colorMap: Record<string, string> = {
+                violet: 'border-violet-200/20 bg-violet-200/[0.05] text-violet-100',
+                cyan: 'border-cyan-200/20 bg-cyan-200/[0.05] text-cyan-100',
+                amber: 'border-amber-200/20 bg-amber-200/[0.05] text-amber-100',
+                emerald: 'border-emerald-200/20 bg-emerald-200/[0.05] text-emerald-100',
+                rose: 'border-rose-200/20 bg-rose-200/[0.05] text-rose-100',
+                sky: 'border-sky-200/20 bg-sky-200/[0.05] text-sky-100',
+                teal: 'border-teal-200/20 bg-teal-200/[0.05] text-teal-100',
+                indigo: 'border-indigo-200/20 bg-indigo-200/[0.05] text-indigo-100',
+                orange: 'border-orange-200/20 bg-orange-200/[0.05] text-orange-100',
+                lime: 'border-lime-200/20 bg-lime-200/[0.05] text-lime-100',
+                pink: 'border-pink-200/20 bg-pink-200/[0.05] text-pink-100',
+                purple: 'border-purple-200/20 bg-purple-200/[0.05] text-purple-100',
+              };
+              return (
+                <div key={i} className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-[10px] font-semibold ${colorMap[item.color] || colorMap.violet}`}>
+                  {Icon && <Icon className="h-3 w-3" />}
+                  {item.label}
                 </div>
-              </div>
+              );
+              })}
+            </div>
 
-              {/* CTA */}
-              <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-300 to-indigo-300 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-[0_8px_24px_-10px_rgba(139,92,246,.6)] transition group-hover:-translate-y-0.5">
-                  Open Studio <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                </span>
-              </div>
+            {/* CTA */}
+            <div className="flex items-center justify-center gap-2 p-4 border-t border-white/8">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-300 to-indigo-300 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-[0_8px_24px_-10px_rgba(139,92,246,.6)] transition group-hover:-translate-y-0.5">
+                Open Studio <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
             </div>
           </a>
         </Reveal>
