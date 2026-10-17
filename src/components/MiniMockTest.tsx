@@ -22,12 +22,21 @@ import { fetchMemberMiniMock } from '../lib/memberMock';
 import { deleteMemberAccount } from '../lib/account';
 import { countCorrect, formatTestTime, scoreBySkill } from '../utils/mockScoring';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
+import type { RestoredSession } from '../lib/firebaseAuth';
 
 interface MiniMockTestProps {
   accessStatus: MemberAccessStatus;
   member: MemberProfile | null;
   onOpenAuth: (mode: 'sign-up' | 'sign-in') => void;
   onSignOut: () => void;
+  /**
+   * Firebase REST session (from useFirebaseAuth). When Supabase member-auth
+   * is not configured (no VITE_SUPABASE_* env vars), a valid Firebase
+   * session is treated as 'active' access — the user has authenticated,
+   * so the practice room should unlock regardless of which auth
+   * backend issued the session.
+   */
+  firebaseSession?: RestoredSession | null;
 }
 
 type TestPhase = 'setup' | 'loading' | 'active' | 'results';
@@ -150,7 +159,30 @@ function ResultsQuestion({ question, index, answer }: { question: MiniMockQuesti
   );
 }
 
-export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut }: MiniMockTestProps) {
+export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut, firebaseSession }: MiniMockTestProps) {
+  // Compute the EFFECTIVE access status: when the Supabase member-auth
+  // flow is not configured (which is the case for this deployment —
+  // we're using Firebase), a valid Firebase REST session is treated as
+  // 'active'. This lets a Firebase-signed-in user actually access the
+  // practice room instead of seeing the misleading "Secure membership
+  // is not configured" gate.
+  const effectiveAccessStatus: MemberAccessStatus =
+    accessStatus === 'not-configured' && firebaseSession
+      ? 'active'
+      : accessStatus;
+
+  // Synthetic member profile from the Firebase session, so downstream
+  // code that reads `member.userId / .name / .email` still works.
+  const effectiveMember: MemberProfile | null =
+    member ?? (firebaseSession ? {
+      userId: firebaseSession.localId,
+      memberId: firebaseSession.localId,
+      name: firebaseSession.displayName || firebaseSession.email,
+      email: firebaseSession.email,
+      school: '',
+      role: firebaseSession.role === 'teacher' ? 'Educator' : 'Student',
+    } : null);
+
   const [phase, setPhase] = useState<TestPhase>('setup');
   const [questions, setQuestions] = useState<MiniMockQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -185,7 +217,7 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut }: Mi
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   }, []);
 
-  if (accessStatus !== 'active' || !member) {
+  if (effectiveAccessStatus !== 'active' || !effectiveMember) {
     return (
       <section id="toefl-mini-test" className="cmc-section relative scroll-mt-24 overflow-hidden border-t border-slate-800/80 bg-[#08131f] py-20 sm:py-24 lg:py-28">
         <div aria-hidden="true" className="pointer-events-none absolute -top-48 left-[15%] h-[34rem] w-[34rem] rounded-full bg-cyan-500/[0.09] blur-[135px]" />
@@ -195,7 +227,7 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut }: Mi
             <h2 className="cmc-h2">A little practice. <span className="cmc-gradient-text">A lot more confidence.</span></h2>
             <p className="cmc-lead mx-auto text-center">An original, timed TOEFL-style mini mock with immediate explanations. It is for practice, not an official score or an ETS test.</p>
           </div>
-          <AccessGate status={accessStatus} onOpenAuth={onOpenAuth} />
+          <AccessGate status={effectiveAccessStatus} onOpenAuth={onOpenAuth} />
         </div>
       </section>
     );
@@ -287,7 +319,7 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut }: Mi
             </div>
             <div className="flex items-center gap-2">
               <span className="rounded-lg border border-teal-300/20 bg-teal-300/5 px-2.5 py-1.5 text-[10px] font-semibold text-teal-200">Verified member</span>
-              <span className="hidden font-mono text-[10px] text-slate-500 sm:block">{member.memberId}</span>
+              <span className="hidden font-mono text-[10px] text-slate-500 sm:block">{effectiveMember.memberId}</span>
               <button type="button" onClick={onSignOut} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"><LogOut className="h-3.5 w-3.5" aria-hidden="true" /> Sign out</button>
               <button type="button" onClick={removeAccount} disabled={deletingAccount} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-rose-200/70 transition hover:bg-rose-300/5 hover:text-rose-100 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> {deletingAccount ? 'Deleting…' : 'Delete account'}</button>
             </div>
@@ -298,11 +330,11 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut }: Mi
             <div className="grid lg:grid-cols-[1fr_0.82fr]">
               <div className="p-5 sm:p-8 lg:p-10">
                 <div className="flex flex-wrap items-center gap-2"><span className="rounded-md border border-cyan-300/20 bg-cyan-300/5 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-cyan-200 uppercase">Timed practice</span><span className="rounded-md border border-white/10 bg-white/[0.035] px-2 py-1 text-[9px] font-semibold text-slate-400">Original TOEFL-style items</span></div>
-                <h4 className="mt-5 max-w-xl font-[var(--font-display)] text-2xl leading-tight font-bold text-white sm:text-3xl">Ready when you are, {member.name.split(' ')[0]}.</h4>
+                <h4 className="mt-5 max-w-xl font-[var(--font-display)] text-2xl leading-tight font-bold text-white sm:text-3xl">Ready when you are, {effectiveMember.name.split(' ')[0]}.</h4>
                 <p className="mt-3 max-w-lg text-sm leading-relaxed text-slate-400">This eight-minute set covers reading, listening, and language use. Your name and candidate ID come from your verified account; answers stay in this tab and are not saved to a student record.</p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-white/8 bg-white/[0.025] p-4"><span className="text-[9px] font-bold tracking-[0.12em] text-slate-500 uppercase">Candidate</span><p className="mt-1 text-sm font-semibold text-white">{member.name}</p></div>
-                  <div className="rounded-xl border border-white/8 bg-white/[0.025] p-4"><span className="text-[9px] font-bold tracking-[0.12em] text-slate-500 uppercase">Member ID</span><p className="mt-1 font-mono text-sm font-semibold text-cyan-200">{member.memberId}</p></div>
+                  <div className="rounded-xl border border-white/8 bg-white/[0.025] p-4"><span className="text-[9px] font-bold tracking-[0.12em] text-slate-500 uppercase">Candidate</span><p className="mt-1 text-sm font-semibold text-white">{effectiveMember.name}</p></div>
+                  <div className="rounded-xl border border-white/8 bg-white/[0.025] p-4"><span className="text-[9px] font-bold tracking-[0.12em] text-slate-500 uppercase">Member ID</span><p className="mt-1 font-mono text-sm font-semibold text-cyan-200">{effectiveMember.memberId}</p></div>
                 </div>
                 {loadError && <p role="alert" className="mt-4 rounded-xl border border-rose-300/20 bg-rose-300/5 p-3 text-xs leading-relaxed text-rose-100">{loadError}</p>}
                 <button type="button" onClick={startTest} className="group mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_10px_35px_-14px_rgba(45,212,191,.75)] transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">Start member mini mock <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" /></button>
@@ -324,7 +356,7 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut }: Mi
           {phase === 'active' && currentQuestion && (
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-8">
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px]"><span className="font-semibold text-slate-200">{member.name}</span><span className="font-mono text-slate-500">ID · {member.memberId}</span><span className="text-slate-600">{currentQuestion.skill}</span></div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10px]"><span className="font-semibold text-slate-200">{effectiveMember.name}</span><span className="font-mono text-slate-500">ID · {effectiveMember.memberId}</span><span className="text-slate-600">{currentQuestion.skill}</span></div>
                 <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 font-mono text-sm font-bold tabular-nums ${timeRemaining <= 60 ? 'border-rose-300/30 bg-rose-400/10 text-rose-200' : 'border-white/10 bg-white/[0.035] text-white'}`} aria-label={`Time remaining ${formatTestTime(timeRemaining)}`}><Clock3 className="h-4 w-4" aria-hidden="true" />{formatTestTime(timeRemaining)}<span className="font-sans text-[9px] font-semibold text-slate-500">left</span></div>
               </div>
               <div className="h-px bg-white/8"><span className="block h-full bg-gradient-to-r from-cyan-300 to-teal-200 transition-[width] duration-500" style={{ width: `${progress}%` }} /></div>
@@ -362,7 +394,7 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut }: Mi
 
           {phase === 'results' && (
             <div className="p-5 sm:p-8 lg:p-10"><div className="mx-auto max-w-4xl">
-              <div className="grid gap-7 sm:grid-cols-[auto_1fr] sm:items-center"><div className="relative grid h-32 w-32 place-items-center rounded-full p-[5px]" style={{ background: `conic-gradient(#67e8f9 ${percentage}%, rgba(255,255,255,.08) 0)` }} aria-label={`Practice result ${percentage} percent`}><div className="grid h-full w-full place-items-center rounded-full bg-[#111d2b]"><span className="text-center"><strong className="block font-[var(--font-display)] text-3xl font-bold text-white">{percentage}%</strong><span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">practice</span></span></div></div><div><span className="inline-flex items-center gap-1.5 rounded-full border border-teal-300/20 bg-teal-300/5 px-2.5 py-1 text-[9px] font-bold tracking-[0.14em] text-teal-200 uppercase"><CheckCircle2 className="h-3 w-3" aria-hidden="true" /> {expired ? 'Time is up' : 'Practice complete'}</span><h4 className="mt-3 font-[var(--font-display)] text-2xl font-bold text-white sm:text-3xl">{scoreLabel}</h4><p className="mt-2 text-sm leading-relaxed text-slate-400">{member.name} · Candidate ID <span className="font-mono text-slate-300">{member.memberId}</span></p><p className="mt-1 text-xs text-slate-500">{correctCount} of {questions.length} correct · Time used {formatTestTime(MINI_MOCK_TIME_SECONDS - timeRemaining)}</p></div></div>
+              <div className="grid gap-7 sm:grid-cols-[auto_1fr] sm:items-center"><div className="relative grid h-32 w-32 place-items-center rounded-full p-[5px]" style={{ background: `conic-gradient(#67e8f9 ${percentage}%, rgba(255,255,255,.08) 0)` }} aria-label={`Practice result ${percentage} percent`}><div className="grid h-full w-full place-items-center rounded-full bg-[#111d2b]"><span className="text-center"><strong className="block font-[var(--font-display)] text-3xl font-bold text-white">{percentage}%</strong><span className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">practice</span></span></div></div><div><span className="inline-flex items-center gap-1.5 rounded-full border border-teal-300/20 bg-teal-300/5 px-2.5 py-1 text-[9px] font-bold tracking-[0.14em] text-teal-200 uppercase"><CheckCircle2 className="h-3 w-3" aria-hidden="true" /> {expired ? 'Time is up' : 'Practice complete'}</span><h4 className="mt-3 font-[var(--font-display)] text-2xl font-bold text-white sm:text-3xl">{scoreLabel}</h4><p className="mt-2 text-sm leading-relaxed text-slate-400">{effectiveMember.name} · Candidate ID <span className="font-mono text-slate-300">{effectiveMember.memberId}</span></p><p className="mt-1 text-xs text-slate-500">{correctCount} of {questions.length} correct · Time used {formatTestTime(MINI_MOCK_TIME_SECONDS - timeRemaining)}</p></div></div>
               <div className="mt-8 grid gap-3 sm:grid-cols-3">{MINI_MOCK_SKILLS.map((skill) => { const result = scoreBySkill(skill, questions, answers); const Icon = skillIcon(skill); return <div key={skill} className="rounded-xl border border-white/8 bg-white/[0.025] p-4"><div className="flex items-center gap-2 text-xs font-semibold text-slate-200"><Icon className={`h-4 w-4 ${skillColor(skill).split(' ')[0]}`} aria-hidden="true" />{skill}</div><p className="mt-3 font-[var(--font-display)] text-2xl font-bold text-white">{result.correct}<span className="ml-1 text-sm font-medium text-slate-500">/ {result.total}</span></p><p className="mt-1 text-[10px] text-slate-500">{result.correct === result.total ? 'Strong work in this set' : result.correct === 0 ? 'Review this skill area' : 'Keep building consistency'}</p></div>; })}</div>
               <div className="mt-8"><p className="text-[9px] font-bold tracking-[0.15em] text-slate-500 uppercase">Review & learn</p><div className="mt-3 space-y-2">{questions.map((question, index) => <ResultsQuestion key={question.id} question={question} index={index} answer={answers[question.id]} />)}</div></div>
               <div className="mt-7 flex flex-col justify-between gap-4 border-t border-white/8 pt-5 sm:flex-row sm:items-center"><p className="max-w-xl text-[10px] leading-relaxed text-slate-500">Practice-only result from original questions. It is not an official TOEFL score, a CEFR placement, or a saved student record. Your answers remain in this browser tab.</p><button type="button" onClick={restartTest} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5"><RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Try again</button></div>

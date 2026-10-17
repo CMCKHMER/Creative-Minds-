@@ -25,6 +25,7 @@ import { LMSCard } from './components/LMSCard';
 import { FirebaseDashboard } from './components/FirebaseDashboard';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
+import { useFirebaseAuth } from './hooks/useFirebaseAuth';
 import { supabase } from './lib/supabase';
 import { TickerBanner } from './components/TickerBanner';
 
@@ -41,6 +42,12 @@ export function App() {
   const [studentDemoModalOpen, setStudentDemoModalOpen] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<'sign-up' | 'sign-in'>('sign-up');
   const memberAuth = useMemberAuth();
+  // Firebase REST session — used as a fallback for the MiniMockTest
+  // access gate when Supabase member-auth is not configured (which is the
+  // case for this deployment). Without this, a Firebase-signed-in user
+  // sees the misleading "Secure membership is not configured" gate even
+  // though they're fully authenticated.
+  const firebaseAuth = useFirebaseAuth();
   const [isGamesPage, setIsGamesPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#games');
   const [isTeacherToolsPage, setIsTeacherToolsPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#teacher-tools');
   const [isNewsPage, setIsNewsPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#news');
@@ -218,9 +225,10 @@ export function App() {
 
         {/* Member-gated timed TOEFL-style mini mock */}
         <MiniMockTest
-          key={memberAuth.member?.userId ?? 'guest'}
+          key={memberAuth.member?.userId ?? firebaseAuth.session?.localId ?? 'guest'}
           accessStatus={memberAuth.status}
           member={memberAuth.member}
+          firebaseSession={firebaseAuth.session}
           onOpenAuth={openMemberAuth}
           onSignOut={handleMemberSignOut}
         />

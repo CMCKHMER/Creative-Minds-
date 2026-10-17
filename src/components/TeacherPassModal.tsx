@@ -163,7 +163,9 @@ export const TeacherPassModal = ({
       });
       setActiveSession(session);
       setMode('authenticated');
-      setMessage('Signed in. Member features are now unlocked across the site.');
+      setMessage(session.role === 'teacher'
+        ? 'Teacher access unlocked — answer keys, teacher tools, and the practice room are now available.'
+        : 'Student access unlocked — worksheets, drills, and your score history are now available.');
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
     } catch (e) {
       const authErr = e as FirebaseAuthError;
@@ -337,7 +339,12 @@ export const TeacherPassModal = ({
 
         {mode === 'authenticated' && (
           <div className="mt-5 rounded-xl border border-cyan-200/20 bg-cyan-100/5 p-4">
-            <CheckCircle2 className="h-5 w-5 text-cyan-200" aria-hidden="true" />
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-cyan-200" aria-hidden="true" />
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${activeSession?.role === 'teacher' ? 'bg-emerald-300/15 text-emerald-200' : 'bg-cyan-300/15 text-cyan-200'}`}>
+                {activeSession?.role === 'teacher' ? 'Teacher account' : 'Student account'}
+              </span>
+            </div>
             <p className="mt-3 text-sm font-semibold text-white">{activeSession?.email ? `Signed in as ${activeSession.email}.` : 'Account session established.'}</p>
             <p className="mt-2 text-xs leading-relaxed text-slate-300">
               {message || (activeSession?.emailVerified
