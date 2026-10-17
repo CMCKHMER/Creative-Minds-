@@ -109,6 +109,10 @@ export function App() {
       scrollToSection('gep-isec');
     } else if (toolId === 'teacher-tools') {
       openTeacherToolsPage();
+    } else if (toolId === 'cm-studio') {
+      // Studio is a static page at /studio/ — open in a new tab so users
+      // keep their place on the CMC homepage.
+      window.open('./studio/', '_blank', 'noopener,noreferrer');
     } else if (toolId === 'cambodia-news') {
       openNewsPage();
     } else if (toolId === 'pre-kid' || toolId === 'chinese-language') {
