@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Dice3, Dice5, Plus, RefreshCw, RotateCcw, Sparkles, X, Palette, ExternalLink, Layers, FileImage } from 'lucide-react';
 import { trackDiceRoll, trackWheelSpin } from '../lib/analytics';
 import { Reveal } from './Reveal';
+import { RoleGate } from './RoleGate';
 
 /* =========================================================================
    3D DICE ROLLER — compact UI
@@ -557,7 +558,7 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
    FULL TEACHER TOOLS PAGE — dedicated #teacher-tools route
    ========================================================================= */
 
-export function TeacherToolsPage({ onBackHome }: { onBackHome: () => void }) {
+export function TeacherToolsPage({ onBackHome, onOpenAuth }: { onBackHome: () => void; onOpenAuth?: () => void }) {
   return (
     <main className="min-h-screen overflow-hidden bg-[#070d17] text-slate-100">
       {/* Sticky top bar — matches LearningGamesPage */}
@@ -581,6 +582,9 @@ export function TeacherToolsPage({ onBackHome }: { onBackHome: () => void }) {
         </div>
       </div>
 
+      {/* Auth gate — teacher-only. Non-teachers see a sign-in prompt.
+          The top bar stays visible so they can navigate back. */}
+      <RoleGate onOpenAuth={onOpenAuth} variant="full">
       {/* Hero band */}
       <section className="relative isolate overflow-hidden border-b border-white/8">
         <div
@@ -741,6 +745,7 @@ export function TeacherToolsPage({ onBackHome }: { onBackHome: () => void }) {
           </span>
         </p>
       </section>
+      </RoleGate>
     </main>
   );
 }

@@ -171,6 +171,25 @@ body{
 <a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
     <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
 </a>
+<script id="cmc-role-gate">
+/* CMC role indicator — shows Teacher mode / Student mode badge */
+(function(){
+  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
+  catch(e) { window.CMC_IS_TEACHER = false; }
+  document.addEventListener('DOMContentLoaded', function(){
+    var b = document.createElement('div');
+    if (window.CMC_IS_TEACHER) {
+      b.textContent = '🎓 Teacher mode';
+      b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(52,211,153,0.12);color:#6ee7b7;border:1px solid rgba(52,211,153,0.35);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+    } else {
+      b.textContent = 'Student mode';
+      b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(34,211,238,0.10);color:#67e8f9;border:1px solid rgba(34,211,238,0.30);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+    }
+    document.body.appendChild(b);
+  });
+})();
+</script>
+
 
 <div class="bg-grid"></div>
 <div class="container">

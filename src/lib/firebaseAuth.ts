@@ -167,6 +167,34 @@ interface StoredProfile {
   role?: string;
 }
 
+/**
+ * Detect role from email domain. Per the user's rule:
+ *   - Email domain contains "edu" (e.g., `.edu.kh`, `.edu`, `education.*`)
+ *     → teacher
+ *   - Anything else → student
+ *
+ * Examples:
+ *   teacher@school.edu.kh → teacher
+ *   teacher@university.edu → teacher
+ *   jane@gmail.com → student
+ *   john@example.com → student
+ *
+ * This is a soft check — the role is also persisted to Firestore
+ * `users/{uid}.role` so the server has the authoritative record.
+ */
+export function detectRoleFromEmail(email: string): 'teacher' | 'student' {
+  const domain = (email.split('@')[1] || '').toLowerCase();
+  if (!domain) return 'student';
+  // Domain contains "edu" anywhere → teacher.
+  // Catches `.edu`, `.edu.kh`, `.edu.au`, `education.*`, etc.
+  return domain.includes('edu') ? 'teacher' : 'student';
+}
+
+/** Check whether an email is acceptable for a teacher signup. */
+export function isTeacherEmail(email: string): boolean {
+  return detectRoleFromEmail(email) === 'teacher';
+}
+
 function profileKey(localId: string): string {
   return `cmc-profile:${localId}`;
 }
@@ -182,10 +210,14 @@ function loadStoredProfile(localId: string): StoredProfile {
 
 function persistSession(session: FirebaseSession, profile: StoredProfile): void {
   try {
+    // Auto-detect role from email if not explicitly provided. This is the
+    // canonical rule: email domain contains "edu" → teacher, else student.
+    const role = profile.role || detectRoleFromEmail(session.email);
     localStorage.setItem('cmc-student-token', session.idToken);
     localStorage.setItem('cmc-student-name', session.displayName || profile.displayName || session.email);
     localStorage.setItem('cmc-student-uid', session.localId);
     localStorage.setItem('cmc-student-email', session.email);
+    localStorage.setItem('cmc-student-role', role);
     localStorage.setItem('cmc-student-token-expires', String(session.expiresAt));
     localStorage.setItem('cmc-student-verified', session.emailVerified ? '1' : '0');
     localStorage.setItem(
@@ -193,7 +225,7 @@ function persistSession(session: FirebaseSession, profile: StoredProfile): void 
       JSON.stringify({
         displayName: profile.displayName || session.displayName || undefined,
         school: profile.school,
-        role: profile.role,
+        role,
       }),
     );
   } catch {
@@ -208,6 +240,7 @@ export function clearPersistedSession(): void {
     localStorage.removeItem('cmc-student-name');
     localStorage.removeItem('cmc-student-uid');
     localStorage.removeItem('cmc-student-email');
+    localStorage.removeItem('cmc-student-role');
     localStorage.removeItem('cmc-student-token-expires');
     localStorage.removeItem('cmc-student-verified');
     if (uid) localStorage.removeItem(profileKey(uid));
@@ -223,6 +256,7 @@ export interface RestoredSession {
   displayName: string;
   emailVerified: boolean;
   isExpired: boolean;
+  role: 'teacher' | 'student';
 }
 
 export function restoreSession(): RestoredSession | null {
@@ -235,6 +269,10 @@ export function restoreSession(): RestoredSession | null {
     const emailVerified = localStorage.getItem('cmc-student-verified') === '1';
     const expiresAtRaw = localStorage.getItem('cmc-student-token-expires');
     const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0;
+    // Prefer the stored role; fall back to detecting from the email so the
+    // session is correct even if the role was added in a later release.
+    const storedRole = localStorage.getItem('cmc-student-role') as 'teacher' | 'student' | null;
+    const role = storedRole || detectRoleFromEmail(email);
     return {
       idToken,
       localId,
@@ -242,6 +280,7 @@ export function restoreSession(): RestoredSession | null {
       displayName,
       emailVerified,
       isExpired: expiresAt > 0 && Date.now() >= expiresAt,
+      role,
     };
   } catch {
     return null;

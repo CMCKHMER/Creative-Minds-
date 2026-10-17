@@ -74,6 +74,65 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-im
 <a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
     <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
 </a>
+<script id="cmc-role-gate">
+/* Teacher / student role gating — injected by scripts/gate_worksheet_keys.py */
+(function(){
+  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
+  catch(e) { window.CMC_IS_TEACHER = false; }
+
+  function addBadge(text, color, bgColor, borderColor) {
+    var b = document.createElement('div');
+    b.textContent = text;
+    b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:'+bgColor+';color:'+color+';border:1px solid '+borderColor+';backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+    document.body.appendChild(b);
+    return b;
+  }
+
+  function dimGateButtons() {
+    var btns = document.querySelectorAll('[data-cmc-gated]');
+    btns.forEach(function(btn){
+      btn.style.opacity = '0.55';
+      btn.style.cursor = 'not-allowed';
+      btn.title = 'Teachers only — sign in with an .edu.kh or .edu email';
+      var badge = document.createElement('span');
+      badge.textContent = '🔒 Teachers only';
+      badge.style.cssText = 'display:inline-block;margin-left:8px;font-size:10px;font-weight:600;color:#fbbf24;background:rgba(251,191,36,0.12);padding:2px 7px;border-radius:5px;border:1px solid rgba(251,191,36,0.35);vertical-align:middle';
+      // Append after the button
+      if (btn.parentNode) btn.parentNode.insertBefore(badge, btn.nextSibling);
+    });
+  }
+
+  window.cmcTeacherOnlyPrompt = function(btn) {
+    // Inline prompt — non-blocking, no alert()
+    var existing = document.getElementById('cmc-teacher-prompt');
+    if (existing) { existing.remove(); return; }
+    var p = document.createElement('div');
+    p.id = 'cmc-teacher-prompt';
+    p.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99996;max-width:420px;width:calc(100% - 32px);background:rgba(13,19,35,0.97);border:1px solid rgba(251,191,36,0.4);border-radius:14px;padding:24px;color:#f1f5f9;font-family:Inter,sans-serif;box-shadow:0 30px 90px rgba(0,0,0,0.65);backdrop-filter:blur(12px);';
+    p.innerHTML = '' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">' +
+        '<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(251,191,36,0.12);color:#fbbf24;font-size:16px">🔒</span>' +
+        '<strong style="font-size:14px;color:#fbbf24">Answer keys are reserved for teachers</strong>' +
+      '</div>' +
+      '<p style="font-size:12.5px;line-height:1.6;color:#cbd5e1;margin:0 0 12px">To reveal the key, sign in with a work email containing <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">edu</code> — for example <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">you@school.edu.kh</code> or <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">you@university.edu</code>. Students can take worksheets and see their scores, but answer keys stay locked.</p>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+        '<a href=\"https://cmckhmer.github.io/Creative-Minds-/#toefl-mini-test\" style=\"display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,#fbbf24,#fcd34d);color:#041018;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none\">Sign in as teacher →</a>' +
+        '<button onclick=\"this.parentElement.parentElement.remove()\" style=\"background:transparent;border:1px solid rgba(255,255,255,0.1);color:#94a3b8;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer\">Close</button>' +
+      '</div>';
+    document.body.appendChild(p);
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    if (window.CMC_IS_TEACHER) {
+      addBadge('🎓 Teacher mode — keys visible', '#6ee7b7', 'rgba(52,211,153,0.12)', 'rgba(52,211,153,0.35)');
+    } else {
+      addBadge('Student mode — keys locked', '#67e8f9', 'rgba(34,211,238,0.10)', 'rgba(34,211,238,0.30)');
+      dimGateButtons();
+    }
+  });
+})();
+</script>
+
 
 <div class="bg-grid"></div>
 <div class="container">
@@ -190,7 +249,7 @@ function loadUnit(){
     <div class="passage-card">${html}</div>
     <div class="action-row">
       <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
-      <button class="btn btn-key" onclick="showKey()">Show Key</button>
+      <button class="btn btn-key" data-cmc-gated="showKey" onclick="if(window.CMC_IS_TEACHER){showKey()}else{cmcTeacherOnlyPrompt(this)}">Show Key</button>
       <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
       <button class="btn btn-print" onclick="printPDF()">⎙ Print / Save PDF</button>
       <button class="btn btn-reset" onclick="loadUnit()">Reset</button>

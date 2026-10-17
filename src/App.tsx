@@ -145,7 +145,7 @@ export function App() {
 
     if (isTeacherToolsPage) return (
     <Suspense fallback={null}>
-      <TeacherToolsPage onBackHome={returnHome} />
+      <TeacherToolsPage onBackHome={returnHome} onOpenAuth={() => openMemberAuth('sign-up')} />
     </Suspense>
   );
 
