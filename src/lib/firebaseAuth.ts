@@ -30,6 +30,14 @@ export interface FirebaseSession {
   emailVerified: boolean;
   expiresIn: number; // seconds until idToken expires
   expiresAt: number; // epoch ms when idToken expires
+  /**
+   * Role — populated by signUpWithEmail / signInWithEmail after the
+   * session is persisted to localStorage. Auto-detected from the email
+   * domain (contains "edu" → 'teacher', else 'student'). Callers should
+   * prefer `session.role` for UI affordances; `restoreSession()` is the
+   * canonical source for non-React code.
+   */
+  role?: 'teacher' | 'student';
 }
 
 interface RawAuthResponse {
@@ -176,7 +184,14 @@ export async function signUpWithEmail(input: SignUpInput): Promise<FirebaseSessi
   // Send email verification (non-blocking — the user can still sign in
   // immediately, but won't be "verified" until they click the link).
   void sendEmailVerification(session.idToken).catch(() => {});
-  return session;
+  // Return a session enriched with the role we just persisted to
+  // localStorage. FirebaseSession itself doesn't include role (it's a
+  // Firebase-REST-API type), but callers (TeacherPassModal, useFirebaseAuth)
+  // read `session.role` to decide which success message + badge to show.
+  // restoreSession() returns the canonical role — from localStorage if
+  // we set it, otherwise auto-detected from the email domain.
+  const restored = restoreSession();
+  return restored ? { ...session, role: restored.role } : session;
 }
 
 export interface SignInInput {
@@ -193,7 +208,10 @@ export async function signInWithEmail(input: SignInInput): Promise<FirebaseSessi
   // Load any previously saved profile fields from localStorage.
   const profile = loadStoredProfile(session.localId);
   persistSession(session, profile);
-  return session;
+  // Enrich the returned session with the role (see signUpWithEmail for
+  // the full explanation — FirebaseSession itself doesn't include role).
+  const restored = restoreSession();
+  return restored ? { ...session, role: restored.role } : session;
 }
 
 export async function sendEmailVerification(idToken: string): Promise<void> {
