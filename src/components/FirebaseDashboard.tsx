@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Activity, RefreshCw } from 'lucide-react';
 import { useMemberAuth } from '../hooks/useMemberAuth';
 import { useStudentAuth } from '../hooks/useStudentAuth';
+import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
 import { db } from '../lib/firebase';
 import { listTeacherClasses, listTeacherAttempts, createClass } from '../lib/firebaseDb';
 import { StudentAuthModal } from './StudentAuthModal';
@@ -9,6 +10,11 @@ import { StudentAuthModal } from './StudentAuthModal';
 export function FirebaseDashboard() {
   const memberAuth = useMemberAuth();
   const studentAuth = useStudentAuth();
+  // REST-based session (used by TeacherPassModal — the hero "Create a
+  // teacher account" button). This writes to localStorage, not to the
+  // Firebase SDK's session state, so without this hook the dashboard
+  // would not recognize a user who signed in via the hero button.
+  const firebaseAuth = useFirebaseAuth();
   const [classes, setClasses] = useState<any[]>([]);
   const [attempts, setAttempts] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
@@ -20,9 +26,21 @@ export function FirebaseDashboard() {
   const [newClassProgram, setNewClassProgram] = useState('GEP');
   const [newClassGrade, setNewClassGrade] = useState('');
 
-  const isTeacher = memberAuth.status === 'active';
-  const isStudent = studentAuth.status === 'signed-in';
+  // A user is recognized as a teacher if EITHER the Supabase member-auth
+  // flow (old TeacherPassModal path) OR the Firebase REST flow (new
+  // TeacherPassModal path) sees them as a teacher. Same for student —
+  // either the Firebase SDK onAuthStateChanged OR the REST localStorage
+  // session counts.
+  const isTeacher = memberAuth.status === 'active' || (firebaseAuth.isTeacher && !!firebaseAuth.session);
+  const isStudent = studentAuth.status === 'signed-in' || (firebaseAuth.isStudent && !!firebaseAuth.session);
   const firebaseReady = db !== null;
+
+  // Display name + email for the badge — prefer whichever auth source has data.
+  const signedInDisplayName = studentAuth.student?.displayName
+    || firebaseAuth.session?.displayName
+    || firebaseAuth.session?.email
+    || 'Student';
+  const signedInEmail = firebaseAuth.session?.email || studentAuth.student?.email;
 
   const loadData = async () => {
     if (!firebaseReady) { setLoading(false); return; }
@@ -104,18 +122,46 @@ export function FirebaseDashboard() {
               <span className="cmc-gradient-text">Powered by Firebase.</span>
             </h2>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             {isTeacher && (
               <button onClick={() => setShowCreateClass(true)} className="rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2.5 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5">
                 + Create Class
               </button>
             )}
-            {/* Note: not-signed-in users get their sign-in CTA in the body
-                card below — no button here to avoid the 3-buttons redundancy. */}
-            {isStudent && (
-              <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2.5 text-xs font-bold text-emerald-200">
-                ✓ {studentAuth.student?.displayName || 'Student'}
-              </span>
+            {/* Signed-in badge — shown for both teacher and student
+                sessions, regardless of which auth path was used (Supabase
+                member-auth, Firebase SDK onAuthStateChanged, or my REST
+                localStorage session). The badge displays the display name
+                + role + a Sign out button so users can clearly see
+                they're logged in and end the session if needed. */}
+            {(isTeacher || isStudent) && (
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-xs">
+                <span className="font-bold text-emerald-200">
+                  ✓ {signedInDisplayName}
+                </span>
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
+                  {isTeacher ? 'Teacher' : 'Student'}
+                </span>
+                {signedInEmail && (
+                  <span className="hidden text-[10px] text-slate-500 sm:inline">
+                    {signedInEmail}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Sign out of BOTH auth systems to ensure a clean state
+                    // regardless of which path the user used to sign in.
+                    firebaseAuth.signOut();
+                    if (studentAuth.status === 'signed-in') {
+                      import('../lib/studentAuth').then(({ studentSignOut }) => studentSignOut()).catch(() => {});
+                    }
+                  }}
+                  className="ml-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+                >
+                  Sign out
+                </button>
+              </div>
             )}
           </div>
         </div>
