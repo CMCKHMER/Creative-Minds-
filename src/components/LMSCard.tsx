@@ -22,6 +22,9 @@ export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
       aria-labelledby="lms-title"
       className="cmc-section scroll-mt-24 border-y border-white/10 bg-[#061018] py-16 sm:py-20"
     >
+      {/* Full-bleed semi-transparent card background image */}
+      <img src="./images/card-lms.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-emerald-500/[0.10] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-cyan-500/[0.10] blur-[125px]" />
 

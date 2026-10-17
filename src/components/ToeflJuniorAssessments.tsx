@@ -8,11 +8,11 @@ const AssignmentPreview = lazy(() =>
   import('./AssignmentPreview').then((m) => ({ default: m.AssignmentPreview })),
 );
 
-const skillTabs: Array<{ id: 'All' | JuniorAssessmentSkill; label: string; icon: typeof BookOpen }> = [
+const skillTabs: Array<{ id: 'All' | JuniorAssessmentSkill; label: string; icon: typeof BookOpen; image?: string }> = [
   { id: 'All', label: 'All skills', icon: CheckCircle2 },
-  { id: 'Speaking', label: 'Speaking', icon: Mic2 },
-  { id: 'Listening', label: 'Listening', icon: Headphones },
-  { id: 'Writing', label: 'Writing', icon: PenLine },
+  { id: 'Speaking', label: 'Speaking', icon: Mic2, image: './images/card-skill-speaking.jpg' },
+  { id: 'Listening', label: 'Listening', icon: Headphones, image: './images/card-skill-listening.jpg' },
+  { id: 'Writing', label: 'Writing', icon: PenLine, image: './images/card-skill-writing.jpg' },
 ];
 
 function skillTone(skill: JuniorAssessmentSkill) {
@@ -70,9 +70,15 @@ export function ToeflJuniorAssessments() {
             <h3 className="mt-1.5 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white">Choose a skill to practice.</h3>
           </div>
           <div className="flex max-w-full gap-1 overflow-x-auto rounded-xl border border-white/10 bg-slate-950/60 p-1" role="tablist" aria-label="Filter by assessment skill">
-            {skillTabs.map(({ id, label, icon: Icon }) => (
-              <button key={id} type="button" role="tab" aria-selected={activeSkill === id} onClick={() => setActiveSkill(id)} className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[11px] font-semibold transition sm:px-4 ${activeSkill === id ? 'bg-white/[0.09] text-white shadow-inner' : 'text-slate-400 hover:text-white'}`}>
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" /> {label}
+            {skillTabs.map(({ id, label, icon: Icon, image }) => (
+              <button key={id} type="button" role="tab" aria-selected={activeSkill === id} onClick={() => setActiveSkill(id)} className={`relative inline-flex shrink-0 items-center gap-2 overflow-hidden rounded-lg px-3 py-2 text-[11px] font-semibold transition sm:px-4 ${activeSkill === id ? 'bg-white/[0.09] text-white shadow-inner' : 'text-slate-400 hover:text-white'}`}>
+                {image && (
+                  <>
+                    <img src={image} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
+                  </>
+                )}
+                <span className="relative flex items-center gap-2"><Icon className="h-3.5 w-3.5" aria-hidden="true" /> {label}</span>
               </button>
             ))}
           </div>

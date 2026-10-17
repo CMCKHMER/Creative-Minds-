@@ -129,6 +129,9 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
       </div>
 
       <section className="relative isolate overflow-hidden border-b border-white/8">
+        {/* Full-bleed semi-transparent hero background image */}
+        <img src="./images/card-games.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_72%_34%,rgba(34,211,238,.16),transparent_38%),radial-gradient(ellipse_at_16%_88%,rgba(139,92,246,.18),transparent_38%),linear-gradient(125deg,#091421,#0c1122_60%,#101326)]" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:52px_52px] [mask-image:linear-gradient(90deg,black,transparent_90%)]" />
         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24 lg:py-28">

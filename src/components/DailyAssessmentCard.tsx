@@ -13,6 +13,9 @@ const recordAreas = [
 export function DailyAssessmentCard() {
   return (
     <section id="daily-assessment" aria-labelledby="daily-assessment-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-cyan-100/10 bg-[#07131f] py-20 sm:py-24 lg:py-28">
+      {/* Full-bleed semi-transparent card background image */}
+      <img src="./images/card-daily-assessment.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-12rem] h-[34rem] w-[34rem] rounded-full bg-cyan-400/[0.11] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-14rem] h-[35rem] w-[35rem] rounded-full bg-indigo-500/[0.13] blur-[135px]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.026)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.026)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_at_66%_45%,black,transparent_72%)]" />
