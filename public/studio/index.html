@@ -64,6 +64,7 @@
 
   /* ── Workspace ───────────────────────────────────────── */
   .workspace{display:grid; grid-template-columns:64px 1fr 300px; min-height:0}
+  .workspace.no-panel{grid-template-columns:64px 1fr 0px}
   .rail{background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 0; z-index:40; overflow:visible}
   .rail::-webkit-scrollbar{display:none}
   .tool{position:relative; width:42px; height:42px; display:grid; place-items:center; border:none; background:transparent; color:var(--muted); border-radius:11px; cursor:pointer; transition:all .18s}
@@ -141,6 +142,11 @@
 
   .panel{background:var(--panel); border-left:1px solid var(--line); padding:14px 16px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; z-index:40}
   .panel.hidden{display:none}
+
+  /* Panel slide toggle — a thin tab on the right edge */
+  #panelToggle{position:absolute; right:0; top:50%; transform:translateY(-50%); z-index:45; width:18px; height:48px; background:var(--panel); border:1px solid var(--line); border-right:none; border-radius:7px 0 0 7px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); font-size:10px; transition:all .15s; user-select:none}
+  #panelToggle:hover{color:var(--amber); background:var(--panel-2)}
+  .no-panel #panelToggle{right:0px; border-radius:7px 0 0 7px}
   .sec{animation:rise .4s both; animation-delay:calc(var(--i)*40ms)}
   @keyframes rise{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
   .sec h3{font-family:'Syne'; font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:8px; margin-bottom:10px}
@@ -402,6 +408,7 @@
         <div class="menu-item" data-action="tool-transform"><span>Free Transform</span><span class="kbd">V</span></div>
         <div class="menu-item" data-action="tool-perspective"><span>Perspective Warp</span></div>
         <div class="menu-item" data-action="tool-crop"><span>Crop</span><span class="kbd">C</span></div>
+        <div class="menu-item" data-action="tool-margins"><span>Margins & Guides</span><span class="kbd">N</span></div>
         <div class="menu-item" data-action="tool-picker"><span>Eyedropper</span><span class="kbd">I</span></div>
       </div>
     </div>
@@ -530,6 +537,7 @@
       <button class="tool" data-tool="transform" data-tip="Free Transform — V (rotate/scale/skew)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14v14H5z" stroke-dasharray="3 2"/><circle cx="5" cy="5" r="2" fill="currentColor"/><circle cx="19" cy="5" r="2" fill="currentColor"/><circle cx="5" cy="19" r="2" fill="currentColor"/><circle cx="19" cy="19" r="2" fill="currentColor"/></svg></button>
       <button class="tool" data-tool="perspective" data-tip="Perspective Warp — P (4-corner drag)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8L20 4 16 20 8 16z" stroke-dasharray="3 2"/><circle cx="4" cy="8" r="2" fill="currentColor"/><circle cx="20" cy="4" r="2" fill="currentColor"/><circle cx="8" cy="16" r="2" fill="currentColor"/><circle cx="16" cy="20" r="2" fill="currentColor"/></svg></button>
       <button class="tool" data-tool="crop" data-tip="Crop — C (cut to selection)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.13 1L6 16a2 2 0 002 2h15"/><path d="M1 6.13L16 6a2 2 0 012 2v15"/></svg></button>
+      <button class="tool" data-tool="margins" data-tip="Margins — drag to set page margins, width, height"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="1" stroke-dasharray="3 2"/><rect x="7" y="7" width="10" height="10" rx="0.5" fill="none" stroke-dasharray="2 1.5"/></svg></button>
       <button class="tool" data-tool="picker" data-tip="Eyedropper — I (sample color)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 7l4 4-8.5 8.5H5V16L13 7z"/><path d="M14.5 5.5l2-2 4 4-2 2"/></svg></button>
     </nav>
 
@@ -537,6 +545,8 @@
       <div class="ruler-corner"></div>
       <div class="ruler ruler-x" id="rulerXWrap"><canvas id="rulerX"></canvas></div>
       <div class="ruler ruler-y" id="rulerYWrap"><canvas id="rulerY"></canvas></div>
+      <!-- Panel slide toggle -->
+      <div id="panelToggle" title="Toggle side panel" onclick="togglePanelSlide()">›</div>
 
       <main class="stage" id="stage">
         <div class="crop-bar" id="cropBar">
@@ -935,6 +945,53 @@ let imgObjects=[], selectedImg=-1, draggingImg=false, resizingImg=false, resizeH
     imgMoved=false, imgDragOff={dx:0,dy:0};
 let resizeStartBounds=null; // stores original x,y,w,h when resize begins
 
+/* Margin guides — visual guides the user can drag to set margins,
+   page width, and page height on the canvas */
+let marginGuides = { top: 40, right: 40, bottom: 40, left: 40, visible: false };
+let draggingMargin = null; // 'top'|'right'|'bottom'|'left'|null
+function drawMarginGuides(){
+  if (!marginGuides.visible) return;
+  pctx.save();
+  pctx.strokeStyle = '#5ee6c8';
+  pctx.lineWidth = 1;
+  pctx.setLineDash([4,4]);
+  pctx.globalAlpha = 0.7;
+  // Top margin
+  pctx.beginPath(); pctx.moveTo(0, marginGuides.top); pctx.lineTo(W, marginGuides.top); pctx.stroke();
+  // Bottom margin
+  pctx.beginPath(); pctx.moveTo(0, H - marginGuides.bottom); pctx.lineTo(W, H - marginGuides.bottom); pctx.stroke();
+  // Left margin
+  pctx.beginPath(); pctx.moveTo(marginGuides.left, 0); pctx.lineTo(marginGuides.left, H); pctx.stroke();
+  // Right margin
+  pctx.beginPath(); pctx.moveTo(W - marginGuides.right, 0); pctx.lineTo(W - marginGuides.right, H); pctx.stroke();
+  // Center guides (dashed thin)
+  pctx.globalAlpha = 0.35;
+  pctx.beginPath(); pctx.moveTo(marginGuides.left + (W - marginGuides.left - marginGuides.right) / 2, 0);
+  pctx.lineTo(marginGuides.left + (W - marginGuides.left - marginGuides.right) / 2, H); pctx.stroke();
+  pctx.beginPath(); pctx.moveTo(0, marginGuides.top + (H - marginGuides.top - marginGuides.bottom) / 2);
+  pctx.lineTo(W, marginGuides.top + (H - marginGuides.top - marginGuides.bottom) / 2); pctx.stroke();
+  pctx.setLineDash([]);
+  // Labels
+  pctx.globalAlpha = 0.9;
+  pctx.fillStyle = '#5ee6c8';
+  pctx.font = '10px monospace';
+  pctx.fillText(`T:${marginGuides.top}px`, marginGuides.left + 4, marginGuides.top - 2);
+  pctx.fillText(`B:${marginGuides.bottom}px`, marginGuides.left + 4, H - marginGuides.bottom + 10);
+  pctx.fillText(`L:${marginGuides.left}px`, marginGuides.left + 2, marginGuides.top + 12);
+  pctx.fillText(`R:${marginGuides.right}px`, W - marginGuides.right - 50, marginGuides.top + 12);
+  pctx.fillText(`W:${W - marginGuides.left - marginGuides.right}px H:${H - marginGuides.top - marginGuides.bottom}px`, marginGuides.left + 4, H/2);
+  pctx.restore();
+}
+function hitMarginGuide(pt){
+  if (!marginGuides.visible) return null;
+  const tol = 6;
+  if (Math.abs(pt.y - marginGuides.top) <= tol && pt.x >= 0 && pt.x <= W) return 'top';
+  if (Math.abs(pt.y - (H - marginGuides.bottom)) <= tol && pt.x >= 0 && pt.x <= W) return 'bottom';
+  if (Math.abs(pt.x - marginGuides.left) <= tol && pt.y >= 0 && pt.y <= H) return 'left';
+  if (Math.abs(pt.x - (W - marginGuides.right)) <= tol && pt.y >= 0 && pt.y <= H) return 'right';
+  return null;
+}
+
 /* Spreadsheet state */
 let sheets = [ { name: 'Sheet1', rows: 30, cols: 12, cells: {} } ];
 let currentSheet = 0;
@@ -1143,7 +1200,7 @@ letterSpacingEl.oninput=()=>{tLetterSpacing=+letterSpacingEl.value; lsOut.textCo
 lineHeightEl.oninput=()=>{tLineHeight=(+lineHeightEl.value)/100; lhOut.textContent=tLineHeight.toFixed(2); if(selected>=0){texts[selected].lineHeight=tLineHeight; renderTexts(); drawSelection();}};
 
 /* ── Tool Selection ────────────────────────────────── */
-const toolNames={select:'Select/Move',brush:'Brush',eraser:'Eraser',line:'Line',rect:'Rectangle',ellipse:'Ellipse',gradient:'Gradient',text:'Vector Text',doc:'Document Mode (Word)',sheet:'Spreadsheet (Excel)',transform:'Free Transform',perspective:'Perspective Warp',crop:'Crop',picker:'Eyedropper'};
+const toolNames={select:'Select/Move',brush:'Brush',eraser:'Eraser',line:'Line',rect:'Rectangle',ellipse:'Ellipse',gradient:'Gradient',text:'Vector Text',doc:'Document Mode (Word)',sheet:'Spreadsheet (Excel)',transform:'Free Transform',perspective:'Perspective Warp',crop:'Crop',margins:'Margins & Guides',picker:'Eyedropper'};
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>selectTool(b.dataset.tool));
 function selectTool(t){
   if (!toolNames[t]) t = 'brush';
@@ -1154,6 +1211,11 @@ function selectTool(t){
   if (t === 'select') preview.style.cursor = 'default';
   else preview.style.cursor=(t==='brush'||t==='eraser')?'none':'crosshair';
   if(t!=='brush'&&t!=='eraser') ring.style.display='none';
+
+  // Show/hide margin guides
+  marginGuides.visible = (t === 'margins');
+  if (t !== 'margins') { pctx.clearRect(0,0,W,H); draggingMargin = null; }
+  else { pctx.clearRect(0,0,W,H); drawMarginGuides(); }
 
   const isDoc = t === 'doc', isSheet = t === 'sheet';
   docLayer.style.display = isDoc ? 'block' : 'none';
@@ -1646,6 +1708,14 @@ preview.addEventListener('pointerdown',e=>{
   if (bgRemovePending) { applyBgRemoval(pt.x, pt.y); bgRemovePending = false; return; }
   if(tool==='picker'){ const d=bctx.getImageData(Math.round(pt.x),Math.round(pt.y),1,1).data; setColor(d[3]>0 ? '#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('') : bgColor); addRecentColor(color); selectTool('brush'); return; }
 
+  // Margins tool: drag margin guides to adjust margins, width, height
+  if(tool==='margins'){
+    const mg = hitMarginGuide(pt);
+    if (mg) { draggingMargin = mg; pushUndo('Adjust margins'); return; }
+    // Click empty space with margins tool = nothing (or could add a new guide)
+    return;
+  }
+
   // Select tool: click to select images or text, drag to move, double-click text to edit
   if(tool==='select'){
     // Check image resize handles first
@@ -1681,6 +1751,16 @@ preview.addEventListener('pointerdown',e=>{
 preview.addEventListener('pointermove',e=>{
   const pt=getPos(e); coords.textContent=`x ${Math.round(pt.x)} · y ${Math.round(pt.y)}`; updateRing(e);
 
+  // Margin guide dragging
+  if (draggingMargin && marginGuides.visible) {
+    if (draggingMargin === 'top') marginGuides.top = Math.max(0, Math.min(H/2 - 10, Math.round(pt.y)));
+    else if (draggingMargin === 'bottom') marginGuides.bottom = Math.max(0, Math.min(H/2 - 10, Math.round(H - pt.y)));
+    else if (draggingMargin === 'left') marginGuides.left = Math.max(0, Math.min(W/2 - 10, Math.round(pt.x)));
+    else if (draggingMargin === 'right') marginGuides.right = Math.max(0, Math.min(W/2 - 10, Math.round(W - pt.x)));
+    pctx.clearRect(0,0,W,H); drawMarginGuides();
+    return;
+  }
+
   // Image resize — use original bounds (resizeStartBounds) so dragging
   // is consistent from the start point, not compounding each frame.
   if (resizingImg && selectedImg >= 0 && imgObjects[selectedImg] && resizeStartBounds) {
@@ -1711,8 +1791,15 @@ preview.addEventListener('pointermove',e=>{
     return;
   }
   if(draggingText && selected>=0){ if(!textMoved && Math.hypot(pt.x-(startPt?.x??pt.x), pt.y-(startPt?.y??pt.y))>2){ textMoved=true; pushUndo('Move text'); } if(textMoved){ texts[selected].x=pt.x-dragOff.dx; texts[selected].y=pt.y-dragOff.dy; renderTexts(); drawSelection(); } return; }
-  // Hover cursor feedback for image objects and text (when not actively drawing/dragging)
-  if(!drawing && !draggingText && !draggingImg && !resizingImg) {
+  // Hover cursor feedback for image objects, text, and margin guides
+  if(!drawing && !draggingText && !draggingImg && !resizingImg && !draggingMargin) {
+    // Margin guides
+    if (tool === 'margins' && marginGuides.visible) {
+      const mg = hitMarginGuide(pt);
+      if (mg === 'top' || mg === 'bottom') { preview.style.cursor = 'ns-resize'; return; }
+      if (mg === 'left' || mg === 'right') { preview.style.cursor = 'ew-resize'; return; }
+      preview.style.cursor = 'default'; return;
+    }
     const hoverHandle = hitImgHandle(pt);
     if (hoverHandle) { preview.style.cursor = handleCursor(hoverHandle); return; }
     const hoverImg = hitImg(pt);
@@ -1735,6 +1822,7 @@ preview.addEventListener('pointermove',e=>{
 });
 preview.addEventListener('pointerup',e=>{
   const pt=getPos(e);
+  if (draggingMargin) { draggingMargin = null; return; }
   if (resizingImg) { resizingImg = false; resizeHandle = null; resizeStartBounds = null; pctx.clearRect(0,0,W,H); renderTexts(); drawSelection(); return; }
   if (draggingImg) { draggingImg = false; if (!imgMoved) { /* click on image — just selected it */ } renderTexts(); drawSelection(); return; }
   if(draggingText){ draggingText=false; if(!textMoved && selected>=0) { textPosNow=pt; openText(pt, texts[selected]); } return; }
@@ -1910,7 +1998,17 @@ function applyZoom(){ zoomLabel.textContent = zoomPct + '%'; fitCanvas(); }
 let rulersVisible = true;
 function viewToggleRulers(){ rulersVisible = !rulersVisible; document.querySelectorAll('.ruler, .ruler-corner').forEach(r => r.style.display = rulersVisible ? '' : 'none'); updateMenuCheck('view-toggle-rulers', rulersVisible); }
 let panelVisible = true;
-function viewTogglePanel(){ panelVisible = !panelVisible; panelEl.classList.toggle('hidden', !panelVisible); updateMenuCheck('view-toggle-panel', panelVisible); setTimeout(fitCanvas, 100); }
+function togglePanelSlide(){
+  panelVisible = !panelVisible;
+  const ws = document.querySelector('.workspace');
+  ws.classList.toggle('no-panel', !panelVisible);
+  panelEl.classList.toggle('hidden', !panelVisible);
+  document.getElementById('panelToggle').textContent = panelVisible ? '›' : '‹';
+  updateMenuCheck('view-toggle-panel', panelVisible);
+  setTimeout(fitCanvas, 100);
+}
+window.togglePanelSlide = togglePanelSlide;
+function viewTogglePanel(){ togglePanelSlide(); }
 let gridVisible = false;
 function viewToggleGrid(){ gridVisible = !gridVisible; if (gridVisible) { stage.style.backgroundImage = 'radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1.5px), radial-gradient(circle, rgba(255,255,255,.04) 1px, transparent 1.5px)'; stage.style.backgroundSize = '22px 22px, 88px 88px'; } else { stage.style.backgroundImage = ''; stage.style.backgroundSize = ''; } updateMenuCheck('view-toggle-grid', gridVisible); }
 function updateMenuCheck(action, visible){ const item = document.querySelector(`.menu-item[data-action="${action}"] .check`); if (item) { item.classList.toggle('empty', !visible); item.textContent = visible ? '✓' : '·'; } }
@@ -1939,7 +2037,7 @@ const ACTIONS = {
   'image-page-size': () => openModal('pageSizeModal'), 'image-resize': () => openModal('imageResizeModal'), 'image-extend': () => openModal('canvasExtendModal'), 'image-rotate-90-cw': () => rotateCanvas(90), 'image-rotate-90-ccw': () => rotateCanvas(-90), 'image-rotate-180': () => rotateCanvas(180), 'image-bg-remove-chroma': () => { document.getElementById('bgMethodChroma').click(); openModal('bgRemoveModal'); }, 'image-bg-remove-wand': () => { document.getElementById('bgMethodWand').click(); openModal('bgRemoveModal'); },
   'layer-new': () => { pushUndo('New layer'); layers.splice(currentLayer + 1, 0, newLayer()); currentLayer++; renderLayerList(); composite(); }, 'layer-duplicate': () => { pushUndo('Duplicate layer'); const copy = newLayer(layers[currentLayer].name + ' copy'); copy.canvas = makeBlankCanvas(W, H); copy.canvas.getContext('2d').drawImage(layers[currentLayer].canvas, 0, 0); copy.opacity = layers[currentLayer].opacity; copy.blendMode = layers[currentLayer].blendMode; layers.splice(currentLayer + 1, 0, copy); currentLayer++; renderLayerList(); composite(); }, 'layer-delete': () => { if (layers.length <= 1) return; pushUndo('Delete layer'); layers.splice(currentLayer, 1); currentLayer = Math.max(0, currentLayer - 1); renderLayerList(); composite(); }, 'layer-merge-down': () => { if (currentLayer <= 0) return; pushUndo('Merge down'); const target = layers[currentLayer - 1]; const ctx = target.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layers[currentLayer].opacity; ctx.globalCompositeOperation = layers[currentLayer].blendMode || 'source-over'; ctx.drawImage(layers[currentLayer].canvas, 0, 0); ctx.restore(); layers.splice(currentLayer, 1); currentLayer--; renderLayerList(); composite(); }, 'layer-flatten': () => { pushUndo('Flatten'); const flat = newLayer('Background'); for (const layer of layers) { const ctx = flat.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layer.opacity; ctx.globalCompositeOperation = layer.blendMode || 'source-over'; ctx.drawImage(layer.canvas, 0, 0); ctx.restore(); } layers = [flat]; currentLayer = 0; renderLayerList(); composite(); }, 'layer-effect-shadow': () => openModal('shadowModal'), 'layer-effect-glow': () => openModal('shadowModal'), 'layer-effect-clear': () => { pushUndo('Clear effects'); layers[currentLayer].effect = null; composite(); },
   'insert-image': insertImage, 'insert-text': insertText, 'insert-doc': insertDoc, 'insert-sheet': insertSheet, 'insert-rect': insertRect, 'insert-ellipse': insertEllipse, 'insert-line': insertLine, 'insert-gradient': insertGradient, 'insert-header': insertHeader, 'insert-footer': insertFooter,
-  'tool-brush': () => selectTool('brush'), 'tool-eraser': () => selectTool('eraser'), 'tool-line': () => selectTool('line'), 'tool-rect': () => selectTool('rect'), 'tool-ellipse': () => selectTool('ellipse'), 'tool-gradient': () => selectTool('gradient'), 'tool-text': () => selectTool('text'), 'tool-doc': () => selectTool('doc'), 'tool-sheet': () => selectTool('sheet'), 'tool-transform': () => selectTool('transform'), 'tool-perspective': () => selectTool('perspective'), 'tool-crop': () => selectTool('crop'), 'tool-picker': () => selectTool('picker'), 'tool-select': () => selectTool('select'),
+  'tool-brush': () => selectTool('brush'), 'tool-eraser': () => selectTool('eraser'), 'tool-line': () => selectTool('line'), 'tool-rect': () => selectTool('rect'), 'tool-ellipse': () => selectTool('ellipse'), 'tool-gradient': () => selectTool('gradient'), 'tool-text': () => selectTool('text'), 'tool-doc': () => selectTool('doc'), 'tool-sheet': () => selectTool('sheet'), 'tool-transform': () => selectTool('transform'), 'tool-perspective': () => selectTool('perspective'), 'tool-crop': () => selectTool('crop'), 'tool-margins': () => selectTool('margins'), 'tool-picker': () => selectTool('picker'), 'tool-select': () => selectTool('select'),
   'help-shortcuts': helpShortcuts, 'help-about': helpAbout,
 };
 document.querySelectorAll('.menu-item').forEach(item => { item.addEventListener('click', () => { const action = item.dataset.action; if (action && ACTIONS[action]) ACTIONS[action](); closeAllMenus(); }); });
@@ -1971,7 +2069,7 @@ selectTool = function(t) {
 };
 
 /* Keyboard */
-const keyMap={b:'brush',e:'eraser',l:'line',r:'rect',o:'ellipse',g:'gradient',t:'text',c:'crop',i:'picker',d:'doc',s:'sheet',v:'transform',p:'perspective',m:'select'};
+const keyMap={b:'brush',e:'eraser',l:'line',r:'rect',o:'ellipse',g:'gradient',t:'text',c:'crop',i:'picker',d:'doc',s:'sheet',v:'transform',p:'perspective',m:'select',n:'margins'};
 window.addEventListener('keydown',e=>{
   if(e.target.matches('input, [contenteditable], textarea')) return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault(); e.shiftKey?redo():undo(); return;}
