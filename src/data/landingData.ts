@@ -126,6 +126,24 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     path: '#teacher-tools'
   },
   {
+    id: 'cm-studio',
+    title: 'Creative Minds Studio — Photo / Doc / Excel Editor',
+    category: 'Classroom Tools',
+    badge: 'New',
+    description: 'A full browser-based creative editor: layers with 16 blend modes, page size presets, image warping, background removal, Word + Excel modes, 14 popular fonts, photo filters, and PDF export. No login, no server — auto-saves locally every 30s.',
+    iconName: 'Sparkles',
+    path: './studio/'
+  },
+  {
+    id: 'lms-workspace',
+    title: 'LMS Workspace — Courses, Grades, Calendar',
+    category: 'Classroom Tools',
+    badge: 'Teacher Only',
+    description: 'A full Canvas-style Learning Management System for Creative Minds teachers. Courses, modules, assignments, gradebook, discussions, calendar, and inbox. Requires a free teacher account.',
+    iconName: 'GraduationCap',
+    path: '#lms-workspace'
+  },
+  {
     id: 'cambodia-news',
     title: 'Cambodia Education News',
     category: 'Daily Briefing',

@@ -19,8 +19,10 @@ import { TOEFLiBTCard } from './components/TOEFLiBTCard';
 import { BiWeekPlannerCard } from './components/BiWeekPlannerCard';
 import { KidGradeHub } from './components/KidGradeHub';
 import { GEPISecHub } from './components/GEPISecHub';
-import { TeacherToolsCard, TeacherToolsPage } from './components/TeacherTools';
+import { TeacherToolsPage } from './components/TeacherTools';
 import { NewsSidePanel, NewsPage } from './components/NewsWindow';
+import { LMSCard } from './components/LMSCard';
+import { FirebaseDashboard } from './components/FirebaseDashboard';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { supabase } from './lib/supabase';
@@ -110,6 +112,10 @@ export function App() {
       scrollToSection('gep-isec');
     } else if (toolId === 'teacher-tools') {
       openTeacherToolsPage();
+    } else if (toolId === 'cm-studio') {
+      window.open('./studio/', '_blank', 'noopener,noreferrer');
+    } else if (toolId === 'lms-workspace') {
+      scrollToSection('lms-workspace');
     } else if (toolId === 'cambodia-news') {
       openNewsPage();
     } else if (toolId === 'pre-kid' || toolId === 'chinese-language') {
@@ -176,6 +182,12 @@ export function App() {
         {/* Full TOEFL iBT mock test card — opens 4-section practice exam in a new tab */}
         <TOEFLiBTCard />
 
+        {/* LMS Workspace — teacher-only gated feature (requires signup) */}
+        <LMSCard onOpenAuth={() => openMemberAuth('sign-up')} />
+
+        {/* Firebase real-time dashboard — live class results + student score tracking */}
+        <FirebaseDashboard />
+
         {/* TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15 test pages */}
         <BiWeekPlannerCard />
 
@@ -188,8 +200,9 @@ export function App() {
         {/* GEP & ISEC adult-level program resources (Bi-Weekly Planner + ISEC drills). */}
         <GEPISecHub />
 
-        {/* Teacher Tools — slim homepage teaser that opens the dedicated #teacher-tools page */}
-        <TeacherToolsCard onOpen={openTeacherToolsPage} />
+        {/* Teacher Tools: Dice, Wheel, and Studio — available at #teacher-tools
+            (via Quick Drawer, navbar, or direct URL). Not shown inline on the
+            homepage to keep it focused on content, not tools. */}
 
         {/* Live Interactive Sandbox: Auto-Grader, Worksheet Generator & Roster */}
         <InteractiveShowcase />

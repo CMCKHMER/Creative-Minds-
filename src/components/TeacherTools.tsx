@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Dice3, Dice5, Plus, RefreshCw, RotateCcw, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Dice3, Dice5, Plus, RefreshCw, RotateCcw, Sparkles, X, Palette, ExternalLink, Layers, FileImage } from 'lucide-react';
 import { trackDiceRoll, trackWheelSpin } from '../lib/analytics';
 import { Reveal } from './Reveal';
 
@@ -456,8 +456,10 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
             </h2>
             <p className="cmc-lead">
               Two instant classroom pickers — a 3D dice roller (1–5 dice, animated rolls, totals, recent-roll history)
-              and a fair Wheel of Names (up to 24 names, smooth easing, clear winner, recent-pick history). Both run
-              entirely in your browser; nothing is saved or sent anywhere.
+              and a fair Wheel of Names (up to 24 names, smooth easing, clear winner, recent-pick history). Plus
+              <span className="text-violet-200"> Creative Minds Studio</span> — a full creative editor with layers,
+              photo filters, page presets, Word + Excel modes, and PDF export. All three run entirely in your
+              browser; nothing is saved or sent anywhere.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <button
@@ -475,14 +477,14 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
           <div className="relative">
             <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-cyan-400/15 via-amber-400/10 to-transparent blur-2xl" aria-hidden="true" />
             <div className="relative rounded-2xl border border-white/10 bg-slate-950/60 p-5 backdrop-blur-xl">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {/* Dice preview tile */}
                 <div className="rounded-xl border border-cyan-200/20 bg-gradient-to-br from-cyan-400/[0.08] via-slate-900/80 to-sky-500/[0.06] p-4">
                   <div className="mb-2 flex items-center gap-2">
                     <span className="grid h-7 w-7 place-items-center rounded-md border border-cyan-200/25 bg-cyan-200/10 text-cyan-200">
                       <Dice5 className="h-3.5 w-3.5" />
                     </span>
-                    <span className="text-[11px] font-bold text-white">3D Dice Roller</span>
+                    <span className="text-[11px] font-bold text-white">Dice Roller</span>
                   </div>
                   <div className="flex items-end gap-2">
                     {[5, 3, 6].map((v, i) => (
@@ -499,7 +501,7 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
                       </div>
                     ))}
                   </div>
-                  <p className="mt-2 text-[10px] text-slate-400">1–5 dice · totals · recent rolls</p>
+                  <p className="mt-2 text-[10px] text-slate-400">1–5 dice · totals</p>
                 </div>
 
                 {/* Wheel preview tile */}
@@ -517,12 +519,31 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
                     }}
                     aria-hidden="true"
                   />
-                  <p className="mt-2 text-[10px] text-slate-400">Add names · spin · fair pick</p>
+                  <p className="mt-2 text-[10px] text-slate-400">Spin · pick</p>
                 </div>
+
+                {/* Studio preview tile */}
+                <a
+                  href="./studio/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group/studio rounded-xl border border-violet-200/25 bg-gradient-to-br from-violet-400/[0.10] via-slate-900/80 to-indigo-500/[0.06] p-4 transition hover:-translate-y-0.5 hover:border-violet-200/45"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="grid h-7 w-7 place-items-center rounded-md border border-violet-200/25 bg-violet-200/10 text-violet-200">
+                      <Palette className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-[11px] font-bold text-white">CM Studio</span>
+                  </div>
+                  <div className="mx-auto grid h-16 place-items-center rounded-md border border-violet-300/30 bg-gradient-to-br from-violet-500/15 via-cyan-500/10 to-amber-500/10">
+                    <Layers className="h-7 w-7 text-violet-200/80" aria-hidden="true" />
+                  </div>
+                  <p className="mt-2 text-[10px] text-slate-400 group-hover/studio:text-violet-100">Edit · layer · export PDF →</p>
+                </a>
               </div>
               <p className="mt-3 flex items-center gap-1.5 text-[10px] text-slate-500">
                 <Sparkles className="h-3 w-3 text-cyan-300/60" />
-                Click "Open Teacher Tools" to launch the live dice + wheel.
+                Click "Open Teacher Tools" to launch the live dice + wheel. Click the Studio tile to open the full editor in a new tab.
               </p>
             </div>
           </div>
@@ -577,16 +598,17 @@ export function TeacherToolsPage({ onBackHome }: { onBackHome: () => void }) {
             </span>
             <h1 className="mt-5 font-[var(--font-display)] text-4xl leading-[1.04] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
               Pick a student.<br />
-              <span className="bg-gradient-to-r from-cyan-200 via-teal-200 to-amber-200 bg-clip-text text-transparent">Roll the dice.</span>
+              <span className="bg-gradient-to-r from-cyan-200 via-teal-200 to-amber-200 bg-clip-text text-transparent">Roll the dice. Create.</span>
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
-              Two instant classroom pickers — a 3D dice roller and a fair Wheel of Names. Both run entirely in
-              your browser; nothing is saved or sent anywhere. Use them for warm-ups, cold calls, group
-              assignments, or quick math prompts.
+              Three instant classroom tools — a 3D dice roller, a fair Wheel of Names, and Creative Minds Studio
+              (a full creative editor with layers, filters, Word + Excel modes, and PDF export). All run entirely
+              in your browser; nothing is saved or sent anywhere.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
               <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">1–5 dice</span>
               <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">Up to 24 names</span>
+              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">Layers + PDF export</span>
               <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">No login required</span>
               <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">100% in-browser</span>
             </div>
@@ -636,12 +658,86 @@ export function TeacherToolsPage({ onBackHome }: { onBackHome: () => void }) {
           </article>
         </div>
 
+        {/* Creative Minds Studio — full creative editor (opens in new tab) */}
+        <Reveal className="mt-6">
+          <a
+            href="./studio/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative block overflow-hidden rounded-2xl border border-violet-200/25 bg-gradient-to-br from-violet-400/[0.08] via-slate-900/90 to-indigo-500/[0.06] transition hover:-translate-y-0.5 hover:border-violet-200/45"
+          >
+            {/* Showcase image */}
+            <div className="relative aspect-[1344/500] w-full overflow-hidden">
+              <img
+                src="./images/teacher-tools/studio-card.png"
+                alt="Creative Minds Studio — layers, blend modes, fonts, photo filters, Word + Excel modes, PDF export"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                decoding="async"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+              {/* Badge */}
+              <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-violet-200/30 bg-slate-950/80 px-2.5 py-1 text-[9px] font-bold tracking-[0.12em] text-violet-200 uppercase backdrop-blur-sm">
+                <Sparkles className="h-2.5 w-2.5" /> New
+              </span>
+            </div>
+
+            {/* Content below image — tools & customization grid (no duplicate title) */}
+            <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 lg:grid-cols-4">
+              {[
+                { icon: Layers, label: 'Layers + 16 blend modes', color: 'violet' },
+                { icon: FileImage, label: 'PNG · JPG · SVG · PDF', color: 'cyan' },
+                { icon: Palette, label: '14 fonts + letter spacing', color: 'amber' },
+                { label: 'Word + Excel modes', color: 'emerald' },
+                { label: 'Photo filters + grain', color: 'rose' },
+                { label: 'Background removal', color: 'sky' },
+                { label: 'Image move + resize', color: 'teal' },
+                { label: 'Header + Footer', color: 'indigo' },
+                { label: 'Page size presets', color: 'orange' },
+                { label: 'Margins + guides', color: 'lime' },
+                { label: 'Insert tables', color: 'pink' },
+                { label: 'Link pasting', color: 'purple' },
+              ].map((item, i) => {
+              const Icon = item.icon;
+              const colorMap: Record<string, string> = {
+                violet: 'border-violet-200/20 bg-violet-200/[0.05] text-violet-100',
+                cyan: 'border-cyan-200/20 bg-cyan-200/[0.05] text-cyan-100',
+                amber: 'border-amber-200/20 bg-amber-200/[0.05] text-amber-100',
+                emerald: 'border-emerald-200/20 bg-emerald-200/[0.05] text-emerald-100',
+                rose: 'border-rose-200/20 bg-rose-200/[0.05] text-rose-100',
+                sky: 'border-sky-200/20 bg-sky-200/[0.05] text-sky-100',
+                teal: 'border-teal-200/20 bg-teal-200/[0.05] text-teal-100',
+                indigo: 'border-indigo-200/20 bg-indigo-200/[0.05] text-indigo-100',
+                orange: 'border-orange-200/20 bg-orange-200/[0.05] text-orange-100',
+                lime: 'border-lime-200/20 bg-lime-200/[0.05] text-lime-100',
+                pink: 'border-pink-200/20 bg-pink-200/[0.05] text-pink-100',
+                purple: 'border-purple-200/20 bg-purple-200/[0.05] text-purple-100',
+              };
+              return (
+                <div key={i} className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-[10px] font-semibold ${colorMap[item.color] || colorMap.violet}`}>
+                  {Icon && <Icon className="h-3 w-3" />}
+                  {item.label}
+                </div>
+              );
+              })}
+            </div>
+
+            {/* CTA */}
+            <div className="flex items-center justify-center gap-2 p-4 border-t border-white/8">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-violet-300 to-indigo-300 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-[0_8px_24px_-10px_rgba(139,92,246,.6)] transition group-hover:-translate-y-0.5">
+                Open Studio <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+            </div>
+          </a>
+        </Reveal>
+
         <p className="mt-6 flex items-start gap-2 text-[10px] leading-relaxed text-slate-600">
           <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" />
           <span>
             Both tools run 100% in your browser — no data leaves your device. Use the dice for warm-up math prompts,
             vocabulary roll challenges, or randomizing task counts. Use the wheel for fair cold-call participation,
-            group assignment, or game-room pickers.
+            group assignment, or game-room pickers. Use Creative Minds Studio for worksheets, posters, slides,
+            and photo editing — all without installing any software.
           </span>
         </p>
       </section>
