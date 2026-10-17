@@ -135,6 +135,15 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     path: './studio/'
   },
   {
+    id: 'lms-workspace',
+    title: 'LMS Workspace — Courses, Grades, Calendar',
+    category: 'Classroom Tools',
+    badge: 'Teacher Only',
+    description: 'A full Canvas-style Learning Management System for Creative Minds teachers. Courses, modules, assignments, gradebook, discussions, calendar, and inbox. Requires a free teacher account.',
+    iconName: 'GraduationCap',
+    path: '#lms-workspace'
+  },
+  {
     id: 'cambodia-news',
     title: 'Cambodia Education News',
     category: 'Daily Briefing',

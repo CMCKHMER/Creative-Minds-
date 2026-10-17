@@ -21,6 +21,7 @@ import { KidGradeHub } from './components/KidGradeHub';
 import { GEPISecHub } from './components/GEPISecHub';
 import { TeacherToolsPage } from './components/TeacherTools';
 import { NewsSidePanel, NewsPage } from './components/NewsWindow';
+import { LMSCard } from './components/LMSCard';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { supabase } from './lib/supabase';
@@ -110,9 +111,9 @@ export function App() {
     } else if (toolId === 'teacher-tools') {
       openTeacherToolsPage();
     } else if (toolId === 'cm-studio') {
-      // Studio is a static page at /studio/ — open in a new tab so users
-      // keep their place on the CMC homepage.
       window.open('./studio/', '_blank', 'noopener,noreferrer');
+    } else if (toolId === 'lms-workspace') {
+      scrollToSection('lms-workspace');
     } else if (toolId === 'cambodia-news') {
       openNewsPage();
     } else if (toolId === 'pre-kid' || toolId === 'chinese-language') {
@@ -178,6 +179,9 @@ export function App() {
 
         {/* Full TOEFL iBT mock test card — opens 4-section practice exam in a new tab */}
         <TOEFLiBTCard />
+
+        {/* LMS Workspace — teacher-only gated feature (requires signup) */}
+        <LMSCard onOpenAuth={() => openMemberAuth('sign-up')} />
 
         {/* TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15 test pages */}
         <BiWeekPlannerCard />
