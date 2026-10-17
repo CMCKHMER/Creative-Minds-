@@ -17,7 +17,19 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Instrument Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden}
-  .app{display:grid; grid-template-rows:28px 52px 1fr 30px; height:100vh}
+  .app{display:grid; grid-template-rows:28px 40px 52px 1fr 30px; height:100vh}
+
+  /* ── Quick-access toolbar (customizable) ──────────────── */
+  .quick-bar{display:flex; align-items:center; gap:4px; padding:0 10px; background:var(--panel); border-bottom:1px solid var(--line); z-index:55; overflow-x:auto; user-select:none}
+  .quick-bar::-webkit-scrollbar{height:3px}
+  .quick-bar::-webkit-scrollbar-thumb{background:var(--line); border-radius:2px}
+  .quick-btn{display:flex; align-items:center; gap:5px; padding:5px 10px; border:1px solid var(--line); background:var(--panel-2); color:var(--muted); border-radius:7px; cursor:pointer; font-family:inherit; font-size:11px; font-weight:600; transition:all .15s; white-space:nowrap}
+  .quick-btn:hover{color:var(--text); border-color:var(--blue); transform:translateY(-1px)}
+  .quick-btn.active{color:#fff; background:linear-gradient(135deg,var(--cm-primary),var(--cm-secondary)); border-color:transparent}
+  .quick-btn svg{width:14px; height:14px}
+  .quick-sep{width:1px; height:24px; background:var(--line); margin:0 2px; flex-shrink:0}
+  .quick-add{padding:5px 8px; border:1px dashed var(--line); background:transparent; color:var(--muted); border-radius:7px; cursor:pointer; font-size:14px; font-weight:600; transition:all .15s}
+  .quick-add:hover{color:var(--amber); border-color:var(--amber)}
 
   /* ── Menu bar ─────────────────────────────────────────── */
   .menubar{display:flex; align-items:center; gap:0; padding:0 8px; background:var(--panel); border-bottom:1px solid var(--line); z-index:60; font-size:13px; user-select:none}
@@ -84,6 +96,13 @@
   .doc-layer h2{font-family:'Syne'; font-size:24px; margin:20px 0 10px; font-weight:700}
   .doc-layer p{margin-bottom:12px}
   .doc-layer ul, .doc-layer ol{margin-left:24px; margin-bottom:12px}
+
+  /* Header & Footer layers — appear above and below the doc content */
+  .doc-header, .doc-footer{position:absolute; left:0; right:0; z-index:16; padding:12px 80px; background:rgba(245,248,252,.95); border-bottom:1px solid #d0d5dd; color:#111; font-size:12px; font-family:'Instrument Sans', sans-serif; outline:none; display:none; min-height:20px}
+  .doc-header{top:0; border-bottom:1px solid #d0d5dd}
+  .doc-footer{bottom:0; border-top:1px solid #d0d5dd; border-bottom:none}
+  .doc-header:empty::before, .doc-footer:empty::before{content:attr(data-placeholder); color:#aab; font-style:italic}
+  .doc-header.show, .doc-footer.show{display:block}
 
   .sheet-layer{position:absolute; inset:0; z-index:15; padding:0; background:#fff; color:#111; display:none; flex-direction:column; border-radius:4px; overflow:hidden}
   .sheet-toolbar{padding:6px 10px; background:#f5f5f5; border-bottom:1px solid #d0d0d0; display:flex; gap:6px; align-items:center; font-size:12px}
@@ -212,8 +231,9 @@
     position:absolute; z-index:30; display:none; min-width:1px; min-height:1em;
     padding:0; margin:0; background:transparent; color:inherit; border:none;
     outline:none; box-shadow:none; border-radius:0;
-    font-family:inherit; font-size:inherit; line-height:1; white-space:pre;
-    caret-color:currentColor; overflow:hidden; resize:none;
+    font-family:inherit; font-size:inherit; line-height:1.25; white-space:pre-wrap;
+    caret-color:currentColor; overflow:visible; resize:none;
+    transform:translateY(-2px); /* slight visual nudge so caret aligns with canvas textBaseline top */
   }
   /* Subtle caret guide — a thin vertical bar that shows where typing will
      start, visible even before the user types the first character. */
@@ -357,6 +377,9 @@
         <div class="menu-item" data-action="insert-ellipse"><span>Ellipse</span><span class="kbd">O</span></div>
         <div class="menu-item" data-action="insert-line"><span>Line</span><span class="kbd">L</span></div>
         <div class="menu-item" data-action="insert-gradient"><span>Gradient…</span></div>
+        <div class="menu-sep"></div>
+        <div class="menu-item" data-action="insert-header"><span>Header (page top)</span></div>
+        <div class="menu-item" data-action="insert-footer"><span>Footer (page bottom)</span></div>
       </div>
     </div>
 
@@ -391,6 +414,50 @@
 
     <span class="file" id="filename" contenteditable spellcheck="false">untitled.project</span>
   </nav>
+
+  <!-- Quick-access toolbar (customizable) -->
+  <div class="quick-bar" id="quickBar">
+    <button class="quick-btn" data-quick-tool="brush" title="Brush">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l4 4L8.5 19.5 4 20l.5-4.5L15 5z"/></svg>Brush
+    </button>
+    <button class="quick-btn" data-quick-tool="text" title="Text">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>Text
+    </button>
+    <button class="quick-btn" data-quick-tool="doc" title="Document">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Doc
+    </button>
+    <button class="quick-btn" data-quick-tool="sheet" title="Spreadsheet">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="9" y1="4" x2="9" y2="20"/></svg>Sheet
+    </button>
+    <div class="quick-sep"></div>
+    <button class="quick-btn" data-quick-tool="rect" title="Rectangle">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="6" width="16" height="12" rx="1"/></svg>Rect
+    </button>
+    <button class="quick-btn" data-quick-tool="ellipse" title="Ellipse">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="8.5" ry="6.5"/></svg>Ellipse
+    </button>
+    <button class="quick-btn" data-quick-tool="gradient" title="Gradient">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Gradient
+    </button>
+    <div class="quick-sep"></div>
+    <button class="quick-btn" data-quick-tool="crop" title="Crop">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.13 1L6 16a2 2 0 002 2h15"/><path d="M1 6.13L16 6a2 2 0 012 2v15"/></svg>Crop
+    </button>
+    <button class="quick-btn" data-quick-tool="transform" title="Transform">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14v14H5z" stroke-dasharray="3 2"/></svg>Transform
+    </button>
+    <button class="quick-btn" data-quick-tool="picker" title="Eyedropper">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 7l4 4-8.5 8.5H5V16L13 7z"/><path d="M14.5 5.5l2-2 4 4-2 2"/></svg>Picker
+    </button>
+    <div class="quick-sep"></div>
+    <button class="quick-btn" data-quick-action="file-save-png" title="Save PNG">💾 Save</button>
+    <button class="quick-btn" data-quick-action="file-save-pdf" title="Save PDF">📄 PDF</button>
+    <button class="quick-btn" data-quick-action="file-import" title="Import Image">📁 Open</button>
+    <div class="quick-sep"></div>
+    <button class="quick-btn" data-quick-action="view-zoom-in" title="Zoom In">🔍+</button>
+    <button class="quick-btn" data-quick-action="view-zoom-out" title="Zoom Out">🔍−</button>
+    <button class="quick-btn" data-quick-action="view-zoom-fit" title="Fit">⤢ Fit</button>
+  </div>
 
   <header>
     <div class="brand"><span class="dot"></span><b>CREATIVE MINDS</b><span class="tag">studio</span></div>
@@ -473,9 +540,11 @@
         <div class="canvas-wrap" id="wrap">
           <canvas id="base"></canvas>
           <canvas id="textLayer"></canvas>
+          <div class="doc-header" id="docHeader" contenteditable="true" spellcheck="false" data-placeholder="Double-click to edit header…"></div>
           <div class="doc-layer" id="docLayer" contenteditable="true" spellcheck="true">
             <h1>Document Title</h1><p>Start typing your document here. Use the toolbar above to format text, change fonts, or add lists.</p>
           </div>
+          <div class="doc-footer" id="docFooter" contenteditable="true" spellcheck="false" data-placeholder="Double-click to edit footer…"></div>
           <div class="sheet-layer" id="sheetLayer">
             <div class="sheet-toolbar">
               <span class="label">fx</span>
@@ -758,6 +827,8 @@ const base=document.getElementById('base'), textLayer=document.getElementById('t
       preview=document.getElementById('preview'), wrap=document.getElementById('wrap'),
       stage=document.getElementById('stage'), ring=document.getElementById('ring'),
       docLayer=document.getElementById('docLayer'),
+      docHeader=document.getElementById('docHeader'),
+      docFooter=document.getElementById('docFooter'),
       sheetLayer=document.getElementById('sheetLayer'),
       sheetGrid=document.getElementById('sheetGrid'),
       sheetTabs=document.getElementById('sheetTabs'),
@@ -1073,6 +1144,8 @@ function selectTool(t){
 
   const isDoc = t === 'doc', isSheet = t === 'sheet';
   docLayer.style.display = isDoc ? 'block' : 'none';
+  // Header/footer only visible in doc mode (they use .show to toggle on)
+  if (!isDoc) { docHeader.classList.remove('show'); docFooter.classList.remove('show'); }
   sheetLayer.style.display = isSheet ? 'flex' : 'none';
   wordBar.classList.toggle('hidden', !isDoc);
   sheetBar.classList.toggle('hidden', !isSheet);
@@ -1263,7 +1336,12 @@ function openText(pt, existing){
   // No visible textbox chrome — the user sees only the blinking caret
   // and the text appearing live on the canvas.
   textInput.style.left=(pt.x/W*100)+'%'; textInput.style.top =(pt.y/H*100)+'%';
-  textInput.style.fontSize=(props.size/scale)+'px'; textInput.style.fontFamily=props.family;
+  // Set the font-size so the caret matches the chosen text size.
+  // The display pixel size is canvas_size / scale.
+  const displaySize = props.size/scale;
+  textInput.style.fontSize=displaySize+'px';
+  textInput.style.lineHeight=(displaySize*1.25)+'px';
+  textInput.style.fontFamily=props.family;
   textInput.style.fontWeight=props.bold?700:400; textInput.style.fontStyle=props.italic?'italic':'normal';
   textInput.style.color=color; textInput.textContent=existing?existing.text:'';
   textInput.style.display='block';
@@ -1271,7 +1349,7 @@ function openText(pt, existing){
   // so the user immediately knows where typing will start.
   caretGuide.style.left=(pt.x/W*100)+'%';
   caretGuide.style.top=(pt.y/H*100)+'%';
-  caretGuide.style.height=(props.size/scale)+'px';
+  caretGuide.style.height=displaySize+'px';
   caretGuide.style.color=color;
   caretGuide.style.display='block';
   textInput.focus();
@@ -1703,6 +1781,8 @@ function insertRect(){ selectTool('rect'); }
 function insertEllipse(){ selectTool('ellipse'); }
 function insertLine(){ selectTool('line'); }
 function insertGradient(){ openModal('gradientModal'); }
+function insertHeader(){ selectTool('doc'); docHeader.classList.add('show'); setTimeout(() => docHeader.focus(), 300); }
+function insertFooter(){ selectTool('doc'); docFooter.classList.add('show'); setTimeout(() => docFooter.focus(), 300); }
 function helpShortcuts(){ openModal('helpModal'); }
 function helpAbout(){ openModal('aboutModal'); }
 function openModal(id){ document.getElementById(id).classList.add('show'); }
@@ -1715,7 +1795,7 @@ const ACTIONS = {
   'view-zoom-in': viewZoomIn, 'view-zoom-out': viewZoomOut, 'view-zoom-fit': viewZoomFit, 'view-zoom-100': viewZoom100, 'view-toggle-rulers': viewToggleRulers, 'view-toggle-panel': viewTogglePanel, 'view-toggle-grid': viewToggleGrid,
   'image-page-size': () => openModal('pageSizeModal'), 'image-resize': () => openModal('imageResizeModal'), 'image-extend': () => openModal('canvasExtendModal'), 'image-rotate-90-cw': () => rotateCanvas(90), 'image-rotate-90-ccw': () => rotateCanvas(-90), 'image-rotate-180': () => rotateCanvas(180), 'image-bg-remove-chroma': () => { document.getElementById('bgMethodChroma').click(); openModal('bgRemoveModal'); }, 'image-bg-remove-wand': () => { document.getElementById('bgMethodWand').click(); openModal('bgRemoveModal'); },
   'layer-new': () => { pushUndo('New layer'); layers.splice(currentLayer + 1, 0, newLayer()); currentLayer++; renderLayerList(); composite(); }, 'layer-duplicate': () => { pushUndo('Duplicate layer'); const copy = newLayer(layers[currentLayer].name + ' copy'); copy.canvas = makeBlankCanvas(W, H); copy.canvas.getContext('2d').drawImage(layers[currentLayer].canvas, 0, 0); copy.opacity = layers[currentLayer].opacity; copy.blendMode = layers[currentLayer].blendMode; layers.splice(currentLayer + 1, 0, copy); currentLayer++; renderLayerList(); composite(); }, 'layer-delete': () => { if (layers.length <= 1) return; pushUndo('Delete layer'); layers.splice(currentLayer, 1); currentLayer = Math.max(0, currentLayer - 1); renderLayerList(); composite(); }, 'layer-merge-down': () => { if (currentLayer <= 0) return; pushUndo('Merge down'); const target = layers[currentLayer - 1]; const ctx = target.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layers[currentLayer].opacity; ctx.globalCompositeOperation = layers[currentLayer].blendMode || 'source-over'; ctx.drawImage(layers[currentLayer].canvas, 0, 0); ctx.restore(); layers.splice(currentLayer, 1); currentLayer--; renderLayerList(); composite(); }, 'layer-flatten': () => { pushUndo('Flatten'); const flat = newLayer('Background'); for (const layer of layers) { const ctx = flat.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layer.opacity; ctx.globalCompositeOperation = layer.blendMode || 'source-over'; ctx.drawImage(layer.canvas, 0, 0); ctx.restore(); } layers = [flat]; currentLayer = 0; renderLayerList(); composite(); }, 'layer-effect-shadow': () => openModal('shadowModal'), 'layer-effect-glow': () => openModal('shadowModal'), 'layer-effect-clear': () => { pushUndo('Clear effects'); layers[currentLayer].effect = null; composite(); },
-  'insert-image': insertImage, 'insert-text': insertText, 'insert-doc': insertDoc, 'insert-sheet': insertSheet, 'insert-rect': insertRect, 'insert-ellipse': insertEllipse, 'insert-line': insertLine, 'insert-gradient': insertGradient,
+  'insert-image': insertImage, 'insert-text': insertText, 'insert-doc': insertDoc, 'insert-sheet': insertSheet, 'insert-rect': insertRect, 'insert-ellipse': insertEllipse, 'insert-line': insertLine, 'insert-gradient': insertGradient, 'insert-header': insertHeader, 'insert-footer': insertFooter,
   'tool-brush': () => selectTool('brush'), 'tool-eraser': () => selectTool('eraser'), 'tool-line': () => selectTool('line'), 'tool-rect': () => selectTool('rect'), 'tool-ellipse': () => selectTool('ellipse'), 'tool-gradient': () => selectTool('gradient'), 'tool-text': () => selectTool('text'), 'tool-doc': () => selectTool('doc'), 'tool-sheet': () => selectTool('sheet'), 'tool-transform': () => selectTool('transform'), 'tool-perspective': () => selectTool('perspective'), 'tool-crop': () => selectTool('crop'), 'tool-picker': () => selectTool('picker'),
   'help-shortcuts': helpShortcuts, 'help-about': helpAbout,
 };
@@ -1726,6 +1806,26 @@ document.addEventListener('click', e => { if (!e.target.closest('.menu')) closeA
 document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); }); });
 exportBtn.onclick = () => { const fileMenu = document.querySelector('[data-menu="file"]'); closeAllMenus(); fileMenu.classList.add('open'); };
 clearBtn.onclick = editClear;
+
+/* ── Quick-access toolbar wiring ────────────────────── */
+document.querySelectorAll('.quick-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const toolName = btn.dataset.quickTool;
+    const action = btn.dataset.quickAction;
+    if (toolName) selectTool(toolName);
+    else if (action && ACTIONS[action]) ACTIONS[action]();
+    // Highlight the active tool button
+    if (toolName) {
+      document.querySelectorAll('.quick-btn[data-quick-tool]').forEach(b => b.classList.toggle('active', b === btn));
+    }
+  });
+});
+// Sync quick-bar active state with selectTool
+const _origSelectTool = selectTool;
+selectTool = function(t) {
+  _origSelectTool(t);
+  document.querySelectorAll('.quick-btn[data-quick-tool]').forEach(b => b.classList.toggle('active', b.dataset.quickTool === t));
+};
 
 /* Keyboard */
 const keyMap={b:'brush',e:'eraser',l:'line',r:'rect',o:'ellipse',g:'gradient',t:'text',c:'crop',i:'picker',d:'doc',s:'sheet',v:'transform',p:'perspective'};

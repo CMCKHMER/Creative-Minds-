@@ -19,7 +19,7 @@ import { TOEFLiBTCard } from './components/TOEFLiBTCard';
 import { BiWeekPlannerCard } from './components/BiWeekPlannerCard';
 import { KidGradeHub } from './components/KidGradeHub';
 import { GEPISecHub } from './components/GEPISecHub';
-import { TeacherToolsCard, TeacherToolsPage } from './components/TeacherTools';
+import { TeacherToolsPage } from './components/TeacherTools';
 import { NewsSidePanel, NewsPage } from './components/NewsWindow';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
@@ -191,8 +191,9 @@ export function App() {
         {/* GEP & ISEC adult-level program resources (Bi-Weekly Planner + ISEC drills). */}
         <GEPISecHub />
 
-        {/* Teacher Tools — slim homepage teaser that opens the dedicated #teacher-tools page */}
-        <TeacherToolsCard onOpen={openTeacherToolsPage} />
+        {/* Teacher Tools: Dice, Wheel, and Studio — available at #teacher-tools
+            (via Quick Drawer, navbar, or direct URL). Not shown inline on the
+            homepage to keep it focused on content, not tools. */}
 
         {/* Live Interactive Sandbox: Auto-Grader, Worksheet Generator & Roster */}
         <InteractiveShowcase />
