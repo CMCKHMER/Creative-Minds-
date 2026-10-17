@@ -592,40 +592,25 @@ export function TeacherToolsPage({ onBackHome }: { onBackHome: () => void }) {
           className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:52px_52px] [mask-image:linear-gradient(90deg,black,transparent_90%)]"
         />
         <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20 lg:py-24">
-          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div className="max-w-3xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/5 px-3 py-1.5 text-[10px] font-bold tracking-[0.17em] text-cyan-100 uppercase">
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> The CMC Teacher Tools room
-              </span>
-              <h1 className="mt-5 font-[var(--font-display)] text-4xl leading-[1.04] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Pick a student.<br />
-                <span className="bg-gradient-to-r from-cyan-200 via-teal-200 to-amber-200 bg-clip-text text-transparent">Roll the dice. Create.</span>
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
-                Three instant classroom tools — a 3D dice roller, a fair Wheel of Names, and Creative Minds Studio
-                (a full creative editor with layers, filters, Word + Excel modes, and PDF export). All run entirely
-                in your browser; nothing is saved or sent anywhere.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
-                <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">1–5 dice</span>
-                <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">Up to 24 names</span>
-                <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">Layers + PDF export</span>
-                <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">No login required</span>
-                <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">100% in-browser</span>
-              </div>
-            </div>
-
-            {/* Tool preview images */}
-            <div className="hidden gap-3 lg:grid lg:grid-cols-3">
-              <div className="overflow-hidden rounded-xl border border-cyan-200/20 shadow-lg">
-                <img src="./images/teacher-tools/dice.png" alt="3D Dice Roller" className="h-28 w-28 object-cover" decoding="async" loading="lazy" />
-              </div>
-              <div className="overflow-hidden rounded-xl border border-amber-200/20 shadow-lg">
-                <img src="./images/teacher-tools/wheel.png" alt="Wheel of Names" className="h-28 w-28 object-cover" decoding="async" loading="lazy" />
-              </div>
-              <div className="overflow-hidden rounded-xl border border-violet-200/20 shadow-lg">
-                <img src="./images/teacher-tools/studio.png" alt="Creative Minds Studio" className="h-28 w-28 object-cover" decoding="async" loading="lazy" />
-              </div>
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/5 px-3 py-1.5 text-[10px] font-bold tracking-[0.17em] text-cyan-100 uppercase">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> The CMC Teacher Tools room
+            </span>
+            <h1 className="mt-5 font-[var(--font-display)] text-4xl leading-[1.04] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Pick a student.<br />
+              <span className="bg-gradient-to-r from-cyan-200 via-teal-200 to-amber-200 bg-clip-text text-transparent">Roll the dice. Create.</span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
+              Three instant classroom tools — a 3D dice roller, a fair Wheel of Names, and Creative Minds Studio
+              (a full creative editor with layers, filters, Word + Excel modes, and PDF export). All run entirely
+              in your browser; nothing is saved or sent anywhere.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
+              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">1–5 dice</span>
+              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">Up to 24 names</span>
+              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">Layers + PDF export</span>
+              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">No login required</span>
+              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">100% in-browser</span>
             </div>
           </div>
         </div>
@@ -679,16 +664,30 @@ export function TeacherToolsPage({ onBackHome }: { onBackHome: () => void }) {
             href="./studio/"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative block overflow-hidden rounded-2xl border border-violet-200/25 bg-gradient-to-br from-violet-400/[0.08] via-slate-900/90 to-indigo-500/[0.06] p-6 transition hover:-translate-y-0.5 hover:border-violet-200/45"
+            className="group relative block overflow-hidden rounded-2xl border border-violet-200/25 bg-gradient-to-br from-violet-400/[0.08] via-slate-900/90 to-indigo-500/[0.06] transition hover:-translate-y-0.5 hover:border-violet-200/45"
           >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            {/* Showcase image */}
+            <div className="relative aspect-[1344/500] w-full overflow-hidden">
+              <img
+                src="./images/teacher-tools/studio-card.png"
+                alt="Creative Minds Studio — layers, blend modes, fonts, photo filters, Word + Excel modes, PDF export"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                decoding="async"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+              {/* Badge */}
+              <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-violet-200/30 bg-slate-950/80 px-2.5 py-1 text-[9px] font-bold tracking-[0.12em] text-violet-200 uppercase backdrop-blur-sm">
+                <Sparkles className="h-2.5 w-2.5" /> New
+              </span>
+            </div>
+
+            {/* Content below image */}
+            <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
               {/* Icon block */}
               <div className="flex shrink-0 items-center gap-3">
                 <span className="grid h-12 w-12 place-items-center rounded-xl border border-violet-200/30 bg-violet-200/10 text-violet-200">
                   <Palette className="h-6 w-6" aria-hidden="true" />
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-violet-200/20 bg-violet-200/[0.06] px-2.5 py-1 text-[9px] font-bold tracking-[0.12em] text-violet-100 uppercase">
-                  <Sparkles className="h-2.5 w-2.5" aria-hidden="true" /> New
                 </span>
               </div>
 

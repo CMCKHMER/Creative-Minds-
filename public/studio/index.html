@@ -923,6 +923,10 @@ let tLetterSpacing=0, tLineHeight=1.2, tTransform='none';
 let tStrokeWidth=0, tStrokeColor='#000000';
 let cropRect=null;
 
+/* Image objects — placed images that can be moved and resized */
+let imgObjects=[], selectedImg=-1, draggingImg=false, resizingImg=false, resizeHandle=null,
+    imgMoved=false, imgDragOff={dx:0,dy:0};
+
 /* Spreadsheet state */
 let sheets = [ { name: 'Sheet1', rows: 30, cols: 12, cells: {} } ];
 let currentSheet = 0;
@@ -1135,7 +1139,7 @@ const toolNames={brush:'Brush',eraser:'Eraser',line:'Line',rect:'Rectangle',elli
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>selectTool(b.dataset.tool));
 function selectTool(t){
   if (!toolNames[t]) t = 'brush';
-  tool=t; cancelCrop(); selected=-1; textEditing=null; textInput.style.display='none'; caretGuide.style.display='none';
+  tool=t; cancelCrop(); selected=-1; selectedImg=-1; textEditing=null; textInput.style.display='none'; caretGuide.style.display='none';
   pctx.clearRect(0,0,W,H);
   document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));
   toolLabel.textContent=toolNames[t];
@@ -1291,6 +1295,11 @@ function applyTextTransform(text, transform){
 function fontStr(t){ return `${t.italic?'italic ':''}${t.bold?700:400} ${t.size}px ${t.family}`; }
 function renderTexts(){
   tctx.clearRect(0,0,W,H);
+  // Render image objects first (below text)
+  imgObjects.forEach((im,i)=>{
+    if (resizingImg && selectedImg === i) return;
+    if (im.img && im.img.complete) tctx.drawImage(im.img, im.x, im.y, im.w, im.h);
+  });
   texts.forEach(t=>{
     // Hide the text being edited — the transparent contenteditable overlay
     // shows it in place instead, so the user doesn't see double text.
@@ -1313,7 +1322,28 @@ function renderTexts(){
 }
 function textBBox(t){ tctx.font=fontStr(t); const w=tctx.measureText(applyTextTransform(t.text, t.transform || 'none')).width, h=t.size*1.25; const x0=t.align==='left'?t.x : t.align==='center'?t.x-w/2 : t.x-w; return {x:x0, y:t.y, w, h}; }
 function hitText(pt){ for(let i=texts.length-1;i>=0;i--){ const b=textBBox(texts[i]); if(pt.x>=b.x-6 && pt.x<=b.x+b.w+6 && pt.y>=b.y-6 && pt.y<=b.y+b.h+6) return i; } return -1; }
-function drawSelection(){ pctx.clearRect(0,0,W,H); if(selected<0 || !texts[selected]) return; const b=textBBox(texts[selected]); pctx.save(); pctx.strokeStyle='#4cc9f0'; pctx.lineWidth=1.5; pctx.setLineDash([5,4]); pctx.strokeRect(b.x-5,b.y-5,b.w+10,b.h+10); pctx.restore(); }
+function drawSelection(){ pctx.clearRect(0,0,W,H);
+  // Text selection
+  if(selected>=0 && texts[selected]){ const b=textBBox(texts[selected]); pctx.save(); pctx.strokeStyle='#4cc9f0'; pctx.lineWidth=1.5; pctx.setLineDash([5,4]); pctx.strokeRect(b.x-5,b.y-5,b.w+10,b.h+10); pctx.restore(); }
+  // Image selection with resize handles
+  if(selectedImg>=0 && imgObjects[selectedImg]){ const im=imgObjects[selectedImg]; pctx.save(); pctx.strokeStyle='#ffb454'; pctx.lineWidth=1.5; pctx.setLineDash([4,3]); pctx.strokeRect(im.x-4,im.y-4,im.w+8,im.h+8); pctx.setLineDash([]); pctx.fillStyle='#ffb454';
+    // 8 resize handles
+    const handles=[['nw',im.x-4,im.y-4],['ne',im.x+im.w+4,im.y-4],['sw',im.x-4,im.y+im.h+4],['se',im.x+im.w+4,im.y+im.h+4],['n',im.x+im.w/2,im.y-4],['s',im.x+im.w/2,im.y+im.h+4],['w',im.x-4,im.y+im.h/2],['e',im.x+im.w+4,im.y+im.h/2]];
+    handles.forEach(([h,hx,hy])=>{ pctx.fillRect(hx-4,hy-4,8,8); });
+    pctx.restore();
+  }
+}
+function hitImg(pt){
+  for(let i=imgObjects.length-1;i>=0;i--){ const im=imgObjects[i]; if(pt.x>=im.x-6 && pt.x<=im.x+im.w+6 && pt.y>=im.y-6 && pt.y<=im.y+im.h+6) return i; }
+  return -1;
+}
+function hitImgHandle(pt){
+  if(selectedImg<0 || !imgObjects[selectedImg]) return null;
+  const im=imgObjects[selectedImg];
+  const handles=[['nw',im.x-4,im.y-4],['ne',im.x+im.w+4,im.y-4],['sw',im.x-4,im.y+im.h+4],['se',im.x+im.w+4,im.y+im.h+4],['n',im.x+im.w/2,im.y-4],['s',im.x+im.w/2,im.y+im.h+4],['w',im.x-4,im.y+im.h/2],['e',im.x+im.w+4,im.y+im.h/2]];
+  for(const [h,hx,hy] of handles){ if(Math.abs(pt.x-hx)<=8 && Math.abs(pt.y-hy)<=8) return h; }
+  return null;
+}
 function syncPanelToText(t){ fontFam.value=t.family; tSizeEl.value=t.size; tSizeOut.textContent=t.size; tFont=t.family; tBold=t.bold; tItalic=t.italic; tUnderline=t.underline||false; tAlign=t.align; if (t.letterSpacing !== undefined) { letterSpacingEl.value = t.letterSpacing; lsOut.textContent = t.letterSpacing; } if (t.lineHeight !== undefined) { lineHeightEl.value = t.lineHeight * 100; lhOut.textContent = t.lineHeight.toFixed(2); } tglB.classList.toggle('on',tBold); tglI.classList.toggle('on',tItalic); tglU.classList.toggle('on',tUnderline); tglUpper.classList.toggle('on', t.transform === 'upper'); tglLower.classList.toggle('on', t.transform === 'lower'); tglCap.classList.toggle('on', t.transform === 'cap'); alL.classList.toggle('on',tAlign==='left'); alC.classList.toggle('on',tAlign==='center'); alR.classList.toggle('on',tAlign==='right'); if (t.stroke !== undefined) { textStrokeEl.value = t.stroke; strokeOut.textContent = t.stroke; } if (t.strokeColor) strokeColorEl.value = t.strokeColor; }
 function applyToSelected(props){ if(selected<0 || !texts[selected]) return; Object.assign(texts[selected], props); renderTexts(); drawSelection(); }
 fontFam.onchange=()=>{ tFont=fontFam.value; applyToSelected({family:tFont}); };
@@ -1451,7 +1481,20 @@ EFFECTS.forEach(eff => {
 
 /* ══ IMAGE IMPORT ════════════════════════════════════ */
 importBtn.onclick=()=>fileInput.click();
-fileInput.onchange=e=>{ const f=e.target.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ pushUndo('Place image'); const ctx = activeCtx(); const s=Math.min(W/img.width, H/img.height)*0.92; const dw=img.width*s, dh=img.height*s; ctx.drawImage(img,(W-dw)/2,(H-dh)/2,dw,dh); URL.revokeObjectURL(img.src); composite(); renderLayerList(); }; img.src=URL.createObjectURL(f); e.target.value=''; };
+fileInput.onchange=e=>{
+  const f=e.target.files[0]; if(!f) return; const img=new Image();
+  img.onload=()=>{
+    pushUndo('Place image');
+    const s=Math.min(W/img.width, H/img.height)*0.7;
+    const dw=img.width*s, dh=img.height*s;
+    imgObjects.push({img:img, x:(W-dw)/2, y:(H-dh)/2, w:dw, h:dh, src:img.src});
+    selectedImg=imgObjects.length-1; selected=-1;
+    renderTexts(); drawSelection();
+    // Switch to a generic "move" cursor so user knows they can drag
+    preview.style.cursor='move';
+  };
+  img.src=URL.createObjectURL(f); e.target.value='';
+};
 
 /* ══ CROP ════════════════════════════════════════════ */
 function normRect(a,b){ return {x:Math.min(a.x,b.x), y:Math.min(a.y,b.y), w:Math.abs(b.x-a.x), h:Math.abs(b.y-a.y)}; }
@@ -1585,6 +1628,15 @@ preview.addEventListener('pointerdown',e=>{
   const pt=getPos(e); preview.setPointerCapture(e.pointerId);
   if (bgRemovePending) { applyBgRemoval(pt.x, pt.y); bgRemovePending = false; return; }
   if(tool==='picker'){ const d=bctx.getImageData(Math.round(pt.x),Math.round(pt.y),1,1).data; setColor(d[3]>0 ? '#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('') : bgColor); addRecentColor(color); selectTool('brush'); return; }
+
+  // Image object handling — check resize handles first, then hit-test
+  const handle = hitImgHandle(pt);
+  if (handle) { resizingImg = true; resizeHandle = handle; startPt = pt; pushUndo('Resize image'); return; }
+  const imgIdx = hitImg(pt);
+  if (imgIdx >= 0) { selectedImg = imgIdx; selected = -1; draggingImg = true; imgMoved = false; imgDragOff = {dx: pt.x - imgObjects[imgIdx].x, dy: pt.y - imgObjects[imgIdx].y}; drawSelection(); return; }
+  // Clicking empty space deselects images
+  if (selectedImg >= 0) { selectedImg = -1; drawSelection(); }
+
   if(tool==='text'){ const idx=hitText(pt); if(idx>=0){ selected=idx; draggingText=true; textMoved=false; dragOff={dx:pt.x-texts[idx].x, dy:pt.y-texts[idx].y}; syncPanelToText(texts[idx]); drawSelection(); } else { selected=-1; drawSelection(); pendingTextPt=pt; } return; }
   if(tool==='gradient'){ drawing=true; startPt=pt; return; }
   if(tool==='crop'){ drawing=true; startPt=pt; cropRect=null; cropBar.classList.remove('show'); return; }
@@ -1594,6 +1646,32 @@ preview.addEventListener('pointerdown',e=>{
 });
 preview.addEventListener('pointermove',e=>{
   const pt=getPos(e); coords.textContent=`x ${Math.round(pt.x)} · y ${Math.round(pt.y)}`; updateRing(e);
+
+  // Image resize
+  if (resizingImg && selectedImg >= 0 && imgObjects[selectedImg]) {
+    const im = imgObjects[selectedImg];
+    const aspect = im.w / im.h;
+    const h = resizeHandle;
+    if (h === 'nw') { const nw = startPt.x - pt.x + im.w; const nh = startPt.y - pt.y + im.h; im.w = Math.max(10, nw); im.h = Math.max(10, im.w / aspect); im.x = pt.x; im.y = pt.y; }
+    else if (h === 'ne') { const nw = pt.x - im.x; im.w = Math.max(10, nw); im.h = Math.max(10, im.w / aspect); }
+    else if (h === 'sw') { const nh = startPt.y - pt.y + im.h; im.h = Math.max(10, nh); im.w = Math.max(10, im.h * aspect); im.x = pt.x; im.y = pt.y; }
+    else if (h === 'se') { im.w = Math.max(10, pt.x - im.x); im.h = Math.max(10, im.w / aspect); }
+    else if (h === 'n') { const nh = startPt.y - pt.y + im.h; im.h = Math.max(10, nh); im.y = pt.y; }
+    else if (h === 's') { im.h = Math.max(10, pt.y - im.y); }
+    else if (h === 'w') { const nw = startPt.x - pt.x + im.w; im.w = Math.max(10, nw); im.x = pt.x; }
+    else if (h === 'e') { im.w = Math.max(10, pt.x - im.x); }
+    // Render preview with resize handles
+    pctx.clearRect(0,0,W,H);
+    pctx.save(); pctx.drawImage(im.img, im.x, im.y, im.w, im.h); pctx.restore();
+    drawSelection();
+    return;
+  }
+  // Image drag
+  if (draggingImg && selectedImg >= 0) {
+    if (!imgMoved && Math.hypot(pt.x - (startPt?.x ?? pt.x), pt.y - (startPt?.y ?? pt.y)) > 2) { imgMoved = true; pushUndo('Move image'); }
+    if (imgMoved) { imgObjects[selectedImg].x = pt.x - imgDragOff.dx; imgObjects[selectedImg].y = pt.y - imgDragOff.dy; renderTexts(); drawSelection(); }
+    return;
+  }
   if(draggingText && selected>=0){ if(!textMoved && Math.hypot(pt.x-(startPt?.x??pt.x), pt.y-(startPt?.y??pt.y))>2){ textMoved=true; pushUndo('Move text'); } if(textMoved){ texts[selected].x=pt.x-dragOff.dx; texts[selected].y=pt.y-dragOff.dy; renderTexts(); drawSelection(); } return; }
   if(!drawing) return;
   const ctx = activeCtx();
@@ -1604,6 +1682,8 @@ preview.addEventListener('pointermove',e=>{
 });
 preview.addEventListener('pointerup',e=>{
   const pt=getPos(e);
+  if (resizingImg) { resizingImg = false; resizeHandle = null; pctx.clearRect(0,0,W,H); renderTexts(); drawSelection(); return; }
+  if (draggingImg) { draggingImg = false; if (!imgMoved) { /* click on image — just selected it */ } renderTexts(); drawSelection(); return; }
   if(draggingText){ draggingText=false; if(!textMoved && selected>=0) { textPosNow=pt; openText(pt, texts[selected]); } return; }
   if(pendingTextPt){ textPosNow=pendingTextPt; openText(pendingTextPt,null); pendingTextPt=null; return; }
   if(!drawing) return; drawing=false;
@@ -1625,7 +1705,7 @@ function canvasToBlob(callback, type='image/png', quality=0.92){
   o.drawImage(base,0,0); o.drawImage(textLayer,0,0);
   out.toBlob(callback, type, quality);
 }
-function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(1280, 800); bctx.clearRect(0,0,W,H); texts=[]; selected=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); selectTool('brush'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
+function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(1280, 800); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); selectTool('brush'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
 function fileOpen(){ openInput.click(); }
 openInput.onchange = e => {
   const f = e.target.files[0]; if (!f) return;
@@ -1753,10 +1833,10 @@ function filePrint(){ canvasToBlob(blob => { if (!blob) return; const url = URL.
 function editCut(){ editCopy(); if (tool === 'text' && selected >= 0) { pushUndo('Cut'); texts.splice(selected, 1); selected = -1; renderTexts(); drawSelection(); } else { pushUndo('Cut'); const ctx = activeCtx(); clipboardImg = ctx.getImageData(0,0,W,H); ctx.clearRect(0,0,W,H); composite(); renderLayerList(); } }
 function editCopy(){ if (tool === 'text' && selected >= 0) { clipboardText = JSON.stringify(texts[selected]); try { navigator.clipboard.writeText(clipboardText); } catch(e) {} } else { try { canvasToBlob(blob => { if (blob && navigator.clipboard.write) navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); }); } catch(e) {} clipboardImg = activeCtx().getImageData(0,0,W,H); } }
 function editPaste(){ if (tool === 'text' && clipboardText) { try { const t = JSON.parse(clipboardText); pushUndo('Paste'); texts.push({ ...t, x: t.x + 20, y: t.y + 20 }); selected = texts.length - 1; renderTexts(); drawSelection(); } catch(e) {} } else if (clipboardImg) { pushUndo('Paste'); activeCtx().putImageData(clipboardImg, 0, 0); composite(); renderLayerList(); } }
-function editDelete(){ if (tool === 'text' && selected >= 0) { pushUndo('Delete text'); texts.splice(selected, 1); selected = -1; renderTexts(); drawSelection(); } else if (tool === 'sheet') { setCell(selectedCell.row, selectedCell.col, ''); renderSheet(); } }
+function editDelete(){ if (tool === 'text' && selected >= 0) { pushUndo('Delete text'); texts.splice(selected, 1); selected = -1; renderTexts(); drawSelection(); } else if (selectedImg >= 0) { pushUndo('Delete image'); imgObjects.splice(selectedImg, 1); selectedImg = -1; renderTexts(); drawSelection(); } else if (tool === 'sheet') { setCell(selectedCell.row, selectedCell.col, ''); renderSheet(); } }
 function editDuplicate(){ if (tool === 'text' && selected >= 0) { pushUndo('Duplicate text'); const copy = { ...texts[selected], x: texts[selected].x + 20, y: texts[selected].y + 20 }; texts.push(copy); selected = texts.length - 1; renderTexts(); drawSelection(); } }
 function editSelectAll(){ if (tool === 'doc') { docLayer.focus(); document.execCommand('selectAll'); } else if (tool === 'text') { selected = texts.length - 1; if (selected >= 0) { drawSelection(); syncPanelToText(texts[selected]); } } else if (tool === 'sheet') { selectedCell = { row: 0, col: 0 }; renderSheet(); } }
-function editClear(){ if (!confirm('Clear the canvas, layers, texts, doc, and sheets?')) return; pushUndo('Clear all'); initLayers(); for (const layer of layers) layer.canvas.getContext('2d').clearRect(0,0,W,H); texts=[]; selected=-1; renderTexts(); docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; renderSheet(); renderSheetTabs(); composite(); renderLayerList(); }
+function editClear(){ if (!confirm('Clear the canvas, layers, texts, doc, and sheets?')) return; pushUndo('Clear all'); initLayers(); for (const layer of layers) layer.canvas.getContext('2d').clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; renderTexts(); docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; renderSheet(); renderSheetTabs(); composite(); renderLayerList(); }
 
 /* ══ VIEW ACTIONS ═════════════════════════════════ */
 function viewZoomIn(){ zoomPct = Math.min(400, zoomPct + 25); applyZoom(); }
@@ -1853,7 +1933,7 @@ window.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='1'){e.preventDefault(); viewZoom100(); return;}
   if(e.key==='Escape'){ cancelCrop(); selected=-1; drawSelection(); closeAllMenus(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('show')); return; }
   if(e.key==='?'){ helpShortcuts(); return; }
-  if((e.key==='Delete'||e.key==='Backspace') && selected>=0){ pushUndo('Delete text'); texts.splice(selected,1); selected=-1; renderTexts(); drawSelection(); return; }
+  if((e.key==='Delete'||e.key==='Backspace') && (selected>=0 || selectedImg>=0)){ if(selected>=0){ pushUndo('Delete text'); texts.splice(selected,1); selected=-1; } if(selectedImg>=0){ pushUndo('Delete image'); imgObjects.splice(selectedImg,1); selectedImg=-1; } renderTexts(); drawSelection(); return; }
   const t=keyMap[e.key.toLowerCase()]; if(t) selectTool(t);
 });
 
