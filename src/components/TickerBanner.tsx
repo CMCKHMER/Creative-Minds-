@@ -247,8 +247,8 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
   if (!visible) return null;
 
   const sourceBadge = data.source === 'live'
-    ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-emerald-200 uppercase"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />Live</span>
-    : <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-amber-200 uppercase"><span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Demo</span>;
+    ? <span title="Live data — real student submissions to Firestore" className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-emerald-200 uppercase"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />Live</span>
+    : <span title="No real student submissions yet — these are sample numbers. As soon as a signed-in student completes a worksheet, the ticker flips to LIVE." className="inline-flex items-center gap-1 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-amber-200 uppercase"><span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Demo</span>;
 
   return (
     <div
