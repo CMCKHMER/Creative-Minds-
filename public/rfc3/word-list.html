@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Future Create 3 — Live Worksheet</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#05070f;
+  --surface:#0c1222;
+  --surface-2:#0d1526;
+  --border:rgba(148,163,184,.14);
+  --cyan:#22d3ee; --cyan-lt:#67e8f9;
+  --violet:#8b5cf6; --violet-lt:#c4b5fd;
+  --text:#e2e8f0; --muted:#8fa3b8;
+  color-scheme: dark;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  background-image:
+    radial-gradient(1100px 520px at 85% -10%, rgba(139,92,246,.16), transparent 60%),
+    radial-gradient(900px 480px at 8% -5%, rgba(34,211,238,.12), transparent 60%);
+  min-height:100vh; padding:32px 16px; color:var(--text);
+}
+.bg-grid{
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(148,163,184,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,.045) 1px, transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+.container{
+  position:relative; z-index:1;
+  max-width:960px; margin:0 auto;
+  background:rgba(9,13,24,.82); backdrop-filter:blur(14px);
+  border:1px solid var(--border); border-radius:20px;
+  box-shadow:0 30px 90px rgba(0,0,0,.65), 0 0 0 1px rgba(34,211,238,.05) inset;
+  overflow:hidden;
+}
+/* ── Top bar ── */
+.topbar{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:13px 28px;
+  background:linear-gradient(90deg, rgba(124,58,237,.28), rgba(34,211,238,.14));
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex; align-items:center; gap:10px; font-size:12px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--cyan-lt)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.live-pill{
+  display:flex; align-items:center; gap:7px;
+  font-size:10.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--violet-lt); background:rgba(139,92,246,.14);
+  border:1px solid rgba(139,92,246,.4); border-radius:999px; padding:5px 12px;
+}
+.live-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--violet);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+/* ── Hero ── */
+.hero{padding:52px 44px 36px; text-align:left}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:10px;
+  font-size:11px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--cyan-lt);
+  margin-bottom:18px;
+}
+.eyebrow::before{content:""; width:26px; height:1px; background:linear-gradient(90deg,var(--cyan),transparent)}
+.hero h1{
+  font-family:'Space Grotesk',sans-serif; font-weight:700;
+  font-size:clamp(30px,5vw,46px); line-height:1.08; letter-spacing:-.01em; color:#f8fafc;
+  text-transform:uppercase;
+}
+.hero h1 .grad{
+  background:linear-gradient(90deg,var(--cyan-lt),var(--violet-lt));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero p{margin-top:16px; max-width:640px; color:var(--muted); font-size:15px; line-height:1.65}
+/* ── Info panel ── */
+.info{
+  display:grid; grid-template-columns:1fr 1fr 1.2fr; gap:16px;
+  padding:26px 44px; background:rgba(13,19,35,.65);
+  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+}
+.form-group label{
+  display:block; font-size:10.5px; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:7px;
+}
+.form-group input,.form-group select{
+  width:100%; padding:12px 14px; font-size:14px; font-family:inherit; color:var(--text);
+  background:#0a101f; border:1px solid rgba(148,163,184,.2); border-radius:10px;
+  transition:border-color .25s, box-shadow .25s;
+}
+.form-group input:focus,.form-group select:focus{
+  outline:none; border-color:var(--cyan); box-shadow:0 0 0 3px rgba(34,211,238,.15);
+}
+.form-group select option{background:#0a101f}
+/* ── Content ── */
+.content{padding:36px 44px 44px}
+.unit-head{display:flex; align-items:center; gap:14px; margin-bottom:22px}
+.unit-head .bar{width:4px; height:30px; border-radius:2px; background:linear-gradient(180deg,var(--cyan),var(--violet)); box-shadow:0 0 14px rgba(34,211,238,.5)}
+.unit-title{font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:700; color:#f1f5f9}
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:26px}
+.stat{
+  background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+  padding:16px 18px; text-align:center;
+}
+.stat b{display:block; font-family:'Space Grotesk',sans-serif; font-size:26px; color:var(--cyan-lt)}
+.stat span{font-size:10.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+/* ── Word cards ── */
+.word-card{
+  background:linear-gradient(180deg, rgba(17,24,39,.9), rgba(13,19,35,.9));
+  border:1px solid var(--border); border-left:3px solid var(--cyan);
+  border-radius:12px; padding:18px 20px; margin-bottom:14px;
+  transition:transform .25s, border-color .25s, box-shadow .25s;
+}
+.word-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(34,211,238,.45); border-left-color:var(--cyan);
+  box-shadow:0 12px 34px rgba(34,211,238,.09);
+}
+.word-header{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:9px}
+.word-text{font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:var(--cyan-lt)}
+.pos{font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; border-radius:999px; padding:4px 11px; white-space:nowrap}
+.pos-n{background:rgba(34,211,238,.12);color:var(--cyan-lt);border:1px solid rgba(34,211,238,.35)}
+.pos-v{background:rgba(139,92,246,.14);color:var(--violet-lt);border:1px solid rgba(139,92,246,.4)}
+.pos-adj{background:rgba(244,114,182,.12);color:#f9a8d4;border:1px solid rgba(244,114,182,.35)}
+.pos-adv{background:rgba(251,191,36,.12);color:#fcd34d;border:1px solid rgba(251,191,36,.35)}
+.pos-prep{background:rgba(52,211,153,.12);color:#6ee7b7;border:1px solid rgba(52,211,153,.35)}
+.pos-conj{background:rgba(96,165,250,.12);color:#93c5fd;border:1px solid rgba(96,165,250,.35)}
+.pos-phr{background:rgba(251,146,60,.12);color:#fdba74;border:1px solid rgba(251,146,60,.35)}
+.word-definition{color:#cbd5e1; font-size:14px; line-height:1.6; margin-bottom:10px}
+.word-sentence{color:#7c8ba1; font-size:13px; font-style:italic; padding-left:13px; border-left:2px solid rgba(139,92,246,.5)}
+/* ── Placeholder / button / footer ── */
+.placeholder{
+  text-align:center; padding:70px 24px;
+  border:1px dashed rgba(148,163,184,.28); border-radius:16px;
+}
+.placeholder .glyph{
+  font-family:'Space Grotesk',sans-serif; font-size:44px;
+  background:linear-gradient(90deg,var(--cyan),var(--violet));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.placeholder p{margin-top:14px; color:var(--muted); font-size:15px}
+.print-btn{
+  width:100%; margin-top:22px; padding:15px; border:none; border-radius:12px; cursor:pointer;
+  font-family:'Inter',sans-serif; font-size:14px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  color:#041018; background:linear-gradient(90deg,var(--cyan),var(--violet));
+  transition:filter .25s, transform .25s;
+}
+.print-btn:hover{filter:brightness(1.12); transform:translateY(-1px)}
+.footer{
+  padding:16px 28px; border-top:1px solid var(--border);
+  font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:#5b6b80;
+  display:flex; justify-content:space-between;
+}
+@media (max-width:768px){ .info,.stats{grid-template-columns:1fr} .hero,.info,.content{padding-left:22px;padding-right:22px} }
+@media print{
+  body{background:#fff;padding:0}
+  .bg-grid,.topbar,.print-btn,.footer{display:none!important}
+  .container{box-shadow:none;border:none;background:#fff}
+  *{color:#111!important;background:transparent!important;border-color:#ccc!important;text-shadow:none!important}
+  .word-text{color:#0e7490!important}
+  .word-sentence{color:#555!important}
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div>
+    <div class="live-pill"><span class="pulse"></span>Live Worksheet</div>
+  </div>
+
+  <section class="hero">
+    <span class="eyebrow">Reading Future · Create 3 · Word List</span>
+    <h1>Every unit. Every word.<br><span class="grad">One live worksheet.</span></h1>
+    <p>Interactive vocabulary practice for Reading Future Create 3. Enter your name and date, select a unit from the dropdown, and review all target words with definitions and sample sentences — on screen or in print.</p>
+  </section>
+
+  <section class="info">
+    <div class="form-group">
+      <label for="studentName">Student Name</label>
+      <input type="text" id="studentName" placeholder="Enter your name">
+    </div>
+    <div class="form-group">
+      <label for="dateField">Date</label>
+      <input type="date" id="dateField">
+    </div>
+    <div class="form-group">
+      <label for="unitSelect">Unit Selector</label>
+      <select id="unitSelect" onchange="loadUnit()">
+        <option value="">— Choose a unit —</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="content" id="content">
+    <div class="placeholder">
+      <div class="glyph">❖</div>
+      <p>Select a unit above to load its vocabulary set.</p>
+    </div>
+  </section>
+
+  <div class="footer"><span>Reading Future Create 3</span><span>Interactive Edition · v2</span></div>
+</div>
+
+<script>
+const wordData = {
+"Unit 1. The Diary of a Young Girl": [
+{word:"diary",pos:"n.",def:"a book in which you write down your personal experiences and thoughts",sent:"I write secrets in my diary."},
+{word:"take over",pos:"v.",def:"to take control of something",sent:"The army took over this place."},
+{word:"safety",pos:"n.",def:"freedom from harm or danger",sent:"It is important to pay attention to safety when biking."},
+{word:"invade",pos:"v.",def:"to enter a place where you are not wanted or in order to take control",sent:"The French invaded Portugal in 1807."},
+{word:"deport",pos:"v.",def:"to force a person to leave a country",sent:"He was deported from the airport for not having his passport."},
+{word:"fear",pos:"n.",def:"a feeling of being afraid",sent:"I have a fear of cats and don't like them."},
+{word:"private",pos:"adj.",def:"not known by the public or other people",sent:"This is a private beach only for people who live on this street."},
+{word:"available",pos:"adj.",def:"possible to get or use",sent:"The dress is not available in my size."},
+{word:"during",pos:"prep.",def:"happening at a time",sent:"I eat during lunch."},
+{word:"terrible",pos:"adj.",def:"very bad",sent:"The storm was terrible, and it lasted all night."},
+{word:"period",pos:"n.",def:"a small dot at the end of sentences",sent:"Make sure you put a period at the end of each sentence you write."},
+{word:"run away",pos:"v.",def:"to leave a place or person secretly and suddenly",sent:"He is running away from prison."},
+{word:"decide",pos:"v.",def:"to choose something after thinking about it",sent:"She takes a long time to decide what to eat."},
+{word:"survive",pos:"v.",def:"to remain alive",sent:"It is difficult to survive without water."},
+{word:"continue",pos:"v.",def:"to keep doing something or begin something again",sent:"He continued working on the homework he started last night."}],
+"Unit 2. Leonardo da Vinci": [
+{word:"genius",pos:"n.",def:"a very smart or talented person",sent:"Steve can solve anything — the man's a genius."},
+{word:"excellent",pos:"adj.",def:"very good",sent:"My teacher thinks that my book report is excellent."},
+{word:"supper",pos:"n.",def:"the evening meal",sent:"We are eating meat and potatoes for supper."},
+{word:"museum",pos:"n.",def:"a building in which interesting and valuable things are collected",sent:"The history museum has many things to look at!"},
+{word:"line up",pos:"v.",def:"to form a line to wait to do something",sent:"People are lining up to buy food."},
+{word:"however",pos:"adv.",def:"a word used to say something that is different from what was said previously",sent:"I am busy today; however, I can go tomorrow."},
+{word:"tank",pos:"n.",def:"a military vehicle that moves on two metal belts and wheels",sent:"The soldier is driving a tank."},
+{word:"calculator",pos:"n.",def:"a small electronic device used for adding, subtracting, etc.",sent:"They cannot work out a math problem without a calculator."},
+{word:"grow up",pos:"v.",def:"to be mature, become adult",sent:"He was born in Hong Kong but grew up in New York."},
+{word:"famous",pos:"adj.",def:"known by many people",sent:"I want to be a famous movie star."},
+{word:"talent",pos:"n.",def:"the ability to do something better than most people",sent:"Alex will sing at the talent show."},
+{word:"limit",pos:"n.",def:"the greatest or least amount, number, speed etc that is allowed",sent:"The weight of the luggage exceeds the limit of 20 kg."},
+{word:"imagine",pos:"v.",def:"to make a picture in your mind",sent:"Imagine what the people look like as I read the story."},
+{word:"remain",pos:"v.",def:"to continue in the same condition or state",sent:"The stores will remain open even though the street is blocked."},
+{word:"visitor",pos:"n.",def:"a person who goes to a new place",sent:"We have a visitor from America."}],
+"Unit 3. Pocahontas": [
+{word:"leader",pos:"n.",def:"someone who is in control of a group",sent:"The king is the leader of a country."},
+{word:"nickname",pos:"n.",def:"a friendly or fun name for someone or something",sent:"They nicknamed the short boy \"Shorty\"."},
+{word:"playful",pos:"adj.",def:"happy and full of energy",sent:"She's an old dog, but she's still very playful."},
+{word:"marry",pos:"v.",def:"to become the husband or wife of someone",sent:"My wife and I got married 10 years ago."},
+{word:"religion",pos:"n.",def:"the belief in god or in a group of gods",sent:"There are many religions, such as Buddhism, Christianity, Hinduism, Islam, and Judaism."},
+{word:"relationship",pos:"n.",def:"the way two or more people or groups feel about each other",sent:"Even though they have the same name, they do not have a relationship."},
+{word:"worse",pos:"adj.",def:"more serious; very bad",sent:"I am worse at playing basketball than anyone on the team."},
+{word:"conflict",pos:"n.",def:"a strong disagreement between people",sent:"Two girls have a conflict because they both want the last orange."},
+{word:"important",pos:"adj.",def:"necessary or very useful",sent:"His email is important so I want you to read it."},
+{word:"figure",pos:"n.",def:"the shape or form of a person's body",sent:"She had to draw the human figure for art class."},
+{word:"remember",pos:"v.",def:"to keep an idea or picture in your mind",sent:"I can never remember my sister's birthday."},
+{word:"agree",pos:"v.",def:"to have the same idea about something",sent:"My sister always agrees with me about music."},
+{word:"bring",pos:"v.",def:"to take something with you",sent:"Will you bring your computer to school?"},
+{word:"cause",pos:"v.",def:"a reason why something happens",sent:"Heavy rain caused floods."},
+{word:"mean",pos:"v.",def:"to carry an idea or information",sent:"I do not know what any words in Spanish mean."}],
+"Unit 4. Walt Disney": [
+{word:"cartoon",pos:"n.",def:"a series of drawings that tell a story",sent:"I like to read the cartoons in the newspaper."},
+{word:"deliver",pos:"v.",def:"to take something to a person or place",sent:"I will deliver the mail to you."},
+{word:"successful",pos:"adj.",def:"having a good result",sent:"The operation was successful."},
+{word:"manage",pos:"v.",def:"the skill of controlling and making decisions about a business",sent:"He used to manage the bookshop."},
+{word:"studio",pos:"n.",def:"the building or room where an artist works",sent:"He paints in his studio every evening."},
+{word:"because",pos:"conj.",def:"a word we use to give something a reason",sent:"I like swimming because it is fun."},
+{word:"give up",pos:"v.",def:"to stop trying to do something before you have finished",sent:"I gave up trying to help her."},
+{word:"cancer",pos:"n.",def:"a serious disease",sent:"People who smoke increase their risk of lung cancer."},
+{word:"start",pos:"v.",def:"to begin doing something",sent:"We start school at 8 o'clock in the morning."},
+{word:"decade",pos:"n.",def:"a period of ten years",sent:"I can't believe smartphones have only existed for a decade!"},
+{word:"newspaper",pos:"n.",def:"printed sheets of paper containing news stories and information",sent:"My father always reads the newspaper in the morning."},
+{word:"courage",pos:"n.",def:"the ability to do something that is dangerous or difficult without showing fear",sent:"The firefighter had a lot of courage when she saved the little girl."},
+{word:"remove",pos:"v.",def:"to take something off",sent:"Please remove your dirty shoes before coming into the house."},
+{word:"pursue",pos:"v.",def:"to try to do something over a period of time",sent:"She decided to pursue a career in finance."},
+{word:"artist",pos:"n.",def:"a person who makes art",sent:"My mother is an artist and paints large pictures."}],
+"Unit 5. Foreign Exchange Rates": [
+{word:"currency",pos:"n.",def:"the money that a country uses",sent:"Travelers need the currency of the country they are going to."},
+{word:"bank",pos:"n.",def:"a place where people keep their money safe",sent:"I put my money in the bank to keep it safe."},
+{word:"for example",pos:"adv.",def:"used to give an example of what you are talking about",sent:"For example, some coins have square sides in India."},
+{word:"rate",pos:"n.",def:"an amount to be paid according to a set calculation",sent:"The hotel's rate is $125 per night or $200 for two nights."},
+{word:"tell",pos:"v.",def:"to say something to someone",sent:"I enjoy telling people stories."},
+{word:"probably",pos:"adv.",def:"very likely",sent:"I will probably go to the gym to workout."},
+{word:"gold",pos:"adj.",def:"a yellow metal that is valuable and used in jewelry",sent:"My teacher put a gold star on my test."},
+{word:"problem",pos:"n.",def:"something that is hard or bad",sent:"The car has a problem, so we can't drive it."},
+{word:"numerous",pos:"adj.",def:"existing in large numbers",sent:"He has written numerous articles."},
+{word:"economy",pos:"n.",def:"the system of goods and services being produced, sold, and bought",sent:"New businesses are a sign of a strong economy."},
+{word:"depend",pos:"v.",def:"to be decided by or to change according to the stated thing",sent:"I might go to the beach tomorrow but it depends on the weather."},
+{word:"government",pos:"n.",def:"the group of people who control and make decisions for a country",sent:"The government controls who can enter the country."},
+{word:"import",pos:"v.",def:"to bring product into a country to be sold",sent:"Many countries import coal, food, and oil."},
+{word:"value",pos:"n.",def:"how much something is worth",sent:"The value of the chair is $100."},
+{word:"exchange",pos:"n.",def:"a switching of things that people have",sent:"There was an exchange of sandwiches during lunch."}],
+"Unit 6. What Are Banks For?": [
+{word:"savings",pos:"n.",def:"money that you have saved, usually in a bank",sent:"I opened a savings account at my local bank."},
+{word:"deal with",pos:"v.",def:"to handle or manage something",sent:"He's good at dealing with pressure."},
+{word:"different",pos:"adj.",def:"being not like something else",sent:"My mom and dad look different."},
+{word:"finance",pos:"n.",def:"the way in which money is used and handled",sent:"She wants to get a job in finance."},
+{word:"borrow",pos:"v.",def:"to take something for a short time and give it back",sent:"I don't have a cup. Can I borrow one from you?"},
+{word:"offer",pos:"v.",def:"to make something available; to provide or supply something",sent:"Sally and Jack offer to help the teacher clean every day after school."},
+{word:"account",pos:"n.",def:"an arrangement with a bank to keep your money there",sent:"I want to save money, so I put $100 into my bank account."},
+{word:"decide",pos:"v.",def:"to choose something after thinking about it",sent:"She takes a long time to decide what to eat."},
+{word:"customer",pos:"n.",def:"someone who buys goods or services from a business",sent:"The customer will buy three dresses."},
+{word:"place",pos:"n.",def:"the location of a person or thing",sent:"My house is my favorite place."},
+{word:"lend",pos:"v.",def:"to give someone money that they must return",sent:"My friend lent me a pencil before the test."},
+{word:"visit",pos:"v.",def:"to go to a place for a short time",sent:"We visited New York to see the museums."},
+{word:"pay back",pos:"v.",def:"to return money",sent:"I'll pay back the money with interest."},
+{word:"economy",pos:"n.",def:"the use of money and property in a region or country",sent:"New businesses are a sign of a strong economy."},
+{word:"role",pos:"n.",def:"a part that someone or something plays in a particular situation",sent:"The actor talked about how hard it was to play the role of a killer."}],
+"Unit 7. How to Set Prices": [
+{word:"cost",pos:"n.",def:"the amount of money that is needed to pay for something",sent:"The cost of rail travel is terrible."},
+{word:"set",pos:"v.",def:"to arrange something that will happen",sent:"Should we set a date for the next meeting?"},
+{word:"make sure",pos:"v.",def:"to check and be certain that something is true or is done",sent:"Make sure that you close all the windows before you leave."},
+{word:"cover",pos:"v.",def:"to put something over something else",sent:"I cover myself with blankets when it is cold."},
+{word:"fair",pos:"adj.",def:"reasonable; acceptable",sent:"The boy's hair is so fair that it's almost white."},
+{word:"price",pos:"n.",def:"the amount of money you have to pay for something",sent:"The price of food has gone up at the supermarket."},
+{word:"believe",pos:"v.",def:"to think something is true",sent:"I believe the earth is round."},
+{word:"worth",pos:"adj.",def:"good, valuable, important enough for something",sent:"Our house is worth $200,000 but we paid a lot less."},
+{word:"constantly",pos:"adv.",def:"a lot or all of the time",sent:"She has the television on constantly."},
+{word:"product",pos:"n.",def:"something that is made for sale",sent:"The company makes computer products that it sells online."},
+{word:"similar",pos:"adj.",def:"almost the same as something else",sent:"My sister looks very similar to me."},
+{word:"owner",pos:"n.",def:"a person who something belongs to",sent:"He is the owner of this factory."},
+{word:"competitive",pos:"adj.",def:"having a strong desire to win or be the best at something",sent:"She has always been competitive and now plays professional tennis."},
+{word:"employee",pos:"n.",def:"a person who works for a company",sent:"Every employee works from 8 a.m. to 5 p.m."},
+{word:"adjust",pos:"v.",def:"to change something in a small way to make it more suitable",sent:"If it gets too hot, you can adjust the temperature."}],
+"Unit 8. Hyperinflation": [
+{word:"a pair of",pos:"prep.",def:"two matching items or objects",sent:"The man is buying a pair of shoes."},
+{word:"increase",pos:"v.",def:"to make bigger or add to something",sent:"I want to increase the money I have in the bank."},
+{word:"government",pos:"n.",def:"the group of people who control and make decisions for a country",sent:"The government controls who can enter the country."},
+{word:"go up",pos:"v.",def:"to increase",sent:"Cigarettes are going up in price."},
+{word:"know",pos:"v.",def:"to have information",sent:"Do you know where the library is?"},
+{word:"within",pos:"prep.",def:"during a particular period of time",sent:"You must finish the test within the two-hour time limit."},
+{word:"value",pos:"n.",def:"how much something is worth",sent:"The value of the chair is $100."},
+{word:"inflation",pos:"n.",def:"a rise in prices and fall in the value of money",sent:"Inflation is currently running at a 20% annual rate."},
+{word:"consumer",pos:"n.",def:"a person who buys goods and services",sent:"Many consumers do not want to pay with their credit card online."},
+{word:"control",pos:"v.",def:"to have power over something or someone",sent:"My manager controls our current project."},
+{word:"demand",pos:"n.",def:"the number of people who want a product or service",sent:"There was not much demand for tickets."},
+{word:"in order to",pos:"adv.",def:"so that you can do something",sent:"She worked all summer in order to save some money."},
+{word:"shortage",pos:"n.",def:"a situation where there is not enough of something for the people who want it",sent:"A shortage of food can lead to war."},
+{word:"run out",pos:"v.",def:"to be used up",sent:"The milk has run out."},
+{word:"avoid",pos:"v.",def:"to stay away from",sent:"I always avoid strangers when I am alone."}],
+"Unit 9. Virtual Reality and Art": [
+{word:"allow",pos:"v.",def:"to say that someone can do something",sent:"We should allow children to watch educational TV."},
+{word:"artificial",pos:"adj.",def:"not natural, but made by people",sent:"He uses specially made artificial legs."},
+{word:"distance",pos:"n.",def:"the length of the space between two places",sent:"We're only a short distance from my house."},
+{word:"explore",pos:"v.",def:"to go around a place where you have never been in order to find out what is there",sent:"Explore this model of American ingenuity."},
+{word:"extraordinary",pos:"adj.",def:"very different from what is normal",sent:"The company is always looking for extraordinary people."},
+{word:"generate",pos:"v.",def:"to produce something or cause something to be produced",sent:"This movie has generated a lot of interest."},
+{word:"headset",pos:"n.",def:"a device that sits on the head",sent:"The device is a wearable headset."},
+{word:"inconvenient",pos:"adj.",def:"causing problems or difficulties",sent:"It is very inconvenient living so far away from the shops."},
+{word:"interact",pos:"v.",def:"to talk and do things with other people",sent:"We interact with other people every day."},
+{word:"masterpiece",pos:"n.",def:"a great book, painting, piece of music, movie, etc.",sent:"This is the masterpiece of his life."},
+{word:"museum",pos:"n.",def:"a building where you can look at important objects connected with art, history, or science",sent:"The museum of modern art is a beautiful place."},
+{word:"presentation",pos:"n.",def:"the way in which something is arranged, designed, etc.",sent:"She gave an interesting presentation on the city."},
+{word:"transport",pos:"v.",def:"to carry something or someone from one place to another",sent:"The book transports you to another world."},
+{word:"user",pos:"n.",def:"a person or thing that uses something",sent:"The user must change the password."},
+{word:"wherever",pos:"conj.",def:"in or to any place or every place",sent:"You can sit wherever you like."}],
+"Unit 10. Banksy's Graffiti Art": [
+{word:"although",pos:"conj.",def:"despite the fact that",sent:"He is quite strong although he is old."},
+{word:"appear",pos:"v.",def:"to start to be seen",sent:"She suddenly appeared in the doorway."},
+{word:"arrest",pos:"v.",def:"to catch and hold for doing something bad",sent:"I arrest you in the name of the law."},
+{word:"artist",pos:"n.",def:"someone who makes art, especially paintings and drawings",sent:"She will be a great artist someday."},
+{word:"confirm",pos:"v.",def:"to state or show that something is true or correct",sent:"You need to confirm this operation."},
+{word:"crime",pos:"n.",def:"an action that is wrong according to the law",sent:"He committed a serious crime."},
+{word:"dangerous",pos:"adj.",def:"if someone or something is dangerous, they or it could harm you",sent:"It's dangerous to ride a motorcycle without a helmet."},
+{word:"exhibition",pos:"n.",def:"a collection of things shown publicly",sent:"I have a ticket for a photo exhibition."},
+{word:"identity",pos:"n.",def:"the things that make one person or group of people different from others",sent:"The people have lost their identity."},
+{word:"illegal",pos:"adj.",def:"wrong according to the law",sent:"It is illegal to park here."},
+{word:"permission",pos:"n.",def:"the right or ability to do something that is given by someone who has the power to decide",sent:"I had to get permission to use the car."},
+{word:"photograph",pos:"n.",def:"a picture made with a camera",sent:"He took a photograph of the children."},
+{word:"property",pos:"n.",def:"land or goods that a person owns",sent:"She claims it as her property."},
+{word:"risk",pos:"v.",def:"if you risk something bad, you do something even though that bad thing might happen",sent:"Firefighters risk their lives to save others on a daily basis."},
+{word:"switch",pos:"v.",def:"to change one for another",sent:"He's just switched jobs."}],
+"Unit 11. The Art of LEGO®": [
+{word:"after",pos:"prep.",def:"following something that has happened",sent:"We went swimming after lunch."},
+{word:"ask",pos:"v.",def:"to say something to someone as a question",sent:"I asked him about his hobbies."},
+{word:"brick",pos:"n.",def:"a small, hard block, usually made of baked clay",sent:"The house is built of brick."},
+{word:"contest",pos:"n.",def:"a competition",sent:"They were ready to engage in the contest."},
+{word:"draw",pos:"v.",def:"to make a picture with a pen or pencil",sent:"She drew a picture of a tree."},
+{word:"enter",pos:"v.",def:"to officially be in a race, competition, etc.",sent:"Are you going to enter the photography competition?"},
+{word:"favorite",pos:"adj.",def:"your favorite person or thing is the one that you like best",sent:"What's your favorite color?"},
+{word:"giant",pos:"adj.",def:"very big",sent:"Many people have seen the giant rabbit."},
+{word:"hurricane",pos:"n.",def:"a large storm with extremely powerful wind and rain",sent:"A hurricane causes great destruction to buildings and trees."},
+{word:"lawyer",pos:"n.",def:"a person who helps people in matters relating to the law",sent:"I handed the contract to my lawyer."},
+{word:"metal",pos:"n.",def:"a substance that is usually shiny, can be melted, and can usually be shaped",sent:"That piece of metal is bent."},
+{word:"portrait",pos:"n.",def:"a painting, drawing, or photograph of a person's head and shoulders",sent:"The artists are drawing a portrait of a model."},
+{word:"quit",pos:"v.",def:"to leave your job",sent:"She recently quit her job."},
+{word:"victim",pos:"n.",def:"a person who has been attacked, injured, harmed, or killed",sent:"The police still doesn't know what hit the victim."},
+{word:"wood",pos:"n.",def:"the hard material that trees are made of",sent:"The table is made of wood."}],
+"Unit 12. Nail Art": [
+{word:"canvas",pos:"n.",def:"a cloth used for painting a picture on",sent:"He dashed some paint on the canvas."},
+{word:"charge",pos:"v.",def:"to ask for money in return for providing something",sent:"How much do you charge for delivery?"},
+{word:"creative",pos:"adj.",def:"good at thinking of new ideas and making interesting things",sent:"Her book is full of creative ways to decorate your home."},
+{word:"deer",pos:"n.",def:"a large animal with four thin legs and brown fur",sent:"Hunters kill deer in the fall."},
+{word:"detailed",pos:"adj.",def:"including a lot of facts or information",sent:"Thanks a lot for all your detailed information."},
+{word:"express",pos:"v.",def:"to show what you think or how you feel using words or actions",sent:"I'm simply expressing my opinion."},
+{word:"fingernail",pos:"n.",def:"the hard covering at the end of your fingers",sent:"I get my fingernail trimmed."},
+{word:"go back",pos:"phr.",def:"to return to a place where you were or where you have been before",sent:"When are you going back to Las Vegas?"},
+{word:"hobby",pos:"n.",def:"an activity that you like and often do when you are not working",sent:"Do you have any hobbies?"},
+{word:"jewel",pos:"n.",def:"a precious stone that is used to make jewelry",sent:"This jewel is of great value."},
+{word:"paint",pos:"v.",def:"to cover a surface with paint",sent:"We've painted the kitchen yellow."},
+{word:"per",pos:"prep.",def:"for each",sent:"The hotel room costs $60 per night."},
+{word:"profitable",pos:"adj.",def:"making a profit",sent:"This is a profitable business."},
+{word:"stand out",pos:"phr.",def:"to be noticed or easily seen",sent:"The bright green letters really stand out on the page."},
+{word:"tradition",pos:"n.",def:"a way of thinking or behaving that has been with a particular group of people for a long time",sent:"This is a tradition of old standing."}],
+"Unit 13. New Homes for Animals": [
+{word:"affect",pos:"v.",def:"to cause a change in someone or something",sent:"How will the new road affect the community?"},
+{word:"assist",pos:"v.",def:"to help",sent:"The army arrived to assist in the search for survivors."},
+{word:"disaster",pos:"n.",def:"a sudden event that causes a lot of damage",sent:"The government directs aid to a disaster zone."},
+{word:"environment",pos:"n.",def:"the air, land, and water where people, animals, and plants live",sent:"The new road may cause damage to the environment."},
+{word:"extinct",pos:"adj.",def:"a type of animal existed in the past but no longer exists",sent:"Dinosaurs became extinct a long time ago."},
+{word:"figure out",pos:"phr.",def:"to come to understand something by thinking carefully",sent:"You must figure out how to solve this question."},
+{word:"finally",pos:"adv.",def:"at last; after a long time",sent:"We finally got home at midnight."},
+{word:"may",pos:"v.",def:"used to talk about what is possibly true or will possibly happen",sent:"I think I may have a cold."},
+{word:"migrate",pos:"v.",def:"when birds or animals migrate, they travel from one place to another at the same time each year",sent:"Many birds migrate to Africa for the winter."},
+{word:"protect",pos:"v.",def:"to keep someone or something safe from something dangerous or bad",sent:"It's important to protect your skin from the sun."},
+{word:"put into action",pos:"phr.",def:"to start making an idea happen",sent:"The general put his idea into action."},
+{word:"ruin",pos:"v.",def:"to make something no good anymore",sent:"They were late and the dinner was ruined."},
+{word:"strategy",pos:"n.",def:"a plan",sent:"The strategy is very appropriate."},
+{word:"suitable",pos:"adj.",def:"appropriate or correct for a situation",sent:"We want a suitable location for a new factory."},
+{word:"wildlife",pos:"n.",def:"animals living in nature; wild animals",sent:"There are lots of wildlife trails in this area."}],
+"Unit 14. Doctor Fish": [
+{word:"according to",pos:"prep.",def:"as said by someone or as shown by something",sent:"According to the weather forecast, it's going to rain tomorrow."},
+{word:"common",pos:"adj.",def:"happening often or existing in large numbers",sent:"Injuries are common in sports such as hockey."},
+{word:"harm",pos:"v.",def:"to hurt someone or damage something",sent:"This dog does no harm to man."},
+{word:"in particular",pos:"phr.",def:"especially",sent:"Are you looking for anything in particular?"},
+{word:"notice",pos:"v.",def:"to see something and be aware of it",sent:"I noticed that he was alone."},
+{word:"nutrient",pos:"n.",def:"something that plants or animals need to live or grow",sent:"The nutrient value of snacks is generally low."},
+{word:"permanent",pos:"adj.",def:"lasting forever",sent:"She found a permanent job."},
+{word:"severe",pos:"adj.",def:"extremely bad or unpleasant",sent:"I suffered from severe depression."},
+{word:"skin",pos:"n.",def:"the outer layer of a person or animal's body",sent:"Her skin is as white as snow."},
+{word:"species",pos:"n.",def:"a group of plants or animals that are the same in some way",sent:"It is a rare species of bird."},
+{word:"spring",pos:"n.",def:"a place where water flows from the ground naturally",sent:"It was hot so they came to drink water at a small spring."},
+{word:"suffer from",pos:"phr.",def:"to be affected badly by something, usually an illness",sent:"She suffers from depression."},
+{word:"surround",pos:"v.",def:"to be on all sides",sent:"The house is surrounded by a large garden."},
+{word:"survive",pos:"v.",def:"to continue to live after almost dying because of an accident, illness, etc.",sent:"No one survived the plane crash."},
+{word:"treat",pos:"v.",def:"to try to make an illness better",sent:"The doctor is treating him for depression."}],
+"Unit 15. DNA Bank": [
+{word:"crucial",pos:"adj.",def:"extremely important",sent:"He had a crucial role in finding the killer."},
+{word:"disappear",pos:"v.",def:"to no longer exist",sent:"These flowers are disappearing from our countryside."},
+{word:"endangered",pos:"adj.",def:"used to describe animals and plants that may soon disappear from the world because there are very few left alive",sent:"Tigers are now an endangered species."},
+{word:"evolve",pos:"v.",def:"to change or develop slowly, usually into a better state",sent:"He believes that human evolves."},
+{word:"freeze",pos:"v.",def:"to preserve something at a temperature below freezing point",sent:"You can freeze the soup at this stage."},
+{word:"global",pos:"adj.",def:"involving the entire world",sent:"I think global market will be hard."},
+{word:"ideal",pos:"adj.",def:"perfect, or the best possible",sent:"She is the ideal person."},
+{word:"issue",pos:"n.",def:"an important subject or topic",sent:"What's your opinion on the issue?"},
+{word:"knowledge",pos:"n.",def:"information, understanding, or skill that you get from education or experience",sent:"His knowledge of history is amazing."},
+{word:"law",pos:"n.",def:"a rule made by the government",sent:"The law is no longer effective."},
+{word:"quickly",pos:"adv.",def:"fast or in a short time",sent:"I quickly shut the door."},
+{word:"role",pos:"n.",def:"the job someone or something has in a particular situation",sent:"Schools play an important role in society."},
+{word:"sample",pos:"n.",def:"a small amount of something that gives you information about the thing it was taken from",sent:"She brought in some samples of her work."},
+{word:"serious",pos:"adj.",def:"a serious problem or situation is bad and makes people worry",sent:"This is a serious matter."},
+{word:"support",pos:"v.",def:"to give help or assistance to someone or something",sent:"My family has always supported me in my career."}],
+"Unit 16. Domestication": [
+{word:"collect",pos:"v.",def:"to get and keep things",sent:"I collect fallen leaves every autumn."},
+{word:"companion",pos:"n.",def:"someone you spend time with and enjoy being with",sent:"A dog is a great companion."},
+{word:"crop",pos:"n.",def:"a plant that is grown by farmers",sent:"The rice crop will be very large."},
+{word:"decoration",pos:"n.",def:"something that is added to something else to make it more attractive",sent:"She hung some pictures around the room for decoration."},
+{word:"domestication",pos:"n.",def:"the process of bringing animals or plants under human control in order to provide food, power, or company",sent:"Domestication has not been such a bad thing for animals."},
+{word:"farm",pos:"n.",def:"land and buildings used for growing crops and keeping animals",sent:"He worked hard on his farm."},
+{word:"forest",pos:"n.",def:"a thick growth of trees and bushes that cover a large area",sent:"The man is walking in the forest."},
+{word:"fur",pos:"n.",def:"the hairy coat of an animal",sent:"Sheep provide thick fur for people."},
+{word:"harvest",pos:"v.",def:"to cut and collect crops when they are ready",sent:"The workers are harvesting the crops."},
+{word:"hunt",pos:"v.",def:"to chase and kill wild animals",sent:"They are hunting rabbits."},
+{word:"pet",pos:"n.",def:"an animal that is kept in the home for pleasure",sent:"What kind of pet would you like to have?"},
+{word:"purpose",pos:"n.",def:"why you do something or why something exists",sent:"What is the purpose of the speech?"},
+{word:"seed",pos:"n.",def:"a small object produced by a plant from which a new plant can grow",sent:"The seed grew into a huge tree."},
+{word:"wheat",pos:"n.",def:"a kind of grain used for making flour for bread, cookies, etc.",sent:"Wheat production has increased this year."},
+{word:"wild",pos:"adj.",def:"a wild animal or plant lives or grows in its natural place and not where people live",sent:"Wild birds are landing on the water."}]
+};
+
+const unitSelect = document.getElementById('unitSelect');
+Object.keys(wordData).forEach(u => {
+  const o = document.createElement('option');
+  o.value = u; o.textContent = u;
+  unitSelect.appendChild(o);
+});
+document.getElementById('dateField').valueAsDate = new Date();
+
+function posClass(p){
+  const k = p.replace('.','').trim();
+  return {n:'pos-n',v:'pos-v',adj:'pos-adj',adv:'pos-adv',prep:'pos-prep',conj:'pos-conj',phr:'pos-phr'}[k] || 'pos-n';
+}
+
+function loadUnit(){
+  const unit = unitSelect.value;
+  const content = document.getElementById('content');
+  if(!unit){
+    content.innerHTML = `<div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its vocabulary set.</p></div>`;
+    return;
+  }
+  const words = wordData[unit];
+  const num = unit.match(/\d+/)[0];
+  content.innerHTML = `
+    <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${unit}</h2></div>
+    <div class="stats">
+      <div class="stat"><b>${words.length}</b><span>Words</span></div>
+      <div class="stat"><b>${new Set(words.map(w=>w.pos)).size}</b><span>Word Types</span></div>
+      <div class="stat"><b>${num}</b><span>Unit No.</span></div>
+    </div>
+    ${words.map((w,i)=>`
+      <div class="word-card">
+        <div class="word-header">
+          <span class="word-text">${String(i+1).padStart(2,'0')} · ${w.word}</span>
+          <span class="pos ${posClass(w.pos)}">${w.pos}</span>
+        </div>
+        <div class="word-definition">${w.def}</div>
+        <div class="word-sentence">"${w.sent}"</div>
+      </div>`).join('')}
+    <button class="print-btn" onclick="window.print()">Print Worksheet</button>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Future Create 3 — Review Tests</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#05070f; --surface-2:#0d1526; --border:rgba(148,163,184,.14);
+  --cyan:#22d3ee; --cyan-lt:#67e8f9; --violet:#8b5cf6; --violet-lt:#c4b5fd;
+  --text:#e2e8f0; --muted:#8fa3b8; --success:#34d399; --error:#f87171;
+  color-scheme: dark;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);
+  background-image:radial-gradient(1100px 520px at 85% -10%, rgba(139,92,246,.16), transparent 60%),
+                   radial-gradient(900px 480px at 8% -5%, rgba(34,211,238,.12), transparent 60%);
+  min-height:100vh;padding:32px 16px;color:var(--text)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 40%,transparent 100%)}
+.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;background:rgba(9,13,24,.82);
+  backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65)}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:13px 28px;
+  background:linear-gradient(90deg,rgba(124,58,237,.28),rgba(34,211,238,.14));border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan-lt)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.live-pill{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--violet-lt);background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.4);border-radius:999px;padding:5px 12px}
+.live-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--violet);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.hero{padding:44px 44px 28px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan-lt);margin-bottom:16px}
+.eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,42px);line-height:1.08;text-transform:uppercase;color:#f8fafc}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan-lt),var(--violet-lt));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin-top:14px;max-width:720px;color:var(--muted);font-size:14.5px;line-height:1.7}
+.info{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:16px;padding:22px 44px;background:rgba(13,19,35,.65);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.form-group label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.form-group input,.form-group select{width:100%;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--text);
+  background:#0a101f;border:1px solid rgba(148,163,184,.2);border-radius:10px;transition:border-color .25s,box-shadow .25s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+.content{padding:32px 44px 44px}
+.unit-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.unit-head .bar{width:4px;height:30px;border-radius:2px;background:linear-gradient(180deg,var(--cyan),var(--violet));box-shadow:0 0 14px rgba(34,211,238,.5)}
+.unit-title{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#f1f5f9}
+.section-head{font-family:'Space Grotesk',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--violet-lt);margin:26px 0 12px}
+.passage-card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--border);
+  border-radius:12px;padding:22px 24px;margin-bottom:16px;font-size:14.5px;line-height:2;color:#cbd5e1}
+.bank-display{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.bank-word{font-size:12.5px;font-weight:600;color:var(--cyan-lt);background:rgba(34,211,238,.08);
+  border:1px dashed rgba(34,211,238,.5);border-radius:999px;padding:5px 14px}
+.fill{font-size:14.5px;line-height:2.1;color:#cbd5e1;margin-bottom:6px}
+.fill select,.gap-slot select{background:#0a101f;color:var(--cyan-lt);border:1px dashed rgba(34,211,238,.45);border-radius:6px;
+  padding:3px 6px;font-family:inherit;font-size:13px;cursor:pointer;margin:0 3px}
+.fill select.correct,.gap-slot select.correct{border:1px solid var(--success);background:rgba(52,211,153,.12);color:var(--success)}
+.fill select.incorrect,.gap-slot select.incorrect{border:1px solid var(--error);background:rgba(248,113,113,.12);color:var(--error)}
+.mc{background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:10px;padding:14px 18px;margin-bottom:12px}
+.mc.correct{border-left-color:var(--success)} .mc.incorrect{border-left-color:var(--error)}
+.q{font-size:14.5px;color:#e2e8f0;margin-bottom:10px;line-height:1.6}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{text-align:left;font-family:inherit;font-size:13.5px;color:var(--muted);background:rgba(10,16,31,.7);
+  border:1px solid rgba(148,163,184,.2);border-radius:8px;padding:9px 13px;cursor:pointer;transition:all .2s}
+.opt:hover{border-color:var(--cyan);color:var(--text)}
+.opt.sel{border-color:var(--cyan);color:var(--cyan-lt);background:rgba(34,211,238,.1)}
+.mc.correct .opt.sel{border-color:var(--success);color:var(--success);background:rgba(52,211,153,.1)}
+.mc.incorrect .opt.sel{border-color:var(--error);color:var(--error);background:rgba(248,113,113,.1)}
+.written{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:12px}
+.ans-input{width:100%;margin-top:4px;padding:10px 13px;font-size:13.5px;font-family:inherit;color:var(--text);
+  background:#0a101f;border:1px solid rgba(148,163,184,.2);border-radius:8px}
+.ans-input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+.model{margin-top:10px;font-size:13px;color:var(--success);background:rgba(52,211,153,.08);
+  border:1px solid rgba(52,211,153,.35);border-radius:8px;padding:9px 13px;line-height:1.6}
+.option-card{background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+.option-card.solved{border-left-color:var(--success);box-shadow:0 0 0 1px rgba(52,211,153,.35) inset}
+.option-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.option-status{margin-left:auto;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.option-card.solved .option-status{color:var(--success)}
+.build-line{min-height:44px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:rgba(10,16,31,.7);
+  border:1px dashed rgba(148,163,184,.25);border-radius:8px;padding:8px;margin-bottom:10px}
+.build-line .hint{font-size:11.5px;color:#5b6b80}
+.bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.chip{font-size:13px;padding:6px 10px;border-radius:6px;cursor:pointer;user-select:none;line-height:1.3;transition:transform .15s,filter .15s}
+.chip:hover{transform:translateY(-1px);filter:brightness(1.2)}
+.bank .chip{background:rgba(34,211,238,.08);border:1px dashed rgba(34,211,238,.5);color:var(--cyan-lt)}
+.build-line .chip{background:rgba(139,92,246,.16);border:1px solid rgba(139,92,246,.55);color:var(--violet-lt)}
+.option-card.solved .build-line .chip{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.55);color:var(--success)}
+.action-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.btn{flex:1;padding:13px;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;transition:filter .25s,transform .25s;min-width:140px}
+.btn-check{color:#041018;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.btn-model{color:var(--success);background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.4)}
+.btn-share{color:var(--cyan-lt);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4)}
+.btn-print{color:var(--violet-lt);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.45)}
+.btn-reset{color:var(--muted);background:rgba(148,163,184,.1);border:1px solid var(--border)}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.score-display{text-align:center;margin-top:16px;font-family:'Space Grotesk',sans-serif;font-size:17px;color:var(--cyan-lt);display:none}
+.share-panel{display:none;margin:22px 44px 0;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.share-panel.open{display:block}
+.share-panel h4{font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.share-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:10px;cursor:pointer;
+  background:rgba(10,16,31,.7);border:1px solid rgba(148,163,184,.2);color:var(--text);font-size:11.5px;font-weight:600}
+.share-item .ico{font-size:18px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:50;background:rgba(13,19,35,.95);
+  border:1px solid rgba(34,211,238,.5);color:var(--cyan-lt);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;
+  opacity:0;pointer-events:none;transition:all .3s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
+.placeholder .glyph{font-family:'Space Grotesk',sans-serif;font-size:44px;background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.placeholder p{margin-top:14px;color:var(--muted);font-size:15px}
+.footer{padding:16px 28px;border-top:1px solid var(--border);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
+@media (max-width:768px){.info{grid-template-columns:1fr}.hero,.info,.content{padding-left:22px;padding-right:22px}.action-row{flex-direction:column}.share-panel{margin-left:22px;margin-right:22px}}
+@media (max-width:640px){.share-grid{grid-template-columns:repeat(2,1fr)}}
+@media print{
+  body{background:#fff;padding:0}
+  .bg-grid,.topbar,.action-row,.score-display,.footer,.share-panel,.toast{display:none!important}
+  .container{box-shadow:none;border:none;background:#fff}
+  *{color:#111!important;background:transparent!important;border-color:#ccc!important;text-shadow:none!important}
+  .passage-card,.mc,.written,.option-card{break-inside:avoid}
+  .chip{padding:2px 6px!important;font-size:12px!important;border:1px solid #999!important}
+  .model{border:1px solid #999!important}
+}
+@page{margin:12mm}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+  <div class="topbar"><div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div><div class="live-pill"><span class="pulse"></span>Live Review Test</div></div>
+  <section class="hero">
+    <span class="eyebrow">Reading Future · Create 3 · Review Tests 1–4</span>
+    <h1>Test yourself.<br><span class="grad">Check instantly.</span></h1>
+    <p>Full interactive review tests: vocabulary fill-ins with word banks, multiple choice, in-passage cloze gaps, an unscramble item, and written questions with model answers. Auto-graded where objective; written answers are self-checked against the models.</p>
+  </section>
+  <section class="info">
+    <div class="form-group"><label for="studentName">Student Name</label><input type="text" id="studentName" placeholder="Enter your name"></div>
+    <div class="form-group"><label for="dateField">Date</label><input type="date" id="dateField"></div>
+    <div class="form-group"><label for="testSelect">Test Selector</label><select id="testSelect" onchange="loadTest()"><option value="">— Choose a test —</option></select></div>
+  </section>
+  <section class="content" id="content">
+    <div class="placeholder"><div class="glyph">❖</div><p>Select a review test above to begin.</p></div>
+  </section>
+  <div class="share-panel" id="sharePanel">
+    <h4>Share this worksheet</h4>
+    <div class="share-grid">
+      <button class="share-item" onclick="copyLink()"><span class="ico">🔗</span>Copy Link</button>
+      <button class="share-item" onclick="shareEmail()"><span class="ico">✉️</span>Email</button>
+      <button class="share-item" onclick="shareWhatsApp()"><span class="ico">💬</span>WhatsApp</button>
+      <button class="share-item" onclick="shareX()"><span class="ico">📣</span>Post on X</button>
+    </div>
+  </div>
+  <div class="footer"><span>Reading Future Create 3 · Review Tests</span><span>Interactive Edition · v1</span></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const TESTS = {
+"Review Test 1 (Units 1-4)": {
+ bank:["religion","genius","museum","diary","opinion"],
+ fills:[
+  {t:"1. People called Leonardo da Vinci a(n) ___ because he had many talents.",a:"genius"},
+  {t:"2. Pocahontas changed her ___ to Christianity.",a:"religion"},
+  {t:"3. The Mona Lisa can be looked at at a(n) ___ in France.",a:"museum"}],
+ mcB:[
+  {q:"4. One of my ______ is big animals, like bears.",o:["nicknames","suppers","fears"],a:2},
+  {q:"5. The ______ between Jane and Carol is not good.",o:["relationship","courage","decade"],a:0}],
+ p1:"[6–8] A young Jewish girl named Anne Frank wrote a book called The Diary of a Young Girl. It was written during the Holocaust, which was a period during World War II when Nazi Germany killed anyone who was Jewish. Anne and her family decided to hide in a secret room in the Netherlands. ① It is during this time that Anne wrote her private thoughts in her diary. ② Today, her diary is a book and is translated in over sixty different languages. ③",
+ mcC:[
+  {q:"6. What is the passage mainly about?",o:["The blog about a Jewish family","The story of a girl and her diary","The history of Nazi Germany"],a:1},
+  {q:"7. Which is NOT true about the passage?",o:["The Diary of a Young Girl is only available in English.","Anne and her family lived in the Netherlands.","Anne wrote about her thoughts and feelings in a diary."],a:0},
+  {q:"8. What is the best place for: “She wrote about her fears and what she wanted to do after the war.”",o:["①","②","③"],a:1},
+  {q:"9. What is Leonardo da Vinci famous for?",o:["His teachers","His notebook","His paintings"],a:2},
+  {q:"10. What was surprising about Leonardo da Vinci?",o:["He thought of things people use today.","He liked to make things.","He was a good student."],a:0}],
+ p2:"[9–11] When Leonardo da Vinci was a student, his teachers were often very happy with his work. He quickly became [g1] at whatever he tried. Da Vinci is most famous for his paintings. Every year, thousands of visitors [g2] to see the Mona Lisa. Da Vinci was also an engineer and liked to make things. Surprisingly, he thought of many things which we still use. He wrote about making helicopters and army [g3] in his notebook. This was a few hundred years before people actually used them.",
+ gaps:[{o:["worse","excellent","playful"],a:"excellent"},{o:["deliver","deport","line up"],a:"line up"},{o:["calculators","tanks","cartoons"],a:"tanks"}],
+ pD1:"[12–13] When Walt Disney was eighteen, he started a company with other artists. The company did not do well, so Walt decided to study animation. With his new skills, he started his second company. The company was successful at first, but then failed because of poor management. However, Walt did not give up. He started another company in Hollywood in 1923. It was cartoon studio. ①",
+ pD2:"[14–15] Pocahontas was the daughter of one of the leaders of the Algonquian people. In 1607, Pocahontas met a group of Europeans. It is believed that she saved the life of Captain John Smith, an Englishman she became friends with. Many people now believe that this is not true. But people agree that Pocahontas helped the English when they came to America. Pocahontas was important because she helped teach the English people about Native Americans.",
+ written:[
+  {n:12,q:"What did Walt Disney study?",m:"He studied animation."},
+  {n:14,q:"What do people believe is not true about Pocahontas?",m:"That she saved the life of Captain John Smith."},
+  {n:15,q:"How did Pocahontas help the English people?",m:"She helped teach the English people about Native Americans."}],
+ unsc:{n:13,scrambled:["where","the","idea of","was born","This is","Mickey Mouse"],
+       correct:["This is","where","the","idea of","Mickey Mouse","was born"],
+       m:"This is where the idea of Mickey Mouse was born."}},
+"Review Test 2 (Units 5-8)": {
+ bank:["government","currency","pair of","consumers","cost"],
+ fills:[
+  {t:"1. Amy wants to buy a new ___ shoes for the performance.",a:"pair of"},
+  {t:"2. Many ___ compare prices before they decide to purchase something.",a:"consumers"},
+  {t:"3. The ___ of Korea is the Korean won.",a:"currency"}],
+ mcB:[
+  {q:"4. Business ______ must always think about the prices.",o:["rates","accounts","owners"],a:2},
+  {q:"5. A long time ago, people used ______ as a form of money.",o:["gold","roles","inflation"],a:0}],
+ p1:"[6–8] Foreign exchange rates used to be determined by how much gold a country had. ① Now, countries use a floating exchange range. ② This depends on numerous factors, including world events and the economy. If there are problems happening in a government, the value of that country’s currency may fall. Or if Americans want to import a large amount of products made in Europe, they need to buy euros. This makes the value of the euro higher. ③",
+ mcC:[
+  {q:"6. What is the passage mainly about?",o:["Which country is good for shopping","Why people exchange currency","How foreign exchange rates work"],a:2},
+  {q:"7. Which is NOT true about the passage?",o:["World events and the economy don’t affect the exchange rate.","Problems in the government decrease the value of money.","A fixed exchange rate used to be determined by gold."],a:0},
+  {q:"8. What is the best place for: “This was called a fixed exchange rate.”",o:["①","②","③"],a:0},
+  {q:"9. Why do people put money into bank accounts?",o:["To pay the bank","To get a loan","To keep it safe"],a:2},
+  {q:"10. How do banks make money?",o:["By taking out money","By collecting interest on loans","By opening saving accounts"],a:1}],
+ p2:"[9–11] Most people put money into banks to keep it safe. Most banks offer savings [g1]. Banks pay money called interest to their [g2] for keeping money in the bank. People can save and earn money by using the bank. There are people who go to banks to borrow money. This is called a bank loan. Banks [g3] money and collect interest from these loans.",
+ gaps:[{o:["accounts","finance","product"],a:"accounts"},{o:["employees","owners","customers"],a:"customers"},{o:["demand","lend","pay back"],a:"lend"}],
+ pD1:"[12–13] Businesses must consider their costs and prices carefully. ① They must study their customers well because customers must feel the price is fair. A price that is too low can make buyers think the item is not worth buying. A price that is too high is also a problem. Customers will believe it is a good product but will look for a lower price. A product that is priced well will sell. It will make a profit for the company.",
+ pD2:"[14–15] Governments always print new money. As the money supply goes up, so do the prices of products. This is normal inflation. Governments control inflation by carefully choosing when to print and when not to print money. However, hyperinflation starts when a country’s government doesn’t stop printing money and the inflation goes out of control.",
+ written:[
+  {n:12,q:"Why must a product be priced well?",m:"Because a product that is priced well will sell and make a profit for the company."},
+  {n:14,q:"What is normal inflation?",m:"When the money supply goes up, the prices of products go up too."},
+  {n:15,q:"What happens when the government does not stop printing money?",m:"Hyperinflation starts and inflation goes out of control."}],
+ unsc:{n:13,scrambled:["to make","cover their","They","costs and","a profit","need to"],
+       correct:["They","need to","cover their","costs and","to make","a profit"],
+       m:"They need to cover their costs and to make a profit."}},
+"Review Test 3 (Units 9-12)": {
+ bank:["confirm","metal","user","crime","bricks"],
+ fills:[
+  {t:"1. Graffiti is considered a ___ in most places.",a:"crime"},
+  {t:"2. We used ___ to build a house.",a:"bricks"},
+  {t:"3. Can you ___ what time we are meeting tomorrow?",a:"confirm"}],
+ mcB:[
+  {q:"4. Peter won the spelling ______ at the library.",o:["tradition","masterpiece","contest"],a:2},
+  {q:"5. My homework is to paint a ______ of my best friend.",o:["portrait","deer","presentation"],a:0}],
+ p1:"[6–8] Nathan Sawaya has only been a LEGO artist for a few years. Up until 2004, he was a lawyer in New York. ① That year, he entered and won a LEGO-building contest. Sawaya was doing well as a lawyer, but he didn’t love his job. After he won the contest, he decided to quit his job as a lawyer. He started working as an artist. ② Sawaya’s art can be seen in The Art of the Brick, a special show for his art. ③",
+ mcC:[
+  {q:"6. What is the passage mainly about?",o:["A unique artist","Children creating artwork","The cost of LEGO art"],a:0},
+  {q:"7. Which is NOT true about the passage?",o:["Sawaya quit his job after becoming an artist.","Sawaya was good at being a lawyer.","Sawaya’s exhibition is called The Art of LEGO."],a:2},
+  {q:"8. What is the best place for: “The show travels to different museums across America.”",o:["①","②","③"],a:2},
+  {q:"9. Why does no one know who Banksy is?",o:["Because having money is dangerous","Because drawing graffiti is a crime","Because making art takes too much time"],a:1},
+  {q:"10. What does Banksy use to paint faster?",o:["Hands","Paints","Stencils"],a:2}],
+ p2:"[9–11] Banksy is a famous English graffiti artist. Since graffiti is [g1], Banksy could get in trouble. This is why no one knows who Banksy is. In the early 1990s, Banksy drew graffiti by hand, but it took too long to complete each piece. Banksy risked being [g2], so Banksy [g3] to stencils. This made it faster to paint.",
+ gaps:[{o:["detailed","inconvenient","illegal"],a:"illegal"},{o:["arrested","stood out","entered"],a:"arrested"},{o:["switched","charged","transported"],a:"switched"}],
+ pD1:"[12–13] Many people enjoy art and dream of seeing masterpieces. But to visit a famous museum, such as the Louvre in Paris or the Metropolitan Museum of Modern Art in New York City, people have to travel there. ① This takes time and money. This can be inconvenient for most people. Imagine not having to travel and just putting on a virtual reality headset. Users can walk through and see the art in museums anywhere in the world anytime they want.",
+ pD2:"[14–15] Nail art is an ancient tradition that is still popular today. All around the world, we can see this in nail shops. When people want something special, they go to nail artists. These artists can paint very small pictures on people’s nails. If you protect it, the art on your fingertips can last two or three weeks. This means you have to put clear polish over each nail every two or three days. This helps keep the nail art beautiful longer.",
+ written:[
+  {n:12,q:"Where can people go using a virtual reality?",m:"To museums anywhere in the world, anytime they want."},
+  {n:14,q:"Who can paint very small pictures on people’s nails?",m:"Nail artists."},
+  {n:15,q:"How can you keep the nail art for a longer time?",m:"Put clear polish over each nail every two or three days (protect it)."}],
+ unsc:{n:13,scrambled:["distances","have to","Some","long","people","travel"],
+       correct:["Some","people","have to","travel","long","distances"],
+       m:"Some people have to travel long distances."}},
+"Review Test 4 (Units 13-16)": {
+ bank:["spring","disaster","permanent","treat","global"],
+ fills:[
+  {t:"1. The cure is not ___, but the results can last for many months.",a:"permanent"},
+  {t:"2. A natural ___ may destroy an animal’s home.",a:"disaster"},
+  {t:"3. People often use medicine to ___ diseases.",a:"treat"}],
+ mcB:[
+  {q:"4. I fell down and ______ my new pants.",o:["evolved","surrounded","ruined"],a:2},
+  {q:"5. Chris is looking for a ______ home for the summer.",o:["suitable","severe","crucial"],a:0}],
+ p1:"[6–8] When people started domesticating plants, they also started domesticating animals. ① Sheep were kept for their wool, which people used to make warm clothing. Goats, pigs, and chickens were kept on farms for food. People also domesticated animals for other purposes. ② Larger animals such as oxen and horses were used to pull heavy things on the farm. Dogs are an example of a domesticated animal kept as a pet because they make good companions. ③ They were also used to help people hunt for food in the forest.",
+ mcC:[
+  {q:"6. What is the passage mainly about?",o:["The best plants to domesticate","The domestication of animals","How to domesticate plants and animals"],a:1},
+  {q:"7. Which is NOT true about the passage?",o:["Dogs are a domesticated animal.","Oxen and horses were used on farms.","Goats and chickens make good companions."],a:2},
+  {q:"8. What is the best place for: “They used animals for their fur and food.”",o:["①","②","③"],a:0},
+  {q:"9. What can scientists do with the DNA samples from endangered species?",o:["They can sell them.","They can study them.","They can eat them."],a:1},
+  {q:"10. Where would scientists store the DNA samples?",o:["A DNA bank","A DNA mart","A DNA school"],a:0}],
+ p2:"[9–11] Scientists are freezing DNA [g1] from endangered species and keeping them safe in a DNA bank. Scientists are not only saving samples but also studying them. Scientists can learn more about the species. They can understand how they have evolved. They can learn about the animals’ behavior and what diseases they can get. With this [g2], scientists can help and [g3] endangered animals so they live in ideal conditions.",
+ gaps:[{o:["samples","laws","crops"],a:"samples"},{o:["strategy","decoration","knowledge"],a:"knowledge"},{o:["support","suffer from","put into action"],a:"support"}],
+ pD1:"[12–13] “Dr. Fish” are an interesting species of fish that eat bad skin. These fish are found near two small towns in Turkey. ① Every year, about 3,000 visitors come to these towns to sit in the hot springs with the fish. As they sit, the fish eats the bad parts of their skin. “Doctor Fish” can give clients with certain skin diseases clear skin with a 21-day treatment.",
+ pD2:"[14–15] Wildlife conservationists study animals that migrate, or move from place to place. They learn how and where the animals move and what they eat. They also learn about what kinds of diseases affect the animals. Then, they decide which animals need a new home. After that, they search for a new environment that is suitable for the animals. One example of this is the plan to move tigers from India to Cambodia. Wildlife conservationists hope that this will help increase the population of tigers.",
+ written:[
+  {n:12,q:"How can “Dr. Fish” help people with skin diseases?",m:"They eat the bad parts of the skin and can give clear skin with a 21-day treatment."},
+  {n:14,q:"Why do wildlife conservationists study animals?",m:"To learn how and where they move, what they eat, and what diseases affect them — then decide which need a new home."},
+  {n:15,q:"What happens after it is decided that an animal needs a new home?",m:"They search for a new environment that is suitable for the animals."}],
+ unsc:{n:13,scrambled:["hot springs","only live","They","in","of the","the warm waters"],
+       correct:["They","only live","in","the warm waters","of the","hot springs"],
+       m:"They only live in the warm waters of the hot springs."}}
+};
+
+const testSelect = document.getElementById('testSelect');
+Object.keys(TESTS).forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;testSelect.appendChild(o);});
+document.getElementById('dateField').valueAsDate = new Date();
+
+function mcHTML(item){
+  return `<div class="mc" data-a="${item.a}"><div class="q">${item.q}</div><div class="opts">`+
+    item.o.map((op,i)=>`<button type="button" class="opt" data-i="${i}" onclick="pickOpt(this)">${String.fromCharCode(97+i)}. ${op}</button>`).join('')+
+    `</div></div>`;
+}
+function loadTest(){
+  const key = testSelect.value, content = document.getElementById('content');
+  document.getElementById('sharePanel').classList.remove('open');
+  if(!key){content.innerHTML=`<div class="placeholder"><div class="glyph">❖</div><p>Select a review test above to begin.</p></div>`;return;}
+  const T = TESTS[key];
+
+  const fillsHtml = T.fills.map(f=>`<div class="fill">${f.t.replace('___',
+    `<select class="fill-sel" data-a="${f.a}"><option value="">—</option>${T.bank.map(w=>`<option>${w}</option>`).join('')}</select>`)}</div>`).join('');
+
+  let p2 = T.p2;
+  T.gaps.forEach((g,i)=>{ p2 = p2.replace(`[g${i+1}]`,
+    `<span class="gap-slot"><select data-a="${g.a}"><option value="">(${i+1})</option>${g.o.map(o=>`<option>${o}</option>`).join('')}</select></span>`); });
+
+  content.innerHTML = `
+    <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${key}</h2></div>
+    <div class="section-head">Vocabulary · A — Fill in the blanks (2 extra words)</div>
+    <div class="bank-display">${T.bank.map(w=>`<span class="bank-word">${w}</span>`).join('')}</div>
+    ${fillsHtml}
+    <div class="section-head">Vocabulary · B — Choose the correct answer</div>
+    ${T.mcB.map(mcHTML).join('')}
+    <div class="section-head">Comprehension · C — Read and choose</div>
+    <div class="passage-card">${T.p1}</div>
+    ${T.mcC.map(mcHTML).join('')}
+    <div class="section-head">Comprehension · 11 — Choose the correct word in the passage</div>
+    <div class="passage-card">${p2}</div>
+    <div class="section-head">D — Read and answer</div>
+    <div class="passage-card">${T.pD1}</div>
+    <div class="passage-card">${T.pD2}</div>
+    <div class="written"><div class="q">${T.written[0].n}. ${T.written[0].q}</div><input class="ans-input" placeholder="Type your answer…"><div class="model" hidden>Model: ${T.written[0].m}</div></div>
+    <div class="option-card" id="unscCard">
+      <div class="option-top"><div class="q" style="margin:0">${T.unsc.n}. Unscramble sentence ① — click chunks in order</div><div class="option-status" id="unscStatus">Build the sentence</div></div>
+      <div class="build-line" id="unscBuild"><span class="hint">Click chunks below in the correct order →</span></div>
+      <div class="bank" id="unscBank"></div>
+      <div class="model" hidden>Model: ${T.unsc.m}</div>
+    </div>
+    <div class="written"><div class="q">${T.written[1].n}. ${T.written[1].q}</div><input class="ans-input" placeholder="Type your answer…"><div class="model" hidden>Model: ${T.written[1].m}</div></div>
+    <div class="written"><div class="q">${T.written[2].n}. ${T.written[2].q}</div><input class="ans-input" placeholder="Type your answer…"><div class="model" hidden>Model: ${T.written[2].m}</div></div>
+    <div class="action-row">
+      <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
+      <button class="btn btn-model" onclick="toggleModels()">Show Model Answers</button>
+      <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
+      <button class="btn btn-print" onclick="printPDF()">⎙ Print / Save PDF</button>
+      <button class="btn btn-reset" onclick="loadTest()">Reset</button>
+    </div>
+    <div class="score-display" id="scoreDisplay"></div>`;
+
+  const bank = document.getElementById('unscBank');
+  T.unsc.scrambled.forEach((text,idx)=>{
+    const chip=document.createElement('span');
+    chip.className='chip'; chip.textContent=text; chip.dataset.orig=idx;
+    chip.onclick=()=>moveChip(chip);
+    bank.appendChild(chip);
+  });
+}
+function pickOpt(btn){
+  const mc=btn.closest('.mc');
+  mc.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); mc.dataset.sel=btn.dataset.i;
+}
+function moveChip(chip){
+  const bank=document.getElementById('unscBank'), build=document.getElementById('unscBuild');
+  if(chip.parentElement===bank){ const h=build.querySelector('.hint'); if(h)h.remove(); build.appendChild(chip); }
+  else{ bank.appendChild(chip); [...bank.children].sort((a,b)=>a.dataset.orig-b.dataset.orig).forEach(c=>bank.appendChild(c));
+        if(!build.querySelector('.chip')) build.innerHTML=`<span class="hint">Click chunks below in the correct order →</span>`; }
+  validateUnsc();
+}
+function validateUnsc(){
+  const T=TESTS[testSelect.value];
+  const placed=[...document.querySelectorAll('#unscBuild .chip')].map(c=>c.textContent);
+  const solved=document.getElementById('unscBank').children.length===0 &&
+    placed.length===T.unsc.correct.length && placed.every((t,i)=>t===T.unsc.correct[i]);
+  document.getElementById('unscCard').classList.toggle('solved',solved);
+  document.getElementById('unscStatus').textContent=solved?"✓ Sentence complete":"Build the sentence";
+  return solved;
+}
+function checkAnswers(){
+  let score=0, total=0;
+  document.querySelectorAll('.fill-sel, .gap-slot select').forEach(sel=>{
+    total++; sel.classList.remove('correct','incorrect');
+    if(sel.value && sel.value===sel.dataset.a){sel.classList.add('correct');score++;}
+    else if(sel.value){sel.classList.add('incorrect');}
+  });
+  document.querySelectorAll('.mc').forEach(mc=>{
+    total++; mc.classList.remove('correct','incorrect');
+    if(mc.dataset.sel!==undefined){ if(mc.dataset.sel===mc.dataset.a){mc.classList.add('correct');score++;} else mc.classList.add('incorrect'); }
+  });
+  total++; if(validateUnsc()) score++;
+  const disp=document.getElementById('scoreDisplay');
+  disp.style.display='block';
+  disp.style.color = score===total ? 'var(--success)' : 'var(--cyan-lt)';
+  disp.innerHTML = score===total ? `✓ Perfect! ${score}/${total} objective items correct.`
+                                 : `Score: ${score}/${total} objective items — written answers: compare with model answers.`;
+}
+function toggleModels(){
+  const models=document.querySelectorAll('.model');
+  const show=[...models].some(m=>m.hidden);
+  models.forEach(m=>m.hidden=!show);
+  showToast(show?'Model answers revealed':'Model answers hidden');
+}
+/* ── Share & Print ── */
+function shareText(){
+  const name=document.getElementById('studentName').value.trim();
+  return `Reading Future Create 3 — Review Test (${testSelect.value||'all'})${name?' · '+name:''}`;
+}
+function shareWorksheet(){
+  if(navigator.share){navigator.share({title:'Reading Future Create 3 — Review Tests',text:shareText(),url:location.href}).catch(()=>{});return;}
+  document.getElementById('sharePanel').classList.toggle('open');
+}
+function copyLink(){
+  const url=location.href;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard'));}
+  else{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}
+}
+function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Create 3 — Review Tests')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
+function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}
+function shareX(){window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(location.href)}`,'_blank');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
+function printPDF(){document.getElementById('sharePanel').classList.remove('open');showToast('In the dialog, choose “Save as PDF” as destination');setTimeout(()=>window.print(),400);}
+window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
+</script>
+</body>
+</html>
+

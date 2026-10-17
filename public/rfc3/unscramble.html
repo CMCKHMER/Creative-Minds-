@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Future Create 3 — Unscramble Sheet</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#05070f; --surface:#0c1222; --surface-2:#0d1526;
+  --border:rgba(148,163,184,.14);
+  --cyan:#22d3ee; --cyan-lt:#67e8f9; --violet:#8b5cf6; --violet-lt:#c4b5fd;
+  --text:#e2e8f0; --muted:#8fa3b8; --success:#34d399; --error:#f87171;
+  color-scheme: dark;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);
+  background-image:radial-gradient(1100px 520px at 85% -10%, rgba(139,92,246,.16), transparent 60%),
+                   radial-gradient(900px 480px at 8% -5%, rgba(34,211,238,.12), transparent 60%);
+  min-height:100vh;padding:32px 16px;color:var(--text)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 40%,transparent 100%)}
+.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;
+  background:rgba(9,13,24,.82);backdrop-filter:blur(14px);
+  border:1px solid var(--border);border-radius:20px;overflow:hidden;
+  box-shadow:0 30px 90px rgba(0,0,0,.65)}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:13px 28px;
+  background:linear-gradient(90deg,rgba(124,58,237,.28),rgba(34,211,238,.14));border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan-lt)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.live-pill{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--violet-lt);background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.4);border-radius:999px;padding:5px 12px}
+.live-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--violet);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.hero{padding:46px 44px 30px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan-lt);margin-bottom:16px}
+.eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,44px);line-height:1.08;text-transform:uppercase;color:#f8fafc}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan-lt),var(--violet-lt));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin-top:14px;max-width:700px;color:var(--muted);font-size:14.5px;line-height:1.7}
+.info{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:16px;padding:22px 44px;
+  background:rgba(13,19,35,.65);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.form-group label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.form-group input,.form-group select{width:100%;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--text);
+  background:#0a101f;border:1px solid rgba(148,163,184,.2);border-radius:10px;transition:border-color .25s,box-shadow .25s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+.content{padding:32px 44px 44px}
+.unit-head{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.unit-head .bar{width:4px;height:30px;border-radius:2px;background:linear-gradient(180deg,var(--cyan),var(--violet));box-shadow:0 0 14px rgba(34,211,238,.5)}
+.unit-title{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#f1f5f9}
+.steps-note{font-size:12.5px;color:var(--muted);margin:0 0 20px 18px;line-height:1.7}
+.steps-note b{color:var(--cyan-lt)}
+.passage-card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--border);
+  border-radius:12px;padding:26px;margin-bottom:26px;font-size:15.5px;line-height:2.1;color:#cbd5e1}
+.gap-slot select{background:#0a101f;color:var(--cyan-lt);border:1px dashed rgba(34,211,238,.45);border-radius:6px;
+  padding:3px 6px;font-family:inherit;font-size:13px;cursor:pointer;margin:0 3px;transition:all .2s}
+.gap-slot select:hover{border-color:var(--cyan)}
+.gap-slot select.correct{border:1px solid var(--success);background:rgba(52,211,153,.12);color:var(--success)}
+.gap-slot select.incorrect{border:1px solid var(--error);background:rgba(248,113,113,.12);color:var(--error)}
+.section-head{font-family:'Space Grotesk',sans-serif;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--violet-lt);margin:0 0 14px}
+.option-card{background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--violet);
+  border-radius:10px;padding:16px 18px;margin-bottom:14px;transition:border-color .3s,box-shadow .3s}
+.option-card.solved{border-left-color:var(--success);box-shadow:0 0 0 1px rgba(52,211,153,.35) inset}
+.option-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.option-letter{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--violet-lt);background:rgba(139,92,246,.15);
+  border:1px solid rgba(139,92,246,.3);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0}
+.option-status{margin-left:auto;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.option-card.solved .option-status{color:var(--success)}
+.build-line{min-height:44px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+  background:rgba(10,16,31,.7);border:1px dashed rgba(148,163,184,.25);border-radius:8px;padding:8px;margin-bottom:10px}
+.build-line .hint{font-size:11.5px;color:#5b6b80;letter-spacing:.06em}
+.bank{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.chip{font-size:13px;padding:6px 10px;border-radius:6px;cursor:pointer;user-select:none;transition:transform .15s,filter .15s;line-height:1.3}
+.chip:hover{transform:translateY(-1px);filter:brightness(1.2)}
+.bank .chip{background:rgba(34,211,238,.08);border:1px dashed rgba(34,211,238,.5);color:var(--cyan-lt)}
+.build-line .chip{background:rgba(139,92,246,.16);border:1px solid rgba(139,92,246,.55);color:var(--violet-lt)}
+.option-card.solved .build-line .chip{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.55);color:var(--success)}
+.action-row{display:flex;gap:14px;margin-top:22px}
+.btn{flex:1;padding:14px;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;transition:filter .25s,transform .25s}
+.btn-check{color:#041018;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.btn-reset{color:var(--muted);background:rgba(148,163,184,.1);border:1px solid var(--border)}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.score-display{text-align:center;margin-top:16px;font-family:'Space Grotesk',sans-serif;font-size:17px;color:var(--cyan-lt);display:none}
+.placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
+.placeholder .glyph{font-family:'Space Grotesk',sans-serif;font-size:44px;background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.placeholder p{margin-top:14px;color:var(--muted);font-size:15px}
+.footer{padding:16px 28px;border-top:1px solid var(--border);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
+@media (max-width:768px){.info{grid-template-columns:1fr}.hero,.info,.content{padding-left:22px;padding-right:22px}.action-row{flex-direction:column}}
+@media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.score-display,.footer{display:none!important}
+  .container{box-shadow:none;border:none;background:#fff}
+  *{color:#111!important;background:transparent!important;border-color:#ccc!important;text-shadow:none!important}
+  .chip{border:1px solid #999!important}}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+  <div class="topbar"><div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div><div class="live-pill"><span class="pulse"></span>Live Worksheet</div></div>
+  <section class="hero">
+    <span class="eyebrow">Reading Future · Create 3 · Unscramble Sheet</span>
+    <h1>Unscramble the sentences.<br><span class="grad">Restore the passage.</span></h1>
+    <p>Each sentence A–D is broken into scrambled chunks. Rebuild each sentence in the correct order, then place the finished sentence into the right gap (①–④) of the passage.</p>
+  </section>
+  <section class="info">
+    <div class="form-group"><label for="studentName">Student Name</label><input type="text" id="studentName" placeholder="Enter your name"></div>
+    <div class="form-group"><label for="dateField">Date</label><input type="date" id="dateField"></div>
+    <div class="form-group"><label for="unitSelect">Unit Selector</label><select id="unitSelect" onchange="loadUnit()"><option value="">— Choose a unit —</option></select></div>
+  </section>
+  <section class="content" id="content">
+    <div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load the unscramble exercise.</p></div>
+  </section>
+  <div class="footer"><span>Reading Future Create 3</span><span>Interactive Edition · v3</span></div>
+</div>
+
+<script>
+/* chunks: "scrambled" = shuffled chunks as printed; "correct" = order that forms the sentence */
+const UNITS = {
+"Unit 1. The Diary of a Young Girl": {
+ passage:"[1] [2] But the Nazis invaded the Netherlands in 1940. They began to deport Jewish people to concentration camps, where they were forced to work until they were killed. The family decided to hide. With the help of their Dutch friends, they lived in a secret room. It is during this time that Anne wrote about her thoughts and feelings in a diary. [3] Unfortunately, the family was found and sent to concentration camps in 1944. Anne got very sick and died one year later. [4] He was not sure if he should publish Anne’s private thoughts, but he knew that Anne had always dreamed of becoming a writer.",
+ options:{
+  A:{scrambled:["after the war.","her fears and","wrote about","She","what she wanted to do"],correct:["She","wrote about","her fears and","what she wanted to do","after the war."]},
+  B:{scrambled:["Adolf Hitler,","took over","the leader","In 1933,","Germany.","of the Nazis,"],correct:["In 1933,","Adolf Hitler,","the leader","of the Nazis,","took over","Germany."]},
+  C:{scrambled:["to publish","survived the Holocaust","Anne’s diary.","Anne’s father","and decided"],correct:["Anne’s father","survived the Holocaust","and decided","to publish","Anne’s diary."]},
+  D:{scrambled:["to Amsterdam","and her family","for safety.","Anne","ran away"],correct:["Anne","and her family","ran away","to Amsterdam","for safety."]}},
+ answers:{1:"B",2:"D",3:"A",4:"C"}},
+"Unit 2. Leonardo da Vinci": {
+ passage:"He grew up in a town called Vinci, in Italy. [1] When he was a student, his teachers were often very happy with his work. [2] He is most famous for his paintings. [3] Two of his paintings, the Mona Lisa and The Last Supper, are still famous today. [4] Every day, thousands of visitors line up to see it.",
+ options:{
+  A:{scrambled:["because he","People called him","a genius","quickly became excellent","at whatever he tried."],correct:["People called him","a genius","because he","quickly became excellent","at whatever he tried."]},
+  B:{scrambled:["his name","means","Interestingly,","“Leonardo from Vinci.”"],correct:["Interestingly,","his name","means","“Leonardo from Vinci.”"]},
+  C:{scrambled:["Many people think","da Vinci","one of the greatest painters","is","who ever lived."],correct:["Many people think","da Vinci","is","one of the greatest painters","who ever lived."]},
+  D:{scrambled:["is kept","in the Louvre Museum","The Mona Lisa","in Paris,","France."],correct:["The Mona Lisa","is kept","in the Louvre Museum","in Paris,","France."]}},
+ answers:{1:"B",2:"A",3:"C",4:"D"}},
+"Unit 3. Pocahontas": {
+ passage:"[1] She was named Matoaka. Pocahontas, the name people remember, is a nickname. [2] She grew up learning how to find food, farm, and build houses. [3] It is believed that she saved the life of Captain John Smith, an Englishman she became friends with. [4] But people agree that Pocahontas helped the English when they came to America.",
+ options:{
+  A:{scrambled:["Pocahontas","a group","In 1607,","of Europeans.","met"],correct:["In 1607,","Pocahontas","met","a group","of Europeans."]},
+  B:{scrambled:["“playful little girl.”","It","means"],correct:["It","means","“playful little girl.”"]},
+  C:{scrambled:["that this is","now believe","Many people","not true."],correct:["Many people","now believe","that this is","not true."]},
+  D:{scrambled:["was","Pocahontas","around 1595.","born"],correct:["Pocahontas","was","born","around 1595."]}},
+ answers:{1:"D",2:"B",3:"A",4:"C"}},
+"Unit 4. Walt Disney": {
+ passage:"[1] The company did not do well, so Walt decided to study animation. [2] The company was successful at first, but then failed because of poor management. [3] He started a cartoon studio in Hollywood in 1923. This is where the idea of Mickey Mouse was born. As his studio grew, he started making animated films. [4]",
+ options:{
+  A:{scrambled:["When he","with other artists.","he started","was eighteen,","a company"],correct:["When he","was eighteen,","he started","a company","with other artists."]},
+  B:{scrambled:["he started","his new skills,","his second company.","With"],correct:["With","his new skills,","he started","his second company."]},
+  C:{scrambled:["Walt","give up.","However,","did not"],correct:["However,","Walt","did not","give up."]},
+  D:{scrambled:["the Seven Dwarfs.","first film","Snow White and","was","His"],correct:["His","first film","was","Snow White and","the Seven Dwarfs."]}},
+ answers:{1:"A",2:"B",3:"C",4:"D"}},
+"Unit 5. Foreign Exchange Rates": {
+ passage:"[1] Therefore, when people travel, they need to go to the bank to exchange their money. [2] In order to do currency exchange, banks use foreign exchange rates, or FX rates. The foreign exchange rate tells how much one currency is equal to in another currency. For example, the euro to U.S. dollar exchange rate on January 1st, 2018 was 1.20. [3] [4] On another day, 1 euro could be equal to 1.10 U.S. dollars. This is because the foreign exchange rate changes every day.",
+ options:{
+  A:{scrambled:["currency exchange.","called","This","is"],correct:["This","is","called","currency exchange."]},
+  B:{scrambled:["its own","has","Every country","currency."],correct:["Every country","has","its own","currency."]},
+  C:{scrambled:["probably different","this number","now.","But","is"],correct:["But","this number","is","probably different","now."]},
+  D:{scrambled:["that 1 euro","to 1.20 U.S. dollars.","equal","This means","was"],correct:["This means","that 1 euro","was","equal","to 1.20 U.S. dollars."]}},
+ answers:{1:"B",2:"A",3:"D",4:"C"}},
+"Unit 6. What Are Banks For?": {
+ passage:"There are people who go to banks to borrow money. This is called a bank loan. [1] Of course, this interest rate is higher than what banks pay to customers for having savings accounts. But these loans are important. For example, most people could not buy a house without a personal loan. [2] They have to decide if the business will be able to pay back the business loan. [3] So, banks play a role in the economy. [4] But it is also a place people visit to borrow money to help them pay for a place to live or for a business.",
+ options:{
+  A:{scrambled:["also","to businesses.","money","lend","Banks"],correct:["Banks","also","lend","money","to businesses."]},
+  B:{scrambled:["from","collect","these loans.","interest","Banks"],correct:["Banks","collect","interest","from","these loans."]},
+  C:{scrambled:["the bank must consider","and guess if","That means","the business idea","it will make money or not."],correct:["That means","the bank must consider","and guess if","the business idea","it will make money or not."]},
+  D:{scrambled:["a place","for keeping","safe.","A bank is","money"],correct:["A bank is","a place","for keeping","money","safe."]}},
+ answers:{1:"B",2:"A",3:"C",4:"D"}},
+"Unit 7. How to Set Prices": {
+ passage:"Setting a low price can cause a problem. [1] If the boots sell for $40, customers may think they are not well made. [2] [3] Customers will believe it is a good product but will look for a lower price. Business owners need to know what other stores are charging for the same or a similar product. [4]",
+ options:{
+  A:{scrambled:["may go","to look for","a better-quality product.","The customers","to another store"],correct:["The customers","may go","to another store","to look for","a better-quality product."]},
+  B:{scrambled:["is too high","is also a problem.","A price","that"],correct:["A price","that","is too high","is also a problem."]},
+  C:{scrambled:["that is too low","not worth buying.","the item is","A price","can make customers think"],correct:["A price","that is too low","can make customers think","the item is","not worth buying."]},
+  D:{scrambled:["they","competitive choices.","That way,","can make"],correct:["That way,","they","can make","competitive choices."]}},
+ answers:{1:"C",2:"A",3:"B",4:"D"}},
+"Unit 8. Hyperinflation": {
+ passage:"Governments always print new money. [1] [2] Governments control inflation by carefully choosing when to print and when not to print money. However, hyperinflation starts when a country’s government doesn’t stop printing money and the inflation goes out of control. When hyperinflation happens, consumers know that if they wait, they will pay higher prices. [3] Since people are scared, they keep buying. This creates shortages and prices keep rising. At the same time, the value of money goes down. [4] They cannot pay bills and have no money to save in banks. Banks use people’s money to make loans, so banks cannot make new ones.",
+ options:{
+  A:{scrambled:["normal","is","inflation.","This"],correct:["This","is","normal","inflation."]},
+  B:{scrambled:["so","As the money supply","goes up,","do the prices of products."],correct:["As the money supply","goes up,","so","do the prices of products."]},
+  C:{scrambled:["for goods","stronger.","becomes","Demand"],correct:["Demand","for goods","becomes","stronger."]},
+  D:{scrambled:["run out of","money.","People"],correct:["People","run out of","money."]}},
+ answers:{1:"B",2:"A",3:"C",4:"D"}},
+"Unit 9. Virtual Reality and Art": {
+ passage:"Virtual reality (VR) is an artificial world generated by a computer using images and sounds. [1] [2] Many people enjoy art and dream of seeing masterpieces. But to visit a famous museum, such as the Louvre in Paris or the Metropolitan Museum of Modern Art in New York City, people have to travel there. Some people have to travel long distances. [3] This can be inconvenient for most people. [4] Users can walk through and see the art in museums anywhere in the world anytime they want.",
+ options:{
+  A:{scrambled:["takes time","and","This","money."],correct:["This","takes time","and","money."]},
+  B:{scrambled:["VR is","Most people","just for","think","games."],correct:["Most people","think","VR is","just for","games."]},
+  C:{scrambled:["it is becoming","in the art world.","very important","However,"],correct:["However,","it is becoming","very important","in the art world."]},
+  D:{scrambled:["not having to travel","a VR headset.","Imagine","and just putting on"],correct:["Imagine","not having to travel","and just putting on","a VR headset."]}},
+ answers:{1:"B",2:"C",3:"A",4:"D"}},
+"Unit 10. Banksy’s Graffiti Art": {
+ passage:"[1] However, since graffiti is illegal in most countries, Banksy could get in trouble for committing a crime. [2] Although many people have tried to find his or her identity, nothing has been confirmed. What we do know is that Banksy’s art has a unique style. In the early 1990s, Banksy began drawing graffiti by hand. It was dangerous. It took a long time to complete each piece. [3] For this reason, Banksy switched to stencils. [4] They made it faster for Banksy to paint, so he would not get caught.",
+ options:{
+  A:{scrambled:["Banksy risked","before an art piece","being arrested","was complete."],correct:["Banksy risked","being arrested","before an art piece","was complete."]},
+  B:{scrambled:["a famous","is","graffiti artist.","Banksy"],correct:["Banksy","is","a famous","graffiti artist."]},
+  C:{scrambled:["pieces of paper","Stencils are","already cut","with designs","out of them."],correct:["Stencils are","pieces of paper","with designs","already cut","out of them."]},
+  D:{scrambled:["knows who","why no one","really is.","This is","Banksy"],correct:["This is","why no one","knows who","Banksy","really is."]}},
+ answers:{1:"B",2:"D",3:"A",4:"C"}},
+"Unit 11. The Art of LEGO®": {
+ passage:"[1] However, he doesn’t work with paint, metal, or even wood. [2] Sawaya builds 3D models using the small bricks that most people think are children’s toys. He has made things like a giant pencil and a portrait of his own face with LEGO bricks. One model that is very special for Sawaya is the one he made for the victims of Hurricane Katrina in New Orleans. [3] Sawaya has only been an artist for a few years. Up until 2004, he was a lawyer in New York. [4] Sawaya was doing well as a lawyer, but he didn’t love his job. After he won the contest, he decided to quit his job as a lawyer, and he started working as an artist.",
+ options:{
+  A:{scrambled:["a LEGO-building","and won","contest.","That year,","he entered"],correct:["That year,","he entered","and won","a LEGO-building","contest."]},
+  B:{scrambled:["from pictures","of the city","this idea","and children’s drawings","He got","after the storm."],correct:["He got","this idea","from pictures","of the city","and children’s drawings","after the storm."]},
+  C:{scrambled:["$10,000.","Nathan Sawaya’s art","more than","sells for"],correct:["Nathan Sawaya’s art","sells for","more than","$10,000."]},
+  D:{scrambled:["LEGO®!","works","He","with"],correct:["He","works","with","LEGO®!"]}},
+ answers:{1:"C",2:"D",3:"B",4:"A"}},
+"Unit 12. Nail Art": {
+ passage:"Many people like to get their nails painted in different colors. Some people, however, really want to make their nails stand out. [1] Nail art is done by nail artists. [2] Some artists are very talented and can paint very small pictures on people’s nails. Nail artists may work for 20 minutes or more per nail. They often charge $15 to $30 per nail for their work. Nail art can be a profitable business, but there is one artist who does it for free. [3] [4] He has painted a deer by a river and the sun setting behind a snowy mountain.",
+ options:{
+  A:{scrambled:["is an American painter","as a hobby.","who designs nails","Rick Mazzaferro"],correct:["Rick Mazzaferro","is an American painter","who designs nails","as a hobby."]},
+  B:{scrambled:["get","people","nail","These","art."],correct:["These","people","get","nail","art."]},
+  C:{scrambled:["paint beautiful designs","to add stickers","Nail artists","and use tools","and sometimes even jewels."],correct:["Nail artists","paint beautiful designs","and use tools","to add stickers","and sometimes even jewels."]},
+  D:{scrambled:["detailed pictures","paints","on his friends’ nails.","He"],correct:["He","paints","detailed pictures","on his friends’ nails."]}},
+ answers:{1:"B",2:"C",3:"A",4:"D"}},
+"Unit 13. New Homes for Animals": {
+ passage:"A lot of animals’ homes are being ruined by people or natural disasters. [1] However, wildlife conservationists are working hard. [2] Wildlife conservationists study animals that migrate, or move from place to place. [3] They also learn about what kinds of diseases affect the animals. Then, they decide which animals need a new home. [4]",
+ options:{
+  A:{scrambled:["and what they eat.","how and where","They learn","the animals move"],correct:["They learn","how and where","the animals move","and what they eat."]},
+  B:{scrambled:["them there.","new places","and figure out","They find","how to move","for these animals"],correct:["They find","new places","for these animals","and figure out","how to move","them there."]},
+  C:{scrambled:["a new environment","After that,","for the animals.","that is suitable","they search for"],correct:["After that,","they search for","a new environment","that is suitable","for the animals."]},
+  D:{scrambled:["or become extinct.","they may die","If animals stay","in those places,"],correct:["If animals stay","in those places,","they may die","or become extinct."]}},
+ answers:{1:"D",2:"B",3:"A",4:"C"}},
+"Unit 14. Doctor Fish": {
+ passage:"“Doctor fish” are an interesting species of fish called garra rufa. [1] In these towns, there are hot springs. These little fish live in the warm waters of these hot springs. [2] As a result, they like to eat dead skin. Every year, about 3,000 visitors come to these towns to sit in the hot springs with the fish. [3] Amazingly, the fish do not harm the healthy skin. According to studies, “doctor fish” can help people with severe skin problems get clear skin in 21 days. Unfortunately, this is not a permanent cure. [4]",
+ options:{
+  A:{scrambled:["surround them and eat","the bad parts","As they sit,","the fish","of their skin."],correct:["As they sit,","the fish","surround them and eat","the bad parts","of their skin."]},
+  B:{scrambled:["it is hard for nutrients","very hungry.","in hot spring water,","Because","to survive","the fish are"],correct:["Because","it is hard for nutrients","to survive","in hot spring water,","the fish are","very hungry."]},
+  C:{scrambled:["They are","in Turkey.","found","near two small towns"],correct:["They are","found","near two small towns","in Turkey."]},
+  D:{scrambled:["the results","But luckily,","for many months.","can last"],correct:["But luckily,","the results","can last","for many months."]}},
+ answers:{1:"C",2:"B",3:"A",4:"D"}},
+"Unit 15. DNA Bank": {
+ passage:"The DNA bank is important because endangered animals must be protected. [1] If one species goes extinct, it will affect other species and the environment they live in. [2] [3] If bees were to go extinct, many plant species would go extinct. [4] As these animals die, other animals will lose their food source. Scientists are working hard to build this DNA bank to protect endangered species and to keep the Earth healthy.",
+ options:{
+  A:{scrambled:["a crucial role","bees have","in keeping","For example,","the Earth healthy."],correct:["For example,","bees have","a crucial role","in keeping","the Earth healthy."]},
+  B:{scrambled:["because","is connected.","in nature","everything","This is"],correct:["This is","because","everything","in nature","is connected."]},
+  C:{scrambled:["needed to help","grow.","plants","are","They"],correct:["They","are","needed to help","plants","grow."]},
+  D:{scrambled:["that eat the plants","the animals","will begin","And","to die."],correct:["And","the animals","that eat the plants","will begin","to die."]}},
+ answers:{1:"B",2:"A",3:"C",4:"D"}},
+"Unit 16. Domestication": {
+ passage:"[1] People started domesticating plants over 10,000 years ago. They collected the seeds of wild plants and grew them on their land. Wheat, rice, and potatoes were the first plants to be grown in crops. [2] People also domesticated plants for clothing, such as cotton, and for decoration, such as flowers. [3] When people started domesticating plants, they also started domesticating animals. They used animals for their fur and food. [4]",
+ options:{
+  A:{scrambled:["kept for their wool,","used to make","which people","warm clothing.","Sheep were"],correct:["Sheep were","kept for their wool,","which people","used to make","warm clothing."]},
+  B:{scrambled:["the domestication","is","of plants.","One type"],correct:["One type","is","the domestication","of plants."]},
+  C:{scrambled:["The other type","the domestication","of animals.","is"],correct:["The other type","is","the domestication","of animals."]},
+  D:{scrambled:["the crops","harvested","People","for food."],correct:["People","harvested","the crops","for food."]}},
+ answers:{1:"B",2:"D",3:"C",4:"A"}}
+};
+
+const CIRCLED = {1:"①",2:"②",3:"③",4:"④"};
+const unitSelect = document.getElementById('unitSelect');
+Object.keys(UNITS).forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;unitSelect.appendChild(o);});
+document.getElementById('dateField').valueAsDate = new Date();
+
+function loadUnit(){
+  const unit = unitSelect.value, content = document.getElementById('content');
+  if(!unit){content.innerHTML=`<div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load the unscramble exercise.</p></div>`;return;}
+  const data = UNITS[unit];
+
+  /* passage with gap dropdowns */
+  let passageHtml = data.passage;
+  [1,2,3,4].forEach(i=>{
+    passageHtml = passageHtml.replace(`[${i}]`,
+      `<span class="gap-slot"><select id="gap-${i}" data-correct="${data.answers[i]}">
+        <option value="">${CIRCLED[i]}</option><option>A</option><option>B</option><option>C</option><option>D</option>
+      </select></span>`);
+  });
+
+  /* scrambled sentence builders */
+  let optionsHtml = "";
+  for(const [letter, opt] of Object.entries(data.options)){
+    optionsHtml += `
+      <div class="option-card" id="card-${letter}" data-letter="${letter}">
+        <div class="option-top">
+          <div class="option-letter">${letter}</div>
+          <div class="option-status" id="status-${letter}">Build the sentence</div>
+        </div>
+        <div class="build-line" id="build-${letter}"><span class="hint">Click chunks below in the correct order →</span></div>
+        <div class="bank" id="bank-${letter}"></div>
+      </div>`;
+  }
+
+  content.innerHTML = `
+    <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${unit}</h2></div>
+    <p class="steps-note"><b>Step 1:</b> Click the scrambled chunks to rebuild sentences A–D in the correct order (click a placed chunk to send it back).
+    <b>Step 2:</b> Use the dropdowns ${CIRCLED[1]}–${CIRCLED[4]} in the passage to insert each finished sentence, then press <b>Check Answers</b>.</p>
+    <div class="passage-card">${passageHtml}</div>
+    <div class="section-head">Scrambled Sentences — rebuild each one</div>
+    ${optionsHtml}
+    <div class="action-row">
+      <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
+      <button class="btn btn-reset" onclick="loadUnit()">Reset</button>
+    </div>
+    <div class="score-display" id="scoreDisplay"></div>`;
+
+  /* populate banks with clickable chips */
+  for(const [letter, opt] of Object.entries(data.options)){
+    const bank = document.getElementById(`bank-${letter}`);
+    opt.scrambled.forEach((text, idx)=>{
+      const chip = document.createElement('span');
+      chip.className = 'chip'; chip.textContent = text; chip.dataset.orig = idx;
+      chip.onclick = ()=> moveChip(chip, letter);
+      bank.appendChild(chip);
+    });
+  }
+}
+
+function moveChip(chip, letter){
+  const bank = document.getElementById(`bank-${letter}`);
+  const build = document.getElementById(`build-${letter}`);
+  if(chip.parentElement === bank){
+    const hint = build.querySelector('.hint'); if(hint) hint.remove();
+    build.appendChild(chip);
+  }else{
+    bank.appendChild(chip);
+    [...bank.children].sort((a,b)=>a.dataset.orig-b.dataset.orig).forEach(c=>bank.appendChild(c));
+    if(!build.querySelector('.chip')) build.innerHTML = `<span class="hint">Click chunks below in the correct order →</span>`;
+  }
+  validateSentence(letter);
+}
+
+function validateSentence(letter){
+  const unit = UNITS[unitSelect.value];
+  const build = document.getElementById(`build-${letter}`);
+  const bank = document.getElementById(`bank-${letter}`);
+  const placed = [...build.querySelectorAll('.chip')].map(c=>c.textContent);
+  const solved = bank.children.length === 0 && placed.length === unit.options[letter].correct.length
+                 && placed.every((t,i)=>t === unit.options[letter].correct[i]);
+  document.getElementById(`card-${letter}`).classList.toggle('solved', solved);
+  document.getElementById(`status-${letter}`).textContent = solved ? "✓ Sentence complete" :
+      (placed.length ? `Building… ${placed.length}/${unit.options[letter].correct.length}` : "Build the sentence");
+  return solved;
+}
+
+function checkAnswers(){
+  let gapCorrect = 0, solvedCount = 0;
+  document.querySelectorAll('.gap-slot select').forEach(sel=>{
+    sel.classList.remove('correct','incorrect');
+    if(!sel.value) return;
+    if(sel.value === sel.dataset.correct){sel.classList.add('correct');gapCorrect++;}
+    else sel.classList.add('incorrect');
+  });
+  ["A","B","C","D"].forEach(l=>{ if(validateSentence(l)) solvedCount++; });
+  const disp = document.getElementById('scoreDisplay');
+  disp.style.display = 'block';
+  const perfect = (gapCorrect === 4 && solvedCount === 4);
+  disp.style.color = perfect ? 'var(--success)' : 'var(--cyan-lt)';
+  disp.innerHTML = perfect ? `✓ Perfect! Sentences rebuilt 4/4 · Gaps placed 4/4.`
+                           : `Sentences rebuilt: ${solvedCount}/4 · Gaps placed correctly: ${gapCorrect}/4 — keep going!`;
+}
+</script>
+</body>
+</html>
+
