@@ -953,6 +953,20 @@ function showLevelComplete(title, msg, score) {
     <div class="text-center"><div class="stat-val">${score}</div><div class="stat-label">Total Score</div></div>
     <div class="text-center"><div class="stat-val">${state.streak}</div><div class="stat-label">Streak</div></div>`;
   document.getElementById('levelOverlay').style.display = 'flex';
+  /* CMC-FIRESTORE-POST (writequest level-complete) — submit the
+     final level score to Firestore so the dashboard + ticker
+     pick it up. Same field schema as every other worksheet.
+     Non-blocking — failures are silently ignored so the level
+     completion UI is never disrupted. */
+  try {
+    var _slug = 'writequest-' + (state.view || 'unknown');
+    var _title = 'WriteQuest · ' + (title || 'Level complete');
+    var _source = 'writequest';
+    var _score = score || 0;
+    var _total = Math.max(_score, 10); /* treat as 10-item quiz for pct */
+    var _pct = _total ? Math.round(_score / _total * 100) : 0;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+  } catch (e) {}
 }
 
 function closeLevelOverlay() {

@@ -23,6 +23,7 @@ import { deleteMemberAccount } from '../lib/account';
 import { countCorrect, formatTestTime, scoreBySkill } from '../utils/mockScoring';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 import type { RestoredSession } from '../lib/firebaseAuth';
+import { submitScoreWithAnalytics } from '../lib/submitScore';
 
 interface MiniMockTestProps {
   accessStatus: MemberAccessStatus;
@@ -210,6 +211,22 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut, fire
       setExpired(true);
       setPhase('results');
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      // Time-up path — also submit the partial score so it's tracked
+      // the same as a manual finish. (countCorrect only counts answers
+      // the user actually selected, so unanswered questions count as
+      // incorrect — same as a manual finish.)
+      const finalCorrect = countCorrect(questions, answers);
+      const finalTotal = questions.length;
+      const finalPct = finalTotal ? Math.round((finalCorrect / finalTotal) * 100) : 0;
+      void submitScoreWithAnalytics({
+        drillSlug: 'mini-mock-01',
+        drillTitle: 'Mini Mock · Reading, Listening & Language Use (time up)',
+        drillSource: 'mini-mock',
+        scorePct: finalPct,
+        correctCount: finalCorrect,
+        totalCount: finalTotal,
+        durationSeconds: MINI_MOCK_TIME_SECONDS,
+      });
     }
   }, [phase, timeRemaining]);
 
@@ -268,6 +285,24 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut, fire
     setExpired(false);
     setPhase('results');
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    // Submit the score to Firestore so the dashboard + ticker pick it
+    // up. Non-blocking — the results screen shows regardless. The
+    // submission uses the same REST path + same field schema as the
+    // static HTML worksheets, so it aggregates into the same
+    // drill_attempts collection.
+    const finalCorrect = countCorrect(questions, answers);
+    const finalTotal = questions.length;
+    const finalPct = finalTotal ? Math.round((finalCorrect / finalTotal) * 100) : 0;
+    const durationSeconds = MINI_MOCK_TIME_SECONDS - timeRemaining;
+    void submitScoreWithAnalytics({
+      drillSlug: 'mini-mock-01',
+      drillTitle: 'Mini Mock · Reading, Listening & Language Use',
+      drillSource: 'mini-mock',
+      scorePct: finalPct,
+      correctCount: finalCorrect,
+      totalCount: finalTotal,
+      durationSeconds,
+    });
   };
 
   const restartTest = () => {

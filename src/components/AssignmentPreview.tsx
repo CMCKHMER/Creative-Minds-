@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { ArrowDownToLine, ArrowRight, BookOpen, Check, ClipboardList, Pause, Play, Printer, Volume2, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowRight, BookOpen, Check, ClipboardList, Pause, Play, Printer, Volume2, X, LockKeyhole } from 'lucide-react';
 import type { AssignmentQuestion, AssignmentSection, ClassroomAssignment } from '../types/assignment';
 import { downloadAssignment, openAssignmentPrintView, type AssignmentCopy } from '../utils/assignmentDocument';
 import { assignmentAudioPrompt } from '../utils/assignmentAudio';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
+import { useSignedInSession } from '../hooks/useSignedInSession';
 
 interface AssignmentPreviewProps {
   assignment: ClassroomAssignment;
@@ -278,6 +279,16 @@ export function AssignmentPreview({ assignment, onClose }: AssignmentPreviewProp
   const [status, setStatus] = useState('');
   const dialogRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  // Gate the teacher key tab + teacher copy rendering behind the
+  // teacher role. Students see only the student copy + a locked
+  // "Teacher key — sign in as teacher" prompt.
+  const session = useSignedInSession();
+  const isTeacher = session?.role === 'teacher';
+
+  // If the user is a student or signed-out, never let `copy` become
+  // 'teacher' — even if they try to set it via devtools, the rendering
+  // below falls back to the student view.
+  const effectiveCopy: AssignmentCopy = isTeacher ? copy : 'student';
 
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -316,12 +327,12 @@ export function AssignmentPreview({ assignment, onClose }: AssignmentPreviewProp
   }, [onClose]);
 
   const handleDownload = () => {
-    downloadAssignment(assignment, copy);
-    setStatus(`${copy === 'student' ? 'Student copy' : 'Teacher key'} downloaded as a printable HTML file.`);
+    downloadAssignment(assignment, effectiveCopy);
+    setStatus(`${effectiveCopy === 'student' ? 'Student copy' : 'Teacher key'} downloaded as a printable HTML file.`);
   };
 
   const handlePrint = () => {
-    const opened = openAssignmentPrintView(assignment, copy);
+    const opened = openAssignmentPrintView(assignment, effectiveCopy);
     setStatus(opened
       ? 'Print view opened in a new tab. Choose Print / Save as PDF there.'
       : 'The new tab was blocked. Allow pop-ups or download the printable file instead.');
@@ -355,18 +366,25 @@ export function AssignmentPreview({ assignment, onClose }: AssignmentPreviewProp
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
           <div className="flex rounded-xl border border-white/10 bg-slate-950/70 p-1" role="tablist" aria-label="Assignment version">
-            <button type="button" role="tab" id="assignment-student-tab" aria-selected={copy === 'student'} aria-controls="assignment-tab-panel" onClick={() => { setCopy('student'); setStatus(''); }} className={`rounded-lg px-3 py-2 text-xs font-semibold transition sm:px-4 ${copy === 'student' ? 'bg-teal-300 text-slate-950' : 'text-slate-300 hover:text-white'}`}>
+            <button type="button" role="tab" id="assignment-student-tab" aria-selected={effectiveCopy === 'student'} aria-controls="assignment-tab-panel" onClick={() => { setCopy('student'); setStatus(''); }} className={`rounded-lg px-3 py-2 text-xs font-semibold transition sm:px-4 ${effectiveCopy === 'student' ? 'bg-teal-300 text-slate-950' : 'text-slate-300 hover:text-white'}`}>
               Student copy
             </button>
-            <button type="button" role="tab" id="assignment-teacher-tab" aria-selected={copy === 'teacher'} aria-controls="assignment-tab-panel" onClick={() => { setCopy('teacher'); setStatus(''); }} className={`rounded-lg px-3 py-2 text-xs font-semibold transition sm:px-4 ${copy === 'teacher' ? 'bg-teal-300 text-slate-950' : 'text-slate-300 hover:text-white'}`}>
-              Teacher key
-            </button>
+            {isTeacher ? (
+              <button type="button" role="tab" id="assignment-teacher-tab" aria-selected={effectiveCopy === 'teacher'} aria-controls="assignment-tab-panel" onClick={() => { setCopy('teacher'); setStatus(''); }} className={`rounded-lg px-3 py-2 text-xs font-semibold transition sm:px-4 ${effectiveCopy === 'teacher' ? 'bg-teal-300 text-slate-950' : 'text-slate-300 hover:text-white'}`}>
+                Teacher key
+              </button>
+            ) : (
+              <button type="button" disabled title="Sign in as a teacher (work email ending in .edu or .edu.kh) to view the teacher key" className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 cursor-not-allowed sm:px-4">
+                <LockKeyhole className="h-3 w-3" aria-hidden="true" />
+                Teacher key
+              </button>
+            )}
           </div>
           <span className="hidden items-center gap-1.5 text-[11px] text-slate-400 sm:inline-flex"><ClipboardList className="h-3.5 w-3.5 text-teal-300" aria-hidden="true" />{assignment.sections.reduce((sum, section) => sum + section.questions.length, 0)} original questions</span>
         </div>
 
-        <div id="assignment-tab-panel" role="tabpanel" aria-labelledby={copy === 'student' ? 'assignment-student-tab' : 'assignment-teacher-tab'} tabIndex={0} className="min-h-0 flex-1 overflow-y-auto bg-slate-950/70 p-3 sm:p-6">
-          {copy === 'student' ? <StudentCopy assignment={assignment} /> : <TeacherKey assignment={assignment} />}
+        <div id="assignment-tab-panel" role="tabpanel" aria-labelledby={effectiveCopy === 'student' ? 'assignment-student-tab' : 'assignment-teacher-tab'} tabIndex={0} className="min-h-0 flex-1 overflow-y-auto bg-slate-950/70 p-3 sm:p-6">
+          {effectiveCopy === 'student' ? <StudentCopy assignment={assignment} /> : <TeacherKey assignment={assignment} />}
         </div>
 
         <footer className="flex flex-col gap-2 border-t border-white/10 bg-slate-900 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -376,7 +394,7 @@ export function AssignmentPreview({ assignment, onClose }: AssignmentPreviewProp
               <Printer className="h-3.5 w-3.5" aria-hidden="true" /> Print / save PDF <ArrowRight className="h-3 w-3" aria-hidden="true" />
             </button>
             <button type="button" onClick={handleDownload} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-teal-300 px-3 py-2.5 text-xs font-bold text-slate-950 transition hover:bg-teal-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-100 sm:flex-none">
-              <ArrowDownToLine className="h-3.5 w-3.5" aria-hidden="true" /> Download {copy === 'student' ? 'student copy' : 'teacher key'}
+              <ArrowDownToLine className="h-3.5 w-3.5" aria-hidden="true" /> Download {effectiveCopy === 'student' ? 'student copy' : 'teacher key'}
             </button>
           </div>
         </footer>

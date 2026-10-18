@@ -4659,7 +4659,7 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
             
             // Show answered count only (no answer key for correct/incorrect)
             document.getElementById('reading-correct').textContent = answered;
-;try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title},drillSource:{stringValue:'toefl-ibt'},studentName:{stringValue:_sn},scorePct:{integerValue:'0'},correctCount:{integerValue:'0'},totalCount:{integerValue:'0'},submittedAt:{timestampValue:new Date().toISOString()}}}})}).catch(function(e){})}}catch(e){}
+
             document.getElementById('reading-incorrect').textContent = total - answered;
         }
         
@@ -4668,6 +4668,29 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                 clearInterval(readingTimer);
                 completedSections.reading = true;
                 backToDashboard();
+completedSections.reading = true;
+                /* CMC-FIRESTORE-POST (toefl-ibt section submit) —
+completedSections.reading = true;
+                   submit the Reading section score to
+completedSections.reading = true;
+                   Firestore. Non-blocking. */
+completedSections.reading = true;
+                try {
+completedSections.reading = true;
+                  var _slug = 'toefl-ibt-reading';
+completedSections.reading = true;
+                  var _title = 'TOEFL iBT · Reading Section';
+completedSections.reading = true;
+                  var _source = 'toefl-ibt';
+completedSections.reading = true;
+                  var _score = (typeof readingCorrect !== 'undefined' ? readingCorrect : 0);
+completedSections.reading = true;
+                  var _total = (typeof readingTotal !== 'undefined' ? readingTotal : 0);
+completedSections.reading = true;
+                  var _pct = _total ? Math.round(_score / _total * 100) : 0;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+completedSections.reading = true;
+                } catch (e) {}
             }
         }
         
@@ -4763,6 +4786,29 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                 clearInterval(listeningTimer);
                 completedSections.listening = true;
                 backToDashboard();
+completedSections.listening = true;
+                /* CMC-FIRESTORE-POST (toefl-ibt section submit) —
+completedSections.listening = true;
+                   submit the Listening section score to
+completedSections.listening = true;
+                   Firestore. Non-blocking. */
+completedSections.listening = true;
+                try {
+completedSections.listening = true;
+                  var _slug = 'toefl-ibt-listening';
+completedSections.listening = true;
+                  var _title = 'TOEFL iBT · Listening Section';
+completedSections.listening = true;
+                  var _source = 'toefl-ibt';
+completedSections.listening = true;
+                  var _score = (typeof listeningCorrect !== 'undefined' ? listeningCorrect : 0);
+completedSections.listening = true;
+                  var _total = (typeof listeningTotal !== 'undefined' ? listeningTotal : 0);
+completedSections.listening = true;
+                  var _pct = _total ? Math.round(_score / _total * 100) : 0;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+completedSections.listening = true;
+                } catch (e) {}
             }
         }
         
@@ -4877,6 +4923,29 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                 clearInterval(speakingTimer);
                 completedSections.speaking = true;
                 backToDashboard();
+completedSections.speaking = true;
+                /* CMC-FIRESTORE-POST (toefl-ibt section submit) —
+completedSections.speaking = true;
+                   submit the Speaking section score to
+completedSections.speaking = true;
+                   Firestore. Non-blocking. */
+completedSections.speaking = true;
+                try {
+completedSections.speaking = true;
+                  var _slug = 'toefl-ibt-speaking';
+completedSections.speaking = true;
+                  var _title = 'TOEFL iBT · Speaking Section';
+completedSections.speaking = true;
+                  var _source = 'toefl-ibt';
+completedSections.speaking = true;
+                  var _score = (typeof speakingCorrect !== 'undefined' ? speakingCorrect : 0);
+completedSections.speaking = true;
+                  var _total = (typeof speakingTotal !== 'undefined' ? speakingTotal : 0);
+completedSections.speaking = true;
+                  var _pct = _total ? Math.round(_score / _total * 100) : 0;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+completedSections.speaking = true;
+                } catch (e) {}
             }
         }
         
@@ -5115,6 +5184,29 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                 if (discussionTimer) clearInterval(discussionTimer);
                 completedSections.writing = true;
                 backToDashboard();
+completedSections.writing = true;
+                /* CMC-FIRESTORE-POST (toefl-ibt section submit) —
+completedSections.writing = true;
+                   submit the Writing section score to
+completedSections.writing = true;
+                   Firestore. Non-blocking. */
+completedSections.writing = true;
+                try {
+completedSections.writing = true;
+                  var _slug = 'toefl-ibt-writing';
+completedSections.writing = true;
+                  var _title = 'TOEFL iBT · Writing Section';
+completedSections.writing = true;
+                  var _source = 'toefl-ibt';
+completedSections.writing = true;
+                  var _score = (typeof writingCorrect !== 'undefined' ? writingCorrect : 0);
+completedSections.writing = true;
+                  var _total = (typeof writingTotal !== 'undefined' ? writingTotal : 0);
+completedSections.writing = true;
+                  var _pct = _total ? Math.round(_score / _total * 100) : 0;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+completedSections.writing = true;
+                } catch (e) {}
             }
         }
         

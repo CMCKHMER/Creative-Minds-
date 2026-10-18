@@ -624,7 +624,7 @@ var GM={
   dailySeed:0,
   /* Pause */
   paused:false
-};;try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title.split('—')[0].trim()},drillSource:{stringValue:'learning-games'},studentName:{stringValue:_sn},scorePct:{integerValue:String(0)},correctCount:{integerValue:String(0)},totalCount:{integerValue:String(0)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+};
 
 function getPool(mode,lv){
   var a=[];
@@ -1008,6 +1008,19 @@ function endGame(){
   STATS.history.unshift({mode:GM.mode,score:GM.score,rounds:GM.round,acc:acc,date:Date.now()});
   if(STATS.history.length>20)STATS.history.pop();
   saveStats();
+  /* CMC-FIRESTORE-POST (syntax-clash endGame) — submit the
+     final game score to Firestore so the dashboard + ticker
+     pick it up. Uses the same field schema as every other
+     worksheet. Non-blocking. */
+  try {
+    var _slug = 'syntax-clash-' + (GM.mode || 'unknown');
+    var _title = 'Syntax Clash Pro · ' + (GM.mode || 'game');
+    var _source = 'learning-games';
+    var _score = GM.score || 0;
+    var _total = GM.tc + GM.tw || 10;
+    var _pct = _total ? Math.round(GM.tc / _total * 100) : 0;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+  } catch (e) {}
   checkAch();
   openSheet('over');
 }
