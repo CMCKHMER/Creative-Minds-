@@ -286,10 +286,6 @@ export function App() {
       <TeacherPassModal
         isOpen={teacherPassModalOpen}
         onClose={() => setTeacherPassModalOpen(false)}
-        onContinueToMockTest={() => {
-          setTeacherPassModalOpen(false);
-          window.requestAnimationFrame(() => scrollToSection('toefl-mini-test'));
-        }}
       />
 
       {/* Live stats + Top Teachers ticker — fixed at the bottom of the

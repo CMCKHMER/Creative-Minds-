@@ -19,7 +19,6 @@ type AuthMode = 'sign-up' | 'sign-in' | 'reset' | 'check-email' | 'authenticated
 interface TeacherPassModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onContinueToMockTest: () => void;
   /** Kept for backwards-compat with App.tsx — Firebase path doesn't need
    *  server-side entitlement checks, so this is informational only. */
   accessStatus?: string;
@@ -34,7 +33,6 @@ function emailRedirectUrl(): string {
 export const TeacherPassModal = ({
   isOpen,
   onClose,
-  onContinueToMockTest,
   accessStatus,
   member,
   initialMode = 'sign-up',
@@ -164,8 +162,8 @@ export const TeacherPassModal = ({
       setActiveSession(session);
       setMode('authenticated');
       setMessage(session.role === 'teacher'
-        ? 'Teacher access unlocked — answer keys, teacher tools, and the practice room are now available.'
-        : 'Student access unlocked — worksheets, drills, and your score history are now available.');
+        ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the practice room are unlocked — explore them whenever you like.'
+        : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like.');
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
     } catch (e) {
       const authErr = e as FirebaseAuthError;
@@ -349,12 +347,12 @@ export const TeacherPassModal = ({
             <p className="mt-2 text-xs leading-relaxed text-slate-300">
               {message || (activeSession?.emailVerified
                 ? (activeSession?.role === 'teacher'
-                    ? 'Teacher access verified — answer keys, teacher tools, and the Resource Library are unlocked across the site.'
-                    : 'Student access verified — worksheets, drills, and your score history are unlocked. Answer keys and teacher tools stay locked.')
+                    ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the Resource Library are unlocked — explore them whenever you like.'
+                    : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like. Answer keys and teacher tools stay locked.')
                 : 'You can keep using the site while your email verifies. Member-only features unlock after email confirmation.')}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={onContinueToMockTest} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950">Continue to member practice <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></button>
+              <button type="button" onClick={onClose} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950">Done — back to site <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></button>
               <button type="button" onClick={handleSignOut} className="rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5">Sign out</button>
             </div>
           </div>
