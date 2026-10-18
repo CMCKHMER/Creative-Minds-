@@ -118,3 +118,48 @@ export function toggleGameSound(): boolean {
 export function isGameSoundMuted(): boolean {
   return isMuted();
 }
+
+/* ===== Visual effects — confetti burst (for game completion) ===== */
+
+/**
+ * Fire a confetti burst from the center-top of the viewport. Uses DOM
+ * elements with CSS animations (no canvas needed). Each piece is a
+ * small colored div that falls + rotates, then auto-removes after 3s.
+ *
+ * Call this from a game's "complete" handler for a satisfying payoff.
+ */
+export function fireConfetti(count: number = 80): void {
+  if (typeof document === 'undefined') return;
+  ensureConfettiCSS();
+  const colors = ['#10b981', '#d29922', '#39d2c0', '#c084fc', '#f85149', '#ffcc33', '#00f0ff', '#fbbf24'];
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement('div');
+    piece.style.cssText = [
+      'position:fixed', 'top:0',
+      `left:${Math.random() * 100}%`,
+      `width:${6 + Math.random() * 8}px`,
+      `height:${6 + Math.random() * 8}px`,
+      `background:${colors[Math.floor(Math.random() * colors.length)]}`,
+      'border-radius:2px', 'z-index:99998', 'pointer-events:none',
+      `animation:cmc-confetti-fall ${1.5 + Math.random() * 1.5}s ease-in forwards`,
+      `animation-delay:${Math.random() * 0.3}s`,
+      `transform:rotate(${Math.random() * 360}deg)`,
+    ].join(';');
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 3000);
+  }
+}
+
+let confettiCSSInjected = false;
+export function ensureConfettiCSS(): void {
+  if (confettiCSSInjected || typeof document === 'undefined') return;
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes cmc-confetti-fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+  confettiCSSInjected = true;
+}

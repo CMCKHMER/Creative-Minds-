@@ -162,6 +162,44 @@ header { position:sticky; top:0; z-index:50; background:rgba(19,17,16,0.85); bac
   position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: linear-gradient(180deg, rgba(7,13,23,0.55) 0%, rgba(7,13,23,0.78) 60%, rgba(7,13,23,0.92) 100%);
 }
+
+/* CMC-GAME-SOUND-FX (writequest) */
+@keyframes wq-confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.wq-confetti-piece {
+  position: fixed; top: 0; width: 10px; height: 10px; z-index: 99998;
+  pointer-events: none; border-radius: 2px;
+  animation: wq-confetti-fall 2.5s ease-in forwards;
+}
+@keyframes wq-flash-correct {
+  0% { box-shadow: inset 0 0 0 0 rgba(52,211,153,0); }
+  30% { box-shadow: inset 0 0 80px 0 rgba(52,211,153,0.25); }
+  100% { box-shadow: inset 0 0 0 0 rgba(52,211,153,0); }
+}
+@keyframes wq-flash-wrong {
+  0% { box-shadow: inset 0 0 0 0 rgba(248,113,113,0); }
+  30% { box-shadow: inset 0 0 80px 0 rgba(248,113,113,0.2); }
+  100% { box-shadow: inset 0 0 0 0 rgba(248,113,113,0); }
+}
+.wq-flash-correct { animation: wq-flash-correct 0.5s ease-out; }
+.wq-flash-wrong { animation: wq-flash-wrong 0.4s ease-out; }
+.wq-burst {
+  position: fixed; z-index: 99997; pointer-events: none;
+  width: 6px; height: 6px; border-radius: 50%;
+  transition: all 0.6s ease-out;
+}
+.wq-mute-btn {
+  position: fixed; top: 16px; right: 100px; z-index: 99994;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px;
+  background: rgba(15,23,42,0.9); border: 1px solid rgba(148,163,184,0.2);
+  color: #67e8f9; cursor: pointer; font-size: 14px;
+  transition: all 0.2s; backdrop-filter: blur(8px);
+}
+.wq-mute-btn:hover { border-color: rgba(34,211,238,0.5); transform: translateY(-1px); }
+
 </style>
 </head>
 <body>
@@ -435,6 +473,7 @@ function toast(msg, type='info') {
 }
 
 function addScore(pts) {
+  wqSndCorrect(); wqFlash('correct');
   state.score += pts;
   state.streak++;
   document.getElementById('scoreDisplay').textContent = state.score;
@@ -442,6 +481,7 @@ function addScore(pts) {
 }
 
 function breakStreak() {
+  wqSndWrong(); wqFlash('wrong');
   state.streak = 0;
   document.getElementById('streakDisplay').textContent = 0;
 }
@@ -962,6 +1002,7 @@ function submitWriting() {
 
 /* ===== LEVEL COMPLETE ===== */
 function showLevelComplete(title, msg, score) {
+  wqSndComplete(); wqConfetti(100);
   document.getElementById('lvlTitle').textContent = 'Well Done!';
   document.getElementById('lvlMsg').textContent = msg;
   document.getElementById('lvlStats').innerHTML = `
@@ -990,6 +1031,132 @@ function closeLevelOverlay() {
 }
 
 /* ===== BACKGROUND PARTICLES ===== */
+
+/* CMC-GAME-SOUND-FX (writequest) — Web Audio synthesized sounds + visual FX */
+var wqAudioCtx = null;
+var wqMuted = false;
+try { wqMuted = localStorage.getItem('wq_mute') === '1'; } catch(e) {}
+
+function wqGetAudio() {
+  if (!wqAudioCtx) {
+    try { wqAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return null; }
+  }
+  if (wqAudioCtx.state === 'suspended') wqAudioCtx.resume();
+  return wqAudioCtx;
+}
+
+function wqTone(freq, start, dur, type, vol) {
+  var ctx = wqGetAudio(); if (!ctx || wqMuted) return;
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(freq, start);
+  g.gain.setValueAtTime(0, start);
+  g.gain.linearRampToValueAtTime(vol || 0.12, start + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(start); o.stop(start + dur + 0.05);
+}
+
+function wqSndCorrect() {
+  var ctx = wqGetAudio(); if (!ctx || wqMuted) return; var n = ctx.currentTime;
+  wqTone(523.25, n, 0.12, 'sine', 0.15);
+  wqTone(659.25, n + 0.08, 0.16, 'sine', 0.12);
+  wqTone(783.99, n + 0.16, 0.2, 'sine', 0.1);
+}
+
+function wqSndWrong() {
+  var ctx = wqGetAudio(); if (!ctx || wqMuted) return; var n = ctx.currentTime;
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(200, n);
+  o.frequency.exponentialRampToValueAtTime(80, n + 0.25);
+  g.gain.setValueAtTime(0.06, n); g.gain.exponentialRampToValueAtTime(0.001, n + 0.25);
+  o.connect(g); g.connect(ctx.destination); o.start(n); o.stop(n + 0.3);
+}
+
+function wqSndComplete() {
+  var ctx = wqGetAudio(); if (!ctx || wqMuted) return; var n = ctx.currentTime;
+  [523.25, 659.25, 783.99, 1046.5].forEach(function(f, i) {
+    wqTone(f, n + i * 0.12, 0.2, 'sine', 0.14);
+    wqTone(f * 2, n + i * 0.12, 0.15, 'triangle', 0.04);
+  });
+}
+
+function wqSndClick() {
+  var ctx = wqGetAudio(); if (!ctx || wqMuted) return; var n = ctx.currentTime;
+  var o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(800, n);
+  o.frequency.exponentialRampToValueAtTime(400, n + 0.05);
+  g.gain.setValueAtTime(0.04, n); g.gain.exponentialRampToValueAtTime(0.001, n + 0.05);
+  o.connect(g); g.connect(ctx.destination); o.start(n); o.stop(n + 0.06);
+}
+
+function wqSndKey() {
+  var ctx = wqGetAudio(); if (!ctx || wqMuted) return; var n = ctx.currentTime;
+  wqTone(1200, n, 0.02, 'sine', 0.015);
+}
+
+/* Visual FX — confetti + particle burst + screen flash */
+function wqConfetti(n) {
+  n = n || 80;
+  var cols = ['#10b981', '#d29922', '#39d2c0', '#c084fc', '#f85149', '#ffcc33', '#00f0ff', '#fbbf24'];
+  for (var i = 0; i < n; i++) {
+    var d = document.createElement('div');
+    d.className = 'wq-confetti-piece';
+    d.style.left = Math.random() * 100 + '%';
+    d.style.background = cols[Math.floor(Math.random() * cols.length)];
+    d.style.width = (6 + Math.random() * 8) + 'px';
+    d.style.height = (6 + Math.random() * 8) + 'px';
+    d.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+    d.style.animationDelay = Math.random() * 0.3 + 's';
+    document.body.appendChild(d);
+    (function(dd) { setTimeout(function() { dd.remove(); }, 3000); })(d);
+  }
+}
+
+function wqBurst(x, y, color) {
+  color = color || '#34d399';
+  for (var i = 0; i < 12; i++) {
+    var d = document.createElement('div');
+    d.className = 'wq-burst';
+    d.style.left = x + 'px'; d.style.top = y + 'px';
+    d.style.background = color;
+    document.body.appendChild(d);
+    var angle = (Math.PI * 2 * i) / 12;
+    var dist = 40 + Math.random() * 30;
+    requestAnimationFrame(function() {
+      d.style.left = (x + Math.cos(angle) * dist) + 'px';
+      d.style.top = (y + Math.sin(angle) * dist) + 'px';
+      d.style.opacity = '0';
+      d.style.transform = 'scale(2)';
+    });
+    (function(dd) { setTimeout(function() { dd.remove(); }, 600); })(d);
+  }
+}
+
+function wqFlash(type) {
+  var el = document.getElementById('view-' + state.view) || document.body;
+  el.classList.remove('wq-flash-correct', 'wq-flash-wrong');
+  void el.offsetWidth;
+  el.classList.add(type === 'correct' ? 'wq-flash-correct' : 'wq-flash-wrong');
+}
+
+function wqToggleMute() {
+  wqMuted = !wqMuted;
+  try { localStorage.setItem('wq_mute', wqMuted ? '1' : '0'); } catch(e) {}
+  var btn = document.getElementById('wqMuteBtn');
+  if (btn) btn.innerHTML = wqMuted ? '<i class="fas fa-volume-xmark"></i>' : '<i class="fas fa-volume-high"></i>';
+  if (!wqMuted) wqSndClick();
+}
+
+function wqAddMuteButton() {
+  var btn = document.createElement('button');
+  btn.id = 'wqMuteBtn'; btn.className = 'wq-mute-btn';
+  btn.innerHTML = wqMuted ? '<i class="fas fa-volume-xmark"></i>' : '<i class="fas fa-volume-high"></i>';
+  btn.title = wqMuted ? 'Unmute sounds' : 'Mute sounds';
+  btn.onclick = wqToggleMute;
+  document.body.appendChild(btn);
+}
+
+
 function createParticles() {
   const cont = document.getElementById('particles');
   for(let i=0; i<18; i++) {
@@ -1020,7 +1187,7 @@ function init() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', function() { init(); wqAddMuteButton(); });
 </script>
 </body>
 </html>

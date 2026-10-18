@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clo
 import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 import { GameLeaderboard, submitGameScore, useSignedInPlayerName } from './GameLeaderboard';
-import { playCorrectSound, playWrongSound, playCompleteSound, toggleGameSound, isGameSoundMuted } from '../lib/gameSound';
+import { playCorrectSound, playWrongSound, playCompleteSound, toggleGameSound, isGameSoundMuted, fireConfetti, ensureConfettiCSS } from '../lib/gameSound';
 
 const skillOptions: Array<'All games' | LearningGameSkill> = ['All games', 'Vocabulary', 'Reading', 'Grammar', 'Early literacy', 'Listening'];
 
@@ -64,10 +64,12 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
   };
 
   // Called when the user clicks "See results" — flips to the finished view,
-  // plays a victory fanfare, AND submits the score to Firestore.
+  // plays a victory fanfare + fires confetti, AND submits the score to Firestore.
   const finishGame = () => {
     setFinished(true);
     playCompleteSound();
+    ensureConfettiCSS();
+    fireConfetti(80);
     void submitGameScore({
       gameSlug: game.id,
       gameTitle: game.title,
