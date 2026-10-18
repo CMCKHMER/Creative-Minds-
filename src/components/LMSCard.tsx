@@ -1,5 +1,6 @@
 import { ArrowRight, BookOpen, Calendar, CheckCircle2, GraduationCap, LockKeyhole, MessageSquare, Users } from 'lucide-react';
 import { useMemberAuth } from '../hooks/useMemberAuth';
+import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
 
 const LMS_URL = 'https://creative-minds-lms.onrender.com'; // placeholder — update with real deploy URL
 
@@ -14,7 +15,17 @@ const features = [
 
 export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
   const memberAuth = useMemberAuth();
-  const isTeacher = memberAuth.status === 'active' && memberAuth.member?.role?.toLowerCase().includes('educat');
+  // Same pattern as FirebaseDashboard: also check the Firebase REST
+  // session (the one TeacherPassModal writes to). Without this, a
+  // teacher who signed in via the hero button — which uses Firebase
+  // Auth, not Supabase — sees the "Sign up for teacher access" gate
+  // even though they're fully authenticated. Supabase member-auth
+  // stays the primary path (when configured), Firebase REST is the
+  // fallback (the active deployment).
+  const firebaseAuth = useFirebaseAuth();
+  const isTeacher =
+    (memberAuth.status === 'active' && memberAuth.member?.role?.toLowerCase().includes('educat')) ||
+    (firebaseAuth.isTeacher && !!firebaseAuth.session);
 
   return (
     <section
