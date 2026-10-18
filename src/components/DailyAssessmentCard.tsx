@@ -1,4 +1,5 @@
 import { ArrowUpRight, BarChart3, ClipboardCheck, FileText, FolderKanban, ListChecks, LockKeyhole, MessageSquareText } from 'lucide-react';
+import { useSignedInSession } from '../hooks/useSignedInSession';
 
 const ASSESSMENT_RECORDS_URL = 'https://cmckhmer.github.io/Student-Assesment-Records/';
 
@@ -10,7 +11,13 @@ const recordAreas = [
   { label: 'Overall student score', detail: 'Combined daily assessment view', icon: BarChart3 },
 ];
 
-export function DailyAssessmentCard() {
+export function DailyAssessmentCard({ onOpenAuth }: { onOpenAuth?: () => void } = {}) {
+  // Gate: only teachers can open the assessment workspace. Students
+  // and signed-out users see a "Teacher access required" prompt instead
+  // of the "Open the assessment workspace" button. Same pattern as the
+  // AssignmentPreview teacher-key gating + the TeacherToolsPage gate.
+  const session = useSignedInSession();
+  const isTeacher = session?.role === 'teacher';
   return (
     <section id="daily-assessment" aria-labelledby="daily-assessment-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-cyan-100/10 bg-[#07131f] py-20 sm:py-24 lg:py-28">
       {/* Full-bleed semi-transparent card background image */}
@@ -25,14 +32,41 @@ export function DailyAssessmentCard() {
           <span className="cmc-eyebrow"><span className="h-px w-8 bg-cyan-300" aria-hidden="true" />CMC connected workspace</span>
           <h2 id="daily-assessment-title" className="cmc-h2">Daily Student<br /><span className="cmc-gradient-text">Assessment Records.</span></h2>
           <p className="cmc-lead">Continue into the existing CMC assessment workspace to review daily records across literacy, speaking, projects, quizzes, homework, participation, and overall progress.</p>
-          <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <a href={ASSESSMENT_RECORDS_URL} target="_blank" rel="noopener noreferrer" aria-label="Open Student Assessment Records in a new tab" className="group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-300 via-teal-200 to-sky-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_12px_36px_-14px_rgba(45,212,191,.72)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_44px_-14px_rgba(45,212,191,.82)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">
-              Open the assessment workspace <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
-            </a>
-            <span className="text-[10px] text-slate-500">Opens in a new tab</span>
-          </div>
-          <a href={ASSESSMENT_RECORDS_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-slate-500 underline decoration-slate-700 underline-offset-4 transition hover:text-cyan-100">cmckhmer.github.io/Student-Assesment-Records <ArrowUpRight className="h-3 w-3" aria-hidden="true" /></a>
-          <p className="mt-4 flex max-w-xl items-start gap-2 text-[10px] leading-relaxed text-slate-500"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/70" aria-hidden="true" /><span>This is a separate service, outside the current site’s Supabase membership checks. Verify its access controls, storage, and privacy with that site’s administrator before entering student records.</span></p>
+          {isTeacher ? (
+            <>
+              <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                <a href={ASSESSMENT_RECORDS_URL} target="_blank" rel="noopener noreferrer" aria-label="Open Student Assessment Records in a new tab" className="group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-300 via-teal-200 to-sky-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_12px_36px_-14px_rgba(45,212,191,.72)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_44px_-14px_rgba(45,212,191,.82)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">
+                  Open the assessment workspace <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                </a>
+                <span className="text-[10px] text-slate-500">Opens in a new tab · teacher access</span>
+              </div>
+              <a href={ASSESSMENT_RECORDS_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-slate-500 underline decoration-slate-700 underline-offset-4 transition hover:text-cyan-100">cmckhmer.github.io/Student-Assesment-Records <ArrowUpRight className="h-3 w-3" aria-hidden="true" /></a>
+              <p className="mt-4 flex max-w-xl items-start gap-2 text-[10px] leading-relaxed text-slate-500"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/70" aria-hidden="true" /><span>This is a separate service, outside the current site's Supabase membership checks. Verify its access controls, storage, and privacy with that site's administrator before entering student records.</span></p>
+            </>
+          ) : (
+            <div className="mt-7 rounded-xl border border-amber-200/20 bg-amber-100/[0.04] p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200">
+                  <LockKeyhole className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-amber-50">Teacher access required</p>
+                  <p className="mt-1 text-xs leading-relaxed text-amber-100/70">
+                    The Student Assessment Records workspace is reserved for teachers. Sign in with a work email containing "edu" (e.g., you@school.edu.kh) to unlock it. Students don't have access to teacher-side record review.
+                  </p>
+                  {onOpenAuth && (
+                    <button
+                      type="button"
+                      onClick={onOpenAuth}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-300 to-amber-200 px-3 py-1.5 text-[11px] font-bold text-slate-950 transition hover:-translate-y-0.5"
+                    >
+                      Sign in as teacher <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="relative mx-auto w-full max-w-lg">

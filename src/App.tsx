@@ -184,7 +184,7 @@ export function App() {
         />
 
         {/* Main-hero themed link to the separate daily student record workspace */}
-        <DailyAssessmentCard />
+        <DailyAssessmentCard onOpenAuth={() => openMemberAuth('sign-up')} />
 
         {/* Full TOEFL iBT mock test card — opens 4-section practice exam in a new tab */}
         <TOEFLiBTCard />
