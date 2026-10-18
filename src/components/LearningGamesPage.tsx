@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, RotateCcw, Sparkles, XCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, RotateCcw, Sparkles, XCircle, Volume2, VolumeX } from 'lucide-react';
 import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 import { GameLeaderboard, submitGameScore, useSignedInPlayerName } from './GameLeaderboard';
+import { playCorrectSound, playWrongSound, playCompleteSound, toggleGameSound, isGameSoundMuted } from '../lib/gameSound';
 
 const skillOptions: Array<'All games' | LearningGameSkill> = ['All games', 'Vocabulary', 'Reading', 'Grammar', 'Early literacy', 'Listening'];
 
@@ -32,6 +33,7 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [finished, setFinished] = useState(false);
+  const [soundMuted, setSoundMuted] = useState(isGameSoundMuted());
   const question = game.questions[questionIndex];
   const gamePassage = game.passage ?? question.passage;
   const selectedIndex = answers[questionIndex];
@@ -45,20 +47,38 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
     setFinished(false);
   };
 
-  // Called when the user clicks "See results" — flips to the finished view
-  // AND submits the score to Firestore (via submitGameScore → submitScore →
-  // drill_attempts collection with drillSource: 'learning-games'). The
-  // leaderboard side panel will refresh within 30s and the player's name
-  // appears. Non-signed-in users are silent no-ops (submitScore checks
-  // localStorage.cmc-student-token and bails if absent).
+  // Handle answer selection — stores the answer AND plays a sound effect.
+  // The sound is based on whether the selected choice is the correct one.
+  // Only plays the sound on the FIRST answer (when the answer transitions
+  // from undefined → a choice), not on re-selections of the same question.
+  const handleAnswer = (choiceIndex: number) => {
+    const wasAlreadyAnswered = answers[questionIndex] !== undefined;
+    setAnswers((previous) => ({ ...previous, [questionIndex]: choiceIndex }));
+    if (!wasAlreadyAnswered) {
+      if (choiceIndex === question.correctIndex) {
+        playCorrectSound();
+      } else {
+        playWrongSound();
+      }
+    }
+  };
+
+  // Called when the user clicks "See results" — flips to the finished view,
+  // plays a victory fanfare, AND submits the score to Firestore.
   const finishGame = () => {
     setFinished(true);
+    playCompleteSound();
     void submitGameScore({
       gameSlug: game.id,
       gameTitle: game.title,
       correctCount: score,
       totalCount: game.questions.length,
     });
+  };
+
+  const handleToggleSound = () => {
+    const muted = toggleGameSound();
+    setSoundMuted(muted);
   };
 
   if (finished) {
@@ -89,7 +109,12 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
     <section id="game-playground" className="scroll-mt-6 mt-10 overflow-hidden rounded-3xl border border-white/10 bg-slate-900/65 shadow-2xl">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/8 px-5 py-4 sm:px-7">
         <div className="flex min-w-0 items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-gradient-to-br from-cyan-300/10 to-violet-400/10 text-cyan-200"><Icon className="h-5 w-5" aria-hidden="true" /></span><div className="min-w-0"><p className="text-[9px] font-bold tracking-[0.15em] text-slate-500 uppercase">{game.skill} · {game.level}</p><h3 className="truncate text-sm font-bold text-white sm:text-base">{game.title}</h3></div></div>
-        <button type="button" onClick={onExit} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> All games</button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={handleToggleSound} title={soundMuted ? 'Unmute game sounds' : 'Mute game sounds'} aria-label={soundMuted ? 'Unmute game sounds' : 'Mute game sounds'} className="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition hover:bg-white/5 hover:text-white">
+            {soundMuted ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}
+          </button>
+          <button type="button" onClick={onExit} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> All games</button>
+        </div>
       </header>
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_260px]">
@@ -114,7 +139,7 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
             const chosen = selectedIndex === index;
             const correct = index === question.correctIndex;
             const style = !answered ? 'border-white/10 bg-white/[0.025] text-slate-300 hover:border-cyan-200/30 hover:bg-cyan-200/[0.04]' : correct ? 'border-emerald-300/30 bg-emerald-300/[0.07] text-emerald-50' : chosen ? 'border-rose-300/30 bg-rose-300/[0.06] text-rose-50' : 'border-white/6 bg-white/[0.015] text-slate-500';
-            return <button key={`${game.id}-${questionIndex}-${index}`} type="button" aria-pressed={chosen} onClick={() => setAnswers((previous) => ({ ...previous, [questionIndex]: index }))} className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left text-xs leading-relaxed transition ${style}`}><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current/25 font-mono text-[9px] font-bold">{answered && correct ? <Check className="h-3 w-3" aria-hidden="true" /> : String.fromCharCode(65 + index)}</span><span>{choice}</span></button>;
+            return <button key={`${game.id}-${questionIndex}-${index}`} type="button" aria-pressed={chosen} onClick={() => handleAnswer(index)} className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left text-xs leading-relaxed transition ${style}`}><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current/25 font-mono text-[9px] font-bold">{answered && correct ? <Check className="h-3 w-3" aria-hidden="true" /> : String.fromCharCode(65 + index)}</span><span>{choice}</span></button>;
           })}</div>
           {answered && <div role="status" aria-live="polite" className={`mt-4 rounded-xl border p-4 ${selectedIndex === question.correctIndex ? 'border-emerald-300/20 bg-emerald-300/[0.05]' : 'border-amber-200/20 bg-amber-200/[0.04]'}`}><p className="text-xs font-bold text-white">{selectedIndex === question.correctIndex ? 'Correct. Nice reasoning.' : 'Not quite. Look at the clue again.'}</p><p className="mt-1.5 text-xs leading-relaxed text-slate-300">{question.feedback}</p></div>}
           <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4"><button type="button" disabled={questionIndex === 0} onClick={() => setQuestionIndex((index) => Math.max(0, index - 1))} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-30"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Previous</button><span className="font-mono text-[10px] text-slate-500">{score} points</span>{questionIndex < game.questions.length - 1 ? <button type="button" disabled={!answered} onClick={() => setQuestionIndex((index) => index + 1)} className="inline-flex items-center gap-2 rounded-lg bg-white/[0.07] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Next clue <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></button> : <button type="button" disabled={!answered} onClick={finishGame} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">See results <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /></button>}</div>
