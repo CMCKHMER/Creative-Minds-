@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, RotateCcw, Sparkles, XCircle } from 'lucide-react';
 import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
+import { GameLeaderboard, submitGameScore, useSignedInPlayerName } from './GameLeaderboard';
 
 const skillOptions: Array<'All games' | LearningGameSkill> = ['All games', 'Vocabulary', 'Reading', 'Grammar', 'Early literacy', 'Listening'];
 
@@ -42,6 +43,22 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
     setQuestionIndex(0);
     setAnswers({});
     setFinished(false);
+  };
+
+  // Called when the user clicks "See results" — flips to the finished view
+  // AND submits the score to Firestore (via submitGameScore → submitScore →
+  // drill_attempts collection with drillSource: 'learning-games'). The
+  // leaderboard side panel will refresh within 30s and the player's name
+  // appears. Non-signed-in users are silent no-ops (submitScore checks
+  // localStorage.cmc-student-token and bails if absent).
+  const finishGame = () => {
+    setFinished(true);
+    void submitGameScore({
+      gameSlug: game.id,
+      gameTitle: game.title,
+      correctCount: score,
+      totalCount: game.questions.length,
+    });
   };
 
   if (finished) {
@@ -100,7 +117,7 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
             return <button key={`${game.id}-${questionIndex}-${index}`} type="button" aria-pressed={chosen} onClick={() => setAnswers((previous) => ({ ...previous, [questionIndex]: index }))} className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left text-xs leading-relaxed transition ${style}`}><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current/25 font-mono text-[9px] font-bold">{answered && correct ? <Check className="h-3 w-3" aria-hidden="true" /> : String.fromCharCode(65 + index)}</span><span>{choice}</span></button>;
           })}</div>
           {answered && <div role="status" aria-live="polite" className={`mt-4 rounded-xl border p-4 ${selectedIndex === question.correctIndex ? 'border-emerald-300/20 bg-emerald-300/[0.05]' : 'border-amber-200/20 bg-amber-200/[0.04]'}`}><p className="text-xs font-bold text-white">{selectedIndex === question.correctIndex ? 'Correct. Nice reasoning.' : 'Not quite. Look at the clue again.'}</p><p className="mt-1.5 text-xs leading-relaxed text-slate-300">{question.feedback}</p></div>}
-          <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4"><button type="button" disabled={questionIndex === 0} onClick={() => setQuestionIndex((index) => Math.max(0, index - 1))} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-30"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Previous</button><span className="font-mono text-[10px] text-slate-500">{score} points</span>{questionIndex < game.questions.length - 1 ? <button type="button" disabled={!answered} onClick={() => setQuestionIndex((index) => index + 1)} className="inline-flex items-center gap-2 rounded-lg bg-white/[0.07] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Next clue <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></button> : <button type="button" disabled={!answered} onClick={() => setFinished(true)} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">See results <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /></button>}</div>
+          <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4"><button type="button" disabled={questionIndex === 0} onClick={() => setQuestionIndex((index) => Math.max(0, index - 1))} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-30"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Previous</button><span className="font-mono text-[10px] text-slate-500">{score} points</span>{questionIndex < game.questions.length - 1 ? <button type="button" disabled={!answered} onClick={() => setQuestionIndex((index) => index + 1)} className="inline-flex items-center gap-2 rounded-lg bg-white/[0.07] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Next clue <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></button> : <button type="button" disabled={!answered} onClick={finishGame} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">See results <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /></button>}</div>
         </div>
 
         <aside className="border-t border-white/8 bg-slate-950/35 p-5 lg:border-t-0 lg:border-l lg:p-6"><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Progress</p><div className="mt-4 grid grid-cols-5 gap-2">{game.questions.map((_, index) => <button key={`${game.id}-step-${index}`} type="button" onClick={() => setQuestionIndex(index)} aria-label={`Go to round ${index + 1}${answers[index] !== undefined ? ', answered' : ', unanswered'}`} className={`grid h-9 place-items-center rounded-lg border font-mono text-[10px] font-bold ${questionIndex === index ? 'border-cyan-200 bg-cyan-200 text-slate-950' : answers[index] !== undefined ? 'border-teal-200/20 bg-teal-200/5 text-teal-100' : 'border-white/10 text-slate-500'}`}>{index + 1}</button>)}</div><p className="mt-5 text-xs leading-relaxed text-slate-400">{game.description}</p><div className="mt-5 border-t border-white/8 pt-4 text-[10px] leading-relaxed text-slate-500">Practice-only activity. Your answers stay in this browser tab.</div></aside>
@@ -113,6 +130,9 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
   const [activeSkill, setActiveSkill] = useState<'All games' | LearningGameSkill>('All games');
   const [selectedGame, setSelectedGame] = useState<LearningGame | null>(null);
   const filteredGames = LEARNING_GAMES.filter((game) => activeSkill === 'All games' || game.skill === activeSkill);
+  // Highlight the signed-in player's row in the leaderboard so they can
+  // spot their own score at a glance.
+  const signedInPlayer = useSignedInPlayerName();
 
   const chooseGame = (game: LearningGame) => {
     setSelectedGame(game);
@@ -147,31 +167,55 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
       <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20">
         <div className="flex flex-col justify-between gap-5 border-b border-white/10 pb-5 sm:flex-row sm:items-end"><div><p className="text-[9px] font-bold tracking-[0.17em] text-cyan-300 uppercase">Game library</p><h2 className="mt-2 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">What would you like to practice?</h2></div><div className="flex max-w-full gap-1 overflow-x-auto rounded-xl border border-white/10 bg-slate-900/60 p-1" role="tablist" aria-label="Filter learning games">{skillOptions.map((skill) => <button key={skill} type="button" role="tab" aria-selected={activeSkill === skill} onClick={() => setActiveSkill(skill)} className={`shrink-0 rounded-lg px-3 py-2 text-[10px] font-semibold transition ${activeSkill === skill ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}>{skill}</button>)}</div></div>
 
-        <div className="mt-7 grid gap-x-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredGames.map((game) => {
-            const index = LEARNING_GAMES.findIndex((entry) => entry.id === game.id);
-            const Icon = gameIcon(game.skill);
-            return (
-              <article key={game.id} className="group flex min-h-[280px] flex-col border-b border-white/10 py-6 transition-colors hover:border-cyan-200/25">
-                <div className="flex items-center justify-between gap-3"><span className={`grid h-10 w-10 place-items-center rounded-xl border bg-gradient-to-br ${accent(index)}`}><Icon className="h-4.5 w-4.5" aria-hidden="true" /></span><span className="flex items-center gap-2">{game.badge && <span className="rounded-md border border-cyan-200/30 bg-cyan-200/10 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-cyan-200 uppercase">{game.badge}</span>}<span className="rounded-md border border-white/8 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-slate-400 uppercase">{game.skill}</span></span></div>
-                <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-400">{game.description}</p>
-                <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>{game.level}</span><span aria-hidden="true">·</span><span>{game.duration}</span></div>
-                               {game.externalUrl ? (
-                  <a href={game.externalUrl} target="_blank" rel="noopener noreferrer" className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
-                    Open game
-                    <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
-                  </a>
-                ) : (
-                  <button type="button" onClick={() => chooseGame(game)} className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">Read &amp; play <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" /></button>
-                )}
-                            </article>
-            );
-          })}
+        {/* Two-column layout on lg+: games grid on the left, sticky live
+            leaderboard panel on the right. On smaller screens the
+            leaderboard stacks below the grid (full-width) so it's
+            always visible + never blocks the game cards. */}
+        <div className="mt-7 grid gap-x-8 gap-y-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+          {/* Left column: games grid + selected game */}
+          <div>
+            <div className="grid gap-x-6 md:grid-cols-2 xl:grid-cols-3">
+              {filteredGames.map((game) => {
+                const index = LEARNING_GAMES.findIndex((entry) => entry.id === game.id);
+                const Icon = gameIcon(game.skill);
+                return (
+                  <article key={game.id} className="group flex min-h-[280px] flex-col border-b border-white/10 py-6 transition-colors hover:border-cyan-200/25">
+                    <div className="flex items-center justify-between gap-3"><span className={`grid h-10 w-10 place-items-center rounded-xl border bg-gradient-to-br ${accent(index)}`}><Icon className="h-4.5 w-4.5" aria-hidden="true" /></span><span className="flex items-center gap-2">{game.badge && <span className="rounded-md border border-cyan-200/30 bg-cyan-200/10 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-cyan-200 uppercase">{game.badge}</span>}<span className="rounded-md border border-white/8 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-slate-400 uppercase">{game.skill}</span></span></div>
+                    <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-400">{game.description}</p>
+                    <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>{game.level}</span><span aria-hidden="true">·</span><span>{game.duration}</span></div>
+                                   {game.externalUrl ? (
+                      <a href={game.externalUrl} target="_blank" rel="noopener noreferrer" className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+                        Open game
+                        <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
+                      </a>
+                    ) : (
+                      <button type="button" onClick={() => chooseGame(game)} className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">Read &amp; play <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" /></button>
+                    )}
+                              </article>
+                );
+              })}
+            </div>
+
+            {selectedGame && <GamePlay key={selectedGame.id} game={selectedGame} onExit={() => setSelectedGame(null)} />}
+
+            <p className="mt-8 text-center text-[10px] leading-relaxed text-slate-600">Original classroom practice activities. These games do not collect or store student answers.</p>
+          </div>
+
+          {/* Right column: sticky live leaderboard + recent activity panel.
+              Hidden on small screens (would push the grid down) — appears
+              from lg breakpoint up. */}
+          <div className="hidden lg:block">
+            <div className="sticky top-20">
+              <GameLeaderboard highlightPlayer={signedInPlayer} />
+            </div>
+          </div>
         </div>
 
-        {selectedGame && <GamePlay key={selectedGame.id} game={selectedGame} onExit={() => setSelectedGame(null)} />}
-
-        <p className="mt-8 text-center text-[10px] leading-relaxed text-slate-600">Original classroom practice activities. These games do not collect or store student answers.</p>
+        {/* Mobile / tablet fallback: leaderboard panel rendered below the
+            grid so users on small screens still see the live activity. */}
+        <div className="mt-8 lg:hidden">
+          <GameLeaderboard highlightPlayer={signedInPlayer} />
+        </div>
       </section>
     </main>
   );
