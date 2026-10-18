@@ -44,8 +44,25 @@ export function useFirebaseAuth(): FirebaseAuthState & FirebaseAuthActions {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setSession(restoreSession());
-    setHydrated(true);
+    const sync = () => {
+      setSession(restoreSession());
+      setHydrated(true);
+    };
+    sync(); // hydrate on mount
+    // Also listen for 'cmc-auth-changed' events — these are dispatched
+    // by TeacherPassModal (which calls signUpWithEmail / signInWithEmail
+    // directly from firebaseAuth.ts, NOT via this hook's signUp/signIn
+    // methods) and by useSignedInSession's signOut. Without this
+    // listener, the hook's `session` state would stay stale (null) even
+    // after the user signs in via the modal — which caused the MiniMockTest
+    // to show "Secure membership is not configured" even for signed-in
+    // Firebase users.
+    window.addEventListener('cmc-auth-changed', sync);
+    window.addEventListener('storage', sync); // cross-tab sync
+    return () => {
+      window.removeEventListener('cmc-auth-changed', sync);
+      window.removeEventListener('storage', sync);
+    };
   }, []);
 
   const isTeacher = session?.role === 'teacher';
