@@ -25,7 +25,12 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run build
+      - name: Type-check (tsc --noEmit)
+        run: npx tsc --noEmit
+      - name: Unit tests (vitest)
+        run: npx vitest run
+      - name: Build
+        run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
