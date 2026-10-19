@@ -333,6 +333,19 @@
 .welcome-card h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
 .welcome-card p{font-size:11px;color:var(--muted);line-height:1.5}
 
+
+/* CMC-EXCEL-PRO */
+.sheet-grid th.col-h.frozen{position:sticky;top:0;z-index:5;background:#e0e0e0!important}
+.sheet-grid th.row-h.frozen{position:sticky;left:0;z-index:5;background:#e0e0f0!important}
+.sheet-grid td.cell.frozen-col{position:sticky;left:48px;z-index:1;background:#fff!important}
+.sheet-grid td.cell.frozen-row{position:sticky;top:24px;z-index:1;background:#fff!important}
+.sheet-grid td.cell.frozen-col.frozen-row{z-index:2}
+.fill-handle{position:absolute;width:7px;height:7px;background:#4cc9f0;cursor:crosshair;border:1px solid #fff;z-index:10;display:none}
+.fill-handle.show{display:block}
+.cell-align-left{text-align:left!important}.cell-align-center{text-align:center!important}.cell-align-right{text-align:right!important}
+.cell-bg-color{border:2px solid #4cc9f0}
+.num-fmt-currency::before{content:'$'}.num-fmt-percent::after{content:'%'}
+
 </style>
 </head>
 <body>
@@ -609,7 +622,15 @@
         <button class="tgl" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
       </div>
       <div id="codeBar" class="hidden" style="display:none;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line)"><span style="color:#89b4fa;font-size:11px;font-weight:600">Code Editor</span></div>
-    <div id="sheetBar" class="hidden" style="display:flex; gap:6px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line)">
+    <div id="sheetBar" class="hidden" style="display:flex;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line)">
+        <button class="tgl" onclick="sheetCmd('alignLeft')" title="Align Left">≡←</button>
+        <button class="tgl" onclick="sheetCmd('alignCenter')" title="Align Center">≡</button>
+        <button class="tgl" onclick="sheetCmd('alignRight')" title="Align Right">≡→</button>
+        <button class="tgl" onclick="sheetCmd('fillColor')" title="Fill Color" style="background:#4cc9f033">🎨</button>
+        <button class="tgl" onclick="sheetCmd('textColor')" title="Text Color" style="color:#e74c3c">A</button>
+        <button class="tgl" onclick="sheetCmd('freezeToggle')" title="Freeze Panes">⏸</button>
+        <button class="tgl" onclick="sheetCmd('clearFormat')" title="Clear Format">⌫</button>
+        <button class="tgl" onclick="sheetCmd('clearAll')" title="Clear All">🗑</button> style="display:flex; gap:6px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line)">
         <button class="tgl" onclick="sheetCmd('bold')" title="Bold"><b>B</b></button>
         <button class="tgl" onclick="sheetCmd('italic')" title="Italic"><i>I</i></button>
         <button class="tgl" onclick="sheetCmd('underline')" title="Underline"><u>U</u></button>
@@ -1579,6 +1600,71 @@ function evalFormula(formula, visited=new Set()){
   expr = expr.replace(/POWER\(([^,]+),([^)]+)\)/g, 'Math.pow($1,$2)');
   expr = expr.replace(/CONCATENATE\(([^)]+)\)/g, (m, args) => { const parts = args.split(',').map(s => s.replace(/^["']|["']$/g,'')); return '"' + parts.join('') + '"'; });
   expr = expr.replace(/IF\(([^,]+),([^,]+),([^)]+)\)/g, '($1 ? $2 : $3)');
+  
+  // VLOOKUP
+  expr = expr.replace(/VLOOKUP\(([^,]+),([^,]+:[^,]+),([^,]+)(?:,([^)]+))?\)/g, (match, lookup, range, colIdx, approx) => {
+    const r = parseRange(range); if (!r) return '#REF';
+    const lookupVal = lookup.replace(/^["']|["']$/g, '');
+    const col = parseInt(colIdx) - 1;
+    const isApprox = approx === 'TRUE' || approx === '1';
+    for (let i = r.r1; i <= r.r2; i++) {
+      const cellVal = String(getCell(i, r.c1).v || '');
+      if (isApprox ? parseFloat(cellVal) <= parseFloat(lookupVal) : cellVal === lookupVal) {
+        if (isApprox && i < r.r2 && String(getCell(i+1, r.c1).v || '') > lookupVal) {
+          return '"' + String(getCell(i, r.c1 + col).v || '') + '"';
+        }
+        if (!isApprox) return '"' + String(getCell(i, r.c1 + col).v || '') + '"';
+      }
+    }
+    return '"#N/A"';
+  });
+  // HLOOKUP
+  expr = expr.replace(/HLOOKUP\(([^,]+),([^,]+:[^,]+),([^,]+)(?:,([^)]+))?\)/g, (match, lookup, range, rowIdx, approx) => {
+    const r = parseRange(range); if (!r) return '#REF';
+    const lookupVal = lookup.replace(/^["']|["']$/g, '');
+    const row = parseInt(rowIdx) - 1;
+    for (let j = r.c1; j <= r.c2; j++) {
+      const cellVal = String(getCell(r.r1, j).v || '');
+      if (cellVal === lookupVal) return '"' + String(getCell(r.r1 + row, j).v || '') + '"';
+    }
+    return '"#N/A"';
+  });
+  // INDEX (row, col) from a range
+  expr = expr.replace(/INDEX\(([^,]+:[^,]+),([^,]+),([^)]+)\)/g, (match, range, rowN, colN) => {
+    const r = parseRange(range); if (!r) return '#REF';
+    const row = parseInt(rowN) - 1; const col = parseInt(colN) - 1;
+    return '"' + String(getCell(r.r1 + row, r.c1 + col).v || '') + '"';
+  });
+  // MATCH
+  expr = expr.replace(/MATCH\(([^,]+),([^,]+:[^,]+)(?:,([^)]+))?\)/g, (match, lookup, range, matchType) => {
+    const r = parseRange(range); if (!r) return '#REF';
+    const lookupVal = lookup.replace(/^["']|["']$/g, '');
+    for (let i = r.r1; i <= r.r2; i++) {
+      if (String(getCell(i, r.c1).v || '') === lookupVal) return String(i - r.r1 + 1);
+    }
+    return '#N/A';
+  });
+  // CONCAT (alias for CONCATENATE with 2 args)
+  expr = expr.replace(/CONCAT\(([^,]+),([^)]+)\)/g, (m, a, b) => {
+    return '"' + a.replace(/^["']|["']$/g,'') + b.replace(/^["']|["']$/g,'') + '"';
+  });
+  // AND / OR / NOT
+  expr = expr.replace(/AND\(([^)]+)\)/g, (m, args) => '(' + args.split(',').map(a => '(' + a + ')').join(' && ') + ')');
+  expr = expr.replace(/OR\(([^)]+)\)/g, (m, args) => '(' + args.split(',').map(a => '(' + a + ')').join(' || ') + ')');
+  expr = expr.replace(/NOT\(([^)]+)\)/g, '!($1)');
+  // Text functions
+  expr = expr.replace(/LEN\(([^)]+)\)/g, (m, a) => 'String(' + a + ').length');
+  expr = expr.replace(/UPPER\(([^)]+)\)/g, (m, a) => 'String(' + a + ').toUpperCase()');
+  expr = expr.replace(/LOWER\(([^)]+)\)/g, (m, a) => 'String(' + a + ').toLowerCase()');
+  expr = expr.replace(/TRIM\(([^)]+)\)/g, (m, a) => 'String(' + a + ').trim()');
+  // Math functions
+  expr = expr.replace(/MOD\(([^,]+),([^)]+)\)/g, '($1 % $2)');
+  expr = expr.replace(/CEILING\(([^,]+),([^)]+)\)/g, 'Math.ceil($1/$2)*$2');
+  expr = expr.replace(/FLOOR\(([^,]+),([^)]+)\)/g, 'Math.floor($1/$2)*$2');
+  // Date functions
+  expr = expr.replace(/TODAY\(\)/g, '"' + new Date().toISOString().slice(0,10) + '"');
+  expr = expr.replace(/NOW\(\)/g, '"' + new Date().toLocaleString() + '"');
+
   if (!/^[0-9+\-*/().,\s]*$/.test(expr)) return expr;
   try { const result = Function('"use strict"; return (' + expr + ')')(); return result === undefined ? '' : String(result); } catch (e) { return '#ERR'; }
 }
@@ -1592,6 +1678,15 @@ function sheetCmd(cmd){
   else if (cmd === 'deleteRow') { if (sheet.rows <= 1) return; const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (r === selectedCell.row) return; newCells[(r > selectedCell.row ? r-1 : r)+','+c] = sheet.cells[k]; }); sheet.cells = newCells; sheet.rows--; renderSheet(); }
   else if (cmd === 'deleteCol') { if (sheet.cols <= 1) return; const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (c === selectedCell.col) return; newCells[r+','+(c > selectedCell.col ? c-1 : c)] = sheet.cells[k]; }); sheet.cells = newCells; sheet.cols--; renderSheet(); }
   else if (cmd === 'bold' || cmd === 'italic' || cmd === 'underline') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style[cmd] = !sheet.cells[k].style[cmd]; renderSheet(); }
+  else if (cmd === 'freezeToggle') { if (freezeRows === selectedCell.row && freezeCols === selectedCell.col) { freezeRows = 0; freezeCols = 0; } else { freezeRows = selectedCell.row; freezeCols = selectedCell.col; } renderSheet(); }
+  else if (cmd === 'clearAll') { sheet.cells = {}; renderSheet(); }
+  else if (cmd === 'clearFormat') { const k = cellKey(selectedCell.row, selectedCell.col); if (sheet.cells[k]) { delete sheet.cells[k].style; renderSheet(); } }
+  else if (cmd === 'alignLeft') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style.align = 'left'; renderSheet(); }
+  else if (cmd === 'alignCenter') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style.align = 'center'; renderSheet(); }
+  else if (cmd === 'alignRight') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style.align = 'right'; renderSheet(); }
+  else if (cmd === 'fillColor') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style.bg = '#4cc9f033'; renderSheet(); }
+  else if (cmd === 'textColor') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style.color = '#e74c3c'; renderSheet(); }
+
 }
 function renderSheet(){
   const sheet = sheets[currentSheet]; if (!sheet) return;
@@ -1604,7 +1699,7 @@ function renderSheet(){
       const cell = getCell(r, c); const v = cell.v || '';
       let display = v; if (typeof v === 'string' && v.startsWith('=')) display = evalFormula(v);
       const isSel = (r === selectedCell.row && c === selectedCell.col);
-      const styleAttr = cell.style ? `style="${cell.style.bold?'font-weight:bold;':''}${cell.style.italic?'font-style:italic;':''}${cell.style.underline?'text-decoration:underline;':''}${cell.style.color?('color:'+cell.style.color+';'):''}"` : '';
+      const styleAttr = cell.style ? `style="${cell.style.bold?'font-weight:bold;':''}${cell.style.italic?'font-style:italic;':''}${cell.style.underline?'text-decoration:underline;':''}${cell.style.color?('color:'+cell.style.color+';'):''}${cell.style.align?('text-align:'+cell.style.align+';'):''}${cell.style.bg?('background:'+cell.style.bg+';'):''}"` : '';
       const cw = colWidths[c] || 80; const rh = rowHeights[r] || 24; html.push(`<td class="cell${isSel?' selected':''}" data-r="${r}" data-c="${c}" ${styleAttr} style="min-width:${cw}px;height:${rh}px"><span class="cell-display">${escapeHtml(display)}</span></td>`);
     }
     html.push('</tr>');
@@ -1632,6 +1727,10 @@ sheetGrid.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') { moveSelection(0, -1); e.preventDefault(); }
   if (e.key === 'Enter' || e.key === 'F2') { startCellEdit(); e.preventDefault(); }
   if (e.key === 'Delete' || e.key === 'Backspace') { setCell(selectedCell.row, selectedCell.col, ''); renderSheet(); e.preventDefault(); }
+  if (e.ctrlKey && e.key.toLowerCase() === 'b') { sheetCmd('bold'); e.preventDefault(); }
+  if (e.ctrlKey && e.key.toLowerCase() === 'i') { sheetCmd('italic'); e.preventDefault(); }
+  if (e.ctrlKey && e.key.toLowerCase() === 'u') { sheetCmd('underline'); e.preventDefault(); }
+  if (e.ctrlKey && e.key === ' ') { sheetCmd('freezeToggle'); e.preventDefault(); }
 });
 sheetGrid.addEventListener('keypress', e => {
   if (e.target.matches('input')) return;
@@ -2831,6 +2930,88 @@ document.addEventListener('keydown', function(e) {
     welcomeChoose('canvas');
   }
 });
+
+
+// CMC-EXCEL-PRO — Freeze panes + drag-to-fill + more commands
+let freezeRows = 0, freezeCols = 0;
+
+// Apply freeze panes in renderSheet — hook into the existing renderSheet
+const _origRenderSheet = renderSheet;
+renderSheet = function() {
+  _origRenderSheet();
+  // Apply freeze pane classes
+  if (freezeRows > 0) {
+    const ths = sheetGrid.querySelectorAll('th.col-h');
+    for (let i = 0; i < ths.length; i++) ths[i].classList.add('frozen');
+    const rows = sheetGrid.querySelectorAll('tbody tr');
+    for (let r = 0; r < freezeRows && r < rows.length; r++) {
+      rows[r].querySelectorAll('td.cell').forEach(td => td.classList.add('frozen-row'));
+    }
+  }
+  if (freezeCols > 0) {
+    const ths = sheetGrid.querySelectorAll('th.row-h');
+    ths.forEach(th => th.classList.add('frozen'));
+    const rows = sheetGrid.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td.cell');
+      for (let c = 0; c < freezeCols && c < cells.length; c++) {
+        cells[c].classList.add('frozen-col');
+      }
+    });
+  }
+  // Show fill handle on selected cell
+  showFillHandle();
+};
+
+function showFillHandle() {
+  const td = sheetGrid.querySelector(`td.cell.selected`);
+  const old = document.getElementById('fillHandle');
+  if (old) old.remove();
+  if (!td) return;
+  const handle = document.createElement('div');
+  handle.id = 'fillHandle';
+  handle.className = 'fill-handle show';
+  const rect = td.getBoundingClientRect();
+  const gridRect = sheetGrid.getBoundingClientRect();
+  handle.style.left = (rect.right - gridRect.left - 7 + sheetGrid.scrollLeft) + 'px';
+  handle.style.top = (rect.bottom - gridRect.top - 7 + sheetGrid.scrollTop) + 'px';
+  sheetGrid.parentElement.appendChild(handle);
+  // Drag-to-fill
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const startCell = {...selectedCell};
+    const onMove = (ev) => {
+      const targetTd = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('td.cell');
+      if (!targetTd) return;
+      const targetRow = +targetTd.dataset.r, targetCol = +targetTd.dataset.c;
+      // Copy value from start cell to target range
+      const srcCell = getCell(startCell.row, startCell.col);
+      if (srcCell.v !== undefined && srcCell.v !== '') {
+        // For formulas, adjust references
+        let val = srcCell.v;
+        if (typeof val === 'string' && val.startsWith('=')) {
+          const dr = targetRow - startCell.row;
+          const dc = targetCol - startCell.col;
+          val = val.replace(/([A-Z]+)(\d+)/g, (m, col, row) => {
+            const c = col.charCodeAt(0) - 65 + dc;
+            const r = parseInt(row) + dr;
+            if (c < 0 || r < 1) return m;
+            return String.fromCharCode(65 + c) + r;
+          });
+        }
+        setCell(targetRow, targetCol, val);
+        renderSheet();
+      }
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
 
 // offerRecovery(); // disabled — start blank
 </script>
