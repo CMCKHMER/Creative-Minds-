@@ -164,6 +164,51 @@ html[data-theme="light"] #cmc-share-panel .share-copy{color:#334155}
 html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
 html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 
+/* CMC-TEMPLATE-V2 */
+.qmap{position:sticky;top:70px;z-index:30;display:flex;flex-wrap:wrap;gap:4px;padding:10px 12px;margin-bottom:16px;border-radius:12px;border:1px solid var(--border);background:var(--card);backdrop-filter:blur(10px);max-height:60px;overflow-x:auto;overflow-y:hidden}
+.qmap-item{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);transition:all .15s;flex-shrink:0}
+.qmap-item:hover{border-color:var(--accent);color:var(--text);transform:translateY(-1px)}
+.qmap-item.answered{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#34d399}
+.qmap-item.flagged{background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.4);color:#fbbf24}
+.qmap-item.correct{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.5);color:#34d399}
+.qmap-item.wrong{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);color:#f87171}
+.flag-btn{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;opacity:.4;border:1px solid transparent;background:transparent;color:var(--muted);transition:all .15s}
+.flag-btn:hover{opacity:1;border-color:rgba(251,191,36,.3);color:#fbbf24}
+.question-card{position:relative}
+.question-card.flagged{border-color:rgba(251,191,36,.3)}
+.sticky-timer-bar{position:sticky;top:0;z-index:35;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;margin:-10px -16px 16px;border-bottom:1px solid var(--border);background:var(--card);backdrop-filter:blur(12px)}
+.timer-face.warning{background:rgba(251,191,36,.15)!important;border-color:rgba(251,191,36,.5)!important;color:#fbbf24!important}
+.timer-face.danger{background:rgba(248,113,113,.15)!important;border-color:rgba(248,113,113,.5)!important;color:#f87171!important;animation:tp 1s ease-in-out infinite}
+@keyframes tp{0%,100%{opacity:1}50%{opacity:.6}}
+.review-modal{position:fixed;inset:0;z-index:99998;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
+.review-modal.open{display:flex}
+.review-modal-card{max-width:480px;width:calc(100% - 32px);border-radius:16px;border:1px solid var(--border);background:var(--bg);padding:24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.review-stat{display:inline-flex;flex-direction:column;align-items:center;gap:2px;margin:0 12px}
+.review-stat b{font-size:28px;font-weight:800;color:var(--text)}
+.review-stat span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.review-stat.unanswered b{color:#f87171}
+.review-stat.flagged b{color:#fbbf24}
+.review-stat.answered b{color:#34d399}
+.q-explanation{display:none;margin-top:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(56,189,248,.04);font-size:12px;line-height:1.6;color:var(--muted)}
+.q-explanation.show{display:block}
+.q-explanation b{color:var(--text)}
+.question-card.correct-answer{border-color:rgba(16,185,129,.3)}
+.question-card.wrong-answer{border-color:rgba(248,113,113,.3)}
+.option.correct-opt{border-color:rgba(16,185,129,.5)!important;background:rgba(16,185,129,.08)!important}
+.option.wrong-opt{border-color:rgba(248,113,113,.4)!important;background:rgba(248,113,113,.06)!important}
+.skill-breakdown{display:none;margin-top:12px;padding:16px;border-radius:12px;border:1px solid var(--border);background:var(--card)}
+.skill-breakdown.show{display:block}
+.skill-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.skill-bar-row .skill-name{width:80px;font-size:11px;font-weight:600;color:var(--muted);text-align:right}
+.skill-bar-track{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}
+.skill-bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.skill-bar-row .skill-score{width:48px;font-size:11px;font-weight:700;color:var(--text)}
+html[data-theme="light"] .qmap{background:rgba(255,255,255,.6)}
+html[data-theme="light"] .qmap-item{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.08)}
+html[data-theme="light"] .sticky-timer-bar{background:rgba(255,255,255,.7)}
+html[data-theme="light"] .review-modal-card{background:#fff}
+html[data-theme="light"] .skill-breakdown{background:rgba(255,255,255,.5)}
+html[data-theme="light"] .q-explanation{background:rgba(2,132,199,.04);border-color:rgba(0,0,0,.08)}
 </style>
 
 <!-- Google Analytics 4 (gtag.js) -->
@@ -243,8 +288,7 @@ const BANKS = {
 window.TEST_BANKS = BANKS;
 </script>
 <script>
-// Each test page defines its config + banks before this script runs
-// by setting window.TEST_CONFIG and window.TEST_BANKS
+// CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
 
 const config=window.TEST_CONFIG;
 const banks=window.TEST_BANKS;
@@ -280,33 +324,42 @@ const groupsHtml=config.groups.map(g=>`
     <div id="${g.id}" class="grid gap-2 lg:grid-cols-2"></div>
   </div>`).join('');
 
-form.innerHTML=fieldsHtml+`
-  <div class="mt-3 flex flex-wrap items-end gap-2 rounded-lg glass p-3">
-    <div class="min-w-[120px] flex-1"><p class="progress-text font-bold text-xs text-slate-300" aria-live="polite">0 answered</p><div class="mt-1 h-1.5 overflow-hidden rounded-full bg-white/8"><div class="progress-bar h-full rounded-full transition-all" style="width:0%;background:linear-gradient(90deg,#38bdf8,#8b5cf6)"></div></div></div>
-    <label class="flex flex-col gap-1 text-xs text-slate-400"><span>Minutes</span><input class="timer-minutes w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-white" type="number" min="1" max="180" value="20"></label>
-    <button class="timer-start btn" type="button"><i class="fas fa-play text-xs"></i> Start</button>
-    <button class="timer-stop btn" type="button" disabled><i class="fas fa-stop text-xs"></i> Stop</button>
+// Sticky timer bar + progress
+const timerBarHtml=`
+  <div class="sticky-timer-bar">
+    <span class="text-xs font-semibold" style="color:var(--muted)">Time:</span>
     <span class="timer-face rounded-lg px-3 py-1.5 font-bold text-white text-sm" style="background:rgba(15,23,42,.85);border:1px solid rgba(56,189,248,.2)" role="timer">20:00</span>
-  </div>
-  ${groupsHtml}
-  <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-white/8 pt-3">
-    <button class="btn-primary btn" type="submit"><i class="fas fa-paper-plane text-xs"></i> Submit Answers</button>
-    <p id="t-result" class="hidden w-full rounded-lg p-3 text-sm" role="status" aria-live="polite"></p>
+    <label class="flex items-center gap-1 text-xs" style="color:var(--muted)"><span>min</span><input class="timer-minutes w-14 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white" type="number" min="1" max="180" value="20"></label>
+    <button class="timer-start btn" type="button"><i class="fas fa-play text-xs"></i></button>
+    <button class="timer-stop btn" type="button" disabled><i class="fas fa-stop text-xs"></i></button>
+    <div class="min-w-[100px] flex-1 ml-3"><p class="progress-text font-bold text-xs text-slate-300" aria-live="polite">0 answered</p><div class="mt-1 h-1.5 overflow-hidden rounded-full bg-white/8"><div class="progress-bar h-full rounded-full transition-all" style="width:0%;background:linear-gradient(90deg,#38bdf8,#8b5cf6)"></div></div></div>
   </div>`;
 
-// Render questions
+form.innerHTML=fieldsHtml+timerBarHtml+`
+  ${groupsHtml}
+  <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-white/8 pt-3">
+    <button class="btn-primary btn" type="submit" id="submit-btn"><i class="fas fa-paper-plane text-xs"></i> Submit Answers</button>
+    <p id="t-result" class="hidden w-full rounded-lg p-3 text-sm" role="status" aria-live="polite"></p>
+    <div id="skill-breakdown" class="skill-breakdown w-full"></div>
+  </div>`;
+
+// Render questions with flag buttons
 const counts={};
+let qCounter=0;
+const allQuestions=[];
 function addQ(target,number,prompt,choices,answer,kind='radio',values=null){
   const card=document.createElement('div');
   card.className='question-card';
   card.dataset.answer=Array.isArray(answer)?answer.map(String).sort().join('|'):String(answer);
+  card.dataset.qnum=String(++qCounter);
   const optsHtml=choices.map((choice,i)=>{
-    const input=document.createElement('input');
-    input.type=kind;input.name=`${target.id}-q${number}`;input.value=String(values?values[i]:i);
-    return `<label class="option"><input type="${kind}" name="${target.id}-q${number}" value="${values?values[i]:i}"><span class="option-letter text-xs">${kind==='checkbox'?'□':String.fromCharCode(65+i)+'.'}</span><span class="text-xs text-slate-300">${choice}</span></label>`;
+    return `<label class="option"><input type="${kind}" name="${target.id}-q${number}" value="${values?values[i]:i}"><span class="option-letter text-xs">${kind==='checkbox'?'\u25A1':String.fromCharCode(65+i)+'.'}</span><span class="text-xs text-slate-300">${choice}</span></label>`;
   }).join('');
-  card.innerHTML=`<p class="font-semibold text-sm text-slate-200 mb-2">${number}. ${prompt}</p><div class="grid gap-1.5">${optsHtml}</div>`;
+  card.innerHTML=`<button class="flag-btn" type="button" title="Flag for review"><i class="far fa-flag"></i></button><p class="font-semibold text-sm text-slate-200 mb-2 pr-7">${number}. ${prompt}</p><div class="grid gap-1.5">${optsHtml}</div><div class="q-explanation"></div>`;
   target.appendChild(card);
+  allQuestions.push(card);
+  const flagBtn=card.querySelector('.flag-btn');
+  flagBtn.addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();card.classList.toggle('flagged');flagBtn.innerHTML=card.classList.contains('flagged')?'<i class="fas fa-flag" style="color:#fbbf24"></i>':'<i class="far fa-flag"></i>';updateQMap();});
 }
 
 Object.entries(banks).forEach(([tid,rows])=>{
@@ -315,45 +368,107 @@ Object.entries(banks).forEach(([tid,rows])=>{
   rows.forEach((r,i)=>addQ(target,(counts[tid]=(counts[tid]||0)+1),r[0],r[1],r[2]));
 });
 
-// Handle special question types (rhetorical)
 if(window.RHETORICAL_A){
   const rA=document.getElementById('rhetorical-a-list');
-  if(rA)window.RHETORICAL_A.forEach((r,i)=>addQ(rA,i+1,r[0],["Error (1) · Reason","Error (1) · Explanation","Error (1) · Justification","Error (2) · Reason","Error (2) · Explanation","Error (2) · Justification","Error (3) · Reason","Error (3) · Explanation","Error (3) · Justification","Error (4) · Reason","Error (4) · Explanation","Error (4) · Justification"],`${r[1]}:${r[2]}`,'radio',Array.from({length:12},(_,j)=>`${Math.floor(j/3)+1}:${j%3}`)));
+  if(rA)window.RHETORICAL_A.forEach((r,i)=>addQ(rA,i+1,r[0],["Error (1) \u00b7 Reason","Error (1) \u00b7 Explanation","Error (1) \u00b7 Justification","Error (2) \u00b7 Reason","Error (2) \u00b7 Explanation","Error (2) \u00b7 Justification","Error (3) \u00b7 Reason","Error (3) \u00b7 Explanation","Error (3) \u00b7 Justification","Error (4) \u00b7 Reason","Error (4) \u00b7 Explanation","Error (4) \u00b7 Justification"],`${r[1]}:${r[2]}`,'radio',Array.from({length:12},(_,j)=>`${Math.floor(j/3)+1}:${j%3}`)));
 }
 if(window.RHETORICAL_B){
   const rB=document.getElementById('rhetorical-b-list');
   if(rB)window.RHETORICAL_B.forEach((r,i)=>addQ(rB,(window.RHETORICAL_A?.length||0)+i+1,r[0],["1 = reason","2 = explanation","3 = justification","4 = cause-and-effect or purpose"],r[1],'checkbox',[1,2,3,4]));
 }
 
+// Build question map
+const qmap=document.getElementById('qmap');
+function buildQMap(){
+  qmap.innerHTML='';
+  allQuestions.forEach((card,i)=>{
+    const item=document.createElement('button');
+    item.type='button';item.className='qmap-item';item.textContent=String(i+1);
+    item.title='Go to question '+(i+1);
+    item.addEventListener('click',()=>{card.scrollIntoView({behavior:'smooth',block:'center'});card.style.transition='box-shadow .3s';card.style.boxShadow='0 0 0 2px var(--accent)';setTimeout(()=>{card.style.boxShadow=''},800);});
+    qmap.appendChild(item);
+  });
+}
+function updateQMap(){
+  const items=qmap.querySelectorAll('.qmap-item');
+  allQuestions.forEach((card,i)=>{
+    if(!items[i])return;
+    const answered=!!card.querySelector('input:checked');
+    const flagged=card.classList.contains('flagged');
+    items[i].className='qmap-item'+(answered?' answered':'')+(flagged?' flagged':'');
+  });
+}
+buildQMap();
+
 // Timer + scoring
-const cards=[...form.querySelectorAll('.question-card')];
+const cards=allQuestions;
 const minutes=document.querySelector('.timer-minutes');
-const progress=document.querySelector('.progress-text');
+const progressEl=document.querySelector('.progress-text');
 const bar=document.querySelector('.progress-bar');
 const face=document.querySelector('.timer-face');
 const startBtn=document.querySelector('.timer-start');
 const stopBtn=document.querySelector('.timer-stop');
 let remaining=1200,interval=null;
-function renderTime(){face.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`;face.classList.toggle('warning',remaining>0&&remaining<=60)}
+function renderTime(){
+  face.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`;
+  face.classList.remove('warning','danger');
+  if(remaining>0&&remaining<=120)face.classList.add('warning');
+  if(remaining>0&&remaining<=30)face.classList.replace('warning','danger');
+  if(remaining===0)face.classList.add('danger');
+}
 minutes.addEventListener('change',()=>{if(!interval){minutes.value=String(Math.min(180,Math.max(1,Number(minutes.value)||20)));remaining=Number(minutes.value)*60;renderTime()}});
-startBtn.addEventListener('click',()=>{clearInterval(interval);remaining=Math.min(180,Math.max(1,Number(minutes.value)||20))*60;renderTime();startBtn.disabled=true;stopBtn.disabled=false;interval=setInterval(()=>{remaining=Math.max(0,remaining-1);renderTime();if(!remaining){clearInterval(interval);interval=null;startBtn.disabled=false;stopBtn.disabled=true;face.classList.add('warning');face.textContent='TIME UP';try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[0,.22,.44].forEach(d=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=740;g.gain.setValueAtTime(.0001,ctx.currentTime+d);g.gain.exponentialRampToValueAtTime(.14,ctx.currentTime+d+.02);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+d+.18);o.connect(g).connect(ctx.destination);o.start(ctx.currentTime+d);o.stop(ctx.currentTime+d+.2)});setTimeout(()=>ctx.close(),1200)}catch(e){}}},1000)});
+startBtn.addEventListener('click',()=>{clearInterval(interval);remaining=Math.min(180,Math.max(1,Number(minutes.value)||20))*60;renderTime();startBtn.disabled=true;stopBtn.disabled=false;interval=setInterval(()=>{remaining=Math.max(0,remaining-1);renderTime();if(!remaining){clearInterval(interval);interval=null;startBtn.disabled=false;stopBtn.disabled=true;face.textContent='TIME UP';try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[0,.22,.44].forEach(d=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=740;g.gain.setValueAtTime(.0001,ctx.currentTime+d);g.gain.exponentialRampToValueAtTime(.14,ctx.currentTime+d+.02);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+d+.18);o.connect(g).connect(ctx.destination);o.start(ctx.currentTime+d);o.stop(ctx.currentTime+d+.2)});setTimeout(()=>ctx.close(),1200)}catch(e){}}},1000)});
 stopBtn.addEventListener('click',()=>{clearInterval(interval);interval=null;startBtn.disabled=false;stopBtn.disabled=true});
-function updateProgress(){const ans=cards.filter(c=>c.querySelector('input:checked')).length;progress.textContent=`${ans} of ${cards.length} answered`;bar.style.width=`${Math.round(ans/cards.length*100)}%`}
+function updateProgress(){const ans=cards.filter(c=>c.querySelector('input:checked')).length;progressEl.textContent=`${ans} of ${cards.length} answered`;bar.style.width=`${Math.round(ans/cards.length*100)}%`;updateQMap();}
 form.addEventListener('change',updateProgress);updateProgress();
 const result=document.getElementById('t-result');
-const submit=form.querySelector('button[type="submit"]');
+const submitBtn=document.getElementById('submit-btn');
+const reviewModal=document.getElementById('review-modal');
+const rvAnswered=document.getElementById('rv-answered');
+const rvUnanswered=document.getElementById('rv-unanswered');
+const rvFlagged=document.getElementById('rv-flagged');
+const rvMsg=document.getElementById('rv-msg');
+const rvReview=document.getElementById('rv-review');
+const rvSubmit=document.getElementById('rv-submit');
+
 form.addEventListener('submit',e=>{
-  e.preventDefault();if(submit.disabled)return;
+  e.preventDefault();if(submitBtn.disabled)return;
   const name=document.getElementById('t-name'),date=document.getElementById('t-date'),sid=document.getElementById('t-id');
   const missing=[name,date,...(sid?[sid]:[])].find(f=>!f.value.trim());
   if(missing){result.textContent='Please fill in your name and date.';result.classList.remove('hidden');result.style.background='rgba(248,113,113,.1)';result.style.color='#f87171';missing.focus();return}
-  const mc=cards.find(c=>!c.querySelector('input:checked'));
-  if(mc){mc.classList.add('needs-answer');result.textContent='Answer every question before submitting. The first unanswered question is highlighted.';result.classList.remove('hidden');result.style.background='rgba(248,113,113,.1)';result.style.color='#f87171';mc.scrollIntoView({behavior:'smooth',block:'center'});return}
-  const score=cards.filter(c=>[...c.querySelectorAll('input:checked')].map(i=>i.value).sort().join('|')===c.dataset.answer).length;
-  cmcTrack('drill_complete',{drill_slug:window.location.pathname.split('/').pop(),drill_title:config.title,drill_source:'biweek-planner',score_pct:Math.round(score/cards.length*100),correct_count:score,total_count:cards.length});;try{var _stoken=localStorage.getItem('cmc-student-token');var _sname=localStorage.getItem('cmc-student-name')||'';if(_stoken&&_sname){var _url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';var _body={fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:config.title},drillSource:{stringValue:'biweek-planner'},studentName:{stringValue:_sname},scorePct:{integerValue:String(Math.round(score/cards.length*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(cards.length)},submittedAt:{timestampValue:new Date().toISOString()}}};fetch(_url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_stoken},body:JSON.stringify(_body)}).catch(function(e){})}}catch(e){}result.textContent=`\u2713 Score: ${score}/${cards.length} (${Math.round(score/cards.length*100)}%) — ${config.title}`;
-  result.classList.remove('hidden');result.style.background='rgba(16,185,129,.1)';result.style.color='#6ee7b7';
-  submit.disabled=true;setTimeout(()=>submit.disabled=false,2000);
+  const answered=cards.filter(c=>c.querySelector('input:checked')).length;
+  const unansweredCount=cards.length-answered;
+  const flaggedCount=cards.filter(c=>c.classList.contains('flagged')).length;
+  rvAnswered.textContent=answered;rvUnanswered.textContent=unansweredCount;rvFlagged.textContent=flaggedCount;
+  if(unansweredCount>0){rvMsg.textContent=unansweredCount+' unanswered question'+(unansweredCount===1?'':'s')+' will count as incorrect. Review before submitting.';rvMsg.style.color='#f87171';}
+  else if(flaggedCount>0){rvMsg.textContent='All answered. '+flaggedCount+' flagged to review.';rvMsg.style.color='#fbbf24';}
+  else{rvMsg.textContent='All answered, none flagged. Ready to submit!';rvMsg.style.color='#34d399';}
+  reviewModal.classList.add('open');
 });
+rvReview.addEventListener('click',()=>{reviewModal.classList.remove('open');const fu=cards.find(c=>!c.querySelector('input:checked'))||cards.find(c=>c.classList.contains('flagged'));if(fu)fu.scrollIntoView({behavior:'smooth',block:'center'});});
+rvSubmit.addEventListener('click',()=>{reviewModal.classList.remove('open');doSubmit();});
+
+function doSubmit(){
+  const score=cards.filter(c=>[...c.querySelectorAll('input:checked')].map(i=>i.value).sort().join('|')===c.dataset.answer).length;
+  cards.forEach((card,i)=>{
+    const userAnswer=[...card.querySelectorAll('input:checked')].map(i=>i.value).sort().join('|');
+    const correct=userAnswer===card.dataset.answer;
+    card.classList.add(correct?'correct-answer':'wrong-answer');
+    card.querySelectorAll('.option').forEach(opt=>{const inp=opt.querySelector('input');if(!inp)return;const cv=card.dataset.answer.split('|');if(cv.includes(inp.value))opt.classList.add('correct-opt');else if(inp.checked)opt.classList.add('wrong-opt');});
+    const exp=card.querySelector('.q-explanation');if(exp){exp.classList.add('show');exp.innerHTML=correct?'<b>\u2705 Correct!</b>':`<b>\u274C Incorrect.</b> The correct answer is highlighted in green.`;}
+    const item=qmap.querySelectorAll('.qmap-item')[i];if(item)item.className='qmap-item '+(correct?'correct':'wrong');
+  });
+  // Skill breakdown
+  const breakdown=document.getElementById('skill-breakdown');
+  const gs=config.groups.map(g=>{const gc=[...document.getElementById(g.id).querySelectorAll('.question-card')];const cc=gc.filter(c=>[...c.querySelectorAll('input:checked')].map(i=>i.value).sort().join('|')===c.dataset.answer).length;return{title:g.title,correct:cc,total:gc.length};});
+  breakdown.innerHTML='<p class="text-xs font-bold mb-3" style="color:var(--muted)">Score breakdown by section</p>'+gs.map(s=>{const pct=s.total>0?Math.round(s.correct/s.total*100):0;const color=pct>=80?'#34d399':pct>=50?'#fbbf24':'#f87171';return `<div class="skill-bar-row"><span class="skill-name">${s.title.split('\u00b7')[0].trim().slice(0,15)}</span><div class="skill-bar-track"><div class="skill-bar-fill" style="width:${pct}%;background:${color}"></div></div><span class="skill-score">${s.correct}/${s.total}</span></div>`;}).join('');
+  breakdown.classList.add('show');
+  // Firestore submit
+  cmcTrack('drill_complete',{drill_slug:window.location.pathname.split('/').pop(),drill_title:config.title,drill_source:'biweek-planner',score_pct:Math.round(score/cards.length*100),correct_count:score,total_count:cards.length});;try{var _stoken=localStorage.getItem('cmc-student-token');var _sname=localStorage.getItem('cmc-student-name')||'';if(_stoken&&_sname){var _url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';var _body={fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:config.title},drillSource:{stringValue:'biweek-planner'},studentName:{stringValue:_sname},scorePct:{integerValue:String(Math.round(score/cards.length*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(cards.length)},submittedAt:{timestampValue:new Date().toISOString()}}};fetch(_url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_stoken},body:JSON.stringify(_body)}).catch(function(e){})}}catch(e){}
+  result.innerHTML=`\u2713 Score: ${score}/${cards.length} (${Math.round(score/cards.length*100)}%) \u2014 ${config.title}`;
+  result.classList.remove('hidden');result.style.background='rgba(16,185,129,.1)';result.style.color='#6ee7b7';
+  submitBtn.disabled=true;submitBtn.innerHTML='<i class="fas fa-check text-xs"></i> Submitted';
+  result.scrollIntoView({behavior:'smooth',
 </script>
 
 <!-- CMC SHARE BUTTON -->

@@ -196,7 +196,9 @@ try{var saved=localStorage.getItem('biweek-theme');if(saved){document.documentEl
         <button class="filter-btn" data-filter="reading"><i class="fas fa-book-open text-xs mr-1"></i> Reading</button>
       </nav>
     </div>
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4" id="schedule-grid"></div>
+    <!-- Featured Week 1 card (spans full width) + remaining weeks in grid -->
+    <div id="featured-week"></div>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mt-4" id="schedule-grid"></div>
   </section>
 
   <!-- ===== RESOURCES ===== -->
@@ -270,8 +272,9 @@ const WEEKS=[
 ];
 
 // ===== RENDER CARDS =====
+const featured=document.getElementById('featured-week');
 const grid=document.getElementById('schedule-grid');
-WEEKS.forEach(w=>{
+WEEKS.forEach((w,idx)=>{
   const color=CAT_COLORS[w.cat];
   const icon=CAT_ICONS[w.cat];
   const card=document.createElement('article');
@@ -287,18 +290,39 @@ WEEKS.forEach(w=>{
     return `<a href="tests/${t.file}" class="btn" target="_blank" rel="noopener"><i class="fas ${t.icon} text-xs"></i> ${t.text}</a>`;
   }).join('');
 
-  card.innerHTML=`
-    <div class="flex items-center justify-between mb-2">
-      <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full" style="background:${color}20;color:${color}">
-        <i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}
-      </span>
-    </div>
-    <h3 class="font-display text-base font-bold text-white mt-1 leading-tight">${w.title}</h3>
-    <p class="text-[11px] text-slate-400 mt-0.5">${w.skill}</p>
-    <p class="text-xs text-slate-500 mt-2 border-t border-white/8 pt-2 leading-relaxed">${w.activity}</p>
-    <div class="mt-3 flex flex-wrap gap-1.5">${testButtons}</div>
-  `;
-  grid.appendChild(card);
+  // Featured card (Week 1 — Orientation & Diagnostic) gets a bigger,
+  // full-width layout with a "Start here" badge + 2-column test buttons.
+  if(idx===0){
+    card.classList.add('p-6');
+    card.innerHTML=`
+      <div class="flex items-center justify-between mb-3">
+        <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-full" style="background:${color}20;color:${color}">
+          <i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}
+        </span>
+        <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:rgba(56,189,248,.15);color:#67e8f9;border:1px solid rgba(56,189,248,.3)">
+          <i class="fas fa-flag-checkered text-xs"></i> Start here
+        </span>
+      </div>
+      <h3 class="font-display text-xl font-bold text-white mt-1 leading-tight">${w.title}</h3>
+      <p class="text-sm text-slate-400 mt-1">${w.skill}</p>
+      <p class="text-sm text-slate-500 mt-2 border-t border-white/8 pt-2 leading-relaxed">${w.activity}</p>
+      <div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">${testButtons}</div>
+    `;
+    featured.appendChild(card);
+  } else {
+    card.innerHTML=`
+      <div class="flex items-center justify-between mb-2">
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full" style="background:${color}20;color:${color}">
+          <i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}
+        </span>
+      </div>
+      <h3 class="font-display text-base font-bold text-white mt-1 leading-tight">${w.title}</h3>
+      <p class="text-[11px] text-slate-400 mt-0.5">${w.skill}</p>
+      <p class="text-xs text-slate-500 mt-2 border-t border-white/8 pt-2 leading-relaxed">${w.activity}</p>
+      <div class="mt-3 flex flex-wrap gap-1.5">${testButtons}</div>
+    `;
+    grid.appendChild(card);
+  }
 });
 
 // ===== FILTER =====
