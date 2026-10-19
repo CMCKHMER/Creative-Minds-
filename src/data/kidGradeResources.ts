@@ -50,6 +50,14 @@ const kid6Resources: KidGradeMaterial[] = [
     href: './rfc2/rfc2dic.html',
     units: 16,
   },
+  {
+    id: 'kid-6-rfc2-unit-test',
+    title: 'Reading Future Connect 2 · Unit Test',
+    kind: 'Review test',
+    description: 'Full unit tests: vocabulary fill-ins, sentence matching/unscramble, and reading comprehension. Auto-graded against the publisher answer key. Includes light/dark theme toggle.',
+    href: './rfc2/rfc2unittest.html',
+    units: 16,
+  },
 ];
 
 const kid11Resources: KidGradeMaterial[] = [

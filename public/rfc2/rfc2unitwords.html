@@ -73,6 +73,56 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-im
 @media (max-width:640px){.share-grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:1fr}}
 @media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.footer,.share-panel,.toast{display:none!important}.container{box-shadow:none;border:none;background:#fff}*{color:#111!important;background:transparent!important;border-color:#ccc!important;text-shadow:none!important}.word-card{break-inside:avoid}.word-text{color:#0e7490!important}.word-sentence{color:#555!important}.unit-qr{width:72px;height:72px;border:1px solid #ccc;background:#fff!important}}
 @page{margin:12mm}
+
+/* ── Light Theme Overrides ── */
+body.light{--bg:#eef2f7;--surface-2:#ffffff;--border:#dbe3ec;--cyan:#0891b2;--cyan-lt:#0e7490;--violet:#7c3aed;--violet-lt:#6d28d9;--text:#0f172a;--muted:#52657d;--success:#059669;--error:#dc2626;background:#eef2f7;background-image:radial-gradient(1100px 520px at 85% -10%,rgba(124,58,237,.10),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(8,145,178,.10),transparent 60%)}
+body.light .bg-grid{background-image:linear-gradient(rgba(15,23,42,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.05) 1px,transparent 1px)}
+body.light .container{background:rgba(255,255,255,.92);border-color:#dbe3ec;box-shadow:0 30px 90px rgba(15,23,42,.12)}
+body.light .topbar{background:linear-gradient(90deg,rgba(124,58,237,.10),rgba(8,145,178,.10));border-bottom-color:#dbe3ec}
+body.light .brand{color:#0e7490}
+body.light .brand .dot{background:#0891b2;box-shadow:0 0 10px rgba(8,145,178,.6)}
+body.light .live-pill{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.35)}
+body.light .live-pill .pulse{background:#7c3aed}
+body.light .eyebrow{color:#0e7490}
+body.light .hero h1{color:#0f172a}
+body.light .hero h1 .grad{background:linear-gradient(90deg,#0891b2,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent}
+body.light .hero p{color:#52657d}
+body.light .info{background:#f8fafc;border-color:#dbe3ec}
+body.light .form-group label{color:#52657d}
+body.light .form-group input,body.light .form-group select{background:#fff;border-color:#c3cfdd;color:#0f172a}
+body.light .unit-title{color:#0f172a}
+body.light .section-head{color:#6d28d9}
+body.light .passage-card,body.light .option-card,body.light .word-card,body.light .share-panel{background:#fff;border-color:#dbe3ec}
+body.light .passage-card,body.light .word-definition,body.light .fill{color:#0f172a}
+body.light .word-text{color:#0e7490!important}
+body.light .word-sentence{color:#555!important}
+body.light .word-card{border-left-color:#0891b2}
+body.light .stat{background:#fff;border-color:#dbe3ec}
+body.light .stat b{color:#0891b2}
+body.light .fill select{color:#0e7490;background:#f8fafc;border-color:rgba(8,145,178,.5)}
+body.light .bank .chip{background:rgba(8,145,178,.06);border-color:rgba(8,145,178,.5);color:#0e7490}
+body.light .build-line .chip{background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.45);color:#6d28d9}
+body.light .build-line{background:#f8fafc;border-color:#c3cfdd}
+body.light .build-line .hint{color:#8fa3b8}
+body.light .bank-word{background:rgba(8,145,178,.06);border-color:rgba(8,145,178,.5);color:#0e7490}
+body.light .btn-reset{color:#52657d;background:#f1f5f9;border-color:#c3cfdd}
+body.light .btn-share{color:#0e7490;background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.4)}
+body.light .btn-print{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.4)}
+body.light .btn-key{color:#047857;background:rgba(5,150,105,.08);border-color:rgba(5,150,105,.4)}
+body.light .btn-check{color:#041018}
+body.light .share-item{background:#f8fafc;border-color:#c3cfdd;color:#334155}
+body.light .share-panel h4{color:#52657d}
+body.light .toast{background:#fff;border-color:#0891b2;color:#0e7490}
+body.light .placeholder{border-color:#c3cfdd}
+body.light .placeholder p{color:#52657d}
+body.light .footer{border-top-color:#dbe3ec;color:#52657d}
+body.light .mc{background:#fff;border-color:#dbe3ec}
+body.light .opt{background:#f8fafc;border-color:#c3cfdd;color:#52657d}
+body.light .opt:hover{color:#0f172a;border-color:#0891b2}
+body.light .opt.sel{background:rgba(8,145,178,.08);border-color:#0891b2;color:#0e7490}
+body.light .pos{border-color:#c3cfdd}
+body.light .score-display{color:#0e7490}
+
 </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -453,6 +503,32 @@ function shareX(){window.open(`https://twitter.com/intent/tweet?text=${encodeURI
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
 function printPDF(){document.getElementById('sharePanel').classList.remove('open');showToast('In the dialog, choose “Save as PDF” as destination');setTimeout(()=>window.print(),400);}
 window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
+</script>
+<script>
+
+/* ── Light / Dark Theme Toggle ── */
+(function(){
+  const btn = document.createElement('button');
+  btn.id = 'themeToggle'; btn.type = 'button';
+  btn.setAttribute('aria-label', 'Toggle light / dark theme');
+  btn.style.cssText = 'display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;cursor:pointer;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.35);color:inherit;transition:all .25s;margin-left:auto';
+  btn.onmouseover = function(){ this.style.filter='brightness(1.1)'; this.style.transform='translateY(-1px)'; };
+  btn.onmouseout = function(){ this.style.filter=''; this.style.transform=''; };
+  const bar = document.querySelector('.topbar');
+  if (bar) bar.appendChild(btn);
+  else document.body.appendChild(btn);
+  function apply(theme){
+    document.body.classList.toggle('light', theme === 'light');
+    document.documentElement.style.colorScheme = theme;
+    btn.innerHTML = theme === 'light' ? '\u{1F319} Dark' : '\u{2600}\u{FE0F} Light';
+    try{ localStorage.setItem('cm-theme', theme); }catch(e){}
+  }
+  let saved = 'dark';
+  try{ saved = localStorage.getItem('cm-theme') || 'dark'; }catch(e){}
+  apply(saved);
+  btn.onclick = ()=> apply(document.body.classList.contains('light') ? 'dark' : 'light');
+})();
+
 </script>
 </body>
 </html>
