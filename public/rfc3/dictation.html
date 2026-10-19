@@ -381,6 +381,73 @@ window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').
   btn.onclick = ()=> apply(document.body.classList.contains('light') ? 'dark' : 'light');
 })();
 </script>
+<script>
+
+// CMC-ANSWER-GATE — gate answer keys for teachers only
+(function(){
+  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
+  catch(e) { window.CMC_IS_TEACHER = false; }
+  
+  function gateButton(fnName) {
+    var btns = document.querySelectorAll('[onclick*="' + fnName + '"]');
+    btns.forEach(function(btn) {
+      if (btn.getAttribute('data-cmc-gated')) return; // already gated
+      btn.setAttribute('data-cmc-gated', fnName);
+      var orig = btn.getAttribute('onclick');
+      btn.setAttribute('onclick', 'if(window.CMC_IS_TEACHER){' + fnName + '()}else{cmcTeacherOnlyPrompt(this)}');
+      if (!window.CMC_IS_TEACHER) {
+        btn.style.opacity = '0.55';
+        btn.style.cursor = 'not-allowed';
+        btn.title = 'Teachers only — sign in with an .edu or .edu.kh email';
+      }
+    });
+  }
+  
+  window.cmcTeacherOnlyPrompt = function(btn) {
+    var existing = document.getElementById('cmc-teacher-prompt');
+    if (existing) { existing.remove(); return; }
+    var p = document.createElement('div');
+    p.id = 'cmc-teacher-prompt';
+    p.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99996;max-width:420px;width:calc(100% - 32px);background:rgba(13,19,35,0.97);border:1px solid rgba(251,191,36,0.4);border-radius:14px;padding:24px;color:#f1f5f9;font-family:Inter,sans-serif;box-shadow:0 30px 90px rgba(0,0,0,0.65);backdrop-filter:blur(12px);';
+    p.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:16px">\u{1F512}</span><strong style="font-size:14px;color:#fbbf24">Answer keys are reserved for teachers</strong></div><p style="font-size:12.5px;line-height:1.6;color:#cbd5e1;margin:0 0 12px">To reveal the key, sign in with a work email containing <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">edu</code>.</p><div style="display:flex;gap:8px;justify-content:flex-end"><a href=\"https://cmckhmer.github.io/Creative-Minds-/\" style=\"display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,#fbbf24,#fcd34d);color:#041018;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none\">Sign in as teacher \u2192</a><button onclick=\"this.parentElement.parentElement.remove()\" style=\"background:transparent;border:1px solid rgba(255,255,255,0.1);color:#94a3b8;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer\">Close</button></div>';
+    document.body.appendChild(p);
+  };
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Gate Show Key buttons
+    gateButton('showKey');
+    // Gate Show Model Answers buttons
+    gateButton('toggleModels');
+  });
+})();
+
+
+// CMC-ANSWER-HIDE — hide per-question correct/incorrect marks for students
+(function(){
+  if (window.CMC_IS_TEACHER) return; // Teachers see everything
+  // Override the visual feedback: after checkAnswers runs, the page
+  // shows .correct / .incorrect classes on options + question cards.
+  // For students, we strip those classes so they only see the total score,
+  // not which specific answers were right/wrong.
+  var origCheck = window.checkAnswers;
+  if (typeof origCheck === 'function') {
+    window.checkAnswers = function() {
+      origCheck.apply(this, arguments);
+      // Remove per-question visual feedback for students
+      setTimeout(function() {
+        document.querySelectorAll('.option.correct-opt, .option.wrong-opt, .dblane.correct, .dblane.incorrect, .gap-slot select.correct, .gap-slot select.incorrect, .mc.correct, .mc.incorrect, .fill select.correct, .fill select.incorrect, .question-card.correct-answer, .question-card.wrong-answer, .q-explanation.show').forEach(function(el) {
+          el.classList.remove('correct-opt', 'wrong-opt', 'correct', 'incorrect', 'correct-answer', 'wrong-answer', 'show');
+        });
+        // Also hide any explanation panels
+        document.querySelectorAll('.q-explanation').forEach(function(el) {
+          el.style.display = 'none';
+        });
+      }, 100);
+    };
+  }
+})();
+
+</script>
 </body>
 </html>
 
