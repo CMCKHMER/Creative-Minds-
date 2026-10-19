@@ -111,7 +111,7 @@
   .sheet-toolbar .formula{flex:1; padding:3px 8px; border:1px solid #c0c0c0; border-radius:4px; font-size:12px}
   .sheet-toolbar button{padding:4px 10px; background:#fff; border:1px solid #c0c0c0; border-radius:4px; cursor:pointer; font-size:12px; font-weight:600}
   .sheet-grid-wrap{flex:1; overflow:auto; position:relative; background:#fff}
-  .sheet-grid{display:inline-block; min-width:100%; border-collapse:collapse; font-family:'Arial', sans-serif; font-size:13px}
+  .sheet-grid{display:table; width:100%; border-collapse:collapse; font-family:'Arial', sans-serif; font-size:13px}
   .sheet-grid td, .sheet-grid th{border:1px solid #d0d0d0; min-width:80px; height:24px; padding:0}
   .sheet-grid th{background:#f0f0f0; color:#555; font-weight:600; position:sticky; top:0; z-index:2; text-align:center; min-width:48px; padding:0 4px; user-select:none}
   .sheet-grid th.row-h{left:0; z-index:3; min-width:48px}
@@ -336,7 +336,7 @@
 
 /* CMC-EXCEL-PRO */
 .sheet-grid th.col-h.frozen{position:sticky;top:0;z-index:5;background:#e0e0e0!important}
-.sheet-grid th.row-h.frozen{position:sticky;left:0;z-index:5;background:#e0e0f0!important}
+.sheet-grid th.row-h.frozen{position:sticky;left:0;z-index:5;background:#e0e0e0!important}
 .sheet-grid td.cell.frozen-col{position:sticky;left:48px;z-index:1;background:#fff!important}
 .sheet-grid td.cell.frozen-row{position:sticky;top:24px;z-index:1;background:#fff!important}
 .sheet-grid td.cell.frozen-col.frozen-row{z-index:2}
@@ -630,7 +630,7 @@
         <button class="tgl" onclick="sheetCmd('textColor')" title="Text Color" style="color:#e74c3c">A</button>
         <button class="tgl" onclick="sheetCmd('freezeToggle')" title="Freeze Panes">⏸</button>
         <button class="tgl" onclick="sheetCmd('clearFormat')" title="Clear Format">⌫</button>
-        <button class="tgl" onclick="sheetCmd('clearAll')" title="Clear All">🗑</button> style="display:flex; gap:6px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line)">
+        <button class="tgl" onclick="sheetCmd('clearAll')" title="Clear All">🗑</button>
         <button class="tgl" onclick="sheetCmd('bold')" title="Bold"><b>B</b></button>
         <button class="tgl" onclick="sheetCmd('italic')" title="Italic"><i>I</i></button>
         <button class="tgl" onclick="sheetCmd('underline')" title="Underline"><u>U</u></button>
@@ -698,8 +698,7 @@
             <h1>Document Title</h1><p>Start typing your document here. Use the toolbar above to format text, change fonts, or add lists.</p>
           </div>
           <div class="doc-footer" id="docFooter" contenteditable="true" spellcheck="false" data-placeholder="Double-click to edit footer…"></div>
-          <div class="sheet-layer" id="sheetLayer">
-<!-- CMC-CODE-EDITOR -->
+<!-- CMC-CODE-EDITOR (sibling of sheetLayer, NOT nested inside it) -->
           <div class="code-layer" id="codeLayer">
             <div class="code-toolbar">
               <select id="codeLang" onchange="updateCodeLang()">
@@ -737,6 +736,7 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
               <span id="codeCursorPos">Ln 1, Col 1</span>
             </div>
           </div>
+          <div class="sheet-layer" id="sheetLayer">
             <div class="sheet-toolbar">
               <span class="label">fx</span>
               <input class="formula" id="sheetFormula" placeholder="Enter a formula or value… (e.g. =SUM(A1:A10), =A1+B1*2)" />
@@ -1690,6 +1690,7 @@ function sheetCmd(cmd){
 }
 function renderSheet(){
   const sheet = sheets[currentSheet]; if (!sheet) return;
+  if (!sheetGrid) return;
   const html = ['<thead><tr><th class="corner-h"></th>'];
   for (let c = 0; c < sheet.cols; c++) { const w = colWidths[c] || 80; html.push(`<th class="col-h" style="min-width:${w}px;width:${w}px">${colName(c)}</th>`); }
   html.push('</tr></thead><tbody>');
@@ -1697,18 +1698,26 @@ function renderSheet(){
     const rh = rowHeights[r] || 24; html.push(`<tr style="height:${rh}px"><th class="row-h" style="min-height:${rh}px;height:${rh}px">${r+1}</th>`);
     for (let c = 0; c < sheet.cols; c++) {
       const cell = getCell(r, c); const v = cell.v || '';
-      let display = v; if (typeof v === 'string' && v.startsWith('=')) display = evalFormula(v);
+      let display = v;
+      try { if (typeof v === 'string' && v.startsWith('=')) display = evalFormula(v); } catch(e) { display = '#ERR'; }
       const isSel = (r === selectedCell.row && c === selectedCell.col);
       const styleAttr = cell.style ? `style="${cell.style.bold?'font-weight:bold;':''}${cell.style.italic?'font-style:italic;':''}${cell.style.underline?'text-decoration:underline;':''}${cell.style.color?('color:'+cell.style.color+';'):''}${cell.style.align?('text-align:'+cell.style.align+';'):''}${cell.style.bg?('background:'+cell.style.bg+';'):''}"` : '';
-      const cw = colWidths[c] || 80; const rh = rowHeights[r] || 24; html.push(`<td class="cell${isSel?' selected':''}" data-r="${r}" data-c="${c}" ${styleAttr} style="min-width:${cw}px;height:${rh}px"><span class="cell-display">${escapeHtml(display)}</span></td>`);
+      const cw = colWidths[c] || 80; const cellRh = rowHeights[r] || 24; html.push(`<td class="cell${isSel?' selected':''}" data-r="${r}" data-c="${c}" ${styleAttr} style="min-width:${cw}px;height:${cellRh}px"><span class="cell-display">${escapeHtml(display)}</span></td>`);
     }
     html.push('</tr>');
   }
   html.push('</tbody>');
-  sheetGrid.innerHTML = html.join('');
+  try {
+    sheetGrid.innerHTML = html.join('');
+  } catch(e) {
+    const temp = document.createElement('div');
+    temp.innerHTML = '<table>' + html.join('') + '</table>';
+    const newTable = temp.firstElementChild;
+    if (newTable) { sheetGrid.innerHTML = ''; while (newTable.firstChild) sheetGrid.appendChild(newTable.firstChild); }
+  }
   sheetGrid.querySelectorAll('td.cell').forEach(td => { td.addEventListener('click', () => { selectedCell = { row: +td.dataset.r, col: +td.dataset.c }; const cell = getCell(selectedCell.row, selectedCell.col); sheetFormula.value = cell.v || ''; renderSheet(); }); td.addEventListener('dblclick', () => { selectedCell = { row: +td.dataset.r, col: +td.dataset.c }; startCellEdit(); }); });
 }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 function startCellEdit(){
   const td = sheetGrid.querySelector(`td.cell[data-r="${selectedCell.row}"][data-c="${selectedCell.col}"]`); if (!td) return;
   const cell = getCell(selectedCell.row, selectedCell.col);
@@ -2493,14 +2502,8 @@ window.addEventListener('keydown',e=>{
   const t=keyMap[e.key.toLowerCase()]; if(t) selectTool(t);
 });
 
-/* ── Init ──────────────────────────────────────────── */
-selectTool('select');
-setTimeout(drawRulers, 80);
-setTimeout(drawRulers, 250);
-renderSheetTabs();
-renderLayerList();
-renderHistoryList();
-applyDocRotation();
+// Init block moved to END of script (after all const/let declarations) to avoid TDZ
+// ReferenceError when selectTool() accesses codeLayer/codeBar/codeEditor/codeContent.
 
 // CMC-STUDIO-V2 — Column/Row resize for spreadsheet
 let colResizeIdx = -1, rowResizeIdx = -1, resizeStartX = 0, resizeStartY = 0, resizeStartW = 80, resizeStartH = 24;
@@ -2509,7 +2512,7 @@ const resizeGuide = document.createElement('div'); resizeGuide.className = 'shee
 document.body.appendChild(resizeGuide);
 
 document.addEventListener('mousedown', (e) => {
-  if (currentTool !== 'sheet') return;
+  if (tool !== 'sheet') return;
   const colH = e.target.closest('th.col-h');
   const rowH = e.target.closest('th.row-h');
   if (colH) {
@@ -2898,7 +2901,7 @@ composite = function() {
 
 // CMC-SHEET-RESIZE-FIX — ensure resize works after renderSheet redraws
 sheetGrid.addEventListener('mousedown', function(e) {
-  if (currentTool !== 'sheet') return;
+  if (tool !== 'sheet') return;
   const colH = e.target.closest('th.col-h');
   const rowH = e.target.closest('th.row-h');
   if (colH) {
@@ -3014,6 +3017,15 @@ function showFillHandle() {
 
 
 // offerRecovery(); // disabled — start blank
+
+/* ── Init (moved here from earlier to avoid TDZ errors) ─── */
+selectTool('select');
+setTimeout(drawRulers, 80);
+setTimeout(drawRulers, 250);
+renderSheetTabs();
+renderLayerList();
+renderHistoryList();
+applyDocRotation();
 </script>
 </body>
 </html>
