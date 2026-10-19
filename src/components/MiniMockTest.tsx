@@ -228,7 +228,7 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut, fire
         durationSeconds: MINI_MOCK_TIME_SECONDS,
       });
     }
-  }, [phase, timeRemaining]);
+  }, [phase, timeRemaining, questions, answers]);
 
   useEffect(() => () => {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();

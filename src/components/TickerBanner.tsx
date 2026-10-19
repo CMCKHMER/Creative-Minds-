@@ -242,7 +242,10 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
     } catch { /* ignore */ }
   }, []);
 
-  const items = useMemo(() => buildTickerItems(data, loading), [data, loading]);
+  const items = useMemo(
+    () => buildTickerItems(data, loading, onOpenTeacherPass, lastError),
+    [data, loading, onOpenTeacherPass, lastError],
+  );
 
   if (!visible) return null;
 
@@ -315,94 +318,6 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
     </div>
   );
 
-  // ----- Ticker item builder -------------------------------------------------
-
-  function buildTickerItems(d: TickerData, isLoading: boolean): React.ReactNode[] {
-    const separator = (
-      <span aria-hidden="true" className="px-3 text-slate-600">·</span>
-    );
-
-    const nodes: React.ReactNode[] = [];
-
-    // Stat: drills today
-    nodes.push(
-      <TickerStat key="today" icon={<TrendingUp className="h-3.5 w-3.5" />} label="Drills today" value={d.stats.drillsToday} />
-    );
-    nodes.push(separator);
-
-    // Stat: drills this week
-    nodes.push(
-      <TickerStat key="week" icon={<Activity className="h-3.5 w-3.5" />} label="This week" value={d.stats.drillsThisWeek} />
-    );
-    nodes.push(separator);
-
-    // Stat: active students
-    nodes.push(
-      <TickerStat key="active" icon={<Users className="h-3.5 w-3.5" />} label="Active students" value={d.stats.activeStudents} />
-    );
-    nodes.push(separator);
-
-    // Stat: total drills
-    nodes.push(
-      <TickerStat key="total" icon={<Sparkles className="h-3.5 w-3.5" />} label="All-time drills" value={d.stats.totalDrills} />
-    );
-    nodes.push(separator);
-
-    // Leaderboard header
-    nodes.push(
-      <span key="leader-header" className="inline-flex items-center gap-1.5 px-2 text-[11px] font-bold uppercase tracking-wider text-amber-200">
-        <Trophy className="h-3.5 w-3.5 text-amber-300" aria-hidden="true" />
-        Top Teachers
-      </span>
-    );
-    nodes.push(separator);
-
-    // Leaderboard entries
-    d.leaderboard.forEach((entry, idx) => {
-      const medal = idx === 0 ? 'text-amber-300' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
-      nodes.push(
-        <span key={`leader-${idx}`} className="inline-flex items-center gap-2 whitespace-nowrap px-2">
-          <span className={`text-[11px] font-bold ${medal}`}>#{idx + 1}</span>
-          <span className="text-[12px] font-semibold text-white">{entry.name}</span>
-          <span className="text-[11px] text-slate-400">{entry.drills} drills</span>
-          <span className="text-[11px] text-emerald-300">{entry.avgScore}% avg</span>
-        </span>
-      );
-      nodes.push(separator);
-    });
-
-    // CTA — be the next teacher on the board
-    nodes.push(
-      <button
-        key="cta"
-        type="button"
-        onClick={onOpenTeacherPass}
-        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-[11px] font-semibold text-cyan-200 transition hover:bg-cyan-300/20 hover:text-white"
-      >
-        Be the next <ChevronRight className="h-3 w-3" aria-hidden="true" />
-      </button>
-    );
-    nodes.push(separator);
-
-    // Status footer line — show last fetched timestamp + error if any
-    if (lastError) {
-      nodes.push(
-        <span key="err" className="inline-flex items-center gap-1.5 whitespace-nowrap px-2 text-[10px] text-rose-300/80">
-          <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
-          {lastError.length > 80 ? lastError.slice(0, 77) + '...' : lastError}
-        </span>
-      );
-    } else {
-      const ago = Math.max(0, Math.round((Date.now() - d.fetchedAt) / 1000));
-      nodes.push(
-        <span key="updated" className="inline-flex items-center gap-1.5 whitespace-nowrap px-2 text-[10px] text-slate-500">
-          {isLoading ? 'refreshing…' : `updated ${ago}s ago`}
-        </span>
-      );
-    }
-
-    return nodes;
-  }
 }
 
 function TickerStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
@@ -413,4 +328,96 @@ function TickerStat({ icon, label, value }: { icon: React.ReactNode; label: stri
       <span className="text-[13px] font-bold text-white tabular-nums">{value.toLocaleString()}</span>
     </span>
   );
+}
+
+function buildTickerItems(
+d: TickerData,
+isLoading: boolean,
+onOpenTeacherPass: (() => void) | undefined,
+lastError: string | null,
+): React.ReactNode[] {
+  const separator = (
+    <span aria-hidden="true" className="px-3 text-slate-600">·</span>
+  );
+
+  const nodes: React.ReactNode[] = [];
+
+  // Stat: drills today
+  nodes.push(
+    <TickerStat key="today" icon={<TrendingUp className="h-3.5 w-3.5" />} label="Drills today" value={d.stats.drillsToday} />
+  );
+  nodes.push(separator);
+
+  // Stat: drills this week
+  nodes.push(
+    <TickerStat key="week" icon={<Activity className="h-3.5 w-3.5" />} label="This week" value={d.stats.drillsThisWeek} />
+  );
+  nodes.push(separator);
+
+  // Stat: active students
+  nodes.push(
+    <TickerStat key="active" icon={<Users className="h-3.5 w-3.5" />} label="Active students" value={d.stats.activeStudents} />
+  );
+  nodes.push(separator);
+
+  // Stat: total drills
+  nodes.push(
+    <TickerStat key="total" icon={<Sparkles className="h-3.5 w-3.5" />} label="All-time drills" value={d.stats.totalDrills} />
+  );
+  nodes.push(separator);
+
+  // Leaderboard header
+  nodes.push(
+    <span key="leader-header" className="inline-flex items-center gap-1.5 px-2 text-[11px] font-bold uppercase tracking-wider text-amber-200">
+      <Trophy className="h-3.5 w-3.5 text-amber-300" aria-hidden="true" />
+      Top Teachers
+    </span>
+  );
+  nodes.push(separator);
+
+  // Leaderboard entries
+  d.leaderboard.forEach((entry, idx) => {
+    const medal = idx === 0 ? 'text-amber-300' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-orange-400' : 'text-slate-500';
+    nodes.push(
+      <span key={`leader-${idx}`} className="inline-flex items-center gap-2 whitespace-nowrap px-2">
+        <span className={`text-[11px] font-bold ${medal}`}>#{idx + 1}</span>
+        <span className="text-[12px] font-semibold text-white">{entry.name}</span>
+        <span className="text-[11px] text-slate-400">{entry.drills} drills</span>
+        <span className="text-[11px] text-emerald-300">{entry.avgScore}% avg</span>
+      </span>
+    );
+    nodes.push(separator);
+  });
+
+  // CTA — be the next teacher on the board
+  nodes.push(
+    <button
+      key="cta"
+      type="button"
+      onClick={onOpenTeacherPass}
+      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-[11px] font-semibold text-cyan-200 transition hover:bg-cyan-300/20 hover:text-white"
+    >
+      Be the next <ChevronRight className="h-3 w-3" aria-hidden="true" />
+    </button>
+  );
+  nodes.push(separator);
+
+  // Status footer line — show last fetched timestamp + error if any
+  if (lastError) {
+    nodes.push(
+      <span key="err" className="inline-flex items-center gap-1.5 whitespace-nowrap px-2 text-[10px] text-rose-300/80">
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+        {lastError.length > 80 ? lastError.slice(0, 77) + '...' : lastError}
+      </span>
+    );
+  } else {
+    const ago = Math.max(0, Math.round((Date.now() - d.fetchedAt) / 1000));
+    nodes.push(
+      <span key="updated" className="inline-flex items-center gap-1.5 whitespace-nowrap px-2 text-[10px] text-slate-500">
+        {isLoading ? 'refreshing…' : `updated ${ago}s ago`}
+      </span>
+    );
+  }
+
+  return nodes;
 }

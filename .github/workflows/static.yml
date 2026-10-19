@@ -25,6 +25,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Lint (eslint)
+        run: npm run lint
       - name: Type-check (tsc --noEmit)
         run: npx tsc --noEmit
       - name: Unit tests (vitest)
