@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { Activity, RefreshCw } from 'lucide-react';
 import { useMemberAuth } from '../hooks/useMemberAuth';
 import { useStudentAuth } from '../hooks/useStudentAuth';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
-import { db } from '../lib/firebase';
+import { getFirebaseDb } from '../lib/firebase';
 import { listTeacherClasses, listTeacherAttempts, createClass } from '../lib/firebaseDb';
 import { StudentAuthModal } from './StudentAuthModal';
 
@@ -33,7 +33,18 @@ export function FirebaseDashboard() {
   // session counts.
   const isTeacher = memberAuth.status === 'active' || (firebaseAuth.isTeacher && !!firebaseAuth.session);
   const isStudent = studentAuth.status === 'signed-in' || (firebaseAuth.isStudent && !!firebaseAuth.session);
-  const firebaseReady = db !== null;
+
+  // Firebase SDK readiness — the SDK is lazy-loaded, so this component is
+  // what triggers the download. Flips true once Firestore resolves (or stays
+  // false when Firebase is not configured / init failed).
+  const [firebaseReady, setFirebaseReady] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void getFirebaseDb().then((d) => {
+      if (alive) setFirebaseReady(d !== null);
+    });
+    return () => { alive = false; };
+  }, []);
 
   // Display name + email for the badge — prefer whichever auth source has data.
   const signedInDisplayName = studentAuth.student?.displayName
@@ -42,7 +53,7 @@ export function FirebaseDashboard() {
     || 'Student';
   const signedInEmail = firebaseAuth.session?.email || studentAuth.student?.email;
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!firebaseReady) { setLoading(false); return; }
     setLoading(true);
     try {
@@ -58,11 +69,15 @@ export function FirebaseDashboard() {
       console.warn('[firebase-dashboard] loadData error:', e);
     }
     setLoading(false);
-  };
+    // Reads memberAuth.member / studentAuth.student from the render scope in
+    // which this callback was created; the identity deps below (isTeacher,
+    // isStudent, firebaseReady) flip exactly when those objects change
+    // between null and present, which is when a refetch is wanted.
+  }, [firebaseReady, isTeacher, isStudent, memberAuth.member, studentAuth.student]);
 
   useEffect(() => {
     loadData();
-  }, [isTeacher, isStudent, selectedClass, firebaseReady]);
+  }, [loadData, selectedClass]);
 
   const handleCreateClass = async () => {
     if (!memberAuth.member || !newClassName.trim()) return;

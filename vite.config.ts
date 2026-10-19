@@ -19,7 +19,15 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("node_modules")) return "vendor";
+          if (!id.includes("node_modules")) return undefined;
+          // Keep the Firebase SDK family OUT of the eager vendor chunk: the
+          // app dynamic-imports firebase (src/lib/firebase.ts lazy getters),
+          // and rollup only honors that if manualChunks does not force these
+          // modules into the always-loaded vendor bundle.
+          if (/[\\/](firebase|@firebase|@grpc|protobufjs|@protobufjs|@google|faye-websocket)/.test(id)) {
+            return undefined;
+          }
+          return "vendor";
         },
       },
     },

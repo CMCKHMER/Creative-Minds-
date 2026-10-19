@@ -2,7 +2,7 @@
 // Separate from useMemberAuth (which uses Supabase for teachers).
 
 import { useEffect, useState } from 'react';
-import { auth, firebaseConfigured } from '../lib/firebase';
+import { firebaseConfigured } from '../lib/firebase';
 import { onStudentAuthChange, type StudentProfile } from '../lib/studentAuth';
 
 export interface StudentAuthHookState {
@@ -16,7 +16,7 @@ export function useStudentAuth(): StudentAuthHookState {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!auth || !firebaseConfigured) {
+    if (!firebaseConfigured) {
       setReady(true);
       return;
     }

@@ -3,6 +3,12 @@
 // Firebase handles student auth, real-time score tracking (Firestore),
 // and class management.
 //
+// The SDK is loaded lazily: every export below either returns plain data
+// (firebaseConfig, firebaseConfigured) or a Promise that dynamic-imports
+// only the SDK piece that is needed. This keeps ~500 KB of Firebase code
+// out of the initial page-load critical path — it is fetched when an auth
+// surface (dashboard, student modal) actually mounts.
+//
 // To configure: either set these env vars in .env.local:
 //   VITE_FIREBASE_API_KEY=
 //   VITE_FIREBASE_AUTH_DOMAIN=
@@ -13,10 +19,10 @@
 //
 // Or paste your firebaseConfig object directly below.
 
-import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
-import { getStorage, type FirebaseStorage } from 'firebase/storage';
+import type { FirebaseApp } from 'firebase/app';
+import type { Auth } from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
+import type { FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDNUq6ru99XKh8d887Xk63h36MP0LXWwc',
@@ -29,16 +35,48 @@ const firebaseConfig = {
 
 export const firebaseConfigured = !firebaseConfig.apiKey.includes('DemoApiKey');
 
-let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let db: Firestore | null = null;
-let storage: FirebaseStorage | null = null;
+export { firebaseConfig };
 
-if (firebaseConfigured) {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-  storage = getStorage(app);
+// ── Lazy singletons ─────────────────────────────────────────────────
+// Each getter memoizes its promise, so the SDK initializes exactly once
+// no matter how many callers race on the first call.
+
+let appPromise: Promise<FirebaseApp> | null = null;
+
+function firebaseApp(): Promise<FirebaseApp> {
+  appPromise ??= import('firebase/app').then(({ initializeApp }) => initializeApp(firebaseConfig));
+  return appPromise;
 }
 
-export { app, auth, db, storage };
+/** Resolve the Firebase Auth instance, or null when Firebase is not configured / init failed. */
+export function getFirebaseAuth(): Promise<Auth | null> {
+  if (!firebaseConfigured) return Promise.resolve(null);
+  return firebaseApp()
+    .then(async (app) => (await import('firebase/auth')).getAuth(app))
+    .catch((e) => {
+      console.warn('[firebase] auth init failed:', e);
+      return null;
+    });
+}
+
+/** Resolve the Firestore instance, or null when Firebase is not configured / init failed. */
+export function getFirebaseDb(): Promise<Firestore | null> {
+  if (!firebaseConfigured) return Promise.resolve(null);
+  return firebaseApp()
+    .then(async (app) => (await import('firebase/firestore')).getFirestore(app))
+    .catch((e) => {
+      console.warn('[firebase] firestore init failed:', e);
+      return null;
+    });
+}
+
+/** Resolve the Storage instance, or null when Firebase is not configured / init failed. */
+export function getFirebaseStorage(): Promise<FirebaseStorage | null> {
+  if (!firebaseConfigured) return Promise.resolve(null);
+  return firebaseApp()
+    .then(async (app) => (await import('firebase/storage')).getStorage(app))
+    .catch((e) => {
+      console.warn('[firebase] storage init failed:', e);
+      return null;
+    });
+}

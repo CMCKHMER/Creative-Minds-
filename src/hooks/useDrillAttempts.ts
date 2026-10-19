@@ -2,7 +2,7 @@
 // Teachers see live class results; students see their own attempt history.
 
 import { useEffect, useState } from 'react';
-import { db, firebaseConfigured } from '../lib/firebase';
+import { firebaseConfigured } from '../lib/firebase';
 import { subscribeToClassAttempts, subscribeToStudentAttempts } from '../lib/firebaseDb';
 
 export function useClassAttempts(classId: string | null) {
@@ -10,7 +10,7 @@ export function useClassAttempts(classId: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!db || !firebaseConfigured || !classId) {
+    if (!firebaseConfigured || !classId) {
       setLoading(false);
       return;
     }
@@ -30,7 +30,7 @@ export function useStudentAttempts(studentUid: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!db || !firebaseConfigured || !studentUid) {
+    if (!firebaseConfigured || !studentUid) {
       setLoading(false);
       return;
     }

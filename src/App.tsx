@@ -23,7 +23,7 @@ import { TeacherToolsPage } from './components/TeacherTools';
 import { NewsSidePanel, NewsPage } from './components/NewsWindow';
 import { TeacherChat } from './components/TeacherChat';
 import { LMSCard } from './components/LMSCard';
-import { FirebaseDashboard } from './components/FirebaseDashboard';
+const FirebaseDashboard = lazy(() => import('./components/FirebaseDashboard').then(m => ({ default: m.FirebaseDashboard })));
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { useFirebaseAuth } from './hooks/useFirebaseAuth';
@@ -193,8 +193,12 @@ export function App() {
         {/* LMS Workspace — teacher-only gated feature (requires signup) */}
         <LMSCard onOpenAuth={() => openMemberAuth('sign-up')} />
 
-        {/* Firebase real-time dashboard — live class results + student score tracking */}
-        <FirebaseDashboard />
+        {/* Firebase real-time dashboard — live class results + student score tracking.
+            Lazy-mounted: this boundary is what pulls the ~500 KB Firebase SDK
+            chunk out of the initial page load — it downloads after first paint. */}
+        <Suspense fallback={<div className="min-h-[120px]" aria-hidden="true" />}>
+          <FirebaseDashboard />
+        </Suspense>
 
         {/* TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15 test pages */}
         <BiWeekPlannerCard />

@@ -5,24 +5,12 @@
 //   classes/{classId}/enrollments/{studentUid} — enrollment records
 //   drill_attempts/{attemptId} — every drill submission (real-time)
 //   classes/{classId}/assignments/{assignmentId} — teacher-assigned drills
+//
+// The firestore SDK chunk is dynamic-imported on first use, so it stays out
+// of the initial page-load bundle. Public function signatures are unchanged.
 
-import { db } from './firebase';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  updateDoc,
-  addDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  onSnapshot,
-  serverTimestamp,
-  type Unsubscribe,
-} from 'firebase/firestore';
+import { getFirebaseDb } from './firebase';
+import type { Firestore, serverTimestamp } from 'firebase/firestore';
 
 export interface DrillAttemptDoc {
   drillSlug: string;
@@ -38,6 +26,13 @@ export interface DrillAttemptDoc {
   submittedAt: ReturnType<typeof serverTimestamp>;
 }
 
+/** db handle + every firestore helper, resolved together (memoized by the lazy singleton upstream). */
+async function fs(): Promise<{ db: Firestore } & typeof import('firebase/firestore') | null> {
+  const db = await getFirebaseDb();
+  if (!db) return null;
+  return { db, ...(await import('firebase/firestore')) };
+}
+
 // ── Classes ──────────────────────────────────────────────────────────
 
 export async function createClass(input: {
@@ -46,17 +41,18 @@ export async function createClass(input: {
   program: string;
   gradeLevel: string;
 }): Promise<string | null> {
-  if (!db) return null;
+  const f = await fs();
+  if (!f) return null;
   try {
     const code = 'CMC-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-    const ref = await addDoc(collection(db, 'classes'), {
+    const ref = await f.addDoc(f.collection(f.db, 'classes'), {
       teacherUid: input.teacherUid,
       name: input.name,
       program: input.program,
       gradeLevel: input.gradeLevel,
       code,
       isActive: true,
-      createdAt: serverTimestamp(),
+      createdAt: f.serverTimestamp(),
     });
     return ref.id;
   } catch (e) {
@@ -66,10 +62,11 @@ export async function createClass(input: {
 }
 
 export async function listTeacherClasses(teacherUid: string) {
-  if (!db) return [];
+  const f = await fs();
+  if (!f) return [];
   try {
-    const q = query(collection(db, 'classes'), where('teacherUid', '==', teacherUid));
-    const snap = await getDocs(q);
+    const q = f.query(f.collection(f.db, 'classes'), f.where('teacherUid', '==', teacherUid));
+    const snap = await f.getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     console.warn('[firestore] listTeacherClasses:', e);
@@ -78,10 +75,11 @@ export async function listTeacherClasses(teacherUid: string) {
 }
 
 export async function getClassByCode(code: string) {
-  if (!db) return null;
+  const f = await fs();
+  if (!f) return null;
   try {
-    const q = query(collection(db, 'classes'), where('code', '==', code.toUpperCase()), limit(1));
-    const snap = await getDocs(q);
+    const q = f.query(f.collection(f.db, 'classes'), f.where('code', '==', code.toUpperCase()), f.limit(1));
+    const snap = await f.getDocs(q);
     if (snap.empty) return null;
     const d = snap.docs[0];
     return { id: d.id, ...d.data() } as any;
@@ -94,14 +92,15 @@ export async function getClassByCode(code: string) {
 // ── Enrollments ──────────────────────────────────────────────────────
 
 export async function enrollStudent(classId: string, studentUid: string, studentName: string) {
-  if (!db) return false;
+  const f = await fs();
+  if (!f) return false;
   try {
-    await setDoc(doc(db, 'classes', classId, 'enrollments', studentUid), {
+    await f.setDoc(f.doc(f.db, 'classes', classId, 'enrollments', studentUid), {
       studentName,
-      enrolledAt: serverTimestamp(),
+      enrolledAt: f.serverTimestamp(),
     });
     // Also update student profile
-    await updateDoc(doc(db, 'students', studentUid), { classId });
+    await f.updateDoc(f.doc(f.db, 'students', studentUid), { classId });
     return true;
   } catch (e) {
     console.warn('[firestore] enrollStudent:', e);
@@ -110,9 +109,10 @@ export async function enrollStudent(classId: string, studentUid: string, student
 }
 
 export async function listClassEnrollments(classId: string) {
-  if (!db) return [];
+  const f = await fs();
+  if (!f) return [];
   try {
-    const snap = await getDocs(collection(db, 'classes', classId, 'enrollments'));
+    const snap = await f.getDocs(f.collection(f.db, 'classes', classId, 'enrollments'));
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     console.warn('[firestore] listClassEnrollments:', e);
@@ -134,13 +134,14 @@ export async function submitDrillAttempt(input: {
   totalCount: number;
   durationSeconds?: number | null;
 }): Promise<string | null> {
-  if (!db) return null;
+  const f = await fs();
+  if (!f) return null;
   try {
-    const ref = await addDoc(collection(db, 'drill_attempts'), {
+    const ref = await f.addDoc(f.collection(f.db, 'drill_attempts'), {
       ...input,
       classId: input.classId ?? null,
       durationSeconds: input.durationSeconds ?? null,
-      submittedAt: serverTimestamp(),
+      submittedAt: f.serverTimestamp(),
     });
     return ref.id;
   } catch (e) {
@@ -153,52 +154,79 @@ export async function submitDrillAttempt(input: {
 export function subscribeToClassAttempts(
   classId: string,
   callback: (attempts: any[]) => void,
-): Unsubscribe {
-  if (!db) return () => {};
-  const q = query(
-    collection(db, 'drill_attempts'),
-    where('classId', '==', classId),
-    orderBy('submittedAt', 'desc'),
-    limit(100),
-  );
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+): () => void {
+  let unsubscribe: (() => void) | null = null;
+  let alive = true;
+  void (async () => {
+    const f = await fs();
+    if (!f) {
+      if (alive) callback([]);
+      return;
+    }
+    const q = f.query(
+      f.collection(f.db, 'drill_attempts'),
+      f.where('classId', '==', classId),
+      f.orderBy('submittedAt', 'desc'),
+      f.limit(100),
+    );
+    if (!alive) return;
+    unsubscribe = f.onSnapshot(q, (snap) => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  })();
+  return () => {
+    alive = false;
+    unsubscribe?.();
+  };
 }
 
 /** Real-time listener for a single student's attempts */
 export function subscribeToStudentAttempts(
   studentUid: string,
   callback: (attempts: any[]) => void,
-): Unsubscribe {
-  if (!db) return () => {};
-  const q = query(
-    collection(db, 'drill_attempts'),
-    where('studentUid', '==', studentUid),
-    orderBy('submittedAt', 'desc'),
-    limit(50),
-  );
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+): () => void {
+  let unsubscribe: (() => void) | null = null;
+  let alive = true;
+  void (async () => {
+    const f = await fs();
+    if (!f) {
+      if (alive) callback([]);
+      return;
+    }
+    const q = f.query(
+      f.collection(f.db, 'drill_attempts'),
+      f.where('studentUid', '==', studentUid),
+      f.orderBy('submittedAt', 'desc'),
+      f.limit(50),
+    );
+    if (!alive) return;
+    unsubscribe = f.onSnapshot(q, (snap) => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  })();
+  return () => {
+    alive = false;
+    unsubscribe?.();
+  };
 }
 
 /** Get all attempts for a teacher (across all their classes) */
 export async function listTeacherAttempts(teacherUid: string) {
-  if (!db) return [];
+  const f = await fs();
+  if (!f) return [];
   try {
     // Get teacher's classes first
     const classes = await listTeacherClasses(teacherUid);
     const classIds = classes.map((c: any) => c.id);
     if (!classIds.length) return [];
     // Query attempts for those classes
-    const q = query(
-      collection(db, 'drill_attempts'),
-      where('classId', 'in', classIds),
-      orderBy('submittedAt', 'desc'),
-      limit(200),
+    const q = f.query(
+      f.collection(f.db, 'drill_attempts'),
+      f.where('classId', 'in', classIds),
+      f.orderBy('submittedAt', 'desc'),
+      f.limit(200),
     );
-    const snap = await getDocs(q);
+    const snap = await f.getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     console.warn('[firestore] listTeacherAttempts:', e);
@@ -214,12 +242,13 @@ export async function createStudentProfile(uid: string, data: {
   grade?: number;
   school?: string;
 }) {
-  if (!db) return false;
+  const f = await fs();
+  if (!f) return false;
   try {
-    await setDoc(doc(db, 'students', uid), {
+    await f.setDoc(f.doc(f.db, 'students', uid), {
       ...data,
       classId: null,
-      createdAt: serverTimestamp(),
+      createdAt: f.serverTimestamp(),
     });
     return true;
   } catch (e) {
@@ -229,9 +258,10 @@ export async function createStudentProfile(uid: string, data: {
 }
 
 export async function getStudentProfile(uid: string) {
-  if (!db) return null;
+  const f = await fs();
+  if (!f) return null;
   try {
-    const snap = await getDoc(doc(db, 'students', uid));
+    const snap = await f.getDoc(f.doc(f.db, 'students', uid));
     if (!snap.exists()) return null;
     return { uid: snap.id, ...snap.data() };
   } catch (e) {
@@ -241,9 +271,10 @@ export async function getStudentProfile(uid: string) {
 }
 
 export async function updateStudentProfile(uid: string, updates: Record<string, any>) {
-  if (!db) return false;
+  const f = await fs();
+  if (!f) return false;
   try {
-    await updateDoc(doc(db, 'students', uid), updates);
+    await f.updateDoc(f.doc(f.db, 'students', uid), updates);
     return true;
   } catch (e) {
     console.warn('[firestore] updateStudentProfile:', e);
