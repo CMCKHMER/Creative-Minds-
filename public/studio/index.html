@@ -311,6 +311,15 @@
 .code-token-function{color:#89b4fa}
 .code-token-operator{color:#f5c2e7}
 
+
+/* CMC-TRANSFORM-FIX */
+.transform-handle{position:absolute;width:12px;height:12px;background:var(--cm-primary);border:2px solid #fff;border-radius:50%;cursor:pointer;z-index:20;transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.transform-handle.nw{cursor:nw-resize}.transform-handle.ne{cursor:ne-resize}.transform-handle.sw{cursor:sw-resize}.transform-handle.se{cursor:se-resize}
+.transform-handle.rot{background:var(--cm-secondary);cursor:grab;top:-30px}
+.transform-handle.rot:active{cursor:grabbing}
+.transform-bbox{position:absolute;border:1.5px dashed var(--cm-primary);pointer-events:none;z-index:19}
+.transform-info{position:absolute;top:-50px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--text);font-family:'Roboto Mono',monospace;white-space:nowrap;z-index:21;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+
 </style>
 </head>
 <body>
@@ -1618,7 +1627,7 @@ function renderTexts(){
 }
 function textBBox(t){ tctx.font=fontStr(t); const w=tctx.measureText(applyTextTransform(t.text, t.transform || 'none')).width, h=t.size*1.25; const x0=t.align==='left'?t.x : t.align==='center'?t.x-w/2 : t.x-w; return {x:x0, y:t.y, w, h}; }
 function hitText(pt){ for(let i=texts.length-1;i>=0;i--){ const b=textBBox(texts[i]); if(pt.x>=b.x-6 && pt.x<=b.x+b.w+6 && pt.y>=b.y-6 && pt.y<=b.y+b.h+6) return i; } return -1; }
-function drawSelection(){ pctx.clearRect(0,0,W,H);
+function drawSelection(){ if(tool==='transform'&&selectedImg>=0){drawTransformHandles();}  pctx.clearRect(0,0,W,H);
   // Text selection
   if(selected>=0 && texts[selected]){ const b=textBBox(texts[selected]); pctx.save(); pctx.strokeStyle='#4cc9f0'; pctx.lineWidth=1.5; pctx.setLineDash([5,4]); pctx.strokeRect(b.x-5,b.y-5,b.w+10,b.h+10); pctx.restore(); }
   // Image selection with resize handles
@@ -1941,6 +1950,14 @@ preview.addEventListener('pointerdown',e=>{
     return;
   }
 
+  // Transform tool: select image, then show handles
+  if(tool==='transform'){
+    const imgIdx = hitImg(pt);
+    if (imgIdx >= 0) { selectedImg = imgIdx; selected = -1; drawTransformHandles(); return; }
+    // Click empty space deselects
+    selectedImg = -1; clearTransformHandles();
+    return;
+  }
   // Select tool: click to select images or text, drag to move, double-click text to edit
   if(tool==='select'){
     // Check image resize handles first
@@ -2596,6 +2613,134 @@ function codeDownload() {
   a.href = url; a.download = 'untitled.' + ext; a.click();
   URL.revokeObjectURL(url);
 }
+
+
+// CMC-TRANSFORM-FIX — Interactive Free Transform (rotate + scale)
+let transformMode = null; // 'rotate', 'scale-nw', 'scale-ne', 'scale-sw', 'scale-se', 'move'
+let transformStartX = 0, transformStartY = 0;
+let transformStartBounds = null;
+let transformStartAngle = 0;
+let transformHandles = [];
+let transformBbox = null;
+let transformInfo = null;
+
+function clearTransformHandles() {
+  transformHandles.forEach(h => h.remove());
+  transformHandles = [];
+  if (transformBbox) { transformBbox.remove(); transformBbox = null; }
+  if (transformInfo) { transformInfo.remove(); transformInfo = null; }
+}
+
+function drawTransformHandles() {
+  clearTransformHandles();
+  if (tool !== 'transform' || selectedImg < 0) return;
+  const im = imgObjects[selectedImg];
+  if (!im) return;
+  const wrapRect = wrap.getBoundingClientRect();
+  const stageRect = stage.getBoundingClientRect();
+  
+  // Bounding box
+  transformBbox = document.createElement('div');
+  transformBbox.className = 'transform-bbox';
+  transformBbox.style.left = (im.x + wrapRect.left - stageRect.left) + 'px';
+  transformBbox.style.top = (im.y + wrapRect.top - stageRect.top) + 'px';
+  transformBbox.style.width = im.w + 'px';
+  transformBbox.style.height = im.h + 'px';
+  stage.appendChild(transformBbox);
+  
+  // Info display
+  transformInfo = document.createElement('div');
+  transformInfo.className = 'transform-info';
+  transformInfo.textContent = Math.round(im.w) + 'x' + Math.round(im.h) + (im.rotation ? ' R:' + Math.round(im.rotation) + 'deg' : '');
+  transformInfo.style.left = (im.x + im.w/2 + wrapRect.left - stageRect.left) + 'px';
+  transformInfo.style.top = (im.y + wrapRect.top - stageRect.top) + 'px';
+  stage.appendChild(transformInfo);
+  
+  // Corner handles + rotation handle
+  const corners = [
+    {name: 'nw', x: im.x, y: im.y, cursor: 'nw-resize'},
+    {name: 'ne', x: im.x + im.w, y: im.y, cursor: 'ne-resize'},
+    {name: 'sw', x: im.x, y: im.y + im.h, cursor: 'sw-resize'},
+    {name: 'se', x: im.x + im.w, y: im.y + im.h, cursor: 'se-resize'},
+    {name: 'rot', x: im.x + im.w/2, y: im.y - 30, cursor: 'grab'},
+  ];
+  corners.forEach(c => {
+    const h = document.createElement('div');
+    h.className = 'transform-handle ' + c.name;
+    h.style.left = (c.x + wrapRect.left - stageRect.left) + 'px';
+    h.style.top = (c.y + wrapRect.top - stageRect.top) + 'px';
+    h.dataset.handle = c.name;
+    stage.appendChild(h);
+    transformHandles.push(h);
+    
+    h.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      transformMode = c.name;
+      transformStartX = e.clientX;
+      transformStartY = e.clientY;
+      transformStartBounds = {x: im.x, y: im.y, w: im.w, h: im.h, rotation: im.rotation || 0};
+      const cx = im.x + im.w/2, cy = im.y + im.h/2;
+      transformStartAngle = Math.atan2(e.clientY - (cy + wrapRect.top - stageRect.top + stageRect.top), e.clientX - (cx + wrapRect.left - stageRect.left + stageRect.left));
+      pushUndo('Transform image');
+    });
+  });
+}
+
+// Handle transform pointer events (separate from canvas drawing events)
+document.addEventListener('pointermove', (e) => {
+  if (!transformMode || selectedImg < 0) return;
+  const im = imgObjects[selectedImg];
+  if (!im) return;
+  const dx = e.clientX - transformStartX;
+  const dy = e.clientY - transformStartY;
+  const orig = transformStartBounds;
+  
+  if (transformMode === 'rot') {
+    // Rotation: compute angle from center
+    const wrapRect = wrap.getBoundingClientRect();
+    const cx = orig.x + orig.w/2 + wrapRect.left;
+    const cy = orig.y + orig.h/2 + wrapRect.top;
+    const angle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
+    im.rotation = angle;
+    if (transformInfo) transformInfo.textContent = Math.round(orig.w) + 'x' + Math.round(orig.h) + ' R:' + Math.round(angle) + 'deg';
+  } else if (transformMode.startsWith('scale')) {
+    // Scale: proportional resize from corner
+    const aspect = orig.w / orig.h;
+    let delta = (dx + dy) / 2;
+    if (transformMode === 'nw' || transformMode === 'sw') delta = -delta;
+    const newW = Math.max(20, orig.w + delta);
+    const newH = newW / aspect;
+    im.w = newW; im.h = newH;
+    if (transformMode === 'nw' || transformMode === 'sw') {
+      im.x = orig.x + (orig.w - newW);
+      im.y = orig.y + (orig.h - newH);
+    }
+    if (transformInfo) transformInfo.textContent = Math.round(newW) + 'x' + Math.round(newH);
+  }
+  composite();
+});
+
+document.addEventListener('pointerup', () => {
+  if (transformMode) {
+    transformMode = null;
+    drawTransformHandles(); // Redraw at new position
+  }
+});
+
+// Hook into selectTool to clear/redraw handles
+const _origSelectTool2 = selectTool;
+selectTool = function(t) {
+  _origSelectTool2(t);
+  if (t !== 'transform') clearTransformHandles();
+  else drawTransformHandles();
+};
+
+// Hook into composite to redraw handles after canvas updates
+const _origComposite = composite;
+composite = function() {
+  _origComposite();
+  if (tool === 'transform' && selectedImg >= 0) drawTransformHandles();
+};
 
 // offerRecovery(); // disabled — start blank
 </script>
