@@ -288,6 +288,29 @@
 .sheet-resize-guide.v { width: 2px; }
 .sheet-resize-guide.h { height: 2px; }
 
+
+/* CMC-CODE-EDITOR */
+.code-layer{position:absolute;inset:0;z-index:15;background:#1e1e2e;color:#cdd6f4;display:none;flex-direction:column;border-radius:4px;overflow:hidden;font-family:'Roboto Mono',monospace}
+.code-toolbar{padding:6px 12px;background:#181825;border-bottom:1px solid #313244;display:flex;gap:8px;align-items:center;font-size:12px;color:#6c7086}
+.code-toolbar select,.code-toolbar button{padding:4px 10px;background:#313244;border:1px solid #45475a;color:#cdd6f4;border-radius:5px;font-size:12px;cursor:pointer;font-family:inherit}
+.code-toolbar select:hover,.code-toolbar button:hover{background:#45475a}
+.code-editor-wrap{flex:1;display:flex;overflow:hidden;position:relative}
+.code-line-numbers{padding:8px 12px 8px 16px;background:#181825;color:#45475a;font-size:13px;line-height:1.6;text-align:right;user-select:none;overflow:hidden;min-width:48px}
+.code-editor{flex:1;padding:8px 16px;background:#1e1e2e;color:#cdd6f4;font-family:'Roboto Mono',monospace;font-size:13px;line-height:1.6;outline:none;border:none;resize:none;overflow:auto;white-space:pre;tab-size:2}
+.code-editor::selection{background:rgba(137,180,250,.25)}
+.code-status{padding:4px 12px;background:#181825;border-top:1px solid #313244;color:#6c7086;font-size:11px;display:flex;justify-content:space-between}
+.code-output{padding:8px 16px;background:#11111b;color:#a6adc8;font-family:'Roboto Mono',monospace;font-size:12px;line-height:1.6;overflow:auto;max-height:200px;border-top:1px solid #313244;display:none;white-space:pre-wrap}
+.code-output.show{display:block}
+.code-output.error{color:#f38ba8}
+.code-output.success{color:#a6e3a1}
+/* Syntax highlight */
+.code-token-keyword{color:#cba6f7;font-weight:600}
+.code-token-string{color:#a6e3a1}
+.code-token-number{color:#fab387}
+.code-token-comment{color:#6c7086;font-style:italic}
+.code-token-function{color:#89b4fa}
+.code-token-operator{color:#f5c2e7}
+
 </style>
 </head>
 <body>
@@ -423,6 +446,7 @@
         <div class="menu-item" data-action="tool-text"><span>Vector Text</span><span class="kbd">T</span></div>
         <div class="menu-item" data-action="tool-doc"><span>Document Mode (Word)</span><span class="kbd">D</span></div>
         <div class="menu-item" data-action="tool-sheet"><span>Spreadsheet (Excel)</span><span class="kbd">S</span></div>
+        <div class="menu-item" data-action="tool-code"><span>Code Editor</span><span class="kbd">K</span></div>
         <div class="menu-sep"></div>
         <div class="menu-item" data-action="tool-transform"><span>Free Transform</span><span class="kbd">V</span></div>
         <div class="menu-item" data-action="tool-perspective"><span>Perspective Warp</span></div>
@@ -456,6 +480,10 @@
     </button>
     <button class="quick-btn" data-quick-tool="doc" title="Document">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Doc
+    </button>
+    <button class="quick-btn" data-quick-tool="code" title="Code Editor" style="border-color:rgba(137,180,250,.3)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      <span>Code</span>
     </button>
     <button class="quick-btn" data-quick-tool="sheet" title="Spreadsheet">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="9" y1="4" x2="9" y2="20"/></svg>Sheet
@@ -535,7 +563,8 @@
         <button class="tgl" onclick="findReplace()" title="Find & Replace">🔍</button>
         <button class="tgl" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
       </div>
-      <div id="sheetBar" class="hidden" style="display:flex; gap:6px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line)">
+      <div id="codeBar" class="hidden" style="display:none;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line)"><span style="color:#89b4fa;font-size:11px;font-weight:600">Code Editor</span></div>
+    <div id="sheetBar" class="hidden" style="display:flex; gap:6px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line)">
         <button class="tgl" onclick="sheetCmd('bold')" title="Bold"><b>B</b></button>
         <button class="tgl" onclick="sheetCmd('italic')" title="Italic"><i>I</i></button>
         <button class="tgl" onclick="sheetCmd('underline')" title="Underline"><u>U</u></button>
@@ -604,6 +633,44 @@
           </div>
           <div class="doc-footer" id="docFooter" contenteditable="true" spellcheck="false" data-placeholder="Double-click to edit footer…"></div>
           <div class="sheet-layer" id="sheetLayer">
+<!-- CMC-CODE-EDITOR -->
+          <div class="code-layer" id="codeLayer">
+            <div class="code-toolbar">
+              <select id="codeLang" onchange="updateCodeLang()">
+                <option value="javascript">JavaScript</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="python">Python</option>
+                <option value="json">JSON</option>
+                <option value="markdown">Markdown</option>
+                <option value="plaintext">Plain Text</option>
+              </select>
+              <button onclick="codeRun()" title="Run code (Ctrl+Enter)"><i class="fas fa-play" style="font-size:10px"></i> Run</button>
+              <button onclick="codeFormat()" title="Format code"><i class="fas fa-indent" style="font-size:10px"></i> Format</button>
+              <button onclick="codeClear()" title="Clear"><i class="fas fa-trash" style="font-size:10px"></i> Clear</button>
+              <span style="flex:1"></span>
+              <span style="color:#45475a;font-size:11px" id="codeStats">0 lines · 0 chars</span>
+              <button onclick="codeCopy()" title="Copy code"><i class="fas fa-copy" style="font-size:10px"></i> Copy</button>
+              <button onclick="codeDownload()" title="Download file"><i class="fas fa-download" style="font-size:10px"></i> Download</button>
+            </div>
+            <div class="code-editor-wrap">
+              <div class="code-line-numbers" id="codeLineNumbers">1</div>
+              <textarea class="code-editor" id="codeEditor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+                placeholder="// Type your code here... Press Ctrl+Enter to run JavaScript
+// Switch language from the dropdown above
+
+function greet(name) {
+  return 'Hello, ' + name + '!';
+}
+
+console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
+            </div>
+            <div class="code-output" id="codeOutput"></div>
+            <div class="code-status">
+              <span id="codeLangLabel">JavaScript</span>
+              <span id="codeCursorPos">Ln 1, Col 1</span>
+            </div>
+          </div>
             <div class="sheet-toolbar">
               <span class="label">fx</span>
               <input class="formula" id="sheetFormula" placeholder="Enter a formula or value… (e.g. =SUM(A1:A10), =A1+B1*2)" />
@@ -1241,7 +1308,7 @@ letterSpacingEl.oninput=()=>{tLetterSpacing=+letterSpacingEl.value; lsOut.textCo
 lineHeightEl.oninput=()=>{tLineHeight=(+lineHeightEl.value)/100; lhOut.textContent=tLineHeight.toFixed(2); if(selected>=0){texts[selected].lineHeight=tLineHeight; renderTexts(); drawSelection();}};
 
 /* ── Tool Selection ────────────────────────────────── */
-const toolNames={select:'Select/Move',brush:'Brush',eraser:'Eraser',line:'Line',rect:'Rectangle',ellipse:'Ellipse',gradient:'Gradient',text:'Vector Text',doc:'Document Mode (Word)',sheet:'Spreadsheet (Excel)',transform:'Free Transform',perspective:'Perspective Warp',crop:'Crop',margins:'Margins & Guides',picker:'Eyedropper'};
+const toolNames={select:'Select/Move',brush:'Brush',eraser:'Eraser',line:'Line',rect:'Rectangle',ellipse:'Ellipse',gradient:'Gradient',text:'Vector Text',doc:'Document Mode (Word)',sheet:'Spreadsheet (Excel)',transform:'Free Transform',perspective:'Perspective Warp',crop:'Crop',margins:'Margins & Guides',picker:'Eyedropper',code:'Code Editor'};
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>selectTool(b.dataset.tool));
 function selectTool(t){
   if (!toolNames[t]) t = 'brush';
@@ -1263,6 +1330,10 @@ function selectTool(t){
   // Header/footer only visible in doc mode (they use .show to toggle on)
   if (!isDoc) { docHeader.classList.remove('show'); docFooter.classList.remove('show'); }
   sheetLayer.style.display = isSheet ? 'flex' : 'none';
+  const isCode = t === 'code';
+  codeLayer.style.display = isCode ? 'flex' : 'none';
+  codeBar.classList.toggle('hidden', !isCode);
+  if (isCode) { codeEditor.focus(); updateCodeStats(); }
   wordBar.classList.toggle('hidden', !isDoc);
   sheetBar.classList.toggle('hidden', !isSheet);
   vectorTextPanel.classList.toggle('hidden', isDoc || isSheet);
@@ -2010,7 +2081,7 @@ function canvasToBlob(callback, type='image/png', quality=0.92){
   o.drawImage(base,0,0); o.drawImage(textLayer,0,0);
   out.toBlob(callback, type, quality);
 }
-function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(1280, 800); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
+function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(1280, 800); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' }; codeEditor.value = ''; updateLineNumbers(); updateCodeStats(); bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
 function fileOpen(){ openInput.click(); }
 openInput.onchange = e => {
   const f = e.target.files[0]; if (!f) return;
@@ -2191,7 +2262,7 @@ const ACTIONS = {
   'image-page-size': () => openModal('pageSizeModal'), 'image-resize': () => openModal('imageResizeModal'), 'image-extend': () => openModal('canvasExtendModal'), 'image-rotate-90-cw': () => rotateCanvas(90), 'image-rotate-90-ccw': () => rotateCanvas(-90), 'image-rotate-180': () => rotateCanvas(180), 'image-bg-remove-chroma': () => { document.getElementById('bgMethodChroma').click(); openModal('bgRemoveModal'); }, 'image-bg-remove-wand': () => { document.getElementById('bgMethodWand').click(); openModal('bgRemoveModal'); },
   'layer-new': () => { pushUndo('New layer'); layers.splice(currentLayer + 1, 0, newLayer()); currentLayer++; renderLayerList(); composite(); }, 'layer-duplicate': () => { pushUndo('Duplicate layer'); const copy = newLayer(layers[currentLayer].name + ' copy'); copy.canvas = makeBlankCanvas(W, H); copy.canvas.getContext('2d').drawImage(layers[currentLayer].canvas, 0, 0); copy.opacity = layers[currentLayer].opacity; copy.blendMode = layers[currentLayer].blendMode; layers.splice(currentLayer + 1, 0, copy); currentLayer++; renderLayerList(); composite(); }, 'layer-delete': () => { if (layers.length <= 1) return; pushUndo('Delete layer'); layers.splice(currentLayer, 1); currentLayer = Math.max(0, currentLayer - 1); renderLayerList(); composite(); }, 'layer-merge-down': () => { if (currentLayer <= 0) return; pushUndo('Merge down'); const target = layers[currentLayer - 1]; const ctx = target.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layers[currentLayer].opacity; ctx.globalCompositeOperation = layers[currentLayer].blendMode || 'source-over'; ctx.drawImage(layers[currentLayer].canvas, 0, 0); ctx.restore(); layers.splice(currentLayer, 1); currentLayer--; renderLayerList(); composite(); }, 'layer-flatten': () => { pushUndo('Flatten'); const flat = newLayer('Background'); for (const layer of layers) { const ctx = flat.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layer.opacity; ctx.globalCompositeOperation = layer.blendMode || 'source-over'; ctx.drawImage(layer.canvas, 0, 0); ctx.restore(); } layers = [flat]; currentLayer = 0; renderLayerList(); composite(); }, 'layer-effect-shadow': () => openModal('shadowModal'), 'layer-effect-glow': () => openModal('shadowModal'), 'layer-effect-clear': () => { pushUndo('Clear effects'); layers[currentLayer].effect = null; composite(); },
   'insert-image': insertImage, 'insert-text': insertText, 'insert-doc': insertDoc, 'insert-sheet': insertSheet, 'insert-rect': insertRect, 'insert-ellipse': insertEllipse, 'insert-line': insertLine, 'insert-gradient': insertGradient, 'insert-header': insertHeader, 'insert-footer': insertFooter, 'insert-table': () => { selectTool('doc'); insertTable(); }, 'insert-link': () => { selectTool('doc'); insertLink(); }, 'insert-special-char': () => { selectTool('doc'); insertSpecialChar(); },
-  'tool-brush': () => selectTool('brush'), 'tool-eraser': () => selectTool('eraser'), 'tool-line': () => selectTool('line'), 'tool-rect': () => selectTool('rect'), 'tool-ellipse': () => selectTool('ellipse'), 'tool-gradient': () => selectTool('gradient'), 'tool-text': () => selectTool('text'), 'tool-doc': () => selectTool('doc'), 'tool-sheet': () => selectTool('sheet'), 'tool-transform': () => selectTool('transform'), 'tool-perspective': () => selectTool('perspective'), 'tool-crop': () => selectTool('crop'), 'tool-margins': () => selectTool('margins'), 'tool-picker': () => selectTool('picker'), 'tool-select': () => selectTool('select'),
+  'tool-brush': () => selectTool('brush'), 'tool-eraser': () => selectTool('eraser'), 'tool-line': () => selectTool('line'), 'tool-rect': () => selectTool('rect'), 'tool-ellipse': () => selectTool('ellipse'), 'tool-gradient': () => selectTool('gradient'), 'tool-text': () => selectTool('text'), 'tool-doc': () => selectTool('doc'), 'tool-sheet': () => selectTool('sheet'), 'tool-transform': () => selectTool('transform'), 'tool-perspective': () => selectTool('perspective'), 'tool-crop': () => selectTool('crop'), 'tool-margins': () => selectTool('margins'), 'tool-picker': () => selectTool('picker'), 'tool-select': () => selectTool('select'), 'tool-code': () => selectTool('code'),
   'help-shortcuts': helpShortcuts, 'help-about': helpAbout,
 };
 document.querySelectorAll('.menu-item').forEach(item => { item.addEventListener('click', () => { const action = item.dataset.action; if (action && ACTIONS[action]) ACTIONS[action](); closeAllMenus(); }); });
@@ -2223,7 +2294,7 @@ selectTool = function(t) {
 };
 
 /* Keyboard */
-const keyMap={b:'brush',e:'eraser',l:'line',r:'rect',o:'ellipse',g:'gradient',t:'text',c:'crop',i:'picker',d:'doc',s:'sheet',v:'transform',p:'perspective',m:'select',n:'margins'};
+const keyMap={b:'brush',e:'eraser',l:'line',r:'rect',o:'ellipse',g:'gradient',t:'text',c:'crop',i:'picker',d:'doc',s:'sheet',v:'transform',p:'perspective',m:'select',n:'margins',k:'code'};
 window.addEventListener('keydown',e=>{
   if(e.target.matches('input, [contenteditable], textarea')) return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault(); e.shiftKey?redo():undo(); return;}
@@ -2312,6 +2383,219 @@ document.addEventListener('mouseup', (e) => {
     rowResizeIdx = -1; resizeGuide.style.display = 'none';
   }
 });
+
+
+// CMC-CODE-EDITOR — JavaScript functions
+const codeLayer = document.getElementById('codeLayer');
+const codeEditor = document.getElementById('codeEditor');
+const codeLineNumbers = document.getElementById('codeLineNumbers');
+const codeOutput = document.getElementById('codeOutput');
+const codeStats = document.getElementById('codeStats');
+const codeCursorPos = document.getElementById('codeCursorPos');
+const codeLangSelect = document.getElementById('codeLang');
+const codeLangLabel = document.getElementById('codeLangLabel');
+const codeBar = document.getElementById('codeBar');
+
+let codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' };
+let currentCodeLang = 'javascript';
+
+function updateCodeLang() {
+  // Save current content
+  codeContent[currentCodeLang] = codeEditor.value;
+  currentCodeLang = codeLangSelect.value;
+  codeEditor.value = codeContent[currentCodeLang] || '';
+  codeLangLabel.textContent = codeLangSelect.options[codeLangSelect.selectedIndex].text;
+  updateCodeStats();
+  updateLineNumbers();
+  // Update placeholder based on language
+  const placeholders = {
+    javascript: '// Type JavaScript... Ctrl+Enter to run\nfunction greet(name) {\n  return "Hello, " + name + "!";\n}\nconsole.log(greet("Creative Minds"));',
+    html: '<!-- Type HTML here... -->\n<div>\n  <h1>Hello World</h1>\n  <p>Your content here.</p>\n</div>',
+    css: '/* Type CSS here... */\nbody {\n  font-family: sans-serif;\n  margin: 0;\n  padding: 20px;\n}',
+    python: '# Type Python here... (view-only, cannot run in browser)\ndef greet(name):\n    return f"Hello, {name}!"\n\nprint(greet("Creative Minds"))',
+    json: '{\n  "name": "Creative Minds",\n  "version": "1.0"\n}',
+    markdown: '# Type Markdown here...\n\n## Section\n\n- Item 1\n- Item 2\n\n**Bold** and *italic* text.',
+    plaintext: 'Type plain text here...'
+  };
+  codeEditor.placeholder = placeholders[currentCodeLang] || '';
+}
+
+function updateLineNumbers() {
+  const lines = codeEditor.value.split('\n').length;
+  let nums = '';
+  for (let i = 1; i <= lines; i++) nums += i + '\n';
+  codeLineNumbers.textContent = nums;
+}
+
+function updateCodeStats() {
+  const lines = codeEditor.value.split('\n').length;
+  const chars = codeEditor.value.length;
+  codeStats.textContent = lines + ' lines · ' + chars + ' chars';
+}
+
+function updateCursorPos() {
+  const pos = codeEditor.selectionStart;
+  const text = codeEditor.value.substring(0, pos);
+  const lines = text.split('\n');
+  const line = lines.length;
+  const col = lines[lines.length - 1].length + 1;
+  codeCursorPos.textContent = 'Ln ' + line + ', Col ' + col;
+}
+
+codeEditor.addEventListener('input', () => {
+  codeContent[currentCodeLang] = codeEditor.value;
+  updateLineNumbers();
+  updateCodeStats();
+  updateCursorPos();
+});
+codeEditor.addEventListener('click', updateCursorPos);
+codeEditor.addEventListener('keyup', updateCursorPos);
+
+// Sync scroll between editor and line numbers
+codeEditor.addEventListener('scroll', () => {
+  codeLineNumbers.scrollTop = codeEditor.scrollTop;
+});
+
+// Tab key — insert 2 spaces instead of focus change
+codeEditor.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = codeEditor.selectionStart;
+    const end = codeEditor.selectionEnd;
+    codeEditor.value = codeEditor.value.substring(0, start) + '  ' + codeEditor.value.substring(end);
+    codeEditor.selectionStart = codeEditor.selectionEnd = start + 2;
+    codeContent[currentCodeLang] = codeEditor.value;
+    updateLineNumbers();
+    updateCodeStats();
+  }
+  // Ctrl+Enter to run
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    codeRun();
+  }
+  // Auto-close brackets
+  const pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`' };
+  if (pairs[e.key] && codeEditor.selectionStart === codeEditor.selectionEnd) {
+    e.preventDefault();
+    const pos = codeEditor.selectionStart;
+    codeEditor.value = codeEditor.value.substring(0, pos) + e.key + pairs[e.key] + codeEditor.value.substring(pos);
+    codeEditor.selectionStart = codeEditor.selectionEnd = pos + 1;
+    codeContent[currentCodeLang] = codeEditor.value;
+    updateLineNumbers();
+    updateCodeStats();
+  }
+  // Auto-indent on Enter
+  if (e.key === 'Enter') {
+    const pos = codeEditor.selectionStart;
+    const lineStart = codeEditor.value.lastIndexOf('\n', pos - 1) + 1;
+    const currentLine = codeEditor.value.substring(lineStart, pos);
+    const indent = currentLine.match(/^\s*/)[0];
+    const lastChar = currentLine.trim().slice(-1);
+    if (['{', '[', '('].includes(lastChar)) {
+      e.preventDefault();
+      codeEditor.value = codeEditor.value.substring(0, pos) + '\n' + indent + '  ' + '\n' + indent + codeEditor.value.substring(pos);
+      codeEditor.selectionStart = codeEditor.selectionEnd = pos + indent.length + 3;
+      codeContent[currentCodeLang] = codeEditor.value;
+      updateLineNumbers();
+      updateCodeStats();
+    }
+  }
+});
+
+function codeRun() {
+  codeOutput.classList.add('show');
+  codeOutput.classList.remove('error', 'success');
+  if (currentCodeLang === 'javascript') {
+    const oldLog = console.log;
+    const oldErr = console.error;
+    const logs = [];
+    console.log = (...args) => { logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')); };
+    console.error = (...args) => { logs.push('ERROR: ' + args.join(' ')); };
+    try {
+      const result = Function(codeEditor.value)();
+      if (result !== undefined) logs.push('→ ' + String(result));
+      codeOutput.textContent = logs.length ? logs.join('\n') : 'Code ran successfully (no output).';
+      codeOutput.classList.add('success');
+    } catch (err) {
+      codeOutput.textContent = 'Error: ' + err.message;
+      codeOutput.classList.add('error');
+    } finally {
+      console.log = oldLog;
+      console.error = oldErr;
+    }
+  } else if (currentCodeLang === 'html') {
+    codeOutput.textContent = 'HTML preview — open in a new tab to see the rendered page.';
+    codeOutput.classList.add('success');
+  } else if (currentCodeLang === 'css') {
+    codeOutput.textContent = 'CSS applied — switch to a mode that renders HTML to see styles.';
+    codeOutput.classList.add('success');
+  } else {
+    codeOutput.textContent = 'Running ' + currentCodeLang + ' is not supported in the browser. Copy the code and run it in a local environment.';
+    codeOutput.classList.add('error');
+  }
+}
+
+function codeFormat() {
+  if (currentCodeLang === 'json') {
+    try {
+      const obj = JSON.parse(codeEditor.value);
+      codeEditor.value = JSON.stringify(obj, null, 2);
+      codeContent[currentCodeLang] = codeEditor.value;
+      updateLineNumbers();
+      updateCodeStats();
+      codeOutput.classList.add('show', 'success');
+      codeOutput.classList.remove('error');
+      codeOutput.textContent = 'JSON formatted successfully.';
+    } catch (err) {
+      codeOutput.classList.add('show', 'error');
+      codeOutput.classList.remove('success');
+      codeOutput.textContent = 'Invalid JSON: ' + err.message;
+    }
+  } else if (currentCodeLang === 'javascript' || currentCodeLang === 'css') {
+    // Simple formatter: trim trailing whitespace, ensure consistent indentation
+    const lines = codeEditor.value.split('\n');
+    const formatted = lines.map(line => line.trimEnd()).join('\n');
+    codeEditor.value = formatted;
+    codeContent[currentCodeLang] = codeEditor.value;
+    updateLineNumbers();
+    updateCodeStats();
+    codeOutput.classList.add('show', 'success');
+    codeOutput.classList.remove('error');
+    codeOutput.textContent = 'Code cleaned (trailing whitespace removed).';
+  } else {
+    codeOutput.classList.add('show', 'error');
+    codeOutput.classList.remove('success');
+    codeOutput.textContent = 'Format not available for ' + currentCodeLang + '.';
+  }
+}
+
+function codeClear() {
+  if (!confirm('Clear all code?')) return;
+  codeEditor.value = '';
+  codeContent[currentCodeLang] = '';
+  updateLineNumbers();
+  updateCodeStats();
+  codeOutput.classList.remove('show');
+}
+
+function codeCopy() {
+  navigator.clipboard.writeText(codeEditor.value).then(() => {
+    codeOutput.classList.add('show', 'success');
+    codeOutput.classList.remove('error');
+    codeOutput.textContent = 'Code copied to clipboard.';
+    setTimeout(() => codeOutput.classList.remove('show'), 2000);
+  });
+}
+
+function codeDownload() {
+  const exts = { javascript: 'js', html: 'html', css: 'css', python: 'py', json: 'json', markdown: 'md', plaintext: 'txt' };
+  const ext = exts[currentCodeLang] || 'txt';
+  const blob = new Blob([codeEditor.value], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'untitled.' + ext; a.click();
+  URL.revokeObjectURL(url);
+}
 
 // offerRecovery(); // disabled — start blank
 </script>
