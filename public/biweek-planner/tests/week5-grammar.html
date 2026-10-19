@@ -471,7 +471,8 @@ function doSubmit(){
   result.innerHTML=`\u2713 Score: ${score}/${cards.length} (${Math.round(score/cards.length*100)}%) \u2014 ${config.title}`;
   result.classList.remove('hidden');result.style.background='rgba(16,185,129,.1)';result.style.color='#6ee7b7';
   submitBtn.disabled=true;submitBtn.innerHTML='<i class="fas fa-check text-xs"></i> Submitted';
-  result.scrollIntoView({behavior:'smooth',
+  result.scrollIntoView({behavior:'smooth',block:'center'});
+}
 </script>
 
 <!-- CMC SHARE BUTTON -->
