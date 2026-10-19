@@ -278,6 +278,16 @@
   .preset-btn:hover{border-color:var(--amber); background:rgba(255,180,84,.08)}
 
   .hidden{display:none!important}
+
+/* CMC-STUDIO-V2 — column/row resize */
+.sheet-grid th.col-h { cursor: col-resize; position: relative; }
+.sheet-grid th.col-h::after { content:''; position:absolute; right:0; top:0; bottom:0; width:4px; cursor:col-resize; }
+.sheet-grid th.row-h { cursor: row-resize; position: relative; }
+.sheet-grid th.row-h::after { content:''; position:absolute; left:0; right:0; bottom:0; height:4px; cursor:row-resize; }
+.sheet-resize-guide { position: fixed; background: #4cc9f0; pointer-events: none; z-index: 99999; display: none; }
+.sheet-resize-guide.v { width: 2px; }
+.sheet-resize-guide.h { height: 2px; }
+
 </style>
 </head>
 <body>
@@ -491,6 +501,9 @@
           <option value="Inter">Inter</option><option value="Roboto">Roboto</option><option value="Lato">Lato</option>
           <option value="Montserrat">Montserrat</option><option value="Playfair Display">Playfair</option><option value="Merriweather">Merriweather</option>
         </select>
+        <select onchange="docCmd('fontName', this.value); this.selectedIndex=0" title="Font" style="padding:3px 6px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);border-radius:5px;font-size:11px"><option value="">Font…</option><option value="Inter">Inter</option><option value="Syne">Syne</option><option value="Roboto">Roboto</option><option value="Lato">Lato</option><option value="Montserrat">Montserrat</option><option value="Playfair Display">Playfair</option><option value="Merriweather">Merriweather</option><option value="Source Sans 3">Source Sans</option><option value="Oswald">Oswald</option><option value="Poppins">Poppins</option><option value="Raleway">Raleway</option><option value="Georgia">Georgia</option><option value="Arial">Arial</option><option value="Courier New">Courier</option></select>
+        <select onchange="docCmd('fontSize', this.value); this.selectedIndex=0" title="Font Size" style="padding:3px 6px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);border-radius:5px;font-size:11px"><option value="">Size…</option><option value="1">8pt</option><option value="2">10pt</option><option value="3">12pt</option><option value="4">14pt</option><option value="5">18pt</option><option value="6">24pt</option><option value="7">36pt</option></select>
+        <input type="color" onchange="docCmd('foreColor', this.value)" title="Text Color" style="width:28px;height:24px;padding:2px;border:1px solid var(--line);background:var(--panel-2);border-radius:5px;cursor:pointer">
         <button class="tgl" onclick="docCmd('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
         <button class="tgl" onclick="docCmd('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
         <button class="tgl" onclick="docCmd('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
@@ -1410,17 +1423,28 @@ function evalFormula(formula, visited=new Set()){
     const replacement = isNaN(num) ? (val === '' ? '0' : `"${val}"`) : String(num);
     expr = expr.split(ref).join(replacement);
   }
-  expr = expr.replace(/(SUM|AVERAGE|MIN|MAX|COUNT)\(([A-Z]+\d+:[A-Z]+\d+)\)/g, (match, fn, range) => {
+  // Range functions: SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, PRODUCT, STDEV
+  expr = expr.replace(/(SUM|AVERAGE|MIN|MAX|COUNT|COUNTA|PRODUCT|STDEV)\(([A-Z]+\d+:[A-Z]+\d+)\)/g, (match, fn, range) => {
     const r = parseRange(range); if (!r) return '0';
-    const vals = [];
-    for (let i=r.r1; i<=r.r2; i++) for (let j=r.c1; j<=r.c2; j++) { const cell = getCell(i, j); let v = cell.v; if (typeof v === 'string' && v.startsWith('=')) v = evalFormula(v, new Set(visited)); const n = parseFloat(v); if (!isNaN(n)) vals.push(n); }
+    const vals = []; const allVals = [];
+    for (let i=r.r1; i<=r.r2; i++) for (let j=r.c1; j<=r.c2; j++) { const cell = getCell(i, j); let v = cell.v; if (typeof v === 'string' && v.startsWith('=')) v = evalFormula(v, new Set(visited)); allVals.push(v); const n = parseFloat(v); if (!isNaN(n)) vals.push(n); }
     if (fn === 'SUM') return String(vals.reduce((a,b)=>a+b, 0));
     if (fn === 'AVERAGE') return vals.length ? String(vals.reduce((a,b)=>a+b,0)/vals.length) : '0';
     if (fn === 'MIN') return vals.length ? String(Math.min(...vals)) : '0';
     if (fn === 'MAX') return vals.length ? String(Math.max(...vals)) : '0';
     if (fn === 'COUNT') return String(vals.length);
+    if (fn === 'COUNTA') return String(allVals.filter(v=>v!==''&&v!==undefined).length);
+    if (fn === 'PRODUCT') return vals.length ? String(vals.reduce((a,b)=>a*b,1)) : '0';
+    if (fn === 'STDEV') { if (vals.length<2) return '0'; const avg=vals.reduce((a,b)=>a+b,0)/vals.length; const sq=vals.map(v=>(v-avg)**2).reduce((a,b)=>a+b,0); return String(Math.sqrt(sq/(vals.length-1))); }
     return '0';
   });
+  // Scalar functions: ABS, ROUND, SQRT, POWER, LEN, LEFT, RIGHT, UPPER, LOWER, TRIM, CONCATENATE, IF
+  expr = expr.replace(/ABS\(([^)]+)\)/g, 'Math.abs($1)');
+  expr = expr.replace(/ROUND\(([^,]+),([^)]+)\)/g, 'Math.round($1*Math.pow(10,$2))/Math.pow(10,$2)');
+  expr = expr.replace(/SQRT\(([^)]+)\)/g, 'Math.sqrt($1)');
+  expr = expr.replace(/POWER\(([^,]+),([^)]+)\)/g, 'Math.pow($1,$2)');
+  expr = expr.replace(/CONCATENATE\(([^)]+)\)/g, (m, args) => { const parts = args.split(',').map(s => s.replace(/^["']|["']$/g,'')); return '"' + parts.join('') + '"'; });
+  expr = expr.replace(/IF\(([^,]+),([^,]+),([^)]+)\)/g, '($1 ? $2 : $3)');
   if (!/^[0-9+\-*/().,\s]*$/.test(expr)) return expr;
   try { const result = Function('"use strict"; return (' + expr + ')')(); return result === undefined ? '' : String(result); } catch (e) { return '#ERR'; }
 }
@@ -1836,7 +1860,7 @@ preview.addEventListener('pointerdown',e=>{
   if(tool==='doc' || tool==='sheet') return;
   const pt=getPos(e); preview.setPointerCapture(e.pointerId);
   if (bgRemovePending) { applyBgRemoval(pt.x, pt.y); bgRemovePending = false; return; }
-  if(tool==='picker'){ const d=bctx.getImageData(Math.round(pt.x),Math.round(pt.y),1,1).data; setColor(d[3]>0 ? '#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('') : bgColor); addRecentColor(color); selectTool('brush'); return; }
+  if(tool==='picker'){ const d=bctx.getImageData(Math.round(pt.x),Math.round(pt.y),1,1).data; setColor(d[3]>0 ? '#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('') : bgColor); addRecentColor(color); selectTool('select'); return; }
 
   // Margins tool: drag margin guides to adjust margins, width, height
   if(tool==='margins'){
@@ -1986,7 +2010,7 @@ function canvasToBlob(callback, type='image/png', quality=0.92){
   o.drawImage(base,0,0); o.drawImage(textLayer,0,0);
   out.toBlob(callback, type, quality);
 }
-function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(1280, 800); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); selectTool('brush'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
+function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(1280, 800); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
 function fileOpen(){ openInput.click(); }
 openInput.onchange = e => {
   const f = e.target.files[0]; if (!f) return;
@@ -2229,14 +2253,67 @@ window.addEventListener('keydown',e=>{
 });
 
 /* ── Init ──────────────────────────────────────────── */
-selectTool('brush');
+selectTool('select');
 setTimeout(drawRulers, 80);
 setTimeout(drawRulers, 250);
 renderSheetTabs();
 renderLayerList();
 renderHistoryList();
 applyDocRotation();
-offerRecovery();
+
+// CMC-STUDIO-V2 — Column/Row resize for spreadsheet
+let colResizeIdx = -1, rowResizeIdx = -1, resizeStartX = 0, resizeStartY = 0, resizeStartW = 80, resizeStartH = 24;
+let colWidths = {}, rowHeights = {};
+const resizeGuide = document.createElement('div'); resizeGuide.className = 'sheet-resize-guide';
+document.body.appendChild(resizeGuide);
+
+document.addEventListener('mousedown', (e) => {
+  if (currentTool !== 'sheet') return;
+  const colH = e.target.closest('th.col-h');
+  const rowH = e.target.closest('th.row-h');
+  if (colH) {
+    const ths = [...sheetGrid.querySelectorAll('th.col-h')];
+    colResizeIdx = ths.indexOf(colH); resizeStartX = e.clientX; resizeStartW = colWidths[colResizeIdx] || 80;
+    e.preventDefault();
+  } else if (rowH) {
+    const ths = [...sheetGrid.querySelectorAll('th.row-h')];
+    rowResizeIdx = ths.indexOf(rowH); resizeStartY = e.clientY; resizeStartH = rowHeights[rowResizeIdx] || 24;
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (colResizeIdx >= 0) {
+    const newW = Math.max(30, resizeStartW + (e.clientX - resizeStartX));
+    resizeGuide.style.display = 'block'; resizeGuide.className = 'sheet-resize-guide v';
+    resizeGuide.style.left = e.clientX + 'px'; resizeGuide.style.top = '0'; resizeGuide.style.height = '100vh';
+  } else if (rowResizeIdx >= 0) {
+    const newH = Math.max(18, resizeStartH + (e.clientY - resizeStartY));
+    resizeGuide.style.display = 'block'; resizeGuide.className = 'sheet-resize-guide h';
+    resizeGuide.style.top = e.clientY + 'px'; resizeGuide.style.left = '0'; resizeGuide.style.width = '100vw';
+  }
+});
+
+document.addEventListener('mouseup', (e) => {
+  if (colResizeIdx >= 0) {
+    colWidths[colResizeIdx] = Math.max(30, resizeStartW + (e.clientX - resizeStartX));
+    const ths = sheetGrid.querySelectorAll('th.col-h');
+    if (ths[colResizeIdx]) ths[colResizeIdx].style.minWidth = colWidths[colResizeIdx] + 'px';
+    const cells = sheetGrid.querySelectorAll('td.cell');
+    cells.forEach(td => { if (+td.dataset.c === colResizeIdx) td.style.minWidth = colWidths[colResizeIdx] + 'px'; });
+    colResizeIdx = -1; resizeGuide.style.display = 'none';
+  }
+  if (rowResizeIdx >= 0) {
+    rowHeights[rowResizeIdx] = Math.max(18, resizeStartH + (e.clientY - resizeStartY));
+    const ths = sheetGrid.querySelectorAll('th.row-h');
+    if (ths[rowResizeIdx]) ths[rowResizeIdx].style.minHeight = rowHeights[rowResizeIdx] + 'px';
+    const rows = sheetGrid.querySelectorAll('tbody tr');
+    if (rows[rowResizeIdx]) rows[rowResizeIdx].style.height = rowHeights[rowResizeIdx] + 'px';
+    rowResizeIdx = -1; resizeGuide.style.display = 'none';
+  }
+});
+
+// offerRecovery(); // disabled — start blank
 </script>
 </body>
 </html>
