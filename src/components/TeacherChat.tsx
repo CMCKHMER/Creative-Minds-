@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { ArrowUp, GraduationCap, LockKeyhole, MessageSquare, Send, Sparkles, X } from 'lucide-react';
-import { FIREBASE_PROJECT_ID, restoreSession } from '../lib/firebaseAuth';
+import { GraduationCap, LockKeyhole, MessageSquare, Send, Sparkles } from 'lucide-react';
+import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 
 /**

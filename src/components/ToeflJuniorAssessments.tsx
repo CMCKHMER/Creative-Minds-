@@ -35,7 +35,7 @@ export function ToeflJuniorAssessments() {
     [activeSkill],
   );
   const skillCounts = useMemo(() => {
-    const counts: Record<JuniorAssessmentSkill, number[]> = { Speaking: [], Listening: [], Writing: [] };
+    const counts: Record<JuniorAssessmentSkill, string[]> = { Speaking: [], Listening: [], Writing: [] };
     TOEFL_JUNIOR_ASSESSMENTS.forEach((item) => counts[item.skill].push(item.id));
     return counts;
   }, []);

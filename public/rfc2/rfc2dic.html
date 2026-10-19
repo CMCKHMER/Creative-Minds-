@@ -37,11 +37,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-im
 .passage-card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--border);border-radius:12px;padding:26px 28px;font-size:15px;line-height:2.5;color:#cbd5e1}
 .dbwrap{display:inline-block;margin:0 4px;vertical-align:middle}
 .dbnum{font-size:11px;color:var(--violet-lt);font-weight:700;margin-right:3px}
-.dblank{font-family:inherit;font-size:13.5px;text-align:center;color:var(--cyan-lt);background:#0a101f;border:none;border-bottom:2px dashed rgba(34,211,238,.5);border-radius:6px 6px 0 0;padding:6px 8px;width:120px;transition:all .2s}
-.dblank.long{width:200px}
-.dblank:focus{outline:none;border-bottom-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
-.dblank.correct{border-bottom:2px solid var(--success);background:rgba(52,211,153,.1);color:var(--success)}
-.dblank.incorrect{border-bottom:2px solid var(--error);background:rgba(248,113,113,.1);color:var(--error)}
+.dblane{font-family:inherit;font-size:13.5px;text-align:center;color:var(--cyan-lt);background:#0a101f;border:none;border-bottom:2px dashed rgba(34,211,238,.5);border-radius:6px 6px 0 0;padding:6px 8px;width:120px;transition:all .2s}
+.dblane.long{width:200px}
+.dblane:focus{outline:none;border-bottom-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+.dblane.correct{border-bottom:2px solid var(--success);background:rgba(52,211,153,.1);color:var(--success)}
+.dblane.incorrect{border-bottom:2px solid var(--error);background:rgba(248,113,113,.1);color:var(--error)}
 .action-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
 .btn{flex:1;padding:13px;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:filter .25s,transform .25s;min-width:140px}
 .btn-check{color:#041018;background:linear-gradient(90deg,var(--cyan),var(--violet))}
@@ -233,13 +233,13 @@ const UNITS = {
  ans:["*an artist|a famous artist","pianos|music","*wants to|agrees to","let","where|that","sign","*I’m free|I am free","*street performers|musicians|artists","fun|pleasure|joy","*more than|over"]},
 "Unit 3. Online Guitar Lessons":{track:"07",
  text:"Take guitar lessons online! There are many [1] to do this. You can take online lessons any time. Online lessons can start in the morning or [2], [3] you want. You can easily [4] or change the time of your lesson if you [5]. Online lessons can also save money. [6] lessons can cost from $25 to $50 for each hour. Online classes often cost $50 for a [7] course. A course [8] ten or more lessons. And some online lessons are free! You can also [9] through online lessons. No one will be watching you practice. Many students feel less [10] when there is no one watching them.",
- ans:["ways","*at night|in the evening","whenever|anytime|when","cancel|change","*need to|have to|are busy","*One-on-one|One on one","whole|full|complete","*includes|can include|has","*practice alone|practice privately","nervous|stressed"]},
+ ans:["ways","*at night|in the evening","whenever|anytime|when","cancel|change","*need to|have to|are busy","*Face-to-face|face to face|One-on-one|One on one","whole|full|complete","*includes|can include|has","*practice alone|practice privately","nervous|stressed"]},
 "Unit 4. Twyla Tharp":{track:"09",
  text:"In the 1960s, Twyla Tharp studied [1] and modern dance in New York. In 1965, Tharp decided to open her [2] dance school. Dancers in her school [3] ballet and natural movement. For example, the dancers ran, walked, and skipped [4] they danced. Tharp worked very hard. Many people liked her new [5] dancing. Tharp became famous because of it. A lot of dancers wanted to [6] from her. [7] 70s, Tharp [8] works with dancers. She has created dances for [9], movies, and television. Some of her most famous dances [10] by ballet schools around the world.",
- ans:["ballet","own","mixed|combined","while|as","*style of|way of","learn","*In the 19|During the 19","created|made","theater|theatre|opera","*are performed|are taught|are studied"]},
+ ans:["ballet","own","mixed|combined","while|as","*style of|way of","learn","*Now in her|In the 19|During the 19","*still|created|made","theater|theatre|opera","*are performed|are taught|are studied"]},
 "Unit 5. DNA from Extinct Animals":{track:"11",
  text:"[1] you like to see extinct animals [2] Earth again? Some [3] want to bring some extinct animals back to life. One of the animals is the woolly mammoth, a [4] of today’s elephants. [5], a woolly mammoth’s body [6] in Siberia. Scientists are studying the animal’s DNA. They want to use the DNA to make a [7] of the animal. First, they would [8] the DNA from the woolly mammoth. Then they would put it into an egg. After that, they would put the egg in an elephant. [9] 22 months, a woolly mammoth would be born. If it works, other [10] animals could be brought back to life, too.",
- ans:["Would","*on the|back on","scientists","relative|cousin","*Recently|In 1997|Years ago","*was found|was discovered","copy|clone","take|extract|remove","After","extinct"]},
+ ans:["Would","*on the|back on","scientists","relative|cousin","*In 2013|Recently|Years ago","*was found|was discovered","copy|clone","take|extract|remove","After","extinct"]},
 "Unit 6. The Clever Octopus":{track:"13",
  text:"The octopus is a very [1] creature. [2] similar-sized animals, the octopus has a very big brain. It uses its big brain to do clever things. There is one [3] octopus named Inky. Inky lived in the National Aquarium [4] New Zealand. But it found a way [5]. First, it [6] out of a small gap at the top of its tank. Then it went down a pipe. Finally, it escaped [7] the ocean. A group of octopuses at the Seattle Aquarium wanted to [8] some fun. They created [9] game with a small bottle. They [10] and passed the bottle around. These examples show us that the octopus is a clever animal.",
  ans:["clever|smart|intelligent","*Compared to|Compared with","famous|special","in|of","*to escape|out","climbed|squeezed|slid","*into|to","have","*their own|a","played|threw"]},
@@ -295,9 +295,11 @@ function loadUnit(){
   });
   content.innerHTML=`
     <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${unit}</h2><span class="track-pill">Audio Track ${U.track}</span><img class="unit-qr" src="${QR_IMAGE}" alt="Unit QR code" onerror="this.onerror=null;this.src=qrFallback('${unit}')"></div>
-    <p class="listen-note">Listen to the audio and fill in the blanks. Multi-word answers belong in the longer lines. Scan the QR code (top right) for the unit audio.</p>
+    <p class="listen-note">Press "Read Aloud" to hear the passage on your device, then fill in the blanks. Multi-word answers belong in the longer lines.</p>
     <div class="passage-card">${html}</div>
     <div class="action-row">
+      <button class="btn btn-check" onclick="speakPassage()">🔊 Read Aloud</button>
+      <button class="btn" onclick="stopSpeaking()">■ Stop Voice</button>
       <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
       <button class="btn btn-key" data-cmc-gated="showKey" onclick="if(window.CMC_IS_TEACHER){showKey()}else{cmcTeacherOnlyPrompt(this)}">Show Key</button>
       <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
@@ -323,6 +325,30 @@ function checkAnswers(){
   disp.style.color=score===total?'var(--success)':'var(--cyan-lt)';
   disp.innerHTML=score===total?`✓ Perfect dictation! ${total}/${total} correct.`:`Score: ${score}/${total} correct · ${total-answered} blank${total-answered===1?'':'s'} remaining.`;try{var _stoken=localStorage.getItem('cmc-student-token');var _sname=localStorage.getItem('cmc-student-name')||'';if(_stoken&&_sname){var _url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';var _body={fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:unitSelect.value},drillSource:{stringValue:'rfc2'},studentName:{stringValue:_sname},scorePct:{integerValue:String(Math.round(score/total*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(total)},submittedAt:{timestampValue:new Date().toISOString()}}};fetch(_url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_stoken},body:JSON.stringify(_body)}).catch(function(e){})}}catch(e){}
 }
+
+
+/* ── Device-voice read aloud (no unit audio files exist, so the passage is
+   read by speechSynthesis — the passage text with answers filled in is
+   exactly what a teacher would dictate). ── */
+function speakPassage(){
+  const unit=unitSelect.value;
+  if(!unit){showToast('Select a unit first.');return;}
+  const U=UNITS[unit];
+  let full=U.text;
+  U.ans.forEach((raw,i)=>{
+    const primary=raw.startsWith('*')?raw.slice(1).split('|')[0]:raw.split('|')[0];
+    full=full.replace(`[${i+1}]`,primary);
+  });
+  try{
+    if(!('speechSynthesis' in window)){showToast('Speech synthesis is not supported in this browser.');return;}
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(full);
+    u.rate=0.85;u.lang='en-US';
+    speechSynthesis.speak(u);
+    showToast('Reading the passage aloud — fill in the blanks as you listen.');
+  }catch(e){showToast('Could not start the read aloud.');}
+}
+function stopSpeaking(){try{speechSynthesis.cancel();}catch(e){}}
 
 function showKey(){
   const U=UNITS[unitSelect.value];const total=U.ans.length;

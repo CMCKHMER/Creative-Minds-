@@ -205,7 +205,7 @@ var GR=[function(s){
     {re:/\bwhom\s+do\s+you\s+think\b/i,e:'Use "who" for subjects of verbs.'},
     {re:/\bwhom\s+(is|are|was|were|will)\b/i,e:'Use "who" as the subject — "whom" is for objects.'},
     {re:/\bfor\s+you\s+and\s+i\b/i,e:'After "for", use "me", not "I" — prepositions take objective case.'},
-    {re:/\b(between|with|to|for|from|by)\\s+my\s+friend\s+and\s+i\b/i,e:'After a preposition, use "me".'},
+    {re:/\b(between|with|to|for|from|by)\s+my\s+friend\s+and\s+i\b/i,e:'After a preposition, use "me".'},
     {re:/\b(my|his|her|their)\s+and\s+my\s+friend\b/i,e:'Put "my friend" first: "my friend and I/me".'}
   ];
   for(var i=0;i<c.length;i++){if(c[i].re.test(s))return{rule:'Pronoun Case',explanation:c[i].e}}
@@ -459,17 +459,17 @@ var DB=[
 {t:"Either of the options are fine.",w:["Either","of","the","options","are","fine."],e:3,fx:"is",d:3},
 {t:"He is faster than her.",c:true,d:3},
 {t:"He is faster then her.",w:["He","is","faster","then","her."],e:2,fx:"than",d:3},
-{t:"This is the most unique design.",w:["This","is","the","most","unique","design."],e:3,fx:"unique",d:3},
+{t:"This is the most unique design.",w:["This","is","the","most","unique","design."],e:3,fx:"truly",d:3},
 {t:"She is the best player on the team.",c:true,d:3},
-{t:"She is the most best player.",w:["She","is","the","most","best","player."],e:3,fx:"best",d:3},
+{t:"She is the most best player.",w:["She","is","the","most","best","player."],e:3,fx:"very",d:3},
 {t:"He runs faster than I do.",c:true,d:3},
 {t:"He runs faster then I do.",w:["He","runs","faster","then","I","do."],e:3,fx:"than",d:3},
 {t:"I don't have any money.",c:true,d:3},
 {t:"I don't have no money.",w:["I","don't","have","no","money."],e:2,fx:"any",d:3},
 {t:"There is nobody here.",c:true,d:3},
-{t:"There isn't nobody here.",w:["There","isn't","nobody","here."],e:1,fx:"anybody",d:3},
+{t:"There isn't nobody here.",w:["There","isn't","nobody","here."],e:2,fx:"anybody",d:3},
 {t:"She has done nothing wrong.",c:true,d:3},
-{t:"She hasn't done nothing wrong.",w:["She","hasn't","done","nothing","wrong."],e:1,fx:"anything",d:3},
+{t:"She hasn't done nothing wrong.",w:["She","hasn't","done","nothing","wrong."],e:3,fx:"anything",d:3},
 {t:"The team is winning.",c:true,d:3},
 {t:"The team are winning.",w:["The","team","are","winning."],e:1,fx:"is",d:3},
 {t:"The family is on vacation.",c:true,d:3},
@@ -730,7 +730,7 @@ function initMode(mode){
   GM.lives=(mode==='survival')?99:(mode==='practice'||mode==='time'||mode==='speed'||mode==='daily')?99:3;
   GM.round=0;GM.lv=1;GM.plv=1;GM.ans=false;GM.used={};
   GM.tc=0;GM.tw=0;GM.lastTk=0;
-  GM.paused=false;
+  GM.paused=false;GM.ended=false;GM.pauseAt=0;
   GM.pool=getPool(mode);
   GM.comebackSinceLoss=0;
   if(mode==='time'){GM.timeLeft=60000;GM.timeStart=performance.now()}
@@ -739,7 +739,9 @@ function initMode(mode){
     var d=new Date();
     GM.dailySeed=hash(dateStr(d));
     if(STATS.lastDaily===dateStr(d)){
-      /* Already done today — show results directly */
+      /* Already done today — show results directly. Clear any stale round
+         so the game-over "Replay" button can't bypass the daily limit. */
+      GM.cur=null;
       activeSheet='daily';
       renderSheet('daily');
       return;
@@ -818,7 +820,7 @@ function doWin(){
   if(GM.comebackSinceLoss>0)GM.comebackSinceLoss++;
   if(GM.comebackSinceLoss>STATS.comeback)STATS.comeback=GM.comebackSinceLoss;
   snd('correct');
-  var tr=Math.max(0,GM.td-el),tb=Math.floor(tr/1000)*10,sb=Math.min(GM.streak,10)*20,pt=Math.floor((100+tb+sb)*DM[GM.lv]);
+  var tr=Math.max(0,GM.td-el),tb=(GM.mode==='practice'?0:Math.floor(tr/1000)*10),sb=Math.min(GM.streak,10)*20,pt=Math.floor((100+tb+sb)*DM[GM.lv]);
   GM.score+=pt;
   return pt;
 }
@@ -844,7 +846,7 @@ function hFi(oi){
   if(GM.ans||GM.paused)return;
   GM.ans=true;stopT();snd('click');
   var opt=GM.opts[oi],ct=eC();
-  if(opt.correct){var pt=doWin();spB(ct.x,ct.y,'#10b981',25);showFR('correct',opt)}
+  if(opt.correct){var pt=doWin();spB(ct.x,ct.y,'#10b981',25);showFR('correct',opt,pt)}
   else{doLose();trigG();spB(ct.x,ct.y,'#f85149',20);showFR('wrong',opt);if(GM.lives<=0){setTimeout(function(){snd('over');endGame()},2200);return}}
   renderSheet(GM.mode);
 }
@@ -912,14 +914,14 @@ function showR(type,an,pts){
   if(GM.lives>0)setTimeout(function(){card.classList.remove('gg','gr','shk');gl.classList.remove('em');nextRound();renderSheet(GM.mode)},2000);
 }
 
-function showFR(type,opt){
+function showFR(type,opt,pt){
   var card=document.getElementById('edC'),gl=document.getElementById('ambG'),out=document.getElementById('cO'),btns=document.getElementById('jB');
   if(btns)btns.style.display='none';
   out.classList.add('on');
   var s=GM.cur,h='';
   if(type==='correct'){
     card.classList.add('gg');gl.classList.remove('em');
-    sSP('+'+GM.score,'var(--ac)');
+    sSP('+'+(typeof pt==='number'?pt:GM.score),'var(--ac)');
     h+='<div class="cl"><span class="cp">&gt;</span> Patching...</div><div class="cl"><span class="cs">&#10003;</span> Fix: <span style="color:var(--ac);font-weight:700">'+esc(opt.text)+'</span></div>';
     mkFB(opt.text);
   } else {
@@ -1000,6 +1002,8 @@ function uTTime(){
 }
 
 function endGame(){
+  if(GM.ended)return;
+  GM.ended=true;
   stopT();
   /* Save mode stats */
   if(GM.mode){
@@ -1031,10 +1035,10 @@ function endGame(){
     var _slug = 'syntax-clash-' + (GM.mode || 'unknown');
     var _title = 'Syntax Clash Pro · ' + (GM.mode || 'game');
     var _source = 'learning-games';
-    var _score = GM.score || 0;
-    var _total = GM.tc + GM.tw || 10;
+    var _score = GM.tc || 0;
+    var _total = GM.tc + GM.tw || 0;
     var _pct = _total ? Math.round(GM.tc / _total * 100) : 0;
-try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';var _suid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},studentUid:{stringValue:_suid},classId:{nullValue:null},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
   } catch (e) {}
   checkAch();
   openSheet('over');
@@ -1277,13 +1281,15 @@ function togglePause(){
   GM.paused=!GM.paused;
   var pb=document.getElementById('pauseBtn');
   if(GM.paused){
+    GM.pauseAt=performance.now();
     pb.innerHTML='<i class="fa-solid fa-play"></i>';
     openModal('<h3 class="font-bold text-xl mb-3" style="color:var(--ac)"><i class="fa-solid fa-pause mr-2"></i>Paused</h3><p class="mb-4" style="color:var(--mt)">Game paused. The timer is frozen.</p><button class="bp w-full" onclick="togglePause();closeModal()"><i class="fa-solid fa-play mr-2"></i>Resume</button>');
   } else {
     pb.innerHTML='<i class="fa-solid fa-pause"></i>';
     closeModal();
-    /* Restart timer relative to now */
-    if(!GM.ans){GM.ts=performance.now()-(GM.td-(GM.td-(performance.now()-GM.ts)));uT()}
+    /* Shift the round-timer origin forward by the paused duration so the
+       elapsed time truly freezes while paused. */
+    if(!GM.ans&&GM.pauseAt){GM.ts+=performance.now()-GM.pauseAt;GM.pauseAt=0;uT()}
     if(GM.mode==='time'){GM.timeStart=performance.now()-(60000-GM.timeLeft);uTTime()}
   }
 }

@@ -338,7 +338,7 @@ function loadUnit(){
     ${cHtml}
     <div class="action-row">
       <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
-      <button class="btn btn-key" onclick="showKey()">Show Key</button>
+      <button class="btn btn-key" data-cmc-gated="showKey" onclick="if(window.CMC_IS_TEACHER){showKey()}else{cmcTeacherOnlyPrompt(this)}">Show Key</button>
       <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
       <button class="btn btn-print" onclick="printPDF()">⎙ Print / Save PDF</button>
       <button class="btn btn-reset" onclick="loadUnit()">Reset</button>

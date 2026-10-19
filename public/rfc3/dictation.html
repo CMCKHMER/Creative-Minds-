@@ -37,11 +37,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-im
 .passage-card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--border);border-radius:12px;padding:26px 28px;font-size:15px;line-height:2.5;color:#cbd5e1}
 .dbwrap{display:inline-block;margin:0 4px;vertical-align:middle}
 .dbnum{font-size:11px;color:var(--violet-lt);font-weight:700;margin-right:3px}
-.dblank{font-family:inherit;font-size:13.5px;text-align:center;color:var(--cyan-lt);background:#0a101f;border:none;border-bottom:2px dashed rgba(34,211,238,.5);border-radius:6px 6px 0 0;padding:6px 8px;width:120px;transition:all .2s}
-.dblank.long{width:200px}
-.dblank:focus{outline:none;border-bottom-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
-.dblank.correct{border-bottom:2px solid var(--success);background:rgba(52,211,153,.1);color:var(--success)}
-.dblank.incorrect{border-bottom:2px solid var(--error);background:rgba(248,113,113,.1);color:var(--error)}
+.dblane{font-family:inherit;font-size:13.5px;text-align:center;color:var(--cyan-lt);background:#0a101f;border:none;border-bottom:2px dashed rgba(34,211,238,.5);border-radius:6px 6px 0 0;padding:6px 8px;width:120px;transition:all .2s}
+.dblane.long{width:200px}
+.dblane:focus{outline:none;border-bottom-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+.dblane.correct{border-bottom:2px solid var(--success);background:rgba(52,211,153,.1);color:var(--success)}
+.dblane.incorrect{border-bottom:2px solid var(--error);background:rgba(248,113,113,.1);color:var(--error)}
 .action-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
 .btn{flex:1;padding:13px;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:filter .25s,transform .25s;min-width:140px}
 .btn-check{color:#041018;background:linear-gradient(90deg,var(--cyan),var(--violet))}
@@ -237,7 +237,7 @@ const UNITS = {
  ans:["*think of","work","hard","successful","draw","cartoons|pictures","delivered","classes","company","artists","animation","successful","failed","*poor management","success","cancer","spirit|legacy","words|quote","courage","pursue"]},
 "Unit 5. Foreign Exchange Rates":{track:"11",
  text:"Every country has its own [1]. [2], when people travel, they need to go to the bank to [3] their money. This is called currency exchange. In order to do currency exchange, banks use [4] exchange [5], or FX rates. The foreign exchange rate tells how much one currency is [6] to in another currency. For example, the euro to U.S. dollar exchange rate on January 1st, 2018 was 1.20. This means that 1 euro was equal to 1.20 U.S. dollars. But this number is [7] [8] now. On another day, 1 euro could be equal to 1.10 U.S. dollars. This is because the foreign exchange rate [9] every day. Foreign exchange rates used to be [10] by how much gold a country had. This was called a [11]. Now, countries use a [12]. This [13] [14] [15], [16] world events and the [17]. If there are problems happening in a [18], the [19] of that country’s currency may fall. Or if Americans want to import a large amount of products made in Europe, they need to buy euros. This makes the value of the euro higher. [20] exchange different currencies, banks use foreign exchange rates that depend on what is happening in the world.",
- ans:["currency","Therefore","exchange","foreign","rates","equal","probably","different","changes","determined","*fixed exchange rate","*floating exchange range|floating exchange rate","*depends on","numerous","factors","including","economy","government","value","*In order to"]},
+ ans:["currency","Therefore","exchange","foreign","rates","equal","probably","different","changes","determined","*fixed exchange rate","*floating exchange rate","*depends on","numerous","factors","including","economy","government","value","*In order to"]},
 "Unit 6. What Are Banks For?":{track:"13",
  text:"Everyone knows that banks [1] [2]. But people use banks for [3] [4]. Most people put money into banks [5] it safe. Most banks [6] [7] to their [8]. Banks [9] money called [10] to their customers for keeping money in these accounts. There are different kinds of savings accounts, but all of them [11] customers to save and [12] money. There are people who go to banks to [13] money. This is called a [14]. Banks [15] interest from these loans. Of course, this interest rate is higher than what banks pay to customers for having savings accounts. But these loans are important. For example, most people could not buy a house without a [16] loan. Banks also [17] money to businesses. They have to decide if the business will be able to [18] the business loan. That means the bank must consider the business idea and [19] if it will make money or not. So, banks play a role in the [20]. A bank is a place for keeping money safe. But it is also a place people visit to borrow money to help them pay for a place to live or for a business.",
  ans:["*keep money","safe","other|different","reasons|purposes","*in order to keep|to keep","offer","*savings accounts","customers","pay","interest","allow","earn","borrow","*bank loan","collect","personal","lend","*pay back","guess|decide","economy"]},
@@ -293,9 +293,11 @@ function loadUnit(){
   });
   content.innerHTML=`
     <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${unit}</h2><span class="track-pill">Audio Track ${U.track}</span><img class="unit-qr" src="${QR_IMAGE}" alt="Unit QR code" onerror="this.onerror=null;this.src=qrFallback('${unit}')"></div>
-    <p class="listen-note">Listen to the audio and fill in the blanks. Multi-word answers belong in the longer lines. Scan the QR code (top right) for the unit audio.</p>
+    <p class="listen-note">Press "Read Aloud" to hear the passage on your device, then fill in the blanks. Multi-word answers belong in the longer lines.</p>
     <div class="passage-card">${html}</div>
     <div class="action-row">
+      <button class="btn btn-check" onclick="speakPassage()">🔊 Read Aloud</button>
+      <button class="btn" onclick="stopSpeaking()">■ Stop Voice</button>
       <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
       <button class="btn btn-key" data-cmc-gated="showKey" onclick="if(window.CMC_IS_TEACHER){showKey()}else{cmcTeacherOnlyPrompt(this)}">Show Key</button>
       <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
@@ -319,8 +321,34 @@ function checkAnswers(){
   const disp=document.getElementById('scoreDisplay');
   disp.style.display='block';
   disp.style.color=score===20?'var(--success)':'var(--cyan-lt)';
-  disp.innerHTML=score===20?`✓ Perfect dictation! 20/20 correct.`:`Score: ${score}/20 correct;try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title.split('—')[0].trim()},drillSource:{stringValue:'rfc3'},studentName:{stringValue:_sn},scorePct:{integerValue:String(Math.round(score/20*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(20)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){} · ${20-answered} blank${20-answered===1?'':'s'} remaining.`;
+  disp.innerHTML=score===20?`✓ Perfect dictation! 20/20 correct.`:`Score: ${score}/20 correct · ${20-answered} blank${20-answered===1?'':'s'} remaining.`;
+  /* CMC-FIRESTORE-POST — submit the dictation score (non-blocking). */
+  try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';var _suid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title.split('—')[0].trim()+(unitSelect.value?' · '+unitSelect.value:'')},drillSource:{stringValue:'rfc3'},studentName:{stringValue:_sn},studentUid:{stringValue:_suid},classId:{nullValue:null},scorePct:{integerValue:String(Math.round(score/20*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(20)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
 }
+
+
+/* ── Device-voice read aloud (no unit audio files exist, so the passage is
+   read by speechSynthesis — the passage text with answers filled in is
+   exactly what a teacher would dictate). ── */
+function speakPassage(){
+  const unit=unitSelect.value;
+  if(!unit){showToast('Select a unit first.');return;}
+  const U=UNITS[unit];
+  let full=U.text;
+  U.ans.forEach((raw,i)=>{
+    const primary=raw.startsWith('*')?raw.slice(1).split('|')[0]:raw.split('|')[0];
+    full=full.replace(`[${i+1}]`,primary);
+  });
+  try{
+    if(!('speechSynthesis' in window)){showToast('Speech synthesis is not supported in this browser.');return;}
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(full);
+    u.rate=0.85;u.lang='en-US';
+    speechSynthesis.speak(u);
+    showToast('Reading the passage aloud — fill in the blanks as you listen.');
+  }catch(e){showToast('Could not start the read aloud.');}
+}
+function stopSpeaking(){try{speechSynthesis.cancel();}catch(e){}}
 
 function showKey(){
   const U=UNITS[unitSelect.value];

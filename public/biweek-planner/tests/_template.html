@@ -132,7 +132,7 @@ html[data-theme="light"] body{color:#1e293b}
 
 /* AI-generated test page background */
 body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background-image:url('img/test-bg.png');
+  background-image:url('../img/test-bg.png');
   background-size:cover;background-position:center;background-repeat:no-repeat;
   opacity:.12;mix-blend-mode:screen;
   -webkit-mask-image:radial-gradient(ellipse 60% 50% at 50% 30%,black 0%,transparent 80%);
@@ -268,6 +268,12 @@ try{var saved=localStorage.getItem('biweek-theme');if(saved){document.documentEl
 
 const config=window.TEST_CONFIG;
 const banks=window.TEST_BANKS;
+// Dev-artifact guard: _template.html ships in public/ but has no TEST_CONFIG.
+// Show a clear message instead of throwing an opaque TypeError.
+if(!config||!banks){
+  document.getElementById('test-header').innerHTML='<p style="color:#f87171;font-size:13px;padding:16px;border-radius:8px;background:rgba(248,113,113,.08)">This is the page-generation template (tests/_template.html). It needs TEST_CONFIG and TEST_BANKS to render a test \u2014 open one of the generated week pages instead.</p>';
+  throw new Error('CMC template: TEST_CONFIG not defined');
+}
 
 // Render header
 document.getElementById('test-header').innerHTML=`
@@ -341,7 +347,7 @@ function addQ(target,number,prompt,choices,answer,kind='radio',values=null){
 Object.entries(banks).forEach(([tid,rows])=>{
   const target=document.getElementById(tid);
   if(!target)return;
-  rows.forEach((r,i)=>addQ(target,(counts[tid]=(counts[tid]||0)+1),r[0],r[1],r[2]));
+  rows.forEach((r,i)=>addQ(target,allQuestions.length+1,r[0],r[1],r[2]));
 });
 
 if(window.RHETORICAL_A){
@@ -350,12 +356,15 @@ if(window.RHETORICAL_A){
 }
 if(window.RHETORICAL_B){
   const rB=document.getElementById('rhetorical-b-list');
-  if(rB)window.RHETORICAL_B.forEach((r,i)=>addQ(rB,(window.RHETORICAL_A?.length||0)+i+1,r[0],["1 = reason","2 = explanation","3 = justification","4 = cause-and-effect or purpose"],r[1],'checkbox',[1,2,3,4]));
+  if(rB)window.RHETORICAL_B.forEach((r,i)=>addQ(rB,allQuestions.length+1,r[0],["1 = reason","2 = explanation","3 = justification","4 = cause-and-effect or purpose"],r[1],'checkbox',[1,2,3,4]));
 }
 
 // Build question map
 const qmap=document.getElementById('qmap');
 function buildQMap(){
+  // Some generated pages omit the #qmap strip — guard so the rest of the
+  // page's wiring (timer, submit, review modal) still runs.
+  if(!qmap)return;
   qmap.innerHTML='';
   allQuestions.forEach((card,i)=>{
     const item=document.createElement('button');
@@ -366,6 +375,7 @@ function buildQMap(){
   });
 }
 function updateQMap(){
+  if(!qmap)return;
   const items=qmap.querySelectorAll('.qmap-item');
   allQuestions.forEach((card,i)=>{
     if(!items[i])return;
@@ -440,7 +450,7 @@ function doSubmit(){
   breakdown.innerHTML='<p class="text-xs font-bold mb-3" style="color:var(--muted)">Score breakdown by section</p>'+gs.map(s=>{const pct=s.total>0?Math.round(s.correct/s.total*100):0;const color=pct>=80?'#34d399':pct>=50?'#fbbf24':'#f87171';return `<div class="skill-bar-row"><span class="skill-name">${s.title.split('\u00b7')[0].trim().slice(0,15)}</span><div class="skill-bar-track"><div class="skill-bar-fill" style="width:${pct}%;background:${color}"></div></div><span class="skill-score">${s.correct}/${s.total}</span></div>`;}).join('');
   breakdown.classList.add('show');
   // Firestore submit
-  cmcTrack('drill_complete',{drill_slug:window.location.pathname.split('/').pop(),drill_title:config.title,drill_source:'biweek-planner',score_pct:Math.round(score/cards.length*100),correct_count:score,total_count:cards.length});;try{var _stoken=localStorage.getItem('cmc-student-token');var _sname=localStorage.getItem('cmc-student-name')||'';if(_stoken&&_sname){var _url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';var _body={fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:config.title},drillSource:{stringValue:'biweek-planner'},studentName:{stringValue:_sname},scorePct:{integerValue:String(Math.round(score/cards.length*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(cards.length)},submittedAt:{timestampValue:new Date().toISOString()}}};fetch(_url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_stoken},body:JSON.stringify(_body)}).catch(function(e){})}}catch(e){}
+  cmcTrack('drill_complete',{drill_slug:window.location.pathname.split('/').pop(),drill_title:config.title,drill_source:'biweek-planner',score_pct:Math.round(score/cards.length*100),correct_count:score,total_count:cards.length});;try{var _stoken=localStorage.getItem('cmc-student-token');var _sname=localStorage.getItem('cmc-student-name')||'';var _suid=localStorage.getItem('cmc-student-uid')||'';var _sexp=Number(localStorage.getItem('cmc-student-token-expires')||'0');if(_stoken&&_sname&&(!_sexp||_sexp>Date.now())){var _url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';var _body={fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:config.title},drillSource:{stringValue:'biweek-planner'},studentName:{stringValue:_sname},studentUid:{stringValue:_suid},classId:{nullValue:null},durationSeconds:{nullValue:null},scorePct:{integerValue:String(Math.round(score/cards.length*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(cards.length)},submittedAt:{timestampValue:new Date().toISOString()}}};fetch(_url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_stoken},body:JSON.stringify(_body)}).catch(function(e){})}}catch(e){}
   result.innerHTML=`\u2713 Score: ${score}/${cards.length} (${Math.round(score/cards.length*100)}%) \u2014 ${config.title}`;
   result.classList.remove('hidden');result.style.background='rgba(16,185,129,.1)';result.style.color='#6ee7b7';
   submitBtn.disabled=true;submitBtn.innerHTML='<i class="fas fa-check text-xs"></i> Submitted';

@@ -1981,7 +1981,7 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                         <i class="fas fa-headphones text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2">Listening</h3>
-                    <p class="text-slate-400 text-sm mb-4">2 Modules • 36 Questions</p>
+                    <p class="text-slate-400 text-sm mb-4">2 Modules • 34 Questions</p>
                     <div class="flex items-center justify-center gap-2 text-sm">
                         <i class="fas fa-clock text-slate-500"></i>
                         <span class="text-slate-400">~36 minutes</span>
@@ -2099,11 +2099,11 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                             <div class="grid grid-cols-2 gap-3 mt-6">
                                 <div class="stat-card" style="border-left: 3px solid var(--success);">
                                     <div id="reading-correct" class="text-2xl font-bold text-emerald-400">0</div>
-                                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Correct</div>
+                                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Answered</div>
                                 </div>
                                 <div class="stat-card" style="border-left: 3px solid var(--error);">
                                     <div id="reading-incorrect" class="text-2xl font-bold text-red-400">0</div>
-                                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Incorrect</div>
+                                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Unanswered</div>
                                 </div>
                             </div>
                             <div class="mt-8 pt-6 border-t border-slate-700">
@@ -2507,8 +2507,8 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                             
                             <div class="glass-frame p-6 mb-8" style="background: rgba(30, 41, 59, 0.5);">
                                 <p class="text-slate-300 leading-relaxed mb-4">The history of photography is marked by significant technological progress and artistic innovation. It began in the early nineteenth century with the invention of the camera obscura, a device that projected images onto a surface. The first permanent photograph was created by Joseph-Nicéphore Niépce in 1826 using a process called heliography, which required several hours of exposure to light.</p>
-                                <p class="text-slate-300 leading-relaxed mb-4">Photography quickly evolved with the development of daguerreotypes, introduced by Louis Daguerre in 1819. This method produced detailed images on silver-plated copper, but daguerreotypes needed delicate handling, and the exposure times required remained impractical for recording images of moving objects.</p>
-                                <p class="text-slate-300 leading-relaxed">The invention of the calotype by William Henry Fox Talbot in the 1840s allowed for multiple copies of an image to be made from a single negative, revolutionizing the field. In the late nineteenth century, the introduction of film and roll cameras made photography more accessible to the public. George Eastman's establishment of the Kodak company in 1888 played a crucial role in this democratization.</p>
+                                <p class="text-slate-300 leading-relaxed mb-4">Photography quickly evolved with the development of daguerreotypes, introduced by Louis Daguerre in 1819. This method produced detailed images on silver-plated copper, but daguerreotypes needed delicate handling, and the exposure times required remained impractical for recording images of moving objects.<strong class="text-cyan-300"> Ⓐ </strong></p>
+                                <p class="text-slate-300 leading-relaxed">The invention of the calotype by William Henry Fox Talbot in the 1840s allowed for multiple copies of an image to be made from a single negative, revolutionizing the field.<strong class="text-cyan-300"> Ⓑ </strong> In the late nineteenth century, the introduction of film and roll cameras made photography more accessible to the public.<strong class="text-cyan-300"> Ⓒ </strong> George Eastman's establishment of the Kodak company in 1888 played a crucial role in this democratization.<strong class="text-cyan-300"> Ⓓ </strong></p>
                             </div>
                             
                             <div class="space-y-4 mt-6">
@@ -2554,10 +2554,10 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                             <div class="space-y-4 mt-6">
                                 <p class="text-white font-semibold">20. Insert sentence: "These developments have rendered film and many cameras obsolete." Where does it fit best?</p>
                                 <div class="space-y-2">
-                                    <div class="option-3d" onclick="selectReadingOption('r2q20', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) Option A</span></div>
-                                    <div class="option-3d" onclick="selectReadingOption('r2q20', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) Option B</span></div>
-                                    <div class="option-3d" onclick="selectReadingOption('r2q20', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) Option C</span></div>
-                                    <div class="option-3d" onclick="selectReadingOption('r2q20', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) Option D</span></div>
+                                    <div class="option-3d" onclick="selectReadingOption('r2q20', 'A', this)"><div class="option-radio"></div><span class="text-slate-300">(A) At Ⓐ — after "…impractical for recording images of moving objects."</span></div>
+                                    <div class="option-3d" onclick="selectReadingOption('r2q20', 'B', this)"><div class="option-radio"></div><span class="text-slate-300">(B) At Ⓑ — after "…revolutionizing the field."</span></div>
+                                    <div class="option-3d" onclick="selectReadingOption('r2q20', 'C', this)"><div class="option-radio"></div><span class="text-slate-300">(C) At Ⓒ — after "…more accessible to the public."</span></div>
+                                    <div class="option-3d" onclick="selectReadingOption('r2q20', 'D', this)"><div class="option-radio"></div><span class="text-slate-300">(D) At Ⓓ — after "…crucial role in this democratization."</span></div>
                                 </div>
                             </div>
                         </div>
@@ -2575,7 +2575,6 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
 
     <!-- ==================== LISTENING SECTION ==================== -->
     <div id="listening-section" class="section-view light-theme-bg" style="min-height: 100vh;">
-        <body class="section-listening" style="background: none; min-height: auto;">
         <button class="back-btn" onclick="backToDashboard()">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </button>
@@ -2600,7 +2599,7 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="text-slate-400">Questions:</span>
-                    <span class="font-bold text-white">36</span>
+                    <span class="font-bold text-white">34</span>
                 </div>
             </div>
             
@@ -3531,13 +3530,11 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                 </div>
             </div>
         </div>
-        </body>
     </div>
 
 
     <!-- ==================== SPEAKING SECTION ==================== -->
     <div id="speaking-section" class="section-view light-theme-bg" style="min-height: 100vh;">
-        <body class="section-speaking" style="background: none; min-height: auto;">
         <button class="back-btn" onclick="backToDashboard()">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </button>
@@ -4016,13 +4013,11 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                 </div>
             </div>
         </div>
-        </body>
     </div>
 
 
     <!-- ==================== WRITING SECTION ==================== -->
     <div id="writing-section" class="section-view light-theme-bg" style="min-height: 100vh;">
-        <body class="section-writing" style="background: none; min-height: auto;">
         <button class="back-btn" onclick="backToDashboard()">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </button>
@@ -4193,12 +4188,13 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                         </div>
                         <p class="text-white font-medium mb-4">"What time does the train leave?"</p>
                         <div class="flex flex-wrap gap-2 mb-4" id="words-w1q4">
-                            <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="departs">departs</span>
-                            <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="at">at</span>
-                            <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="3pm">3pm</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="the">the</span>
+                            <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="train">train</span>
+                            <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="departs">departs</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="from">from</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="station">station</span>
+                            <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="at">at</span>
+                            <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q4')" data-word="3pm">3pm</span>
                         </div>
                         <div class="sentence-builder" id="builder-w1q4" ondrop="drop(event, 'w1q4')" ondragover="allowDrop(event)">
                             <span class="text-slate-500">Drop words here to build your sentence...</span>
@@ -4300,6 +4296,7 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q8')" data-word="so">so</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q8')" data-word="everyone">everyone</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q8')" data-word="has">has</span>
+                            <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q8')" data-word="the">the</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q8')" data-word="day">day</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q8')" data-word="off">off</span>
                         </div>
@@ -4343,6 +4340,7 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                         </div>
                         <p class="text-white font-medium mb-4">"When will the report be finished?"</p>
                         <div class="flex flex-wrap gap-2 mb-4" id="words-w1q10">
+                            <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q10')" data-word="it">it</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q10')" data-word="will">will</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q10')" data-word="be">be</span>
                             <span class="word-box" draggable="true" ondragstart="drag(event, 'w1q10')" data-word="completed">completed</span>
@@ -4492,7 +4490,6 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                 </div>
             </div>
         </div>
-        </body>
     </div>
 
 
@@ -4569,6 +4566,16 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
             // Update student name displays
             const nameEl = document.getElementById(section + '-student-name');
             if (nameEl) nameEl.textContent = studentName;
+            
+            // If the student re-enters a section they already started (after
+            // "Back to Dashboard"), the inner test view is still shown but its
+            // timer interval was cleared by stopAllTimers() — restart it so the
+            // clock keeps running instead of freezing.
+            const testEl = document.getElementById(section + '-test');
+            if (testEl && testEl.style.display === 'block' && !completedSections[section]) {
+                const starters = { reading: startReading, listening: startListening, speaking: startSpeaking, writing: startWriting };
+                if (starters[section]) starters[section]();
+            }
         }
         
         function backToDashboard() {
@@ -4599,6 +4606,10 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
             if (listeningTimer) clearInterval(listeningTimer);
             if (speakingTimer) clearInterval(speakingTimer);
             if (writingTimer) clearInterval(writingTimer);
+            // Writing sub-module timers keep ticking after leaving the
+            // section unless they are cleared here too.
+            if (emailTimer) clearInterval(emailTimer);
+            if (discussionTimer) clearInterval(discussionTimer);
         }
         
         // ==================== READING SECTION ====================
@@ -4668,28 +4679,17 @@ try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentEle
                 clearInterval(readingTimer);
                 completedSections.reading = true;
                 backToDashboard();
-completedSections.reading = true;
                 /* CMC-FIRESTORE-POST (toefl-ibt section submit) —
-completedSections.reading = true;
-                   submit the Reading section score to
-completedSections.reading = true;
-                   Firestore. Non-blocking. */
-completedSections.reading = true;
+                   submit the Reading section attempt (answered/total) to
+                   Firestore. This hub is not auto-graded. Non-blocking. */
                 try {
-completedSections.reading = true;
                   var _slug = 'toefl-ibt-reading';
-completedSections.reading = true;
                   var _title = 'TOEFL iBT · Reading Section';
-completedSections.reading = true;
                   var _source = 'toefl-ibt';
-completedSections.reading = true;
-                  var _score = (typeof readingCorrect !== 'undefined' ? readingCorrect : 0);
-completedSections.reading = true;
-                  var _total = (typeof readingTotal !== 'undefined' ? readingTotal : 0);
-completedSections.reading = true;
+                  var _score = Object.keys(readingAnswers).length;
+                  var _total = 40;
                   var _pct = _total ? Math.round(_score / _total * 100) : 0;
-try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
-completedSections.reading = true;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';var _uid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},studentUid:{stringValue:_uid},classId:{nullValue:null},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
                 } catch (e) {}
             }
         }
@@ -4786,28 +4786,17 @@ completedSections.reading = true;
                 clearInterval(listeningTimer);
                 completedSections.listening = true;
                 backToDashboard();
-completedSections.listening = true;
                 /* CMC-FIRESTORE-POST (toefl-ibt section submit) —
-completedSections.listening = true;
-                   submit the Listening section score to
-completedSections.listening = true;
-                   Firestore. Non-blocking. */
-completedSections.listening = true;
+                   submit the Listening section attempt (answered/total) to
+                   Firestore. This hub is not auto-graded. Non-blocking. */
                 try {
-completedSections.listening = true;
                   var _slug = 'toefl-ibt-listening';
-completedSections.listening = true;
                   var _title = 'TOEFL iBT · Listening Section';
-completedSections.listening = true;
                   var _source = 'toefl-ibt';
-completedSections.listening = true;
-                  var _score = (typeof listeningCorrect !== 'undefined' ? listeningCorrect : 0);
-completedSections.listening = true;
-                  var _total = (typeof listeningTotal !== 'undefined' ? listeningTotal : 0);
-completedSections.listening = true;
+                  var _score = Object.keys(listeningAnswers).length;
+                  var _total = 34;
                   var _pct = _total ? Math.round(_score / _total * 100) : 0;
-try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
-completedSections.listening = true;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';var _uid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},studentUid:{stringValue:_uid},classId:{nullValue:null},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
                 } catch (e) {}
             }
         }
@@ -4901,6 +4890,8 @@ completedSections.listening = true;
                     }, maxDuration);
                     
                 } catch (err) {
+                    // A denied microphone leaves a silent, dead button — tell the user.
+                    if (status) status.textContent = 'Microphone access was blocked. Allow the microphone and try again.';
                 }
             } else {
                 // Stop recording
@@ -4923,28 +4914,17 @@ completedSections.listening = true;
                 clearInterval(speakingTimer);
                 completedSections.speaking = true;
                 backToDashboard();
-completedSections.speaking = true;
                 /* CMC-FIRESTORE-POST (toefl-ibt section submit) —
-completedSections.speaking = true;
-                   submit the Speaking section score to
-completedSections.speaking = true;
-                   Firestore. Non-blocking. */
-completedSections.speaking = true;
+                   submit the Speaking section attempt (recorded/total) to
+                   Firestore. This hub is not auto-graded. Non-blocking. */
                 try {
-completedSections.speaking = true;
                   var _slug = 'toefl-ibt-speaking';
-completedSections.speaking = true;
                   var _title = 'TOEFL iBT · Speaking Section';
-completedSections.speaking = true;
                   var _source = 'toefl-ibt';
-completedSections.speaking = true;
-                  var _score = (typeof speakingCorrect !== 'undefined' ? speakingCorrect : 0);
-completedSections.speaking = true;
-                  var _total = (typeof speakingTotal !== 'undefined' ? speakingTotal : 0);
-completedSections.speaking = true;
+                  var _score = Object.keys(speakingRecordings).length;
+                  var _total = 11;
                   var _pct = _total ? Math.round(_score / _total * 100) : 0;
-try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
-completedSections.speaking = true;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';var _uid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},studentUid:{stringValue:_uid},classId:{nullValue:null},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
                 } catch (e) {}
             }
         }
@@ -5041,6 +5021,9 @@ completedSections.speaking = true;
             event.dataTransfer.setData('text/plain', event.target.getAttribute('data-word'));
             event.dataTransfer.setData('questionId', questionId);
             event.target.classList.add('dragging');
+            // If the drag is cancelled (dropped outside a builder), remove the
+            // dimmed style — otherwise the word stays at half opacity forever.
+            event.target.ondragend = function() { this.classList.remove('dragging'); };
         }
         
         function allowDrop(event) {
@@ -5067,10 +5050,11 @@ completedSections.speaking = true;
             wordSpan.setAttribute('ondragstart', "drag(event, '" + questionId + "')");
             wordSpan.textContent = word;
             
-            // Check if dropping onto the builder or a specific position
-            if (event.target.classList.contains('sentence-builder')) {
-                builder.appendChild(wordSpan);
-            } else if (event.target.classList.contains('word-box') && event.target.parentElement.classList.contains('sentence-builder')) {
+            // Check if dropping onto an existing word (reorder) or anywhere
+            // else in the builder (append). The placeholder is removed above,
+            // which detaches event.target — so it must fall through to append,
+            // not be dropped on the floor.
+            if (event.target.classList.contains('word-box') && event.target.parentElement && event.target.parentElement.classList.contains('sentence-builder')) {
                 // Insert before or after the target word based on drop position
                 const rect = event.target.getBoundingClientRect();
                 const midpoint = rect.left + rect.width / 2;
@@ -5079,6 +5063,8 @@ completedSections.speaking = true;
                 } else {
                     builder.insertBefore(wordSpan, event.target.nextSibling);
                 }
+            } else {
+                builder.appendChild(wordSpan);
             }
             
             // Remove from source if moving within the same builder
@@ -5184,28 +5170,17 @@ completedSections.speaking = true;
                 if (discussionTimer) clearInterval(discussionTimer);
                 completedSections.writing = true;
                 backToDashboard();
-completedSections.writing = true;
                 /* CMC-FIRESTORE-POST (toefl-ibt section submit) —
-completedSections.writing = true;
-                   submit the Writing section score to
-completedSections.writing = true;
-                   Firestore. Non-blocking. */
-completedSections.writing = true;
+                   submit the Writing section attempt (completed/total) to
+                   Firestore. This hub is not auto-graded. Non-blocking. */
                 try {
-completedSections.writing = true;
                   var _slug = 'toefl-ibt-writing';
-completedSections.writing = true;
                   var _title = 'TOEFL iBT · Writing Section';
-completedSections.writing = true;
                   var _source = 'toefl-ibt';
-completedSections.writing = true;
-                  var _score = (typeof writingCorrect !== 'undefined' ? writingCorrect : 0);
-completedSections.writing = true;
-                  var _total = (typeof writingTotal !== 'undefined' ? writingTotal : 0);
-completedSections.writing = true;
+                  var _score = document.querySelectorAll('#writing-test .feedback-correct').length + (document.getElementById('email-body') && document.getElementById('email-body').value.trim() ? 1 : 0) + (document.getElementById('discussion-body') && document.getElementById('discussion-body').value.trim() ? 1 : 0);
+                  var _total = 12;
                   var _pct = _total ? Math.round(_score / _total * 100) : 0;
-try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
-completedSections.writing = true;
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';var _uid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},studentUid:{stringValue:_uid},classId:{nullValue:null},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
                 } catch (e) {}
             }
         }
@@ -5575,6 +5550,13 @@ completedSections.writing = true;
             stopSecurityMonitoring();
             securityViolations = 0;
             updateStrikeDisplay();
+            // Dismiss the full-screen security overlays (termination /
+            // warning) — showView() only manages .section-view elements, so
+            // without this the overlay keeps covering the login screen.
+            ['test-terminated', 'security-warning'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) { el.classList.add('hidden'); el.style.display = ''; }
+            });
             studentName = '';
             studentId = '';
             completedSections = { reading: false, listening: false, speaking: false, writing: false };

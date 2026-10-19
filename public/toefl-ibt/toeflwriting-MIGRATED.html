@@ -536,7 +536,235 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
                     <div id="feedback-w1q2" class="mt-3 hidden"></div>
                 </div>
 
-                <!-- Questions 3-10 follow same pattern... -->
+
+                <!-- Question 3 -->
+                <div class="question-frame" id="w1q3">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 3</span>
+                        </div>
+                        <button onclick="checkSentence('w1q3')" class="btn-3d check-btn text-sm">
+                            <i class="fas fa-check mr-2"></i>Check
+                        </button>
+                    </div>
+                    <p class="text-slate-300 mb-4 font-medium">How did Sarah feel about the test results?</p>
+                    <div class="flex flex-wrap gap-2 mb-4" id="words-w1q3">
+                        <span class="word-box" draggable="true" data-word="she">she</span>
+                        <span class="word-box" draggable="true" data-word="was">was</span>
+                        <span class="word-box" draggable="true" data-word="disappointed">disappointed</span>
+                        <span class="word-box" draggable="true" data-word="because">because</span>
+                        <span class="word-box" draggable="true" data-word="had">had</span>
+                        <span class="word-box" draggable="true" data-word="studied">studied</span>
+                        <span class="word-box" draggable="true" data-word="but">but</span>
+                        <span class="word-box" draggable="true" data-word="didn't">didn't</span>
+                        <span class="word-box" draggable="true" data-word="pass">pass</span>
+                    </div>
+                    <div class="sentence-builder" id="builder-w1q3" ondrop="drop(event, 'w1q3')" ondragover="allowDrop(event)">
+                        <span class="text-slate-500 text-sm italic">Drag words here to build your sentence...</span>
+                    </div>
+                    <div id="feedback-w1q3" class="mt-3 hidden"></div>
+                </div>
+
+
+                <!-- Question 4 -->
+                <div class="question-frame" id="w1q4">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 4</span>
+                        </div>
+                        <button onclick="checkSentence('w1q4')" class="btn-3d check-btn text-sm">
+                            <i class="fas fa-check mr-2"></i>Check
+                        </button>
+                    </div>
+                    <p class="text-slate-300 mb-4 font-medium">What time does the train leave?</p>
+                    <div class="flex flex-wrap gap-2 mb-4" id="words-w1q4">
+                        <span class="word-box" draggable="true" data-word="the">the</span>
+                        <span class="word-box" draggable="true" data-word="train">train</span>
+                        <span class="word-box" draggable="true" data-word="departs">departs</span>
+                        <span class="word-box" draggable="true" data-word="from">from</span>
+                        <span class="word-box" draggable="true" data-word="station">station</span>
+                        <span class="word-box" draggable="true" data-word="at">at</span>
+                        <span class="word-box" draggable="true" data-word="3pm">3pm</span>
+                    </div>
+                    <div class="sentence-builder" id="builder-w1q4" ondrop="drop(event, 'w1q4')" ondragover="allowDrop(event)">
+                        <span class="text-slate-500 text-sm italic">Drag words here to build your sentence...</span>
+                    </div>
+                    <div id="feedback-w1q4" class="mt-3 hidden"></div>
+                </div>
+
+
+                <!-- Question 5 -->
+                <div class="question-frame" id="w1q5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 5</span>
+                        </div>
+                        <button onclick="checkSentence('w1q5')" class="btn-3d check-btn text-sm">
+                            <i class="fas fa-check mr-2"></i>Check
+                        </button>
+                    </div>
+                    <p class="text-slate-300 mb-4 font-medium">Where did Tom put my keys?</p>
+                    <div class="flex flex-wrap gap-2 mb-4" id="words-w1q5">
+                        <span class="word-box" draggable="true" data-word="he">he</span>
+                        <span class="word-box" draggable="true" data-word="left">left</span>
+                        <span class="word-box" draggable="true" data-word="them">them</span>
+                        <span class="word-box" draggable="true" data-word="on">on</span>
+                        <span class="word-box" draggable="true" data-word="kitchen">kitchen</span>
+                        <span class="word-box" draggable="true" data-word="counter">counter</span>
+                        <span class="word-box" draggable="true" data-word="the">the</span>
+                    </div>
+                    <div class="sentence-builder" id="builder-w1q5" ondrop="drop(event, 'w1q5')" ondragover="allowDrop(event)">
+                        <span class="text-slate-500 text-sm italic">Drag words here to build your sentence...</span>
+                    </div>
+                    <div id="feedback-w1q5" class="mt-3 hidden"></div>
+                </div>
+
+
+                <!-- Question 6 -->
+                <div class="question-frame" id="w1q6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 6</span>
+                        </div>
+                        <button onclick="checkSentence('w1q6')" class="btn-3d check-btn text-sm">
+                            <i class="fas fa-check mr-2"></i>Check
+                        </button>
+                    </div>
+                    <p class="text-slate-300 mb-4 font-medium">Who is coming to the dinner party?</p>
+                    <div class="flex flex-wrap gap-2 mb-4" id="words-w1q6">
+                        <span class="word-box" draggable="true" data-word="invited">invited</span>
+                        <span class="word-box" draggable="true" data-word="we">we</span>
+                        <span class="word-box" draggable="true" data-word="our">our</span>
+                        <span class="word-box" draggable="true" data-word="neighbors">neighbors</span>
+                        <span class="word-box" draggable="true" data-word="and">and</span>
+                        <span class="word-box" draggable="true" data-word="some">some</span>
+                        <span class="word-box" draggable="true" data-word="friends">friends</span>
+                        <span class="word-box" draggable="true" data-word="from">from</span>
+                        <span class="word-box" draggable="true" data-word="work">work</span>
+                    </div>
+                    <div class="sentence-builder" id="builder-w1q6" ondrop="drop(event, 'w1q6')" ondragover="allowDrop(event)">
+                        <span class="text-slate-500 text-sm italic">Drag words here to build your sentence...</span>
+                    </div>
+                    <div id="feedback-w1q6" class="mt-3 hidden"></div>
+                </div>
+
+
+                <!-- Question 7 -->
+                <div class="question-frame" id="w1q7">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 7</span>
+                        </div>
+                        <button onclick="checkSentence('w1q7')" class="btn-3d check-btn text-sm">
+                            <i class="fas fa-check mr-2"></i>Check
+                        </button>
+                    </div>
+                    <p class="text-slate-300 mb-4 font-medium">What should I bring to the meeting?</p>
+                    <div class="flex flex-wrap gap-2 mb-4" id="words-w1q7">
+                        <span class="word-box" draggable="true" data-word="you">you</span>
+                        <span class="word-box" draggable="true" data-word="should">should</span>
+                        <span class="word-box" draggable="true" data-word="bring">bring</span>
+                        <span class="word-box" draggable="true" data-word="your">your</span>
+                        <span class="word-box" draggable="true" data-word="laptop">laptop</span>
+                        <span class="word-box" draggable="true" data-word="notes">notes</span>
+                        <span class="word-box" draggable="true" data-word="and">and</span>
+                        <span class="word-box" draggable="true" data-word="a">a</span>
+                        <span class="word-box" draggable="true" data-word="pen">pen</span>
+                    </div>
+                    <div class="sentence-builder" id="builder-w1q7" ondrop="drop(event, 'w1q7')" ondragover="allowDrop(event)">
+                        <span class="text-slate-500 text-sm italic">Drag words here to build your sentence...</span>
+                    </div>
+                    <div id="feedback-w1q7" class="mt-3 hidden"></div>
+                </div>
+
+
+                <!-- Question 8 -->
+                <div class="question-frame" id="w1q8">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 8</span>
+                        </div>
+                        <button onclick="checkSentence('w1q8')" class="btn-3d check-btn text-sm">
+                            <i class="fas fa-check mr-2"></i>Check
+                        </button>
+                    </div>
+                    <p class="text-slate-300 mb-4 font-medium">Why is the office closed today?</p>
+                    <div class="flex flex-wrap gap-2 mb-4" id="words-w1q8">
+                        <span class="word-box" draggable="true" data-word="it">it</span>
+                        <span class="word-box" draggable="true" data-word="is">is</span>
+                        <span class="word-box" draggable="true" data-word="holiday">holiday</span>
+                        <span class="word-box" draggable="true" data-word="national">national</span>
+                        <span class="word-box" draggable="true" data-word="a">a</span>
+                        <span class="word-box" draggable="true" data-word="so">so</span>
+                        <span class="word-box" draggable="true" data-word="everyone">everyone</span>
+                        <span class="word-box" draggable="true" data-word="has">has</span>
+                        <span class="word-box" draggable="true" data-word="the">the</span>
+                        <span class="word-box" draggable="true" data-word="day">day</span>
+                        <span class="word-box" draggable="true" data-word="off">off</span>
+                    </div>
+                    <div class="sentence-builder" id="builder-w1q8" ondrop="drop(event, 'w1q8')" ondragover="allowDrop(event)">
+                        <span class="text-slate-500 text-sm italic">Drag words here to build your sentence...</span>
+                    </div>
+                    <div id="feedback-w1q8" class="mt-3 hidden"></div>
+                </div>
+
+
+                <!-- Question 9 -->
+                <div class="question-frame" id="w1q9">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 9</span>
+                        </div>
+                        <button onclick="checkSentence('w1q9')" class="btn-3d check-btn text-sm">
+                            <i class="fas fa-check mr-2"></i>Check
+                        </button>
+                    </div>
+                    <p class="text-slate-300 mb-4 font-medium">How much does this cost?</p>
+                    <div class="flex flex-wrap gap-2 mb-4" id="words-w1q9">
+                        <span class="word-box" draggable="true" data-word="the">the</span>
+                        <span class="word-box" draggable="true" data-word="price">price</span>
+                        <span class="word-box" draggable="true" data-word="is">is</span>
+                        <span class="word-box" draggable="true" data-word="fifty">fifty</span>
+                        <span class="word-box" draggable="true" data-word="dollars">dollars</span>
+                        <span class="word-box" draggable="true" data-word="before">before</span>
+                        <span class="word-box" draggable="true" data-word="tax">tax</span>
+                    </div>
+                    <div class="sentence-builder" id="builder-w1q9" ondrop="drop(event, 'w1q9')" ondragover="allowDrop(event)">
+                        <span class="text-slate-500 text-sm italic">Drag words here to build your sentence...</span>
+                    </div>
+                    <div id="feedback-w1q9" class="mt-3 hidden"></div>
+                </div>
+
+
+                <!-- Question 10 -->
+                <div class="question-frame" id="w1q10">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 10</span>
+                        </div>
+                        <button onclick="checkSentence('w1q10')" class="btn-3d check-btn text-sm">
+                            <i class="fas fa-check mr-2"></i>Check
+                        </button>
+                    </div>
+                    <p class="text-slate-300 mb-4 font-medium">When will the report be finished?</p>
+                    <div class="flex flex-wrap gap-2 mb-4" id="words-w1q10">
+                        <span class="word-box" draggable="true" data-word="it">it</span>
+                        <span class="word-box" draggable="true" data-word="will">will</span>
+                        <span class="word-box" draggable="true" data-word="be">be</span>
+                        <span class="word-box" draggable="true" data-word="completed">completed</span>
+                        <span class="word-box" draggable="true" data-word="by">by</span>
+                        <span class="word-box" draggable="true" data-word="end">end</span>
+                        <span class="word-box" draggable="true" data-word="of">of</span>
+                        <span class="word-box" draggable="true" data-word="the">the</span>
+                        <span class="word-box" draggable="true" data-word="day">day</span>
+                        <span class="word-box" draggable="true" data-word="Friday">Friday</span>
+                    </div>
+                    <div class="sentence-builder" id="builder-w1q10" ondrop="drop(event, 'w1q10')" ondragover="allowDrop(event)">
+                        <span class="text-slate-500 text-sm italic">Drag words here to build your sentence...</span>
+                    </div>
+                    <div id="feedback-w1q10" class="mt-3 hidden"></div>
+                </div>
+
                 
             </div>
 
@@ -734,7 +962,14 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
         const answerKey = {
             'w1q1': ['he wanted to know when it ended'],
             'w1q2': ['it was moved to a time when everyone could attend'],
-            // Add more answers...
+            'w1q3': ['she was disappointed because she had studied but didn\'t pass'],
+            'w1q4': ['the train departs from the station at 3pm'],
+            'w1q5': ['he left them on the kitchen counter'],
+            'w1q6': ['we invited our neighbors and some friends from work'],
+            'w1q7': ['you should bring your laptop notes and a pen'],
+            'w1q8': ['it is a national holiday so everyone has the day off'],
+            'w1q9': ['the price is fifty dollars before tax'],
+            'w1q10': ['it will be completed by the end of friday'],
         };
 
         let completedQuestions = new Set();
@@ -837,6 +1072,11 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
         function allowDrop(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.add('drag-over');
+            // Remove the highlight when the drag leaves the builder — without
+            // this the highlight sticks when a drop is cancelled mid-builder.
+            ev.currentTarget.addEventListener('dragleave', function leave(ev2) {
+                if (ev2.currentTarget === ev2.target) ev2.currentTarget.classList.remove('drag-over');
+            }, { once: true });
         }
 
         function drop(ev, questionId) {

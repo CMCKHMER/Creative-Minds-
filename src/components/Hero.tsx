@@ -21,7 +21,17 @@ function AnimatedStat({ target, suffix = '', className = '' }: { target: number;
   return <span ref={ref} className={className}>{value}{suffix}</span>;
 }
 
-const shortcuts = [
+interface HeroShortcut {
+  id: string;
+  title: string;
+  description: string;
+  icon: typeof BookOpen;
+  /** Optional external link — when present the card renders as an <a>
+   *  instead of a button that triggers onSelectFeatureCard. */
+  href?: string;
+}
+
+const shortcuts: HeroShortcut[] = [
   {
     id: 'toefl-ibt-mock',
     title: 'TOEFL iBT Full Mock Test',

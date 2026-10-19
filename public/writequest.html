@@ -54,6 +54,7 @@ header { position:sticky; top:0; z-index:50; background:rgba(19,17,16,0.85); bac
 /* Buttons */
 .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 22px; border-radius:10px; font-weight:600; font-size:0.9rem; border:none; cursor:pointer; transition:all 0.25s ease; font-family:inherit; }
 .btn-primary { background:var(--accent); color:#131110; }
+@keyframes float { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-18px) } }
 .btn-primary:hover { background:var(--accent-l); transform:translateY(-1px); box-shadow:0 4px 16px rgba(212,149,42,0.3); }
 .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--border); }
 .btn-ghost:hover { color:var(--text); border-color:var(--muted); background:rgba(255,255,255,0.03); }
@@ -515,7 +516,7 @@ function renderSentence() {
   const total = sentencePuzzles.length;
   document.getElementById('sentProgress').textContent = `Puzzle ${state.sent.idx+1} of ${total} — Level ${p.level}`;
   document.getElementById('sentHint').innerHTML = `<i class="fas fa-lightbulb"></i> ${p.hint}`;
-  document.getElementById('sentProgBar').style.width = ((state.sent.idx)/total*100)+'%';
+  document.getElementById('sentProgBar').style.width = ((state.sent.idx+1)/total*100)+'%';
   document.getElementById('sentCheckBtn').classList.remove('hidden');
   document.getElementById('sentCheckBtn').disabled = true;
   document.getElementById('sentNextBtn').classList.add('hidden');
@@ -580,10 +581,6 @@ function checkSentence() {
   let correct = 0;
 
   chips.forEach((c,i) => {
-    if(c.dataset.sourceIdx !== undefined) {
-      // Find the original index of this word
-      const origIdx = p.words.indexOf(c.dataset.sourceIdx !== undefined ? c.textContent : '');
-    }
     if(c.textContent === p.words[i]) {
       c.classList.remove('selected');
       c.classList.add('correct');
@@ -636,7 +633,7 @@ function renderParagraph() {
   const total = paragraphPuzzles.length;
   document.getElementById('paraProgress').textContent = `Puzzle ${state.para.idx+1} of ${total} — Level ${p.level}`;
   document.getElementById('paraTitle').innerHTML = `<i class="fas fa-bookmark"></i> ${p.title}`;
-  document.getElementById('paraProgBar').style.width = ((state.para.idx)/total*100)+'%';
+  document.getElementById('paraProgBar').style.width = ((state.para.idx+1)/total*100)+'%';
   document.getElementById('paraCheckBtn').disabled = true;
   document.getElementById('paraCheckBtn').classList.remove('hidden');
   document.getElementById('paraNextBtn').classList.add('hidden');
@@ -663,24 +660,30 @@ function renderParagraph() {
 function orderSentence(card) {
   if(state.para.checked || card.classList.contains('used')) return;
   card.classList.add('used');
-  state.para.ordered.push({ text:card.textContent, origIdx:parseInt(card.dataset.origIdx), el:card });
 
   const ordered = document.getElementById('paraOrdered');
   const ph = document.getElementById('paraPlaceholder');
   if(ph) ph.remove();
 
+  const entry = { text: card.textContent, origIdx: parseInt(card.dataset.origIdx), el: card };
+  state.para.ordered.push(entry);
   const item = document.createElement('div');
   item.className = 'sent-card ordered flex items-center';
   item.innerHTML = `<span class="sent-num">${state.para.ordered.length}</span><span>${card.textContent}</span>`;
-  item.onclick = () => unorderSentence(item, state.para.ordered.length-1);
+  item._entry = entry;
+  item.onclick = () => unorderSentence(item);
   ordered.appendChild(item);
 
   const p = paragraphPuzzles[state.para.idx];
   document.getElementById('paraCheckBtn').disabled = state.para.ordered.length < p.sentences.length;
 }
 
-function unorderSentence(item, pos) {
-  if(state.para.checked) return;
+function unorderSentence(item) {
+  if(state.para.checked || !item._entry) return;
+  // Look the entry up at click time — a captured index goes stale as soon
+  // as any earlier card is removed, which used to crash the app.
+  const pos = state.para.ordered.indexOf(item._entry);
+  if(pos === -1) return;
   const removed = state.para.ordered.splice(pos, 1)[0];
   removed.el.classList.remove('used');
   item.remove();
@@ -754,7 +757,7 @@ function renderWordPower() {
   const ch = wordPowerChallenges[state.wp.idx];
   const total = wordPowerChallenges.length;
   document.getElementById('wpProgress').textContent = `Challenge ${state.wp.idx+1} of ${total}`;
-  document.getElementById('wpProgBar').style.width = ((state.wp.idx)/total*100)+'%';
+  document.getElementById('wpProgBar').style.width = ((state.wp.idx+1)/total*100)+'%';
   document.getElementById('wpCheckBtn').disabled = true;
   document.getElementById('wpCheckBtn').classList.remove('hidden');
   document.getElementById('wpNextBtn').classList.add('hidden');
@@ -878,13 +881,19 @@ function setStudioCat(cat, btn) {
   document.getElementById('compiledOutput').classList.add('hidden');
   document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
+  resetStudioSubmitBtn();
   renderStudio();
+}
+function resetStudioSubmitBtn(){
+  const btn = document.querySelector('#compiledOutput .btn-primary');
+  if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Points'; }
 }
 
 function newPrompt() {
   state.studio.promptIdx++;
   state.studio.submitted = false;
   document.getElementById('compiledOutput').classList.add('hidden');
+  resetStudioSubmitBtn();
   renderStudio();
   toast('New prompt loaded!', 'info');
 }
@@ -893,6 +902,7 @@ function clearStudio() {
   document.querySelectorAll('#templateSections textarea').forEach(ta => ta.value = '');
   state.studio.submitted = false;
   document.getElementById('compiledOutput').classList.add('hidden');
+  resetStudioSubmitBtn();
   updateStudioStats();
 }
 
@@ -1017,11 +1027,11 @@ function showLevelComplete(title, msg, score) {
   try {
     var _slug = 'writequest-' + (state.view || 'unknown');
     var _title = 'WriteQuest · ' + (title || 'Level complete');
-    var _source = 'writequest';
+    var _source = 'learning-games';
     var _score = score || 0;
-    var _total = Math.max(_score, 10); /* treat as 10-item quiz for pct */
-    var _pct = _total ? Math.round(_score / _total * 100) : 0;
-try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+    var _total = 100; /* points out of a 100-point reference scale */
+    var _pct = Math.min(100, Math.round(_score));
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';var _suid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},studentUid:{stringValue:_suid},classId:{nullValue:null},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
   } catch (e) {}
 }
 

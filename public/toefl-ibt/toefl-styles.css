@@ -995,3 +995,49 @@ body {
         padding: 1rem;
     }
 }
+
+/* ═══ Shared component classes (used across section pages) ═══
+   These were referenced in the section markup but had no rules,
+   leaving stat sidebars, listening conversations, and questions
+   unstyled. */
+
+.stat-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 0.75rem;
+    padding: 0.875rem 1rem;
+}
+
+.speaker-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #7dd3fc;
+    font-size: 1rem;
+}
+
+.conversation-bubble {
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+}
+
+.conversation-bubble.right {
+    background: rgba(8, 47, 73, 0.75);
+    border-color: rgba(56, 189, 248, 0.25);
+}
+
+.question-block {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}

@@ -11,6 +11,7 @@ import {
   signInWithEmail,
   signUpWithEmail,
   type FirebaseAuthError,
+  type FirebaseSession,
   type RestoredSession,
 } from '../lib/firebaseAuth';
 
@@ -30,11 +31,23 @@ function emailRedirectUrl(): string {
   return `${window.location.origin}${window.location.pathname}#toefl-mini-test`;
 }
 
+/** Normalize a fresh Firebase REST session into the shape of the
+ *  persisted-session type so both can live in the same React state. */
+function toRestoredSession(session: FirebaseSession): RestoredSession {
+  return {
+    idToken: session.idToken,
+    localId: session.localId,
+    email: session.email,
+    displayName: session.displayName || session.email,
+    emailVerified: session.emailVerified,
+    isExpired: session.expiresAt > 0 && Date.now() >= session.expiresAt,
+    role: session.role ?? detectRoleFromEmail(session.email),
+  };
+}
+
 export const TeacherPassModal = ({
   isOpen,
   onClose,
-  accessStatus,
-  member,
   initialMode = 'sign-up',
 }: TeacherPassModalProps) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
@@ -125,10 +138,15 @@ export const TeacherPassModal = ({
         password,
         displayName: name.trim() || undefined,
         school: school.trim() || undefined,
-        role,
+        // Account role must be the 'teacher' | 'student' enum so the
+        // persisted `cmc-student-role` gates teacher features correctly.
+        role: detectedRole,
+        // The free-text select value is profile metadata only.
+        teachingRole: role,
+        continueUrl: emailRedirectUrl(),
       });
       setResendAvailable(true);
-      setActiveSession(session);
+      setActiveSession(toRestoredSession(session));
       setMode('authenticated');
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
       if (session.emailVerified) {
@@ -159,7 +177,7 @@ export const TeacherPassModal = ({
         email: email.trim().toLowerCase(),
         password,
       });
-      setActiveSession(session);
+      setActiveSession(toRestoredSession(session));
       setMode('authenticated');
       setMessage(session.role === 'teacher'
         ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the practice room are unlocked — explore them whenever you like.'
@@ -200,7 +218,7 @@ export const TeacherPassModal = ({
     resetFeedback();
     setBusy(true);
     try {
-      await sendEmailVerification(activeSession.idToken);
+      await sendEmailVerification(activeSession.idToken, emailRedirectUrl());
       setMessage('A new verification link has been sent to your email.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not resend verification email.');

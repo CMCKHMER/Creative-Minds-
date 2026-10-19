@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, RefreshCw, Trophy, Users, Clock3, Award, TrendingUp } from 'lucide-react';
+import { RefreshCw, Trophy, Users, Clock3, Award, TrendingUp } from 'lucide-react';
 import { FIREBASE_PROJECT_ID, restoreSession } from '../lib/firebaseAuth';
 import { submitScore } from '../lib/submitScore';
 

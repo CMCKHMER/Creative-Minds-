@@ -20,7 +20,7 @@ export interface FirebaseAuthState {
 }
 
 export interface FirebaseAuthActions {
-  signUp: (input: { email: string; password: string; displayName?: string; school?: string; role?: string }) => Promise<RestoredSession>;
+  signUp: (input: { email: string; password: string; displayName?: string; school?: string; role?: 'teacher' | 'student'; teachingRole?: string }) => Promise<RestoredSession>;
   signIn: (input: { email: string; password: string }) => Promise<RestoredSession>;
   signOut: () => void;
 }

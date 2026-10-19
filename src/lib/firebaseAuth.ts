@@ -1,4 +1,4 @@
-// Firebase Authentication via REST API — no SDK required.
+// Firebase Auth REST API — no SDK required.
 //
 // The static HTML pages in public/ (toefl-ibt, biweek-planner, rfc3, etc.)
 // already submit scores to Firestore using the Firebase ID Token stored in
@@ -127,7 +127,7 @@ function toAuthError(e: unknown): FirebaseAuthError {
 }
 
 /** For backward compatibility — anywhere that still calls parseAuthError. */
-function parseAuthError(e: unknown): string {
+export function parseAuthError(e: unknown): string {
   return toAuthError(e).message;
 }
 
@@ -164,7 +164,15 @@ export interface SignUpInput {
   password: string;
   displayName?: string;
   school?: string;
-  role?: string;
+  /** Account role ('teacher' | 'student'). Callers should pass the
+   *  email-detected role here — NOT the free-text teaching-role select
+   *  value — so the persisted `cmc-student-role` stays a clean enum. */
+  role?: 'teacher' | 'student';
+  /** Where the email-verification link should send the user. */
+  continueUrl?: string;
+  /** Free-text teaching role for the stored profile (e.g. "ESL / TOEFL
+   *  Teacher"). Profile metadata only — never used for gating. */
+  teachingRole?: string;
 }
 
 export async function signUpWithEmail(input: SignUpInput): Promise<FirebaseSession> {
@@ -175,15 +183,18 @@ export async function signUpWithEmail(input: SignUpInput): Promise<FirebaseSessi
     displayName: input.displayName || undefined,
   });
   // Persist extra profile fields alongside the token so the static HTML
-  // pages and any future Firestore writes can read them.
+  // pages and any future Firestore writes can read them. The account role
+  // is always the email-detected enum so `cmc-student-role` stays clean;
+  // the free-text teaching role is kept as profile metadata only.
   persistSession(session, {
     displayName: input.displayName,
     school: input.school,
-    role: input.role,
+    role: input.role || detectRoleFromEmail(session.email),
+    teachingRole: input.teachingRole,
   });
   // Send email verification (non-blocking — the user can still sign in
   // immediately, but won't be "verified" until they click the link).
-  void sendEmailVerification(session.idToken).catch(() => {});
+  void sendEmailVerification(session.idToken, input.continueUrl).catch(() => {});
   // Return a session enriched with the role we just persisted to
   // localStorage. FirebaseSession itself doesn't include role (it's a
   // Firebase-REST-API type), but callers (TeacherPassModal, useFirebaseAuth)
@@ -214,13 +225,20 @@ export async function signInWithEmail(input: SignInInput): Promise<FirebaseSessi
   return restored ? { ...session, role: restored.role } : session;
 }
 
-export async function sendEmailVerification(idToken: string): Promise<void> {
+export async function sendEmailVerification(idToken: string, continueUrl?: string): Promise<void> {
   if (!API_KEY) return;
   const url = `${BASE}/accounts:sendOobCode?key=${API_KEY}`;
+  const body: Record<string, unknown> = { requestType: 'VERIFY_EMAIL', idToken };
+  // Land the user back on the mini-mock anchor after they click the
+  // verification link in their email.
+  if (continueUrl) {
+    body.continueUrl = continueUrl;
+    body.handleCodeInApp = false;
+  }
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ requestType: 'VERIFY_EMAIL', idToken }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
@@ -248,6 +266,7 @@ interface StoredProfile {
   displayName?: string;
   school?: string;
   role?: string;
+  teachingRole?: string;
 }
 
 /**
@@ -295,7 +314,12 @@ function persistSession(session: FirebaseSession, profile: StoredProfile): void 
   try {
     // Auto-detect role from email if not explicitly provided. This is the
     // canonical rule: email domain contains "edu" → teacher, else student.
-    const role = profile.role || detectRoleFromEmail(session.email);
+    // `profile.role` must be the account enum ('teacher' | 'student') —
+    // free-text teaching roles are stored separately as `teachingRole`.
+    const role =
+      profile.role === 'teacher' || profile.role === 'student'
+        ? profile.role
+        : detectRoleFromEmail(session.email);
     localStorage.setItem('cmc-student-token', session.idToken);
     localStorage.setItem('cmc-student-name', session.displayName || profile.displayName || session.email);
     localStorage.setItem('cmc-student-uid', session.localId);
@@ -309,6 +333,7 @@ function persistSession(session: FirebaseSession, profile: StoredProfile): void 
         displayName: profile.displayName || session.displayName || undefined,
         school: profile.school,
         role,
+        teachingRole: profile.teachingRole,
       }),
     );
   } catch {

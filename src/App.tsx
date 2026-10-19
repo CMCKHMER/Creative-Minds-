@@ -292,6 +292,7 @@ export function App() {
       <TeacherPassModal
         isOpen={teacherPassModalOpen}
         onClose={() => setTeacherPassModalOpen(false)}
+        initialMode={authInitialMode}
       />
 
       {/* Live stats + Top Teachers ticker — fixed at the bottom of the

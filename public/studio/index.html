@@ -17,7 +17,7 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Instrument Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden}
-  .app{display:grid; grid-template-rows:28px 40px 52px 1fr 30px; height:100vh}
+  .app{display:grid; grid-template-rows:40px 28px 52px 1fr 30px; height:100vh}
 
   /* ── Quick-access toolbar (customizable) ──────────────── */
   .quick-bar{display:flex; align-items:center; gap:4px; padding:0 10px; background:var(--panel); border-bottom:1px solid var(--line); z-index:55; overflow-x:auto; user-select:none}
@@ -131,7 +131,10 @@
   #cropApply{background:var(--amber); color:#241a08} #cropCancel{background:var(--panel-2); color:var(--muted); border:1px solid var(--line)}
 
   .transform-overlay{position:absolute; inset:0; z-index:20; pointer-events:none; display:none}
-  .transform-overlay.active{display:block; pointer-events:auto}
+  /* The overlay is purely decorative — it must NEVER intercept pointer
+     events, otherwise clicks can't reach the canvas below to select images
+     for the Free Transform tool. */
+  .transform-overlay.active{display:block; pointer-events:none}
   .transform-handle{position:absolute; width:10px; height:10px; background:var(--amber); border:2px solid #fff; border-radius:2px; box-shadow:0 2px 6px rgba(0,0,0,.5)}
   .transform-handle.tl{top:-5px; left:-5px; cursor:nwse-resize}
   .transform-handle.tr{top:-5px; right:-5px; cursor:nesw-resize}
@@ -621,7 +624,7 @@
         <button class="tgl" onclick="findReplace()" title="Find & Replace">🔍</button>
         <button class="tgl" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
       </div>
-      <div id="codeBar" class="hidden" style="display:none;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line)"><span style="color:#89b4fa;font-size:11px;font-weight:600">Code Editor</span></div>
+      <div id="codeBar" class="hidden" style="display:flex;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line)"><span style="color:#89b4fa;font-size:11px;font-weight:600">Code Editor</span></div>
     <div id="sheetBar" class="hidden" style="display:flex;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line)">
         <button class="tgl" onclick="sheetCmd('alignLeft')" title="Align Left">≡←</button>
         <button class="tgl" onclick="sheetCmd('alignCenter')" title="Align Center">≡</button>
@@ -1208,8 +1211,24 @@ setCanvasSize(W,H);
 window.addEventListener('resize', fitCanvas);
 
 /* ── History ───────────────────────────────────────── */
+// Placed images are part of the document too — serialize them (minus the
+// live Image element) into every snapshot and project save.
+function serializeImgs(){ return JSON.stringify(imgObjects.map(({img, ...rest}) => rest)); }
+function rebuildImgs(json, done){
+  try {
+    const list = json ? JSON.parse(json) : [];
+    let pending = list.length;
+    if (!pending) { imgObjects = []; if (done) done(); return; }
+    imgObjects = list.map(rec => ({ ...rec, img: null }));
+    list.forEach((rec, i) => {
+      const image = new Image();
+      image.onload = image.onerror = () => { imgObjects[i].img = image; if (--pending === 0 && done) done(); };
+      image.src = rec.src;
+    });
+  } catch(e) { imgObjects = []; if (done) done(); }
+}
 function pushUndo(label){
-  const snapshot = { label: label || 'Edit', w: W, h: H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts: JSON.stringify(texts), doc: docLayer.innerHTML, sheets: JSON.stringify(sheets), currentSheet, docRotation };
+  const snapshot = { label: label || 'Edit', w: W, h: H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts: JSON.stringify(texts), imgs: serializeImgs(), doc: docLayer.innerHTML, sheets: JSON.stringify(sheets), currentSheet, docRotation };
   undoStack.push(snapshot);
   if(undoStack.length>40) undoStack.shift();
   redoStack=[];
@@ -1232,9 +1251,11 @@ function restore(snap){
         dims.textContent = `${W} × ${H} px`;
         layers = loadedLayers; currentLayer = Math.min(snap.currentLayer, layers.length - 1);
         bgColor = snap.bgColor; wrap.style.background = bgColor;
-        texts = JSON.parse(snap.texts); selected = -1; textEditing = null;
+        texts = JSON.parse(snap.texts); selected = -1; selectedImg = -1; textEditing = null;
         docLayer.innerHTML = snap.doc || '';
+        docRotation = snap.docRotation || 0; applyDocRotation();
         if (snap.sheets) { sheets = JSON.parse(snap.sheets); currentSheet = snap.currentSheet || 0; renderSheet(); renderSheetTabs(); }
+        rebuildImgs(snap.imgs, () => { renderTexts(); });
         composite(); renderTexts(); renderLayerList(); resetFiltersUI(); fitCanvas();
       }
     };
@@ -1243,7 +1264,7 @@ function restore(snap){
 }
 function undo(){ if(!undoStack.length)return; redoStack.push(snapshotCurrent('Undo point')); restore(undoStack.pop()); updateHistoryUI(); renderHistoryList(); }
 function redo(){ if(!redoStack.length)return; undoStack.push(snapshotCurrent('Redo point')); restore(redoStack.pop()); updateHistoryUI(); renderHistoryList(); }
-function snapshotCurrent(label){ return { label: label || 'Edit', w: W, h: H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts: JSON.stringify(texts), doc: docLayer.innerHTML, sheets: JSON.stringify(sheets), currentSheet, docRotation }; }
+function snapshotCurrent(label){ return { label: label || 'Edit', w: W, h: H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts: JSON.stringify(texts), imgs: serializeImgs(), doc: docLayer.innerHTML, sheets: JSON.stringify(sheets), currentSheet, docRotation }; }
 function updateHistoryUI(){ undoBtn.disabled=!undoStack.length; redoBtn.disabled=!redoStack.length; }
 undoBtn.onclick=undo; redoBtn.onclick=redo; updateHistoryUI();
 function renderHistoryList(){
@@ -1264,7 +1285,7 @@ let autoSaveTimer = null;
 function scheduleAutoSave(){ if (autoSaveTimer) clearTimeout(autoSaveTimer); autoSaveTimer = setTimeout(doAutoSave, 30000); }
 function doAutoSave(){
   try {
-    const proj = { version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, doc: docLayer.innerHTML, sheets, currentSheet, docRotation };
+    const proj = { version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, sheets, currentSheet, docRotation };
     localStorage.setItem('cm-studio-auto-save', JSON.stringify(proj));
   } catch(e) {}
 }
@@ -1292,12 +1313,13 @@ function loadProject(proj){
         dims.textContent = `${W} × ${H} px`;
         layers = loaded; currentLayer = Math.min(proj.currentLayer || 0, layers.length - 1);
         bgColor = proj.bgColor || '#ffffff'; wrap.style.background = bgColor;
-        texts = proj.texts || []; selected = -1;
+        texts = proj.texts || []; selected = -1; selectedImg = -1;
         docLayer.innerHTML = proj.doc || '<h1>Document Title</h1><p>Start typing…</p>';
         sheets = proj.sheets || [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }];
         currentSheet = proj.currentSheet || 0;
         docRotation = proj.docRotation || 0; applyDocRotation();
         undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList();
+        rebuildImgs(JSON.stringify(proj.imgs || []), () => { renderTexts(); });
         composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); fitCanvas();
       }
     };
@@ -1378,6 +1400,9 @@ const toolNames={select:'Select/Move',brush:'Brush',eraser:'Eraser',line:'Line',
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>selectTool(b.dataset.tool));
 function selectTool(t){
   if (!toolNames[t]) t = 'brush';
+  // Commit any text being typed BEFORE tearing down the editing state,
+  // otherwise switching tools silently discards the edit.
+  commitText();
   tool=t; cancelCrop(); selected=-1; selectedImg=-1; textEditing=null; textInput.style.display='none'; caretGuide.style.display='none';
   pctx.clearRect(0,0,W,H);
   document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));
@@ -1422,7 +1447,6 @@ function selectTool(t){
   sheetBar.classList.toggle('hidden', !isSheet);
   vectorTextPanel.classList.toggle('hidden', isDoc || isSheet);
   preview.style.pointerEvents = (isDoc || isSheet) ? 'none' : 'auto';
-  transformOverlay.classList.toggle('active', t === 'transform' || t === 'perspective');
   if (isSheet) { renderSheet(); renderSheetTabs(); }
 }
 
@@ -1446,7 +1470,7 @@ rulerYWrap.addEventListener('mousedown', e => { const guide = document.createEle
 function getPos(e){ const r=preview.getBoundingClientRect(); return {x:(e.clientX-r.left)*W/r.width, y:(e.clientY-r.top)*H/r.height}; }
 
 /* ══ DOCUMENT ENGINE (WORD) ══════════════════════════ */
-function docCmd(cmd, val=null){ docLayer.focus(); if(cmd === 'foreColor') document.execCommand(cmd, false, val); else if(cmd === 'formatBlock') document.execCommand(cmd, false, `<${val}>`); else document.execCommand(cmd, false, null); }
+function docCmd(cmd, val=null){ docLayer.focus(); if(cmd === 'foreColor') document.execCommand(cmd, false, val); else if(cmd === 'formatBlock') document.execCommand(cmd, false, `<${val}>`); else document.execCommand(cmd, false, val); }
 
 /* ── Insert Table ─────────────────────────────────── */
 function insertTable(){
@@ -1489,17 +1513,39 @@ function insertSpecialChar(){
 
 /* ── Highlight color handler ──────────────────────── */
 document.getElementById('docHighlight').addEventListener('input', e => docCmd('hiliteColor', e.target.value));
+document.getElementById('docFont')?.addEventListener('change', e => docCmd('fontName', e.target.value));
+document.getElementById('docSize')?.addEventListener('change', e => docCmd('fontSize', e.target.value));
 
 /* ── Table row/column add/delete ──────────────────── */
 function tableCmd(cmd){
   docLayer.focus();
-  // Use the browser's built-in table editing commands
-  if (cmd === 'insertRowAbove') document.execCommand('insertRow', false, null);
-  else if (cmd === 'insertRowBelow') document.execCommand('insertRow', false, null);
-  else if (cmd === 'insertColLeft') document.execCommand('insertColumn', false, null);
-  else if (cmd === 'insertColRight') document.execCommand('insertColumn', false, null);
-  else if (cmd === 'deleteRow') document.execCommand('deleteRow', false, null);
-  else if (cmd === 'deleteCol') document.execCommand('deleteColumn', false, null);
+  // execCommand('insertRow'/'insertColumn'/…) is IE-only and silently does
+  // nothing in modern browsers — manipulate the table DOM directly instead.
+  const sel = window.getSelection();
+  if (!sel.rangeCount) { alert('Click inside a table cell first.'); return; }
+  let node = sel.getRangeAt(0).startContainer;
+  if (node.nodeType === 3) node = node.parentElement;
+  const td = node ? node.closest('td,th') : null;
+  const tr = node ? node.closest('tr') : null;
+  const table = node ? node.closest('table') : null;
+  if (!td || !tr || !table) { alert('Click inside a table cell first.'); return; }
+  const cellIdx = Array.from(tr.children).indexOf(td);
+  const rowIdx = Array.from(table.rows).indexOf(tr);
+  const makeCell = (isHeader) => { const c = document.createElement(isHeader ? 'th' : 'td'); c.innerHTML = '&nbsp;'; c.style.border = '1px solid #ccc'; c.style.padding = '6px 10px'; if (isHeader) { c.style.background = '#f0f0f0'; c.style.fontWeight = '600'; c.style.textAlign = 'left'; } return c; };
+  if (cmd === 'insertRowAbove' || cmd === 'insertRowBelow') {
+    const newRow = table.insertRow(rowIdx + (cmd === 'insertRowBelow' ? 1 : 0));
+    const template = tr;
+    for (let i = 0; i < template.children.length; i++) newRow.appendChild(makeCell(template.children[i].tagName === 'TH'));
+  } else if (cmd === 'insertColLeft' || cmd === 'insertColRight') {
+    const at = cellIdx + (cmd === 'insertColRight' ? 1 : 0);
+    Array.from(table.rows).forEach(r => r.insertBefore(makeCell(r.children[cellIdx] && r.children[cellIdx].tagName === 'TH'), r.children[at] || null));
+  } else if (cmd === 'deleteRow') {
+    if (table.rows.length <= 1) return;
+    tr.remove();
+  } else if (cmd === 'deleteCol') {
+    if (tr.children.length <= 1) return;
+    Array.from(table.rows).forEach(r => { if (r.children[cellIdx]) r.children[cellIdx].remove(); });
+  }
   pushUndo('Table: ' + cmd);
 }
 
@@ -1551,7 +1597,6 @@ function findReplace(){
 }
 document.getElementById('docColor').addEventListener('input', e => docCmd('foreColor', e.target.value));
 document.getElementById('docBlock').addEventListener('change', e => docCmd('formatBlock', e.target.value));
-document.getElementById('docFont').addEventListener('change', e => document.execCommand('fontName', false, e.target.value));
 
 /* Doc rotation (CSS transform — doesn't bake pixels, but visible) */
 function applyDocRotation(){ docLayer.style.transform = `rotate(${docRotation}deg)`; }
@@ -1567,6 +1612,21 @@ function parseRange(s){ const m = s.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/); if (
 function evalFormula(formula, visited=new Set()){
   if (typeof formula !== 'string' || !formula.startsWith('=')) return formula;
   let expr = formula.slice(1);
+  // 1. Protect range tokens (A1:B5) from the single-cell substitution below —
+  //    otherwise SUM(A1:A2) became SUM(5:0) and the range functions never ran.
+  //    Range tokens join `visited` so circular ranges (=SUM(A1:A2) in A1)
+  //    terminate instead of recursing forever.
+  const rangeHolders = [];
+  let rangeCircular = false;
+  expr = expr.replace(/[A-Z]+\d+:[A-Z]+\d+/g, (m) => {
+    if (visited.has(m)) { rangeCircular = true; return m; }
+    visited.add(m);
+    // Letter-free placeholder so the cell-ref substitution below can't
+    // match it ([A-Z]+\d+ would eat "«R0»" whole).
+    rangeHolders.push(m); return `«${rangeHolders.length-1}»`;
+  });
+  if (rangeCircular) return '#CIRC';
+  // 2. Substitute individual cell references with their values.
   const refs = expr.match(/[A-Z]+\d+/g) || [];
   for (const ref of refs) {
     if (visited.has(ref)) return '#CIRC'; visited.add(ref);
@@ -1578,6 +1638,8 @@ function evalFormula(formula, visited=new Set()){
     const replacement = isNaN(num) ? (val === '' ? '0' : `"${val}"`) : String(num);
     expr = expr.split(ref).join(replacement);
   }
+  // 3. Restore the protected ranges.
+  expr = expr.replace(/«(\d+)»/g, (m, i) => rangeHolders[+i] || m);
   // Range functions: SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, PRODUCT, STDEV
   expr = expr.replace(/(SUM|AVERAGE|MIN|MAX|COUNT|COUNTA|PRODUCT|STDEV)\(([A-Z]+\d+:[A-Z]+\d+)\)/g, (match, fn, range) => {
     const r = parseRange(range); if (!r) return '0';
@@ -1665,18 +1727,35 @@ function evalFormula(formula, visited=new Set()){
   expr = expr.replace(/TODAY\(\)/g, '"' + new Date().toISOString().slice(0,10) + '"');
   expr = expr.replace(/NOW\(\)/g, '"' + new Date().toLocaleString() + '"');
 
-  if (!/^[0-9+\-*/().,\s]*$/.test(expr)) return expr;
+  // Safety gate: tokenize the transformed expression and only evaluate it
+  // when every token is a number, string literal, safe operator, or one of
+  // the whitelisted identifiers the replacements above produce (Math.*,
+  // String(...).toUpperCase()/toLowerCase()/trim/length). Anything else —
+  // e.g. an injected alert(1) or fetch(...) — is shown as text, never run.
+  const SAFE_TOKENS = /^(?:"[^"]*"|'[^']*'|\d+(?:\.\d+)?(?:e[+-]?\d+)?|Math\.(?:abs|round|sqrt|pow|ceil|floor)|String|\.(?:toUpperCase|toLowerCase|trim|length)|[+\-*/%(),<>=!?:&|\s])+$/;
+  if (!SAFE_TOKENS.test(expr)) return expr;
   try { const result = Function('"use strict"; return (' + expr + ')')(); return result === undefined ? '' : String(result); } catch (e) { return '#ERR'; }
 }
 function sheetRecalc(){ renderSheet(); }
 function sheetApplyFormula(){ setCell(selectedCell.row, selectedCell.col, sheetFormula.value); sheetFormula.value = ''; renderSheet(); }
 function sheetCmd(cmd){
   const sheet = sheets[currentSheet];
+  // Shift an index-keyed resize map (rowHeights / colWidths) when rows or
+  // columns are inserted/deleted, so custom sizes follow their content.
+  function shiftSizeMap(map, at, delta, removeAt){
+    const out = {};
+    Object.keys(map).forEach(k => {
+      const i = +k;
+      if (removeAt !== undefined && i === removeAt) return; // deleted row/col
+      out[i >= at ? i + delta : i] = map[k];
+    });
+    return out;
+  }
   if (cmd === 'addSheet') { sheets.push({ name: 'Sheet' + (sheets.length + 1), rows: 30, cols: 12, cells: {} }); currentSheet = sheets.length - 1; renderSheet(); renderSheetTabs(); }
-  else if (cmd === 'insertRowAbove') { const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (r >= selectedCell.row) newCells[(r+1)+','+c] = sheet.cells[k]; else newCells[k] = sheet.cells[k]; }); sheet.cells = newCells; sheet.rows++; renderSheet(); }
-  else if (cmd === 'insertColLeft') { const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (c >= selectedCell.col) newCells[r+','+(c+1)] = sheet.cells[k]; else newCells[k] = sheet.cells[k]; }); sheet.cells = newCells; sheet.cols++; renderSheet(); }
-  else if (cmd === 'deleteRow') { if (sheet.rows <= 1) return; const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (r === selectedCell.row) return; newCells[(r > selectedCell.row ? r-1 : r)+','+c] = sheet.cells[k]; }); sheet.cells = newCells; sheet.rows--; renderSheet(); }
-  else if (cmd === 'deleteCol') { if (sheet.cols <= 1) return; const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (c === selectedCell.col) return; newCells[r+','+(c > selectedCell.col ? c-1 : c)] = sheet.cells[k]; }); sheet.cells = newCells; sheet.cols--; renderSheet(); }
+  else if (cmd === 'insertRowAbove') { const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (r >= selectedCell.row) newCells[(r+1)+','+c] = sheet.cells[k]; else newCells[k] = sheet.cells[k]; }); sheet.cells = newCells; sheet.rows++; rowHeights = shiftSizeMap(rowHeights, selectedCell.row, 1); if (freezeRows >= selectedCell.row) freezeRows++; renderSheet(); }
+  else if (cmd === 'insertColLeft') { const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (c >= selectedCell.col) newCells[r+','+(c+1)] = sheet.cells[k]; else newCells[k] = sheet.cells[k]; }); sheet.cells = newCells; sheet.cols++; colWidths = shiftSizeMap(colWidths, selectedCell.col, 1); if (freezeCols >= selectedCell.col) freezeCols++; renderSheet(); }
+  else if (cmd === 'deleteRow') { if (sheet.rows <= 1) return; const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (r === selectedCell.row) return; newCells[(r > selectedCell.row ? r-1 : r)+','+c] = sheet.cells[k]; }); sheet.cells = newCells; sheet.rows--; rowHeights = shiftSizeMap(rowHeights, selectedCell.row, -1, selectedCell.row); if (freezeRows > selectedCell.row) freezeRows--; else if (freezeRows === selectedCell.row) freezeRows = 0; renderSheet(); }
+  else if (cmd === 'deleteCol') { if (sheet.cols <= 1) return; const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (c === selectedCell.col) return; newCells[r+','+(c > selectedCell.col ? c-1 : c)] = sheet.cells[k]; }); sheet.cells = newCells; sheet.cols--; colWidths = shiftSizeMap(colWidths, selectedCell.col, -1, selectedCell.col); if (freezeCols > selectedCell.col) freezeCols--; else if (freezeCols === selectedCell.col) freezeCols = 0; renderSheet(); }
   else if (cmd === 'bold' || cmd === 'italic' || cmd === 'underline') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style[cmd] = !sheet.cells[k].style[cmd]; renderSheet(); }
   else if (cmd === 'freezeToggle') { if (freezeRows === selectedCell.row && freezeCols === selectedCell.col) { freezeRows = 0; freezeCols = 0; } else { freezeRows = selectedCell.row; freezeCols = selectedCell.col; } renderSheet(); }
   else if (cmd === 'clearAll') { sheet.cells = {}; renderSheet(); }
@@ -1691,6 +1770,7 @@ function sheetCmd(cmd){
 function renderSheet(){
   const sheet = sheets[currentSheet]; if (!sheet) return;
   if (!sheetGrid) return;
+  let lastCellClick = null; // double-click detector state (reset each render)
   const html = ['<thead><tr><th class="corner-h"></th>'];
   for (let c = 0; c < sheet.cols; c++) { const w = colWidths[c] || 80; html.push(`<th class="col-h" style="min-width:${w}px;width:${w}px">${colName(c)}</th>`); }
   html.push('</tr></thead><tbody>');
@@ -1701,8 +1781,11 @@ function renderSheet(){
       let display = v;
       try { if (typeof v === 'string' && v.startsWith('=')) display = evalFormula(v); } catch(e) { display = '#ERR'; }
       const isSel = (r === selectedCell.row && c === selectedCell.col);
-      const styleAttr = cell.style ? `style="${cell.style.bold?'font-weight:bold;':''}${cell.style.italic?'font-style:italic;':''}${cell.style.underline?'text-decoration:underline;':''}${cell.style.color?('color:'+cell.style.color+';'):''}${cell.style.align?('text-align:'+cell.style.align+';'):''}${cell.style.bg?('background:'+cell.style.bg+';'):''}"` : '';
-      const cw = colWidths[c] || 80; const cellRh = rowHeights[r] || 24; html.push(`<td class="cell${isSel?' selected':''}" data-r="${r}" data-c="${c}" ${styleAttr} style="min-width:${cw}px;height:${cellRh}px"><span class="cell-display">${escapeHtml(display)}</span></td>`);
+      // Build ONE style attribute — emitting two makes the parser drop the
+      // second one and silently lose the min-width/height sizing.
+      const cw = colWidths[c] || 80; const cellRh = rowHeights[r] || 24;
+      const customStyle = cell.style ? `${cell.style.bold?'font-weight:bold;':''}${cell.style.italic?'font-style:italic;':''}${cell.style.underline?'text-decoration:underline;':''}${cell.style.color?('color:'+cell.style.color+';'):''}${cell.style.align?('text-align:'+cell.style.align+';'):''}${cell.style.bg?('background:'+cell.style.bg+';'):''}` : '';
+      html.push(`<td class="cell${isSel?' selected':''}" data-r="${r}" data-c="${c}" style="min-width:${cw}px;height:${cellRh}px;${customStyle}"><span class="cell-display">${escapeHtml(display)}</span></td>`);
     }
     html.push('</tr>');
   }
@@ -1715,7 +1798,21 @@ function renderSheet(){
     const newTable = temp.firstElementChild;
     if (newTable) { sheetGrid.innerHTML = ''; while (newTable.firstChild) sheetGrid.appendChild(newTable.firstChild); }
   }
-  sheetGrid.querySelectorAll('td.cell').forEach(td => { td.addEventListener('click', () => { selectedCell = { row: +td.dataset.r, col: +td.dataset.c }; const cell = getCell(selectedCell.row, selectedCell.col); sheetFormula.value = cell.v || ''; renderSheet(); }); td.addEventListener('dblclick', () => { selectedCell = { row: +td.dataset.r, col: +td.dataset.c }; startCellEdit(); }); });
+  sheetGrid.querySelectorAll('td.cell').forEach(td => { td.addEventListener('click', () => {
+    const r = +td.dataset.r, c = +td.dataset.c;
+    // renderSheet() replaces the whole table on every click, so the native
+    // dblclick event can never fire on one element — detect double clicks
+    // manually (same cell within 400 ms).
+    const now = performance.now();
+    const isDouble = lastCellClick && lastCellClick.r === r && lastCellClick.c === c && (now - lastCellClick.t) < 400;
+    lastCellClick = { r, c, t: now };
+    selectedCell = { row: r, col: c };
+    const cell = getCell(r, c); sheetFormula.value = cell.v || '';
+    if (isDouble) { lastCellClick = null; startCellEdit(); return; }
+    renderSheet();
+    // Focus the grid so keyboard navigation works after a click.
+    sheetGrid.focus();
+  }); });
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 function startCellEdit(){
@@ -1728,6 +1825,9 @@ function startCellEdit(){
 }
 function moveSelection(dr, dc){ selectedCell.row = Math.max(0, Math.min(sheets[currentSheet].rows-1, selectedCell.row + dr)); selectedCell.col = Math.max(0, Math.min(sheets[currentSheet].cols-1, selectedCell.col + dc)); const cell = getCell(selectedCell.row, selectedCell.col); sheetFormula.value = cell.v || ''; renderSheet(); }
 sheetFormula.addEventListener('keydown', e => { if (e.key === 'Enter') { sheetApplyFormula(); e.preventDefault(); moveSelection(1, 0); } });
+// Make the grid focusable so arrow-key navigation and type-to-edit work
+// after clicking a cell (the click handler calls sheetGrid.focus()).
+sheetGrid.tabIndex = 0;
 sheetGrid.addEventListener('keydown', e => {
   if (e.target.matches('input')) return;
   if (e.key === 'ArrowDown') { moveSelection(1, 0); e.preventDefault(); }
@@ -1747,7 +1847,8 @@ sheetGrid.addEventListener('keypress', e => {
 });
 function renderSheetTabs(){
   sheetTabs.innerHTML = '<span class="sheet-tab-add" onclick="sheetCmd(\'addSheet\')">+</span>';
-  sheets.forEach((s, i) => { const tab = document.createElement('span'); tab.className = 'sheet-tab' + (i === currentSheet ? ' active' : ''); tab.textContent = s.name; tab.onclick = () => { currentSheet = i; renderSheet(); renderSheetTabs(); }; sheetTabs.insertBefore(tab, sheetTabs.firstChild); });
+  // Append tabs before the "+" button so Sheet1..N stay in creation order.
+  sheets.forEach((s, i) => { const tab = document.createElement('span'); tab.className = 'sheet-tab' + (i === currentSheet ? ' active' : ''); tab.textContent = s.name; tab.onclick = () => { currentSheet = i; renderSheet(); renderSheetTabs(); }; sheetTabs.insertBefore(tab, sheetTabs.querySelector('.sheet-tab-add')); });
 }
 document.getElementById('sheetColor').addEventListener('input', e => { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheets[currentSheet].cells[k]) sheets[currentSheet].cells[k] = {v:''}; sheets[currentSheet].cells[k].style = sheets[currentSheet].cells[k].style || {}; sheets[currentSheet].cells[k].style.color = e.target.value; renderSheet(); });
 window.sheetCmd = sheetCmd; window.sheetRecalc = sheetRecalc; window.sheetApplyFormula = sheetApplyFormula; window.closeModal = closeModal; window.docCmd = docCmd; window.insertTable = insertTable; window.insertLink = insertLink; window.insertSpecialChar = insertSpecialChar; window.tableCmd = tableCmd; window.formatPainter = formatPainter; window.findReplace = findReplace;
@@ -1765,7 +1866,13 @@ function renderTexts(){
   // Render image objects first (below text)
   imgObjects.forEach((im,i)=>{
     if (resizingImg && selectedImg === i) return;
-    if (im.img && im.img.complete) tctx.drawImage(im.img, im.x, im.y, im.w, im.h);
+    if (im.img && im.img.complete) {
+      tctx.save();
+      // Honor the Free Transform rotation (if any) around the image center.
+      if (im.rotation) { tctx.translate(im.x + im.w/2, im.y + im.h/2); tctx.rotate(im.rotation * Math.PI / 180); tctx.drawImage(im.img, -im.w/2, -im.h/2, im.w, im.h); }
+      else tctx.drawImage(im.img, im.x, im.y, im.w, im.h);
+      tctx.restore();
+    }
   });
   texts.forEach(t=>{
     // Hide the text being edited — the transparent contenteditable overlay
@@ -1787,7 +1894,7 @@ function renderTexts(){
   });
   composite();
 }
-function textBBox(t){ tctx.font=fontStr(t); const w=tctx.measureText(applyTextTransform(t.text, t.transform || 'none')).width, h=t.size*1.25; const x0=t.align==='left'?t.x : t.align==='center'?t.x-w/2 : t.x-w; return {x:x0, y:t.y, w, h}; }
+function textBBox(t){ tctx.save(); tctx.font=fontStr(t); if (t.letterSpacing !== undefined) tctx.letterSpacing = t.letterSpacing + 'px'; const w=tctx.measureText(applyTextTransform(t.text, t.transform || 'none')).width, h=t.size*1.25; tctx.restore(); const x0=t.align==='left'?t.x : t.align==='center'?t.x-w/2 : t.x-w; return {x:x0, y:t.y, w, h}; }
 function hitText(pt){ for(let i=texts.length-1;i>=0;i--){ const b=textBBox(texts[i]); if(pt.x>=b.x-6 && pt.x<=b.x+b.w+6 && pt.y>=b.y-6 && pt.y<=b.y+b.h+6) return i; } return -1; }
 function drawSelection(){ if(tool==='transform'&&selectedImg>=0){drawTransformHandles();}  pctx.clearRect(0,0,W,H);
   // Text selection
@@ -2071,8 +2178,7 @@ document.getElementById('gradRadial').onclick = () => { gradType = 'radial'; set
 document.getElementById('gradConic').onclick = () => { gradType = 'conic'; setActiveSeg('gradConic', ['gradLinear','gradRadial','gradConic']); };
 function setActiveSeg(id, all){ all.forEach(x => document.getElementById(x).classList.toggle('on', x === id)); }
 document.getElementById('gradAngle').oninput = () => { document.getElementById('gradAngleOut').textContent = document.getElementById('gradAngle').value; };
-let gradPending = false;
-document.getElementById('gradientApply').onclick = () => { gradPending = true; closeModal('gradientModal'); };
+document.getElementById('gradientApply').onclick = () => { closeModal('gradientModal'); selectTool('gradient'); };
 function drawGradient(x1, y1, x2, y2){
   const ctx = activeCtx();
   const start = document.getElementById('gradStart').value; const end = document.getElementById('gradEnd').value; const angle = +document.getElementById('gradAngle').value;
@@ -2100,6 +2206,8 @@ document.getElementById('shadowApply').onclick = () => {
 /* ══ POINTER PIPELINE ════════════════════════════════ */
 preview.addEventListener('pointerdown',e=>{
   if(tool==='doc' || tool==='sheet') return;
+  // Respect the layer lock: painting on a locked layer is a silent no-op.
+  if((tool==='brush'||tool==='eraser') && layers[currentLayer] && layers[currentLayer].locked){ alert('This layer is locked. Unlock it in the Layers panel (🔒 button) to paint on it.'); return; }
   const pt=getPos(e); preview.setPointerCapture(e.pointerId);
   if (bgRemovePending) { applyBgRemoval(pt.x, pt.y); bgRemovePending = false; return; }
   if(tool==='picker'){ const d=bctx.getImageData(Math.round(pt.x),Math.round(pt.y),1,1).data; setColor(d[3]>0 ? '#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('') : bgColor); addRecentColor(color); selectTool('select'); return; }
@@ -2254,6 +2362,18 @@ function updateRing(e){ if(tool!=='brush'&&tool!=='eraser') return; const d=size
 
 /* ══ FILE ACTIONS ════════════════════════════════ */
 function downloadBlob(blob, name){ const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+// Image/PDF exports capture the design canvas (layers + text + images).
+// Document / Spreadsheet / Code content lives in DOM overlays that are NOT
+// part of the canvas — exporting from those modes would silently produce a
+// blank image, so guide the user to a canvas mode instead.
+function exportModeGuard(){
+  if (tool === 'doc' || tool === 'sheet' || tool === 'code') {
+    const modeName = tool === 'doc' ? 'Document' : tool === 'sheet' ? 'Spreadsheet' : 'Code Editor';
+    alert('Image and PDF export captures the design canvas. You are currently in ' + modeName + ' mode, whose content cannot be rasterized. Press M (Select tool) to switch to canvas mode, then export again.');
+    return true;
+  }
+  return false;
+}
 function canvasToBlob(callback, type='image/png', quality=0.92){
   const out=document.createElement('canvas'); out.width=W; out.height=H;
   const o=out.getContext('2d'); o.fillStyle=bgColor; o.fillRect(0,0,W,H);
@@ -2268,9 +2388,10 @@ openInput.onchange = e => {
   else { const img = new Image(); img.onload = () => { initLayers(); setCanvasSize(img.width, img.height); activeCtx().drawImage(img, 0, 0); composite(); renderLayerList(); texts = []; selected = -1; renderTexts(); undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); filename.textContent = f.name.replace(/\.[^.]+$/, ''); }; img.src = URL.createObjectURL(f); }
   e.target.value = '';
 };
-function fileSavePng(){ canvasToBlob(blob => { if (blob) downloadBlob(blob, (filename.textContent || 'creative-minds-design') + '.png'); }, 'image/png'); }
-function fileSaveJpg(){ canvasToBlob(blob => { if (blob) downloadBlob(blob, (filename.textContent || 'creative-minds-design') + '.jpg'); }, 'image/jpeg', 0.92); }
+function fileSavePng(){ if (exportModeGuard()) return; canvasToBlob(blob => { if (blob) downloadBlob(blob, (filename.textContent || 'creative-minds-design') + '.png'); }, 'image/png'); }
+function fileSaveJpg(){ if (exportModeGuard()) return; canvasToBlob(blob => { if (blob) downloadBlob(blob, (filename.textContent || 'creative-minds-design') + '.jpg'); }, 'image/jpeg', 0.92); }
 function fileSaveSvg(){
+  if (exportModeGuard()) return;
   const dataUrl = base.toDataURL('image/png');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><image href="${dataUrl}" width="${W}" height="${H}"/>${texts.map(t => `<text x="${t.x}" y="${t.y + t.size}" font-family="${t.family}" font-size="${t.size}" font-weight="${t.bold?700:400}" ${t.italic?'font-style="italic"':''} fill="${t.color}" text-anchor="${t.align==='left'?'start':t.align==='center'?'middle':'end'}">${escapeHtml(t.text)}</text>`).join('\n  ')}</svg>`;
   downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), (filename.textContent || 'creative-minds-design') + '.svg');
@@ -2281,35 +2402,21 @@ function fileSaveSvg(){
    so the file stays small. Produces a one-page PDF sized to match the canvas
    in PDF points (72 dpi). */
 function fileSavePdf(){
-  canvasToBlob(blob => {
-    if (!blob) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result; // data:image/jpeg;base64,...
-      const base64 = dataUrl.split(',')[1];
-      const imgBytes = base64ToBytes(base64);
-      // Page dimensions in PDF points (72 dpi). Use the canvas aspect ratio.
-      const maxDim = 612; // Letter width
-      let pw = maxDim, ph = Math.round(maxDim * H / W);
-      if (ph > 792) { ph = 792; pw = Math.round(792 * W / H); }
-      const pdf = buildSimplePdf(pw, ph, imgBytes, W, H);
-      downloadBlob(new Blob([pdf], { type: 'application/pdf' }), (filename.textContent || 'creative-minds-design') + '.pdf');
-    };
-    // Use JPEG for smaller PDFs
-    const tmpCanvas = document.createElement('canvas');
-    tmpCanvas.width = W; tmpCanvas.height = H;
-    const tmpCtx = tmpCanvas.getContext('2d');
-    tmpCtx.fillStyle = bgColor; tmpCtx.fillRect(0, 0, W, H);
-    tmpCtx.drawImage(base, 0, 0); tmpCtx.drawImage(textLayer, 0, 0);
-    tmpCanvas.toBlob(blob => { if (!blob) return; const r = new FileReader(); r.onload = () => {
-      const base64 = r.result.split(',')[1];
-      const imgBytes = base64ToBytes(base64);
-      const maxDim = 612; let pw = maxDim, ph = Math.round(maxDim * H / W);
-      if (ph > 792) { ph = 792; pw = Math.round(792 * W / H); }
-      const pdf = buildSimplePdf(pw, ph, imgBytes, W, H);
-      downloadBlob(new Blob([pdf], { type: 'application/pdf' }), (filename.textContent || 'creative-minds-design') + '.pdf');
-    }; r.readAsDataURL(blob); }, 'image/jpeg', 0.92);
-  });
+  if (exportModeGuard()) return;
+  // Use JPEG for smaller PDFs
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = W; tmpCanvas.height = H;
+  const tmpCtx = tmpCanvas.getContext('2d');
+  tmpCtx.fillStyle = bgColor; tmpCtx.fillRect(0, 0, W, H);
+  tmpCtx.drawImage(base, 0, 0); tmpCtx.drawImage(textLayer, 0, 0);
+  tmpCanvas.toBlob(blob => { if (!blob) return; const r = new FileReader(); r.onload = () => {
+    const base64 = r.result.split(',')[1];
+    const imgBytes = base64ToBytes(base64);
+    const maxDim = 612; let pw = maxDim, ph = Math.round(maxDim * H / W);
+    if (ph > 792) { ph = 792; pw = Math.round(792 * W / H); }
+    const pdf = buildSimplePdf(pw, ph, imgBytes, W, H);
+    downloadBlob(new Blob([pdf], { type: 'application/pdf' }), (filename.textContent || 'creative-minds-design') + '.pdf');
+  }; r.readAsDataURL(blob); }, 'image/jpeg', 0.92);
 }
 function base64ToBytes(b64){
   const bin = atob(b64); const len = bin.length; const bytes = new Uint8Array(len);
@@ -2381,8 +2488,8 @@ function buildSimplePdf(pageW, pageH, imgBytes, imgW, imgH){
   for (const c of chunks) { result.set(c, pos); pos += c.length; }
   return result;
 }
-function fileSaveJson(){ const proj = { version: 1, app: 'creative-minds-studio', savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, doc: docLayer.innerHTML, sheets, currentSheet, docRotation }; downloadBlob(new Blob([JSON.stringify(proj, null, 2)], { type: 'application/json' }), (filename.textContent || 'untitled') + '.json'); }
-function filePrint(){ canvasToBlob(blob => { if (!blob) return; const url = URL.createObjectURL(blob); const w = window.open(url); w.onload = () => { w.print(); }; }); }
+function fileSaveJson(){ const proj = { version: 1, app: 'creative-minds-studio', savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, sheets, currentSheet, docRotation }; downloadBlob(new Blob([JSON.stringify(proj, null, 2)], { type: 'application/json' }), (filename.textContent || 'untitled') + '.json'); }
+function filePrint(){ if (exportModeGuard()) return; canvasToBlob(blob => { if (!blob) return; const url = URL.createObjectURL(blob); const w = window.open(url); if (!w) { alert('The print window was blocked by your browser\u2019s pop-up blocker. Allow pop-ups for this page and try again.'); return; } w.onload = () => { w.print(); }; }); }
 
 /* ══ EDIT ACTIONS ═════════════════════════════════ */
 function editCut(){ editCopy(); if (tool === 'text' && selected >= 0) { pushUndo('Cut'); texts.splice(selected, 1); selected = -1; renderTexts(); drawSelection(); } else { pushUndo('Cut'); const ctx = activeCtx(); clipboardImg = ctx.getImageData(0,0,W,H); ctx.clearRect(0,0,W,H); composite(); renderLayerList(); } }
@@ -2859,8 +2966,9 @@ document.addEventListener('pointermove', (e) => {
     const angle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
     im.rotation = angle;
     if (transformInfo) transformInfo.textContent = Math.round(orig.w) + 'x' + Math.round(orig.h) + ' R:' + Math.round(angle) + 'deg';
-  } else if (transformMode.startsWith('scale')) {
-    // Scale: proportional resize from corner
+  } else if (transformMode !== 'rot') {
+    // Scale: proportional resize from any of the four corner handles
+    // ('nw' | 'ne' | 'sw' | 'se').
     const aspect = orig.w / orig.h;
     let delta = (dx + dy) / 2;
     if (transformMode === 'nw' || transformMode === 'sw') delta = -delta;
@@ -2873,7 +2981,9 @@ document.addEventListener('pointermove', (e) => {
     }
     if (transformInfo) transformInfo.textContent = Math.round(newW) + 'x' + Math.round(newH);
   }
-  composite();
+  // renderTexts (not composite) — placed images live on the text layer and
+  // must be re-drawn with the updated size/rotation.
+  renderTexts();
 });
 
 document.addEventListener('pointerup', () => {

@@ -351,7 +351,7 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 
                 <div class="flex items-center gap-6">
                     <div id="timer-container" class="timer-display paused">
-                        <i class="fas fa-hourglass-half mr-2 text-sm"></i><span>29:00</span>
+                        <i class="fas fa-hourglass-half mr-2 text-sm"></i><span id="timer">29:00</span>
                     </div>
                     <button id="submit-btn" onclick="submitListening()" class="btn-3d opacity-50 cursor-not-allowed" disabled title="Submit test">
                         <i class="fas fa-paper-plane mr-2"></i>Submit
@@ -2025,7 +2025,7 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
             const timerContainer = document.getElementById('timer-container');
             if (timerContainer) {
                 timerContainer.classList.remove('paused');
-                timerContainer.innerHTML = '<i class="fas fa-hourglass-half mr-2 text-sm"></i><span>29:00</span>';
+                timerContainer.innerHTML = '<i class="fas fa-hourglass-half mr-2 text-sm"></i><span id="timer">29:00</span>';
             }
 
             // Start the countdown timer
@@ -2239,7 +2239,7 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
         document.addEventListener('DOMContentLoaded', function() {
             updateProgress();
         });
-    </script></script>
+    </script>
 
 <!-- CMC SHARE BUTTON -->
 <button id="cmc-share-btn" title="Share this page" aria-label="Share this page"><i class="fas fa-share-nodes"></i></button>

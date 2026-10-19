@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight, BookOpen, Check, ClipboardCheck, Feather, Gamepad2, GraduationCap, Headphones, Headset, Mic, PenLine, Shapes } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Check, ClipboardCheck, Feather, Gamepad2, GraduationCap, Headphones, Headset, Shapes } from 'lucide-react';
 import { CLASSROOM_ASSIGNMENTS } from '../data/assignments';
 import { TOEFL_JUNIOR_ASSESSMENTS } from '../data/toeflJuniorAssessments';
 import { Reveal } from './Reveal';

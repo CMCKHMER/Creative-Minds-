@@ -132,7 +132,7 @@ html[data-theme="light"] body{color:#1e293b}
 
 /* AI-generated test page background */
 body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background-image:url('img/test-bg.png');
+  background-image:url('../img/test-bg.png');
   background-size:cover;background-position:center;background-repeat:no-repeat;
   opacity:.12;mix-blend-mode:screen;
   -webkit-mask-image:radial-gradient(ellipse 60% 50% at 50% 30%,black 0%,transparent 80%);
@@ -256,12 +256,14 @@ try{var saved=localStorage.getItem('biweek-theme');if(saved){document.documentEl
 
 <div class="relative z-10 max-w-4xl mx-auto px-4 py-10 sm:px-6">
   <div id="test-header"></div>
+  <div id="qmap" class="qmap"></div>
 <div class="glass rounded-lg p-4 mb-4 border-l-2" style="border-left-color:#fbbf24"><h4 class="text-xs font-bold text-amber-300 mb-2">Reading Passage</h4><p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed">The modern knowledge economy has necessitated a radical departure from traditional, co-located operational paradigms. As organizations transition into fluid, globally distributed networks, the locus of institutional knowledge has shifted from centralized repositories to decentralized, tacitly maintained communication streams. This decentralization presents a profound challenge to corporate epistemology—the study of how an organization knows what it knows.
 
 In a physical office, serendipitous collisions at the watercooler or the spontaneous visibility of a colleague's white board serve as low-friction conduits for the transfer of non-codified expertise. Conversely, asynchronous digital environments rely on deliberate documentation, which frequently creates a false sense of cognitive security. Leadership teams often mistake the proliferation of archived Slack threads and cloud-stored wikis for actual organizational comprehension.
 
 Furthermore, the algorithmic oversight accompanying remote infrastructural frameworks introduces a paradox of transparency. Telemetry data tracking keystrokes, login frequencies, and project commit velocities promises an unprecedented vista into worker productivity. Yet, this quantification reduces complex cognitive labor to crude proxies, incentivizing a culture of performative output rather than substantive innovation. Consequently, the putative democratization of work via digital tooling frequently hardens into a neo-Taylorism, where the worker is simultaneously hyper-visible in metric terms and profoundly opaque in cognitive reality.</p></div>
   <form id="test-form" novalidate></form>
+  <div id="review-modal" class="review-modal"><div class="review-modal-card"><h3 class="font-display text-xl font-bold mb-3" style="color:var(--text)">Ready to submit?</h3><div class="flex justify-center mb-4"><div class="review-stat answered"><b id="rv-answered">0</b><span>Answered</span></div><div class="review-stat unanswered"><b id="rv-unanswered">0</b><span>Unanswered</span></div><div class="review-stat flagged"><b id="rv-flagged">0</b><span>Flagged</span></div></div><p class="text-xs mb-5" style="color:var(--muted)" id="rv-msg">Unanswered questions will count as incorrect.</p><div class="flex justify-center gap-2"><button class="btn" type="button" id="rv-review">Review answers</button><button class="btn-primary btn" type="button" id="rv-submit">Submit now</button></div></div></div>
 </div>
 
 <script>
@@ -365,7 +367,7 @@ function addQ(target,number,prompt,choices,answer,kind='radio',values=null){
 Object.entries(banks).forEach(([tid,rows])=>{
   const target=document.getElementById(tid);
   if(!target)return;
-  rows.forEach((r,i)=>addQ(target,(counts[tid]=(counts[tid]||0)+1),r[0],r[1],r[2]));
+  rows.forEach((r,i)=>addQ(target,allQuestions.length+1,r[0],r[1],r[2]));
 });
 
 if(window.RHETORICAL_A){
@@ -374,12 +376,15 @@ if(window.RHETORICAL_A){
 }
 if(window.RHETORICAL_B){
   const rB=document.getElementById('rhetorical-b-list');
-  if(rB)window.RHETORICAL_B.forEach((r,i)=>addQ(rB,(window.RHETORICAL_A?.length||0)+i+1,r[0],["1 = reason","2 = explanation","3 = justification","4 = cause-and-effect or purpose"],r[1],'checkbox',[1,2,3,4]));
+  if(rB)window.RHETORICAL_B.forEach((r,i)=>addQ(rB,allQuestions.length+1,r[0],["1 = reason","2 = explanation","3 = justification","4 = cause-and-effect or purpose"],r[1],'checkbox',[1,2,3,4]));
 }
 
 // Build question map
 const qmap=document.getElementById('qmap');
 function buildQMap(){
+  // Some generated pages omit the #qmap strip — guard so the rest of the
+  // page's wiring (timer, submit, review modal) still runs.
+  if(!qmap)return;
   qmap.innerHTML='';
   allQuestions.forEach((card,i)=>{
     const item=document.createElement('button');
@@ -390,6 +395,7 @@ function buildQMap(){
   });
 }
 function updateQMap(){
+  if(!qmap)return;
   const items=qmap.querySelectorAll('.qmap-item');
   allQuestions.forEach((card,i)=>{
     if(!items[i])return;
@@ -464,7 +470,7 @@ function doSubmit(){
   breakdown.innerHTML='<p class="text-xs font-bold mb-3" style="color:var(--muted)">Score breakdown by section</p>'+gs.map(s=>{const pct=s.total>0?Math.round(s.correct/s.total*100):0;const color=pct>=80?'#34d399':pct>=50?'#fbbf24':'#f87171';return `<div class="skill-bar-row"><span class="skill-name">${s.title.split('\u00b7')[0].trim().slice(0,15)}</span><div class="skill-bar-track"><div class="skill-bar-fill" style="width:${pct}%;background:${color}"></div></div><span class="skill-score">${s.correct}/${s.total}</span></div>`;}).join('');
   breakdown.classList.add('show');
   // Firestore submit
-  cmcTrack('drill_complete',{drill_slug:window.location.pathname.split('/').pop(),drill_title:config.title,drill_source:'biweek-planner',score_pct:Math.round(score/cards.length*100),correct_count:score,total_count:cards.length});;try{var _stoken=localStorage.getItem('cmc-student-token');var _sname=localStorage.getItem('cmc-student-name')||'';if(_stoken&&_sname){var _url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';var _body={fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:config.title},drillSource:{stringValue:'biweek-planner'},studentName:{stringValue:_sname},scorePct:{integerValue:String(Math.round(score/cards.length*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(cards.length)},submittedAt:{timestampValue:new Date().toISOString()}}};fetch(_url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_stoken},body:JSON.stringify(_body)}).catch(function(e){})}}catch(e){}
+  cmcTrack('drill_complete',{drill_slug:window.location.pathname.split('/').pop(),drill_title:config.title,drill_source:'biweek-planner',score_pct:Math.round(score/cards.length*100),correct_count:score,total_count:cards.length});;try{var _stoken=localStorage.getItem('cmc-student-token');var _sname=localStorage.getItem('cmc-student-name')||'';var _suid=localStorage.getItem('cmc-student-uid')||'';var _sexp=Number(localStorage.getItem('cmc-student-token-expires')||'0');if(_stoken&&_sname&&(!_sexp||_sexp>Date.now())){var _url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';var _body={fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:config.title},drillSource:{stringValue:'biweek-planner'},studentName:{stringValue:_sname},studentUid:{stringValue:_suid},classId:{nullValue:null},durationSeconds:{nullValue:null},scorePct:{integerValue:String(Math.round(score/cards.length*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(cards.length)},submittedAt:{timestampValue:new Date().toISOString()}}};fetch(_url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_stoken},body:JSON.stringify(_body)}).catch(function(e){})}}catch(e){}
   result.innerHTML=`\u2713 Score: ${score}/${cards.length} (${Math.round(score/cards.length*100)}%) \u2014 ${config.title}`;
   result.classList.remove('hidden');result.style.background='rgba(16,185,129,.1)';result.style.color='#6ee7b7';
   submitBtn.disabled=true;submitBtn.innerHTML='<i class="fas fa-check text-xs"></i> Submitted';
