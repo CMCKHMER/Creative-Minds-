@@ -130,18 +130,10 @@
   .crop-bar button{border:none; font-family:inherit; font-weight:600; font-size:12px; padding:7px 14px; border-radius:999px; cursor:pointer; transition:transform .15s}
   #cropApply{background:var(--amber); color:#241a08} #cropCancel{background:var(--panel-2); color:var(--muted); border:1px solid var(--line)}
 
-  .transform-overlay{position:absolute; inset:0; z-index:20; pointer-events:none; display:none}
-  /* The overlay is purely decorative — it must NEVER intercept pointer
-     events, otherwise clicks can't reach the canvas below to select images
-     for the Free Transform tool. */
-  .transform-overlay.active{display:block; pointer-events:none}
-  .transform-handle{position:absolute; width:10px; height:10px; background:var(--amber); border:2px solid #fff; border-radius:2px; box-shadow:0 2px 6px rgba(0,0,0,.5)}
-  .transform-handle.tl{top:-5px; left:-5px; cursor:nwse-resize}
-  .transform-handle.tr{top:-5px; right:-5px; cursor:nesw-resize}
-  .transform-handle.bl{bottom:-5px; left:-5px; cursor:nesw-resize}
-  .transform-handle.br{bottom:-5px; right:-5px; cursor:nwse-resize}
-  .transform-handle.rot{top:-26px; left:50%; margin-left:-5px; cursor:grab; border-radius:50%}
-  .transform-frame{position:absolute; inset:0; border:1px dashed var(--amber); pointer-events:none}
+  /* Original transform-overlay/transform-frame rules removed — the overlay
+     div was deleted and handles are created dynamically by drawTransformHandles().
+     The .transform-handle base + corner/rot rules below (CMC-TRANSFORM-FIX)
+     style the dynamic handles that get added to .stage. */
 
   .panel{background:var(--panel); border-left:1px solid var(--line); padding:14px 16px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; z-index:40}
   .panel.hidden{display:none}
@@ -750,14 +742,10 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
             <div class="sheet-tabs" id="sheetTabs"><span class="sheet-tab-add" onclick="sheetCmd('addSheet')">+</span></div>
           </div>
           <canvas id="preview"></canvas>
-          <div class="transform-overlay" id="transformOverlay">
-            <div class="transform-frame"></div>
-            <div class="transform-handle tl" data-h="tl"></div>
-            <div class="transform-handle tr" data-h="tr"></div>
-            <div class="transform-handle bl" data-h="bl"></div>
-            <div class="transform-handle br" data-h="br"></div>
-            <div class="transform-handle rot" data-h="rot"></div>
-          </div>
+          <!-- Transform handles are created dynamically by drawTransformHandles()
+               and appended to .stage; this overlay was a leftover stub that
+               competed with the dynamic handles and never received pointer
+               events (CSS pointer-events:none on .active). Removed. -->
           <div id="caretGuide"></div>
           <div id="textInput" contenteditable="true" spellcheck="false" autocomplete="off"></div>
         </div>
@@ -1027,8 +1015,8 @@ const base=document.getElementById('base'), textLayer=document.getElementById('t
       sheetGrid=document.getElementById('sheetGrid'),
       sheetTabs=document.getElementById('sheetTabs'),
       sheetFormula=document.getElementById('sheetFormula'),
-      filename=document.getElementById('filename'),
-      transformOverlay=document.getElementById('transformOverlay');
+      filename=document.getElementById('filename');
+      // transformOverlay element removed — handles are created dynamically by drawTransformHandles()
 const bctx=base.getContext('2d'), tctx=textLayer.getContext('2d'), pctx=preview.getContext('2d');
 const rulerX = document.getElementById('rulerX'), rulerY = document.getElementById('rulerY');
 const rctxX = rulerX.getContext('2d'), rctxY = rulerY.getContext('2d');
@@ -2882,7 +2870,8 @@ function codeDownload() {
 let transformMode = null; // 'rotate', 'scale-nw', 'scale-ne', 'scale-sw', 'scale-se', 'move'
 let transformStartX = 0, transformStartY = 0;
 let transformStartBounds = null;
-let transformStartAngle = 0;
+// transformStartAngle removed — the new rotation calc in pointermove
+// computes the angle directly from the image center, no start angle needed.
 let transformHandles = [];
 let transformBbox = null;
 let transformInfo = null;
@@ -2901,37 +2890,45 @@ function drawTransformHandles() {
   if (!im) return;
   const wrapRect = wrap.getBoundingClientRect();
   const stageRect = stage.getBoundingClientRect();
+  // Image coords are in CANVAS pixels (W×H). The canvas is CSS-scaled to fit
+  // the wrap, so to position handles correctly in the stage we must convert
+  // canvas coords → display coords by multiplying by `scale`.
+  const scale = wrapRect.width / W || 1;
+  const dx = wrapRect.left - stageRect.left;
+  const dy = wrapRect.top - stageRect.top;
   
   // Bounding box
   transformBbox = document.createElement('div');
   transformBbox.className = 'transform-bbox';
-  transformBbox.style.left = (im.x + wrapRect.left - stageRect.left) + 'px';
-  transformBbox.style.top = (im.y + wrapRect.top - stageRect.top) + 'px';
-  transformBbox.style.width = im.w + 'px';
-  transformBbox.style.height = im.h + 'px';
+  transformBbox.style.left = (im.x * scale + dx) + 'px';
+  transformBbox.style.top = (im.y * scale + dy) + 'px';
+  transformBbox.style.width = (im.w * scale) + 'px';
+  transformBbox.style.height = (im.h * scale) + 'px';
   stage.appendChild(transformBbox);
   
   // Info display
   transformInfo = document.createElement('div');
   transformInfo.className = 'transform-info';
   transformInfo.textContent = Math.round(im.w) + 'x' + Math.round(im.h) + (im.rotation ? ' R:' + Math.round(im.rotation) + 'deg' : '');
-  transformInfo.style.left = (im.x + im.w/2 + wrapRect.left - stageRect.left) + 'px';
-  transformInfo.style.top = (im.y + wrapRect.top - stageRect.top) + 'px';
+  transformInfo.style.left = ((im.x + im.w/2) * scale + dx) + 'px';
+  transformInfo.style.top = (im.y * scale + dy) + 'px';
   stage.appendChild(transformInfo);
   
-  // Corner handles + rotation handle
+  // Corner handles + rotation handle.
+  // The rotation handle sits 30 DISPLAY pixels above the image top.
+  const rotOffset = 30;
   const corners = [
-    {name: 'nw', x: im.x, y: im.y, cursor: 'nw-resize'},
-    {name: 'ne', x: im.x + im.w, y: im.y, cursor: 'ne-resize'},
-    {name: 'sw', x: im.x, y: im.y + im.h, cursor: 'sw-resize'},
-    {name: 'se', x: im.x + im.w, y: im.y + im.h, cursor: 'se-resize'},
-    {name: 'rot', x: im.x + im.w/2, y: im.y - 30, cursor: 'grab'},
+    {name: 'nw', x: im.x * scale, y: im.y * scale, cursor: 'nw-resize'},
+    {name: 'ne', x: (im.x + im.w) * scale, y: im.y * scale, cursor: 'ne-resize'},
+    {name: 'sw', x: im.x * scale, y: (im.y + im.h) * scale, cursor: 'sw-resize'},
+    {name: 'se', x: (im.x + im.w) * scale, y: (im.y + im.h) * scale, cursor: 'se-resize'},
+    {name: 'rot', x: (im.x + im.w/2) * scale, y: im.y * scale - rotOffset, cursor: 'grab'},
   ];
   corners.forEach(c => {
     const h = document.createElement('div');
     h.className = 'transform-handle ' + c.name;
-    h.style.left = (c.x + wrapRect.left - stageRect.left) + 'px';
-    h.style.top = (c.y + wrapRect.top - stageRect.top) + 'px';
+    h.style.left = (c.x + dx) + 'px';
+    h.style.top = (c.y + dy) + 'px';
     h.dataset.handle = c.name;
     stage.appendChild(h);
     transformHandles.push(h);
@@ -2942,8 +2939,6 @@ function drawTransformHandles() {
       transformStartX = e.clientX;
       transformStartY = e.clientY;
       transformStartBounds = {x: im.x, y: im.y, w: im.w, h: im.h, rotation: im.rotation || 0};
-      const cx = im.x + im.w/2, cy = im.y + im.h/2;
-      transformStartAngle = Math.atan2(e.clientY - (cy + wrapRect.top - stageRect.top + stageRect.top), e.clientX - (cx + wrapRect.left - stageRect.left + stageRect.left));
       pushUndo('Transform image');
     });
   });
@@ -2959,18 +2954,25 @@ document.addEventListener('pointermove', (e) => {
   const orig = transformStartBounds;
   
   if (transformMode === 'rot') {
-    // Rotation: compute angle from center
+    // Rotation: compute angle from image center.
+    // Image center must be converted from canvas coords to viewport coords
+    // (scale by wrapRect.width / W, then offset by wrapRect.left/top).
     const wrapRect = wrap.getBoundingClientRect();
-    const cx = orig.x + orig.w/2 + wrapRect.left;
-    const cy = orig.y + orig.h/2 + wrapRect.top;
+    const sc = wrapRect.width / W || 1;
+    const cx = (orig.x + orig.w/2) * sc + wrapRect.left;
+    const cy = (orig.y + orig.h/2) * sc + wrapRect.top;
     const angle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
     im.rotation = angle;
     if (transformInfo) transformInfo.textContent = Math.round(orig.w) + 'x' + Math.round(orig.h) + ' R:' + Math.round(angle) + 'deg';
   } else if (transformMode !== 'rot') {
-    // Scale: proportional resize from any of the four corner handles
-    // ('nw' | 'ne' | 'sw' | 'se').
+    // Scale: drag delta is in DISPLAY pixels — convert to CANVAS pixels
+    // (divide by scale) before applying to image width/height.
+    const wrapRect = wrap.getBoundingClientRect();
+    const sc = wrapRect.width / W || 1;
+    const cdx = dx / sc;
+    const cdy = dy / sc;
     const aspect = orig.w / orig.h;
-    let delta = (dx + dy) / 2;
+    let delta = (cdx + cdy) / 2;
     if (transformMode === 'nw' || transformMode === 'sw') delta = -delta;
     const newW = Math.max(20, orig.w + delta);
     const newH = newW / aspect;
