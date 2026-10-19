@@ -152,9 +152,18 @@ export function TeacherChat({ onOpenAuth }: { onOpenAuth?: () => void }) {
     };
   }, []);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change — but ONLY if the user
+  // is already viewing the chat (not on page load). This prevents the
+  // page from jumping to the Teacher Chat section on refresh.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    if (messages.length === 0) return; // Don't scroll on empty
+    const chatEl = document.getElementById('teacher-chat');
+    if (!chatEl) return;
+    const rect = chatEl.getBoundingClientRect();
+    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+    if (isVisible) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
   }, [messages]);
 
   const handleSubmit = async (e: FormEvent) => {
