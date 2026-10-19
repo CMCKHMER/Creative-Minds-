@@ -99,7 +99,7 @@ export function FirebaseDashboard() {
 
   if (!firebaseReady) {
     return (
-      <section className="border-y border-white/10 bg-[#061018] py-16">
+      <section className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#061018] py-20 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-7xl px-5 text-center">
           <p className="text-sm text-slate-500">Firebase backend is being configured…</p>
         </div>
@@ -108,7 +108,7 @@ export function FirebaseDashboard() {
   }
 
   return (
-    <section id="firebase-dashboard" className="scroll-mt-24 border-y border-white/10 bg-[#061018] py-16 sm:py-20">
+    <section id="firebase-dashboard" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#061018] py-20 sm:py-24 lg:py-28">
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-cyan-500/[0.10] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-violet-500/[0.10] blur-[125px]" />
 

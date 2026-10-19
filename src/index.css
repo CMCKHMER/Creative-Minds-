@@ -115,6 +115,19 @@
   position: relative;
   overflow: hidden;
 }
+/* Subtle top border that creates a visual divider between sections
+   without needing explicit borders on every section. */
+.cmc-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 80rem);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(148,163,184,.08), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
 .cmc-container {
   margin-inline: auto;
   width: 100%;
