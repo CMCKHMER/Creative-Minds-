@@ -354,12 +354,8 @@
 }
 
 .cmc-title-row-second .cmc-title-solid {
-  color: transparent;
-  background: linear-gradient(106deg, #fff 0%, #ccfff3 25%, #65dae9 61%, #c4d9ff 100%);
-  background-size: 180% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  animation: cmc-title-color 10s ease-in-out infinite alternate;
+  color: #f4faff;
+  text-shadow: 0 8px 35px rgba(4, 18, 30, 0.2);
 }
 
 .cmc-title-outline {
