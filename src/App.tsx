@@ -21,6 +21,7 @@ import { KidGradeHub } from './components/KidGradeHub';
 import { GEPISecHub } from './components/GEPISecHub';
 import { TeacherToolsPage } from './components/TeacherTools';
 import { NewsSidePanel, NewsPage } from './components/NewsWindow';
+import { TeacherChat } from './components/TeacherChat';
 import { LMSCard } from './components/LMSCard';
 import { FirebaseDashboard } from './components/FirebaseDashboard';
 import { Sparkles, ArrowUp } from 'lucide-react';
@@ -200,6 +201,11 @@ export function App() {
 
         {/* Available learning materials and skills */}
         <SocialProof />
+
+        {/* Teacher-only chat & announcements — below the news feed,
+            visible to all but only teachers can post. Students see
+            a locked "Teacher access required" prompt. */}
+        <TeacherChat onOpenAuth={() => openMemberAuth('sign-up')} />
 
         {/* Kid Program grade 5-12 resource pathway; Kid 6 + Kid 11 currently linked. */}
         <KidGradeHub />
