@@ -33,7 +33,7 @@ export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
     <section
       id="lms-workspace"
       aria-labelledby="lms-title"
-      className="cmc-section scroll-mt-24 border-y border-white/10 bg-[#061018] py-16 sm:py-20"
+      className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#061018] py-16 sm:py-20"
     >
       {/* Full-bleed semi-transparent card background image */}
       <img src="./images/card-lms.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
