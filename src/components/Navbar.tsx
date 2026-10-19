@@ -120,11 +120,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="h-0.5 w-3 bg-indigo-400 rounded-full transition group-hover:w-4"></span>
                   <span className="h-0.5 w-4 bg-cyan-400 rounded-full"></span>
                 </div>
-                <span className="text-xs font-semibold tracking-wide uppercase text-slate-300 group-hover:text-cyan-300 hidden sm:inline">Quick Links</span>
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-                </span>
+                <span className="text-xs font-semibold tracking-wide uppercase text-slate-300 group-hover:text-cyan-300 hidden lg:inline">Menu</span>
               </button>
 
               {/* Brand Logo matching the original screenshot */}
@@ -134,17 +130,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                     CMC
                   </div>
                 </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1.5">
-                    <span className="cmc-nav-wordmark font-bold text-base sm:text-lg tracking-tight text-white group-hover:text-cyan-200 transition">
-                      CMC Network Hub
-                    </span>
-                    <span className="hidden md:inline-flex text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800/40">
-                      v3.2
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-slate-400 -mt-1 font-medium hidden sm:inline">
-                    Creative Minds Network • Education
+                <div className="flex flex-col leading-none">
+                  <span className="cmc-nav-wordmark font-bold text-base sm:text-lg tracking-tight text-white group-hover:text-cyan-200 transition">
+                    CMC Network Hub
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-medium hidden xl:inline">
+                    Creative Minds Network
                   </span>
                 </div>
               </a>
@@ -152,16 +143,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Middle Nav Links - Desktop (consolidated to 4 primary links;
                 the rest live in Quick Links drawer to avoid clutter) */}
-            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 xl:flex" aria-label="Primary">
+            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:flex" aria-label="Primary">
               <a href="#features" className="cmc-nav-link">Features</a>
-              <a href="#toefl-junior-assessments" className="cmc-nav-link flex items-center gap-1.5 text-cyan-200">
-                <GraduationCap className="h-3.5 w-3.5" aria-hidden="true" />
-                Assessments
-              </a>
-              <a href="#toefl-ibt-mock" className="cmc-nav-link flex items-center gap-1.5 text-violet-200" title="TOEFL iBT Full Mock Test">
-                <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded bg-violet-950/80 text-violet-300 border border-violet-800/40">NEW</span>
-                TOEFL iBT
-              </a>
+              <a href="#toefl-junior-assessments" className="cmc-nav-link">Assessments</a>
+              <a href="#toefl-ibt-mock" className="cmc-nav-link" title="TOEFL iBT Full Mock Test">TOEFL iBT</a>
               <a href="#games" className="cmc-nav-link">Games</a>
               <a href="#faq" className="cmc-nav-link">FAQ</a>
             </nav>
@@ -171,10 +156,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* View Student Demo Button */}
               <button
                 onClick={onOpenStudentDemo}
-                className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-750 border border-slate-700/80 transition active:scale-95"
+                className="hidden lg:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-750 border border-slate-700/80 transition active:scale-95"
+                title="View student experience demo"
               >
-                <Compass className="w-3.5 h-3.5 text-indigo-400" />
-                Student Demo
+                <Compass className="w-3.5 h-3.5 text-indigo-400" aria-hidden="true" />
+                <span className="hidden xl:inline">Demo</span>
               </button>
 
               {/* Primary CTA — switches between "Join CMC" (signed out)
