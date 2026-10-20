@@ -11,7 +11,7 @@
 // pattern, same drill_attempts collection. The dashboard + ticker
 // aggregate from this single collection.
 
-import { FIREBASE_PROJECT_ID } from './firebaseAuth';
+import { FIREBASE_PROJECT_ID, getValidIdToken } from './firebaseAuth';
 
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
@@ -48,6 +48,9 @@ export interface ScoreSubmission {
  *   `drill_attempts` using the user's Firebase ID token as the
  *   `Authorization: Bearer` header. Firestore security rules require
  *   `request.auth != null` for create, so this is the canonical path.
+ * - Expired/near-expiry tokens are silently refreshed first via the
+ *   securetoken grant (getValidIdToken) — a session that has simply aged
+ *   past the 1-hour ID-token lifetime no longer loses its submission.
  * - The studentUid field is populated from `cmc-student-uid` in
  *   localStorage (set by firebaseAuth.ts at sign-in). Earlier versions
  *   of this function wrongly stored the JWT itself as studentUid.
@@ -59,7 +62,7 @@ export interface ScoreSubmission {
  */
 export async function submitScore(input: ScoreSubmission): Promise<string | null> {
   if (typeof window === 'undefined') return null;
-  const idToken = localStorage.getItem('cmc-student-token');
+  const idToken = await getValidIdToken();
   if (!idToken) return null; // No signed-in student — silent skip
 
   const studentUid = localStorage.getItem('cmc-student-uid') || '';

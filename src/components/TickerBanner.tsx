@@ -98,7 +98,7 @@ function parseDoc(doc: FirestoreDoc): DrillAttempt | null {
   };
 }
 
-async function fetchRecentDrills(limit = 250): Promise<DrillAttempt[]> {
+async function fetchRecentDrills(limit = 100): Promise<DrillAttempt[]> {
   // Public read on `drill_attempts` is usually restricted by Firestore
   // security rules, so this will often 403 in production. We catch that
   // and fall back to the DEMO data so the ticker always has something
@@ -178,7 +178,12 @@ function demoData(): TickerData {
 // COMPONENT
 // ---------------------------------------------------------------------------
 
-const REFRESH_MS = 30_000; // 30s
+// 2-minute poll, visibility-gated (see the effect below). Firestore free
+// tier allows 50K document reads/day — the old 250-docs-every-30s poll
+// exhausted that quota in under two hours of one open tab, returning
+// 429 "Quota exceeded" for every visitor until midnight Pacific reset.
+const REFRESH_MS = 120_000; // 2 min
+const FETCH_PAGE = 100; // docs per read — also caps quota per poll
 
 export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
   const [data, setData] = useState<TickerData>(() => demoData());
@@ -191,9 +196,12 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
     let cancelled = false;
 
     async function refresh() {
+      // Quota guard: never poll while the tab is hidden — background tabs
+      // cost the same Firestore reads but nobody sees the result.
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       setLoading(true);
       try {
-        const attempts = await fetchRecentDrills();
+        const attempts = await fetchRecentDrills(FETCH_PAGE);
         if (cancelled) return;
         if (attempts.length === 0) {
           // Firestore reachable but empty — keep the demo board so the
@@ -218,11 +226,17 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
     // Slight delay so the homepage paint isn't blocked by the Firestore call
     const t = window.setTimeout(refresh, 800);
     const interval = window.setInterval(refresh, REFRESH_MS);
+    // Catch up immediately when the visitor returns to the tab.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
 
     return () => {
       cancelled = true;
       window.clearTimeout(t);
       window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);
 

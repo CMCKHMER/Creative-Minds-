@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   clearPersistedSession,
+  ensureFreshSession,
   firebaseConfigured,
   restoreSession,
   signInWithEmail,
@@ -49,6 +50,12 @@ export function useFirebaseAuth(): FirebaseAuthState & FirebaseAuthActions {
       setHydrated(true);
     };
     sync(); // hydrate on mount
+    // Silent self-heal: if the stored ID token has aged past its ~1h life,
+    // exchange the persisted refresh token for a fresh one so worksheet
+    // score submissions keep working instead of silently failing.
+    void ensureFreshSession().then((s) => {
+      if (s) setSession(s);
+    });
     // Also listen for 'cmc-auth-changed' events — these are dispatched
     // by TeacherPassModal (which calls signUpWithEmail / signInWithEmail
     // directly from firebaseAuth.ts, NOT via this hook's signUp/signIn

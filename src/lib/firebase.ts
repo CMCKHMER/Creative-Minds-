@@ -25,7 +25,10 @@ import type { Firestore } from 'firebase/firestore';
 import type { FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDNUq6ru99XKh8d887Xk63h36MP0LXWwc',
+  // Valid web API key for creative-minds-cambodia (verified live). The env
+  // var wins when set; this fallback keeps builds working without .env.local.
+  // NOTE: an earlier copy of this key was hand-mangled (0↔O/6) and invalid.
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc',
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'creative-minds-cambodia.firebaseapp.com',
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'creative-minds-cambodia',
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'creative-minds-cambodia.firebasestorage.app',

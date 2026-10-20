@@ -136,11 +136,43 @@
 
   /* ── 5. Drill score submission (Firestore REST) ─────────────────── */
   global.CMC = global.CMC || {};
+
+  // Firebase web API key for creative-minds-cambodia — same public value as
+  // .env.local / src/lib/firebase.ts (web keys are designed to be public;
+  // access is controlled by Firestore security rules). Needed here for the
+  // securetoken refresh grant on worksheet pages, where no React code runs.
+  var FB_API_KEY = global.CMC_FB_API_KEY || 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+
+  /** Exchange the stored refresh token for a fresh ID token; updates
+   *  localStorage and calls cb(newToken|null). */
+  function refreshFirebaseToken(cb) {
+    var rt;
+    try { rt = localStorage.getItem('cmc-student-refresh-token'); } catch (e) { rt = null; }
+    if (!rt) { cb(null); return; }
+    try {
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + FB_API_KEY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt),
+      }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+        if (!d || !d.id_token) { cb(null); return; }
+        try {
+          localStorage.setItem('cmc-student-token', d.id_token);
+          localStorage.setItem('cmc-student-token-expires', String(Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000));
+          if (d.refresh_token) localStorage.setItem('cmc-student-refresh-token', d.refresh_token);
+        } catch (e) {}
+        cb(d.id_token);
+      }).catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+
   /**
    * Submit a drill attempt for the signed-in student. No-ops silently when
-   * there is no session or the token has expired — scoring UI never depends
-   * on it. opts: { drillSlug?, drillTitle?, drillSource?, scorePct,
-   * correctCount, totalCount, durationSeconds? }
+   * there is no session — scoring UI never depends on it. When the stored
+   * ID token has expired (they live ~1 hour) it is silently refreshed via
+   * the securetoken grant before submitting. opts: { drillSlug?,
+   * drillTitle?, drillSource?, scorePct, correctCount, totalCount,
+   * durationSeconds? }
    */
   global.CMC.submitDrill = function (opts) {
     try {
@@ -148,28 +180,39 @@
       var name = localStorage.getItem('cmc-student-name') || '';
       var uid = localStorage.getItem('cmc-student-uid') || '';
       var exp = Number(localStorage.getItem('cmc-student-token-expires') || '0');
-      if (!token || !name || (exp && exp <= Date.now())) return;
-      var url = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
-      var body = {
-        fields: {
-          drillSlug: { stringValue: opts.drillSlug || global.location.pathname.split('/').pop() },
-          drillTitle: { stringValue: opts.drillTitle || document.title.split('—')[0].trim() },
-          drillSource: { stringValue: opts.drillSource || 'biweek-planner' },
-          studentName: { stringValue: name },
-          studentUid: { stringValue: uid },
-          classId: { nullValue: null },
-          durationSeconds: opts.durationSeconds != null ? { integerValue: String(opts.durationSeconds) } : { nullValue: null },
-          scorePct: { integerValue: String(opts.scorePct) },
-          correctCount: { integerValue: String(opts.correctCount) },
-          totalCount: { integerValue: String(opts.totalCount) },
-          submittedAt: { timestampValue: new Date().toISOString() },
-        },
+      if (!token || !name) return;
+
+      var send = function (tok) {
+        if (!tok) return;
+        var url = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+        var body = {
+          fields: {
+            drillSlug: { stringValue: opts.drillSlug || global.location.pathname.split('/').pop() },
+            drillTitle: { stringValue: opts.drillTitle || document.title.split('—')[0].trim() },
+            drillSource: { stringValue: opts.drillSource || 'biweek-planner' },
+            studentName: { stringValue: name },
+            studentUid: { stringValue: uid },
+            classId: { nullValue: null },
+            durationSeconds: opts.durationSeconds != null ? { integerValue: String(opts.durationSeconds) } : { nullValue: null },
+            scorePct: { integerValue: String(opts.scorePct) },
+            correctCount: { integerValue: String(opts.correctCount) },
+            totalCount: { integerValue: String(opts.totalCount) },
+            submittedAt: { timestampValue: new Date().toISOString() },
+          },
+        };
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+          body: JSON.stringify(body),
+        }).catch(function (e) {});
       };
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify(body),
-      }).catch(function (e) {});
+
+      if (exp && exp <= Date.now()) {
+        // Token aged out — silently refresh, then submit with the new one.
+        refreshFirebaseToken(send);
+      } else {
+        send(token);
+      }
     } catch (e) {}
   };
 })(window);

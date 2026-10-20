@@ -39,7 +39,10 @@ interface LeaderEntry {
   lastPlayed: number; // epoch ms
 }
 
-const REFRESH_MS = 30_000;
+// 2-minute poll, visibility-gated. Firestore free tier allows 50K doc
+// reads/day — the previous 200-docs-every-30s polling here was the single
+// largest quota consumer on the site (one open tab = quota gone in ~2h).
+const REFRESH_MS = 120_000; // 2 min
 const MAX_LEADERBOARD = 10;
 const MAX_RECENT = 5;
 
@@ -68,9 +71,10 @@ function gameNameFromSlug(slug: string): string {
 async function fetchGameAttempts(): Promise<Attempt[]> {
   // Firestore list with a filter on drillSource = 'learning-games'. REST API
   // supports runQuery for filter+order, but list with where is simpler here:
-  // we fetch up to 200 recent attempts and filter client-side. The ticker
-  // already uses the same pattern.
-  const url = `${FIRESTORE_BASE}/drill_attempts?pageSize=200&orderBy=submittedAt%20desc`;
+  // we fetch the 100 most recent attempts and filter client-side. Kept
+  // deliberately small — each polled read counts against the 50K/day free
+  // Firestore quota.
+  const url = `${FIRESTORE_BASE}/drill_attempts?pageSize=100&orderBy=submittedAt%20desc`;
   const res = await fetch(url);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -151,6 +155,8 @@ export function GameLeaderboard({ highlightPlayer }: GameLeaderboardProps) {
   useEffect(() => {
     let cancelled = false;
     async function refresh() {
+      // Quota guard: skip polling while the tab is hidden.
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       setLoading(true);
       try {
         const result = await fetchGameAttempts();
@@ -168,10 +174,16 @@ export function GameLeaderboard({ highlightPlayer }: GameLeaderboardProps) {
     // Slight delay so the page paint isn't blocked
     const t = window.setTimeout(refresh, 400);
     const interval = window.setInterval(refresh, REFRESH_MS);
+    // Catch up immediately when the visitor returns to the tab.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       cancelled = true;
       window.clearTimeout(t);
       window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);
 

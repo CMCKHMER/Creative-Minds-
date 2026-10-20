@@ -1,0 +1,84 @@
+rules_version = '2';
+
+// Creative Minds Cambodia — production Firestore security rules.
+//
+// HOW TO DEPLOY (one-time, ~2 minutes — no CLI needed):
+//   1. Open https://console.firebase.google.com → project "creative-minds-cambodia"
+//   2. Build → Firestore Database → Rules tab
+//   3. Paste this entire file over the editor contents → click "Publish"
+//
+// Or with the Firebase CLI: `firebase deploy --only firestore:rules`
+// (requires `firebase init` + owner credentials).
+//
+// WHAT THESE RULES DO (and why):
+//   - drill_attempts: public read (the homepage ticker, game leaderboard and
+//     dashboards list it anonymously via the REST API), but creates are only
+//     allowed for SIGNED-IN users submitting their OWN uid — a signed-in
+//     student can no longer forge scores for classmates, and scores are
+//     immutable (no update/delete by clients).
+//   - teacher_chat: public read, signed-in create, immutable.
+//   - students/{uid}: each student can read/write only their own profile.
+//   - classes + enrollments: public read (code lookup / dashboards),
+//     signed-in writes, students enroll themselves.
+//   - Everything else: denied.
+//
+// VERIFIED against the live write shape (Oct 2026): every worksheet POST
+// (biweek-planner, toefl-ibt, rfc2, rfc3, syntax-clash, writequest, the
+// React submitScore module and CMC.submitDrill) sends integer scorePct
+// 0-100, integer correctCount/totalCount >= 0, and studentUid matching
+// the Bearer token's own uid.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /drill_attempts {
+      allow read: if true; // public scoreboard (ticker / leaderboard / dashboard)
+
+      allow create: if request.auth != null
+        && request.resource.data.studentUid == request.auth.uid
+        && request.resource.data.studentUid is string
+        && request.resource.data.studentName is string
+        && request.resource.data.drillSlug is string
+        && request.resource.data.drillTitle is string
+        && request.resource.data.drillSource is string
+        && request.resource.data.scorePct is int
+        && request.resource.data.scorePct >= 0
+        && request.resource.data.scorePct <= 100
+        && request.resource.data.correctCount is int
+        && request.resource.data.correctCount >= 0
+        && request.resource.data.totalCount is int
+        && request.resource.data.totalCount >= 0;
+
+      // Score history is append-only — nobody rewrites results.
+      allow update, delete: if false;
+    }
+
+    match /teacher_chat {
+      allow read: if true; // public chat wall
+      allow create: if request.auth != null
+        && request.resource.data.authorName is string
+        && request.resource.data.text is string;
+      allow update, delete: if false;
+    }
+
+    match /students/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /classes/{classId} {
+      allow read: if true; // class-code lookup + dashboards
+      allow create, update: if request.auth != null;
+      allow delete: if false;
+
+      match /enrollments/{studentUid} {
+        allow read: if true;
+        allow create, update: if request.auth != null && request.auth.uid == studentUid;
+        allow delete: if false;
+      }
+    }
+
+    // Default-deny everything not explicitly allowed above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

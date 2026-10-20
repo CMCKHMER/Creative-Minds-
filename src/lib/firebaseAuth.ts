@@ -1,4 +1,4 @@
-// Firebase Auth REST API — no SDK required.
+// Firebase Auth REST API — no SDK required for the sign-in call itself.
 //
 // The static HTML pages in public/ (toefl-ibt, biweek-planner, rfc3, etc.)
 // already submit scores to Firestore using the Firebase ID Token stored in
@@ -6,16 +6,23 @@
 // token via the Firebase Auth REST API, so a React-side sign-in here is
 // recognized by every standalone HTML page in the same project.
 //
-// Required env vars (in .env.local or build env):
-//   VITE_FIREBASE_API_KEY   — Firebase Web API key (Project Settings → General)
-//   VITE_FIREBASE_PROJECT_ID — defaults to "creative-minds-cambodia"
+// After a successful REST sign-in the session is ALSO mirrored into the
+// Firebase SDK auth state (lazy, fire-and-forget) so SDK surfaces — the
+// dashboard's realtime listeners, the leaderboard — see the same user.
+// Conversely studentAuth.ts persists this module's localStorage keys when
+// the SDK path signs someone in. The two auth systems stay in sync.
 //
-// Docs: https://firebase.google.com/docs/reference/rest/auth
+// Expired ID tokens are refreshed through the securetoken grant using the
+// persisted `cmc-student-refresh-token` (see getValidIdToken / ensureFreshSession).
+//
+// Config comes from ./firebase (single source of truth: env var with a
+// verified fallback) so the REST and SDK paths can never disagree on the
+// API key or project id.
 
-const API_KEY = (import.meta.env.VITE_FIREBASE_API_KEY as string | undefined)?.trim();
-export const FIREBASE_PROJECT_ID =
-  (import.meta.env.VITE_FIREBASE_PROJECT_ID as string | undefined)?.trim()
-  || 'creative-minds-cambodia';
+import { firebaseConfig } from './firebase';
+
+const API_KEY = (firebaseConfig.apiKey || '').trim();
+export const FIREBASE_PROJECT_ID = (firebaseConfig.projectId || '').trim() || 'creative-minds-cambodia';
 
 export const firebaseConfigured = Boolean(API_KEY);
 
@@ -192,6 +199,8 @@ export async function signUpWithEmail(input: SignUpInput): Promise<FirebaseSessi
     role: input.role || detectRoleFromEmail(session.email),
     teachingRole: input.teachingRole,
   });
+  // Mirror the fresh account into the SDK auth state (dashboard/listeners).
+  bridgeToSdk(input.email, input.password);
   // Send email verification (non-blocking — the user can still sign in
   // immediately, but won't be "verified" until they click the link).
   void sendEmailVerification(session.idToken, input.continueUrl).catch(() => {});
@@ -219,6 +228,8 @@ export async function signInWithEmail(input: SignInInput): Promise<FirebaseSessi
   // Load any previously saved profile fields from localStorage.
   const profile = loadStoredProfile(session.localId);
   persistSession(session, profile);
+  // Mirror the session into the SDK auth state (dashboard/listeners).
+  bridgeToSdk(input.email, input.password);
   // Enrich the returned session with the role (see signUpWithEmail for
   // the full explanation — FirebaseSession itself doesn't include role).
   const restored = restoreSession();
@@ -327,6 +338,9 @@ function persistSession(session: FirebaseSession, profile: StoredProfile): void 
     localStorage.setItem('cmc-student-role', role);
     localStorage.setItem('cmc-student-token-expires', String(session.expiresAt));
     localStorage.setItem('cmc-student-verified', session.emailVerified ? '1' : '0');
+    // Keep the refresh token so expired ID tokens can be silently renewed
+    // (refreshIdToken) without asking the user to sign in again.
+    localStorage.setItem('cmc-student-refresh-token', session.refreshToken);
     localStorage.setItem(
       profileKey(session.localId),
       JSON.stringify({
@@ -341,6 +355,93 @@ function persistSession(session: FirebaseSession, profile: StoredProfile): void 
   }
 }
 
+// ── Token refresh (securetoken grant) ──────────────────────────────
+// Firebase ID tokens live ~1 hour. The refresh token returned at sign-in
+// can mint fresh ID tokens for months. Without this, every worksheet
+// submission silently fails once the stored token ages out.
+
+/** localStorage read that never throws (private mode / disabled storage). */
+function storedValue(key: string): string | null {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+
+/** Exchange the stored refresh token for a fresh ID token. Updates
+ *  localStorage (token, expiry, rotated refresh token) and dispatches
+ *  `cmc-auth-changed`. Returns the new ID token, or null on failure. */
+export async function refreshIdToken(): Promise<string | null> {
+  const refreshToken = storedValue('cmc-student-refresh-token');
+  if (!refreshToken || !API_KEY) return null;
+  try {
+    const res = await fetch(`https://securetoken.googleapis.com/v1/token?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`,
+    });
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
+    if (!data?.id_token) return null;
+    try {
+      const expiresInMs = (Number(data.expires_in) || 3600) * 1000;
+      localStorage.setItem('cmc-student-token', data.id_token);
+      // Mark expiry 1 minute early so getValidIdToken refreshes preemptively.
+      localStorage.setItem('cmc-student-token-expires', String(Date.now() + expiresInMs - 60_000));
+      if (data.refresh_token) localStorage.setItem('cmc-student-refresh-token', data.refresh_token);
+    } catch { /* best-effort */ }
+    try { window.dispatchEvent(new CustomEvent('cmc-auth-changed')); } catch { /* non-DOM */ }
+    return data.id_token as string;
+  } catch {
+    return null;
+  }
+}
+
+/** Returns a currently-valid ID token — the stored one when it still has
+ *  >5 minutes of life, otherwise a refreshed one. Null when there is no
+ *  session or refresh failed. */
+export async function getValidIdToken(): Promise<string | null> {
+  const token = storedValue('cmc-student-token');
+  if (!token) return null;
+  const expiresAt = Number(storedValue('cmc-student-token-expires') || '0');
+  if (expiresAt > Date.now() + 5 * 60_000) return token;
+  return refreshIdToken();
+}
+
+/** Boot-time session self-heal: silently refresh an expired/near-expiry
+ *  token so worksheet submissions keep working without re sign-in. */
+export async function ensureFreshSession(): Promise<RestoredSession | null> {
+  const session = restoreSession();
+  if (!session) return null;
+  const expiresAt = Number(storedValue('cmc-student-token-expires') || '0');
+  if (expiresAt > Date.now() + 5 * 60_000) return session;
+  await refreshIdToken();
+  return restoreSession() ?? session;
+}
+
+// ── SDK session mirror ────────────────────────────────────────────
+// The REST session (localStorage) and the SDK auth state are two separate
+// worlds. These bridges keep them aligned so both halves of the app —
+// static worksheet POSTs (localStorage token) and dashboard realtime
+// listeners (SDK auth) — always see the same signed-in user.
+
+function bridgeToSdk(email: string, password: string): void {
+  void import('./firebase').then(async ({ getFirebaseAuth }) => {
+    const auth = await getFirebaseAuth();
+    if (!auth) return;
+    const { signInWithEmailAndPassword } = await import('firebase/auth');
+    await signInWithEmailAndPassword(auth, email, password);
+  }).catch(() => {
+    /* silent — the SDK session is a best-effort mirror of the REST one */
+  });
+}
+
+function signOutSdk(): void {
+  void import('./firebase').then(async ({ getFirebaseAuth }) => {
+    const auth = await getFirebaseAuth();
+    if (!auth) return;
+    const { signOut } = await import('firebase/auth');
+    await signOut(auth);
+  }).catch(() => { /* silent */ });
+}
+
 export function clearPersistedSession(): void {
   try {
     const uid = localStorage.getItem('cmc-student-uid');
@@ -351,10 +452,14 @@ export function clearPersistedSession(): void {
     localStorage.removeItem('cmc-student-role');
     localStorage.removeItem('cmc-student-token-expires');
     localStorage.removeItem('cmc-student-verified');
+    localStorage.removeItem('cmc-student-refresh-token');
     if (uid) localStorage.removeItem(profileKey(uid));
   } catch {
     /* noop */
   }
+  // Keep the SDK auth state in sync — a lingering SDK session would make
+  // the dashboard still show the user after the REST session is gone.
+  signOutSdk();
 }
 
 export interface RestoredSession {
