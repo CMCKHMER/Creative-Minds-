@@ -1,4 +1,5 @@
 import { ArrowUpRight, CalendarCheck, Clock3, FileText, GraduationCap, LockKeyhole } from 'lucide-react';
+import { useSignedInSession } from '../hooks/useSignedInSession';
 
 const PLANNER_URL = './biweek-planner/';
 
@@ -59,7 +60,24 @@ const previewSvg = `data:image/svg+xml,${encodeURIComponent(`
   </svg>
 `)}`;
 
-export function BiWeekPlannerCard() {
+/**
+ * TOEFL ITP Bi-Weekly Planner — teacher-account-only.
+ *
+ * The section shell (background image + glows) always renders so the
+ * homepage layout never shifts, but the planner content (8-week plan,
+ * "Open the planner" link, preview card) only renders for signed-in
+ * teachers — same pattern as TeacherChat. Signed-out visitors and
+ * students see a locked "Teacher access required" prompt.
+ *
+ * The standalone planner hub (public/biweek-planner/) is gated separately
+ * by public/biweek-planner/teacher-gate.js; the individual drill pages
+ * under tests/ stay open so teachers can keep sharing single-drill links
+ * with students directly.
+ */
+export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
+  const session = useSignedInSession();
+  const isTeacher = session?.role === 'teacher';
+
   return (
     <section id="toefl-itp-planner" aria-labelledby="biweek-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-violet-100/10 bg-[#0a0f1f] py-20 sm:py-24 lg:py-28">
       {/* Full-bleed semi-transparent card background image */}
@@ -68,6 +86,7 @@ export function BiWeekPlannerCard() {
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-12rem] h-[34rem] w-[34rem] rounded-full bg-violet-400/[0.11] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-14rem] h-[35rem] w-[35rem] rounded-full bg-cyan-400/[0.10] blur-[135px]" />
 
+      {isTeacher ? (
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_.86fr] lg:gap-16">
         <div>
           <span className="cmc-eyebrow"><span className="h-px w-8 bg-violet-300" aria-hidden="true" />8-Week Study Plan</span>
@@ -127,6 +146,32 @@ export function BiWeekPlannerCard() {
           </div>
         </div>
       </div>
+      ) : (
+        <div className="relative mx-auto max-w-2xl px-5 sm:px-8">
+          <div className="rounded-2xl border border-amber-200/15 bg-amber-100/[0.03] p-8 text-center">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-amber-200/20 bg-amber-200/[0.05] text-amber-200">
+              <LockKeyhole className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <p className="mt-5 text-sm font-semibold text-white">Teacher access required</p>
+            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-400">
+              The 8-week TOEFL ITP Bi-Weekly Planner is reserved for Creative Minds teacher accounts. Sign in with a work email containing &quot;edu&quot; (e.g., you@school.edu.kh) to unlock the full weekly schedule, drills, and mock test links.
+            </p>
+            {onOpenAuth && (
+              <button
+                type="button"
+                onClick={onOpenAuth}
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-amber-200 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_12px_35px_-12px_rgba(251,191,36,.7)] transition hover:-translate-y-0.5"
+              >
+                <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                Sign in as teacher
+              </button>
+            )}
+            <p className="mt-4 text-[10px] leading-relaxed text-slate-500">
+              Students don&apos;t need an account — individual drill links shared by your teacher stay open as usual.
+            </p>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

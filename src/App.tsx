@@ -27,6 +27,7 @@ const FirebaseDashboard = lazy(() => import('./components/FirebaseDashboard').th
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { useFirebaseAuth } from './hooks/useFirebaseAuth';
+import { restoreSession } from './lib/firebaseAuth';
 import { supabase } from './lib/supabase';
 import { TickerBanner } from './components/TickerBanner';
 
@@ -67,6 +68,26 @@ export function App() {
     setAuthInitialMode(mode);
     setTeacherPassModalOpen(true);
   };
+
+  // Deep-link support for the teacher-only planner hub: the locked screen
+  // on public/biweek-planner/ (teacher-gate.js) sends unauthenticated
+  // visitors here with ?auth=teacher so the teacher sign-in modal opens
+  // immediately. The param is stripped after handling so a refresh doesn't
+  // re-pop the modal, and already-signed-in teachers are skipped.
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('auth') !== 'teacher') return;
+      params.delete('auth');
+      const qs = params.toString();
+      window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
+      if (restoreSession()?.role === 'teacher') return;
+      openMemberAuth('sign-in');
+    } catch {
+      /* noop */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleMemberSignOut = () => {
     void supabase?.auth.signOut();
@@ -200,8 +221,11 @@ export function App() {
           <FirebaseDashboard />
         </Suspense>
 
-        {/* TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15 test pages */}
-        <BiWeekPlannerCard />
+        {/* TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15 test pages.
+            Teacher-account-only: the planner content is gated inside the card
+            (same pattern as TeacherChat); the standalone planner hub is gated
+            by public/biweek-planner/teacher-gate.js. */}
+        <BiWeekPlannerCard onOpenAuth={() => openMemberAuth('sign-in')} />
 
         {/* Available learning materials and skills */}
         <SocialProof />
