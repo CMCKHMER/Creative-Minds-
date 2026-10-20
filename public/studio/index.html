@@ -220,6 +220,8 @@
 
   footer{display:flex; align-items:center; gap:18px; padding:0 18px; font-size:11px; color:var(--muted); background:var(--panel); border-top:1px solid var(--line); z-index:50}
   footer .live{display:flex; align-items:center; gap:6px; margin-left:auto}
+  #statusFlash{margin-left:auto; margin-right:2px; color:var(--teal); font-weight:600; opacity:0; transition:opacity .3s; white-space:nowrap; pointer-events:none}
+  #statusFlash.show{opacity:1}
   footer .live i{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse2 1.8s infinite}
   @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.3}}
   #ring{position:fixed; pointer-events:none; border:1.5px solid rgba(255,255,255,.95); border-radius:50%; transform:translate(-50%,-50%); display:none; z-index:100; box-shadow:0 0 0 1px rgba(0,0,0,.35)}
@@ -386,9 +388,10 @@
         <div class="menu-item" data-action="file-save-svg"><span>Save as SVG (vector)</span></div>
         <div class="menu-item" data-action="file-save-pdf"><span>Save as PDF</span></div>
         <div class="menu-item" data-action="file-save-json"><span>Save Project (.json)</span><span class="kbd">Ctrl+Shift+S</span></div>
+        <div class="menu-item" data-action="file-save-csv"><span>Export Spreadsheet as CSV</span></div>
         <div class="menu-sep"></div>
         <div class="menu-item" data-action="file-print"><span>Print…</span><span class="kbd">Ctrl+P</span></div>
-        <div class="menu-item" data-action="file-import"><span>Place Image on Canvas…</span></div>
+        <div class="menu-item" data-action="file-import"><span>Insert Image (Doc or Canvas)…</span></div>
       </div>
     </div>
 
@@ -616,7 +619,12 @@
         <button class="tgl" onclick="findReplace()" title="Find & Replace">🔍</button>
         <button class="tgl" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
       </div>
-      <div id="codeBar" class="hidden" style="display:flex;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line)"><span style="color:#89b4fa;font-size:11px;font-weight:600">Code Editor</span></div>
+      <div id="codeBar" class="hidden" style="display:flex;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line);align-items:center">
+        <span style="color:#89b4fa;font-size:11px;font-weight:600">Code Editor</span>
+        <button class="tgl" onclick="codeRun()" title="Run code (Ctrl+Enter)">▶ Run</button>
+        <button class="tgl" onclick="codeDownload()" title="Download the code as a file">⬇ File</button>
+        <button class="tgl" onclick="printFromMode()" title="Print / Save as PDF">🖨 PDF</button>
+      </div>
     <div id="sheetBar" class="hidden" style="display:flex;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line)">
         <button class="tgl" onclick="sheetCmd('alignLeft')" title="Align Left">≡←</button>
         <button class="tgl" onclick="sheetCmd('alignCenter')" title="Align Center">≡</button>
@@ -880,6 +888,7 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
     <span id="toolLabel">Brush</span>
     <span id="zoomLabel">100%</span>
     <span id="dims">1280 × 800 px</span>
+    <span id="statusFlash"></span>
     <span class="live"><i></i> ready</span>
   </footer>
 </div>
@@ -1250,8 +1259,14 @@ function restore(snap){
     img.src = l.canvas;
   });
 }
-function undo(){ if(!undoStack.length)return; redoStack.push(snapshotCurrent('Undo point')); restore(undoStack.pop()); updateHistoryUI(); renderHistoryList(); }
-function redo(){ if(!redoStack.length)return; undoStack.push(snapshotCurrent('Redo point')); restore(redoStack.pop()); updateHistoryUI(); renderHistoryList(); }
+function undo(){
+  if (tool === 'doc') { docLayer.focus(); document.execCommand('undo'); return; }   // native rich-text undo while editing the document
+  if (tool === 'sheet') { if (sheetCellUndo.length) sheetUndoApply(); else statusFlash('Nothing to undo in this sheet'); return; }
+  if(!undoStack.length)return; redoStack.push(snapshotCurrent('Undo point')); restore(undoStack.pop()); updateHistoryUI(); renderHistoryList(); }
+function redo(){
+  if (tool === 'doc') { docLayer.focus(); document.execCommand('redo'); return; }
+  if (tool === 'sheet') { if (sheetCellRedo.length) sheetRedoApply(); else statusFlash('Nothing to redo in this sheet'); return; }
+  if(!redoStack.length)return; undoStack.push(snapshotCurrent('Redo point')); restore(redoStack.pop()); updateHistoryUI(); renderHistoryList(); }
 function snapshotCurrent(label){ return { label: label || 'Edit', w: W, h: H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts: JSON.stringify(texts), imgs: serializeImgs(), doc: docLayer.innerHTML, sheets: JSON.stringify(sheets), currentSheet, docRotation }; }
 function updateHistoryUI(){ undoBtn.disabled=!undoStack.length; redoBtn.disabled=!redoStack.length; }
 undoBtn.onclick=undo; redoBtn.onclick=redo; updateHistoryUI();
@@ -1273,7 +1288,7 @@ let autoSaveTimer = null;
 function scheduleAutoSave(){ if (autoSaveTimer) clearTimeout(autoSaveTimer); autoSaveTimer = setTimeout(doAutoSave, 30000); }
 function doAutoSave(){
   try {
-    const proj = { version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, sheets, currentSheet, docRotation };
+    const proj = { version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, sheets, currentSheet, docRotation, code: codeContent, codeLang: currentCodeLang };
     localStorage.setItem('cm-studio-auto-save', JSON.stringify(proj));
   } catch(e) {}
 }
@@ -1306,6 +1321,15 @@ function loadProject(proj){
         sheets = proj.sheets || [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }];
         currentSheet = proj.currentSheet || 0;
         docRotation = proj.docRotation || 0; applyDocRotation();
+        if (proj.code) {
+          Object.keys(proj.code).forEach(k => { if (typeof proj.code[k] === 'string') codeContent[k] = proj.code[k]; });
+          if (proj.codeLang && codeContent[proj.codeLang] !== undefined) currentCodeLang = proj.codeLang;
+          codeLangSelect.value = currentCodeLang;
+          const opt = codeLangSelect.querySelector('option[value="' + currentCodeLang + '"]');
+          codeLangLabel.textContent = opt ? opt.textContent : currentCodeLang;
+          codeEditor.value = codeContent[currentCodeLang] || '';
+          updateLineNumbers(); updateCodeStats();
+        }
         undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList();
         rebuildImgs(JSON.stringify(proj.imgs || []), () => { renderTexts(); });
         composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); fitCanvas();
@@ -1433,7 +1457,7 @@ function selectTool(t){
   }
   wordBar.classList.toggle('hidden', !isDoc);
   sheetBar.classList.toggle('hidden', !isSheet);
-  vectorTextPanel.classList.toggle('hidden', isDoc || isSheet);
+  vectorTextPanel.classList.toggle('hidden', isDoc || isSheet || isCode); // vector text is canvas-only — the one tool that genuinely does not apply in doc/sheet/code
   preview.style.pointerEvents = (isDoc || isSheet) ? 'none' : 'auto';
   if (isSheet) { renderSheet(); renderSheetTabs(); }
 }
@@ -1595,7 +1619,37 @@ function resetDocRotation(){ docRotation = 0; applyDocRotation(); }
 function colName(n){ let s=''; n=Math.max(0,n); do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n/26) - 1; } while (n >= 0); return s; }
 function cellKey(r,c){ return r+','+c; }
 function getCell(r,c){ return sheets[currentSheet].cells[cellKey(r,c)] || {v:''}; }
-function setCell(r,c,v){ const k = cellKey(r,c); if (!sheets[currentSheet].cells[k]) sheets[currentSheet].cells[k] = {v:''}; sheets[currentSheet].cells[k].v = v; }
+/* Cell-level undo for the spreadsheet (CMC-UNIFIED-TOOLS). Canvas undo
+   snapshots never captured sheet edits typed directly into cells — now every
+   setCell records a reverse entry (grouped when edits land in quick bursts,
+   e.g. drag-to-fill), so Undo/Redo work inside the Spreadsheet area. */
+let sheetCellUndo = [], sheetCellRedo = [], lastSheetEditAt = 0;
+function recordSheetEdit(sheetIdx, r, c, prev){
+  const now = Date.now();
+  let entry = sheetCellUndo[sheetCellUndo.length - 1];
+  if (!entry || now - lastSheetEditAt > 800) { entry = { changes: [] }; sheetCellUndo.push(entry); }
+  lastSheetEditAt = now;
+  entry.changes.push({ sheetIdx, r, c, prev });
+  if (sheetCellUndo.length > 80) sheetCellUndo.shift();
+  sheetCellRedo = [];
+}
+function applySheetEntry(entry, pushTo){
+  const opposite = { changes: [] };
+  entry.changes.slice().reverse().forEach(ch => {
+    const sh = sheets[ch.sheetIdx]; if (!sh) return;
+    const k = cellKey(ch.r, ch.c);
+    const cur = sh.cells[k] ? sh.cells[k].v : '';
+    opposite.changes.push({ sheetIdx: ch.sheetIdx, r: ch.r, c: ch.c, prev: cur });
+    if (!sh.cells[k]) sh.cells[k] = {v:''};
+    sh.cells[k].v = ch.prev;
+    if (ch.sheetIdx === currentSheet) selectedCell = { row: ch.r, col: ch.c };
+  });
+  if (opposite.changes.length) pushTo.push(opposite);
+  renderSheet(); renderSheetTabs(); scheduleAutoSave();
+}
+function sheetUndoApply(){ const e = sheetCellUndo.pop(); if (!e) return; applySheetEntry(e, sheetCellRedo); statusFlash('Sheet: undo'); }
+function sheetRedoApply(){ const e = sheetCellRedo.pop(); if (!e) return; applySheetEntry(e, sheetCellUndo); statusFlash('Sheet: redo'); }
+function setCell(r,c,v){ const k = cellKey(r,c); const sh = sheets[currentSheet]; if (!sh) return; const cur = sh.cells[k]; if (cur && cur.v === v) return; recordSheetEdit(currentSheet, r, c, cur ? cur.v : ''); if (!cur) sh.cells[k] = {v:''}; sh.cells[k].v = v; }
 function parseRange(s){ const m = s.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/); if (!m) return null; const c1 = m[1].charCodeAt(0) - 65, r1 = parseInt(m[2]) - 1; const c2 = m[3].charCodeAt(0) - 65, r2 = parseInt(m[4]) - 1; return { r1, c1, r2: Math.max(r1,r2), c2: Math.max(c1,c2) }; }
 function evalFormula(formula, visited=new Set()){
   if (typeof formula !== 'string' || !formula.startsWith('=')) return formula;
@@ -2052,7 +2106,24 @@ EFFECTS.forEach(eff => {
 /* ══ IMAGE IMPORT ════════════════════════════════════ */
 importBtn.onclick=()=>fileInput.click();
 fileInput.onchange=e=>{
-  const f=e.target.files[0]; if(!f) return; const img=new Image();
+  const f=e.target.files[0]; if(!f) return;
+  // CMC-UNIFIED-TOOLS: in Document mode the image goes INTO the document
+  // (inline, as a data URL so it survives project save/load and exports).
+  // In every other area it is placed on the canvas as before.
+  if (tool === 'doc') {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      docLayer.focus();
+      document.execCommand('insertHTML', false, '<img src="' + ev.target.result + '" style="max-width:100%;height:auto;border-radius:4px;margin:6px 0" alt="Inserted image"><p><br></p>');
+      pushUndo('Insert image in document');
+      statusFlash('Image inserted into the document');
+    };
+    reader.readAsDataURL(f);
+    e.target.value='';
+    return;
+  }
+  if (tool === 'sheet' || tool === 'code') statusFlash('Image placed on the canvas — press M to move it');
+  const img=new Image();
   img.onload=()=>{
     pushUndo('Place image');
     const s=Math.min(W/img.width, H/img.height)*0.7;
@@ -2350,17 +2421,243 @@ function updateRing(e){ if(tool!=='brush'&&tool!=='eraser') return; const d=size
 
 /* ══ FILE ACTIONS ════════════════════════════════ */
 function downloadBlob(blob, name){ const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
-// Image/PDF exports capture the design canvas (layers + text + images).
-// Document / Spreadsheet / Code content lives in DOM overlays that are NOT
-// part of the canvas — exporting from those modes would silently produce a
-// blank image, so guide the user to a canvas mode instead.
-function exportModeGuard(){
-  if (tool === 'doc' || tool === 'sheet' || tool === 'code') {
-    const modeName = tool === 'doc' ? 'Document' : tool === 'sheet' ? 'Spreadsheet' : 'Code Editor';
-    alert('Image and PDF export captures the design canvas. You are currently in ' + modeName + ' mode, whose content cannot be rasterized. Press M (Select tool) to switch to canvas mode, then export again.');
-    return true;
+
+/* ── CMC-UNIFIED-TOOLS ─────────────────────────────────────────
+   Every global tool now works in EVERY area (Doc / Sheet / Code / Canvas).
+   Exports route by active mode:
+     • Doc / Sheet → rasterized PNG/JPG/SVG of the actual content
+                     (print window as automatic fallback), PDF/Print via a
+                     real print window ("Save as PDF" keeps live text);
+                     Sheet additionally exports CSV with computed values.
+     • Code        → Save routes to the matching source-file download,
+                     PDF/Print open a monospace print view.
+     • Canvas      → original canvas pipeline (unchanged).
+   Only genuinely mode-specific tools (e.g. the vector-text panel) stay
+   hidden in the areas where they cannot apply. */
+function currentMode(){ return (tool === 'doc' || tool === 'sheet' || tool === 'code') ? tool : 'canvas'; }
+
+/* Footer status flash — non-blocking feedback replaces the old alerts. */
+let statusFlashTimer = null;
+function statusFlash(msg){
+  const el = document.getElementById('statusFlash'); if (!el) return;
+  el.textContent = msg; el.classList.add('show');
+  if (statusFlashTimer) clearTimeout(statusFlashTimer);
+  statusFlashTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* Keep the code editor state in sync after programmatic text changes. */
+function codeSync(){ codeContent[currentCodeLang] = codeEditor.value; updateLineNumbers(); updateCodeStats(); updateCursorPos(); }
+
+/* Rasterize a detached, inline-styled DOM node to a canvas via SVG
+   foreignObject. Returns null on failure so callers can fall back to the
+   print window instead of shipping a blank file. */
+async function rasterizeNode(node, opts = {}){
+  let probe = null;
+  try {
+    probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;left:-99999px;top:0;width:' + (opts.width ? opts.width + 'px' : 'auto') + ';background:transparent;pointer-events:none;';
+    probe.appendChild(node);
+    document.body.appendChild(probe);
+    await new Promise(r => setTimeout(r, 40)); // let layout settle
+    const w = Math.max(1, Math.ceil(probe.scrollWidth || opts.width || 800));
+    const h = Math.max(1, Math.ceil(probe.scrollHeight || 600));
+    // blob: URLs cannot load inside an SVG-image context — convert to data URLs.
+    for (const im of probe.querySelectorAll('img')) {
+      const src = im.getAttribute('src') || '';
+      if (src.startsWith('blob:')) {
+        try {
+          const tmp = await new Promise((res, rej) => { const p = new Image(); p.onload = () => res(p); p.onerror = rej; p.src = src; });
+          const c = document.createElement('canvas'); c.width = tmp.naturalWidth; c.height = tmp.naturalHeight;
+          c.getContext('2d').drawImage(tmp, 0, 0);
+          im.setAttribute('src', c.toDataURL('image/png'));
+        } catch (err) { im.removeAttribute('src'); }
+      }
+    }
+    const xml = new XMLSerializer().serializeToString(node);
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '"><foreignObject x="0" y="0" width="' + w + '" height="' + h + '">' + xml + '</foreignObject></svg>';
+    const img = new Image();
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); });
+    const scale = opts.scale || 2;
+    const out = document.createElement('canvas');
+    out.width = w * scale; out.height = h * scale;
+    const ctx = out.getContext('2d');
+    ctx.fillStyle = opts.bg || '#ffffff';
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0, w, h);
+    return out;
+  } catch (e) {
+    return null;
+  } finally {
+    if (probe && probe.parentNode) probe.parentNode.removeChild(probe);
   }
-  return false;
+}
+
+/* Build a fully inline-styled Document export node (content + header/footer).
+   Page CSS does not follow a cloned node into an SVG image or a print window,
+   so the essential .doc-layer rules are embedded in a <style> inside the node. */
+function buildDocExportNode(){
+  const width = Math.max(360, docLayer.clientWidth || wrap.clientWidth || 800);
+  const holder = document.createElement('div');
+  holder.style.cssText = 'width:' + width + 'px;background:#ffffff;box-sizing:border-box;font-family:"Instrument Sans",Arial,Helvetica,sans-serif;';
+  const style = document.createElement('style');
+  style.textContent = [
+    '.dx{padding:48px 64px;color:#111;font-size:16px;line-height:1.65;background:#fff;box-sizing:border-box;}',
+    '.dx h1{font-family:Syne,Arial,sans-serif;font-size:32px;margin:0 0 16px;font-weight:800;}',
+    '.dx h2{font-family:Syne,Arial,sans-serif;font-size:24px;margin:20px 0 10px;font-weight:700;}',
+    '.dx h3{font-size:19px;margin:16px 0 8px;font-weight:600;}',
+    '.dx p{margin:0 0 12px;}',
+    '.dx ul,.dx ol{margin:0 0 12px 26px;}',
+    '.dx a{color:#06b6d4;text-decoration:underline;}',
+    '.dx table{border-collapse:collapse;width:100%;margin:12px 0;}',
+    '.dx th,.dx td{border:1px solid #ccc;padding:6px 10px;text-align:left;}',
+    '.dx th{background:#f0f0f0;font-weight:600;}',
+    '.dx img{max-width:100%;height:auto;}',
+    '.dx blockquote{margin:0 0 12px;padding:8px 16px;border-left:3px solid #06b6d4;background:#f5f8fc;}',
+    '.dx-hf{padding:10px 64px;background:#f5f8fc;border-bottom:1px solid #d0d5dd;color:#111;font-size:12px;box-sizing:border-box;}',
+    '.dx-hf.foot{border-bottom:none;border-top:1px solid #d0d5dd;}'
+  ].join('\n');
+  holder.appendChild(style);
+  if (docHeader.classList.contains('show')) { const h = docHeader.cloneNode(true); h.className = 'dx-hf'; h.removeAttribute('style'); holder.appendChild(h); }
+  const body = docLayer.cloneNode(true);
+  body.className = 'dx';
+  body.removeAttribute('style');
+  holder.appendChild(body);
+  if (docFooter.classList.contains('show')) { const f = docFooter.cloneNode(true); f.className = 'dx-hf foot'; f.removeAttribute('style'); holder.appendChild(f); }
+  return { node: holder, width };
+}
+
+/* Shared used-range scan for sheet exports (CSV + image + print). */
+function sheetUsedRange(sheet){
+  let maxR = 0, maxC = 0;
+  Object.keys(sheet.cells || {}).forEach(k => {
+    const cell = sheet.cells[k];
+    if (cell && cell.v !== '' && cell.v !== undefined && cell.v !== null) {
+      const m = k.match(/^(\d+),(\d+)$/); if (!m) return;
+      maxR = Math.max(maxR, +m[1]); maxC = Math.max(maxC, +m[2]);
+    }
+  });
+  return { maxR: Math.min(sheet.rows, maxR + 1), maxC: Math.min(sheet.cols, maxC + 1) };
+}
+function cellDisplayValue(cell){
+  let v = cell.v;
+  if (typeof v === 'string' && v.startsWith('=')) { try { v = evalFormula(v); } catch (e) { v = '#ERR'; } }
+  return v === undefined || v === null ? '' : String(v);
+}
+
+/* Build an inline-styled table of the current sheet with COMPUTED values
+   (formulas evaluated) — reusable for rasterization AND the print window. */
+function buildSheetTableNode(){
+  const sheet = sheets[currentSheet]; if (!sheet) return null;
+  const { maxR, maxC } = sheetUsedRange(sheet);
+  const rows = Math.max(maxR, 8), cols = Math.max(maxC, 4); // keep a little context on empty sheets
+  const tbl = document.createElement('table');
+  tbl.style.cssText = 'border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;font-size:12px;background:#ffffff;';
+  const thead = document.createElement('thead'); const trh = document.createElement('tr');
+  const corner = document.createElement('th');
+  corner.style.cssText = 'border:1px solid #bbb;background:#e8e8e8;padding:4px 8px;min-width:34px;';
+  trh.appendChild(corner);
+  for (let c = 0; c < cols; c++) { const th = document.createElement('th'); th.textContent = colName(c); th.style.cssText = 'border:1px solid #bbb;background:#e8e8e8;padding:4px 8px;text-align:center;min-width:64px;'; trh.appendChild(th); }
+  thead.appendChild(trh); tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  for (let r = 0; r < rows; r++) {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th'); th.textContent = String(r + 1); th.style.cssText = 'border:1px solid #bbb;background:#e8e8e8;padding:4px 8px;text-align:center;';
+    tr.appendChild(th);
+    for (let c = 0; c < cols; c++) {
+      const td = document.createElement('td');
+      const cell = getCell(r, c);
+      td.textContent = cellDisplayValue(cell);
+      const st = cell.style || {};
+      td.style.cssText = 'border:1px solid #bbb;padding:4px 8px;' + (st.bold ? 'font-weight:bold;' : '') + (st.italic ? 'font-style:italic;' : '') + (st.underline ? 'text-decoration:underline;' : '') + (st.color ? 'color:' + st.color + ';' : '') + (st.bg ? 'background:' + st.bg + ';' : '') + (st.align ? 'text-align:' + st.align + ';' : '');
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  return tbl;
+}
+
+/* Print window: works for Doc / Sheet / Code. The browser print dialog offers
+   "Save as PDF" — a real, text-selectable, multi-page PDF with no library. */
+function printWindow(title, bodyHtml, opts = {}){
+  const w = window.open('', '_blank');
+  if (!w) { alert('The print window was blocked by your browser\u2019s pop-up blocker. Allow pop-ups for this page and try again.'); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + escapeHtml(title) + '</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:wght@400;600&family=Roboto+Mono&display=swap" rel="stylesheet">' +
+    '<style>@page{margin:14mm 12mm;' + (opts.landscape ? 'size:A4 landscape;' : '') + '}' +
+    'body{font-family:"Instrument Sans",Arial,Helvetica,sans-serif;color:#111;margin:0;}' +
+    'pre{font-family:"Roboto Mono","Courier New",monospace;font-size:10.5pt;line-height:1.5;white-space:pre-wrap;}' +
+    'table{border-collapse:collapse;width:100%;}' +
+    'th,td{border:1px solid #999;padding:4px 8px;}' +
+    'th{background:#f0f0f0;}' +
+    'img{max-width:100%;height:auto;}' +
+    (opts.css || '') +
+    '</style></head><body>' + bodyHtml +
+    '<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>');
+  w.document.close();
+}
+
+function printFromMode(){
+  const mode = currentMode();
+  const name = filename.textContent || 'untitled';
+  if (mode === 'doc') {
+    const { node } = buildDocExportNode();
+    printWindow(name + ' — Document', node.innerHTML, { css: '.dx{padding:0;} .dx-hf{padding:8px 0;}' });
+    statusFlash('Print / Save-as-PDF opened for the document');
+  } else if (mode === 'sheet') {
+    const tbl = buildSheetTableNode(); if (!tbl) return;
+    printWindow(name + ' — ' + (sheets[currentSheet] ? sheets[currentSheet].name : 'Sheet'), tbl.outerHTML, { landscape: true, css: 'table{font-size:9.5pt;} th,td{padding:3px 6px;}' });
+    statusFlash('Print / Save-as-PDF opened for the spreadsheet');
+  } else if (mode === 'code') {
+    printWindow(name + ' — Code', '<pre>' + escapeHtml(codeEditor.value) + '</pre>');
+    statusFlash('Print / Save-as-PDF opened for the code');
+  }
+}
+
+/* Doc / Sheet image export (PNG / JPG / SVG). Falls back to the print window
+   when rasterization is unavailable (very old browsers). */
+async function exportDomImage(kind){
+  const mode = currentMode();
+  const name = filename.textContent || 'creative-minds-design';
+  let node, width = null;
+  if (mode === 'doc') { const d = buildDocExportNode(); node = d.node; width = d.width; }
+  else { node = buildSheetTableNode(); }
+  if (!node) return;
+  const canvas = await rasterizeNode(node, { width, bg: '#ffffff', scale: 2 });
+  if (!canvas) { printFromMode(); statusFlash('Opened print instead — image rasterization unavailable here'); return; }
+  const mime = kind === 'jpg' ? 'image/jpeg' : 'image/png';
+  const finish = blob => {
+    if (!blob) return;
+    if (kind === 'svg') {
+      const dataUrl = canvas.toDataURL('image/png');
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + canvas.width + '" height="' + canvas.height + '"><image href="' + dataUrl + '" width="' + canvas.width + '" height="' + canvas.height + '"/></svg>';
+      downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), name + '.svg');
+    } else {
+      downloadBlob(blob, name + (kind === 'jpg' ? '.jpg' : '.png'));
+    }
+    statusFlash((mode === 'doc' ? 'Document' : 'Spreadsheet') + ' exported as ' + kind.toUpperCase());
+  };
+  canvas.toBlob(finish, mime, 0.92);
+}
+
+/* CSV export of the CURRENT sheet (computed values, Excel-safe quoting).
+   Works from any mode — the sheet data always exists. */
+function fileSaveCsv(){
+  const sheet = sheets[currentSheet]; if (!sheet) return;
+  const { maxR, maxC } = sheetUsedRange(sheet);
+  const lines = [];
+  for (let r = 0; r <= maxR; r++) {
+    const row = [];
+    for (let c = 0; c <= maxC; c++) {
+      const v = cellDisplayValue(getCell(r, c));
+      row.push(/[",\n\r;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v);
+    }
+    lines.push(row.join(','));
+  }
+  const base = (filename.textContent || 'untitled').replace(/\.project$/, '');
+  downloadBlob(new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), base + '-' + (sheet.name || 'Sheet1') + '.csv');
+  statusFlash('CSV exported — ' + (sheet.name || 'Sheet1'));
 }
 function canvasToBlob(callback, type='image/png', quality=0.92){
   const out=document.createElement('canvas'); out.width=W; out.height=H;
@@ -2368,7 +2665,7 @@ function canvasToBlob(callback, type='image/png', quality=0.92){
   o.drawImage(base,0,0); o.drawImage(textLayer,0,0);
   out.toBlob(callback, type, quality);
 }
-function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(1280, 800); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' }; codeEditor.value = ''; updateLineNumbers(); updateCodeStats(); bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
+function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(1280, 800); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' }; codeEditor.value = ''; updateLineNumbers(); updateCodeStats(); bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; sheetCellUndo = []; sheetCellRedo = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
 function fileOpen(){ openInput.click(); }
 openInput.onchange = e => {
   const f = e.target.files[0]; if (!f) return;
@@ -2376,10 +2673,22 @@ openInput.onchange = e => {
   else { const img = new Image(); img.onload = () => { initLayers(); setCanvasSize(img.width, img.height); activeCtx().drawImage(img, 0, 0); composite(); renderLayerList(); texts = []; selected = -1; renderTexts(); undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); filename.textContent = f.name.replace(/\.[^.]+$/, ''); }; img.src = URL.createObjectURL(f); }
   e.target.value = '';
 };
-function fileSavePng(){ if (exportModeGuard()) return; canvasToBlob(blob => { if (blob) downloadBlob(blob, (filename.textContent || 'creative-minds-design') + '.png'); }, 'image/png'); }
-function fileSaveJpg(){ if (exportModeGuard()) return; canvasToBlob(blob => { if (blob) downloadBlob(blob, (filename.textContent || 'creative-minds-design') + '.jpg'); }, 'image/jpeg', 0.92); }
+function fileSavePng(){
+  const mode = currentMode();
+  if (mode === 'code') { codeDownload(); return; }            // Save in Code mode = download the source file
+  if (mode !== 'canvas') { exportDomImage('png'); return; }   // Doc / Sheet rasterize their own content
+  canvasToBlob(blob => { if (blob) downloadBlob(blob, (filename.textContent || 'creative-minds-design') + '.png'); }, 'image/png');
+}
+function fileSaveJpg(){
+  const mode = currentMode();
+  if (mode === 'code') { codeDownload(); return; }
+  if (mode !== 'canvas') { exportDomImage('jpg'); return; }
+  canvasToBlob(blob => { if (blob) downloadBlob(blob, (filename.textContent || 'creative-minds-design') + '.jpg'); }, 'image/jpeg', 0.92);
+}
 function fileSaveSvg(){
-  if (exportModeGuard()) return;
+  const mode = currentMode();
+  if (mode === 'code') { codeDownload(); return; }
+  if (mode !== 'canvas') { exportDomImage('svg'); return; }
   const dataUrl = base.toDataURL('image/png');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><image href="${dataUrl}" width="${W}" height="${H}"/>${texts.map(t => `<text x="${t.x}" y="${t.y + t.size}" font-family="${t.family}" font-size="${t.size}" font-weight="${t.bold?700:400}" ${t.italic?'font-style="italic"':''} fill="${t.color}" text-anchor="${t.align==='left'?'start':t.align==='center'?'middle':'end'}">${escapeHtml(t.text)}</text>`).join('\n  ')}</svg>`;
   downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), (filename.textContent || 'creative-minds-design') + '.svg');
@@ -2390,7 +2699,9 @@ function fileSaveSvg(){
    so the file stays small. Produces a one-page PDF sized to match the canvas
    in PDF points (72 dpi). */
 function fileSavePdf(){
-  if (exportModeGuard()) return;
+  // Doc / Sheet / Code: open the print window — its "Save as PDF" option
+  // produces a real text PDF (multi-page for long documents).
+  if (currentMode() !== 'canvas') { printFromMode(); return; }
   // Use JPEG for smaller PDFs
   const tmpCanvas = document.createElement('canvas');
   tmpCanvas.width = W; tmpCanvas.height = H;
@@ -2476,17 +2787,63 @@ function buildSimplePdf(pageW, pageH, imgBytes, imgW, imgH){
   for (const c of chunks) { result.set(c, pos); pos += c.length; }
   return result;
 }
-function fileSaveJson(){ const proj = { version: 1, app: 'creative-minds-studio', savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, sheets, currentSheet, docRotation }; downloadBlob(new Blob([JSON.stringify(proj, null, 2)], { type: 'application/json' }), (filename.textContent || 'untitled') + '.json'); }
-function filePrint(){ if (exportModeGuard()) return; canvasToBlob(blob => { if (!blob) return; const url = URL.createObjectURL(blob); const w = window.open(url); if (!w) { alert('The print window was blocked by your browser\u2019s pop-up blocker. Allow pop-ups for this page and try again.'); return; } w.onload = () => { w.print(); }; }); }
+function fileSaveJson(){ const proj = { version: 1, app: 'creative-minds-studio', savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, sheets, currentSheet, docRotation, code: codeContent, codeLang: currentCodeLang }; downloadBlob(new Blob([JSON.stringify(proj, null, 2)], { type: 'application/json' }), (filename.textContent || 'untitled') + '.json'); }
+function filePrint(){
+  if (currentMode() !== 'canvas') { printFromMode(); return; }
+  canvasToBlob(blob => { if (!blob) return; const url = URL.createObjectURL(blob); const w = window.open(url); if (!w) { alert('The print window was blocked by your browser\u2019s pop-up blocker. Allow pop-ups for this page and try again.'); return; } w.onload = () => { w.print(); }; }); }
 
 /* ══ EDIT ACTIONS ═════════════════════════════════ */
-function editCut(){ editCopy(); if (tool === 'text' && selected >= 0) { pushUndo('Cut'); texts.splice(selected, 1); selected = -1; renderTexts(); drawSelection(); } else { pushUndo('Cut'); const ctx = activeCtx(); clipboardImg = ctx.getImageData(0,0,W,H); ctx.clearRect(0,0,W,H); composite(); renderLayerList(); } }
-function editCopy(){ if (tool === 'text' && selected >= 0) { clipboardText = JSON.stringify(texts[selected]); try { navigator.clipboard.writeText(clipboardText); } catch(e) {} } else { try { canvasToBlob(blob => { if (blob && navigator.clipboard.write) navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); }); } catch(e) {} clipboardImg = activeCtx().getImageData(0,0,W,H); } }
-function editPaste(){ if (tool === 'text' && clipboardText) { try { const t = JSON.parse(clipboardText); pushUndo('Paste'); texts.push({ ...t, x: t.x + 20, y: t.y + 20 }); selected = texts.length - 1; renderTexts(); drawSelection(); } catch(e) {} } else if (clipboardImg) { pushUndo('Paste'); activeCtx().putImageData(clipboardImg, 0, 0); composite(); renderLayerList(); } }
-function editDelete(){ if (tool === 'text' && selected >= 0) { pushUndo('Delete text'); texts.splice(selected, 1); selected = -1; renderTexts(); drawSelection(); } else if (selectedImg >= 0) { pushUndo('Delete image'); imgObjects.splice(selectedImg, 1); selectedImg = -1; renderTexts(); drawSelection(); } else if (tool === 'sheet') { setCell(selectedCell.row, selectedCell.col, ''); renderSheet(); } }
+/* ── CMC-UNIFIED-TOOLS: Edit menu works in every area ── */
+function pasteTextIntoDoc(){
+  // execCommand('paste') is blocked in modern browsers — use the async
+  // Clipboard API, with a graceful hint when permission is denied.
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText().then(txt => { if (txt) { document.execCommand('insertText', false, txt); statusFlash('Pasted into document'); } }).catch(() => statusFlash('Clipboard blocked — press Ctrl+V inside the document'));
+  } else statusFlash('Press Ctrl+V inside the document to paste');
+}
+function pasteTextIntoCode(){
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    navigator.clipboard.readText().then(txt => {
+      if (!txt) return;
+      codeEditor.setRangeText(txt, codeEditor.selectionStart, codeEditor.selectionEnd, 'end');
+      codeSync();
+      statusFlash('Pasted into code');
+    }).catch(() => statusFlash('Clipboard blocked — press Ctrl+V inside the editor'));
+  } else statusFlash('Press Ctrl+V inside the editor to paste');
+}
+function editCut(){
+  if (tool === 'doc') { docLayer.focus(); document.execCommand('cut'); return; }
+  if (tool === 'code') { codeEditor.focus(); document.execCommand('cut'); return; }
+  editCopy(); if (tool === 'text' && selected >= 0) { pushUndo('Cut'); texts.splice(selected, 1); selected = -1; renderTexts(); drawSelection(); } else { pushUndo('Cut'); const ctx = activeCtx(); clipboardImg = ctx.getImageData(0,0,W,H); ctx.clearRect(0,0,W,H); composite(); renderLayerList(); } }
+function editCopy(){
+  if (tool === 'doc') { docLayer.focus(); document.execCommand('copy'); return; }
+  if (tool === 'code') {
+    codeEditor.focus();
+    if (codeEditor.selectionStart !== codeEditor.selectionEnd) document.execCommand('copy');
+    else { try { navigator.clipboard.writeText(codeEditor.value); statusFlash('All code copied'); } catch(e) {} }
+    return;
+  }
+  if (tool === 'text' && selected >= 0) { clipboardText = JSON.stringify(texts[selected]); try { navigator.clipboard.writeText(clipboardText); } catch(e) {} } else { try { canvasToBlob(blob => { if (blob && navigator.clipboard.write) navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); }); } catch(e) {} clipboardImg = activeCtx().getImageData(0,0,W,H); } }
+function editPaste(){
+  if (tool === 'doc') { docLayer.focus(); pasteTextIntoDoc(); return; }
+  if (tool === 'code') { codeEditor.focus(); pasteTextIntoCode(); return; }
+  if (tool === 'text' && clipboardText) { try { const t = JSON.parse(clipboardText); pushUndo('Paste'); texts.push({ ...t, x: t.x + 20, y: t.y + 20 }); selected = texts.length - 1; renderTexts(); drawSelection(); } catch(e) {} } else if (clipboardImg) { pushUndo('Paste'); activeCtx().putImageData(clipboardImg, 0, 0); composite(); renderLayerList(); } }
+function editDelete(){
+  if (tool === 'doc') { docLayer.focus(); document.execCommand('delete'); return; }
+  if (tool === 'code') {
+    codeEditor.focus();
+    const s = codeEditor.selectionStart, en = codeEditor.selectionEnd;
+    if (s !== en) codeEditor.setRangeText('', s, en, 'end');
+    else if (s < codeEditor.value.length) codeEditor.setRangeText('', s, s + 1, 'end');
+    codeSync();
+    return;
+  }
+  if (tool === 'text' && selected >= 0) { pushUndo('Delete text'); texts.splice(selected, 1); selected = -1; renderTexts(); drawSelection(); } else if (selectedImg >= 0) { pushUndo('Delete image'); imgObjects.splice(selectedImg, 1); selectedImg = -1; renderTexts(); drawSelection(); } else if (tool === 'sheet') { setCell(selectedCell.row, selectedCell.col, ''); renderSheet(); } }
 function editDuplicate(){ if (tool === 'text' && selected >= 0) { pushUndo('Duplicate text'); const copy = { ...texts[selected], x: texts[selected].x + 20, y: texts[selected].y + 20 }; texts.push(copy); selected = texts.length - 1; renderTexts(); drawSelection(); } }
-function editSelectAll(){ if (tool === 'doc') { docLayer.focus(); document.execCommand('selectAll'); } else if (tool === 'text') { selected = texts.length - 1; if (selected >= 0) { drawSelection(); syncPanelToText(texts[selected]); } } else if (tool === 'sheet') { selectedCell = { row: 0, col: 0 }; renderSheet(); } }
-function editClear(){ if (!confirm('Clear the canvas, layers, texts, doc, and sheets?')) return; pushUndo('Clear all'); initLayers(); for (const layer of layers) layer.canvas.getContext('2d').clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; renderTexts(); docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; renderSheet(); renderSheetTabs(); composite(); renderLayerList(); }
+function editSelectAll(){
+  if (tool === 'code') { codeEditor.focus(); codeEditor.select(); return; }
+  if (tool === 'doc') { docLayer.focus(); document.execCommand('selectAll'); } else if (tool === 'text') { selected = texts.length - 1; if (selected >= 0) { drawSelection(); syncPanelToText(texts[selected]); } } else if (tool === 'sheet') { selectedCell = { row: 0, col: 0 }; renderSheet(); } }
+function editClear(){ if (!confirm('Clear the canvas, layers, texts, doc, and sheets?')) return; pushUndo('Clear all'); sheetCellUndo = []; sheetCellRedo = []; initLayers(); for (const layer of layers) layer.canvas.getContext('2d').clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; renderTexts(); docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; renderSheet(); renderSheetTabs(); composite(); renderLayerList(); }
 
 /* ══ VIEW ACTIONS ═════════════════════════════════ */
 function viewZoomIn(){ zoomPct = Math.min(400, zoomPct + 25); applyZoom(); }
@@ -2530,7 +2887,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 
 /* ══ MENU WIRING ══════════════════════════════════ */
 const ACTIONS = {
-  'file-new': fileNew, 'file-open': fileOpen, 'file-save-png': fileSavePng, 'file-save-jpg': fileSaveJpg, 'file-save-svg': fileSaveSvg, 'file-save-pdf': fileSavePdf, 'file-save-json': fileSaveJson, 'file-print': filePrint, 'file-import': insertImage,
+  'file-new': fileNew, 'file-open': fileOpen, 'file-save-png': fileSavePng, 'file-save-jpg': fileSaveJpg, 'file-save-svg': fileSaveSvg, 'file-save-pdf': fileSavePdf, 'file-save-json': fileSaveJson, 'file-save-csv': fileSaveCsv, 'file-print': filePrint, 'file-import': insertImage,
   'edit-undo': undo, 'edit-redo': redo, 'edit-cut': editCut, 'edit-copy': editCopy, 'edit-paste': editPaste, 'edit-delete': editDelete, 'edit-duplicate': editDuplicate, 'edit-select-all': editSelectAll, 'edit-clear': editClear, 'edit-flip-h': () => flipCanvas(true), 'edit-flip-v': () => flipCanvas(false), 'edit-rotate-img-90-cw': () => rotateActiveLayer(90), 'edit-rotate-img-90-ccw': () => rotateActiveLayer(-90), 'edit-rotate-doc-15-cw': () => { rotateDoc(15); }, 'edit-rotate-doc-15-ccw': () => { rotateDoc(-15); }, 'edit-rotate-doc-reset': () => { resetDocRotation(); },
   'view-zoom-in': viewZoomIn, 'view-zoom-out': viewZoomOut, 'view-zoom-fit': viewZoomFit, 'view-zoom-100': viewZoom100, 'view-toggle-rulers': viewToggleRulers, 'view-toggle-panel': viewTogglePanel, 'view-toggle-grid': viewToggleGrid,
   'image-page-size': () => openModal('pageSizeModal'), 'image-resize': () => openModal('imageResizeModal'), 'image-extend': () => openModal('canvasExtendModal'), 'image-rotate-90-cw': () => rotateCanvas(90), 'image-rotate-90-ccw': () => rotateCanvas(-90), 'image-rotate-180': () => rotateCanvas(180), 'image-bg-remove-chroma': () => { document.getElementById('bgMethodChroma').click(); openModal('bgRemoveModal'); }, 'image-bg-remove-wand': () => { document.getElementById('bgMethodWand').click(); openModal('bgRemoveModal'); },
@@ -2593,6 +2950,7 @@ window.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='1'){e.preventDefault(); viewZoom100(); return;}
   if(e.key==='Escape'){ cancelCrop(); selected=-1; drawSelection(); closeAllMenus(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('show')); return; }
   if(e.key==='?'){ helpShortcuts(); return; }
+  if((e.key==='Delete'||e.key==='Backspace') && tool==='sheet'){ setCell(selectedCell.row, selectedCell.col, ''); renderSheet(); return; }
   if((e.key==='Delete'||e.key==='Backspace') && (selected>=0 || selectedImg>=0)){ if(selected>=0){ pushUndo('Delete text'); texts.splice(selected,1); selected=-1; } if(selectedImg>=0){ pushUndo('Delete image'); imgObjects.splice(selectedImg,1); selectedImg=-1; } renderTexts(); drawSelection(); return; }
   const t=keyMap[e.key.toLowerCase()]; if(t) selectTool(t);
 });
