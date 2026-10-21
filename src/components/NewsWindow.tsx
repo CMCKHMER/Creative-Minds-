@@ -312,7 +312,7 @@ export function NewsPage({ onBackHome }: { onBackHome: () => void }) {
       </div>
 
       {/* Hero band — uses the AI-generated Cambodia education scene */}
-      <section className="relative isolate overflow-hidden border-b border-white/8">
+      <section data-keep-dark className="relative isolate overflow-hidden border-b border-white/8">
         <div className="absolute inset-0 -z-20">
           <img
             src="./images/news/news-hero.png"

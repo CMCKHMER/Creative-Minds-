@@ -175,7 +175,7 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
         </div>
       </div>
 
-      <section className="relative isolate overflow-hidden border-b border-white/8">
+      <section data-keep-dark className="relative isolate overflow-hidden border-b border-white/8">
         {/* Full-bleed semi-transparent hero background image */}
         <img src="./images/card-games.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />

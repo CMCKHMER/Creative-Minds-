@@ -13,7 +13,7 @@ export function KidGradeHub() {
   const availableGradeCount = KID_GRADE_RESOURCES.filter((grade) => grade.status === 'available' && grade.materials.length > 0).length;
 
   return (
-    <section id="kid-grades" aria-labelledby="kid-grade-hub-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#081522] py-20 sm:py-24 lg:py-28">
+    <section id="kid-grades" data-keep-dark aria-labelledby="kid-grade-hub-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#081522] py-20 sm:py-24 lg:py-28">
       {/* Full-bleed semi-transparent card background image */}
       <img src="./images/card-kid-program.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />

@@ -69,7 +69,7 @@ const PROGRAMS: Program[] = [
 
 export function GEPISecHub() {
   return (
-    <section id="gep-isec" aria-labelledby="gep-isec-hub-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#0a1a2c] py-20 sm:py-24 lg:py-28">
+    <section id="gep-isec" data-keep-dark aria-labelledby="gep-isec-hub-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#0a1a2c] py-20 sm:py-24 lg:py-28">
       {/* Full-bleed semi-transparent card background image */}
       <img src="./images/card-gep-isec.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />

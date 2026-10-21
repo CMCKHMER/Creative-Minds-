@@ -87,7 +87,7 @@ export function RoleGate({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-amber-200/15 bg-gradient-to-br from-amber-100/[0.04] via-slate-900/80 to-slate-950/90 px-6 py-14 text-center shadow-2xl sm:px-12">
+    <div data-keep-dark className="relative overflow-hidden rounded-3xl border border-amber-200/15 bg-gradient-to-br from-amber-100/[0.04] via-slate-900/80 to-slate-950/90 px-6 py-14 text-center shadow-2xl sm:px-12">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(251,191,36,.15),transparent_55%)]" />
       <div className="relative mx-auto max-w-lg">
         <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300/20 to-amber-500/10 text-amber-200 ring-1 ring-amber-200/30">

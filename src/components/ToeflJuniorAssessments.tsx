@@ -48,7 +48,7 @@ export function ToeflJuniorAssessments() {
       <div aria-hidden="true" className="pointer-events-none absolute -right-48 top-4 h-[36rem] w-[36rem] rounded-full bg-indigo-500/[0.09] blur-[140px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-52 bottom-0 h-[30rem] w-[30rem] rounded-full bg-cyan-400/[0.07] blur-[130px]" />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-        <header className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-gradient-to-br from-[#122337] via-[#0e1a2a] to-[#11142a] px-6 py-9 sm:px-10 sm:py-12 lg:px-14">
+        <header data-keep-dark className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-gradient-to-br from-[#122337] via-[#0e1a2a] to-[#11142a] px-6 py-9 sm:px-10 sm:py-12 lg:px-14">
           <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-32 h-80 w-80 rounded-full bg-cyan-300/10 blur-[90px]" />
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:36px_36px] [mask-image:linear-gradient(90deg,black,transparent_90%)]" />
           <div className="relative max-w-3xl">

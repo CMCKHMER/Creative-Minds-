@@ -77,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       {/* Top Announcement Bar */}
       {bannerVisible && (
-        <div className="bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium relative z-50 flex items-center justify-center gap-2">
+        <div data-keep-dark className="bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium relative z-50 flex items-center justify-center gap-2">
           <span className="inline-flex items-center gap-1.5 bg-white/20 px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase">
             <Sparkles className="w-3 h-3 text-cyan-200" /> New
           </span>

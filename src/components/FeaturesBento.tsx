@@ -35,7 +35,7 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-6">
           
           {/* Bento Item 1: Large Card - TOEFL Suite (7 Cols) */}
-          <div className="lg:col-span-7 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950/90 border border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-300 shadow-xl group relative overflow-hidden flex flex-col justify-between">
+          <div data-keep-dark className="lg:col-span-7 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950/90 border border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-300 shadow-xl group relative overflow-hidden flex flex-col justify-between">
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-500/15 transition-all" />
             
             <div>
@@ -110,7 +110,7 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
           </div>
 
           {/* Daily student assessment records shortcut */}
-          <div className="lg:col-span-5 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950/90 border border-indigo-500/20 hover:border-indigo-500/40 transition-all duration-300 shadow-xl group relative flex flex-col justify-between">
+          <div data-keep-dark className="lg:col-span-5 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950/90 border border-indigo-500/20 hover:border-indigo-500/40 transition-all duration-300 shadow-xl group relative flex flex-col justify-between">
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-indigo-500/15 transition-all" />
 
             <div>
@@ -143,7 +143,7 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
           </div>
 
           {/* Bento Item 3: Prefix & Suffix Vocabulary Lab (4 Cols) */}
-          <div className="lg:col-span-4 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-slate-800 hover:border-teal-500/40 transition-all duration-300 shadow-xl group flex flex-col justify-between">
+          <div data-keep-dark className="lg:col-span-4 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-slate-800 hover:border-teal-500/40 transition-all duration-300 shadow-xl group flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <span className="font-mono text-xs font-black text-teal-400 px-2.5 py-1 rounded-lg bg-teal-950 border border-teal-800">
@@ -182,7 +182,7 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
           </div>
 
           {/* Kid Program grade-path shortcut */}
-          <div className="lg:col-span-4 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-slate-800 hover:border-purple-500/40 transition-all duration-300 shadow-xl group flex flex-col justify-between">
+          <div data-keep-dark className="lg:col-span-4 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-slate-800 hover:border-purple-500/40 transition-all duration-300 shadow-xl group flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="p-2.5 rounded-xl bg-purple-950/80 border border-purple-800/60 text-purple-400">
@@ -209,7 +209,7 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
           </div>
 
           {/* Bento Item 5: Account and test privacy */}
-          <div className="lg:col-span-4 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-slate-800 hover:border-cyan-500/40 transition-all duration-300 shadow-xl group flex flex-col justify-between">
+          <div data-keep-dark className="lg:col-span-4 rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-slate-800 hover:border-cyan-500/40 transition-all duration-300 shadow-xl group flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="p-2.5 rounded-xl bg-cyan-950/80 border border-cyan-800/60 text-cyan-400">
@@ -242,7 +242,7 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
           </div>
 
           {/* Skill assessment library shortcut */}
-          <div className="lg:col-span-6 rounded-3xl border border-violet-300/15 bg-gradient-to-br from-violet-950/30 via-slate-900/80 to-slate-950/90 p-6 shadow-xl sm:p-8">
+          <div data-keep-dark className="lg:col-span-6 rounded-3xl border border-violet-300/15 bg-gradient-to-br from-violet-950/30 via-slate-900/80 to-slate-950/90 p-6 shadow-xl sm:p-8">
             <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl border border-violet-300/20 bg-violet-300/10 text-violet-200"><BrainCircuit className="h-5 w-5" aria-hidden="true" /></span><div><span className="text-[9px] font-bold tracking-[0.15em] text-violet-200 uppercase">Assessment packs</span><h3 className="mt-0.5 text-lg font-bold text-white">TOEFL Junior · Speak, listen, write</h3></div></div>
             <p className="mt-4 max-w-2xl text-xs leading-relaxed text-slate-300">Fifteen original assessment assignments: five per skill, with student prompts, separate read-aloud scripts, teacher keys, and rubrics.</p>
             <div className="mt-5 flex flex-wrap gap-2 text-[10px] font-semibold text-slate-300"><span className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1.5">05 speaking</span><span className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1.5">05 listening</span><span className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1.5">05 writing</span></div>
@@ -250,7 +250,7 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
           </div>
 
           {/* Student games portal shortcut */}
-          <div className="lg:col-span-6 rounded-3xl border border-teal-300/15 bg-gradient-to-br from-teal-950/35 via-slate-900/80 to-slate-950/90 p-6 shadow-xl sm:p-8">
+          <div data-keep-dark className="lg:col-span-6 rounded-3xl border border-teal-300/15 bg-gradient-to-br from-teal-950/35 via-slate-900/80 to-slate-950/90 p-6 shadow-xl sm:p-8">
             <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl border border-teal-300/20 bg-teal-300/10 text-teal-200"><Gamepad2 className="h-5 w-5" aria-hidden="true" /></span><div><span className="text-[9px] font-bold tracking-[0.15em] text-teal-200 uppercase">Student game room</span><h3 className="mt-0.5 text-lg font-bold text-white">Creative Minds Play Lab</h3></div></div>
             <p className="mt-4 max-w-2xl text-xs leading-relaxed text-slate-300">A dedicated game page where students can read the challenge brief, pick a skill, and play an interactive mini-game with instant feedback.</p>
             <div className="mt-5 flex flex-wrap gap-2 text-[10px] font-semibold text-slate-300"><span className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1.5">Vocabulary</span><span className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1.5">Reading</span><span className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1.5">Grammar</span><span className="rounded-md border border-white/8 bg-white/[0.03] px-2.5 py-1.5">Listening</span></div>
