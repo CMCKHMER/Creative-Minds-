@@ -33,6 +33,15 @@ async function fs(): Promise<{ db: Firestore } & typeof import('firebase/firesto
   return { db, ...(await import('firebase/firestore')) };
 }
 
+/** Normalizes submittedAt (Firestore Timestamp | ISO string | epoch ms) to epoch ms. */
+function toMillis(v: any): number {
+  if (!v) return 0;
+  if (typeof v === 'number') return v;
+  if (typeof v.toMillis === 'function') return v.toMillis();
+  const t = Date.parse(v);
+  return Number.isNaN(t) ? 0 : t;
+}
+
 // ── Classes ──────────────────────────────────────────────────────────
 
 export async function createClass(input: {
@@ -99,8 +108,10 @@ export async function enrollStudent(classId: string, studentUid: string, student
       studentName,
       enrolledAt: f.serverTimestamp(),
     });
-    // Also update student profile
-    await f.updateDoc(f.doc(f.db, 'students', studentUid), { classId });
+    // Also stamp the student profile. setDoc+merge (not updateDoc) so this
+    // succeeds even when the student has no profile document yet — REST-path
+    // sign-ups don't create one.
+    await f.setDoc(f.doc(f.db, 'students', studentUid), { classId }, { merge: true });
     return true;
   } catch (e) {
     console.warn('[firestore] enrollStudent:', e);
@@ -166,12 +177,16 @@ export function subscribeToClassAttempts(
     const q = f.query(
       f.collection(f.db, 'drill_attempts'),
       f.where('classId', '==', classId),
-      f.orderBy('submittedAt', 'desc'),
-      f.limit(100),
+      f.limit(200),
     );
     if (!alive) return;
     unsubscribe = f.onSnapshot(q, (snap) => {
-      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      // Sorted client-side: where + orderBy(submittedAt) would require a
+      // composite index that was never created, and the query would fail
+      // silently (empty list) on every dashboard load.
+      const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      rows.sort((a: any, b: any) => toMillis(b.submittedAt) - toMillis(a.submittedAt));
+      callback(rows);
     });
   })();
   return () => {
@@ -196,12 +211,14 @@ export function subscribeToStudentAttempts(
     const q = f.query(
       f.collection(f.db, 'drill_attempts'),
       f.where('studentUid', '==', studentUid),
-      f.orderBy('submittedAt', 'desc'),
-      f.limit(50),
+      f.limit(100),
     );
     if (!alive) return;
     unsubscribe = f.onSnapshot(q, (snap) => {
-      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      // Client-side sort — avoids the (studentUid, submittedAt) composite index.
+      const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      rows.sort((a: any, b: any) => toMillis(b.submittedAt) - toMillis(a.submittedAt));
+      callback(rows);
     });
   })();
   return () => {
@@ -219,15 +236,17 @@ export async function listTeacherAttempts(teacherUid: string) {
     const classes = await listTeacherClasses(teacherUid);
     const classIds = classes.map((c: any) => c.id);
     if (!classIds.length) return [];
-    // Query attempts for those classes
+    // Query attempts for those classes. Client-side sort avoids the
+    // (classId, submittedAt) composite index that `in` + orderBy needs.
     const q = f.query(
       f.collection(f.db, 'drill_attempts'),
       f.where('classId', 'in', classIds),
-      f.orderBy('submittedAt', 'desc'),
       f.limit(200),
     );
     const snap = await f.getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    rows.sort((a: any, b: any) => toMillis(b.submittedAt) - toMillis(a.submittedAt));
+    return rows;
   } catch (e) {
     console.warn('[firestore] listTeacherAttempts:', e);
     return [];

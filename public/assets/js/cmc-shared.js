@@ -179,6 +179,7 @@
       var token = localStorage.getItem('cmc-student-token');
       var name = localStorage.getItem('cmc-student-name') || '';
       var uid = localStorage.getItem('cmc-student-uid') || '';
+      var clsId = localStorage.getItem('cmc-student-classId') || '';
       var exp = Number(localStorage.getItem('cmc-student-token-expires') || '0');
       if (!token || !name) return;
 
@@ -192,7 +193,7 @@
             drillSource: { stringValue: opts.drillSource || 'biweek-planner' },
             studentName: { stringValue: name },
             studentUid: { stringValue: uid },
-            classId: { nullValue: null },
+            classId: clsId ? { stringValue: clsId } : { nullValue: null },
             durationSeconds: opts.durationSeconds != null ? { integerValue: String(opts.durationSeconds) } : { nullValue: null },
             scorePct: { integerValue: String(opts.scorePct) },
             correctCount: { integerValue: String(opts.correctCount) },

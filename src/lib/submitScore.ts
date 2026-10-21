@@ -68,6 +68,10 @@ export async function submitScore(input: ScoreSubmission): Promise<string | null
   const studentUid = localStorage.getItem('cmc-student-uid') || '';
   const studentName = input.studentName || localStorage.getItem('cmc-student-name') || '';
   if (!studentName) return null;
+  // Set when the student joins a class from the dashboard (enrollStudent
+  // flow). Carried on every attempt so the teacher's Live Class Results
+  // table can attribute scores to their class.
+  const classId = localStorage.getItem('cmc-student-classId') || '';
 
   const body = {
     fields: {
@@ -76,7 +80,7 @@ export async function submitScore(input: ScoreSubmission): Promise<string | null
       drillSource: { stringValue: input.drillSource },
       studentName: { stringValue: studentName },
       studentUid: { stringValue: studentUid },
-      classId: { nullValue: null },
+      classId: classId ? { stringValue: classId } : { nullValue: null },
       scorePct: { integerValue: String(Math.round(input.scorePct)) },
       correctCount: { integerValue: String(input.correctCount) },
       totalCount: { integerValue: String(input.totalCount) },

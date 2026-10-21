@@ -4,7 +4,9 @@ import { useMemberAuth } from '../hooks/useMemberAuth';
 import { useStudentAuth } from '../hooks/useStudentAuth';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
 import { getFirebaseDb } from '../lib/firebase';
-import { listTeacherClasses, listTeacherAttempts, createClass } from '../lib/firebaseDb';
+import { listTeacherClasses, listTeacherAttempts, createClass, getClassByCode, enrollStudent } from '../lib/firebaseDb';
+import { useStudentAttempts } from '../hooks/useDrillAttempts';
+import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import { StudentAuthModal } from './StudentAuthModal';
 
 export function FirebaseDashboard() {
@@ -34,6 +36,32 @@ export function FirebaseDashboard() {
   const isTeacher = memberAuth.status === 'active' || (firebaseAuth.isTeacher && !!firebaseAuth.session);
   const isStudent = studentAuth.status === 'signed-in' || (firebaseAuth.isStudent && !!firebaseAuth.session);
 
+  // ── Identity resolution ──
+  // A teacher may be signed in through EITHER auth path: the Supabase
+  // member flow (memberAuth) or the Firebase REST flow (TeacherPassModal
+  // hero button — uid is `localId`). Without this fallback, hero-button
+  // teachers saw the teacher UI but every data load and the Create Class
+  // button silently no-op'd, because memberAuth.member is null on that
+  // path. Same dual-path resolution for students (SDK profile uid or
+  // REST localId).
+  const teacherUid = memberAuth.member?.userId
+    || (firebaseAuth.isTeacher && firebaseAuth.session ? firebaseAuth.session.localId : null);
+  const studentUid = studentAuth.student?.uid
+    || (firebaseAuth.isStudent && firebaseAuth.session ? firebaseAuth.session.localId : null);
+
+  // Class-join state (student side). The joined class id is persisted so
+  // submitScore/cmc-shared.js can stamp it on every future attempt.
+  const [joinCode, setJoinCode] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [joinedClass, setJoinedClass] = useState<{ id: string; name: string } | null>(null);
+  useEffect(() => {
+    try {
+      const id = localStorage.getItem('cmc-student-classId');
+      if (id) setJoinedClass({ id, name: localStorage.getItem('cmc-student-className') || 'Class' });
+    } catch { /* ignore */ }
+  }, []);
+
   // Firebase SDK readiness — the SDK is lazy-loaded, so this component is
   // what triggers the download. Flips true once Firestore resolves (or stays
   // false when Firebase is not configured / init failed).
@@ -57,32 +85,28 @@ export function FirebaseDashboard() {
     if (!firebaseReady) { setLoading(false); return; }
     setLoading(true);
     try {
-      if (isTeacher && memberAuth.member) {
-        const cls = await listTeacherClasses(memberAuth.member.userId);
+      if (isTeacher && teacherUid) {
+        const cls = await listTeacherClasses(teacherUid);
         setClasses(cls as any[]);
-        const atts = await listTeacherAttempts(memberAuth.member.userId);
+        const atts = await listTeacherAttempts(teacherUid);
         setAttempts(atts as any[]);
-      } else if (isStudent && studentAuth.student) {
-        // Student view — loaded via the hook
       }
     } catch (e) {
       console.warn('[firebase-dashboard] loadData error:', e);
     }
     setLoading(false);
-    // Reads memberAuth.member / studentAuth.student from the render scope in
-    // which this callback was created; the identity deps below (isTeacher,
-    // isStudent, firebaseReady) flip exactly when those objects change
-    // between null and present, which is when a refetch is wanted.
-  }, [firebaseReady, isTeacher, isStudent, memberAuth.member, studentAuth.student]);
+    // teacherUid flips exactly when the identity changes between null and
+    // present (either auth path), which is when a refetch is wanted.
+  }, [firebaseReady, isTeacher, teacherUid]);
 
   useEffect(() => {
     loadData();
   }, [loadData, selectedClass]);
 
   const handleCreateClass = async () => {
-    if (!memberAuth.member || !newClassName.trim()) return;
+    if (!teacherUid || !newClassName.trim()) return;
     const id = await createClass({
-      teacherUid: memberAuth.member.userId,
+      teacherUid,
       name: newClassName,
       program: newClassProgram,
       gradeLevel: newClassGrade,
@@ -94,11 +118,38 @@ export function FirebaseDashboard() {
     }
   };
 
-  // Student's own attempts (real-time)
-  const studentAttempts = useMemo(() => {
-    if (!isStudent || !studentAuth.student) return [];
-    return attempts.filter((a: any) => a.studentUid === studentAuth.student?.uid);
-  }, [attempts, isStudent, studentAuth]);
+  // Student's own attempts (real-time via the SDK listener). The hook
+  // no-ops until the student is signed in; its query already scopes rows
+  // to the signed-in student and sorts them newest-first.
+  const { attempts: studentAttempts } = useStudentAttempts(isStudent ? studentUid : null);
+
+  // Join a class by its CMC-XXXXXX code: writes the enrollment doc, stamps
+  // the student profile, and persists the code for the submit paths
+  // (submitScore.ts + cmc-shared.js) so future attempts carry classId.
+  const handleJoinClass = async () => {
+    if (!studentUid || !joinCode.trim()) return;
+    setJoining(true);
+    setJoinError(null);
+    const cls = await getClassByCode(joinCode.trim());
+    if (!cls) {
+      setJoinError('No class found with that code — check with your teacher.');
+      setJoining(false);
+      return;
+    }
+    const ok = await enrollStudent(cls.id, studentUid, signedInDisplayName);
+    if (!ok) {
+      setJoinError('Could not join this class. Try again in a moment.');
+      setJoining(false);
+      return;
+    }
+    try {
+      localStorage.setItem('cmc-student-classId', cls.id);
+      localStorage.setItem('cmc-student-className', String(cls.name || 'Class'));
+    } catch { /* ignore */ }
+    setJoinedClass({ id: cls.id, name: String(cls.name || 'Class') });
+    setJoinCode('');
+    setJoining(false);
+  };
 
   // Stats
   const stats = useMemo(() => {
@@ -216,6 +267,11 @@ export function FirebaseDashboard() {
                   <p className="mt-0.5 text-[10px] text-slate-500">{c.program} · Code: {c.code}</p>
                 </button>
               ))}
+              {classes.length > 0 && (
+                <p className="pt-1 text-[10px] leading-relaxed text-slate-600">
+                  Students join with the code: they sign in, then use "Join a class" below.
+                </p>
+              )}
             </div>
 
             {/* Attempts table */}
@@ -226,7 +282,7 @@ export function FirebaseDashboard() {
                 </div>
               ) : attempts.length === 0 ? (
                 <div className="py-12 text-center text-sm text-slate-500">
-                  No drill attempts yet. Students' scores will appear here in real-time.
+                  No drill attempts yet. Share your class code — when enrolled students complete drills, their scores appear here in real-time.
                 </div>
               ) : (
                 <table className="w-full text-sm">
@@ -261,7 +317,39 @@ export function FirebaseDashboard() {
           </div>
         )}
 
-        {/* Student view: own attempts */}
+        {/* Student view: class join + own attempts */}
+        {isStudent && (
+          <div className="mb-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+            {joinedClass ? (
+              <p className="text-xs text-slate-300">
+                ✓ Joined <span className="font-bold text-white">{joinedClass.name}</span> — your drill scores now appear in your teacher's Live Class Results.
+              </p>
+            ) : (
+              <>
+                <p className="text-xs font-semibold text-white">Join a class</p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Enter the class code your teacher gave you so your scores appear in their dashboard.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <input
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                    placeholder="CMC-XXXXXX"
+                    className="w-44 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+                  />
+                  <button
+                    onClick={handleJoinClass}
+                    disabled={joining || !studentUid}
+                    className="rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:opacity-50"
+                  >
+                    {joining ? 'Joining…' : 'Join class'}
+                  </button>
+                </div>
+                {joinError && <p className="mt-1.5 text-[11px] text-rose-300">{joinError}</p>}
+              </>
+            )}
+          </div>
+        )}
         {isStudent && (
           <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
             <div className="border-b border-white/10 px-4 py-3">
@@ -294,9 +382,13 @@ export function FirebaseDashboard() {
           </div>
         )}
 
-        {/* Not signed in */}
+        {/* Not signed in — the public drill feed keeps the section genuinely
+            live for every visitor; the CTA below explains how to get a
+            personal teacher/student view. */}
         {!isTeacher && !isStudent && (
-          <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-8 text-center">
+          <div className="space-y-4">
+            <CommunityLive />
+            <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-8 text-center">
             <p className="text-sm font-semibold text-white">Sign in to see real-time results</p>
             <p className="mt-2 text-xs text-slate-500 max-w-md mx-auto">
               Teachers can create classes and see live student scores. Students can track their drill history and scores.
@@ -313,6 +405,7 @@ export function FirebaseDashboard() {
             <p className="mt-3 text-[10px] text-slate-500">
               New here? Click the button, then choose "Create an account" inside. Teachers: use the "Create a teacher account" button in the hero above with a work email ending in .edu or .edu.kh.
             </p>
+            </div>
           </div>
         )}
       </div>
@@ -345,5 +438,119 @@ export function FirebaseDashboard() {
       {/* Student auth modal */}
       <StudentAuthModal isOpen={showStudentAuth} onClose={() => setShowStudentAuth(false)} initialMode={studentAuthMode} />
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CommunityLive — signed-out visitors still get a genuinely live section.
+// Reads the PUBLIC drill_attempts feed via the Firestore REST API (same
+// source and quota shape as TickerBanner: one 100-doc page per mount, no
+// polling). Security rules allow public read on drill_attempts, so this
+// works without any sign-in.
+// ---------------------------------------------------------------------------
+
+interface CommunityField { stringValue?: string; integerValue?: string; timestampValue?: string }
+interface CommunityDoc { fields?: Record<string, CommunityField> }
+
+interface CommunityAttempt {
+  name: string;
+  drill: string;
+  scorePct: number;
+  at: number;
+}
+
+function parseCommunityDoc(doc: CommunityDoc): CommunityAttempt | null {
+  const f = doc.fields;
+  if (!f) return null;
+  const tsRaw = f.submittedAt?.timestampValue;
+  return {
+    name: f.studentName?.stringValue || 'Anonymous',
+    drill: f.drillTitle?.stringValue || f.drillSlug?.stringValue || 'Drill',
+    scorePct: Number(f.scorePct?.integerValue || '0'),
+    at: tsRaw ? Date.parse(tsRaw) : 0,
+  };
+}
+
+function timeAgo(ms: number): string {
+  if (!ms) return '—';
+  const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+  return `${Math.round(s / 86400)}d ago`;
+}
+
+function CommunityLive() {
+  const [recent, setRecent] = useState<CommunityAttempt[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/drill_attempts?pageSize=100&orderBy=submittedAt%20desc`;
+    fetch(url)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.documents) return;
+        const rows = (data.documents as CommunityDoc[])
+          .map(parseCommunityDoc)
+          .filter((a: CommunityAttempt | null): a is CommunityAttempt => a !== null && a.at > 0);
+        setRecent(rows);
+      })
+      .catch(() => { /* keep the panel empty rather than erroring the page */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  const last24h = recent.filter((a) => Date.now() - a.at < 86_400_000).length;
+  const avg = recent.length ? Math.round(recent.reduce((s, a) => s + a.scorePct, 0) / recent.length) : 0;
+  const students = new Set(recent.map((a) => a.name)).size;
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+          <p className="text-2xl font-bold text-cyan-300">{last24h}</p>
+          <p className="text-[10px] uppercase tracking-wider text-slate-500">Drills · last 24h</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+          <p className="text-2xl font-bold text-emerald-300">{students}</p>
+          <p className="text-[10px] uppercase tracking-wider text-slate-500">Students drilling</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+          <p className="text-2xl font-bold text-violet-300">{avg}%</p>
+          <p className="text-[10px] uppercase tracking-wider text-slate-500">Avg score</p>
+        </div>
+      </div>
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
+        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
+          <h3 className="text-sm font-bold text-white">Live from the drill floor — recent submissions</h3>
+        </div>
+        {recent.length === 0 ? (
+          <div className="py-10 text-center text-sm text-slate-500">
+            The public feed is quiet right now. Sign in and complete a drill to be the first on the board.
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="border-b border-white/10 bg-slate-900/50">
+              <tr className="text-[10px] uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-3 text-left">Student</th>
+                <th className="px-4 py-3 text-left">Drill</th>
+                <th className="px-4 py-3 text-center">Score</th>
+                <th className="px-4 py-3 text-right">When</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {recent.slice(0, 6).map((a, i) => (
+                <tr key={i} className="hover:bg-white/5">
+                  <td className="px-4 py-3 text-xs font-medium text-slate-200">{a.name}</td>
+                  <td className="px-4 py-3 text-xs text-slate-400">{a.drill}</td>
+                  <td className="px-4 py-3 text-center font-mono text-xs font-bold text-cyan-300">{a.scorePct}%</td>
+                  <td className="px-4 py-3 text-right text-[10px] text-slate-500">{timeAgo(a.at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
   );
 }
