@@ -4,27 +4,35 @@ rules_version = '2';
 //
 // HOW TO DEPLOY (one-time, ~2 minutes — no CLI needed):
 //   1. Open https://console.firebase.google.com → project "creative-minds-cambodia"
-//   2. Build → Firestore Database → Rules tab
+//   2. Build → Firestore Database → Rules tab  (database: "(default)")
 //   3. Paste this entire file over the editor contents → click "Publish"
 //
-// Or with the Firebase CLI: `firebase deploy --only firestore:rules`
-// (requires `firebase init` + owner credentials).
+// ⚠️ REGRESSION FIX (Oct 2026): an earlier revision wrote
+// `match /drill_attempts` and `match /teacher_chat` as bare collection
+// paths. Firestore rules match DOCUMENT paths, not collection paths, so
+// those blocks matched nothing — every read/write fell through to the
+// default-deny wildcard, breaking the live ticker, chat wall and drill
+// submissions with "Missing or insufficient permissions". A match path
+// for a top-level collection MUST carry a document wildcard segment:
+//   match /collection/{docId}        (that collection's documents)
+//   match /collection/{document=**}  (documents + all subcollections)
 //
 // WHAT THESE RULES DO (and why):
-//   - drill_attempts: public read (the homepage ticker, game leaderboard and
-//     dashboards list it anonymously via the REST API), but creates are only
-//     allowed for SIGNED-IN users submitting their OWN uid — a signed-in
-//     student can no longer forge scores for classmates, and scores are
+//   - drill_attempts/{attemptId}: public read (the homepage ticker, game
+//     leaderboard and dashboards list it anonymously via the REST API);
+//     creates only for SIGNED-IN users submitting their OWN uid — a
+//     signed-in student cannot forge scores for classmates; scores are
 //     immutable (no update/delete by clients).
-//   - teacher_chat: public read, signed-in create, immutable.
+//   - teacher_chat/{msgId}: public read, signed-in create, immutable.
 //   - students/{uid}: each student can read/write only their own profile.
-//   - classes + enrollments: public read (code lookup / dashboards),
-//     signed-in writes, students enroll themselves.
-//   - assessment_classes (+ students subcollection): the Daily Student
-//     Assessment Records workspace. TEACHERS ONLY — the signed-in account's
-//     email must contain "edu" (the same heuristic RoleGate uses site-wide).
-//     This replaces the retired Google Apps Script/Sheets backend, whose
-//     "Anyone" web-app deployment let any visitor read or wipe all records.
+//   - classes/{classId} + enrollments: public read (code lookup /
+//     dashboards), signed-in writes, students enroll themselves.
+//   - assessment_classes/{classId} (+ students subcollection): the Daily
+//     Student Assessment Records workspace. TEACHERS ONLY — the signed-in
+//     account's email must contain "edu" (the same heuristic RoleGate uses
+//     site-wide). Replaces the retired Google Apps Script/Sheets backend,
+//     whose "Anyone" web-app deployment let any visitor read or wipe
+//     all records.
 //   - Everything else: denied.
 //
 // VERIFIED against the live write shape (Oct 2026): every worksheet POST
@@ -32,6 +40,7 @@ rules_version = '2';
 // React submitScore module and CMC.submitDrill) sends integer scorePct
 // 0-100, integer correctCount/totalCount >= 0, and studentUid matching
 // the Bearer token's own uid.
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -45,7 +54,7 @@ service cloud.firestore {
         && request.auth.token.email.matches('.*[eE][dD][uU].*');
     }
 
-    match /drill_attempts {
+    match /drill_attempts/{attemptId} {
       allow read: if true; // public scoreboard (ticker / leaderboard / dashboard)
 
       allow create: if request.auth != null
@@ -67,7 +76,7 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    match /teacher_chat {
+    match /teacher_chat/{msgId} {
       allow read: if true; // public chat wall
       allow create: if request.auth != null
         && request.resource.data.authorName is string
