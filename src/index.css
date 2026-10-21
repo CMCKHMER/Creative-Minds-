@@ -784,9 +784,9 @@
    ============================================================ */
 
 :root {
-  --cmc-l-page: #edf2f8;          /* page base — light blue-gray */
-  --cmc-l-surface: #eef3f9;       /* raised section surface      */
-  --cmc-l-surface-2: #e8eef6;     /* deeper section surface      */
+  --cmc-l-page: #e2e8f0;          /* page base — true light gray (slate-200) */
+  --cmc-l-surface: #e9edf4;       /* raised section surface      */
+  --cmc-l-surface-2: #d5dce6;     /* deeper section surface      */
   --cmc-l-card: rgba(255, 255, 255, 0.78);
   --cmc-l-border: rgba(15, 23, 42, 0.10);
   --cmc-l-ink: #0c1a2c;           /* headings                    */
@@ -809,13 +809,13 @@ html.light [data-keep-dark] .bg-slate-950 {
   background-color: #020617;
 }
 
-html.light ::-webkit-scrollbar-track { background: #e2e8f0; }
+html.light ::-webkit-scrollbar-track { background: #ccd4df; }
 html.light ::-webkit-scrollbar-thumb { background: #94a3b8; }
 html.light ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
 /* ---- hero: light-washed classroom photo under a white veil ---- */
 html.light .cmc-hero {
-  background: linear-gradient(180deg, #eaf0f8 0%, #e8eff8 55%, #eef3fa 100%);
+  background: linear-gradient(180deg, #e3e9f1 0%, #e0e7ef 55%, #e8edf4 100%);
 }
 html.light .cmc-hero::after {
   background: linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.28), transparent);
@@ -825,8 +825,8 @@ html.light .cmc-hero-photo {
 }
 html.light .cmc-hero-veil {
   background:
-    linear-gradient(90deg, rgba(237, 242, 249, 0.97) 0%, rgba(237, 242, 249, 0.9) 25%, rgba(237, 242, 249, 0.6) 48%, rgba(237, 242, 249, 0.08) 100%),
-    linear-gradient(0deg, rgba(233, 240, 248, 0.85) 0%, transparent 31%, transparent 74%, rgba(237, 242, 249, 0.4) 100%);
+    linear-gradient(90deg, rgba(226, 232, 240, 0.97) 0%, rgba(226, 232, 240, 0.9) 25%, rgba(226, 232, 240, 0.6) 48%, rgba(226, 232, 240, 0.08) 100%),
+    linear-gradient(0deg, rgba(219, 227, 237, 0.85) 0%, transparent 31%, transparent 74%, rgba(226, 232, 240, 0.4) 100%);
 }
 html.light .cmc-hero-light {
   background:
@@ -836,11 +836,11 @@ html.light .cmc-hero-light {
 html.light .cmc-hero-orbit { opacity: 0.45; }
 html.light .cmc-title-solid {
   color: var(--cmc-l-ink);
-  text-shadow: 0 8px 35px rgba(226, 232, 240, 0.9);
+  text-shadow: 0 8px 35px rgba(203, 212, 224, 0.9);
 }
 html.light .cmc-title-row-second .cmc-title-solid {
   color: var(--cmc-l-ink);
-  text-shadow: 0 8px 35px rgba(226, 232, 240, 0.9);
+  text-shadow: 0 8px 35px rgba(203, 212, 224, 0.9);
 }
 html.light .cmc-title-outline { -webkit-text-stroke-color: rgba(2, 132, 199, 0.55); }
 html.light .cmc-title-row-second .cmc-title-outline { -webkit-text-stroke-color: rgba(13, 148, 136, 0.45); }
@@ -969,23 +969,23 @@ html.light .bg-\[\#09131e\] { background-color: var(--cmc-l-page); }
 /* ---- common dark utilities → light equivalents ---- */
 /* backgrounds */
 html.light .bg-slate-950\/95, html.light .bg-slate-900\/95 { background-color: rgba(255, 255, 255, 0.95); }
-html.light .bg-slate-950\/85 { background-color: rgba(244, 247, 251, 0.92); }
-html.light .bg-slate-950\/80 { background-color: rgba(226, 232, 240, 0.72); }
-html.light .bg-slate-950\/75 { background-color: rgba(244, 247, 251, 0.9); }
-html.light .bg-slate-950\/60 { background-color: rgba(244, 247, 251, 0.8); }
-html.light .bg-slate-950\/50 { background-color: rgba(244, 247, 251, 0.72); }
+html.light .bg-slate-950\/85 { background-color: rgba(231, 237, 244, 0.92); }
+html.light .bg-slate-950\/80 { background-color: rgba(206, 215, 227, 0.75); }
+html.light .bg-slate-950\/75 { background-color: rgba(231, 237, 244, 0.9); }
+html.light .bg-slate-950\/60 { background-color: rgba(231, 237, 244, 0.8); }
+html.light .bg-slate-950\/50 { background-color: rgba(231, 237, 244, 0.72); }
 html.light .bg-slate-950\/40 { background-color: rgba(255, 255, 255, 0.72); }
 html.light .bg-slate-950\/35 { background-color: rgba(255, 255, 255, 0.66); }
-html.light .bg-slate-900 { background-color: #e2e9f2; }
+html.light .bg-slate-900 { background-color: #cdd6e2; }
 html.light .bg-slate-900\/90 { background-color: rgba(255, 255, 255, 0.9); }
 html.light .bg-slate-900\/65 { background-color: rgba(255, 255, 255, 0.8); }
 html.light .bg-slate-900\/60 { background-color: rgba(255, 255, 255, 0.78); }
 html.light .bg-slate-900\/50 { background-color: rgba(255, 255, 255, 0.7); }
 html.light .bg-slate-900\/40 { background-color: rgba(255, 255, 255, 0.6); }
 html.light .bg-slate-900\/35 { background-color: rgba(255, 255, 255, 0.55); }
-html.light .bg-slate-800 { background-color: #d9e2ee; }
-html.light .bg-slate-800\/80 { background-color: rgba(224, 232, 241, 0.8); }
-html.light .bg-slate-800\/40 { background-color: rgba(224, 232, 241, 0.5); }
+html.light .bg-slate-800 { background-color: #c1cdda; }
+html.light .bg-slate-800\/80 { background-color: rgba(203, 214, 228, 0.8); }
+html.light .bg-slate-800\/40 { background-color: rgba(203, 214, 228, 0.5); }
 html.light .bg-slate-300\/10 { background-color: rgba(15, 23, 42, 0.06); }
 html.light .bg-white\/5, html.light .bg-white\/10 { background-color: rgba(15, 23, 42, 0.05); }
 html.light .bg-white\/20 { background-color: rgba(15, 23, 42, 0.08); }
@@ -1031,7 +1031,7 @@ html.light .border-white\/30, html.light .border-white\/35, html.light .border-w
 html.light .divide-white\/5 > :not(:last-child) { border-color: rgba(15, 23, 42, 0.08); }
 
 /* hover variants that would otherwise flash dark */
-html.light .hover\:bg-slate-900:hover { background-color: #dbe4ee; }
+html.light .hover\:bg-slate-900:hover { background-color: #c2ccda; }
 html.light .hover\:bg-slate-800:hover, html.light .hover\:bg-slate-800\/80:hover,
 html.light .hover\:bg-slate-800\/60:hover, html.light .hover\:bg-slate-750:hover { background-color: rgba(15, 23, 42, 0.06); }
 html.light .hover\:bg-white\/5:hover, html.light .hover\:bg-white\/10:hover,
@@ -1074,7 +1074,45 @@ html.light [data-keep-dark] .cmc-glass:hover {
 /* Hero eyebrow uses text-cyan-200/90 (opacity variant) — needs its own override */
 html.light .text-cyan-200\/90, html.light .text-cyan-100\/90 { color: #155e75; }
 /* Ticker edge fade masks fade into the light strip, not the old dark one */
-html.light .from-\[\#04111c\] { --tw-gradient-from: rgba(255, 255, 255, 0.96); }
+html.light .from-\[\#04111c\] { --tw-gradient-from: rgba(233, 238, 245, 0.96); }
+
+/* ---- light-theme patch set (round 3 — classroom section QA) ---- */
+/* filter chips that stayed dark-navy (bg-slate-900/80 was never overridden) */
+html.light .bg-slate-900\/80 { background-color: rgba(255, 255, 255, 0.85); }
+/* "N activities" counter pill on resource cards */
+html.light .bg-slate-800\/60 { background-color: rgba(203, 214, 228, 0.6); }
+/* dark tag badges (cyan-950 / teal-950 families) → light tinted pills */
+html.light .bg-cyan-950 { background-color: rgba(8, 51, 68, 0.07); }
+html.light .bg-cyan-950\/80 { background-color: rgba(8, 51, 68, 0.07); }
+html.light .bg-teal-950\/70 { background-color: rgba(13, 148, 136, 0.12); }
+html.light .border-cyan-800, html.light .border-cyan-800\/60 { border-color: rgba(8, 145, 178, 0.35); }
+/* neon cyan accents are illegible on light surfaces */
+html.light .text-cyan-400 { color: #0e7490; }
+/* teacher-key CTA banner kept its dark gradient — go light with a soft wash */
+html.light .bg-gradient-to-r.from-cyan-950\/70 {
+  background: linear-gradient(90deg, rgba(14, 116, 144, 0.10), rgba(233, 238, 245, 0.9), rgba(79, 70, 229, 0.10));
+  border-color: rgba(8, 145, 178, 0.28);
+}
+
+/* ---- light-theme patch set (round 4 — workload estimator QA) ---- */
+/* slider value pills still dark: indigo-950/80 + emerald-950/80 families */
+html.light .bg-indigo-950\/80 { background-color: rgba(49, 46, 129, 0.08); }
+html.light .text-indigo-400 { color: #4338ca; }
+html.light .border-indigo-800 { border-color: rgba(67, 56, 202, 0.35); }
+html.light .bg-emerald-950\/80, html.light .bg-emerald-950 { background-color: rgba(6, 78, 59, 0.08); }
+html.light .text-emerald-400 { color: #047857; }
+html.light .border-emerald-800, html.light .border-emerald-800\/60 { border-color: rgba(5, 150, 105, 0.35); }
+/* results summary box: dark gradient → light wash, matching the banner treatment */
+html.light .bg-gradient-to-br.from-cyan-950\/60 {
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.08), rgba(233, 238, 245, 0.95), rgba(79, 70, 229, 0.08));
+  border-color: rgba(8, 145, 178, 0.28);
+}
+/* big hours number: pastel gradient unreadable on light — deepen it */
+html.light .bg-gradient-to-r.from-cyan-300.via-sky-200 {
+  background: linear-gradient(90deg, #0891b2, #0284c7, #4f46e5);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
 
 /* data-keep-dark restores for dark full-bleed sections (TOEFL iBT column) */
 html.light [data-keep-dark] .cmc-eyebrow {
@@ -1092,3 +1130,18 @@ html.light [data-keep-dark] .cmc-gradient-text {
 }
 html.light [data-keep-dark] .text-cyan-300\/70 { color: rgba(103, 232, 249, 0.7); }
 html.light [data-keep-dark] .decoration-slate-700 { text-decoration-color: rgba(255, 255, 255, 0.3); }
+/* round-3 restores: keep neon badges/accents inside data-keep-dark zones */
+html.light [data-keep-dark] .text-cyan-400 { color: #22d3ee; }
+html.light [data-keep-dark] .bg-cyan-950 { background-color: #083344; }
+html.light [data-keep-dark] .bg-cyan-950\/80 { background-color: rgba(8, 51, 68, 0.8); }
+html.light [data-keep-dark] .border-cyan-800 { border-color: #155e75; }
+html.light [data-keep-dark] .border-cyan-800\/60 { border-color: rgba(21, 94, 117, 0.6); }
+html.light [data-keep-dark] .bg-slate-900\/80 { background-color: rgba(15, 23, 42, 0.8); }
+html.light [data-keep-dark] .bg-slate-800\/60 { background-color: rgba(30, 41, 59, 0.6); }
+/* round-4 restores: indigo/emerald pills + accents inside dark zones */
+html.light [data-keep-dark] .text-indigo-400 { color: #818cf8; }
+html.light [data-keep-dark] .text-emerald-400 { color: #34d399; }
+html.light [data-keep-dark] .bg-indigo-950\/80 { background-color: rgba(49, 46, 129, 0.8); }
+html.light [data-keep-dark] .bg-emerald-950\/80, html.light [data-keep-dark] .bg-emerald-950 { background-color: rgba(6, 78, 59, 0.8); }
+html.light [data-keep-dark] .border-indigo-800 { border-color: #3730a3; }
+html.light [data-keep-dark] .border-emerald-800, html.light [data-keep-dark] .border-emerald-800\/60 { border-color: #065f46; }
