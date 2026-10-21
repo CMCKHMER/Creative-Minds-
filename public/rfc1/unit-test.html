@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Future Change 1 — Unit Test</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{--bg:#05070f;--s2:#0d1526;--bd:rgba(148,163,184,.14);--cy:#22d3ee;--cyl:#67e8f9;--vi:#8b5cf6;--vil:#c4b5fd;--tx:#e2e8f0;--mu:#8fa3b8;color-scheme:dark}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1100px 520px at 85% -10%,rgba(139,92,246,.16),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(34,211,238,.12),transparent 60%);min-height:100vh;padding:32px 16px;color:var(--tx);transition:background .3s,color .3s}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 40%,transparent 100%)}
+.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;background:rgba(9,13,24,.82);backdrop-filter:blur(14px);border:1px solid var(--bd);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65)}
+.topbar{display:flex;align-items:center;gap:12px;padding:13px 28px;background:linear-gradient(90deg,rgba(124,58,237,.28),rgba(34,211,238,.14));border-bottom:1px solid var(--bd)}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--cyl)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cy);box-shadow:0 0 12px var(--cy)}
+.live-pill{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--vil);background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.4);border-radius:999px;padding:5px 12px;margin-left:auto}
+.live-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--vi);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+#themeToggle{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;cursor:pointer;font:700 11px 'Inter';letter-spacing:.12em;text-transform:uppercase;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.35);color:inherit}
+.hero{padding:44px 44px 28px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--cyl);margin-bottom:16px}
+.eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--cy),transparent)}
+.hero h1{font-family:'Space Grotesk';font-weight:700;font-size:clamp(28px,4.6vw,42px);line-height:1.08;text-transform:uppercase;color:#f8fafc}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyl),var(--vil));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin-top:14px;max-width:720px;color:var(--mu);font-size:14.5px;line-height:1.7}
+.info{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:16px;padding:22px 44px;background:rgba(13,19,35,.65);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.fg label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--mu);margin-bottom:7px}
+.fg input,.fg select{width:100%;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--tx);background:#0a101f;border:1px solid rgba(148,163,184,.2);border-radius:10px}
+.content{padding:32px 44px 44px}
+.unit-head{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.unit-head .bar{width:4px;height:30px;border-radius:2px;background:linear-gradient(180deg,var(--cy),var(--vi))}
+.unit-title{font-family:'Space Grotesk';font-size:24px;font-weight:700;color:#f1f5f9}
+.unit-qr{margin-left:auto;width:84px;height:84px;border-radius:10px;border:1px solid var(--bd);background:#fff;padding:6px;object-fit:contain}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.stat{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:14px;text-align:center}
+.stat b{display:block;font-family:'Space Grotesk';font-size:24px;color:var(--cyl)}
+.stat span{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mu)}
+.sec{margin-bottom:26px}
+.sec h3{font-family:'Space Grotesk';font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--vil);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.sec h3::after{content:"";flex:1;height:1px;background:var(--bd)}
+.bank{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.bank span{font-size:12px;font-weight:600;color:var(--cyl);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.35);border-radius:999px;padding:5px 12px}
+.qrow{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--bd);border-left:3px solid var(--cy);border-radius:12px;padding:13px 16px;margin-bottom:10px;font-size:14px;line-height:1.7;color:#cbd5e1;transition:border-color .25s,background .25s}
+.qrow.ok{border-left-color:#34d399;background:rgba(52,211,153,.08)}
+.qrow.bad{border-left-color:#f87171;background:rgba(248,113,113,.08)}
+.qrow select{font:inherit;font-size:13px;color:var(--tx);background:#0a101f;border:1px solid rgba(148,163,184,.3);border-radius:8px;padding:4px 8px;margin:0 4px}
+.qrow .num{color:var(--cyl);font-weight:700;margin-right:6px}
+.passage{background:rgba(10,16,31,.7);border:1px dashed rgba(148,163,184,.3);border-radius:12px;padding:16px 18px;font-size:13.5px;line-height:1.85;color:#9fb0c4;margin-bottom:14px}
+.opts{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.opts label{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:#cbd5e1;cursor:pointer}
+.opts input{accent-color:var(--cy);margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;min-height:38px;padding:8px;border:1px dashed rgba(148,163,184,.3);border-radius:10px;margin-top:8px}
+.chips.line{border-style:solid;border-color:rgba(34,211,238,.35);background:rgba(34,211,238,.05)}
+.chip{font-size:12.5px;font-weight:600;color:var(--tx);background:var(--s2);border:1px solid rgba(148,163,184,.35);border-radius:8px;padding:5px 10px;cursor:pointer;user-select:none}
+.chips.line .chip{color:var(--cyl);border-color:rgba(34,211,238,.5)}
+.tag{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);margin:8px 0 3px}
+.action-row{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+.btn{flex:1;min-width:130px;padding:13px;border:none;border-radius:10px;cursor:pointer;font:700 12.5px 'Inter';letter-spacing:.08em;text-transform:uppercase}
+.btn-check{color:#052e2b;background:linear-gradient(90deg,#34d399,#22d3ee)}
+.btn-reset{color:var(--vil);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.45)}
+.btn-share{color:var(--cyl);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4)}
+.btn-print{color:var(--vil);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.45)}
+.scorebar{display:none;margin:16px 0 0;padding:14px 18px;border-radius:12px;font:700 15px 'Space Grotesk';letter-spacing:.06em}
+.scorebar.show{display:block}
+.scorebar.good{color:#052e2b;background:linear-gradient(90deg,#34d399,#22d3ee)}
+.scorebar.mid{color:#2b2105;background:linear-gradient(90deg,#fbbf24,#f59e0b)}
+.scorebar.low{color:#2b0505;background:linear-gradient(90deg,#f87171,#ef4444)}
+.share-panel{display:none;margin:22px 44px 0;background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:16px 18px}
+.share-panel.open{display:block}
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.share-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:10px;cursor:pointer;background:rgba(10,16,31,.7);border:1px solid rgba(148,163,184,.2);color:var(--tx);font-size:11.5px;font-weight:600}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:50;background:rgba(13,19,35,.95);border:1px solid rgba(34,211,238,.5);color:var(--cyl);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
+.placeholder .glyph{font-family:'Space Grotesk';font-size:44px;background:linear-gradient(90deg,var(--cy),var(--vi));-webkit-background-clip:text;background-clip:text;color:transparent}
+.footer{padding:16px 28px;border-top:1px solid var(--bd);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
+body.light{--bg:#eef2f7;--s2:#fff;--bd:#dbe3ec;--cy:#0891b2;--cyl:#0e7490;--vi:#7c3aed;--vil:#6d28d9;--tx:#0f172a;--mu:#52657d;background:#eef2f7}
+body.light .container{background:rgba(255,255,255,.92);border-color:#dbe3ec;box-shadow:0 30px 90px rgba(15,23,42,.12)}
+body.light .qrow{background:#fff;border-color:#dbe3ec;color:#334155}
+body.light .qrow select{background:#fff;border-color:#c3cfdd;color:#0f172a}
+body.light .passage{background:#f8fafc;border-color:#c3cfdd;color:#52657d}
+body.light .opts label{color:#334155}
+body.light .chip{background:#f8fafc;border-color:#c3cfdd;color:#0f172a}
+body.light .chips.line .chip{color:#0e7490}
+body.light .bank span{color:#0e7490;background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.4)}
+body.light .unit-title{color:#0f172a}
+body.light .stat{background:#fff;border-color:#dbe3ec}
+body.light .stat b{color:#0e7490}
+body.light .fg input,body.light .fg select{background:#fff;border-color:#c3cfdd;color:#0f172a}
+body.light .share-item{background:#f8fafc;border-color:#c3cfdd;color:#334155}
+body.light .toast{background:#fff;border-color:#0891b2;color:#0e7490}
+@media (max-width:768px){.info{grid-template-columns:1fr}.hero,.info,.content{padding-left:22px;padding-right:22px}.action-row{flex-direction:column}.share-panel{margin:22px}}
+@media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.footer,.share-panel,.toast,#themeToggle,.scorebar{display:none!important}.container{box-shadow:none;border:none;background:#fff}*{color:#111!important;background:transparent!important;border-color:#ccc!important}.qrow,.passage{break-inside:avoid}.chips.pool{display:none}}
+@page{margin:12mm}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+  <div class="topbar"><div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div><div class="live-pill"><span class="pulse"></span>Auto-Graded Test</div></div>
+  <section class="hero">
+    <span class="eyebrow">Reading Future · Change 1 · Unit Test</span>
+    <h1>Sixteen units. Three sections.<br><span class="grad">One graded worksheet.</span></h1>
+    <p>Interactive unit test for Reading Future Change 1 (revised). Select a unit, answer Section A (word bank), Section B (match or unscramble), and Section C (reading), then press <b>Check Answers</b> for an instant score. Print-ready for classroom use.</p>
+  </section>
+  <section class="info">
+    <div class="fg"><label for="studentName">Student Name</label><input type="text" id="studentName" placeholder="Enter your name"></div>
+    <div class="fg"><label for="dateField">Date</label><input type="date" id="dateField"></div>
+    <div class="fg"><label for="unitSelect">Unit Selector</label><select id="unitSelect" onchange="loadUnit()"><option value="">— Choose a unit —</option></select></div>
+  </section>
+  <section class="content" id="content"><div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its test.</p></div></section>
+  <div class="share-panel" id="sharePanel"><div class="share-grid">
+    <button class="share-item" onclick="copyLink()">🔗 Copy Link</button>
+    <button class="share-item" onclick="shareEmail()">✉️ Email</button>
+    <button class="share-item" onclick="shareWhatsApp()">💬 WhatsApp</button>
+    <button class="share-item" onclick="shareX()">📣 Post on X</button>
+  </div></div>
+  <div class="footer"><span>Reading Future Change 1 · Unit Test</span><span>Interactive Edition · v1</span></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const QR_BASE64="";const QR_IMAGE=QR_BASE64||"qr.png";
+function qrFallback(u){return `https://api.qrserver.com/v1/create-qr-code/?size=168x168&bgcolor=FFFFFF&color=05070f&data=${encodeURIComponent('Reading Future Change 1 — '+u)}`;}
+const T=[
+{t:"Unit 1 – Hyperloop",ab:["magnet","billions","pressure","apart","inventor","tubes","floated"],
+a:[["The balloons ___ up into the blue sky.","floated"],["There is too much ___ on the shelf from the heavy books.","pressure"],["Please put the tables one meter ___ from each other.","apart"],["There are ___ of stars in space.","billions"],["Peter is a famous ___ of small tools.","inventor"]],
+bt:"m",b:[["Los Angeles and San Francisco are","650 kilometers apart."],["Today, the fastest way to","travel between them is by airplane."],["The Hyperloop is Elon Musk's","idea for a very fast train."],["It would cost","billions of dollars."],["It would save many","people a lot of time."]],
+p:"The Hyperloop is an idea for a train. It would make the 650-kilometer trip between Los Angeles and San Francisco in only thirty minutes. It could go 1,100 kilometers per hour, which is faster than an airplane. ① It would carry passengers in cars called pods. ② This is how the Hyperloop would be able to go 650 kilometers in only thirty minutes. ③",
+cq:[["What is the passage mainly about?","What a fast train looks like","Traveling between two cities","A very fast train called the Hyperloop","c"],["What are pods?","Tubes","Cars","Magnets","b"],["What is the best place for: “Pods would use magnets and low air pressure to float and move through tubes.”?","①","②","③","b"],["Which is NOT true according to the passage?","An airplane is faster than the Hyperloop.","The Hyperloop is an idea.","The pods would float.","a"],["What does passenger mean in the passage?","A person in a train","A person who invents things","A person who stays above ground","a"]]},
+{t:"Unit 2 – City Animals",ab:["comfortable","mind","branch","southern","moose","wild","dumpster"],
+a:[["Ken threw all the trash into the ___.","dumpster"],["The hotel bed is very ___.","comfortable"],["There was a red bird sitting on the ___ of a tree.","branch"],["She didn't ___ that her friend was an hour late.","mind"],["The ___ is an animal that looks kind of like a large deer.","moose"]],
+bt:"u",b:[[["largest","Alaska","the","in the U.S.","state","is"],["Alaska","is","the","largest","state","in the U.S."]],[["in the city","Almost","people","of Anchorage.","live","300,000"],["Almost","300,000","people","live","in the city","of Anchorage."]],[["Anchorage","a","place.","very","is","unique"],["Anchorage","is","a","very","unique","place."]],[["special.","moose","city","the","The","make"],["The","moose","make","the","city","special."]],[["The","is","the city.","the symbol","moose","of"],["The","moose","is","the symbol","of","the city."]]],
+p:"Anchorage is a city in southern Alaska. ① Between 250 to 1,000 moose live in the city at different times of the year. The reason moose live in Anchorage is because they feel comfortable there. ② In the wild, bears try to kill and eat moose. And in the city, there is plenty of food to eat. ③ They can get food from the dumpsters or from people's yards. Although some moose cause small problems, most people don't mind having moose in the city.",
+cq:[["What is the passage mainly about?","Moose living in a city","Where moose get their food","The biggest city in Alaska","a"],["Why do the moose live in the city?","The bears also live there.","They feel comfortable.","It is exciting.","b"],["What is the best place for: “One special thing about Anchorage is that moose live in the city.”?","①","②","③","a"],["Which is NOT true according to the passage?","Many people don't want moose in the city.","Bear attack moose in the wild.","Moose eat food from people's yards.","a"],["What does plenty mean in the passage?","Different","Not much","A lot of","c"]]},
+{t:"Unit 3 – The Chunnel",ab:["possible","strait","distance","channel","tunnel","Europe","northern"],
+a:[["Germany is a country in ___.","Europe"],["We drove through the ___ to get to the other side of the mountain.","tunnel"],["It is a long ___ between my house and the school.","distance"],["Is it ___ to do my homework later?","possible"],["The weather is cold in the ___ parts of the world.","northern"]],
+bt:"m",b:[["There is a sea in Europe","called the English Channel."],["It is between","southern England and northern France."],["The shortest distance in","the English Channel is the Dover Strait."],["It is a little over","thirty-three kilometers long."],["The Chunnel allows people to","travel across the English Channel quickly."]],
+p:"There is a sea in Europe called the English Channel. Before 1994, people had to travel by airplane or boat to cross the English Channel. ① But boats are slow, and airports are busy. It was very uncomfortable. In 1994, a more comfortable type of transportation opened. ② This tunnel allows people to go under the Dover Strait. A boat crossing the English Channel takes about one hour and thirty minutes. After the “Chunnel” opened, it was possible to cross the English Channel in thirty-five minutes. ③",
+cq:[["What is the passage mainly about?","The people who planned and built the “Chunnel”","The airplanes and boats that cross the English Channel","A fast way to go between England and France","c"],["What is the English Channel?","A tunnel","A train","A sea","c"],["What is the best place for: “A train that travels in a tunnel opened.”?","①","②","③","b"],["Which is NOT true according to the passage?","People can travel faster and easily using the Chunnel.","The mountain between England and France is the Dover Strait.","The Chunnel opened in the year 1994.","b"],["What does allow mean in the passage?","To stop","To let","To help","b"]]},
+{t:"Unit 4 – Manaus",ab:["business","reason","rubber","electronic","South America","goods","rapidly"],
+a:[["The children played with the ___ ball.","rubber"],["My father likes to use ___ tools to fix things.","electronic"],["The ___ you need to study is because the test is very hard.","reason"],["Brazil is one of many countries in ___.","South America"],["This store sells interesting ___ from Asia.","goods"]],
+bt:"u",b:[[["a","is","country","Brazil","South America.","in"],["Brazil","is","a","country","in","South America."]],[["Deep","the Amazon Rainforest","the city","in","of Manaus.","is"],["Deep","in","the Amazon Rainforest","is","the city","of Manaus."]],[["1.5","Over","live","million","there.","people"],["Over","1.5","million","people","live","there."]],[["unique.","in the middle","A","big city","is","of the rainforest"],["A","big city","in the middle","of the rainforest","is","unique."]],[["was","Manaus","But","built there","a reason.","for"],["But","Manaus","was","built there","for","a reason."]]],
+p:"Manaus was built where two large rivers meet and become one. ① The two rivers are the Rio Negro and the Amazon River. ② Manaus started as a small city. In the 1900s, rubber from the rainforest was very important. Manaus is built in a good place. Many goods can be moved around and sold easily. Rubber came from the rainforest. It was moved along the river and sold in Manaus. ③ It became a center for business.",
+cq:[["What is the passage mainly about?","Selling goods for a business","A city where the Rio Negro and the Amazon River meet","The rubber from the rainforest","b"],["Why is Manaus built in a good place?","Because goods can be sold easily","Because it is a small city","Because the city grew","a"],["What is the best place for: “Manaus rapidly grew bigger.”?","①","②","③","c"],["Which is NOT true according to the passage?","It is hard to move goods around Manaus.","The rubber was from the rainforest.","Manaus is near the Amazon River.","a"],["What does center mean in the passage?","End","Middle","Down","b"]]},
+{t:"Unit 5 – The Science of Sleep",ab:["immune system","get rid of","stage","refreshed","information","cycle","muscles"],
+a:[["You can get sick if your ___ is not strong.","immune system"],["Natalie wants to be stronger, so she is building up her ___.","muscles"],["My parents want to ___ the old TV table.","get rid of"],["After a good night's sleep, Rick felt very ___.","refreshed"],["Max is looking for ___ on fitness trackers on the internet.","information"]],
+bt:"m",b:[["Every night, we go","through the sleep-wake cycle."],["The first part of the","cycle is slow-wave sleep."],["In this stage, breathing","slows down and the body relaxes."],["The second stage is","Rapid Eye Movement sleep."],["The brain becomes","active and we experience dreaming."]],
+p:"① Every night we fall asleep and then wake up the next morning. Important things happen while we sleep. The body and mind are reset and refreshed. Our bodies grow tissue and repair muscles. ② The immune system is also strengthened. Without enough sleep, we can get sick and feel sad. It can also cause weight gain and other health problems. Thinking can become difficult. ③",
+cq:[["What is the passage mainly about?","How much sleep people should get","How to fall asleep quickly","What happens when people sleep","c"],["How do people feel when they don't get enough sleep?","Sad","Refreshed","Strengthened","a"],["What is the best place for: “Try to sleep for eight hours every night.”?","①","②","③","c"],["Which is NOT true according to the passage?","The body grows tissues while people sleep.","Without enough sleep, thinking becomes easier.","People can gain weight if they don't sleep enough.","b"],["What does strengthen mean in the passage?","To go forward","To make stronger","To move slower","b"]]},
+{t:"Unit 6 – Control Your Dreams",ab:["control","temperature","sense","superhero","signal","delightful","ideal"],
+a:[["Bruce wants to be a ___ and help people when he grows up.","superhero"],["My ___ vacation is relaxing in Hawaii.","ideal"],["Mr. Peterson is a(n) ___ person who makes everyone smile.","delightful"],["You can use this button to ___ the light.","control"],["The lasers can ___ any small movement.","sense"]],
+bt:"u",b:[[["your","while you","Imagine","dreams","sleep.","controlling"],["Imagine","controlling","your","dreams","while you","sleep."]],[["change into","A","could","fantasy.","a beautiful","bad dream"],["A","bad dream","could","change into","a beautiful","fantasy."]],[["can use","People","to control","a headband","dreams.","their"],["People","can use","a headband","to control","their","dreams."]],[["They","into","can","a superhero.","turn","themselves"],["They","can","turn","themselves","into","a superhero."]],[["go on","can","an","They","vacation.","ideal"],["They","can","go on","an","ideal","vacation."]]],
+p:"① Users put it on when they go to sleep. They wear it the whole night. ② The headband waits for the user to enter REM sleep. This is when people usually have dreams. When REM sleep starts, the band goes into action. ③ It sends out lights. It plays low-volume sounds as signals. While the user sleeps, the signals tell them that they are dreaming. Now, that person can control what they dream.",
+cq:[["What is the passage mainly about?","Why people dream at night","The importance of REM sleep","A way to control dreams","c"],["What happens during REM sleep?","People have dreams.","People send signals.","People control sleep.","a"],["What is the best place for: “A new headband lets you control your dreams.”?","①","②","③","a"],["Which is NOT true according to the passage?","The headband can send signals to the user.","The headband puts the user into REM sleep.","Users wear the headband when they sleep.","b"],["What does whole mean in the passage?","Some","Entire","Fraction","b"]]},
+{t:"Unit 7 – Sleeping Habits",ab:["period","concentrated","enables","schedule","performance","habit","exercise"],
+a:[["My bad ___ is being late to school.","habit"],["Irene has a very ___ this week, so we can meet her next week.","schedule"],["The students ___ on reading their books.","concentrated"],["I try to ___ every Saturday in the park.","exercise"],["The teachers were happy with the ___ of his students.","performance"]],
+bt:"m",b:[["Sometimes it can be","difficult to fall asleep."],["Luckily, some simple habits","can fix this problem."],["Exercising regularly is","helpful."],["A dark bedroom at night and","a bright bedroom in the morning is good."],["It helps your body keep","a regular sleep schedule."]],
+p:"A lack of sleep can make concentrating hard. Children who cannot concentrate well in school are more likely to get lower grades. ① On the other hand, getting enough sleep enables children to concentrate better. They can think clearly for longer periods of time. ② Studies show that children who get enough sleep are more likely to get higher grades. ③ This is why children should sleep about eight hours every night.",
+cq:[["What is the passage mainly about?","How parents can help their children sleep","Why children need to get enough sleep","When children should go to sleep","b"],["What have studies shown for children who get enough sleep?","They get better grades.","They can't concentrate.","They get lower grades.","a"],["What is the best place for: “That allows them to do better at school.”?","①","②","③","b"],["Which is NOT true according to the passage?","A lack of sleep enables children to concentrate better.","Children should sleep around eight hours each night.","Getting enough sleep allows children to study well.","a"],["What does lack mean in the passage?","Having the right amount","Having too much","Not having enough","c"]]},
+{t:"Unit 8 – Testing Dreams",ab:["interviewed","agree","rotten","roses","terrible","experiment","affect"],
+a:[["I had to throw away all the apples because they were ___.","rotten"],["My grandfather's ___ garden is beautiful.","roses"],["Don't watch the movie. It was ___.","terrible"],["The reporter ___ the students about their new school.","interviewed"],["If you ___ with me, say “Yes.”","agree"]],
+bt:"u",b:[[["They had","like roses.","in a room","sleep","that smelled","one group"],["They had","one group","sleep","in a room","that smelled","like roses."]],[["people","Most","that roses","agree","nice.","smell"],["Most","people","agree","that roses","smell","nice."]],[["the","morning,","the people.","interviewed","scientists","The next"],["The next","morning,","the","scientists","interviewed","the people."]],[["they had","asked them","They","bad dreams.","if","good dreams or"],["They","asked them","if","they had","good dreams or","bad dreams."]],[["experiment","the","interesting.","of","The results","were"],["The results","of","the","experiment","were","interesting."]]],
+p:"A group of scientists wanted to know if smells affect the sorts of dreams that we have. ① The first group of people slept in a room that smelled like roses. The next morning, the people said that they had good dreams. ② The second group slept in a room that smelled like rotten eggs. In this room, the people had bad dreams. This experiment seems to show us a way to avoid bad dreams. ③ You just need to make sure your room has a good smell.",
+cq:[["What is the passage mainly about?","How to stop having dreams","How smell affects people's dreams","What dreams really mean","b"],["Which group had good dreams?","Both groups","The first group","The second group","b"],["What is the best place for: “They did an experiment with two groups of people.”?","①","②","③","a"],["Which is NOT true according to the passage?","There is a way to avoid bad dreams.","Different smells were used in the experiment.","Scientists tested three groups of people.","c"],["What does avoid mean in the passage?","To make faster","To get closer","To keep away","c"]]},
+{t:"Unit 9 – First in Flight: The Wright Brothers",ab:["ready","received","landed","interested","spent","pilot","crashed"],
+a:[["I ___ good grades on the math test.","received"],["The car ___ into a bus on the highway.","crashed"],["The student pilot ___ the plane perfectly and passed the test.","landed"],["My cousin is a ___.","pilot"],["If you study a little more, you will be ___ for the test.","ready"]],
+bt:"m",b:[["Brothers Orville and Wilbur Wright","received a toy helicopter."],["It was a","gift from their father."],["At the time, all flying machines","were just toys."],["The boys were very","interested in the helicopter."],["It gave them ideas","about making real flying machines."]],
+p:"The Wright brothers wanted to invent a flying machine. They built models of flying machines. In 1903, they built a real flying machine with an engine. ① They wanted to try flying for real. Wilbur tried first, but his flight crashed after flying less than four seconds. ② Then they were ready to fly again. This time, Orville flew the plane for twelve seconds. He did not crash. ③",
+cq:[["What is the passage mainly about?","Two brothers who were inventors","Why flying can be dangerous","How to build a flying machine","a"],["What happened to the first flight?","It did not have an engine.","It flew for twelve seconds.","It crashed in less than four seconds.","c"],["What is the best place for: “The brothers spent two days fixing the plane.”?","①","②","③","b"],["Which is NOT true according to the passage?","There were no planes that flew before 1930.","One of the planes flew four times in one day.","The brother built a plane with an engine.","a"],["What does ready mean in the passage?","Prepared","Smart","Tired","a"]]},
+{t:"Unit 10 – Amelia Earhart",ab:["aviation","searched","returned","female","pioneer","navigator","island"],
+a:[["Can you see that small ___ in the middle of the ocean?","island"],["I am interested in ___ because I want to build planes.","aviation"],["The little boy ___ for his toy that he lost in the park","searched"],["My brother ___ home after two years in India.","returned"],["The ___ found the mountain we were looking for.","navigator"]],
+bt:"u",b:[[["a problem","was","There","her","airplane.","with"],["There","was","a problem","with","her","airplane."]],[["tried","a","small island.","on","They","to land"],["They","tried","to land","on","a","small island."]],[["They","couldn't find","the island","because","it was","cloudy."],["They","couldn't find","the island","because","it was","cloudy."]],[["Earhart","get help.","use","to","her radio","could not"],["Earhart","could not","use","her radio","to","get help."]],[["somewhere","plane","Their","the ocean.","in","likely crashed"],["Their","plane","likely crashed","somewhere","in","the ocean."]]],
+p:"Amelia Earhart was an American pioneer for women and in aviation. In 1928, she flew over the Atlantic Ocean with a man. In 1932, she did it alone. In 1935, she flew alone over the Pacific Ocean. She was the first woman to do all of these things. ① Two years later, Earhart tried to make history again. She wanted to be the first female pilot to fly around the world. ② She started this voyage with her navigator, Fred Noonan. They almost finished the trip. ③",
+cq:[["What is the passage mainly about?","The Atlantic Ocean","The first airplane trip","A famous pilot","c"],["What did Amelia Earhart want to do?","To fly over the Pacific Ocean with a navigator","To be the first woman pilot to fly around the world","To fly across the Atlantic Ocean by herself","b"],["What is the best place for: “Sadly though, they never returned home.”?","①","②","③","c"],["Which is NOT true according to the passage?","Amelia Earhart flew around the world.","The navigator was Fred Noonan.","Amelia Earhart was a pioneer.","a"],["What does voyage mean in the passage?","A long trip","An experiment","A novel","a"]]},
+{t:"Unit 11 – Flying Around the World",ab:["globe","aircraft","advanced","mission","original","army","brief"],
+a:[["People ___ the army to fight for their country.","advanced"],["The group's ___ is to climb that very tall mountain.","mission"],["Please give the ___ copy of your license to me.","original"],["My dream is to sail around the ___ by myself.","globe"],["I need to have a(n) ___ conversation with you. It will only take a minute.","brief"]],
+bt:"m",b:[["The Wright brothers became the","first people ever to fly an aircraft."],["On December 17th, 1903,","they made four brief flights."],["The first airplane could only","fly 260 meters for one minute."],["Twenty years later, airplane technology","has advanced a lot."],["Planes could fly over 44,342 kilometers","around the globe."]],
+p:"① On April 6th, 1924, eight U.S. Army pilots took off in four airplanes from the city of Seattle, Washington. ② The airplanes were named after American cities: Seattle, Chicago, Boston, and New Orleans. After 175 days, only two of the four original planes finished the voyage. The Seattle crashed and was destroyed. ③ The Boston had mechanical problems. After making seventy-four stops, the Chicago, New Orleans, and Boston II returned home. On September 28th, 1924, they landed back in Seattle, Washington.",
+cq:[["What is the passage mainly about?","Four airplanes","Four U.S. Army pilots","Seattle, Washington","b"],["How many of the original planes finished the mission?","One","Two","Three","b"],["What is the best place for: “Their mission was to fly around the world.”?","①","②","③","b"],["Which is NOT true according to the passage?","One plane crashed and was destroyed.","Three planes landed in Seattle.","The mission ended on April 6th, 1924.","c"],["What does mechanical mean in the passage?","Having to do with machines","Having to do with science","Having to do with men","a"]]},
+{t:"Unit 12 – Solar Flight History",ab:["renewable","successfully","solar","intend","conditions","technical","delay"],
+a:[["Amelia Earhart did not ___ finish her mission.","successfully"],["Wind is a good source of ___ energy.","renewable"],["The students ___ to get good grades this year.","intend"],["The plane didn't fly because the weather ___ were dangerous.","conditions"],["We can't use the internet today because of ___ problems.","technical"]],
+bt:"u",b:[[["pioneers.","are scientists,","Bertrand and","Andre","pilots,","and"],["Bertrand and","Andre","are scientists,","pilots,","and","pioneers."]],[["a special","made","They","aircraft","the Solar Impulse 2.","called"],["They","made","a special","aircraft","called","the Solar Impulse 2."]],[["It","unique","use fuel.","is","because","it doesn't"],["It","is","unique","because","it doesn't","use fuel."]],[["fly.","it","solar energy","Instead,","to","only uses"],["Instead,","it","only uses","solar energy","to","fly."]],[["around","The","intended to","the world.","fly","two pilots"],["The","two pilots","intended to","fly","around","the world."]]],
+p:"On March 9th, 2015, Bertrand and Andre took off in their special solar aircraft from Abu Dhabi in the U.A.E. Originally, the pilots planned for a five-month long voyage. However, technical problems and poor weather conditions caused long delays. ① But both men were determined to finish the trip. On July 26, 2016, they landed their plane back in Abu Dhabi. ② They also made people think more about renewable energy sources. ③",
+cq:[["What is the passage mainly about?","The longest flight around the globe","The first solar plane to fly around the world","The first people to make their own plane","b"],["What did Bertrand and Andre want people to think more about?","Poor weather conditions","Their special solar aircraft","Renewable energy sources","c"],["What is the best place for: “They successfully completed the trip after 505 days.”?","①","②","③","b"],["Which is NOT true according to the passage?","They finished the trip on March 9th, 2015.","The trip took over 500 days.","They started in Abu Dhabi.","a"],["What does determined mean in the passage?","Having weak feelings","Wanting to do something","Being able to use again","b"]]},
+{t:"Unit 13 – Smart Sportswear",ab:["rest","goggles","professional","practice","athlete","competitive","coach"],
+a:[["The ___ was happy with the team's performance.","coach"],["We must wear ___ clothing when we work for this company.","professional"],["Alex bought new ___ for his swimming lesson.","goggles"],["Let me ___ for one hour and then I will help you clean the kitchen.","rest"],["Serena Williams is my favorite ___ because she is so good at tennis.","athlete"]],
+bt:"m",b:[["Some soccer players started","wearing smart shirts."],["These shirts have a tiny computer","in the back of the shirt."],["This computer","sends over data to the coach."],["The coach can see","how each athlete is doing."],["They can know when","certain players need to rest."]],
+p:"① These smart clothes enable athletes to be smarter. With this, athletes can improve their performance. One example is a new swimsuit for competitive swimmers. ② The body, swimming cap, and goggles are all one piece. This is more comfortable and efficient for the swimmers. They can swim faster and for a longer time. ③",
+cq:[["What is the passage mainly about?","Being a better coach","Using technology to swim better","Becoming a competitive swimmer","b"],["What can swimmers do with new swimsuit?","Talk to their coaches","Wear it in two pieces","Swim faster and longer","c"],["What is the best place for: “The newest sports clothes include new designs and technology.”?","①","②","③","a"],["Which is NOT true according to the passage?","Technology makes athletes feel smarter.","Smart clothes make athletes more efficient.","The new swimsuit includes a swimming cap.","a"],["What does efficient mean in the passage?","Not being organized","Moving slowly","Working quickly","c"]]},
+{t:"Unit 14 – Water Safety",ab:["tip","panic","survive","sink","drown","safe","risk"],
+a:[["My mother always stays ___ even when there is a big problem.","safe"],["The teacher gave us a ___ on how to do well on the exam.","tip"],["Doing something dangerous is taking a ___.","risk"],["It is difficult to ___ for a long time without food.","survive"],["It is good to wear a helmet when you ride a bike in order to stay ___.","safe"]],
+bt:"u",b:[[["to play","rivers, lakes,","People","and beaches.","in pools,","like"],["People","like","to play","in pools,","rivers, lakes,","and beaches."]],[["nearby","help","Having","someone","you.","can"],["Having","someone","nearby","can","help","you."]],[["is","there","It","are","also risks.","fun, but"],["It","is","fun, but","there","are","also risks."]],[["fall into","If","you","you","might panic.","deep water,"],["If","you","fall into","deep water,","you","might panic."]],[["Panicking","a person","water.","sink","in","makes"],["Panicking","makes","a person","sink","in","water."]]],
+p:"① Here are a few water safety tips. ② Second, do not run nearby the water. You could slip and fall down. If you fall into deep water, it could be dangerous. Third, learn how to float on your back. This is a good way to survive if you get into deep water. Even if you feel unsafe, you should stay calm. ③ Wait for someone to help you and don't panic.",
+cq:[["What is the passage mainly about?","When swimming becomes dangerous","Why water is deep","How to survive in the water","c"],["What should you do when you feel unsafe?","Not panic","Float on your front","Stay in deep water","a"],["What is the best place for: “First, do not go very far away by yourself.”?","①","②","③","b"],["Which is NOT true according to the passage?","Running near water can be dangerous.","You should try to swim faster when you are deep water.","Some people panic when they fall into water.","b"],["What does calm mean in the passage?","Excited","Worried","Relaxed","c"]]},
+{t:"Unit 15 – Dodgeball",ab:["eliminate","even","field","dodge","odd","aim","court"],
+a:[["The coach's ___ is to help the athlete do well.","aim"],["The police officer was able to ___ the crashing car.","dodge"],["The athletes played basketball on the ___.","court"],["The grass on the soccer ___ is green.","field"],["Seven is a(n) ___ number.","odd"]],
+bt:"m",b:[["To play a game, you","need four or more players."],["You can play on","any sort of field or court."],["It is played with two or more","large, soft rubber balls."],["Dodgeball is great because","there are different ways to play it."],["It's easy to understand why so","many people love this game."]],
+p:"① Dodgeball is a famous, fast, and fun game that is easy to learn and play. The aim of the game is simple. You try to eliminate other players by hitting them with a ball. ② They must dodge the ball to avoid being hit. That is why it is called “dodgeball.” ③",
+cq:[["What is the passage mainly about?","When to avoid being hit","How to throw a ball","A fun and simple game","c"],["How is a player eliminated?","When they dodge a ball","When they get hit by a ball","They throw a ball","b"],["What is the best place for: “The winner is the person or team that hasn't been hit by the end of the game.”?","①","②","③","c"],["Which is NOT true according to the passage?","Dodgeball is a famous game.","You must try to get hit by the ball.","Players must try to dodge the ball.","b"],["What does simple mean in the passage?","Easy","Successful","Difficult","a"]]},
+{t:"Unit 16 – Golden Time that Saves Lives",ab:["weight","compression","beats","situation","flat","repeated","chest"],
+a:[["I ___ my question because the teacher didn't hear me.","repeated"],["It's easy to put on ___ when you eat a lot of snacks.","weight"],["My heart ___ faster when I feel worried or excited.","beats"],["It is great to help people who are not in a good ___.","situation"],["The doctor told the man to lie ___ on his back.","flat"]],
+bt:"u",b:[[["to beat","all the","human heart","needs","time.","The"],["The","human heart","needs","to beat","all the","time."]],[["No","means no","heartbeat","air","the brain.","going to"],["No","heartbeat","means no","air","going to","the brain."]],[["if","stops","Don't","breathing.","someone","panic"],["Don't","panic","if","someone","stops","breathing."]],[["someone.","have","four","to save","“golden minutes”","You"],["You","have","four","“golden minutes”","to save","someone."]],[["training","You","proper","a teacher.","can get","from"],["You","can get","proper","training","from","a teacher."]]],
+p:"You have four “golden minutes” to help someone whose heart is not beating. ① Second, do chest compressions. Lie the person flat on their back. ② Put both your hands on their chest. One hand must be on top of the other. Then, press the weight of your body down on their chest and release. Do not worry about hurting them. ③ You need to repeat this very quickly, about 100–120 times per minute. These four “golden minutes” can save someone's life.",
+cq:[["What is the passage mainly about?","Why hearts stop beating","How to save a life","When to do chest compressions","b"],["Why are the four “golden minutes” important?","The person will not get hurt.","The ambulance will come.","The person is more likely to survive.","c"],["What is the best place for: “First, call for an ambulance.”?","①","②","③","a"],["Which is NOT true according to the passage?","To do chest compressions, put your hands beside each other.","The second step is to do chest compressions.","You need to press down at least 100 times a minute when doing chest compressions.","a"],["What does release mean in the passage?","To push down","To let go","To hit again","b"]]}
+];
+const sel=document.getElementById('unitSelect');
+T.forEach((u,i)=>{const o=document.createElement('option');o.value=i;o.textContent=u.t;sel.appendChild(o);});
+document.getElementById('dateField').valueAsDate=new Date();
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function loadUnit(){
+ const i=sel.value,c=document.getElementById('content');document.getElementById('sharePanel').classList.remove('open');
+ if(i===""){c.innerHTML=`<div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its test.</p></div>`;return;}
+ const u=T[i],num=u.t.match(/\d+/)[0];
+ let h=`<div class="unit-head"><span class="bar"></span><h2 class="unit-title">${esc(u.t)}</h2><img class="unit-qr" src="${QR_IMAGE}" alt="Unit QR" onerror="this.onerror=null;this.src=qrFallback('${esc(u.t)}')"></div>
+ <div class="stats"><div class="stat"><b>15</b><span>Questions</span></div><div class="stat"><b>3</b><span>Sections</span></div><div class="stat"><b>${num}</b><span>Unit No.</span></div></div>
+ <div class="sec"><h3>A · Fill in the blank <small style="color:var(--mu);font:600 10px Inter;letter-spacing:.1em">(TWO WORDS ARE NOT USED)</small></h3>
+ <div class="bank">${u.ab.map(w=>`<span>${esc(w)}</span>`).join("")}</div>`;
+ u.a.forEach((q,j)=>{const parts=q[0].split("___");h+=`<div class="qrow" data-key="${esc(q[1])}" data-type="sel"><span class="num">${j+1}.</span>${esc(parts[0])}<select><option value="">—</option>${u.ab.map(w=>`<option>${esc(w)}</option>`).join("")}</select>${esc(parts[1]||"")}</div>`;});
+ h+=`</div><div class="sec"><h3>B · ${u.bt==="m"?"Match the sentences":"Unscramble the sentences"}</h3>`;
+ if(u.bt==="m"){u.b.forEach((pr,j)=>{const sh=[2,3,4,0,1];h+=`<div class="qrow" data-key="${j}" data-type="sel"><span class="num">${j+1}.</span>${esc(pr[0])} <select><option value="">—</option>${sh.map(k=>`<option value="${k}">${esc(u.b[k][1])}</option>`).join("")}</select></div>`;});}
+ else{u.b.forEach((it,j)=>{h+=`<div class="qrow" data-key="${esc(it[1].join(" "))}" data-type="chips"><span class="num">${j+1}.</span><div class="tag">Tap chips in order →</div><div class="chips pool">${it[0].map(tk=>`<span class="chip">${esc(tk)}</span>`).join("")}</div><div class="chips line"></div></div>`;});}
+ h+=`</div><div class="sec"><h3>C · Reading Comprehension</h3><div class="passage">${esc(u.p)}</div>`;
+ u.cq.forEach((q,j)=>{h+=`<div class="qrow" data-key="${q[4]}" data-type="radio"><span class="num">${j+1}.</span>${esc(q[0])}<div class="opts">${["a","b","c"].map((L,k)=>`<label><input type="radio" name="u${i}c${j}" value="${L}"> <b>${L}.</b> ${esc(q[k+1])}</label>`).join("")}</div></div>`;});
+ h+=`</div><div class="scorebar" id="scorebar"></div>
+ <div class="action-row"><button class="btn btn-check" onclick="checkAnswers()">✔ Check Answers</button><button class="btn btn-reset" onclick="loadUnit()">↺ Reset</button><button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button><button class="btn btn-print" onclick="printPDF()">⎙ Print / PDF</button></div>`;
+ c.innerHTML=h;
+ c.querySelectorAll('.chip').forEach(ch=>ch.addEventListener('click',()=>{const from=ch.parentElement,to=from.classList.contains('pool')?from.parentElement.querySelector('.line'):from.parentElement.querySelector('.pool');to.appendChild(ch);}));
+}
+function checkAnswers(){
+ const rows=[...document.querySelectorAll('#content .qrow')];let ok=0;
+ rows.forEach(r=>{const key=r.dataset.key,type=r.dataset.type;let val=null;
+  if(type==="sel"){const s=r.querySelector('select');val=s?s.value:"";}
+  else if(type==="radio"){const c=r.querySelector('input:checked');val=c?c.value:"";}
+  else{val=[...r.querySelectorAll('.line .chip')].map(c=>c.textContent).join(" ");}
+  const good=val!==""&&val===key;good?ok++:0;r.classList.toggle('ok',good);r.classList.toggle('bad',!good);});
+ const sb=document.getElementById('scorebar'),pct=Math.round(ok/rows.length*100);
+ sb.className='scorebar show '+(pct>=80?'good':pct>=50?'mid':'low');
+ sb.textContent=`Score: ${ok} / ${rows.length}  ·  ${pct}%`;
+ showToast(`Score ${ok}/${rows.length} (${pct}%)`);
+}
+function shareText(){const n=document.getElementById('studentName').value.trim();return `Reading Future Change 1 — Unit Test (${sel.value!==""?T[sel.value].t:"all units"})${n?" · "+n:""}`;}
+function shareWorksheet(){if(navigator.share){navigator.share({title:'Reading Future Change 1 — Unit Test',text:shareText(),url:location.href}).catch(()=>{});return;}document.getElementById('sharePanel').classList.toggle('open');}
+function copyLink(){const u=location.href;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(()=>showToast('Link copied to clipboard'));}else{const t=document.createElement('textarea');t.value=u;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}}
+function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Change 1 — Unit Test')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
+function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}
+function shareX(){window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(location.href)}`,'_blank');}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);}
+function printPDF(){document.getElementById('sharePanel').classList.remove('open');showToast('In the dialog, choose “Save as PDF”');setTimeout(()=>window.print(),400);}
+window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
+(function(){const b=document.createElement('button');b.id='themeToggle';b.type='button';b.setAttribute('aria-label','Toggle light / dark theme');(document.querySelector('.topbar')||document.body).appendChild(b);
+ function apply(t){document.body.classList.toggle('light',t==='light');document.documentElement.style.colorScheme=t;b.innerHTML=t==='light'?'🌙 Dark':'☀️ Light';try{localStorage.setItem('cm-theme',t);}catch(e){}}
+ let s='dark';try{s=localStorage.getItem('cm-theme')||'dark';}catch(e){}apply(s);
+ b.onclick=()=>apply(document.body.classList.contains('light')?'dark':'light');})();
+</script>
+<style id="cmc-back-guard">
+  @media (max-width: 700px) {
+    body { padding-top: 72px !important; }
+  }
+</style>
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans','Inter',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
+    <span style="font-size:13px; line-height:1;">&#8592;</span> Back to CMC
+</a>
+</body>
+</html>
+

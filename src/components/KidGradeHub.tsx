@@ -2,8 +2,15 @@ import { ArrowUpRight, BookOpen, CheckCircle2, Clock3, GraduationCap, Layers3, S
 import { KID_GRADE_RESOURCES } from '../data/kidGradeResources';
 import { Reveal } from './Reveal';
 
+export const GRADE_BOOK_NAMES: Record<number, string> = {
+  6: 'Reading Future Connect 2',
+  7: 'Reading Future Change 1',
+  11: 'Reading Future Create 3',
+};
+
 export function KidGradeHub() {
   const availableResourceCount = KID_GRADE_RESOURCES.reduce((sum, grade) => sum + grade.materials.length, 0);
+  const availableGradeCount = KID_GRADE_RESOURCES.filter((grade) => grade.status === 'available' && grade.materials.length > 0).length;
 
   return (
     <section id="kid-grades" aria-labelledby="kid-grade-hub-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#081522] py-20 sm:py-24 lg:py-28">
@@ -20,11 +27,11 @@ export function KidGradeHub() {
           <div className="max-w-3xl">
             <span className="cmc-eyebrow"><GraduationCap className="h-3.5 w-3.5" aria-hidden="true" /> Kid Program · Grades 5–12</span>
             <h2 id="kid-grade-hub-title" className="cmc-h2">A grade-by-grade home<br /><span className="cmc-gradient-text">for what comes next.</span></h2>
-            <p className="cmc-lead">Build a clear path from Kid 5 through Kid 12. Kid 6 has three Reading Future Connect 2 worksheets — Word List, Unscramble, and Dictation; Kid 11 has a Reading Future Create 3 dictation worksheet.</p>
+            <p className="cmc-lead">Build a clear path from Kid 5 through Kid 12. Kid 6 has four Reading Future Connect 2 worksheets and Kid 7 has four Reading Future Change 1 worksheets — Word List, Unscramble, Dictation, and Unit Test; Kid 11 has a Reading Future Create 3 dictation worksheet.</p>
           </div>
           <div className="flex max-w-md items-start gap-3 border-l border-cyan-200/25 pl-4 text-xs leading-relaxed text-slate-400 lg:mb-1">
             <Layers3 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" aria-hidden="true" />
-            <p><strong className="font-semibold text-slate-200">One grade, one place.</strong><br />{availableResourceCount} existing worksheet links across two grade groups. New materials can be added as they are created.</p>
+            <p><strong className="font-semibold text-slate-200">One grade, one place.</strong><br />{availableResourceCount} existing worksheet links across {availableGradeCount} grade groups. New materials can be added as they are created.</p>
           </div>
         </header>
         </Reveal>
@@ -43,7 +50,7 @@ export function KidGradeHub() {
 
                 {isAvailable ? (
                   <>
-                    <div className="mt-4"><h3 className="text-sm font-semibold leading-snug text-cyan-50">{resource.grade === 6 ? 'Reading Future Connect 2' : 'Reading Future Create 3'}</h3><p className="mt-1.5 text-[10px] leading-relaxed text-slate-500">Select an existing resource to open its worksheet page:</p></div>
+                    <div className="mt-4"><h3 className="text-sm font-semibold leading-snug text-cyan-50">{GRADE_BOOK_NAMES[resource.grade] ?? `Kid ${resource.grade} learning materials`}</h3><p className="mt-1.5 text-[10px] leading-relaxed text-slate-500">Select an existing resource to open its worksheet page:</p></div>
                     <div className="mt-3 space-y-2">
                       {resource.materials.map((material) => (
                         <a key={material.id} href={material.href} target="_blank" rel="noopener noreferrer" aria-label={`Open Kid ${resource.grade}: ${material.title} in a new tab`} className="group/link flex items-start gap-2 rounded-lg border border-white/7 bg-slate-950/50 p-2.5 transition hover:border-cyan-200/25 hover:bg-cyan-200/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200">
@@ -66,7 +73,7 @@ export function KidGradeHub() {
         </Reveal>
 
         <Reveal className="mt-5">
-        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 worksheets open in this site (each with a back-to-CMC button); Kid 11 links to the separate Reading Future Create 3 page. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP & ISEC Program Resources section below.</span></p>
+        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 7 worksheets open in this site (each with a back-to-CMC button; answer keys on Kid 7 dictation are teacher-locked); Kid 11 links to the separate Reading Future Create 3 page. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP &amp; ISEC Program Resources section below.</span></p>
         </Reveal>
       </div>
     </section>

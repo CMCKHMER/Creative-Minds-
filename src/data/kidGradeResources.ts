@@ -60,6 +60,47 @@ const kid6Resources: KidGradeMaterial[] = [
   },
 ];
 
+// Kid 7 — Reading Future Change 1 worksheets, served from public/rfc1/.
+// Same pattern as Kid 6: each worksheet is a single self-contained HTML
+// file with a back-to-CMC floating button. Dictation locks "Show Key"
+// behind the same teacher role-gate script used by rfc2/rfc2dic.html
+// (students can take the worksheet and see scores; keys stay teacher-only).
+// Worksheets are reference/practice only (no Firestore writes).
+const kid7Resources: KidGradeMaterial[] = [
+  {
+    id: 'kid-7-rfc1-word-list',
+    title: 'Reading Future Change 1 · Word List',
+    kind: 'Vocabulary list',
+    description: 'Interactive vocabulary reference for all 16 units — part of speech, definitions, and sample sentences. Review on screen or print.',
+    href: './rfc1/word-list.html',
+    units: 16,
+  },
+  {
+    id: 'kid-7-rfc1-unscramble',
+    title: 'Reading Future Change 1 · Unscramble Sheet',
+    kind: 'Unscramble sheet',
+    description: 'Rebuild scrambled sentences A–D and place each finished sentence into the correct gap ①–④ of the passage. Auto-graded with instant feedback.',
+    href: './rfc1/unscramble.html',
+    units: 16,
+  },
+  {
+    id: 'kid-7-rfc1-dictation',
+    title: 'Reading Future Change 1 · Dictation Sheet',
+    kind: 'Dictation worksheet',
+    description: 'Play the unit track and fill all 15 blanks. Spelling-tolerant, multi-word aware, auto-scored, with share and print/PDF options. 16 units.',
+    href: './rfc1/dictation.html',
+    units: 16,
+  },
+  {
+    id: 'kid-7-rfc1-unit-test',
+    title: 'Reading Future Change 1 · Unit Test',
+    kind: 'Review test',
+    description: 'Full unit tests across 16 units: Section A word bank, Section B match/unscramble, Section C reading. Auto-graded with instant scores; print-ready.',
+    href: './rfc1/unit-test.html',
+    units: 16,
+  },
+];
+
 const kid11Resources: KidGradeMaterial[] = [
   {
     id: 'kid-11-rfc3-word-list',
@@ -98,7 +139,7 @@ const kid11Resources: KidGradeMaterial[] = [
 const kidGradeResources = ([
   plannedGrade(5),
   { grade: 6, status: 'available', materials: kid6Resources },
-  plannedGrade(7),
+  { grade: 7, status: 'available', materials: kid7Resources },
   plannedGrade(8),
   plannedGrade(9),
   plannedGrade(10),
