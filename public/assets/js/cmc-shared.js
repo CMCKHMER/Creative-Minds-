@@ -9,7 +9,8 @@
  *   1. Analytics bootstrap (gtag + cmcTrack) — GA id from window.CMC_GA_ID
  *      if set, else the default placeholder.
  *   2. Teacher/Student mode badge (was #cmc-role-gate).
- *   3. Theme toggle + persisted restore (localStorage "biweek-theme").
+ *   3. Theme toggle + persisted restore — synced with the main site's
+ *      "cmc-theme" key (legacy "biweek-theme" kept as fallback).
  *   4. Share button — injects its own markup, so pages no longer carry it.
  *   5. CMC.submitDrill(opts) — Firestore REST drill-score submission.
  *
@@ -49,26 +50,49 @@
     document.body.appendChild(b);
   });
 
-  /* ── 3. Theme toggle ────────────────────────────────────────────── */
-  global.toggleTheme = function () {
-    var h = document.documentElement;
-    var dark = h.getAttribute('data-theme') === 'dark';
-    h.setAttribute('data-theme', dark ? 'light' : 'dark');
-    try { localStorage.setItem('biweek-theme', dark ? 'light' : 'dark'); } catch (e) {}
+  /* ── 3. Theme toggle — synced with the main site sun/moon toggle ── */
+  /* The main React app persists its light/dark choice under "cmc-theme"
+     (applied as an html.light class). These standalone pages used to keep
+     their own "biweek-theme" key, so they ignored the main toggle. Now:
+       - restore prefers "cmc-theme" and falls back to "biweek-theme"
+         (legacy key kept so previously saved choices still apply),
+       - toggling writes BOTH keys, so the main site and any stale cached
+         copies of these pages stay consistent,
+       - a `storage` listener live-follows changes made in other tabs
+         (main site toggle or a sibling planner page).                   */
+  var THEME_MASTER = 'cmc-theme';
+  var THEME_LEGACY = 'biweek-theme';
+  function setToggleIcon(light) {
     var btn = document.getElementById('themeToggle');
-    if (btn) btn.innerHTML = dark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-    cmcTrack('theme_toggle', { theme: dark ? 'light' : 'dark' });
+    if (btn) btn.innerHTML = light ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+  }
+  global.toggleTheme = function () {
+    var goingLight = document.documentElement.getAttribute('data-theme') !== 'light';
+    document.documentElement.setAttribute('data-theme', goingLight ? 'light' : 'dark');
+    try {
+      localStorage.setItem(THEME_MASTER, goingLight ? 'light' : 'dark');
+      localStorage.setItem(THEME_LEGACY, goingLight ? 'light' : 'dark');
+    } catch (e) {}
+    setToggleIcon(goingLight);
+    cmcTrack('theme_toggle', { theme: goingLight ? 'light' : 'dark' });
   };
   // Restore the saved theme before first paint of the body content.
   try {
-    var saved = localStorage.getItem('biweek-theme');
+    var saved = localStorage.getItem(THEME_MASTER) || localStorage.getItem(THEME_LEGACY);
     if (saved) {
       document.documentElement.setAttribute('data-theme', saved);
-      global.addEventListener('DOMContentLoaded', function () {
-        var btn = document.getElementById('themeToggle');
-        if (btn) btn.innerHTML = saved === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-      });
+      global.addEventListener('DOMContentLoaded', function () { setToggleIcon(saved === 'light'); });
     }
+  } catch (e) {}
+  // Live-sync with other tabs: the main site toggle (React) or another
+  // planner page changed the shared "cmc-theme" key.
+  try {
+    global.addEventListener('storage', function (e) {
+      if (e.key !== THEME_MASTER || e.newValue == null) return;
+      var light = e.newValue === 'light';
+      document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+      setToggleIcon(light);
+    });
   } catch (e) {}
 
   /* ── 4. Share button (self-injecting) ───────────────────────────── */

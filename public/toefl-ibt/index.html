@@ -2,6 +2,8 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    <script>/* Pre-paint theme sync with the main site toggle ("cmc-theme" master, "toefl-theme" legacy). */
+try{var t=localStorage.getItem('cmc-theme')||localStorage.getItem('toefl-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TOEFL iBT - Complete Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1752,8 +1754,12 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 </a>
 
 <script>
-function toggleTheme(){var h=document.documentElement;var dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');try{localStorage.setItem('toefl-theme',dark?'light':'dark')}catch(e){}document.getElementById('themeToggle').innerHTML=dark?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>';cmcTrack('theme_toggle',{theme:dark?'light':'dark'})}
-try{var saved=localStorage.getItem('toefl-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('themeToggle');if(b)b.innerHTML=saved==='light'?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'})}}catch(e){}
+// Theme is synced with the main site sun/moon toggle: "cmc-theme" is the
+// master key (React app writes it), "toefl-theme" is the legacy fallback
+// kept in sync so previously saved choices and cached copies still agree.
+function toggleTheme(){var h=document.documentElement;var goingLight=h.getAttribute('data-theme')!=='light';h.setAttribute('data-theme',goingLight?'light':'dark');try{localStorage.setItem('cmc-theme',goingLight?'light':'dark');localStorage.setItem('toefl-theme',goingLight?'light':'dark')}catch(e){}var b=document.getElementById('themeToggle');if(b)b.innerHTML=goingLight?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>';cmcTrack('theme_toggle',{theme:goingLight?'light':'dark'})}
+try{var saved=localStorage.getItem('cmc-theme')||localStorage.getItem('toefl-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);window.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('themeToggle');if(b)b.innerHTML=saved==='light'?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'})}}catch(e){}
+try{window.addEventListener('storage',function(e){if(e.key!=='cmc-theme'||e.newValue==null)return;document.documentElement.setAttribute('data-theme',e.newValue);var b=document.getElementById('themeToggle');if(b)b.innerHTML=e.newValue==='light'?'<i class="fas fa-moon"></i>':'<i class="fas fa-sun"></i>'})}catch(e){}
 </script>
 <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark"><i class="fas fa-sun"></i></button>
 
