@@ -78,7 +78,7 @@ export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
                   href={STUDIO_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-300 to-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_12px_36px_-14px_rgba(16,185,129,.72)] transition hover:-translate-y-0.5"
+                  className="cmc-btn-3d cmc-btn-3d--emerald inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-slate-950"
                 >
                   Open Studio <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </a>
@@ -128,7 +128,7 @@ export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
                       <p className="mt-1 text-2xl font-bold text-white">Browser</p>
                     </div>
                   </div>
-                  <a href={STUDIO_URL} target="_blank" rel="noopener noreferrer" className="block rounded-lg border border-emerald-200/20 bg-emerald-200/[0.05] py-2.5 text-center text-xs font-bold text-emerald-100 transition hover:bg-emerald-200/[0.12]">
+                  <a href={STUDIO_URL} target="_blank" rel="noopener noreferrer" className="cmc-btn-3d cmc-btn-3d--emerald block rounded-lg py-2.5 text-center text-xs font-bold text-slate-950">
                     Launch Studio →
                   </a>
                 </div>
@@ -145,7 +145,7 @@ export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
                   <button
                     type="button"
                     onClick={onOpenAuth}
-                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-300 to-cyan-300 px-4 py-2.5 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5"
+                    className="cmc-btn-3d cmc-btn-3d--emerald inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold text-slate-950"
                   >
                     Create teacher account <ArrowRight className="h-3.5 w-3.5" />
                   </button>
