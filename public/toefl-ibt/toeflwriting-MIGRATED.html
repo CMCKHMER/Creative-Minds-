@@ -8,7 +8,7 @@ try{var t=localStorage.getItem('cmc-theme')||localStorage.getItem('toefl-theme')
     <title>TOEFL iBT - Writing Section</title>
     
     <!-- Tailwind CSS (for utility classes) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -366,6 +366,7 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
   // cmcTrack helper — safe to call before/after gtag loads.
   window.cmcTrack=function(ev,params){try{if(typeof window.gtag==='function'){window.gtag('event',ev,params||{})}}catch(e){}};
 </script>
+  <link rel="stylesheet" href="../assets/css/cmc-utilities.css">
 </head>
 
 <!-- Writing Section - Purple Theme -->

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg-w" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#04241a"/>
+      <stop offset="1" stop-color="#020617"/>
+    </linearGradient>
+    <radialGradient id="glow-w" cx="0.85" cy="0.15" r="0.6">
+      <stop offset="0" stop-color="#10b981" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="200" fill="url(#bg-w)"/>
+  <rect width="400" height="200" fill="url(#glow-w)"/>
+  <!-- Essay lines (paragraph writing representation) -->
+  <g opacity="0.22" fill="#10b981">
+    <rect x="22" y="56" width="180" height="3" rx="1.5"/>
+    <rect x="22" y="72" width="170" height="3" rx="1.5"/>
+    <rect x="22" y="88" width="185" height="3" rx="1.5"/>
+    <rect x="22" y="104" width="160" height="3" rx="1.5"/>
+    <rect x="22" y="120" width="175" height="3" rx="1.5"/>
+    <rect x="22" y="136" width="140" height="3" rx="1.5"/>
+    <rect x="22" y="152" width="165" height="3" rx="1.5"/>
+  </g>
+  <!-- Pen / pencil silhouette bottom-right -->
+  <g opacity="0.18" transform="translate(250,30) rotate(35)">
+    <rect x="0" y="0" width="12" height="100" fill="#10b981"/>
+    <polygon points="0,100 12,100 6,120" fill="#10b981"/>
+    <rect x="0" y="0" width="12" height="20" fill="#10b981" opacity="0.6"/>
+  </g>
+  <!-- Word count indicator -->
+  <g opacity="0.30" transform="translate(280,140)">
+    <rect x="0" y="0" width="80" height="22" rx="11" fill="none" stroke="#10b981" stroke-width="1.5"/>
+    <text x="40" y="15" text-anchor="middle" font-family="monospace" font-size="9" fill="#10b981" font-weight="600">250 words</text>
+  </g>
+  <!-- Accent dot -->
+  <circle cx="32" cy="32" r="4" fill="#10b981" opacity="0.4"/>
+</svg>

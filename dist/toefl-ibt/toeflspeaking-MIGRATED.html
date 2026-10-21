@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <script>/* Pre-paint theme sync with the main site toggle ("cmc-theme" master, "toefl-theme" legacy). */
+try{var t=localStorage.getItem('cmc-theme')||localStorage.getItem('toefl-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEFL iBT - Speaking Section</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Shared TOEFL Design System -->
+    <link rel="stylesheet" href="toefl-styles.css">
+    <link rel="stylesheet" href="toefl-section-colors.css">
+    
+    <style>
+        /* Speaking-specific styles */
+        .btn-record {
+            background: linear-gradient(145deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+            border: none;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-record 2s infinite;
+        }
+
+        @keyframes pulse-record {
+            0%, 100% { box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4), 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4), 0 0 0 20px rgba(239, 68, 68, 0); }
+        }
+
+        .btn-record:hover { transform: scale(1.1); }
+        .btn-record.recording { background: linear-gradient(145deg, #10b981 0%, #059669 50%, #047857 100%); animation: none; }
+
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 60px;
+        }
+
+        .waveform-bar {
+            width: 6px;
+            background: linear-gradient(180deg, var(--section-accent) 0%, var(--section-primary) 100%);
+            border-radius: 3px;
+            animation: wave 1s ease-in-out infinite;
+            box-shadow: 0 0 8px var(--section-glow);
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+
+        .waveform-bar:nth-child(2) { animation-delay: 0.1s; }
+        .waveform-bar:nth-child(3) { animation-delay: 0.2s; }
+        .waveform-bar:nth-child(4) { animation-delay: 0.3s; }
+        .waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+        .waveform-bar:nth-child(6) { animation-delay: 0.3s; }
+        .waveform-bar:nth-child(7) { animation-delay: 0.2s; }
+        .waveform-bar:nth-child(8) { animation-delay: 0.1s; }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-pill.pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-pill.completed { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-pill.recording { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); animation: blink 1s infinite; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+<base target="_blank">
+
+    <!-- ==================== CMC THEME OVERRIDE ==================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23020617'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='100%25' stop-color='%236366f1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='34' fill='url(%23g)'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' font-family='sans-serif' font-weight='900' font-size='24' fill='white'%3ETOEFL%3C/text%3E%3C/svg%3E" />
+    <style id="cmc-theme-override">
+      body,
+      .light-theme-bg,
+      .light-theme-bg.dashboard-bg {
+          background: #020617 !important;
+          background-image:
+              radial-gradient(ellipse 80% 50% at 10% 20%, rgba(34, 211, 238, 0.10) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 90% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+              radial-gradient(ellipse 70% 60% at 80% 80%, rgba(94, 234, 212, 0.08) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 40% at 20% 70%, rgba(125, 211, 252, 0.08) 0%, transparent 50%),
+              linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+      }
+      .light-theme-bg::before, .light-theme-bg::after, body::before, body::after { display: none !important; background: none !important; }
+      .floating-shape { display: none !important; }
+      body { color: #f1f5f9 !important; }
+      .text-slate-900, .text-slate-800, .text-slate-700 { color: #f1f5f9 !important; }
+      .text-slate-600, .text-slate-500 { color: #cbd5e1 !important; }
+      .text-slate-400 { color: #94a3b8 !important; }
+      h1, h2, h3, h4 { color: #f8fafc !important; }
+      label, .form-label { color: #cbd5e1 !important; }
+      p { color: #cbd5e1 !important; }
+      .glass-frame, .glass-card, .card, .panel {
+          background: rgba(255, 255, 255, 0.04) !important;
+          backdrop-filter: blur(12px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          color: #f1f5f9 !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+      }
+      .glass-frame::before { display: none !important; background: none !important; }
+      h1, h2, .display-title { font-family: 'Syne', 'Plus Jakarta Sans', sans-serif !important; letter-spacing: -0.02em !important; }
+      body, button, input, select, textarea, label, p, span, div { font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important; }
+      .font-display, .text-display { font-family: 'Syne', 'Plus Jakarta Sans', sans-serif !important; }
+      input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
+          background: rgba(255, 255, 255, 0.05) !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          color: #f1f5f9 !important;
+          padding: 10px 14px !important;
+          border-radius: 10px !important;
+          transition: border-color 0.2s ease, background 0.2s ease !important;
+      }
+      input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+          background: rgba(34, 211, 238, 0.06) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+          outline: none !important;
+      }
+      input::placeholder, textarea::placeholder { color: #64748b !important; }
+      .btn-primary, button.btn-primary, .primary-btn {
+          background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%) !important;
+          color: #0f172a !important;
+          border: none !important;
+          font-weight: 700 !important;
+          padding: 12px 24px !important;
+          border-radius: 10px !important;
+          box-shadow: 0 8px 24px rgba(56, 189, 248, 0.25) !important;
+          transition: all 0.2s ease !important;
+          cursor: pointer !important;
+      }
+      .btn-primary:hover, button.btn-primary:hover, .primary-btn:hover {
+          filter: brightness(1.15) !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 0 12px 32px rgba(56, 189, 248, 0.4) !important;
+      }
+      .btn-secondary, button.btn-secondary, .secondary-btn {
+          background: rgba(255, 255, 255, 0.06) !important;
+          color: #f1f5f9 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          font-weight: 600 !important;
+          padding: 12px 24px !important;
+          border-radius: 10px !important;
+          transition: all 0.2s ease !important;
+          cursor: pointer !important;
+      }
+      .btn-secondary:hover, button.btn-secondary:hover, .secondary-btn:hover {
+          background: rgba(255, 255, 255, 0.10) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+          color: #67e8f9 !important;
+      }
+      button:not(.btn-primary):not(.btn-secondary):not(.btn-danger):not(.btn-success):not(.icon-btn):not([class*="bg-red"]):not([class*="bg-green"]) {
+          background: rgba(255, 255, 255, 0.06) !important;
+          color: #f1f5f9 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          font-weight: 600 !important;
+          border-radius: 10px !important;
+          transition: all 0.2s ease !important;
+      }
+      button:not(.btn-primary):not(.btn-secondary):not(.btn-danger):not(.btn-success):not(.icon-btn):hover {
+          background: rgba(34, 211, 238, 0.10) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+      }
+      .status-pill { background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.10) !important; color: #cbd5e1 !important; }
+      .status-pill.completed { background: rgba(16, 185, 129, 0.18) !important; color: #6ee7b7 !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+      .status-pill.pending { background: rgba(245, 158, 11, 0.18) !important; color: #fcd34d !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; }
+      .status-pill.recording { background: rgba(239, 68, 68, 0.18) !important; color: #fca5a5 !important; border: 1px solid rgba(239, 68, 68, 0.4) !important; }
+      .card, .section-card, .answer-card, .question-card, .nav-item, .section-nav-item {
+          background: rgba(255, 255, 255, 0.04) !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          color: #f1f5f9 !important;
+          border-radius: 12px !important;
+          transition: all 0.25s ease !important;
+      }
+      .card:hover, .section-card:hover, .answer-card:hover, .question-card:hover, .nav-item:hover, .section-nav-item:hover {
+          background: rgba(34, 211, 238, 0.06) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+      }
+      .answer-card.selected, .question-card.selected, .nav-item.active, .section-nav-item.active {
+          background: rgba(34, 211, 238, 0.10) !important;
+          border-color: rgba(34, 211, 238, 0.5) !important;
+          box-shadow: 0 0 24px rgba(34, 211, 238, 0.18) !important;
+      }
+      a, .link { color: #67e8f9 !important; }
+      a:hover, .link:hover { color: #a5f3fc !important; }
+      .brand-text, .brand-name {
+          background: linear-gradient(100deg, #a5f3fc 0%, #5eead4 45%, #a5b4fc 100%) !important;
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          color: transparent !important;
+      }
+      .reading-passage, .passage-text, .article-text, [class*="reading-text"] {
+          background: rgba(15, 23, 42, 0.7) !important;
+          color: #e2e8f0 !important;
+          border: 1px solid rgba(255, 255, 255, 0.06) !important;
+          padding: 24px !important;
+          border-radius: 12px !important;
+          line-height: 1.7 !important;
+      }
+      .reading-passage p, .passage-text p, .article-text p { color: #cbd5e1 !important; }
+      audio {
+          background: rgba(15, 23, 42, 0.8) !important;
+          border-radius: 10px !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      }
+      audio::-webkit-media-controls-panel { background: rgba(15, 23, 42, 0.9) !important; }
+      .writing-area, .writing-textarea, .response-area {
+          background: rgba(255, 255, 255, 0.04) !important;
+          color: #f1f5f9 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          border-radius: 10px !important;
+      }
+      .timer, .section-timer, .countdown {
+          background: rgba(15, 23, 42, 0.85) !important;
+          color: #67e8f9 !important;
+          border: 1px solid rgba(34, 211, 238, 0.3) !important;
+          font-family: 'Space Grotesk', monospace !important;
+          font-weight: 700 !important;
+      }
+      .timer.warning { color: #fbbf24 !important; border-color: rgba(245, 158, 11, 0.4) !important; }
+      .timer.critical { color: #f87171 !important; border-color: rgba(239, 68, 68, 0.5) !important; }
+      ::-webkit-scrollbar { width: 10px; height: 10px; }
+      ::-webkit-scrollbar-track { background: #020617; }
+      ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(34, 211, 238, 0.3), rgba(99, 102, 241, 0.3)); border-radius: 5px; }
+      ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, rgba(34, 211, 238, 0.5), rgba(99, 102, 241, 0.5)); }
+      ::selection { background: rgba(34, 211, 238, 0.3); color: #fff; }
+      .tab-bar, .section-tabs { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 12px !important; }
+      .tab-btn, .section-tab { color: #cbd5e1 !important; background: transparent !important; border: none !important; }
+      .tab-btn.active, .section-tab.active { background: rgba(34, 211, 238, 0.12) !important; color: #67e8f9 !important; }
+      .progress-bar, .progress-track { background: rgba(255, 255, 255, 0.08) !important; }
+      .progress-fill { background: linear-gradient(90deg, #38bdf8 0%, #5eead4 50%, #818cf8 100%) !important; }
+      .navbar, .top-nav, .header-bar {
+          background: rgba(2, 6, 23, 0.85) !important;
+          backdrop-filter: blur(12px) !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      }
+      .navbar a, .top-nav a { color: #cbd5e1 !important; }
+      .navbar a:hover, .top-nav a:hover { color: #67e8f9 !important; }
+      .security-warning-card {
+          background: rgba(15, 23, 42, 0.96) !important;
+          border: 2px solid rgba(239, 68, 68, 0.5) !important;
+          color: #fca5a5 !important;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 60px rgba(239, 68, 68, 0.2) !important;
+      }
+      .security-warning-card h2, .security-warning-card h3 { color: #fca5a5 !important; }
+      .recording-indicator, .rec-indicator {
+          background: rgba(239, 68, 68, 0.15) !important;
+          color: #fca5a5 !important;
+          border: 1px solid rgba(239, 68, 68, 0.4) !important;
+      }
+      .recording-dot { background: #ef4444 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important; }
+      .mcq-option, .question-option {
+          background: rgba(255, 255, 255, 0.04) !important;
+          color: #e2e8f0 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          border-radius: 10px !important;
+          transition: all 0.2s ease !important;
+      }
+      .mcq-option:hover, .question-option:hover { background: rgba(34, 211, 238, 0.06) !important; border-color: rgba(34, 211, 238, 0.4) !important; }
+      .mcq-option.selected, .question-option.selected { background: rgba(34, 211, 238, 0.10) !important; border-color: rgba(34, 211, 238, 0.5) !important; }
+      .mcq-option.correct, .question-option.correct { background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(16, 185, 129, 0.5) !important; color: #6ee7b7 !important; }
+      .mcq-option.incorrect, .question-option.incorrect { background: rgba(239, 68, 68, 0.15) !important; border-color: rgba(239, 68, 68, 0.5) !important; color: #fca5a5 !important; }
+      input, textarea, select { font-size: 16px !important; }
+      .muted-text, .text-muted, .helper-text { color: #94a3b8 !important; }
+    
+html[data-theme="light"] body, html[data-theme="light"] .light-theme-bg { background:#f8fafc!important;color:#1e293b!important;background-image:none!important }
+html[data-theme="light"] .glass-frame, html[data-theme="light"] .card, html[data-theme="light"] .panel { background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.1)!important;color:#1e293b!important }
+html[data-theme="light"] input, html[data-theme="light"] textarea, html[data-theme="light"] select { background:#fff!important;border-color:#cbd5e1!important;color:#1e293b!important }
+html[data-theme="light"] .text-slate-900, html[data-theme="light"] h1, html[data-theme="light"] h2, html[data-theme="light"] h3 { color:#1e293b!important }
+html[data-theme="light"] p, html[data-theme="light"] .text-slate-600, html[data-theme="light"] .text-slate-500 { color:#475569!important }
+html[data-theme="light"] .text-white { color:#1e293b!important }
+html[data-theme="light"] button { background:#fff!important;color:#1e293b!important;border-color:#cbd5e1!important }
+html[data-theme="light"] .btn-primary { background:linear-gradient(135deg,#0284c7,#6366f1)!important;color:#fff!important }
+html[data-theme="light"] .toefl-header { background:rgba(255,255,255,.9)!important;border-color:rgba(0,0,0,.08)!important }
+html[data-theme="light"] .timer-display { background:#1e293b!important;color:#fff!important }
+html[data-theme="light"] .question-card, html[data-theme="light"] .mcq-option { background:rgba(0,0,0,.02)!important;border-color:rgba(0,0,0,.1)!important;color:#1e293b!important }
+.theme-toggle{position:fixed;top:16px;right:16px;z-index:99996;width:40px;height:40px;border-radius:10px;background:rgba(15,23,42,.9);backdrop-filter:blur(8px);border:1px solid rgba(56,189,248,.3);color:#67e8f9;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+html[data-theme="light"] .theme-toggle{background:rgba(255,255,255,.9);border-color:rgba(2,132,199,.2);color:#0284c7}
+.theme-toggle:hover{transform:scale(1.1)}
+
+
+/* AI-generated dashboard/section background overlay */
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url('img/hero-bg.png');
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  opacity:.10;mix-blend-mode:screen;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 80%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 80%)}
+html[data-theme="light"] body::after{opacity:.06;mix-blend-mode:multiply;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 85%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 85%)}
+
+
+/* CMC SHARE BUTTON */
+#cmc-share-btn{position:fixed;left:16px;bottom:16px;z-index:99994;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:17px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+#cmc-share-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 30px rgba(56,189,248,.4)}
+#cmc-share-panel{position:fixed;left:16px;bottom:70px;z-index:99994;min-width:240px;padding:10px;border-radius:14px;background:rgba(15,23,42,.96);backdrop-filter:blur(16px);border:1px solid rgba(56,189,248,.25);box-shadow:0 12px 40px rgba(0,0,0,.5);color:#f1f5f9;font-family:'Plus Jakarta Sans',sans-serif;display:none}
+#cmc-share-panel.open{display:block;animation:cmcShareIn .18s ease-out}
+@keyframes cmcShareIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#cmc-share-panel .share-title{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#67e8f9;padding:4px 8px 8px}
+#cmc-share-panel a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;text-decoration:none;transition:all .15s}
+#cmc-share-panel a:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel a i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel .share-copy{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;cursor:pointer;transition:all .15s}
+#cmc-share-panel .share-copy:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel .share-copy i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel hr{border:none;border-top:1px solid rgba(255,255,255,.10);margin:6px 0}
+html[data-theme="light"] #cmc-share-panel{background:rgba(255,255,255,.96);border-color:rgba(2,132,199,.2);color:#1e293b;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+html[data-theme="light"] #cmc-share-panel .share-title{color:#0284c7}
+html[data-theme="light"] #cmc-share-panel a{color:#334155}
+html[data-theme="light"] #cmc-share-panel a:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel .share-copy{color:#334155}
+html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
+
+</style>
+
+<!-- Google Analytics 4 (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){window.dataLayer.push(arguments)}
+  window.gtag=gtag;
+  gtag('js',new Date());
+  gtag('config','G-XXXXXXXXXX',{send_page_view:true});
+  // cmcTrack helper — safe to call before/after gtag loads.
+  window.cmcTrack=function(ev,params){try{if(typeof window.gtag==='function'){window.gtag('event',ev,params||{})}}catch(e){}};
+</script>
+  <link rel="stylesheet" href="../assets/css/cmc-utilities.css">
+</head>
+<body class="section-speaking">
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
+    <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
+</a>
+
+    <!-- Header -->
+    <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <div class="glass-frame px-6 py-3 flex items-center gap-3">
+                        <i class="fas fa-microphone" style="color: var(--section-primary);"></i>
+                        <div>
+                            <h1 class="text-xl font-bold text-white tracking-tight">TOEFL iBT</h1>
+                            <p class="text-xs text-slate-400 uppercase tracking-widest">Speaking Section</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <div class="timer-display" id="timer">00:00</div>
+                    <button onclick="submitSpeaking()" class="btn-3d">
+                        <i class="fas fa-paper-plane mr-2"></i>Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-6 py-8 flex gap-8">
+        <!-- Sidebar -->
+        <aside class="w-72 flex-shrink-0">
+            <div class="glass-frame p-6 sticky top-28">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-6">
+                    <i class="fas fa-chart-pie text-blue-500 mr-2"></i>Progress
+                </h3>
+
+                <div class="flex justify-between text-sm mb-3">
+                    <span class="text-slate-400">Completed</span>
+                    <span id="progress-text" class="font-bold" style="color: var(--section-primary);">0%</span>
+                </div>
+                <div class="progress-container h-3">
+                    <div id="progress-bar" class="progress-fill" style="width: 0%"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-6">
+                    <div class="stat-card" style="border-left: 3px solid var(--success);">
+                        <div id="completed-count" class="text-2xl font-bold text-emerald-400">0</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Recorded</div>
+                    </div>
+                    <div class="stat-card" style="border-left: 3px solid var(--warning);">
+                        <div id="remaining-count" class="text-2xl font-bold text-amber-400">11</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Remaining</div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-700">
+                    <h4 class="text-sm font-bold text-slate-300 mb-4">Tasks</h4>
+                    <div class="flex gap-2">
+                        <button onclick="switchModule(1)" id="mod1-btn" class="module-btn active flex-1">Listen & Repeat</button>
+                        <button onclick="switchModule(2)" id="mod2-btn" class="module-btn flex-1">Interview</button>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <p class="text-xs text-slate-400 mb-2"><i class="fas fa-info-circle text-blue-400 mr-1"></i> Instructions</p>
+                    <p class="text-xs text-slate-500">Listen carefully and speak clearly. No preparation time is provided.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+            <!-- Module 1: Listen and Repeat -->
+            <div id="module-1" class="module-content fade-in">
+                <div class="glass-frame p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fas fa-headphones text-blue-500"></i>
+                        Listen and Repeat
+                    </h2>
+                    <p class="text-slate-400 mt-2">You will listen as someone speaks to you. Listen carefully and then repeat what you have heard. The clock will indicate how much time you have to respond. No time for preparation will be provided.</p>
+                </div>
+
+                <div class="glass-frame p-6 mb-6 border-l-4 border-l-blue-500">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-university text-blue-400 text-xl"></i>
+                        <h3 class="text-lg font-semibold text-white">University Orientation Event</h3>
+                    </div>
+                    <p class="text-slate-400 text-sm">You are training to assist visitors at a university orientation event. Listen to the speaker and repeat what she says. Repeat only what she says.</p>
+                </div>
+
+                <!-- Question 1 -->
+                <div class="question-frame" id="question-s1q1">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 1</span>
+                            <span class="status-badge status-pending" id="status-s1q1">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q1">
+                        <button class="play-btn" onclick="playAudio('s1q1')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q1" src="Speaking/Speaking_Listen_Repeat_Question1.mp3" onended="audioEnded('s1q1')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"Welcome to our event."</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q1" class="btn-3d btn-record" onclick="toggleRecord('s1q1')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q1" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="question-frame" id="question-s1q2">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 2</span>
+                            <span class="status-badge status-pending" id="status-s1q2">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q2">
+                        <button class="play-btn" onclick="playAudio('s1q2')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q2" src="Speaking/Speaking_Listen_Repeat_Question2.mp3" onended="audioEnded('s1q2')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"Get your name badge at the registration desk."</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q2" class="btn-3d btn-record" onclick="toggleRecord('s1q2')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q2" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="question-frame" id="question-s1q3">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 3</span>
+                            <span class="status-badge status-pending" id="status-s1q3">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q3">
+                        <button class="play-btn" onclick="playAudio('s1q3')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q3" src="Speaking/Speaking_Listen_Repeat_Question3.mp3" onended="audioEnded('s1q3')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"Our event is in the auditorium."</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q3" class="btn-3d btn-record" onclick="toggleRecord('s1q3')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q3" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 4 -->
+                <div class="question-frame" id="question-s1q4">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 4</span>
+                            <span class="status-badge status-pending" id="status-s1q4">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q4">
+                        <button class="play-btn" onclick="playAudio('s1q4')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q4" src="Speaking/Speaking_Listen_Repeat_Question4.mp3" onended="audioEnded('s1q4')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"For small group sessions, we will be in the breakout rooms over there."</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q4" class="btn-3d btn-record" onclick="toggleRecord('s1q4')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q4" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 5 -->
+                <div class="question-frame" id="question-s1q5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 5</span>
+                            <span class="status-badge status-pending" id="status-s1q5">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q5">
+                        <button class="play-btn" onclick="playAudio('s1q5')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q5" src="Speaking/Speaking_Listen_Repeat_Question5.mp3" onended="audioEnded('s1q5')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"Snacks can be found in the vending area throughout the event."</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q5" class="btn-3d btn-record" onclick="toggleRecord('s1q5')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q5" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 6 -->
+                <div class="question-frame" id="question-s1q6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 6</span>
+                            <span class="status-badge status-pending" id="status-s1q6">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q6">
+                        <button class="play-btn" onclick="playAudio('s1q6')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q6" src="Speaking/Speaking_Listen_Repeat_Question6.mp3" onended="audioEnded('s1q6')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"Please see the information desk if you need an agenda."</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q6" class="btn-3d btn-record" onclick="toggleRecord('s1q6')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q6" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 7 -->
+                <div class="question-frame" id="question-s1q7">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-blue">Question 7</span>
+                            <span class="status-badge status-pending" id="status-s1q7">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q7">
+                        <button class="play-btn" onclick="playAudio('s1q7')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q7" src="Speaking/Speaking_Listen_Repeat_Question7.mp3" onended="audioEnded('s1q7')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"If you want to check session times and locations, please use the schedule provided."</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q7" class="btn-3d btn-record" onclick="toggleRecord('s1q7')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q7" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module 2: Take an Interview -->
+            <div id="module-2" class="module-content hidden">
+                <div class="glass-frame p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fas fa-user-tie text-purple-500"></i>
+                        Take an Interview
+                    </h2>
+                    <p class="text-slate-400 mt-2">An interviewer will ask you questions. Answer the questions and be sure to say as much as you can in the time provided. No time for preparation will be provided.</p>
+                </div>
+
+                <div class="glass-frame p-6 mb-6 border-l-4 border-l-purple-500">
+                    <div class="flex items-start gap-4">
+                        <div class="interviewer-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white mb-2">Research Study Interview</h3>
+                            <p class="text-slate-400 text-sm">You have volunteered for a research study about work-life balance. You will have a short online interview with a researcher. The researcher will ask you some questions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interview Audio -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="badge badge-purple">Introduction</span>
+                    </div>
+                    <div class="audio-player mb-4" id="audio-intro">
+                        <button class="play-btn" onclick="playAudio('intro')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen to the interviewer's introduction</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="intro" src="Speaking/Speaking_Interview_Directions.mp3" onended="audioEnded('intro')"></audio>
+                    </div>
+                    <div class="glass-frame p-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"Thank you for participating. Today, I'd like to ask you some questions about your work-life balance."</p>
+                    </div>
+                </div>
+
+                <!-- Question 8 -->
+                <div class="question-frame" id="question-s1q8">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-purple">Question 8</span>
+                            <span class="status-badge status-pending" id="status-s1q8">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q8">
+                        <button class="play-btn" onclick="playAudio('s1q8')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q8" src="Speaking/Speaking_Interview_Question1.mp3" onended="audioEnded('s1q8')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"First, can you share one or two strategies that you use that you think are effective in managing your work-life balance?"</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q8" class="btn-3d btn-record" onclick="toggleRecord('s1q8')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q8" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 9 -->
+                <div class="question-frame" id="question-s1q9">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-purple">Question 9</span>
+                            <span class="status-badge status-pending" id="status-s1q9">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q9">
+                        <button class="play-btn" onclick="playAudio('s1q9')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q9" src="Speaking/Speaking_Interview_Question2.mp3" onended="audioEnded('s1q9')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"I see. Many companies are now developing programs to help employees manage work-life balance. Would programs like this affect your interest in working for a particular company? Why or why not?"</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q9" class="btn-3d btn-record" onclick="toggleRecord('s1q9')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q9" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 10 -->
+                <div class="question-frame" id="question-s1q10">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-purple">Question 10</span>
+                            <span class="status-badge status-pending" id="status-s1q10">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q10">
+                        <button class="play-btn" onclick="playAudio('s1q10')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q10" src="Speaking/Speaking_Interview_Question3.mp3" onended="audioEnded('s1q10')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"Interesting. Some companies also offer flexible working hours or remote work options to help employees achieve a better work-life balance, but they are concerned that these options would reduce employee attention to tasks or engagement in the workplace. Do you think such programs are a good strategy for companies? Why or why not?"</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q10" class="btn-3d btn-record" onclick="toggleRecord('s1q10')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q10" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question 11 -->
+                <div class="question-frame" id="question-s1q11">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="badge badge-purple">Question 11</span>
+                            <span class="status-badge status-pending" id="status-s1q11">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="audio-player mb-4" id="audio-s1q11">
+                        <button class="play-btn" onclick="playAudio('s1q11')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Click to listen</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="s1q11" src="Speaking/Speaking_Interview_Question4.mp3" onended="audioEnded('s1q11')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-4 mb-4 bg-slate-800/50">
+                        <p class="text-slate-300 text-sm italic">"Good points. Lastly, looking to the future, do you think people's attitudes towards work-life balance will change? For example, do you think people will prioritize personal life over work, or work over personal life? Explain your thoughts."</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-4">
+                        <button id="record-s1q11" class="btn-3d btn-record" onclick="toggleRecord('s1q11')">
+                            <i class="fas fa-microphone mr-2"></i>Record Response
+                        </button>
+                        <div id="recording-timer-s1q11" class="hidden recording-indicator">
+                            <span class="recording-dot"></span>
+                            <span>Recording...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div class="mt-8 text-center">
+            <button onclick="submitSpeaking()" class="btn-3d">
+                <i class="fas fa-paper-plane mr-2"></i>Submit
+            </button>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="results-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-frame max-w-lg w-full p-8 text-center">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
+                <i class="fas fa-trophy text-3xl text-white"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Speaking Section Complete!</h3>
+            <p class="text-slate-400 mb-8">You have completed all speaking tasks.</p>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--success);">
+                    <div id="result-recorded" class="text-3xl font-bold text-emerald-400">0</div>
+                    <div class="text-sm text-slate-400 mt-1">Responses Recorded</div>
+                </div>
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--primary-blue);">
+                    <div id="result-total" class="text-3xl font-bold text-blue-400">11</div>
+                    <div class="text-sm text-slate-400 mt-1">Total Questions</div>
+                </div>
+            </div>
+
+            <p class="text-slate-400 text-sm mb-6">Your responses have been saved. In a real test, they would be sent to ETS for scoring.</p>
+
+            <button onclick="closeResults()" class="btn-3d px-8 py-3">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        // Track completed questions
+        let completedQuestions = new Set();
+        let seconds = 0;
+        let timerInterval;
+        let currentlyPlaying = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        // Which question owns the current recording + its auto-stop timer.
+        let currentRecordingQuestion = null;
+        let recordTimeout = null;
+
+        // Start Timer
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = mins + ':' + secs;
+            }, 1000);
+        }
+
+        // Switch Module
+        function switchModule(module) {
+            document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('module-' + module).classList.remove('hidden');
+            document.getElementById('module-' + module).classList.add('fade-in');
+
+            document.getElementById('mod1-btn').className = module === 1 ? 'module-btn active flex-1' : 'module-btn flex-1';
+            document.getElementById('mod2-btn').className = module === 2 ? 'module-btn active flex-1' : 'module-btn flex-1';
+        }
+
+        // Play Audio
+        function playAudio(audioId) {
+            const audio = document.getElementById(audioId);
+            const player = document.getElementById('audio-' + audioId);
+            
+            // Stop any currently playing audio
+            if (currentlyPlaying && currentlyPlaying !== audio) {
+                currentlyPlaying.pause();
+                currentlyPlaying.currentTime = 0;
+                document.querySelectorAll('.audio-player').forEach(p => p.classList.remove('playing'));
+                document.querySelectorAll('.play-btn i').forEach(icon => icon.className = 'fas fa-play');
+            }
+
+            if (audio.paused) {
+                audio.play();
+                player.classList.add('playing');
+                player.querySelector('.play-btn i').className = 'fas fa-pause';
+                currentlyPlaying = audio;
+            } else {
+                audio.pause();
+                player.classList.remove('playing');
+                player.querySelector('.play-btn i').className = 'fas fa-play';
+                currentlyPlaying = null;
+            }
+        }
+
+        // Audio Ended
+        function audioEnded(audioId) {
+            const player = document.getElementById('audio-' + audioId);
+            player.classList.remove('playing');
+            player.querySelector('.play-btn i').className = 'fas fa-play';
+            currentlyPlaying = null;
+        }
+
+        // Toggle Recording
+        async function toggleRecord(questionId) {
+            const recordBtn = document.getElementById('record-' + questionId);
+            const timerDiv = document.getElementById('recording-timer-' + questionId);
+            
+            if (!isRecording) {
+                // Start recording
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        // In a real app, you would upload this blob to a server
+                        
+                        // Mark as completed
+                        completedQuestions.add(questionId);
+                        updateProgress();
+                        
+                        // Update UI
+                        const statusBadge = document.getElementById('status-' + questionId);
+                        statusBadge.className = 'status-badge status-completed';
+                        statusBadge.innerHTML = '<i class="fas fa-check"></i> Completed';
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    currentRecordingQuestion = questionId;
+                    
+                    // Update UI
+                    recordBtn.innerHTML = '<i class="fas fa-stop mr-2"></i>Stop Recording';
+                    recordBtn.classList.add('recording');
+                    timerDiv.classList.remove('hidden');
+                    
+                    // Auto-stop after 45 seconds for interview questions, 10 seconds for repeat
+                    const isInterview = questionId.startsWith('s1q') && parseInt(questionId.replace('s1q', '')) >= 8;
+                    const maxDuration = isInterview ? 45000 : 10000;
+                    
+                    if (recordTimeout) clearTimeout(recordTimeout);
+                    recordTimeout = setTimeout(() => {
+                        // Only auto-stop if THIS question is still the active recording —
+                        // a stale timer must never stop a newer one.
+                        if (isRecording && currentRecordingQuestion === questionId && mediaRecorder) {
+                            toggleRecord(questionId);
+                        }
+                    }, maxDuration);
+                    
+                } catch (err) {
+                    console.error('Error accessing microphone:', err);
+                    // Surface the failure — a denied mic otherwise leaves a silent,
+                    // seemingly dead button.
+                    const statusBadge = document.getElementById('status-' + questionId);
+                    if (statusBadge) { statusBadge.className = 'status-badge'; statusBadge.innerHTML = '<i class="fas fa-microphone-slash"></i> Mic unavailable'; }
+                    recordBtn.innerHTML = '<i class="fas fa-microphone mr-2"></i>Mic blocked — allow access &amp; retry';
+                }
+            } else {
+                // Stop the ACTIVE recording. The clicked button may belong to a
+                // different question than the one recording — always reset the
+                // active question's UI so no button stays stuck in "recording".
+                if (recordTimeout) { clearTimeout(recordTimeout); recordTimeout = null; }
+                const activeBtn = currentRecordingQuestion ? document.getElementById('record-' + currentRecordingQuestion) : recordBtn;
+                const activeTimerDiv = currentRecordingQuestion ? document.getElementById('recording-timer-' + currentRecordingQuestion) : timerDiv;
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                }
+                
+                isRecording = false;
+                currentRecordingQuestion = null;
+                
+                // Update UI
+                if (activeBtn) { activeBtn.innerHTML = '<i class="fas fa-microphone mr-2"></i>Record Response'; activeBtn.classList.remove('recording'); }
+                if (activeTimerDiv) activeTimerDiv.classList.add('hidden');
+            }
+        }
+
+        // Update Progress
+        function updateProgress() {
+            const totalQuestions = 11;
+            const completed = completedQuestions.size;
+            const progress = Math.round((completed / totalQuestions) * 100);
+
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = progress + '%';
+            document.getElementById('completed-count').textContent = completed;
+            document.getElementById('remaining-count').textContent = totalQuestions - completed;
+        }
+
+        // Submit Speaking
+        function submitSpeaking() {
+            const completed = completedQuestions.size;
+            
+            document.getElementById('result-recorded').textContent = completed;
+            document.getElementById('results-modal').classList.remove('hidden');
+            clearInterval(timerInterval);
+        }
+
+        // Close Results
+        function closeResults() {
+            document.getElementById('results-modal').classList.add('hidden');
+        }
+
+        // Close modal on outside click
+        window.onclick = function(e) {
+            const modal = document.getElementById('results-modal');
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            startTimer();
+            updateProgress();
+        });
+    </script>
+
+<!-- CMC SHARE BUTTON -->
+<button id="cmc-share-btn" title="Share this page" aria-label="Share this page"><i class="fas fa-share-nodes"></i></button>
+<div id="cmc-share-panel" role="menu" aria-label="Share options">
+  <div class="share-title">Share this page</div>
+  <a data-share="facebook" target="_blank" rel="noopener"><i class="fab fa-facebook" style="color:#1877f2"></i> Facebook</a>
+  <a data-share="x" target="_blank" rel="noopener"><i class="fab fa-x-twitter" style="color:#e2e8f0"></i> X (Twitter)</a>
+  <a data-share="whatsapp" target="_blank" rel="noopener"><i class="fab fa-whatsapp" style="color:#25d366"></i> WhatsApp</a>
+  <a data-share="telegram" target="_blank" rel="noopener"><i class="fab fa-telegram" style="color:#229ed9"></i> Telegram</a>
+  <a data-share="linkedin" target="_blank" rel="noopener"><i class="fab fa-linkedin" style="color:#0a66c2"></i> LinkedIn</a>
+  <a data-share="email"><i class="fas fa-envelope" style="color:#f59e0b"></i> Email</a>
+  <hr>
+  <div class="share-copy" id="cmc-share-copy"><i class="fas fa-link" style="color:#67e8f9"></i> <span>Copy link</span></div>
+</div>
+
+
+<script>
+(function(){
+  var btn=document.getElementById('cmc-share-btn');
+  var panel=document.getElementById('cmc-share-panel');
+  if(!btn||!panel)return;
+  btn.addEventListener('click',function(e){e.stopPropagation();panel.classList.toggle('open')});
+  document.addEventListener('click',function(e){if(!panel.contains(e.target)&&e.target!==btn)panel.classList.remove('open')});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')panel.classList.remove('open')});
+  function buildURL(svc){
+    var u=encodeURIComponent(window.location.href);
+    var t=encodeURIComponent(document.title||'CMC Network practice page');
+    if(svc==='facebook')return 'https://www.facebook.com/sharer/sharer.php?u='+u;
+    if(svc==='x')return 'https://twitter.com/intent/tweet?url='+u+'&text='+t;
+    if(svc==='whatsapp')return 'https://api.whatsapp.com/send?text='+t+'%20'+u;
+    if(svc==='telegram')return 'https://t.me/share/url?url='+u+'&text='+t;
+    if(svc==='linkedin')return 'https://www.linkedin.com/sharing/share-offsite/?url='+u;
+    if(svc==='email')return 'mailto:?subject='+t+'&body='+u;
+    return '#';
+  }
+  panel.querySelectorAll('a[data-share]').forEach(function(a){
+    a.addEventListener('click',function(){
+      var svc=a.getAttribute('data-share');
+      if(svc==='email'){a.href=buildURL('email');return}
+      a.href=buildURL(svc);cmcTrack('share_click',{service:svc});});
+  });
+  var copyBtn=document.getElementById('cmc-share-copy');
+  if(copyBtn){
+    copyBtn.addEventListener('click',function(){
+      var label=copyBtn.querySelector('span');
+      var done=function(){if(label){var orig=label.textContent;label.textContent='Copied!';setTimeout(function(){label.textContent=orig},1500)}};
+      try{navigator.clipboard.writeText(window.location.href).then(done).catch(function(){done()});cmcTrack('share_click',{service:'copy_link'})}catch(e){done()}
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

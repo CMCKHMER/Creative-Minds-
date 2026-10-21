@@ -6,7 +6,7 @@
 try{var t=localStorage.getItem('cmc-theme')||localStorage.getItem('toefl-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TOEFL iBT - Complete Test</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="toefl-styles.css">
@@ -1726,6 +1726,7 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
   // cmcTrack helper — safe to call before/after gtag loads.
   window.cmcTrack=function(ev,params){try{if(typeof window.gtag==='function'){window.gtag('event',ev,params||{})}}catch(e){}};
 </script>
+  <link rel="stylesheet" href="../assets/css/cmc-utilities.css">
 </head>
 <body>
 <script id="cmc-role-gate">

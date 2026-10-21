@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TOEFL ITP Bi-Weekly Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* ===== DARK (default) ===== */
+:root{--bg:#020617;--card:rgba(255,255,255,.04);--border:rgba(255,255,255,.10);--accent:#38bdf8;--text:#f1f5f9;--muted:#94a3b8;--shadow:rgba(0,0,0,.3)}
+/* ===== LIGHT ===== */
+html[data-theme="light"]{--bg:#f8fafc;--card:rgba(255,255,255,.85);--border:rgba(0,0,0,.10);--accent:#0284c7;--text:#1e293b;--muted:#64748b;--shadow:rgba(0,0,0,.08)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(56,189,248,.08),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(139,92,246,.08),transparent 50%)}
+html[data-theme="light"] body::before{background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(14,165,233,.06),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(168,85,247,.04),transparent 50%)}
+.font-display{font-family:'Syne',sans-serif;letter-spacing:-0.02em}
+.font-mono2{font-family:'Space Grotesk',monospace}
+.glass{background:var(--card);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:14px;transition:background .3s,border-color .3s}
+.week-card{transition:all .25s ease;cursor:pointer;overflow:hidden;position:relative}
+.week-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px var(--shadow);border-color:rgba(56,189,248,.3)}
+html[data-theme="light"] .week-card:hover{border-color:rgba(2,132,199,.4)}
+.week-card::after{content:'';position:absolute;inset:0;background-image:var(--bg-img,none);background-size:cover;opacity:.12;mix-blend-mode:screen;pointer-events:none;z-index:0}
+html[data-theme="light"] .week-card::after{opacity:.06;mix-blend-mode:multiply}
+.week-card>*{position:relative;z-index:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);text-decoration:none}
+html[data-theme="light"] .btn{background:#fff}
+.btn:hover{background:rgba(56,189,248,.10);border-color:rgba(56,189,248,.4)}
+html[data-theme="light"] .btn:hover{background:rgba(2,132,199,.06);border-color:rgba(2,132,199,.3)}
+.filter-btn{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.filter-btn:hover{color:var(--text);border-color:rgba(56,189,248,.3)}
+.filter-btn.active{background:var(--accent);color:#0f172a;border-color:var(--accent)}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(56,189,248,.3),rgba(139,92,246,.3));border-radius:5px}
+::selection{background:rgba(56,189,248,.3);color:#fff}
+.theme-toggle{position:fixed;top:16px;right:160px;z-index:99995;width:40px;height:40px;border-radius:10px;background:rgba(15,23,42,.9);backdrop-filter:blur(8px);border:1px solid rgba(56,189,248,.3);color:#67e8f9;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+html[data-theme="light"] .theme-toggle{background:rgba(255,255,255,.9);border-color:rgba(2,132,199,.2);color:#0284c7}
+.theme-toggle:hover{transform:scale(1.1)}
+/* ===== COMPREHENSIVE LIGHT MODE OVERRIDES (biweek-planner dashboard) ===== */
+html[data-theme="light"] h1.text-white,
+html[data-theme="light"] h2.text-white,
+html[data-theme="light"] h3.text-white,
+html[data-theme="light"] h4.text-white,
+html[data-theme="light"] p.text-white,
+html[data-theme="light"] span.text-white,
+html[data-theme="light"] button.text-white,
+html[data-theme="light"] label.text-white,
+html[data-theme="light"] .text-white{color:#1e293b!important}
+html[data-theme="light"] .text-slate-100{color:#1e293b!important}
+html[data-theme="light"] .text-slate-200{color:#334155!important}
+html[data-theme="light"] .text-slate-300{color:#475569!important}
+html[data-theme="light"] .text-slate-400{color:#64748b!important}
+html[data-theme="light"] .text-slate-500{color:#94a3b8!important}
+html[data-theme="light"] .text-slate-600{color:#a8b3c2!important}
+html[data-theme="light"] .text-cyan-50{color:#0c4a6e!important}
+html[data-theme="light"] .text-cyan-100{color:#0369a1!important}
+html[data-theme="light"] .text-cyan-200{color:#0e7490!important}
+html[data-theme="light"] .text-cyan-300{color:#0891b2!important}
+html[data-theme="light"] .text-cyan-400{color:#0284c7!important}
+html[data-theme="light"] .text-violet-100{color:#5b21b6!important}
+html[data-theme="light"] .text-violet-200{color:#6d28d9!important}
+html[data-theme="light"] .text-violet-300{color:#7c3aed!important}
+html[data-theme="light"] .text-emerald-100{color:#047857!important}
+html[data-theme="light"] .text-rose-400{color:#e11d48!important}
+html[data-theme="light"] .text-amber-400{color:#b45309!important}
+html[data-theme="light"] .text-teal-300{color:#0d9488!important}
+
+html[data-theme="light"] .bg-white\/5,
+html[data-theme="light"] .bg-white\/8,
+html[data-theme="light"] .bg-white\/10,
+html[data-theme="light"] .bg-white\/6{background-color:rgba(0,0,0,.04)!important}
+html[data-theme="light"] .border-white\/7,
+html[data-theme="light"] .border-white\/8,
+html[data-theme="light"] .border-white\/10{border-color:rgba(0,0,0,.10)!important}
+
+html[data-theme="light"] input.text-white{color:#1e293b!important;background-color:#fff!important;border-color:rgba(0,0,0,.12)!important}
+
+/* top-nav buttons */
+html[data-theme="light"] a[style*="background:rgba(15,23,42"]{background:rgba(255,255,255,.9)!important;border-color:rgba(2,132,199,.2)!important;color:#0284c7!important}
+html[data-theme="light"] a[style*="color:#67e8f9"]{color:#0284c7!important}
+
+/* week cards on dashboard */
+html[data-theme="light"] .week-card{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.10)!important;box-shadow:0 4px 16px rgba(0,0,0,.04)}
+html[data-theme="light"] .week-card:hover{box-shadow:0 12px 32px rgba(0,0,0,.10);border-color:rgba(2,132,199,.4)!important}
+html[data-theme="light"] .filter-btn{color:#64748b;background:transparent;border-color:rgba(0,0,0,.10)}
+html[data-theme="light"] .filter-btn:hover{color:#1e293b;border-color:rgba(2,132,199,.3)}
+html[data-theme="light"] .filter-btn.active{background:#0284c7;color:#fff;border-color:#0284c7}
+
+/* glass cards */
+html[data-theme="light"] .glass{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.10)!important;color:#1e293b}
+html[data-theme="light"] .glass *{color:inherit}
+html[data-theme="light"] .glass h1,
+html[data-theme="light"] .glass h2,
+html[data-theme="light"] .glass h3,
+html[data-theme="light"] .glass h4{color:#1e293b}
+
+/* dashboard hero gradient text in light mode */
+html[data-theme="light"] h1 span[style*="-webkit-background-clip:text"]{
+  background-image:linear-gradient(100deg,#0e7490,#0891b2,#6d28d9)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+}
+
+/* selection */
+html[data-theme="light"] ::selection{background:rgba(2,132,199,.25);color:#fff}
+html[data-theme="light"] body{color:#1e293b}
+
+/* AI-generated dashboard hero background */
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url('img/dashboard-bg.png');
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  opacity:.18;mix-blend-mode:screen;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 75%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 75%)}
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 80%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 80%)}
+
+
+/* CMC SHARE BUTTON */
+#cmc-share-btn{position:fixed;left:16px;bottom:16px;z-index:99994;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:17px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+#cmc-share-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 30px rgba(56,189,248,.4)}
+#cmc-share-panel{position:fixed;left:16px;bottom:70px;z-index:99994;min-width:240px;padding:10px;border-radius:14px;background:rgba(15,23,42,.96);backdrop-filter:blur(16px);border:1px solid rgba(56,189,248,.25);box-shadow:0 12px 40px rgba(0,0,0,.5);color:#f1f5f9;font-family:'Plus Jakarta Sans',sans-serif;display:none}
+#cmc-share-panel.open{display:block;animation:cmcShareIn .18s ease-out}
+@keyframes cmcShareIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#cmc-share-panel .share-title{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#67e8f9;padding:4px 8px 8px}
+#cmc-share-panel a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;text-decoration:none;transition:all .15s}
+#cmc-share-panel a:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel a i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel .share-copy{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;cursor:pointer;transition:all .15s}
+#cmc-share-panel .share-copy:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel .share-copy i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel hr{border:none;border-top:1px solid rgba(255,255,255,.10);margin:6px 0}
+html[data-theme="light"] #cmc-share-panel{background:rgba(255,255,255,.96);border-color:rgba(2,132,199,.2);color:#1e293b;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+html[data-theme="light"] #cmc-share-panel .share-title{color:#0284c7}
+html[data-theme="light"] #cmc-share-panel a{color:#334155}
+html[data-theme="light"] #cmc-share-panel a:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel .share-copy{color:#334155}
+html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
+
+</style>
+
+<!-- Google Analytics 4 (gtag.js) -->
+<!-- Teacher-account gate: this planner hub page is teacher-only. Must load
+     before cmc-shared.js so the lock is applied before first paint.
+     Individual drill pages under tests/ stay open for shared student links. -->
+<script src="./teacher-gate.js"></script>
+    <script src="../assets/js/cmc-shared.js"></script>
+  <link rel="stylesheet" href="../assets/css/cmc-utilities.css">
+</head>
+<body>
+<a href="https://cmckhmer.github.io/Creative-Minds-/" style="position:fixed;top:16px;right:16px;z-index:99995;display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;background:rgba(15,23,42,.9);backdrop-filter:blur(8px);border:1px solid rgba(56,189,248,.3);color:#67e8f9;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;text-decoration:none;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.3)" onmouseover="this.style.borderColor='rgba(56,189,248,.6)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(56,189,248,.3)';this.style.transform=''">
+  <i class="fas fa-arrow-left" style="font-size:12px"></i> Back to CMC
+</a>
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark"><i class="fas fa-sun"></i></button>
+
+<div class="relative z-10 max-w-6xl mx-auto px-4 py-10 sm:px-6">
+
+  <!-- ===== HERO ===== -->
+  <header class="mb-10">
+    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-semibold text-cyan-300 mb-4">
+      <i class="fas fa-calendar-check text-xs"></i> Bi-Weekly Study Plan · Weeks 2–8
+    </div>
+    <h1 class="font-display text-4xl sm:text-5xl font-extrabold text-white mb-3">TOEFL ITP <span style="background:linear-gradient(100deg,#a5f3fc,#5eead4,#a5b4fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Bi-Weekly Planner</span></h1>
+    <p class="text-base text-slate-400 max-w-2xl leading-relaxed">A structured preparation plan covering all three TOEFL ITP sections across Weeks 2–8. Each week includes practice drills with timers, auto-scoring, and individual shareable links.</p>
+    <div class="mt-6 flex flex-wrap gap-4 text-sm">
+      <div class="glass px-4 py-2.5 flex items-center gap-2"><i class="fas fa-headphones text-cyan-300"></i><span class="text-slate-400">Listening</span></div>
+      <div class="glass px-4 py-2.5 flex items-center gap-2"><i class="fas fa-pen text-rose-400"></i><span class="text-slate-400">Structure</span></div>
+      <div class="glass px-4 py-2.5 flex items-center gap-2"><i class="fas fa-book-open text-amber-400"></i><span class="text-slate-400">Reading</span></div>
+      <div class="glass px-4 py-2.5 flex items-center gap-2"><span class="text-2xl font-bold text-violet-300 font-mono2">21</span><span class="text-slate-400">Practice drills</span></div>
+    </div>
+  </header>
+
+  <!-- ===== SCHEDULE ===== -->
+  <section class="mb-8">
+    <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300 mb-1">Weekly Schedule</p>
+        <h2 class="font-display text-2xl font-bold text-white">Weekly Study Plan</h2>
+      </div>
+      <nav class="flex flex-wrap gap-2">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="listening"><i class="fas fa-headphones text-xs mr-1"></i> Listening</button>
+        <button class="filter-btn" data-filter="structure"><i class="fas fa-pen text-xs mr-1"></i> Structure</button>
+        <button class="filter-btn" data-filter="reading"><i class="fas fa-book-open text-xs mr-1"></i> Reading</button>
+      </nav>
+    </div>
+    <!-- Featured Week 1 card (spans full width) + remaining weeks in grid -->
+    <div id="featured-week"></div>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mt-4" id="schedule-grid"></div>
+  </section>
+
+  <!-- ===== RESOURCES ===== -->
+  <section class="mt-10 mb-8">
+    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300 mb-2">Reference Materials</p>
+    <h2 class="font-display text-2xl font-bold text-white mb-4">Recommended Books</h2>
+    <div class="grid gap-3 sm:grid-cols-3">
+      <div class="glass p-4 transition-all hover:translateY-2" style="transition:all .25s"><div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:rgba(56,189,248,.1);color:#38bdf8"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">ETS TOEFL ITP Official Guide</h3><p class="text-xs text-slate-400 mt-1">Official test prep book from ETS with practice tests and answer keys.</p></div>
+      <div class="glass p-4 transition-all hover:translateY-2" style="transition:all .25s"><div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:rgba(139,92,246,.1);color:#a78bfa"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">Barron's TOEFL ITP</h3><p class="text-xs text-slate-400 mt-1">Comprehensive skill-building exercises for all three sections.</p></div>
+      <div class="glass p-4 transition-all hover:translateY-2" style="transition:all .25s"><div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:rgba(94,234,212,.1);color:#5eead4"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">Essential TOEFL Vocabulary</h3><p class="text-xs text-slate-400 mt-1">500+ high-frequency words with example sentences and exercises.</p></div>
+    </div>
+  </section>
+
+  <!-- ===== TEACHER TIP ===== -->
+  <section class="glass p-5 mb-8 border-l-4" style="border-left-color:#fbbf24">
+    <div class="flex items-start gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(251,191,36,.12);color:#fbbf24"><i class="fas fa-lightbulb"></i></div>
+      <div><h2 class="font-display text-lg font-bold text-white">Teacher's Tip</h2><p class="text-sm text-slate-300 mt-1 leading-relaxed">Use the diagnostic test in Week 2 to identify each student's weakest section. Then focus the bi-weekly drills on that section while maintaining the others. Each drill has its own link — share individual tests with students directly.</p></div>
+    </div>
+  </section>
+
+  <footer class="text-center text-xs text-slate-600 py-6"><p>TOEFL ITP Bi-Weekly Planner · Part of the Creative Minds Network</p></footer>
+</div>
+
+<script>
+// ===== WEEK DATA =====
+const CAT_COLORS={listening:'#347d9b',structure:'#f87171',reading:'#fbbf24',orientation:'#5eead4'};
+const CAT_ICONS={listening:'fa-headphones',structure:'fa-pen',reading:'fa-book-open',orientation:'fa-flag-checkered'};
+const CAT_LABELS={listening:'Listening',structure:'Structure',reading:'Reading',orientation:'Orientation'};
+
+function svgPreview(cat,color){
+  const icons={listening:'🎧',structure:'✏️',reading:'📖',orientation:'🏁'};
+  return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#0f172a'/><stop offset='1' stop-color='#020617'/></linearGradient><radialGradient id='gl' cx='0.85' cy='0.15' r='0.6'><stop offset='0' stop-color='${color}' stop-opacity='0.2'/><stop offset='1' stop-color='${color}' stop-opacity='0'/></radialGradient></defs><rect width='400' height='200' fill='url(#g)'/><rect width='400' height='200' fill='url(#gl)'/><text x='340' y='140' font-size='60' opacity='0.12'>${icons[cat]}</text></svg>`)}`;
+}
+
+const WEEKS=[
+  {n:2,cat:'orientation',title:'Orientation & Diagnostic',skill:'All sections · Baseline',activity:'Take the diagnostic test to identify strengths and weaknesses.',tests:[
+    {text:'Diagnostic Test',file:'diagnostic.html',icon:'fa-clipboard-list'},
+    {text:'Level 9b Grammar',file:'grammar.html',icon:'fa-spell-check'},
+    {text:'Business Listening',file:'business-listening.html',icon:'fa-briefcase'},
+    {text:'Level 11b Structure',file:'structure.html',icon:'fa-pen-ruler'},
+    {text:'Level 10 Grammar',file:'week2-grammar.html',icon:'fa-pen'},
+    {text:'ISEC II Biz Listening',file:'isec2-w2-listening.html',icon:'fa-briefcase'},
+  ]},
+  {n:3,cat:'listening',title:'Listening · Prediction & Inference',skill:'Listening comprehension',activity:'Practice predicting outcomes and drawing inferences.',tests:[
+    {text:'Prediction Drill',file:'prediction-listening.html',icon:'fa-chart-line'},
+    {text:'Inference Drill',file:'inference-listening.html',icon:'fa-search'},
+    {text:'Short Conversations',file:'short-conversations.html',icon:'fa-comments'},
+    {text:'L10: Chance Discoveries',file:'week3-listening.html',icon:'fa-flask'},
+    {text:'ISEC II C1 Grammar',file:'isec2-w3-grammar.html',icon:'fa-spell-check'},
+  ]},
+  {n:4,cat:'structure',title:'Structure · Rhetorical Purpose',skill:'Written expression',activity:'Identify rhetorical purpose errors in sentences.',tests:[
+    {text:'Rhetorical Drill',file:'rhetorical.html',icon:'fa-pen-fancy'},
+    {text:'ISEC II C2 Reading',file:'isec2-w4-reading.html',icon:'fa-book-open'},
+  ]},
+  {n:5,cat:'reading',title:'Reading · Vocabulary in Context',skill:'Reading comprehension',activity:'Build vocabulary through context clues.',tests:[
+    {text:'Reading: Genes & Longevity',file:'week4-reading.html',icon:'fa-book-open'},
+    {text:'ISEC II C1 Listening',file:'isec2-w5-listening.html',icon:'fa-headphones'},
+    {text:'Level 10 Grammar (Practice)',file:'week5-grammar.html',icon:'fa-spell-check'},
+  ]},
+  {n:6,cat:'listening',title:'Listening · Extended Talks',skill:'Listening comprehension',activity:'Practice with longer academic talks.',tests:[
+    {text:'Listening: Student Athletes',file:'week6-listening.html',icon:'fa-headphones'},
+    {text:'ISEC II C2 Grammar',file:'isec2-w6-grammar.html',icon:'fa-pen-fancy'},
+  ]},
+  {n:7,cat:'structure',title:'Structure · Error Identification',skill:'Written expression',activity:'Advanced error identification practice.',tests:[
+    {text:'Reading: Naming Stars',file:'week7-reading.html',icon:'fa-book-open'},
+    {text:'ISEC II C2 Reading',file:'isec2-w7-reading.html',icon:'fa-book-open'},
+  ]},
+  {n:8,cat:'reading',title:'Week 8 · Recap Drills + Full Mock',skill:'Recap drills · Full mock test',activity:'Finish the course with the three recap drills (listening, grammar, reading) — instant score, timed and locked — then sit the full-length mock under timed conditions.',tests:[
+    {text:'Recap · Listening Drill',file:'week8-recap-listening.html',icon:'fa-headphones'},
+    {text:'Recap · Grammar Drill',file:'week8-recap-grammar.html',icon:'fa-spell-check'},
+    {text:'Recap · Reading Drill',file:'week8-recap-reading.html',icon:'fa-book-open'},
+    {text:'Level 10 Mock Test',file:'week8-mock.html',icon:'fa-graduation-cap'},
+    {text:'Recap PDF (printable)',file:'week8-recap-printable.pdf',icon:'fa-file-pdf'},
+  ]},
+];
+
+// ===== RENDER CARDS =====
+const featured=document.getElementById('featured-week');
+const grid=document.getElementById('schedule-grid');
+WEEKS.forEach((w,idx)=>{
+  const color=CAT_COLORS[w.cat];
+  const icon=CAT_ICONS[w.cat];
+  const card=document.createElement('article');
+  card.className='week-card glass p-4';
+  card.style.borderLeft=`4px solid ${color}`;
+  card.setAttribute('data-cat',w.cat);
+  card.style.setProperty('--bg-img',`url('${svgPreview(w.cat,color)}')`);
+
+  const testButtons=w.tests.map(t=>{
+    if(t.file==='#'){
+      return `<span class="btn opacity-40 cursor-not-allowed"><i class="fas ${t.icon} text-xs"></i> ${t.text}</span>`;
+    }
+    return `<a href="tests/${t.file}" class="btn" target="_blank" rel="noopener"><i class="fas ${t.icon} text-xs"></i> ${t.text}</a>`;
+  }).join('');
+
+  // Featured card (Week 1 — Orientation & Diagnostic) gets a bigger,
+  // full-width layout with a "Start here" badge + 2-column test buttons.
+  if(idx===0){
+    card.classList.add('p-6');
+    card.innerHTML=`
+      <div class="flex items-center justify-between mb-3">
+        <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-full" style="background:${color}20;color:${color}">
+          <i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}
+        </span>
+        <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:rgba(56,189,248,.15);color:#67e8f9;border:1px solid rgba(56,189,248,.3)">
+          <i class="fas fa-flag-checkered text-xs"></i> Start here
+        </span>
+      </div>
+      <h3 class="font-display text-xl font-bold text-white mt-1 leading-tight">${w.title}</h3>
+      <p class="text-sm text-slate-400 mt-1">${w.skill}</p>
+      <p class="text-sm text-slate-500 mt-2 border-t border-white/8 pt-2 leading-relaxed">${w.activity}</p>
+      <div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">${testButtons}</div>
+    `;
+    featured.appendChild(card);
+  } else {
+    card.innerHTML=`
+      <div class="flex items-center justify-between mb-2">
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full" style="background:${color}20;color:${color}">
+          <i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}
+        </span>
+      </div>
+      <h3 class="font-display text-base font-bold text-white mt-1 leading-tight">${w.title}</h3>
+      <p class="text-[11px] text-slate-400 mt-0.5">${w.skill}</p>
+      <p class="text-xs text-slate-500 mt-2 border-t border-white/8 pt-2 leading-relaxed">${w.activity}</p>
+      <div class="mt-3 flex flex-wrap gap-1.5">${testButtons}</div>
+    `;
+    grid.appendChild(card);
+  }
+});
+
+// ===== FILTER =====
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b===btn));
+    document.querySelectorAll('.week-card').forEach(c=>{
+      c.style.display=(btn.dataset.filter==='all'||c.dataset.cat===btn.dataset.filter)?'':'none';
+    });
+  });
+});
+</script>
+
+
+
+</body>
+</html>

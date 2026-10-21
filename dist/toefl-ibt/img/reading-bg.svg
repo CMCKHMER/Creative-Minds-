@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg-r" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c1a2e"/>
+      <stop offset="1" stop-color="#020617"/>
+    </linearGradient>
+    <radialGradient id="glow-r" cx="0.85" cy="0.15" r="0.6">
+      <stop offset="0" stop-color="#38bdf8" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="200" fill="url(#bg-r)"/>
+  <rect width="400" height="200" fill="url(#glow-r)"/>
+  <!-- Open book silhouette bottom-right -->
+  <g opacity="0.16" fill="#38bdf8" transform="translate(220,40)">
+    <path d="M0,60 Q40,40 80,60 L80,140 Q40,120 0,140 Z"/>
+    <path d="M80,60 Q120,40 160,60 L160,140 Q120,120 80,140 Z"/>
+    <line x1="80" y1="60" x2="80" y2="140" stroke="#38bdf8" stroke-width="1.5" opacity="0.8"/>
+  </g>
+  <!-- Text lines (paragraph representation) -->
+  <g opacity="0.20" fill="#38bdf8">
+    <rect x="22" y="60" width="160" height="3" rx="1.5"/>
+    <rect x="22" y="74" width="140" height="3" rx="1.5"/>
+    <rect x="22" y="88" width="170" height="3" rx="1.5"/>
+    <rect x="22" y="102" width="120" height="3" rx="1.5"/>
+    <rect x="22" y="116" width="150" height="3" rx="1.5"/>
+    <rect x="22" y="130" width="100" height="3" rx="1.5"/>
+  </g>
+  <!-- Accent dot -->
+  <circle cx="32" cy="32" r="4" fill="#38bdf8" opacity="0.4"/>
+</svg>

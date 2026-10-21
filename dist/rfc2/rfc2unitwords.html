@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Future Connect 2 — Word List</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{--bg:#05070f;--surface-2:#0d1526;--border:rgba(148,163,184,.14);--cyan:#22d3ee;--cyan-lt:#67e8f9;--violet:#8b5cf6;--violet-lt:#c4b5fd;--text:#e2e8f0;--muted:#8fa3b8;color-scheme:dark}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1100px 520px at 85% -10%,rgba(139,92,246,.16),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(34,211,238,.12),transparent 60%);min-height:100vh;padding:32px 16px;color:var(--text)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 40%,transparent 100%)}
+.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;background:rgba(9,13,24,.82);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65)}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:13px 28px;background:linear-gradient(90deg,rgba(124,58,237,.28),rgba(34,211,238,.14));border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan-lt)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.live-pill{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-lt);background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.4);border-radius:999px;padding:5px 12px}
+.live-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--violet);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.hero{padding:44px 44px 28px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan-lt);margin-bottom:16px}
+.eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,42px);line-height:1.08;text-transform:uppercase;color:#f8fafc}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan-lt),var(--violet-lt));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin-top:14px;max-width:700px;color:var(--muted);font-size:14.5px;line-height:1.7}
+.info{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:16px;padding:22px 44px;background:rgba(13,19,35,.65);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.form-group label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.form-group input,.form-group select{width:100%;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--text);background:#0a101f;border:1px solid rgba(148,163,184,.2);border-radius:10px;transition:border-color .25s,box-shadow .25s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+.content{padding:32px 44px 44px}
+.unit-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.unit-head .bar{width:4px;height:30px;border-radius:2px;background:linear-gradient(180deg,var(--cyan),var(--violet));box-shadow:0 0 14px rgba(34,211,238,.5)}
+.unit-title{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#f1f5f9}
+.unit-qr{margin-left:auto;width:84px;height:84px;flex-shrink:0;border-radius:10px;border:1px solid var(--border);background:#fff;padding:6px;object-fit:contain}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.stat{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;text-align:center}
+.stat b{display:block;font-family:'Space Grotesk',sans-serif;font-size:26px;color:var(--cyan-lt)}
+.stat span{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.word-card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:12px;padding:18px 20px;margin-bottom:14px;transition:transform .25s,border-color .25s,box-shadow .25s}
+.word-card:hover{transform:translateY(-2px);border-color:rgba(34,211,238,.45);box-shadow:0 12px 34px rgba(34,211,238,.09)}
+.word-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:9px}
+.word-text{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--cyan-lt)}
+.pos{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:4px 11px;white-space:nowrap}
+.pos-n{background:rgba(34,211,238,.12);color:var(--cyan-lt);border:1px solid rgba(34,211,238,.35)}
+.pos-v{background:rgba(139,92,246,.14);color:var(--violet-lt);border:1px solid rgba(139,92,246,.4)}
+.pos-adj{background:rgba(244,114,182,.12);color:#f9a8d4;border:1px solid rgba(244,114,182,.35)}
+.pos-adv{background:rgba(251,191,36,.12);color:#fcd34d;border:1px solid rgba(251,191,36,.35)}
+.pos-prep{background:rgba(52,211,153,.12);color:#6ee7b7;border:1px solid rgba(52,211,153,.35)}
+.pos-conj{background:rgba(96,165,250,.12);color:#93c5fd;border:1px solid rgba(96,165,250,.35)}
+.pos-phr{background:rgba(251,146,60,.12);color:#fdba74;border:1px solid rgba(251,146,60,.35)}
+.pos-pron{background:rgba(45,212,191,.12);color:#5eead4;border:1px solid rgba(45,212,191,.35)}
+.pos-det{background:rgba(163,230,53,.12);color:#bef264;border:1px solid rgba(163,230,53,.35)}
+.word-definition{color:#cbd5e1;font-size:14px;line-height:1.6;margin-bottom:10px}
+.word-sentence{color:#7c8ba1;font-size:13px;font-style:italic;padding-left:13px;border-left:2px solid rgba(139,92,246,.5)}
+.action-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.btn{flex:1;padding:13px;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:filter .25s,transform .25s;min-width:140px}
+.btn-share{color:var(--cyan-lt);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4)}
+.btn-print{color:var(--violet-lt);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.45)}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.share-panel{display:none;margin:22px 44px 0;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.share-panel.open{display:block}
+.share-panel h4{font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.share-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:10px;cursor:pointer;background:rgba(10,16,31,.7);border:1px solid rgba(148,163,184,.2);color:var(--text);font-size:11.5px;font-weight:600}
+.share-item .ico{font-size:18px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:50;background:rgba(13,19,35,.95);border:1px solid rgba(34,211,238,.5);color:var(--cyan-lt);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
+.placeholder .glyph{font-family:'Space Grotesk',sans-serif;font-size:44px;background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.placeholder p{margin-top:14px;color:var(--muted);font-size:15px}
+.footer{padding:16px 28px;border-top:1px solid var(--border);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
+@media (max-width:768px){.info{grid-template-columns:1fr}.hero,.info,.content{padding-left:22px;padding-right:22px}.action-row{flex-direction:column}.share-panel{margin-left:22px;margin-right:22px}.unit-qr{width:64px;height:64px}}
+@media (max-width:640px){.share-grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:1fr}}
+@media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.footer,.share-panel,.toast{display:none!important}.container{box-shadow:none;border:none;background:#fff}*{color:#111!important;background:transparent!important;border-color:#ccc!important;text-shadow:none!important}.word-card{break-inside:avoid}.word-text{color:#0e7490!important}.word-sentence{color:#555!important}.unit-qr{width:72px;height:72px;border:1px solid #ccc;background:#fff!important}}
+@page{margin:12mm}
+
+/* ── Light Theme Overrides ── */
+body.light{--bg:#eef2f7;--surface-2:#ffffff;--border:#dbe3ec;--cyan:#0891b2;--cyan-lt:#0e7490;--violet:#7c3aed;--violet-lt:#6d28d9;--text:#0f172a;--muted:#52657d;--success:#059669;--error:#dc2626;background:#eef2f7;background-image:radial-gradient(1100px 520px at 85% -10%,rgba(124,58,237,.10),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(8,145,178,.10),transparent 60%)}
+body.light .bg-grid{background-image:linear-gradient(rgba(15,23,42,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.05) 1px,transparent 1px)}
+body.light .container{background:rgba(255,255,255,.92);border-color:#dbe3ec;box-shadow:0 30px 90px rgba(15,23,42,.12)}
+body.light .topbar{background:linear-gradient(90deg,rgba(124,58,237,.10),rgba(8,145,178,.10));border-bottom-color:#dbe3ec}
+body.light .brand{color:#0e7490}
+body.light .brand .dot{background:#0891b2;box-shadow:0 0 10px rgba(8,145,178,.6)}
+body.light .live-pill{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.35)}
+body.light .live-pill .pulse{background:#7c3aed}
+body.light .eyebrow{color:#0e7490}
+body.light .hero h1{color:#0f172a}
+body.light .hero h1 .grad{background:linear-gradient(90deg,#0891b2,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent}
+body.light .hero p{color:#52657d}
+body.light .info{background:#f8fafc;border-color:#dbe3ec}
+body.light .form-group label{color:#52657d}
+body.light .form-group input,body.light .form-group select{background:#fff;border-color:#c3cfdd;color:#0f172a}
+body.light .unit-title{color:#0f172a}
+body.light .section-head{color:#6d28d9}
+body.light .passage-card,body.light .option-card,body.light .word-card,body.light .share-panel{background:#fff;border-color:#dbe3ec}
+body.light .passage-card,body.light .word-definition,body.light .fill{color:#0f172a}
+body.light .word-text{color:#0e7490!important}
+body.light .word-sentence{color:#555!important}
+body.light .word-card{border-left-color:#0891b2}
+body.light .stat{background:#fff;border-color:#dbe3ec}
+body.light .stat b{color:#0891b2}
+body.light .fill select{color:#0e7490;background:#f8fafc;border-color:rgba(8,145,178,.5)}
+body.light .bank .chip{background:rgba(8,145,178,.06);border-color:rgba(8,145,178,.5);color:#0e7490}
+body.light .build-line .chip{background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.45);color:#6d28d9}
+body.light .build-line{background:#f8fafc;border-color:#c3cfdd}
+body.light .build-line .hint{color:#8fa3b8}
+body.light .bank-word{background:rgba(8,145,178,.06);border-color:rgba(8,145,178,.5);color:#0e7490}
+body.light .btn-reset{color:#52657d;background:#f1f5f9;border-color:#c3cfdd}
+body.light .btn-share{color:#0e7490;background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.4)}
+body.light .btn-print{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.4)}
+body.light .btn-key{color:#047857;background:rgba(5,150,105,.08);border-color:rgba(5,150,105,.4)}
+body.light .btn-check{color:#041018}
+body.light .share-item{background:#f8fafc;border-color:#c3cfdd;color:#334155}
+body.light .share-panel h4{color:#52657d}
+body.light .toast{background:#fff;border-color:#0891b2;color:#0e7490}
+body.light .placeholder{border-color:#c3cfdd}
+body.light .placeholder p{color:#52657d}
+body.light .footer{border-top-color:#dbe3ec;color:#52657d}
+body.light .mc{background:#fff;border-color:#dbe3ec}
+body.light .opt{background:#f8fafc;border-color:#c3cfdd;color:#52657d}
+body.light .opt:hover{color:#0f172a;border-color:#0891b2}
+body.light .opt.sel{background:rgba(8,145,178,.08);border-color:#0891b2;color:#0e7490}
+body.light .pos{border-color:#c3cfdd}
+body.light .score-display{color:#0e7490}
+
+</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
+    <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
+</a>
+<script id="cmc-role-gate">
+/* CMC role indicator — shows Teacher mode / Student mode badge */
+(function(){
+  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
+  catch(e) { window.CMC_IS_TEACHER = false; }
+  document.addEventListener('DOMContentLoaded', function(){
+    var b = document.createElement('div');
+    if (window.CMC_IS_TEACHER) {
+      b.textContent = '🎓 Teacher mode';
+      b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(52,211,153,0.12);color:#6ee7b7;border:1px solid rgba(52,211,153,0.35);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+    } else {
+      b.textContent = 'Student mode';
+      b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(34,211,238,0.10);color:#67e8f9;border:1px solid rgba(34,211,238,0.30);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+    }
+    document.body.appendChild(b);
+  });
+})();
+</script>
+
+
+<div class="bg-grid"></div>
+<div class="container">
+  <div class="topbar"><div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div><div class="live-pill"><span class="pulse"></span>Live Word List</div></div>
+  <section class="hero">
+    <span class="eyebrow">Reading Future · Connect 2 · Word List</span>
+    <h1>Every unit. Every word.<br><span class="grad">One live worksheet.</span></h1>
+    <p>Interactive vocabulary reference for Reading Future Connect 2. Enter your name and date, select a unit, and review all target words with part of speech, definitions, and sample sentences — on screen or in print.</p>
+  </section>
+  <section class="info">
+    <div class="form-group"><label for="studentName">Student Name</label><input type="text" id="studentName" placeholder="Enter your name"></div>
+    <div class="form-group"><label for="dateField">Date</label><input type="date" id="dateField"></div>
+    <div class="form-group"><label for="unitSelect">Unit Selector</label><select id="unitSelect" onchange="loadUnit()"><option value="">— Choose a unit —</option></select></div>
+  </section>
+  <section class="content" id="content">
+    <div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its vocabulary set.</p></div>
+  </section>
+  <div class="share-panel" id="sharePanel">
+    <h4>Share this worksheet</h4>
+    <div class="share-grid">
+      <button class="share-item" onclick="copyLink()"><span class="ico">🔗</span>Copy Link</button>
+      <button class="share-item" onclick="shareEmail()"><span class="ico">✉️</span>Email</button>
+      <button class="share-item" onclick="shareWhatsApp()"><span class="ico">💬</span>WhatsApp</button>
+      <button class="share-item" onclick="shareX()"><span class="ico">📣</span>Post on X</button>
+    </div>
+  </div>
+  <div class="footer"><span>Reading Future Connect 2 · Word List</span><span>Interactive Edition · v1</span></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Unit QR code (top-right corner of every unit) ── */
+const QR_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPYAAAD2CAIAAABqcO2fAAAF7ElEQVR4nO3dS45tNQwFUAohRJP5j5ImonMZQJ5QXmQ7qc1a7bo5n9qKdKzE+fp8Pr9Arl9v3wD0EnHCiTjhRJxwIk44ESeciBNOxAkn4oQTccKJOOF+2/mj3//4s/k2/ss/f/918Kuqe16vvjPy2T1PWp9i50nP3kafnfdsFieciBNOxAkn4oQTccJtVVRWfRWDyS/0nac4qyrs/GrnWquqmkZfbeS1bJjFCSfihBNxwok44USccIcVlVXVd/3ZtSbXsVTVPda/OavV7Fx9R1+NZTIbK7M44USccCJOOBEnnIgTrqyictdr+1Oq1qicPUXGvqQqZnHCiTjhRJxwIk44ESdcSEVl1beO5aw2UrUe5mz1y/+ZWZxwIk44ESeciBNOxAlXVlF57Su+qs9q1XNV9VHZGXmyH8uOu9kwixNOxAkn4oQTccKJOOEOKyp3T3hZ9dVPJv9mdXecvj4zk8zihBNxwok44USccCJOuK/P53P7Hn7a3X0uVbWIyVUrO1K7r5jFCSfihBNxwok44USccFsVlbt9X/v6n/Q9V18f2tfe/Gv/95VZnHAiTjgRJ5yIE07ECbe166fvNN67pyfvqHqKuzuMVlXVkr43X/VfNosTTsQJJ+KEE3HCiTjhLu/6mfxmn1zvUVVjOfvV5LqRu11Tdt6YWZxwIk44ESeciBNOxAl3uOtn1bdf5u6+m6pf7YxzZnKVyOTVV2dv3ixOOBEnnIgTTsQJJ+KEO1yjMrky4e7pwK91X1m9tiLltU4vZnHCiTjhRJxwIk44ESfc6K6fu6s7Jk89Xk2utDkbZ2fkyTU8VczihBNxwok44USccCJOuK3OtDt2vqNf+x6/e8rw5BlGO+OcqbpWX39dszjhRJxwIk44ESeciBOubI1K1Vfz5Nk6Vb+qUnXPq+84ThWzOOFEnHAiTjgRJ5yIE+6wM+37vVi/48k+r/XyfW13lc608AMiTjgRJ5yIE07ECVfWmfbuGT1n45yNfGbyRJ7JCs9r9ZOVWZxwIk44ESeciBNOxAk3uuunz2RPkru1kb6dQavJHVh99TezOOFEnHAiTjgRJ5yIE+6wM+3dE3vv1j1WVVef3JdU1VG2bx3L2bVWZnHCiTjhRJxwIk44ESdc2a6fM6/VRs681memymv7gM6YxQkn4oQTccKJOOFEnHCNFZW73+M7I6/6nqvKZC3i7sj6qMAWESeciBNOxAkn4oQ73PWzeq1+suNsnPe7neyMfPfNn3HWD/yAiBNOxAkn4oQTccKNdqZ9rafrqq/u0Xetvh1G7583vcMsTjgRJ5yIE07ECSfihNtao3K3T8jOtc7+Zr2fvh6zVSbrMH0nBFVda4dZnHAiTjgRJ5yIE07ECVe266fKZB/avjN8+1aAZKwtmew/bBYnnIgTTsQJJ+KEE3HCNfZRWd3t1FG11mVV1TXlbkfZya4yVVfXRwVEnHQiTjgRJ5yIE26rj8pkJeTuucOTlZD331jf2hJrVKCMiBNOxAkn4oQTccJd3vXT1z+2aqXEZMVgciXJztUn+5/07RUyixNOxAkn4oQTccKJOOHKzvqZ9P4JON+xQ8vZ/ey4ew6UWZxwIk44ESeciBNOxAl3eNbPpPVbu++8m8ldP3erLlXjVK3GsUYFDok44USccCJOOBEn3OGun74VBZNdTKuqLjtf+lVv7Due5rya7MxjFieciBNOxAkn4oQTccKV9VHpO6vlbJz1fu6eIjR5/k5fdaJv91DfziCzOOFEnHAiTjgRJ5yIE+5yZ9pJZxWMyQ4kfR1aJk8jmtyFZNcPiDjpRJxwIk44ESdcSEWlqgvH5G6mqorB3U65fb+y6we2iDjhRJxwIk44ESdcWUWlrxaxc62qM4X7Oqb21UbOTPahrXo/Z/9lszjhRJxwIk44ESeciBPusKJy9/Sfqm//qv0yfZWQvtrRzrUm9SXKLE44ESeciBNOxAkn4oT7+nw+t+8BGpnFCSfihBNxwok44USccCJOOBEnnIgTTsQJJ+KEE3HC/QvJaNAwFzoXpgAAAABJRU5ErkJggg==";
+const QR_IMAGE = QR_BASE64 || "qr.png";
+function qrFallback(unit){
+  return `https://api.qrserver.com/v1/create-qr-code/?size=168x168&bgcolor=FFFFFF&color=05070f&data=${encodeURIComponent('Reading Future Connect 2 — ' + unit)}`;
+}
+
+const WORDS = {
+"Unit 1. New Media Art":[
+{w:"Instead",p:"adv.",d:"used when something is changed for another thing",s:"She lied to her mom instead of telling the truth."},
+{w:"media",p:"n.",d:"the internet, newspapers, televisions, etc., as a group",s:"The local media tells the community about new events."},
+{w:"art",p:"n.",d:"making of things such as paintings or drawings",s:"This painting is a beautiful work of art."},
+{w:"bring",p:"v.",d:"to take someone or something with you",s:"Did you bring an umbrella with you?"},
+{w:"unique",p:"adj.",d:"not like anything else",s:"Every snowflake is unique because each one is different."},
+{w:"experience",p:"n.",d:"knowledge or skill from doing things",s:"His experiences in cooking made him a good chef."},
+{w:"special",p:"adj.",d:"better or more important than other things",s:"Special events are marked on the calendar."},
+{w:"follow",p:"v.",d:"to go after someone else",s:"The baby ducks are following their mother home."},
+{w:"interact",p:"v.",d:"to communicate with each other",s:"The two are interacting with each other."},
+{w:"different",p:"adj.",d:"being not like something else",s:"The fruits have different shape and color."},
+{w:"stand",p:"v.",d:"to straighten your body by putting all of your weight on your feet",s:"They are all standing together."},
+{w:"technology",p:"n.",d:"the use of science to solve problems in life",s:"Technology is used worldwide."},
+{w:"movement",p:"n.",d:"an act of going from one position or place to another",s:"There was a lot of movement on the field when the soccer game started."},
+{w:"person",p:"n.",d:"a human being",s:"She's an extremely kind person."},
+{w:"control",p:"v.",d:"to have power over something or someone",s:"He is controlling the robot with a remote control."}],
+"Unit 2. Music in the City":[
+{w:"music",p:"n.",d:"sounds put together that people enjoy",s:"I listen to many kinds of music."},
+{w:"become",p:"v.",d:"to begin to be",s:"We have become great friends."},
+{w:"want",p:"v.",d:"to have a desire or need for something",s:"I want to buy a new bicycle."},
+{w:"artist",p:"n.",d:"a person who makes art",s:"My mother is an artist and paints large pictures."},
+{w:"musician",p:"n.",d:"a person who writes, sings, or plays music",s:"My sister is a musician and plays guitar in a popular band."},
+{w:"sign",p:"n.",d:"a flat thing with words or pictures that give information",s:"There is a stop sign at the end of my street."},
+{w:"let",p:"v.",d:"to say someone may do something",s:"My mom and dad let me watch TV after I do my homework."},
+{w:"enjoy",p:"v.",d:"to like something, someone or somewhere",s:"I enjoy reading books."},
+{w:"city",p:"n.",d:"a place where many people live and work",s:"Seoul is the biggest city."},
+{w:"bus stop",p:"n.",d:"a place where buses stop to load and unload passengers",s:"There are people waiting for the bus at the bus stop."},
+{w:"street",p:"n.",d:"a road that has houses or buildings on the side",s:"There are many cars on our street today."},
+{w:"make",p:"v.",d:"to build or put something together",s:"He made a bicycle with wings."},
+{w:"since",p:"conj.",d:"from a time in the past until now",s:"He's been artistic since he was a baby."},
+{w:"play",p:"v.",d:"to perform a piece of music on a musical instrument",s:"The band is playing music."},
+{w:"maybe",p:"adv.",d:"used to suggest something is possible",s:"Alice thinks that maybe it will rain."}],
+"Unit 3. Online Guitar Lessons":[
+{w:"cancel",p:"v.",d:"to stop doing or planning to do something",s:"We have to cancel the game because it started to rain."},
+{w:"do",p:"v.",d:"to make something happen",s:"She is doing her homework."},
+{w:"lesson",p:"n.",d:"an activity that you do in order to learn something",s:"I have a piano lesson after school on Monday."},
+{w:"nervous",p:"adj.",d:"being worried and afraid",s:"I was really nervous the first time I swam in the ocean."},
+{w:"free",p:"adj.",d:"does not cost any money",s:"She will give one free bottle for every bottle bought."},
+{w:"start",p:"v.",d:"to begin doing something",s:"We start school at 8 o'clock in the morning."},
+{w:"reason",p:"n.",d:"a cause for something",s:"He explains his reason for being late."},
+{w:"course",p:"n.",d:"a number of classes about one main topic",s:"Tim is taking a course in math."},
+{w:"cost",p:"v.",d:"to cause someone to pay an amount of money",s:"The train ticket will cost $75 dollars each way."},
+{w:"hour",p:"n.",d:"a word used to measure time",s:"There are 60 minutes in one hour."},
+{w:"online",p:"adj.",d:"on the internet",s:"I need to get online to do my homework."},
+{w:"learn",p:"v.",d:"to gain knowledge by studying or practicing",s:"The students are learning math from their teacher."},
+{w:"watch",p:"v.",d:"to look at someone or something for a period of time",s:"Many people are watching the news show."},
+{w:"face-to-face",p:"adj.",d:"meeting in person",s:"He wanted to have face-to-face meetings, so he is coming to the office now."},
+{w:"change",p:"v.",d:"to make something different",s:"He changed the temperature."}],
+"Unit 4. Twyla Tharp":[
+{w:"modern",p:"adj.",d:"connected to the present time; new",s:"Their house is very modern."},
+{w:"ballet",p:"n.",d:"a performance of telling a story through music and dancing",s:"The woman is practicing ballet."},
+{w:"open",p:"v.",d:"to be ready to operate or provide a service",s:"A new church is being opened."},
+{w:"dancer",p:"n.",d:"a person who dances",s:"The man is a dancer."},
+{w:"natural",p:"adj.",d:"coming from nature; usual or expected",s:"The natural yogurt didn't have any added sugar."},
+{w:"create",p:"v.",d:"to make something new",s:"I create new dance moves."},
+{w:"skip",p:"v.",d:"to not do something",s:"I skip breakfast when I'm late for school."},
+{w:"way",p:"n.",d:"a method that you use to do or achieve something",s:"There are three different ways to move the rock."},
+{w:"movement",p:"n.",d:"to change position or move from one place to another",s:"There was a lot of movement on the field."},
+{w:"decide",p:"v.",d:"to make a choice",s:"She is trying to decide on what to eat."},
+{w:"combine",p:"v.",d:"to mix or join two or more things together",s:"You can combine blue and red to make purple."},
+{w:"stage",p:"n.",d:"an area in a theater which actors or singers stand on",s:"There are no actors on the stage."},
+{w:"work",p:"v.",d:"to do a job",s:"My dad works at a school."},
+{w:"famous",p:"adj.",d:"very well known",s:"I want to be a famous movie star."},
+{w:"movie",p:"n.",d:"a story that can be watched on a screen",s:"I watch movies on the weekends."}],
+"Unit 5. DNA from Extinct Animals":[
+{w:"extinct",p:"adj.",d:"gone; no longer existing",s:"Dinosaurs have been extinct for about 65 million years."},
+{w:"again",p:"adv.",d:"do something one more time",s:"I want to play my video game again."},
+{w:"born",p:"v.",d:"to be brought to life",s:"The mother dog gave birth to four puppies."},
+{w:"study",p:"v.",d:"to find out more about a particular subject or problem",s:"I study math in the library after school."},
+{w:"take",p:"v.",d:"to bring something away to another place",s:"She always takes my pens to her room."},
+{w:"relative",p:"n.",d:"a member of your family",s:"They are close relatives."},
+{w:"bring",p:"v.",d:"to get something for someone and take it to them",s:"He brings a big chicken for everyone."},
+{w:"back",p:"adv.",d:"into the place or position where someone or something was before",s:"He is going back home."},
+{w:"freeze",p:"v.",d:"to become hard because of cold air",s:"When water freezes, it turns into ice."},
+{w:"egg",p:"n.",d:"what a baby can grow from",s:"The chick came out from its egg."},
+{w:"copy",p:"n.",d:"something that is made to be exactly like another thing",s:"She is working on a copy of the painting."},
+{w:"scientist",p:"n.",d:"a person who studies the natural world based on facts",s:"The scientist is looking into the microscope."},
+{w:"life",p:"n.",d:"living things such as plants and animals",s:"Water gives life to the plants."},
+{w:"see",p:"v.",d:"to use your eyes to notice things",s:"The teacher sees the student sleeping on his desk."},
+{w:"after",p:"prep.",d:"at a time following something or someone",s:"We arrived at the party just after 8 p.m."}],
+"Unit 6. The Clever Octopus":[
+{w:"smart",p:"adj.",d:"able to learn things quickly",s:"The smart student works hard in school."},
+{w:"brain",p:"n.",d:"the part in your head that controls your body",s:"I think with my brain."},
+{w:"creature",p:"n.",d:"an unknown thing",s:"There is a creature in the museum."},
+{w:"bounce",p:"v.",d:"to move one way, hit something, and move the other way",s:"The ball bounces on the ground."},
+{w:"pipe",p:"n.",d:"a long, hollow tube",s:"They are fixing the pipes below the sink."},
+{w:"octopus",p:"n.",d:"an animal that lives in the ocean and has 8 arms",s:"I saw an octopus when I went swimming in the sea."},
+{w:"similar",p:"adj.",d:"almost the same as something else",s:"My sister looks very similar to me."},
+{w:"clever",p:"adj.",d:"having the ability to understand things easily",s:"Sarah is very clever and can solve problems quickly."},
+{w:"pass",p:"v.",d:"to do well enough for a good grade or the next level",s:"I hope we pass the math test."},
+{w:"escape",p:"v.",d:"to get away from a place where you are being kept",s:"The mouse could not escape from the trap we set."},
+{w:"gap",p:"n.",d:"a space between two people or things",s:"I saw the gap between her two front teeth when she smiled."},
+{w:"finally",p:"adv.",d:"after a long time",s:"They have finally reached the finish line."},
+{w:"compare",p:"v.",d:"to look for differences or similarities",s:"It is important to compare prices of stores when shopping."},
+{w:"name",p:"n.",d:"a way a person is called",s:"My mother's name is Mary."},
+{w:"push",p:"v.",d:"moving something or someone away",s:"He pushed the button."}],
+"Unit 7. How a Frog Grows":[
+{w:"life cycle",p:"n.",d:"changes in an animal's body from baby to adult",s:"The teacher is explaining the life cycle of a frog."},
+{w:"frog",p:"n.",d:"a small green animal that lives near water",s:"There is a frog sitting on a lily pad."},
+{w:"stage",p:"n.",d:"a particular time that something reaches as it grows or develops",s:"These are the plant's growth stages."},
+{w:"grow",p:"v.",d:"to get bigger and taller in size",s:"My plants grow if I water them."},
+{w:"lay",p:"v.",d:"to make an egg that comes out of the body",s:"My hens lay five eggs every week."},
+{w:"look",p:"v.",d:"to turn one's eyes towards something to see it",s:"He is looking at the pictures on the wall."},
+{w:"each",p:"det.",d:"every one of two or more things or people, considered separately",s:"Each of the girls has a lollipop."},
+{w:"pond",p:"n.",d:"a small area of water",s:"There are lily pads on the pond."},
+{w:"leg",p:"n.",d:"one of the long parts of your body that your feet are joined to",s:"She has long legs."},
+{w:"breathe",p:"v.",d:"to move air into and out of your body",s:"It is hard to breathe when I run."},
+{w:"tadpole",p:"n.",d:"a small creature that has a long tail, lives in water",s:"The teacher is holding a picture of a tadpole."},
+{w:"front",p:"n.",d:"the part that faces forward",s:"Our garage is at the front of the house, not the back."},
+{w:"underwater",p:"adj.",d:"below the surface of an area of water",s:"There are many underwater fish and plants in the ocean."},
+{w:"tail",p:"n.",d:"the part of an animal's body that comes out of the back end",s:"The animal has a long tail."},
+{w:"gill",p:"n.",d:"the organs on the sides of the fish used for breathing",s:"The shark uses its gills to breathe underwater."}],
+"Unit 8. Snake Skin":[
+{w:"skin",p:"n.",d:"the outside piece of tissue that covers the body of a person or animal",s:"He has red spots all over his skin."},
+{w:"lose",p:"v.",d:"to become unable to find someone or something",s:"He loses his sight without his glasses."},
+{w:"underneath",p:"adv.",d:"below or beneath",s:"The tunnel goes right underneath the city."},
+{w:"animal",p:"n.",d:"any living creature that is not a plant or a person",s:"We see lots of animals at the zoo."},
+{w:"rip",p:"n.",d:"a long hole or opening in something",s:"He ripped off his tie."},
+{w:"come off",p:"v.",d:"to be able to be removed",s:"Does this hood come off?"},
+{w:"rub",p:"v.",d:"to move something back and forth while pressing it",s:"My dog likes when I rub his belly."},
+{w:"reason",p:"n.",d:"a cause for something",s:"The thick fog is the reason for the accident."},
+{w:"snake",p:"n.",d:"an animal with a long thin body and no legs, that often has a poisonous bit",s:"The snake has a long body."},
+{w:"swim",p:"v.",d:"to move in water by moving your hands and feet",s:"There are people swimming in the pool."},
+{w:"stretch",p:"v.",d:"to make something wider or longer by pulling it",s:"She stretches her body."},
+{w:"shed",p:"v.",d:"to lose a covering, such as leaves, hair, or skin",s:"The snake sheds its skin."},
+{w:"interesting",p:"adj.",d:"attracting your attention and interest",s:"This book has a lot of interesting facts about animals."},
+{w:"layer",p:"n.",d:"an amount of something that is on top of, under, or between other things",s:"A fresh layer of snow covered the street."},
+{w:"sock",p:"n.",d:"a kind of clothes you wear on your feet under your shoes",s:"I wear white socks at the gym."}],
+"Unit 9. Smart Glasses for the Blind":[
+{w:"smart",p:"adj.",d:"able to learn things quickly",s:"He is a smart boy."},
+{w:"blind",p:"adj.",d:"unable to see",s:"The blind man is walking with a stick."},
+{w:"tell",p:"v.",d:"to say something to someone",s:"She wants to tell the teacher something."},
+{w:"glasses",p:"n.",d:"a thing we wear to see better",s:"I really like my new reading glasses."},
+{w:"document",p:"n.",d:"a paper that gives information",s:"You should keep all of your bank documents in a safe place."},
+{w:"buy",p:"v.",d:"to spend money on something",s:"The boy buys flowers for his grandmother."},
+{w:"appear",p:"v.",d:"to perform publicly in a film, play, or concert",s:"That actress has appeared in many famous movies."},
+{w:"around",p:"prep.",d:"being any location or place",s:"She put the necklace around her neck."},
+{w:"bright",p:"adj.",d:"a strong color",s:"My favorite shirt is bright orange."},
+{w:"partly",p:"adv.",d:"not fully",s:"It's noisy, so I only partly heard what you said."},
+{w:"in front of",p:"pron.",d:"further forward or facing someone or something",s:"The puppy is in front of the girl."},
+{w:"directions",p:"n.",d:"instructions on how to go to a place",s:"The map shows directions to get to the treasure."},
+{w:"object",p:"n.",d:"something you can touch or see that is not alive",s:"He saw many objects on the desk."},
+{w:"give",p:"v.",d:"to put something in someone's hand",s:"The delivery man gives the box to the lady."},
+{w:"engineer",p:"n.",d:"a person who designs and builds things",s:"The engineers are building a tower."}],
+"Unit 10. Reading with Your Fingers":[
+{w:"sight",p:"n.",d:"the ability to see",s:"He got his sight back after eye surgery."},
+{w:"letter",p:"n.",d:"a thing you write to another person",s:"I like to write letters to my grandmother."},
+{w:"read",p:"v.",d:"to say words out loud for someone",s:"My dad reads books to me."},
+{w:"finger",p:"n.",d:"the 5 parts of the hand that help you hold things",s:"I have five fingers on each hand."},
+{w:"dot",p:"n.",d:"a small, round mark",s:"I have a polka dot dress."},
+{w:"raise",p:"v.",d:"higher than other parts",s:"Place the book on a raised shelf."},
+{w:"learn",p:"v.",d:"to gain knowledge by studying or practicing",s:"Where did you learn to speak French so well?"},
+{w:"blind",p:"adj.",d:"not being able to see, having no sight",s:"People who are blind use their fingers to read."},
+{w:"idea",p:"n.",d:"a thought or picture in your mind",s:"I have a great idea for a new game to play."},
+{w:"accident",p:"n.",d:"a sudden event that causes injury or damage",s:"Sorry I dropped the cup. It was an accident."},
+{w:"dark",p:"adj.",d:"not light",s:"I can't see your dark shirt when the light is off."},
+{w:"even though",p:"adv.",d:"despite something or someone",s:"He went to work even though he wasn't well."},
+{w:"develop",p:"v.",d:"to make something new",s:"The company develops new software."},
+{w:"soldier",p:"n.",d:"a person who fights for their country",s:"He was a soldier in the army for 8 years."},
+{w:"child",p:"n.",d:"a young girl or boy",s:"Joy can't walk to school alone. She's a child."}],
+"Unit 11. Stevie Wonder":[
+{w:"instrument",p:"n.",d:"a tool that is used to make music",s:"The piano is my favorite instrument."},
+{w:"musician",p:"n.",d:"a person who writes, sings, or plays music",s:"My brother is a musician and plays guitar in a popular band."},
+{w:"catch",p:"v.",d:"to stop and hold something that is moving",s:"I learned how to catch a ball when I was 4 years old."},
+{w:"sing",p:"v.",d:"to make music with your voice",s:"I can sing many different songs."},
+{w:"quiet",p:"adj.",d:"making very little noise",s:"You should be quiet when the teacher is talking."},
+{w:"problem",p:"n.",d:"something that is hard or bad",s:"The car has a problem, so we can't drive it."},
+{w:"everyone",p:"pron.",d:"all people",s:"Everyone I know likes the same band."},
+{w:"life",p:"n.",d:"the time from when a person is born until he or she dies",s:"He had a happy life."},
+{w:"carefully",p:"adv.",d:"in a way that is safe or correct",s:"He is carefully walking away from the scene."},
+{w:"amazing",p:"adj.",d:"hard to believe and causing surprise",s:"He gave an amazing performance in the play."},
+{w:"hearing",p:"n.",d:"the ability to use your ears to listen",s:"Mr. Chuck has a hearing problem."},
+{w:"award",p:"n.",d:"something you get for being excellent",s:"The boy received an award for his talents."},
+{w:"classroom",p:"n.",d:"a room where students learn from teachers",s:"My classroom is very large and has 40 students."},
+{w:"fantastic",p:"adj.",d:"very good or wonderful",s:"We had a fantastic trip."},
+{w:"difficult",p:"adj.",d:"not easy to work with",s:"My brother is difficult to talk to when he is angry."}],
+"Unit 12. Helen Keller":[
+{w:"both",p:"pron.",d:"each one of two things",s:"Both of them are happy."},
+{w:"get",p:"v.",d:"to change to a new feeling, situation, or state",s:"She got an award."},
+{w:"communicate",p:"v.",d:"to give information to other people",s:"He asked us to communicate with the rest of the group."},
+{w:"including",p:"prep.",d:"having someone or something as a part of a group",s:"He was fully dressed, including shoes."},
+{w:"famous",p:"adj.",d:"known by many people",s:"The fans are happy to see the famous star in the middle."},
+{w:"deaf",p:"adj.",d:"unable to hear",s:"She is deaf but she can read your lips to communicate."},
+{w:"easy",p:"adj.",d:"being not hard or difficult",s:"The camera is easy to use."},
+{w:"sick",p:"adj.",d:"having poor health",s:"My sister is sick with a bad cold."},
+{w:"tutor",p:"n.",d:"a teacher who works with one student",s:"She's in my tutor group at school."},
+{w:"hard",p:"adj.",d:"not easy",s:"It is a hard question."},
+{w:"know",p:"v.",d:"to have information",s:"Do you know where the library is?"},
+{w:"adventure",p:"n.",d:"an exciting and maybe dangerous activity",s:"I went on an adventure in Peru last summer."},
+{w:"book",p:"n.",d:"a collection of pages with words and pictures in it that people read",s:"I am reading a history book for school."},
+{w:"skill",p:"n.",d:"a talent or ability",s:"Starting a fire outside is a skill."},
+{w:"respect",p:"v.",d:"to feel admiration for someone or something",s:"Students should respect their teachers and do what they say."}],
+"Unit 13. 3D Food Printing":[
+{w:"printing",p:"n.",d:"the act or process of making a book, magazine, etc.",s:"She runs her own printing business."},
+{w:"effort",p:"n.",d:"hard work to do something",s:"I made an effort to study well."},
+{w:"fresh",p:"adj.",d:"food that was recently made or collected",s:"We keep chickens in our yard so we always have fresh eggs."},
+{w:"food",p:"n.",d:"a thing to eat",s:"My favorite food is pizza."},
+{w:"printer",p:"n.",d:"a machine that is connected to a computer and makes a copy of something",s:"I need to use the printer to print my essay for the teacher."},
+{w:"ingredient",p:"n.",d:"one of the things that is used to cook food",s:"There are ten ingredients in the cake recipe."},
+{w:"more",p:"det.",d:"(comparative of many) a large number of people or things",s:"The tall building has more windows."},
+{w:"new",p:"adj.",d:"made a short time before",s:"What are the new school rules?"},
+{w:"design",p:"v.",d:"a plan for how something will look or look like",s:"I asked her to design a dress for me."},
+{w:"eat",p:"v.",d:"to put food into your mouth, chew, and swallow it",s:"What do you want to eat for dinner?"},
+{w:"bakery",p:"n.",d:"a place or shop selling pastries or bread and cake",s:"The bakery has many kinds of breads."},
+{w:"push",p:"v.",d:"to press something to make a machine start working",s:"Can they push a heavy rock off the road?"},
+{w:"shape",p:"n.",d:"a form that has height, width, and/or length",s:"My birthday cake has a round shape."},
+{w:"restaurant",p:"n.",d:"a place to eat food outside the house",s:"We eat at a restaurant on my birthday!"},
+{w:"already",p:"adv.",d:"before now",s:"I already finished my homework, so I went outside to play."}],
+"Unit 14. Microwave Popcorn":[
+{w:"fine",p:"adj.",d:"being good enough",s:"I was sick yesterday, but I feel fine this morning."},
+{w:"sound",p:"n.",d:"a noise; something you can hear",s:"The gun made a loud sound."},
+{w:"need",p:"v.",d:"used when saying that someone should do something or has to do something",s:"Everyone needs air, water and food to live."},
+{w:"a few",p:"pron.",d:"some, or a small number of something",s:"We've been having a few problems with the new computer."},
+{w:"fold",p:"v.",d:"to bend one part of something over another part",s:"I folded the piece of paper to make a hat."},
+{w:"special",p:"adj.",d:"better or more important than other things",s:"The cake in the middle is special."},
+{w:"bag",p:"n.",d:"a container made of paper, cloth, or thin plastic which usually opens at the top",s:"The man is carrying a lot of bags."},
+{w:"plain",p:"adj.",d:"not having anything added or extra",s:"The plain dress was only one color."},
+{w:"by yourself",p:"pron.",d:"without other people; alone",s:"Are you able to do that all by yourself?"},
+{w:"minute",p:"n.",d:"a very short period of time",s:"There are 60 seconds in one minute."},
+{w:"oil",p:"n.",d:"a liquid that comes from a plant or animal that is used for cooking",s:"The oil is used for cooking."},
+{w:"save",p:"v.",d:"to keep money and not spend it",s:"I save 1 dollar every week."},
+{w:"microwave",p:"n.",d:"a type of oven that heats food quickly",s:"I use microwave to warm that food."},
+{w:"way",p:"n.",d:"a method that you use to do",s:"They are communicating in an odd way."},
+{w:"popcorn",p:"n.",d:"a corn heated or cooked with salt, sugar, or oil",s:"The man on the right is eating popcorn."}],
+"Unit 15. How a Factory Makes Food":[
+{w:"make",p:"v.",d:"to build or put something together",s:"I enjoy making clothes to wear to school."},
+{w:"degree",p:"n.",d:"a unit for measuring temperature",s:"The temperature will be 5 degrees colder tomorrow."},
+{w:"cook",p:"v.",d:"to get food ready",s:"My dad cooks the vegetables before dinner."},
+{w:"harvest",p:"v.",d:"to collect food from the place where it grows",s:"We have to harvest something."},
+{w:"factory",p:"n.",d:"a place where people use machines to make things",s:"The company makes toys in a factory."},
+{w:"step",p:"n.",d:"a movement where you put one foot in front of the other",s:"I walk ten steps from my bedroom to the bathroom."},
+{w:"blade",p:"n.",d:"a flat, sharp tool used to cut",s:"That knife has a very sharp blade."},
+{w:"potato chip",p:"n.",d:"a very thin, often round piece of fried potato",s:"My favorite snack is a potato chip."},
+{w:"machine",p:"n.",d:"a thing that has parts and uses power to work",s:"Cars are the best machines ever made."},
+{w:"ship",p:"v.",d:"to send something by boat, plane, or truck",s:"The boxes will be shipped to another location."},
+{w:"peel",p:"v.",d:"to take the skin off a vegetable or fruit",s:"He is peeling many carrots."},
+{w:"best",p:"adj.",d:"when something is better than everything else",s:"My grades are the best in the class."},
+{w:"slice",p:"n.",d:"a thin piece of food",s:"It is a slice of chocolate cake."},
+{w:"delicious",p:"adj.",d:"very pleasant to taste or to smell",s:"His meal looks delicious."},
+{w:"take place",p:"v.",d:"to happen, especially after being planned or arranged",s:"A concert is taking place in the auditorium."}],
+"Unit 16. Number Cakes":[
+{w:"use",p:"v.",d:"to do something with another thing",s:"I use a fork to eat my food."},
+{w:"butter",p:"n.",d:"an ingredient made from milk that is spread on food or used in cooking",s:"Do you want butter or jam on your toast?"},
+{w:"mean",p:"v.",d:"to carry an idea or information",s:"I do not know what any words in Spanish mean."},
+{w:"cupcake",p:"n.",d:"a small round cake",s:"There are four cupcakes on the table."},
+{w:"remember",p:"v.",d:"to have or keep something in your mind",s:"He remembered his childhood in this place."},
+{w:"first",p:"adv.",d:"someone or something that is before others or is number one",s:"When did you first meet him?"},
+{w:"call",p:"v.",d:"to give something or someone a specified name",s:"This dog is called Bobby."},
+{w:"spoon",p:"n.",d:"something we use to eat",s:"I eat soup with a spoon."},
+{w:"sugar",p:"n.",d:"white or brown crystals used to make food sweet",s:"He puts a lot of sugar in his coffee."},
+{w:"number",p:"n.",d:"something you use when you count",s:"What's our flight number?"},
+{w:"need",p:"v.",d:"to not have something that you must have",s:"Everyone needs air, water and food to live."},
+{w:"flour",p:"n.",d:"a powder made from a grain that is used for making bread, cakes",s:"The recipe says we need three cups of flour."},
+{w:"recipe",p:"n.",d:"a set of instructions for making food",s:"She followed the recipe to bake a loaf of bread."},
+{w:"put",p:"v.",d:"to move something to a particular place or position",s:"He put a big cookie on the table."},
+{w:"last",p:"adj.",d:"being the only one left",s:"Who wants to eat the last piece of pie and finish it?"}]
+};
+
+const unitSelect=document.getElementById('unitSelect');
+Object.keys(WORDS).forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;unitSelect.appendChild(o);});
+document.getElementById('dateField').valueAsDate=new Date();
+
+function posClass(p){
+  const k=p.replace('.','').trim();
+  return {n:'pos-n',v:'pos-v',adj:'pos-adj',adv:'pos-adv',prep:'pos-prep',conj:'pos-conj',phr:'pos-phr',pron:'pos-pron',det:'pos-det'}[k]||'pos-n';
+}
+
+function loadUnit(){
+  const unit=unitSelect.value,content=document.getElementById('content');
+  document.getElementById('sharePanel').classList.remove('open');
+  if(!unit){content.innerHTML=`<div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its vocabulary set.</p></div>`;return;}
+  const words=WORDS[unit];
+  const num=unit.match(/\d+/)[0];
+  content.innerHTML=`
+    <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${unit}</h2><img class="unit-qr" src="${QR_IMAGE}" alt="Unit QR code" onerror="this.onerror=null;this.src=qrFallback('${unit}')"></div>
+    <div class="stats">
+      <div class="stat"><b>${words.length}</b><span>Words</span></div>
+      <div class="stat"><b>${new Set(words.map(w=>w.p)).size}</b><span>Word Types</span></div>
+      <div class="stat"><b>${num}</b><span>Unit No.</span></div>
+    </div>
+    ${words.map((it,i)=>`
+      <div class="word-card">
+        <div class="word-header">
+          <span class="word-text">${String(i+1).padStart(2,'0')} · ${it.w}</span>
+          <span class="pos ${posClass(it.p)}">${it.p}</span>
+        </div>
+        <div class="word-definition">${it.d}</div>
+        <div class="word-sentence">"${it.s}"</div>
+      </div>`).join('')}
+    <div class="action-row">
+      <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
+      <button class="btn btn-print" onclick="printPDF()">⎙ Print / Save PDF</button>
+    </div>`;
+}
+
+/* ── Share & Print ── */
+function shareText(){
+  const name=document.getElementById('studentName').value.trim();
+  return `Reading Future Connect 2 — Word List (${unitSelect.value||'all units'})${name?' · '+name:''}`;
+}
+function shareWorksheet(){
+  if(navigator.share){navigator.share({title:'Reading Future Connect 2 — Word List',text:shareText(),url:location.href}).catch(()=>{});return;}
+  document.getElementById('sharePanel').classList.toggle('open');
+}
+function copyLink(){
+  const url=location.href;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard'));}
+  else{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}
+}
+function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Connect 2 — Word List')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
+function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}
+function shareX(){window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(location.href)}`,'_blank');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
+function printPDF(){document.getElementById('sharePanel').classList.remove('open');showToast('In the dialog, choose “Save as PDF” as destination');setTimeout(()=>window.print(),400);}
+window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
+</script>
+<script>
+
+/* ── Light / Dark Theme Toggle ── */
+(function(){
+  const btn = document.createElement('button');
+  btn.id = 'themeToggle'; btn.type = 'button';
+  btn.setAttribute('aria-label', 'Toggle light / dark theme');
+  btn.style.cssText = 'display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;cursor:pointer;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.35);color:inherit;transition:all .25s;margin-left:auto';
+  btn.onmouseover = function(){ this.style.filter='brightness(1.1)'; this.style.transform='translateY(-1px)'; };
+  btn.onmouseout = function(){ this.style.filter=''; this.style.transform=''; };
+  const bar = document.querySelector('.topbar');
+  if (bar) bar.appendChild(btn);
+  else document.body.appendChild(btn);
+  function apply(theme){
+    document.body.classList.toggle('light', theme === 'light');
+    document.documentElement.style.colorScheme = theme;
+    btn.innerHTML = theme === 'light' ? '\u{1F319} Dark' : '\u{2600}\u{FE0F} Light';
+    try{ localStorage.setItem('cm-theme', theme); }catch(e){}
+  }
+  let saved = 'dark';
+  try{ saved = localStorage.getItem('cm-theme') || 'dark'; }catch(e){}
+  apply(saved);
+  btn.onclick = ()=> apply(document.body.classList.contains('light') ? 'dark' : 'light');
+})();
+
+</script>
+<script>
+
+// CMC-ANSWER-GATE — gate answer keys for teachers only
+(function(){
+  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
+  catch(e) { window.CMC_IS_TEACHER = false; }
+  
+  function gateButton(fnName) {
+    var btns = document.querySelectorAll('[onclick*="' + fnName + '"]');
+    btns.forEach(function(btn) {
+      if (btn.getAttribute('data-cmc-gated')) return; // already gated
+      btn.setAttribute('data-cmc-gated', fnName);
+      var orig = btn.getAttribute('onclick');
+      btn.setAttribute('onclick', 'if(window.CMC_IS_TEACHER){' + fnName + '()}else{cmcTeacherOnlyPrompt(this)}');
+      if (!window.CMC_IS_TEACHER) {
+        btn.style.opacity = '0.55';
+        btn.style.cursor = 'not-allowed';
+        btn.title = 'Teachers only — sign in with an .edu or .edu.kh email';
+      }
+    });
+  }
+  
+  window.cmcTeacherOnlyPrompt = function(btn) {
+    var existing = document.getElementById('cmc-teacher-prompt');
+    if (existing) { existing.remove(); return; }
+    var p = document.createElement('div');
+    p.id = 'cmc-teacher-prompt';
+    p.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99996;max-width:420px;width:calc(100% - 32px);background:rgba(13,19,35,0.97);border:1px solid rgba(251,191,36,0.4);border-radius:14px;padding:24px;color:#f1f5f9;font-family:Inter,sans-serif;box-shadow:0 30px 90px rgba(0,0,0,0.65);backdrop-filter:blur(12px);';
+    p.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:16px">\u{1F512}</span><strong style="font-size:14px;color:#fbbf24">Answer keys are reserved for teachers</strong></div><p style="font-size:12.5px;line-height:1.6;color:#cbd5e1;margin:0 0 12px">To reveal the key, sign in with a work email containing <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">edu</code>.</p><div style="display:flex;gap:8px;justify-content:flex-end"><a href=\"https://cmckhmer.github.io/Creative-Minds-/\" style=\"display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,#fbbf24,#fcd34d);color:#041018;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none\">Sign in as teacher \u2192</a><button onclick=\"this.parentElement.parentElement.remove()\" style=\"background:transparent;border:1px solid rgba(255,255,255,0.1);color:#94a3b8;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer\">Close</button></div>';
+    document.body.appendChild(p);
+  };
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Gate Show Key buttons
+    gateButton('showKey');
+    // Gate Show Model Answers buttons
+    gateButton('toggleModels');
+  });
+})();
+
+</script>
+</body>
+</html>
+

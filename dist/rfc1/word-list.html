@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Future Change 1 — Word List</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{--bg:#05070f;--surface-2:#0d1526;--border:rgba(148,163,184,.14);--cyan:#22d3ee;--cyan-lt:#67e8f9;--violet:#8b5cf6;--violet-lt:#c4b5fd;--text:#e2e8f0;--muted:#8fa3b8;color-scheme:dark}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1100px 520px at 85% -10%,rgba(139,92,246,.16),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(34,211,238,.12),transparent 60%);min-height:100vh;padding:32px 16px;color:var(--text);transition:background .3s,color .3s}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 40%,transparent 100%)}
+.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;background:rgba(9,13,24,.82);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65);transition:background .3s,border-color .3s}
+.topbar{display:flex;justify-content:flex-start;gap:12px;align-items:center;padding:13px 28px;background:linear-gradient(90deg,rgba(124,58,237,.28),rgba(34,211,238,.14));border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan-lt)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.live-pill{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-lt);background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.4);border-radius:999px;padding:5px 12px;margin-left:auto}
+.live-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--violet);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+#themeToggle{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;cursor:pointer;font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.35);color:inherit;transition:all .25s}
+#themeToggle:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.hero{padding:44px 44px 28px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan-lt);margin-bottom:16px}
+.eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,42px);line-height:1.08;text-transform:uppercase;color:#f8fafc}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan-lt),var(--violet-lt));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin-top:14px;max-width:700px;color:var(--muted);font-size:14.5px;line-height:1.7}
+.info{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:16px;padding:22px 44px;background:rgba(13,19,35,.65);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.form-group label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.form-group input,.form-group select{width:100%;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--text);background:#0a101f;border:1px solid rgba(148,163,184,.2);border-radius:10px;transition:border-color .25s,box-shadow .25s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+.content{padding:32px 44px 44px}
+.unit-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.unit-head .bar{width:4px;height:30px;border-radius:2px;background:linear-gradient(180deg,var(--cyan),var(--violet));box-shadow:0 0 14px rgba(34,211,238,.5)}
+.unit-title{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#f1f5f9}
+.unit-qr{margin-left:auto;width:84px;height:84px;flex-shrink:0;border-radius:10px;border:1px solid var(--border);background:#fff;padding:6px;object-fit:contain}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.stat{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;text-align:center}
+.stat b{display:block;font-family:'Space Grotesk',sans-serif;font-size:26px;color:var(--cyan-lt)}
+.stat span{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.word-card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:12px;padding:18px 20px;margin-bottom:14px;transition:transform .25s,border-color .25s,box-shadow .25s}
+.word-card:hover{transform:translateY(-2px);border-color:rgba(34,211,238,.45);box-shadow:0 12px 34px rgba(34,211,238,.09)}
+.word-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:9px}
+.word-text{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--cyan-lt)}
+.pos{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:4px 11px;white-space:nowrap}
+.pos-n{background:rgba(34,211,238,.12);color:var(--cyan-lt);border:1px solid rgba(34,211,238,.35)}
+.pos-v{background:rgba(139,92,246,.14);color:var(--violet-lt);border:1px solid rgba(139,92,246,.4)}
+.pos-adj{background:rgba(244,114,182,.12);color:#f9a8d4;border:1px solid rgba(244,114,182,.35)}
+.pos-adv{background:rgba(251,191,36,.12);color:#fcd34d;border:1px solid rgba(251,191,36,.35)}
+.pos-prep{background:rgba(52,211,153,.12);color:#6ee7b7;border:1px solid rgba(52,211,153,.35)}
+.pos-conj{background:rgba(96,165,250,.12);color:#93c5fd;border:1px solid rgba(96,165,250,.35)}
+.pos-phr{background:rgba(251,146,60,.12);color:#fdba74;border:1px solid rgba(251,146,60,.35)}
+.pos-pron{background:rgba(45,212,191,.12);color:#5eead4;border:1px solid rgba(45,212,191,.35)}
+.pos-det{background:rgba(163,230,53,.12);color:#bef264;border:1px solid rgba(163,230,53,.35)}
+.word-definition{color:#cbd5e1;font-size:14px;line-height:1.6;margin-bottom:10px}
+.word-sentence{color:#7c8ba1;font-size:13px;font-style:italic;padding-left:13px;border-left:2px solid rgba(139,92,246,.5)}
+.action-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.btn{flex:1;padding:13px;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:filter .25s,transform .25s;min-width:140px}
+.btn-share{color:var(--cyan-lt);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4)}
+.btn-print{color:var(--violet-lt);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.45)}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.share-panel{display:none;margin:22px 44px 0;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.share-panel.open{display:block}
+.share-panel h4{font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.share-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:10px;cursor:pointer;background:rgba(10,16,31,.7);border:1px solid rgba(148,163,184,.2);color:var(--text);font-size:11.5px;font-weight:600}
+.share-item .ico{font-size:18px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:50;background:rgba(13,19,35,.95);border:1px solid rgba(34,211,238,.5);color:var(--cyan-lt);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
+.placeholder .glyph{font-family:'Space Grotesk',sans-serif;font-size:44px;background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.placeholder p{margin-top:14px;color:var(--muted);font-size:15px}
+.footer{padding:16px 28px;border-top:1px solid var(--border);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
+
+/* ── Light Theme Overrides ── */
+body.light{--bg:#eef2f7;--surface-2:#ffffff;--border:#dbe3ec;--cyan:#0891b2;--cyan-lt:#0e7490;--violet:#7c3aed;--violet-lt:#6d28d9;--text:#0f172a;--muted:#52657d;background:#eef2f7;background-image:radial-gradient(1100px 520px at 85% -10%,rgba(124,58,237,.10),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(8,145,178,.10),transparent 60%)}
+body.light .bg-grid{background-image:linear-gradient(rgba(15,23,42,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.05) 1px,transparent 1px)}
+body.light .container{background:rgba(255,255,255,.92);border-color:#dbe3ec;box-shadow:0 30px 90px rgba(15,23,42,.12)}
+body.light .topbar{background:linear-gradient(90deg,rgba(124,58,237,.10),rgba(8,145,178,.10));border-bottom-color:#dbe3ec}
+body.light .brand{color:#0e7490}
+body.light .brand .dot{background:#0891b2;box-shadow:0 0 10px rgba(8,145,178,.6)}
+body.light .live-pill{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.35)}
+body.light .live-pill .pulse{background:#7c3aed}
+body.light #themeToggle{background:#fff;border-color:#c3cfdd;color:#0e7490}
+body.light .eyebrow{color:#0e7490}
+body.light .hero h1{color:#0f172a}
+body.light .hero h1 .grad{background:linear-gradient(90deg,#0891b2,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent}
+body.light .hero p{color:#52657d}
+body.light .info{background:#f8fafc;border-color:#dbe3ec}
+body.light .form-group label{color:#52657d}
+body.light .form-group input,body.light .form-group select{background:#fff;border-color:#c3cfdd;color:#0f172a}
+body.light .unit-title{color:#0f172a}
+body.light .stat{background:#fff;border-color:#dbe3ec}
+body.light .stat b{color:#0e7490}
+body.light .stat span{color:#52657d}
+body.light .word-card{background:#fff;border-color:#dbe3ec}
+body.light .word-text{color:#0e7490}
+body.light .word-definition{color:#334155}
+body.light .word-sentence{color:#64748b}
+body.light .btn-share{color:#0e7490;background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.4)}
+body.light .btn-print{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.4)}
+body.light .share-item{background:#f8fafc;border-color:#c3cfdd;color:#334155}
+body.light .share-panel h4{color:#52657d}
+body.light .toast{background:#fff;border-color:#0891b2;color:#0e7490}
+body.light .placeholder{border-color:#c3cfdd}
+body.light .placeholder p{color:#52657d}
+body.light .footer{border-top-color:#dbe3ec;color:#52657d}
+body.light .pos-n{background:rgba(8,145,178,.1);color:#0e7490;border-color:rgba(8,145,178,.4)}
+body.light .pos-v{background:rgba(124,58,237,.1);color:#6d28d9;border-color:rgba(124,58,237,.4)}
+body.light .pos-adj{background:rgba(219,39,119,.08);color:#be185d;border-color:rgba(219,39,119,.35)}
+body.light .pos-adv{background:rgba(217,119,0,.08);color:#b45309;border-color:rgba(217,119,0,.35)}
+body.light .pos-prep{background:rgba(5,150,105,.08);color:#047857;border-color:rgba(5,150,105,.35)}
+body.light .pos-conj{background:rgba(37,99,235,.08);color:#1d4ed8;border-color:rgba(37,99,235,.35)}
+body.light .pos-phr{background:rgba(234,88,12,.08);color:#c2410c;border-color:rgba(234,88,12,.35)}
+body.light .pos-pron{background:rgba(13,148,136,.08);color:#0f766e;border-color:rgba(13,148,136,.35)}
+body.light .pos-det{background:rgba(101,163,13,.08);color:#4d7c0f;border-color:rgba(101,163,13,.35)}
+
+@media (max-width:768px){.info{grid-template-columns:1fr}.hero,.info,.content{padding-left:22px;padding-right:22px}.action-row{flex-direction:column}.share-panel{margin-left:22px;margin-right:22px}.unit-qr{width:64px;height:64px}}
+@media (max-width:640px){.share-grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:1fr}}
+@media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.footer,.share-panel,.toast,#themeToggle{display:none!important}.container{box-shadow:none;border:none;background:#fff}*{color:#111!important;background:transparent!important;border-color:#ccc!important;text-shadow:none!important}.word-card{break-inside:avoid}.word-text{color:#0e7490!important}.word-sentence{color:#555!important}.unit-qr{width:72px;height:72px;border:1px solid #ccc;background:#fff!important}}
+@page{margin:12mm}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+  <div class="topbar"><div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div><div class="live-pill"><span class="pulse"></span>Live Word List</div></div>
+  <section class="hero">
+    <span class="eyebrow">Reading Future · Change 1 · Word List</span>
+    <h1>Every unit. Every word.<br><span class="grad">One live worksheet.</span></h1>
+    <p>Interactive vocabulary reference for Reading Future Change 1. Enter your name and date, select a unit, and review all target words with part of speech, definitions, and sample sentences — on screen or in print.</p>
+  </section>
+  <section class="info">
+    <div class="form-group"><label for="studentName">Student Name</label><input type="text" id="studentName" placeholder="Enter your name"></div>
+    <div class="form-group"><label for="dateField">Date</label><input type="date" id="dateField"></div>
+    <div class="form-group"><label for="unitSelect">Unit Selector</label><select id="unitSelect" onchange="loadUnit()"><option value="">— Choose a unit —</option></select></div>
+  </section>
+  <section class="content" id="content">
+    <div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its vocabulary set.</p></div>
+  </section>
+  <div class="share-panel" id="sharePanel">
+    <h4>Share this worksheet</h4>
+    <div class="share-grid">
+      <button class="share-item" onclick="copyLink()"><span class="ico">🔗</span>Copy Link</button>
+      <button class="share-item" onclick="shareEmail()"><span class="ico">✉️</span>Email</button>
+      <button class="share-item" onclick="shareWhatsApp()"><span class="ico">💬</span>WhatsApp</button>
+      <button class="share-item" onclick="shareX()"><span class="ico">📣</span>Post on X</button>
+    </div>
+  </div>
+  <div class="footer"><span>Reading Future Change 1 · Word List</span><span>Interactive Edition · v1</span></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Unit QR code (top-right corner of every unit) ── */
+const QR_BASE64 = "";
+const QR_IMAGE = QR_BASE64 || "qr.png";
+function qrFallback(unit){
+  return `https://api.qrserver.com/v1/create-qr-code/?size=168x168&bgcolor=FFFFFF&color=05070f&data=${encodeURIComponent('Reading Future Change 1 — ' + unit)}`;
+}
+
+const WORDS = {
+"Unit 1. Hyperloop":[
+{w:"apart",p:"adv.",d:"away from one another in space or time",s:"The two houses stood 500 meters apart."},
+{w:"between",p:"prep.",d:"in the space that separates two places, people, or things",s:"The town lies halfway between Florence and Rome."},
+{w:"carry",p:"v.",d:"to move someone or something from one place to another",s:"The plane was carrying 30 passengers."},
+{w:"passenger",p:"n.",d:"someone who is travelling in a car, plane, etc., but not controlling it",s:"The boat is dropping off a passenger."},
+{w:"magnet",p:"n.",d:"an iron object that makes other pieces of iron move towards it",s:"The magnet has attraction for iron."},
+{w:"pressure",p:"n.",d:"the force that you produce when you push something",s:"The water is at very high pressure."},
+{w:"float",p:"v.",d:"to stay above the ground without touching it",s:"I just want to float in the water."},
+{w:"tube",p:"n.",d:"a pipe made of glass, plastic, metal, etc., especially for liquids or gases to flow through",s:"A doctor implanted a small tube under the patient's skin."},
+{w:"be able to",p:"phr.",d:"If you are able to do something, you can do it.",s:"He'll be able to help you."},
+{w:"inventor",p:"n.",d:"someone who designs and makes new things",s:"Thomas Edison was a great inventor."},
+{w:"million",p:"n.",d:"the number followed by six zeroes",s:"I've read the book millions of times."},
+{w:"billion",p:"n.",d:"the number followed by nine zeroes",s:"I can see a billion stars in the sky."},
+{w:"through",p:"prep.",d:"from one end or side of something to the other",s:"The Mississippi River flows through New Orleans."},
+{w:"state",p:"n.",d:"one of the parts that some countries are divided into",s:"Alaska is the largest state in the U.S."},
+{w:"transportation",p:"n.",d:"a vehicle or system of vehicles, such as buses, trains, planes, etc., for getting from one place to another",s:"I rely on public transport."}],
+"Unit 2. City Animals":[
+{w:"southern",p:"adj.",d:"in or toward the south",s:"The southern half of the country."},
+{w:"moose",p:"n.",d:"a large animal with big, flat horns",s:"In this country we do not have large beasts such as moose."},
+{w:"unique",p:"adj.",d:"being the only existing one of its type or, more generally, unusual, or special in some way",s:"The exhibition is a unique opportunity to see her later work."},
+{w:"comfortable",p:"adj.",d:"free from stress or tension",s:"These shoes aren't very comfortable for walking."},
+{w:"wild",p:"n.",d:"a natural area where people do not live",s:"Many animals live in the wild."},
+{w:"plenty",p:"n.",d:"a large number of something",s:"They thought of America as the land of plenty."},
+{w:"dumpster",p:"n.",d:"a large trash container",s:"Put your trash in the dumpsters."},
+{w:"yard",p:"n.",d:"garden; a piece of land next to a house, usually used for growing flowers and other plants",s:"The kids were playing in the yard."},
+{w:"branch",p:"n.",d:"a part of a tree that grows out from the trunk",s:"The fruit on the lower branches was protected from the sun."},
+{w:"mind",p:"v.",d:"to be bothered by",s:"Do you mind if I borrow your book?"},
+{w:"although",p:"conj.",d:"in spite of the fact that; even though",s:"They are good friends, although they don't meet a lot."},
+{w:"symbol",p:"n.",d:"a sign, shape, or object that is used to represent something else",s:"A heart shape is the symbol of love."},
+{w:"live",p:"v.",d:"to be alive or have life",s:"He only lived a few days after the accident."},
+{w:"even",p:"adv.",d:"used to emphasize a comparison",s:"The next 36 hours will be even colder with snow showers becoming more widespread."},
+{w:"reason",p:"n.",d:"the cause of an event or situation or something that provides an excuse or explanation",s:"The reason I walked out was because I was bored."}],
+"Unit 3. The Chunnel":[
+{w:"channel",p:"n.",d:"a narrow sea between two close large areas of land",s:"The captain tried to head the ship for the channel."},
+{w:"northern",p:"adj.",d:"in or toward the north",s:"It's a very small country in Northern Africa."},
+{w:"distance",p:"n.",d:"the length of the space between two places",s:"The distance between Boston and New York is 400 km."},
+{w:"strait",p:"n.",d:"a narrow area of water that connects two large seas",s:"The sea narrows into a strait."},
+{w:"over",p:"adv.",d:"more than an amount, number, or age",s:"I have over five-year experience as a sales clerk."},
+{w:"cross",p:"v.",d:"to go from one side of something to the other side",s:"This is not a good place to cross the road."},
+{w:"tunnel",p:"n.",d:"a passage that goes under the ground or through a hill",s:"The train went into the tunnel."},
+{w:"allow",p:"v.",d:"to let someone do something",s:"Smoking is not allowed in the restaurant."},
+{w:"possible",p:"adj.",d:"able to be done",s:"Try to read as fast as possible without stopping."},
+{w:"airport",p:"n.",d:"a place where planes take off and land",s:"I am waiting for the airplane at the airport."},
+{w:"under",p:"prep.",d:"below something",s:"She pushed her bag under the table."},
+{w:"uncomfortable",p:"adj.",d:"not making you feel comfortable and pleasant",s:"These shoes are really uncomfortable."},
+{w:"transportation",p:"n.",d:"a vehicle, such as buses, trains, planes, etc.",s:"People use public transportation to save money."},
+{w:"come from",p:"v.",d:"to be born in or live in a particular place",s:"The pineapple doesn't come from the trees."},
+{w:"carry",p:"v.",d:"to move someone or something from one place to another",s:"Plants carry water and minerals only in winter."}],
+"Unit 4. Manaus":[
+{w:"South America",p:"n.",d:"a continent below North America on a map",s:"Chile is the longest country in South America."},
+{w:"rainforest",p:"n.",d:"a forest in a tropical area that receives a lot of rain",s:"Many plant and animal species are found only in the rainforests."},
+{w:"unique",p:"adj.",d:"being the only existing one of its type",s:"It connects people in a unique and special way."},
+{w:"reason",p:"n.",d:"an idea that explains why something is the way it is",s:"What is the reason for your action?"},
+{w:"rubber",p:"n.",d:"a strong material that stretches",s:"Use a rubber to keep the box closed."},
+{w:"important",p:"adj.",d:"having great effect or influence",s:"It's important for children to learn to get on with each other."},
+{w:"goods",p:"n.",d:"things to buy or sell",s:"The goods are of poor quality."},
+{w:"sell",p:"v.",d:"to give something to someone else in return for money",s:"Today people buy and sell the things on the Internet."},
+{w:"rapidly",p:"adv.",d:"in a fast or sudden way",s:"The country's oil reserves are rapidly declining."},
+{w:"along",p:"prep.",d:"from one part of a road, river, etc. to another",s:"He was covered with dust while walking along the road."},
+{w:"center",p:"n.",d:"an important area where people come together to do something",s:"The hotel is located in the center of the business district."},
+{w:"business",p:"n.",d:"the act of making, buying, and selling things",s:"The way to be successful in business is always to stay one jump ahead of your competitors."},
+{w:"however",p:"adv.",d:"despite this",s:"It is cold outside; however, there are lots of people out for picnic."},
+{w:"still",p:"adv.",d:"continuing to happen",s:"I still haven't finished homework."},
+{w:"electronic",p:"adj.",d:"operating through the use of small electrical parts",s:"Portable phone is a daily used electronic device."}],
+"Unit 5. The Science of Sleep":[
+{w:"fall asleep",p:"phr.",d:"to start to sleep",s:"I fell asleep as soon as my head hit the pillow."},
+{w:"go through",p:"phr.",d:"to pass through something from one end to the other",s:"We went through the woods to get to the lake."},
+{w:"cycle",p:"n.",d:"a set of things that happen again and again in the same order",s:"The water cycle happens every day."},
+{w:"healthy",p:"adj.",d:"good for your health",s:"A healthy diet is important for children as well as adults."},
+{w:"stage",p:"n.",d:"a part of an activity or a period of development",s:"They did the last stage of their journey on foot."},
+{w:"respond",p:"v.",d:"to say or do something as a reaction to something that has been said or done",s:"I asked her what the time was, but she didn't respond."},
+{w:"difficult",p:"adj.",d:"not friendly, easy to deal with, or behaving well",s:"The manager is difficult to deal with."},
+{w:"experience",p:"n.",d:"knowledge or skill from doing, seeing, or feeling things",s:"I have lots of experience in this field."},
+{w:"get rid of",p:"v.",d:"to remove or throw away",s:"I used weed killer to get rid of the weeds in the garden."},
+{w:"information",p:"n.",d:"facts about a situation, person, event, etc.",s:"The British think health is the most important thing."},
+{w:"happen",p:"v.",d:"to have existence or come into existence",s:"A funny thing happened in the office today."},
+{w:"refreshed",p:"adj.",d:"having new strength or energy",s:"I feel refreshed."},
+{w:"muscle",p:"n.",d:"a tissue in the body that moves body parts",s:"Stretch your muscles before playing any sports."},
+{w:"immune system",p:"n.",d:"a system in the body that fights infections and diseases",s:"Stress can weaken your immune system."},
+{w:"cause",p:"v.",d:"to make something happen, especially something bad",s:"Most heart attacks are caused by blood clots."}],
+"Unit 6. Control Your Dreams":[
+{w:"control",p:"v.",d:"to order, limit, or rule something, or someone's actions or behavior",s:"The laws controlling drugs are very strict in this country."},
+{w:"change",p:"v.",d:"to exchange one thing for another thing, especially of a similar type",s:"I perceived a slight change in his attitude."},
+{w:"whole",p:"adj.",d:"the entire thing; not just a part",s:"The whole town was destroyed by the earthquake."},
+{w:"sense",p:"v.",d:"to know, feel, or understand",s:"He sensed something was about to happen."},
+{w:"movement",p:"n.",d:"a group of people with a particular set of aims",s:"The women's movement works for better job opportunities for women."},
+{w:"temperature",p:"n.",d:"how hot or how cold something is",s:"The doctor examined him and took his temperature."},
+{w:"usually",p:"adv.",d:"in the way that most often happens",s:"I usually just have a sandwich for lunch."},
+{w:"signal",p:"n.",d:"a sign that gives information",s:"The fireworks were a signal that the festival had started."},
+{w:"superhero",p:"n.",d:"a character that is not real that has amazing powers",s:"Police officers are the real superheroes."},
+{w:"ideal",p:"adj.",d:"perfect, or the best possible",s:"It's the ideal opportunity to meet people."},
+{w:"developer",p:"n.",d:"a person or company that creates new products",s:"His dream is to be a content developer to create games."},
+{w:"expand",p:"v.",d:"to increase in size or number",s:"The air in the balloon expands when heated."},
+{w:"ability",p:"n.",d:"the physical or mental power or skill needed to do something",s:"I want to have the ability to speak English well."},
+{w:"delightful",p:"adj.",d:"very pleasant",s:"It is delightful to meet you."},
+{w:"connect",p:"v.",d:"to join or be joined with something else",s:"Connect the power supply and cable."}],
+"Unit 7. Sleeping Habits":[
+{w:"lack",p:"n.",d:"not having enough of something",s:"My eyes feel heavy from lack of sleep."},
+{w:"concentrate",p:"v.",d:"to give a lot of attention",s:"It was hard to concentrate in the noisy room."},
+{w:"grade",p:"n.",d:"a number or letter that shows how good someone's work is",s:"She always gets good grades."},
+{w:"enough",p:"adj.",d:"as much as is necessary",s:"I've been eating too much and not exercising enough."},
+{w:"enable",p:"v.",d:"to make something possible",s:"Reading enables you to learn new things."},
+{w:"period",p:"n.",d:"a length of time",s:"Koreans want to master English in a short period of time."},
+{w:"habit",p:"n.",d:"something that you often do, almost without thinking about it",s:"I got into the habit of drinking coffee every morning."},
+{w:"fix",p:"v.",d:"to repair something",s:"We must fix up our house."},
+{w:"exercise",p:"v.",d:"to do physical activity that helps you become stronger and healthier",s:"I exercise every day to keep my body healthy."},
+{w:"regularly",p:"adv.",d:"at the same time each day, week, month, etc.",s:"I work out regularly and never eat to excess."},
+{w:"helpful",p:"adj.",d:"useful",s:"Taekwondo is helpful in training one's body and spirit."},
+{w:"schedule",p:"n.",d:"a plan of things that will be done and when they will be done",s:"Let me tell you about my daily schedule."},
+{w:"follow",p:"v.",d:"to move behind someone or something and go where they go",s:"She followed me into the kitchen."},
+{w:"improve",p:"v.",d:"to get better or to make something better",s:"It will greatly improve your life."},
+{w:"performance",p:"n.",d:"how well someone or something does",s:"The company's performance was poor for the first two years."}],
+"Unit 8. Testing Dreams":[
+{w:"affect",p:"v.",d:"to have an influence on someone or something, or to cause a change in someone or something",s:"Both buildings were badly affected by the fire."},
+{w:"sort of",p:"n.",d:"a number of people or things that are put together or considered as a unit",s:"I'm meeting a group of friends for dinner tonight."},
+{w:"experiment",p:"n.",d:"a test to find out something",s:"Scientists do lots of experiments to find out the results."},
+{w:"interesting",p:"adj.",d:"someone or something keeps your attention",s:"She's quite an interesting woman."},
+{w:"rose",p:"n.",d:"a flower that is often red and has a nice smell",s:"Red rose is my favorite flower."},
+{w:"agree",p:"v.",d:"to have the same opinion",s:"I agree with you on this issue."},
+{w:"interview",p:"v.",d:"to have a meeting where someone is asked questions to get information about them",s:"Jill was interviewed for an important job at an international airport."},
+{w:"ask",p:"v.",d:"to put a question to someone",s:"She asked me a question."},
+{w:"rotten",p:"adj.",d:"bad and not good to eat",s:"The room smelled of rotten eggs."},
+{w:"terrible",p:"adj.",d:"very unpleasant or serious or of low quality",s:"We have just received some terrible news."},
+{w:"seem",p:"v.",d:"to give the effect of being; to be judged to be",s:"He's 16, but he often seems younger."},
+{w:"avoid",p:"v.",d:"to keep away from",s:"I avoid driving in the rush hour."},
+{w:"need",p:"v.",d:"to have to have something, or to want something very much",s:"Babies need constant care."},
+{w:"make sure",p:"phr.",d:"to take special care to do something",s:"Make sure you're home by midnight."},
+{w:"result",p:"n.",d:"something that happens or exists because of something else",s:"The road has been widened, but the result is just more traffic."}],
+"Unit 9. First in Flight: The Wright Brothers":[
+{w:"receive",p:"v.",d:"to get",s:"Occasionally the actor receives letters from his fans."},
+{w:"helicopter",p:"n.",d:"a kind of flying machine",s:"If the weather's bad, the helicopter can't fly."},
+{w:"gift",p:"n.",d:"something that you give to someone, usually on a special day",s:"The gift shop has them in many colors."},
+{w:"machine",p:"n.",d:"a piece of equipment with moving parts that uses power to do a particular job",s:"The copying machine is out of paper."},
+{w:"interested",p:"adj.",d:"wanting to learn more about something",s:"The boy was interested in the toys."},
+{w:"invent",p:"v.",d:"to design or make something new",s:"I want to invent a hat that can make me concentrate better."},
+{w:"build",p:"v.",d:"to make something by putting materials and parts together",s:"He is helping to build a school for the children there."},
+{w:"engine",p:"n.",d:"a machine that changes energy into motion",s:"My car stopped because the engine broke."},
+{w:"crash",p:"v.",d:"to hit something hard",s:"The truck crashed into the car."},
+{w:"spend",p:"v.",d:"to use time doing something or being somewhere",s:"He spent 18 months working on the project."},
+{w:"ready",p:"adj.",d:"prepared for doing something",s:"I hope to be ready by November 17th."},
+{w:"land",p:"v.",d:"to come back to the ground after flying",s:"What time is the flight scheduled to land?"},
+{w:"almost",p:"adv.",d:"something is not completely the case but is nearly the case",s:"I was almost finished."},
+{w:"last",p:"v.",d:"to continue to happen or exist",s:"Last winter, we had freezing weather for weeks."},
+{w:"try",p:"v.",d:"to do something to discover if it works or if you like it",s:"Why don't you try it once again?"}],
+"Unit 10. Amelia Earhart":[
+{w:"pioneer",p:"n.",d:"someone who is one of the first people to do a thing",s:"He is the pioneer, since he was the first one to do it."},
+{w:"aviation",p:"n.",d:"something having to do with flying airplanes, helicopters, etc.",s:"She was the pioneer in aviation."},
+{w:"alone",p:"adj.",d:"without other people",s:"She decided to climb the mountain alone."},
+{w:"female",p:"adj.",d:"being a girl or women",s:"She was voted the best female vocalist."},
+{w:"pilot",p:"n.",d:"a person who flies an aircraft",s:"The pilot had no recollection of the events leading up to the crash."},
+{w:"voyage",p:"n.",d:"a long trip",s:"He was a young sailor on his first sea voyage."},
+{w:"navigator",p:"n.",d:"a person in a vehicle who decides the direction in which the vehicle travels",s:"The navigator's main job is reading the map and choosing the best way to go."},
+{w:"return",p:"v.",d:"to come or go back to a previous place",s:"She left South Africa at the age of 15 and has never returned."},
+{w:"problem",p:"n.",d:"a situation, person, or thing that needs to be dealt with or solved",s:"I'm having problems with my computer."},
+{w:"island",p:"n.",d:"an area of land that is surrounded by water",s:"They live on the large Japanese island of Hokkaido."},
+{w:"weather",p:"n.",d:"the conditions in the air above the earth such as wind, rain",s:"The weather in the mountains can change very quickly."},
+{w:"find",p:"v.",d:"to discover",s:"Researchers are hoping to find a cure for the disease."},
+{w:"hear",p:"v.",d:"to receive a sound using your ears",s:"She heard a noise outside."},
+{w:"somewhere",p:"adv.",d:"someplace in or at a place having a position that is not stated or not known",s:"She is traveling to somewhere in South Korea."},
+{w:"search",p:"v.",d:"to try to find someone or something",s:"Police officer is searching for the missing kid."}],
+"Unit 11. Flying Around the World":[
+{w:"aircraft",p:"n.",d:"a vehicle that can fly",s:"A company that manufactures aircraft."},
+{w:"brief",p:"adj.",d:"lasting only for a short time",s:"They discussed the matter briefly."},
+{w:"advance",p:"v.",d:"to make progress and become better",s:"Technology advanced a lot in the 20th century."},
+{w:"army",p:"n.",d:"a large group of soldiers organized to fight battles",s:"The organization was founded by a dedicated army of volunteers."},
+{w:"mission",p:"n.",d:"a task or a job that people must do",s:"The soldiers' mission is to destroy the bridge."},
+{w:"original",p:"adj.",d:"made or produced first; not a copy",s:"Her essay was full of original ideas."},
+{w:"mechanical",p:"adj.",d:"having to do with machines",s:"The flight was delayed because of mechanical problems."},
+{w:"globe",p:"n.",d:"the Earth",s:"This event was watched by 200 million people around the globe."},
+{w:"technology",p:"n.",d:"knowledge, equipment, and methods that are used in science and industry",s:"The government is developing innovative technologies to improve the safety of its soldiers."},
+{w:"voyage",p:"n.",d:"a long journey, especially by ship or in space",s:"He was a young sailor on his first voyage."},
+{w:"destroy",p:"v.",d:"to damage something so badly that it cannot be used or does not exist",s:"Many books were destroyed in the fire."},
+{w:"return",p:"v.",d:"to go or come back to a place where you were before",s:"She returned to the US in 1954."},
+{w:"airplane",p:"n.",d:"a vehicle that flies and has an engine and wings",s:"My uncle learned how to fly an airplane during World War II."},
+{w:"finish",p:"v.",d:"to stop doing something because nothing more needs to be done",s:"We finished planting the garden."},
+{w:"crash",p:"n.",d:"an accident in which a vehicle hits something",s:"She crashed the car into a tree, but no one was hurt."}],
+"Unit 12. Solar Flight History":[
+{w:"solar",p:"adj.",d:"relating to the sun",s:"Solar power"},
+{w:"pilot",p:"n.",d:"someone who flies a plane",s:"He is learning how to pilot a helicopter."},
+{w:"special",p:"adj.",d:"better or more important than usual things",s:"I'm cooking something special for her birthday."},
+{w:"instead",p:"adv.",d:"in the place of someone or something else",s:"Why don't you help instead of complaining?"},
+{w:"unique",p:"adj.",d:"different from everyone and everything else",s:"Everyone's fingerprints are unique."},
+{w:"fuel",p:"n.",d:"a substance that is burned to give heat or power",s:"We'll have to stop for fuel on the way to the airport."},
+{w:"energy",p:"n.",d:"the ability to be very active without becoming tired",s:"They devoted all their energy to the completion of the project."},
+{w:"intend",p:"v.",d:"to want and plan to do something",s:"How long do you intend to stay in Paris?"},
+{w:"renewable",p:"adj.",d:"naturally able to be reused again",s:"Renewable energy sources such as wind and solar power."},
+{w:"originally",p:"adv.",d:"first of all",s:"The building was originally Victorian in design."},
+{w:"technical",p:"adj.",d:"related to the use of machines and/or technology",s:"If you have any problems with your new computer, we offer 24-hour technical support."},
+{w:"conditions",p:"n.",d:"(plural) how good or bad something is",s:"Working conditions here are primitive."},
+{w:"delay",p:"n.",d:"when something happens later than it should",s:"The delay is due to the bad weather."},
+{w:"determined",p:"adj.",d:"having a strong feeling that you are going to do something",s:"She will get the job she wants — she's a very determined person."},
+{w:"successfully",p:"adv.",d:"in a way that achieves the result wanted",s:"She successfully passed her exams this week."}],
+"Unit 13. Smart Sportswear":[
+{w:"professional",p:"adj.",d:"relating to work that needs special training or education",s:"He became a professional athlete at the age of 16."},
+{w:"healthy",p:"adj.",d:"strong and well",s:"She's a normal, healthy child."},
+{w:"practice",p:"v.",d:"to do something again and again in order to become better at it",s:"The player practiced a lot before the final match."},
+{w:"strength",p:"n.",d:"the ability to do things that need a lot of physical or mental effort",s:"She gained strength after working out."},
+{w:"design",p:"v.",d:"to make or draw plans for something",s:"This range of clothing is specially designed for shorter women."},
+{w:"enable",p:"v.",d:"to make someone able to do something",s:"The smart clothes enable players to perform well."},
+{w:"goggles",p:"n.",d:"special glasses that fit close to the face to protect the eyes from chemicals, wind, water, etc.",s:"The goggles did not fit well, and the water went into my eyes."},
+{w:"efficient",p:"adj.",d:"working or operating quickly and effectively in an organized way",s:"We need someone really efficient who can organize the office and make it run smoothly."},
+{w:"coach",p:"n.",d:"a person who is trained in or good at sports",s:"The coach trained all the players."},
+{w:"airport",p:"n.",d:"a place where aircraft regularly take off and land",s:"Security checks have become really strict at the airport."},
+{w:"under",p:"prep.",d:"in or to a position below or lower than something else",s:"The city of Pompeii was buried under a layer of ash."},
+{w:"competitive",p:"adj.",d:"involving competition",s:"We live in a toughly competitive world."},
+{w:"improve",p:"v.",d:"to (cause something to) get better",s:"He did a lot to improve conditions for factory workers."},
+{w:"rest",p:"v.",d:"to stop being active for a period of time in order to relax",s:"The doctor told him that he should rest for a few days."},
+{w:"certain",p:"adj.",d:"particular but not named",s:"Certain changes were made while I was gone."}],
+"Unit 14. Water Safety":[
+{w:"risk",p:"n.",d:"the possibility of something bad happening",s:"In this business, the risks and the rewards are high."},
+{w:"safe",p:"adj.",d:"not in danger",s:"In some cities you don't feel safe going out alone at night."},
+{w:"stay",p:"v.",d:"to not move away from or leave a place or situation",s:"They need an assistant who is willing to stay for six months."},
+{w:"basic",p:"adj.",d:"simple and not complicated",s:"I really need to get some basic financial advice."},
+{w:"tip",p:"n.",d:"a piece of helpful information",s:"Seek expert advice."},
+{w:"trouble",p:"n.",d:"problems or difficulties",s:"He's never been in trouble with his teachers before."},
+{w:"slip",p:"v.",d:"to slide without intending to",s:"She slipped on the ice."},
+{w:"panic",p:"v.",d:"to feel a sudden strong fear",s:"He got in a panic mode in the big crowd."},
+{w:"drown",p:"v.",d:"to die by being unable to breathe underwater",s:"He drowned in a boating accident."},
+{w:"unsafe",p:"adj.",d:"able or likely to cause harm, damage, or loss",s:"Unfortunately, this isn't Jenner's first incident of feeling unsafe in her own residence."},
+{w:"sink",p:"v.",d:"to go down below the surface or to the bottom of a liquid",s:"The Titanic was a passenger ship which sank in 1912."},
+{w:"float",p:"v.",d:"to stay on the surface of a liquid and not sink",s:"You can float very easily in the Dead Sea because it's so salty."},
+{w:"follow",p:"v.",d:"to move behind someone or something and go where he, she, or it goes",s:"Follow the road for two miles, and then turn left."},
+{w:"survive",p:"v.",d:"to continue to live or exist",s:"I learned swimming to survive in the water."},
+{w:"calm",p:"adj.",d:"relaxed; not worried, afraid",s:"He has a very calm manner."}],
+"Unit 15. Dodgeball":[
+{w:"famous",p:"adj.",d:"known and recognized by many people",s:"Marie Curie is famous for her contribution to science."},
+{w:"aim",p:"n.",d:"the goal of some action",s:"She walked towards the aim."},
+{w:"simple",p:"adj.",d:"easy to understand or do; not difficult",s:"The instructions were written in simple English."},
+{w:"eliminate",p:"v.",d:"to remove or take away someone or something",s:"She eliminated the items she did not want to buy from the list."},
+{w:"hit",p:"v.",d:"to move your hand or an object onto the surface with force",s:"She hit her thumb with the hammer."},
+{w:"avoid",p:"v.",d:"to stay away from someone or something",s:"I try to avoid supermarkets on Saturdays. They are always busy."},
+{w:"field",p:"n.",d:"an area of land that is used for sports",s:"The players practice in the fields."},
+{w:"court",p:"n.",d:"a large flat surface that is shaped like a square or rectangle and that is used for playing games",s:"The ball went out of the court."},
+{w:"enough",p:"adv.",d:"as much as is necessary; in the amount or to the degree needed",s:"My concern is that you're not getting enough work done."},
+{w:"sort",p:"n.",d:"a group of things that are of the same type or that share similar qualities",s:"We both like the same sort of music."},
+{w:"large",p:"adj.",d:"big in size or amount",s:"We didn't expect such a large number of people to attend the concert."},
+{w:"odd",p:"adj.",d:"(of numbers) not able to be divided exactly by two",s:"The houses on this side of the street all have odd numbers."},
+{w:"understand",p:"v.",d:"to know the meaning of something that someone says",s:"She explained the whole idea again, but I still didn't understand."},
+{w:"soft",p:"adj.",d:"not hard or firm",s:"I like chocolates with soft centres."},
+{w:"world",p:"n.",d:"the earth and all the people, places, and things on it",s:"We live in a changing world and people must learn to adapt."}],
+"Unit 16. Golden Time that Save Lives":[
+{w:"beat",p:"v.",d:"to hit repeatedly",s:"Her heart started to beat faster."},
+{w:"injured",p:"adj.",d:"hurt or physically harmed",s:"She was told to stay in bed to rest her injured back."},
+{w:"situation",p:"n.",d:"an important or sudden problem",s:"Her news put me in a difficult situation."},
+{w:"compression",p:"n.",d:"pressing something to make it smaller",s:"Chest compressions which are done in the golden time can save lives."},
+{w:"flat",p:"adj.",d:"level and smooth, with no curved, high, or hollow parts",s:"An ice rink needs to be completely flat."},
+{w:"chest",p:"n.",d:"the upper front part of the body of humans and some animals",s:"He folded his arms across his chest."},
+{w:"weight",p:"n.",d:"the amount that something or someone weighs",s:"There was a slight decrease in his weight after a week of dieting."},
+{w:"release",p:"v.",d:"to give freedom or free movement to someone or something",s:"He released the handbrake and the car jumped forwards."},
+{w:"worry",p:"v.",d:"to think about problems that might happen in a way that makes you feel unhappy and frightened",s:"I worry about my test scores because I have not done well."},
+{w:"repeat",p:"v.",d:"to happen, or to do something, more than once",s:"Johnny had to repeat a year at school."},
+{w:"quickly",p:"adv.",d:"at a fast speed",s:"Police quickly closed off the area."},
+{w:"continue",p:"v.",d:"to keep happening, existing, or doing something",s:"If the rain continues, we'll have to cancel tonight's plans."},
+{w:"until",p:"prep.",d:"up to (the time that)",s:"We didn't eat till past midnight."},
+{w:"save",p:"v.",d:"to stop someone or something from being killed or injured",s:"We all need to do our part to save the planet."},
+{w:"certified",p:"adj.",d:"having a document that proves that you have successfully finished a course of training",s:"She is certified to practice medicine."}]
+};
+
+const unitSelect=document.getElementById('unitSelect');
+Object.keys(WORDS).forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;unitSelect.appendChild(o);});
+document.getElementById('dateField').valueAsDate=new Date();
+
+function posClass(p){
+  const k=p.replace('.','').trim();
+  return {n:'pos-n',v:'pos-v',adj:'pos-adj',adv:'pos-adv',prep:'pos-prep',conj:'pos-conj',phr:'pos-phr',pron:'pos-pron',det:'pos-det'}[k]||'pos-n';
+}
+
+function loadUnit(){
+  const unit=unitSelect.value,content=document.getElementById('content');
+  document.getElementById('sharePanel').classList.remove('open');
+  if(!unit){content.innerHTML=`<div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its vocabulary set.</p></div>`;return;}
+  const words=WORDS[unit];
+  const num=unit.match(/\d+/)[0];
+  content.innerHTML=`
+    <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${unit}</h2><img class="unit-qr" src="${QR_IMAGE}" alt="Unit QR code" onerror="this.onerror=null;this.src=qrFallback('${unit}')"></div>
+    <div class="stats">
+      <div class="stat"><b>${words.length}</b><span>Words</span></div>
+      <div class="stat"><b>${new Set(words.map(w=>w.p)).size}</b><span>Word Types</span></div>
+      <div class="stat"><b>${num}</b><span>Unit No.</span></div>
+    </div>
+    ${words.map((it,i)=>`
+      <div class="word-card">
+        <div class="word-header">
+          <span class="word-text">${String(i+1).padStart(2,'0')} · ${it.w}</span>
+          <span class="pos ${posClass(it.p)}">${it.p}</span>
+        </div>
+        <div class="word-definition">${it.d}</div>
+        <div class="word-sentence">"${it.s}"</div>
+      </div>`).join('')}
+    <div class="action-row">
+      <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
+      <button class="btn btn-print" onclick="printPDF()">⎙ Print / Save PDF</button>
+    </div>`;
+}
+
+/* ── Share & Print ── */
+function shareText(){
+  const name=document.getElementById('studentName').value.trim();
+  return `Reading Future Change 1 — Word List (${unitSelect.value||'all units'})${name?' · '+name:''}`;
+}
+function shareWorksheet(){
+  if(navigator.share){navigator.share({title:'Reading Future Change 1 — Word List',text:shareText(),url:location.href}).catch(()=>{});return;}
+  document.getElementById('sharePanel').classList.toggle('open');
+}
+function copyLink(){
+  const url=location.href;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard'));}
+  else{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}
+}
+function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Change 1 — Word List')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
+function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}
+function shareX(){window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(location.href)}`,'_blank');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
+function printPDF(){document.getElementById('sharePanel').classList.remove('open');showToast('In the dialog, choose “Save as PDF” as destination');setTimeout(()=>window.print(),400);}
+window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
+
+/* ── Light / Dark Theme Toggle ── */
+(function(){
+  const btn=document.createElement('button');
+  btn.id='themeToggle';btn.type='button';
+  btn.setAttribute('aria-label','Toggle light / dark theme');
+  const bar=document.querySelector('.topbar');
+  (bar||document.body).appendChild(btn);
+  function apply(theme){
+    document.body.classList.toggle('light',theme==='light');
+    document.documentElement.style.colorScheme=theme;
+    btn.innerHTML=theme==='light'?'🌙 Dark':'️ Light';
+    try{localStorage.setItem('cm-theme',theme);}catch(e){}
+  }
+  let saved='dark';
+  try{saved=localStorage.getItem('cm-theme')||'dark';}catch(e){}
+  apply(saved);
+  btn.onclick=()=>apply(document.body.classList.contains('light')?'dark':'light');
+})();
+</script>
+<style id="cmc-back-guard">
+  @media (max-width: 700px) {
+    body { padding-top: 72px !important; }
+  }
+</style>
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans','Inter',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
+    <span style="font-size:13px; line-height:1;">&#8592;</span> Back to CMC
+</a>
+</body>
+</html>
+

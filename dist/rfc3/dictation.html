@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Future Create 3 — Dictation Sheet</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{--bg:#05070f;--surface-2:#0d1526;--border:rgba(148,163,184,.14);--cyan:#22d3ee;--cyan-lt:#67e8f9;--violet:#8b5cf6;--violet-lt:#c4b5fd;--text:#e2e8f0;--muted:#8fa3b8;--success:#34d399;--error:#f87171;color-scheme:dark}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1100px 520px at 85% -10%,rgba(139,92,246,.16),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(34,211,238,.12),transparent 60%);min-height:100vh;padding:32px 16px;color:var(--text)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 40%,transparent 100%)}
+.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;background:rgba(9,13,24,.82);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65)}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:13px 28px;background:linear-gradient(90deg,rgba(124,58,237,.28),rgba(34,211,238,.14));border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan-lt)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.live-pill{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-lt);background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.4);border-radius:999px;padding:5px 12px}
+.live-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--violet);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.hero{padding:44px 44px 28px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan-lt);margin-bottom:16px}
+.eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,42px);line-height:1.08;text-transform:uppercase;color:#f8fafc}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyan-lt),var(--violet-lt));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin-top:14px;max-width:720px;color:var(--muted);font-size:14.5px;line-height:1.7}
+.info{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:16px;padding:22px 44px;background:rgba(13,19,35,.65);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.form-group label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.form-group input,.form-group select{width:100%;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--text);background:#0a101f;border:1px solid rgba(148,163,184,.2);border-radius:10px;transition:border-color .25s,box-shadow .25s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+.content{padding:32px 44px 44px}
+.unit-head{display:flex;align-items:center;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+.unit-head .bar{width:4px;height:30px;border-radius:2px;background:linear-gradient(180deg,var(--cyan),var(--violet));box-shadow:0 0 14px rgba(34,211,238,.5)}
+.unit-title{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:#f1f5f9}
+.track-pill{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan-lt);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4);border-radius:999px;padding:5px 12px}
+.unit-qr{margin-left:auto;width:84px;height:84px;flex-shrink:0;border-radius:10px;border:1px solid var(--border);background:#fff;padding:6px;object-fit:contain}
+.listen-note{font-size:12.5px;color:var(--muted);margin:0 0 18px 18px}
+.passage-card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--border);border-radius:12px;padding:26px 28px;font-size:15px;line-height:2.5;color:#cbd5e1}
+.dbwrap{display:inline-block;margin:0 4px;vertical-align:middle}
+.dbnum{font-size:11px;color:var(--violet-lt);font-weight:700;margin-right:3px}
+.dblane{font-family:inherit;font-size:13.5px;text-align:center;color:var(--cyan-lt);background:#0a101f;border:none;border-bottom:2px dashed rgba(34,211,238,.5);border-radius:6px 6px 0 0;padding:6px 8px;width:120px;transition:all .2s}
+.dblane.long{width:200px}
+.dblane:focus{outline:none;border-bottom-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+.dblane.correct{border-bottom:2px solid var(--success);background:rgba(52,211,153,.1);color:var(--success)}
+.dblane.incorrect{border-bottom:2px solid var(--error);background:rgba(248,113,113,.1);color:var(--error)}
+.action-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.btn{flex:1;padding:13px;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:filter .25s,transform .25s;min-width:140px}
+.btn-check{color:#041018;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.btn-key{color:var(--success);background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.4)}
+.btn-share{color:var(--cyan-lt);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4)}
+.btn-print{color:var(--violet-lt);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.45)}
+.btn-reset{color:var(--muted);background:rgba(148,163,184,.1);border:1px solid var(--border)}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.score-display{text-align:center;margin-top:16px;font-family:'Space Grotesk',sans-serif;font-size:17px;color:var(--cyan-lt);display:none}
+.share-panel{display:none;margin:22px 44px 0;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.share-panel.open{display:block}
+.share-panel h4{font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.share-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:10px;cursor:pointer;background:rgba(10,16,31,.7);border:1px solid rgba(148,163,184,.2);color:var(--text);font-size:11.5px;font-weight:600}
+.share-item .ico{font-size:18px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:50;background:rgba(13,19,35,.95);border:1px solid rgba(34,211,238,.5);color:var(--cyan-lt);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
+.placeholder .glyph{font-family:'Space Grotesk',sans-serif;font-size:44px;background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.placeholder p{margin-top:14px;color:var(--muted);font-size:15px}
+.footer{padding:16px 28px;border-top:1px solid var(--border);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
+@media (max-width:768px){.info{grid-template-columns:1fr}.hero,.info,.content{padding-left:22px;padding-right:22px}.action-row{flex-direction:column}.share-panel{margin-left:22px;margin-right:22px}.dblane{width:90px}.dblane.long{width:150px}.unit-qr{width:64px;height:64px}}
+@media (max-width:640px){.share-grid{grid-template-columns:repeat(2,1fr)}}
+@media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.score-display,.footer,.share-panel,.toast{display:none!important}.container{box-shadow:none;border:none;background:#fff}*{color:#111!important;background:transparent!important;border-color:#ccc!important;text-shadow:none!important}.passage-card{line-height:2.6}.dblane{border-bottom:1px solid #999!important;color:#111!important}.dblane.correct,.dblane.incorrect{border-bottom:1px solid #999!important}.unit-qr{width:72px;height:72px;border:1px solid #ccc;background:#fff!important}}
+@page{margin:12mm}
+/* ── Light Theme Overrides ── */
+body.light{--bg:#eef2f7;--surface-2:#ffffff;--border:#dbe3ec;--cyan:#0891b2;--cyan-lt:#0e7490;--violet:#7c3aed;--violet-lt:#6d28d9;--text:#0f172a;--muted:#52657d;--success:#059669;--error:#dc2626;background:#eef2f7;background-image:radial-gradient(1100px 520px at 85% -10%,rgba(124,58,237,.10),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(8,145,178,.10),transparent 60%)}
+body.light .bg-grid{background-image:linear-gradient(rgba(15,23,42,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.05) 1px,transparent 1px)}
+body.light .container{background:rgba(255,255,255,.92);border-color:#dbe3ec;box-shadow:0 30px 90px rgba(15,23,42,.12)}
+body.light .topbar{background:linear-gradient(90deg,rgba(124,58,237,.10),rgba(8,145,178,.10));border-bottom-color:#dbe3ec}
+body.light .brand{color:#0e7490}
+body.light .brand .dot{background:#0891b2;box-shadow:0 0 10px rgba(8,145,178,.6)}
+body.light .live-pill{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.35)}
+body.light .live-pill .pulse{background:#7c3aed}
+body.light .eyebrow{color:#0e7490}
+body.light .hero h1{color:#0f172a}
+body.light .hero h1 .grad{background:linear-gradient(90deg,#0891b2,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent}
+body.light .hero p{color:#52657d}
+body.light .info{background:#f8fafc;border-color:#dbe3ec}
+body.light .form-group label{color:#52657d}
+body.light .form-group input,body.light .form-group select{background:#fff;border-color:#c3cfdd;color:#0f172a}
+body.light .unit-title{color:#0f172a}
+body.light .section-head{color:#6d28d9}
+body.light .passage-card,body.light .option-card,body.light .word-card,body.light .share-panel{background:#fff;border-color:#dbe3ec}
+body.light .passage-card,body.light .word-definition,body.light .fill{color:#0f172a}
+body.light .word-text{color:#0e7490!important}
+body.light .word-sentence{color:#555!important}
+body.light .word-card{border-left-color:#0891b2}
+body.light .stat{background:#fff;border-color:#dbe3ec}
+body.light .stat b{color:#0891b2}
+body.light .fill select{color:#0e7490;background:#f8fafc;border-color:rgba(8,145,178,.5)}
+body.light .bank .chip{background:rgba(8,145,178,.06);border-color:rgba(8,145,178,.5);color:#0e7490}
+body.light .build-line .chip{background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.45);color:#6d28d9}
+body.light .build-line{background:#f8fafc;border-color:#c3cfdd}
+body.light .build-line .hint{color:#8fa3b8}
+body.light .bank-word{background:rgba(8,145,178,.06);border-color:rgba(8,145,178,.5);color:#0e7490}
+body.light .btn-reset{color:#52657d;background:#f1f5f9;border-color:#c3cfdd}
+body.light .btn-share{color:#0e7490;background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.4)}
+body.light .btn-print{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.4)}
+body.light .btn-key{color:#047857;background:rgba(5,150,105,.08);border-color:rgba(5,150,105,.4)}
+body.light .btn-check{color:#041018}
+body.light .share-item{background:#f8fafc;border-color:#c3cfdd;color:#334155}
+body.light .share-panel h4{color:#52657d}
+body.light .toast{background:#fff;border-color:#0891b2;color:#0e7490}
+body.light .placeholder{border-color:#c3cfdd}
+body.light .placeholder p{color:#52657d}
+body.light .footer{border-top-color:#dbe3ec;color:#52657d}
+body.light .mc{background:#fff;border-color:#dbe3ec}
+body.light .opt{background:#f8fafc;border-color:#c3cfdd;color:#52657d}
+body.light .opt:hover{color:#0f172a;border-color:#0891b2}
+body.light .opt.sel{background:rgba(8,145,178,.08);border-color:#0891b2;color:#0e7490}
+body.light .pos{border-color:#c3cfdd}
+body.light .score-display{color:#0e7490}
+</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
+    <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
+</a>
+<script id="cmc-role-gate">
+/* Teacher / student role gating — injected by scripts/gate_worksheet_keys.py */
+(function(){
+  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
+  catch(e) { window.CMC_IS_TEACHER = false; }
+
+  function addBadge(text, color, bgColor, borderColor) {
+    var b = document.createElement('div');
+    b.textContent = text;
+    b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:'+bgColor+';color:'+color+';border:1px solid '+borderColor+';backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+    document.body.appendChild(b);
+    return b;
+  }
+
+  function dimGateButtons() {
+    var btns = document.querySelectorAll('[data-cmc-gated]');
+    btns.forEach(function(btn){
+      btn.style.opacity = '0.55';
+      btn.style.cursor = 'not-allowed';
+      btn.title = 'Teachers only — sign in with an .edu.kh or .edu email';
+      var badge = document.createElement('span');
+      badge.textContent = '🔒 Teachers only';
+      badge.style.cssText = 'display:inline-block;margin-left:8px;font-size:10px;font-weight:600;color:#fbbf24;background:rgba(251,191,36,0.12);padding:2px 7px;border-radius:5px;border:1px solid rgba(251,191,36,0.35);vertical-align:middle';
+      // Append after the button
+      if (btn.parentNode) btn.parentNode.insertBefore(badge, btn.nextSibling);
+    });
+  }
+
+  window.cmcTeacherOnlyPrompt = function(btn) {
+    // Inline prompt — non-blocking, no alert()
+    var existing = document.getElementById('cmc-teacher-prompt');
+    if (existing) { existing.remove(); return; }
+    var p = document.createElement('div');
+    p.id = 'cmc-teacher-prompt';
+    p.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99996;max-width:420px;width:calc(100% - 32px);background:rgba(13,19,35,0.97);border:1px solid rgba(251,191,36,0.4);border-radius:14px;padding:24px;color:#f1f5f9;font-family:Inter,sans-serif;box-shadow:0 30px 90px rgba(0,0,0,0.65);backdrop-filter:blur(12px);';
+    p.innerHTML = '' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">' +
+        '<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(251,191,36,0.12);color:#fbbf24;font-size:16px">🔒</span>' +
+        '<strong style="font-size:14px;color:#fbbf24">Answer keys are reserved for teachers</strong>' +
+      '</div>' +
+      '<p style="font-size:12.5px;line-height:1.6;color:#cbd5e1;margin:0 0 12px">To reveal the key, sign in with a work email containing <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">edu</code> — for example <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">you@school.edu.kh</code> or <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">you@university.edu</code>. Students can take worksheets and see their scores, but answer keys stay locked.</p>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+        '<a href=\"https://cmckhmer.github.io/Creative-Minds-/#toefl-mini-test\" style=\"display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,#fbbf24,#fcd34d);color:#041018;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none\">Sign in as teacher →</a>' +
+        '<button onclick=\"this.parentElement.parentElement.remove()\" style=\"background:transparent;border:1px solid rgba(255,255,255,0.1);color:#94a3b8;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer\">Close</button>' +
+      '</div>';
+    document.body.appendChild(p);
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    if (window.CMC_IS_TEACHER) {
+      addBadge('🎓 Teacher mode — keys visible', '#6ee7b7', 'rgba(52,211,153,0.12)', 'rgba(52,211,153,0.35)');
+    } else {
+      addBadge('Student mode — keys locked', '#67e8f9', 'rgba(34,211,238,0.10)', 'rgba(34,211,238,0.30)');
+      dimGateButtons();
+    }
+  });
+})();
+</script>
+
+
+<div class="bg-grid"></div>
+<div class="container">
+  <div class="topbar"><div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div><div class="live-pill"><span class="pulse"></span>Live Dictation</div></div>
+  <section class="hero">
+    <span class="eyebrow">Reading Future · Create 3 · Dictation Sheet</span>
+    <h1>Hear it. Type it.<br><span class="grad">Master every word.</span></h1>
+    <p>Play the unit track, then fill all 20 blanks in the passage. Check answers instantly (spelling-tolerant, multi-word aware), reveal the teacher key, or print / save as PDF for classroom use.</p>
+  </section>
+  <section class="info">
+    <div class="form-group"><label for="studentName">Student Name</label><input type="text" id="studentName" placeholder="Enter your name"></div>
+    <div class="form-group"><label for="dateField">Date</label><input type="date" id="dateField"></div>
+    <div class="form-group"><label for="unitSelect">Unit Selector</label><select id="unitSelect" onchange="loadUnit()"><option value="">— Choose a unit —</option></select></div>
+  </section>
+  <section class="content" id="content">
+    <div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its dictation passage.</p></div>
+  </section>
+  <div class="share-panel" id="sharePanel">
+    <h4>Share this worksheet</h4>
+    <div class="share-grid">
+      <button class="share-item" onclick="copyLink()"><span class="ico">🔗</span>Copy Link</button>
+      <button class="share-item" onclick="shareEmail()"><span class="ico">✉️</span>Email</button>
+      <button class="share-item" onclick="shareWhatsApp()"><span class="ico">💬</span>WhatsApp</button>
+      <button class="share-item" onclick="shareX()"><span class="ico">📣</span>Post on X</button>
+    </div>
+  </div>
+  <div class="footer"><span>Reading Future Create 3 · Dictation Sheet</span><span>Interactive Edition · v2</span></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Unit QR code (top-right corner of every unit) ──
+   Option A: save the QR image as qr.png next to this HTML file (default).
+   Option B: paste a base64 data-URI between the quotes below for a single portable file. */
+const QR_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAADeCAIAAADdBSngAAAFDklEQVR4nO3dQW4sNRRAUT5CiCH7XyVDxCQsoBAylp/rdjhnnFR30leW3OWyf3x9ff0EPT+//Qbgn0mTKGkSJU2ipEmUNImSJlHSJEqaREmTKGkS9cvKD/362+/Db+Pf/PXnHxu/9XzPz+us/F0rr77yWiu/tWLlr5h79VNW3qFRkyhpEiVNoqRJlDSJWpqhP+3NmlfcnDmemsnOzeL3rrP3WrXP1KhJlDSJkiZR0iRKmkRtztCfTt0RPvVac7Pmvfc8Nx+fc/MzfTJqEiVNoqRJlDSJkiZRx2bo38PKnPTUXeyVn9lbmf89GDWJkiZR0iRKmkRJk6hvMkOfe8Z8xc0V7KfWtPcZNYmSJlHSJEqaREmTqGMz9HdnhXOz1LmZ/txT8Kf+G+9+pkZNoqRJlDSJkiZR0iRqc4ZeW2s9t8785mud2n9+T+0zNWoSJU2ipEmUNImSJlE/vr6+3n4P/9mp88Vunom2Ym6O/Inr3o2aREmTKGkSJU2ipEnU5nnoN+/trjyLfcqpv2Jul/hTn0X/2wCjJlHSJEqaREmTKGkStTRDvzm73PutuefQb86a997Pzb/91Nx/5R0aNYmSJlHSJEqaREmTqGOr3OdmqTevM/da75rbcW5uJz2jJlHSJEqaREmTKGkStbnK/am2V9uKU2sDVtSeFNh7rZu7yRk1iZImUdIkSppESZOozb3c52aXe98GzJ0/vvJbK26eyFZbLbD3fzZqEiVNoqRJlDSJkiZRS6vcb+6dvnKdPXMrtN+9P/5U29n+yQydDyZNoqRJlDSJkiZRmzP0p1Pz37l9z2pPyr97F3vvOitOfYJGTaKkSZQ0iZImUdIkanOnuLk7sDfXmd/8DuHdOXvtDv4KoyZR0iRKmkRJkyhpEvXyKvdP3N19xbt7p6+4uSu759D5VqRJlDSJkiZR0iRqc6e4p5snZZ/6rT0398SrrXu/uVreqEmUNImSJlHSJEqaRH3AeehP797XXnHz7LkVcyebOw+d/x1pEiVNoqRJlDSJOjZDf3p3d7IVn7i73Z7aPu0rjJpESZMoaRIlTaKkSdTmKvfa3d5379fP3TE/tVpg7vOa+77CqEmUNImSJlHSJEqaRL182trKdVbez7v3iN/dKb12n/3UnN2oSZQ0iZImUdIkSppEDe7lvnedudnu3P7zcyey3dwBb8Xcty5PRk2ipEmUNImSJlHSJGpwL/ebd8Nv3sG/uab9E09/cw+db06aREmTKGkSJU2ijs3Qn2pr0U+91qmZ9ann0G+e/vY0twrCqEmUNImSJlHSJEqaRA3u5T7n3ZXwK2rnytWeSnAPnQ8mTaKkSZQ0iZImUUv30G/uhPZ0aofzU27ugHfq1VeuM/df9Rw634o0iZImUdIkSppEba5yn5vNnZqlzj3TPbcv3N7P7Jl7nv0UoyZR0iRKmkRJkyhpEjW4U9yKuVO5V37m3efQb648r830Vxg1iZImUdIkSppESZOowZ3i3jV3x3zPzW8D9q78tHflvRUOT0ZNoqRJlDSJkiZR0iTq287QT81k9+abtXPTTl1n5e78qe80jJpESZMoaRIlTaKkSdSxGfrN3dv2Zt83n52fOzft5nMB7+4QaNQkSppESZMoaRIlTaKWTlur7eX+7ilgK+buLM/97U/vfqtg1CRKmkRJkyhpEiVNoj7yPHT+D4yaREmTKGkSJU2ipEmUNImSJlHSJEqaREmTKGkS9TfarBGi9m3EsgAAAABJRU5ErkJggg==";
+const QR_IMAGE = QR_BASE64 || "qr.png";
+function qrFallback(unit){
+  return `https://api.qrserver.com/v1/create-qr-code/?size=168x168&bgcolor=FFFFFF&color=05070f&data=${encodeURIComponent('Reading Future Create 3 — ' + unit)}`;
+}
+
+/* Key format: "*" prefix = long (multi-word) blank; "|" separates accepted alternates. */
+const UNITS = {
+"Unit 1. The Diary of a Young Girl":{track:"03",
+ text:"The Diary of a Young Girl is a book of writings by a young [1] girl named Anne Frank. It was written during the Holocaust. The Holocaust was a [2] [3] during [4] II when Nazi Germany killed anyone who was Jewish. In 1933, Adolf Hitler, the [5] of the Nazis, [6] Germany. Anne and her family [7] to Amsterdam for [8]. But the Nazis [9] the Netherlands in 1940. They began to [10] Jewish people to [11] camps, where they were [12] to work [13] they were killed. The family decided to [14]. With the help of their Dutch friends, they lived in a secret room. It is during this time that Anne wrote about her thoughts and feelings in a diary. She wrote about her fears and what she wanted to do after the war. [15], the family was found and sent to concentration camps in 1944. Anne got very sick and died one year later. Anne’s father survived the Holocaust and decided to [16] Anne’s diary. He was not sure if he should publish Anne’s [17] thoughts, but he knew that Anne had always [18] becoming a writer. Today, The Diary of a Young Girl is [19] in over sixty different languages. Anne’s story continues to [20] people all around the world.",
+ ans:["Jewish","terrible","period","*World War","leader","*took over","*ran away","safety","invaded","deport","concentration","forced","until","hide","Unfortunately","publish","private","*dreamed of","available|translated","inspire"]},
+"Unit 2. Leonardo da Vinci":{track:"05",
+ text:"Leonardo da Vinci was born on April 15th, 1452. He [1] in a [2] called Vinci, in Italy. [3], his name means “Leonardo from Vinci.” When he was a student, his teachers were often very happy with his work. People called him a [4] because he was [5] at whatever he did. He is most [6] his paintings. Many people think da Vinci is one of the greatest [7] who [8]. Two of his paintings, the Mona Lisa and The Last [9], are [10] famous today. The Mona Lisa is kept in the Louvre [11] in Paris, France. Every day, thousands of visitors [12] to see it. However, da Vinci’s [13] was not [14] to painting. He was also talented in [15]. Da Vinci was an [16] and liked to make things. [17], he thought of many things that we use today. For example, in his [18], he wrote about things like helicopters and army tanks. He also thought about solar power and [19]. He imagined these things in the 1500s. This was a few hundred years before people actually used them. Da Vinci died in France on May 2nd, 1519. Today, only a few of his paintings and notebooks [20]. They will always be treasures.",
+ ans:["*grew up","town","Interestingly","genius","excellent","*famous for","painters","*ever lived","Supper","still","Museum","*line up","talent","limited","science","engineer","Surprisingly","notebook","calculators","remain"]},
+"Unit 3. Pocahontas":{track:"07",
+ text:"Pocahontas is an important [1] in early American [2]. She was the [3] of one of the leaders of the Algonquian people. The Algonquians were a group of [4]. Pocahontas was born around 1595. She was named Matoaka. Pocahontas, the name people [5], is a [6]. It means “[7] little girl.” She grew up learning how to find food, farm, and build houses. In 1607, Pocahontas met a group of Europeans. It is believed that she [8] the life of [9] John Smith, an Englishman she became friends with. Many people now believe that this is not true. But people [10] that Pocahontas helped the English when they came to America. Pocahontas met an Englishman named John Rolfe in 1612, and they [11] two years later. They had [12] [13], so she changed hers to Christianity and gave herself the new name Rebecca. Their marriage was known to have helped [14] [15] between the Native Americans and the Europeans. However, after a few years, the [16] [17] the Native Americans and the Europeans became [18]. They did not understand each other, and this caused [19]. So in 1616, Pocahontas went to England to meet and [20] King James I. Pocahontas helped teach the English people about Native Americans. And this helped bring peace between the two groups.",
+ ans:["figure","history","daughter","*Native Americans","remember","nickname","playful","saved","Captain","agree","*got married","different","religions","bring","peace","relationship","between","worse","conflict|conflicts","*talk with|talk to|speak with"]},
+"Unit 4. Walt Disney":{track:"09",
+ text:"When people [1] Walt Disney, they think of Mickey Mouse or Disneyland, but Walt Disney was a man who had to [2] [3] to become [4]. From a young age, Walt loved to [5] [6]. He [7] newspapers every morning so that he could take art [8]. He was known to fall asleep at school, but he continued to work hard. When he was eighteen, he started a [9] with other [10]. The company did not do well, so Walt decided to study [11]. With his new skills, he started his second company. The company was [12] at first, but then [13] because of [14]. However, Walt did not give up. He started a cartoon studio in Hollywood in 1923. This is where the idea of Mickey Mouse was born. As his studio grew, he started making animated films. His first film was Snow White and the Seven Dwarfs. Walt’s [15] did not stop there. He wanted to create a park for children. In 1955, Disneyland was opened. Sixteen years later, Walt Disney World was opened. In 1966, Walt discovered he had lung [16]. He died one month after doctors removed one of his lungs. Decades later, his [17] lives on through his famous [18]: “All our dreams can come true, if we have the [19] to [20] them.”",
+ ans:["*think of","work","hard","successful","draw","cartoons|pictures","delivered","classes","company","artists","animation","successful","failed","*poor management","success","cancer","spirit|legacy","words|quote","courage","pursue"]},
+"Unit 5. Foreign Exchange Rates":{track:"11",
+ text:"Every country has its own [1]. [2], when people travel, they need to go to the bank to [3] their money. This is called currency exchange. In order to do currency exchange, banks use [4] exchange [5], or FX rates. The foreign exchange rate tells how much one currency is [6] to in another currency. For example, the euro to U.S. dollar exchange rate on January 1st, 2018 was 1.20. This means that 1 euro was equal to 1.20 U.S. dollars. But this number is [7] [8] now. On another day, 1 euro could be equal to 1.10 U.S. dollars. This is because the foreign exchange rate [9] every day. Foreign exchange rates used to be [10] by how much gold a country had. This was called a [11]. Now, countries use a [12]. This [13] [14] [15], [16] world events and the [17]. If there are problems happening in a [18], the [19] of that country’s currency may fall. Or if Americans want to import a large amount of products made in Europe, they need to buy euros. This makes the value of the euro higher. [20] exchange different currencies, banks use foreign exchange rates that depend on what is happening in the world.",
+ ans:["currency","Therefore","exchange","foreign","rates","equal","probably","different","changes","determined","*fixed exchange rate","*floating exchange rate","*depends on","numerous","factors","including","economy","government","value","*In order to"]},
+"Unit 6. What Are Banks For?":{track:"13",
+ text:"Everyone knows that banks [1] [2]. But people use banks for [3] [4]. Most people put money into banks [5] it safe. Most banks [6] [7] to their [8]. Banks [9] money called [10] to their customers for keeping money in these accounts. There are different kinds of savings accounts, but all of them [11] customers to save and [12] money. There are people who go to banks to [13] money. This is called a [14]. Banks [15] interest from these loans. Of course, this interest rate is higher than what banks pay to customers for having savings accounts. But these loans are important. For example, most people could not buy a house without a [16] loan. Banks also [17] money to businesses. They have to decide if the business will be able to [18] the business loan. That means the bank must consider the business idea and [19] if it will make money or not. So, banks play a role in the [20]. A bank is a place for keeping money safe. But it is also a place people visit to borrow money to help them pay for a place to live or for a business.",
+ ans:["*keep money","safe","other|different","reasons|purposes","*in order to keep|to keep","offer","*savings accounts","customers","pay","interest","allow","earn","borrow","*bank loan","collect","personal","lend","*pay back","guess|decide","economy"]},
+"Unit 7. How to Set Prices":{track:"15",
+ text:"Businesses [1] to [2] their [3] and to make a [4]. They must [5] their price is not too [6] or too [7]. Customers must feel it is a [8] price. Setting a low price can cause a problem. A price that is too low can make customers think the item is not [9] buying. If the boots sell for $40, customers may think they are not well made. The customers may go to another [10] to look for a [11] product. A price that is too high is also a problem. Customers will believe it is a good product but will look for a lower price. Business owners need to know what other stores are [12] for the same or a [13] product. That way, they can make [14] choices. Business [15] consider their costs and prices [16]. There are [17] and [18] to pay. They must know the profit they need. They must know what their customers want and how much they will pay for what they want. Business owners must [19] look at their pricing and [20] it. The goal of any business is to make a profit. Therefore, knowing how to set a fair price for a product is very important.",
+ ans:["need","cover","costs","profit","*make sure","low","high","fair","worth","store","*better-quality","charging","similar","competitive","owners","carefully|constantly","rents|bills|costs","employees|wages","constantly|always","adjust"]},
+"Unit 8. Hyperinflation":{track:"17",
+ text:"Imagine [1] shoes costing $40 this month but $70 next month. This large [2] [3] is called hyperinflation. Hyperinflation is when the prices of [4] and [5] go up by over 50 percent within a month. This can [6] many problems, so governments must be careful that hyperinflation does not [7]. Governments always [8] new money. As the money [9] goes up, so do the prices of [10]. This is normal inflation. Governments control inflation by carefully choosing when to print and when not to print money. However, hyperinflation starts when a country’s government doesn’t stop printing money and the inflation goes [11]. When hyperinflation [12], [13] know that if they wait, they will pay higher prices. [14] for goods becomes stronger. Since people are [15], they keep buying. This creates [16] and prices keep rising. At the same time, the value of money goes down. People [17] money. They cannot pay [18] and have no money to [19] in banks. Banks use people’s money to make loans, so banks cannot make new ones. Hyperinflation is dangerous. Governments have seen banks and companies go out of business and people lose jobs. They know that they must [20] hyperinflation in order to control prices and keep jobs.",
+ ans:["*a pair of","price","increase","goods|products","services","cause","happen|occur","print","supply","products","*out of control","happens","consumers","Demand","scared","shortages","*run out of","bills","save","avoid"]},
+"Unit 9. Virtual Reality and Art":{track:"19",
+ text:"[1] reality (VR) is an [2] world [3] by a computer using [4] and [5]. Most people think VR is just for games. However, it is becoming very important in the art world. Many people enjoy art and dream of seeing [6]. But to visit a famous museum, such as the Louvre in Paris or the Metropolitan Museum of Modern Art in New York City, people have to travel there. Some people have to travel long [7]. This takes time and money. This can be [8] for most people. Imagine not having to travel and just [9] a VR headset. Users can [10] and see the art in museums anywhere in the world anytime they want. VR also [11] users [12] with art in a new and [13] way. For example, imagine [14] a [15] and walking around. A [16] in New York has created a VR [17] called “The Night Café.” Users are [18] into Van Gogh’s paintings and can interact with each one. They can walk around inside the 3D presentations of these paintings. They can look at different things in the painting using 360 [19]. VR allows everyone to [20] art wherever they are in the world.",
+ ans:["Virtual","artificial","generated","images","sounds","masterpieces","distances","inconvenient","*putting on","*walk through","allows","*to interact","extraordinary","*entering|stepping into","painting","museum","presentation","transported","degrees","explore|enjoy"]},
+"Unit 10. Banksy’s Graffiti Art":{track:"21",
+ text:"Banksy is a [1] graffiti [2]. However, since graffiti is [3] in most countries, Banksy could [4] for [5]. This is why no one knows who Banksy really is. [6] many people have tried to find his or her [7], nothing has been [8]. What we do know is that Banksy’s art has a unique style. In the early 1990s, Banksy began drawing graffiti by hand. It was dangerous. It took a long time to [9]. Banksy [10] before an art piece was complete. [11], Banksy [12] to stencils. Stencils are pieces of [13] with [14] already cut out of them. They made it faster for Banksy to paint, so he would not get caught. Banksy [15] with a [16] named Steve Lazarides. Lazarides [17] the art. With Banksy’s [18], Lazarides began selling photographs of Banksy’s art. Banksy’s art began appearing in [19] around the world. Several of Banksy’s art pieces have sold for hundreds of thousands of dollars. Clearly, many people feel that Banksy’s work is truly art and not just vandalism that [20]. But Banksy has never forgotten the roots of his or her art. Sometimes, Banksy’s graffiti still appears on random walls around the world.",
+ ans:["famous","artist","illegal","*get in trouble","*committing a crime","Although","identity","confirmed","*complete each piece","*risked being arrested","*For this reason","switched","paper","designs","*worked|began working","photographer","photographed","permission","exhibitions","*should be removed|must be removed|should be cleaned up"]},
+"Unit 11. The Art of LEGO®":{track:"23",
+ text:"Nathan Sawaya’s art sells for more than $10,000. However, he doesn’t work with paint, [1], or [2]. He works with LEGO®! Sawaya [3] 3D [4] using the small [5] that most people think are children’s toys. He has made things like a [6] and a [7] of his own face with LEGO bricks. One model that is very special for Sawaya is the one he made for the [8] of Hurricane Katrina in New Orleans. He got this [9] from [10] and children’s [11] of the city after the [12]. Sawaya has only been an artist for a few years. Up until 2004, he was a [13] in New York. That year, he [14] and won a LEGO-building [15]. Sawaya was doing well as a [16], but he didn’t love his job. After he won the contest, he [17] to [18] his job as a lawyer, and he started working as an artist. Sawaya’s art can be seen in The Art of the Brick, a special show for his art. The show travels to different [19] across America. People can see his finished art and watch him make new art, too. Sawaya loves making art with LEGO. He says that people always ask what his [20] model is. His answer? “The next one.”",
+ ans:["metal","*even wood","builds","models","bricks","*giant pencil","portrait","victims","idea","pictures","drawings","storm","lawyer","entered","contest","lawyer","decided","quit","museums","favorite"]},
+"Unit 12. Nail Art":{track:"25",
+ text:"The history of painting pictures on people’s [1] goes back more than 2,500 years in Asia. Today, we can see this old [2] in nail shops all around the world. Many people like to get their nails painted in different colors. Some people, however, really want to make their nails [3]. These people get nail art. Nail art is done by nail artists. Nail artists paint [4] and use [5] to [6] [7] and sometimes [8] [9]. Some artists are very [10] and can paint very small pictures on people’s nails. Nail artists may work for 20 minutes or more per nail. They [11] [12] $15 to $30 per nail for their work. Nail art can be a [13], but there is one artist who does it for free. Rick Mazzaferro is an American painter who designs nails as a [14]. He paints [15] pictures on his friends’ nails. He has painted a [16] by a river and the [17] behind a [18] mountain. He has also painted the Moon, the Golden Gate Bridge, and the sea. He sees nail art as a way to be creative. Nail art is just one way to be creative. It is a way to [19] oneself using fingernails as a [20].",
+ ans:["fingernails|nails","tradition","*stand out","*beautiful designs","tools","add","stickers","even","jewels","talented","often","charge","*profitable business","hobby","detailed","deer","*sun setting","snowy","express","canvas"]},
+"Unit 13. New Homes for Animals":{track:"27",
+ text:"A lot of animals’ homes are being [1] by [2] or [3]. If animals [4] in those places, they may die or become [5]. However, [6] [7] are working hard. They find new places for these animals to live and [8] how to move them there. Wildlife conservationists study animals that [9], or move from [10]. They learn how and where the animals move and what they eat. They also learn about what kinds of [11] [12] the animals. Then, they decide which animals need a new home. After that, they [13] for a new [14] that is [15] for the animals. One example of this is the plan to move tigers from India to Cambodia. Wildlife conservationists hope that this will help increase the [16] of tigers. For [17] where another natural home cannot be found for the animals, a new home must be created. Once wildlife conservationists find and [18] a new home, they develop a [19] to move the animals. Finally, they put the plan into action and [20] the animals as they relocate to their new home. Protecting and helping animals is important for the future and the health of the Earth.",
+ ans:["ruined","people","*natural disasters","stay","extinct","wildlife","conservationists","*figure out","migrate","*place to place","diseases","affect","search","environment","suitable","population","animals|cases","prepare|build|create","strategy","assist"]},
+"Unit 14. Doctor Fish":{track:"29",
+ text:"For a long time, people have known that eating fish is healthy. It is [1] [2] that eating fish is good for our skin. Now people are noticing that living fish, [3] “doctor fish,” can also be good for our skin. Going to a “doctor fish” hot [4] is becoming a popular way to [5] [6] [7] of [8] [9]. “Doctor fish” are an interesting [10] of fish called garra rufa. They are found near two small [11] in Turkey. In these towns, there are hot springs. These little fish live in the warm waters of these hot springs. Because it is hard for [12] to survive in hot spring water, the fish are very hungry. [13], they like to eat dead skin. Every year, [14] 3,000 visitors come to these towns to sit in the hot springs with the fish. As they sit, the fish [15] them and eat the bad parts of their skin. [16], the fish do not [17] the healthy skin. According to studies, “doctor fish” can help people with [18] skin problems get clear skin in 21 days. Unfortunately, this is not a permanent cure. But luckily, the results can last for many months. For people [19] from certain skin diseases, “doctor fish” may be a good [20] for treatment.",
+ ans:["also","believed|known","*called|known as","spring","treat","certain","kinds","skin","disease|diseases","species","towns","nutrients","*As a result","about","surround","Amazingly","harm","severe","suffering","option|choice"]},
+"Unit 15. DNA Bank":{track:"31",
+ text:"An [1] [2] is a plant or animal that is in danger of becoming extinct. Although many countries have created [3] to [4] endangered species, they are [5] [6]. To solve this [7] [8], a team of scientists is building a [9] DNA bank. These scientists are [10] DNA [11] from endangered species and keeping them safe in a DNA bank. Scientists are not only saving samples but also studying them. Scientists can learn more about the species. They can understand how they have [12]. They can learn about the animals’ [13] and what diseases they can get. With this [14], scientists can help and [15] endangered animals so they live in [16] [17]. The DNA bank is important because endangered animals must be protected. This is because everything in [18] is [19]. If one species goes extinct, it will affect other species and the environment they live in. For example, bees have a [20] role in keeping the Earth healthy. They are needed to help plants grow. If bees were to go extinct, many plant species would go extinct. And the animals that eat the plants will begin to die. As these animals die, other animals will lose their food source. Scientists are working hard to build this DNA bank to protect endangered species and to keep the Earth healthy.",
+ ans:["endangered","species","laws","protect","still","disappearing","serious","issue","global","freezing","samples","evolved","behavior","knowledge","support","ideal","conditions","nature","connected","crucial"]},
+"Unit 16. Domestication":{track:"33",
+ text:"[1] is when humans take something from the [2] and keep them under their control for their own use. There are two main [3] of domestication. One type is the domestication of [4]. People started domesticating plants over 10,000 years ago. They [5] the [6] of wild plants and grew them on their land. [7], rice, and [8] were the first plants to be grown in [9]. People [10] the crops for food. People also domesticated plants for [11], such as [12], and for [13], such as flowers. The other type is the domestication of animals. When people started domesticating plants, they also started domesticating animals. They used animals for their [14] and food. Sheep were kept for their [15], which people used to make warm clothing. [16], pigs, and chickens were kept on farms for food. People also domesticated animals for other [17]. Larger animals such as [18] and horses were used to [19] heavy things on the farm. Dogs are an example of a domesticated animal kept as a pet because they make good [20]. They were also used to help people hunt for food in the forest. Domesticated plants and animals once lived in the wild, but now must be taken care of by humans.",
+ ans:["Domestication","wild","types","plants","collected","seeds","Wheat","potatoes","crops","harvested","clothing","cotton","decoration","fur","wool","Goats","purposes","oxen","pull","companions"]}
+};
+
+const unitSelect=document.getElementById('unitSelect');
+Object.keys(UNITS).forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;unitSelect.appendChild(o);});
+document.getElementById('dateField').valueAsDate=new Date();
+
+function norm(s){return s.toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,' ').trim();}
+function parseKey(raw){const long=raw.startsWith('*');if(long)raw=raw.slice(1);return{long,alts:raw.split('|').map(norm)};}
+
+function loadUnit(){
+  const unit=unitSelect.value,content=document.getElementById('content');
+  document.getElementById('sharePanel').classList.remove('open');
+  if(!unit){content.innerHTML=`<div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its dictation passage.</p></div>`;return;}
+  const U=UNITS[unit];
+  let html=U.text;
+  U.ans.forEach((raw,i)=>{
+    const{long}=parseKey(raw);
+    html=html.replace(`[${i+1}]`,
+      `<span class="dbwrap"><span class="dbnum">(${i+1})</span><input class="dblane${long?' long':''}" id="db-${i+1}" data-i="${i+1}" autocomplete="off" spellcheck="false"></span>`);
+  });
+  content.innerHTML=`
+    <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${unit}</h2><span class="track-pill">Audio Track ${U.track}</span><img class="unit-qr" src="${QR_IMAGE}" alt="Unit QR code" onerror="this.onerror=null;this.src=qrFallback('${unit}')"></div>
+    <p class="listen-note">Press "Read Aloud" to hear the passage on your device, then fill in the blanks. Multi-word answers belong in the longer lines.</p>
+    <div class="passage-card">${html}</div>
+    <div class="action-row">
+      <button class="btn btn-check" onclick="speakPassage()">🔊 Read Aloud</button>
+      <button class="btn" onclick="stopSpeaking()">■ Stop Voice</button>
+      <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
+      <button class="btn btn-key" data-cmc-gated="showKey" onclick="if(window.CMC_IS_TEACHER){showKey()}else{cmcTeacherOnlyPrompt(this)}">Show Key</button>
+      <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
+      <button class="btn btn-print" onclick="printPDF()">⎙ Print / Save PDF</button>
+      <button class="btn btn-reset" onclick="loadUnit()">Reset</button>
+    </div>
+    <div class="score-display" id="scoreDisplay"></div>`;
+}
+
+function checkAnswers(){
+  const U=UNITS[unitSelect.value];let score=0,answered=0;
+  U.ans.forEach((raw,i)=>{
+    const inp=document.getElementById(`db-${i+1}`);
+    const{alts}=parseKey(raw);const val=norm(inp.value);
+    inp.classList.remove('correct','incorrect');
+    if(!val)return;
+    answered++;
+    if(alts.includes(val)){inp.classList.add('correct');score++;}
+    else inp.classList.add('incorrect');
+  });
+  const disp=document.getElementById('scoreDisplay');
+  disp.style.display='block';
+  disp.style.color=score===20?'var(--success)':'var(--cyan-lt)';
+  disp.innerHTML=score===20?`✓ Perfect dictation! 20/20 correct.`:`Score: ${score}/20 correct · ${20-answered} blank${20-answered===1?'':'s'} remaining.`;
+  /* CMC-FIRESTORE-POST — submit the dictation score (non-blocking). */
+  try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';var _suid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title.split('—')[0].trim()+(unitSelect.value?' · '+unitSelect.value:'')},drillSource:{stringValue:'rfc3'},studentName:{stringValue:_sn},studentUid:{stringValue:_suid},classId:{nullValue:null},scorePct:{integerValue:String(Math.round(score/20*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(20)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+}
+
+
+/* ── Device-voice read aloud (no unit audio files exist, so the passage is
+   read by speechSynthesis — the passage text with answers filled in is
+   exactly what a teacher would dictate). ── */
+function speakPassage(){
+  const unit=unitSelect.value;
+  if(!unit){showToast('Select a unit first.');return;}
+  const U=UNITS[unit];
+  let full=U.text;
+  U.ans.forEach((raw,i)=>{
+    const primary=raw.startsWith('*')?raw.slice(1).split('|')[0]:raw.split('|')[0];
+    full=full.replace(`[${i+1}]`,primary);
+  });
+  try{
+    if(!('speechSynthesis' in window)){showToast('Speech synthesis is not supported in this browser.');return;}
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(full);
+    u.rate=0.85;u.lang='en-US';
+    speechSynthesis.speak(u);
+    showToast('Reading the passage aloud — fill in the blanks as you listen.');
+  }catch(e){showToast('Could not start the read aloud.');}
+}
+function stopSpeaking(){try{speechSynthesis.cancel();}catch(e){}}
+
+function showKey(){
+  const U=UNITS[unitSelect.value];
+  U.ans.forEach((raw,i)=>{
+    const inp=document.getElementById(`db-${i+1}`);
+    const{long,alts}=parseKey(raw);
+    inp.value=long?raw.slice(1).split('|')[0]:alts[0];
+    inp.classList.remove('incorrect');inp.classList.add('correct');
+  });
+  const disp=document.getElementById('scoreDisplay');
+  disp.style.display='block';disp.style.color='var(--success)';
+  disp.innerHTML='Answer key revealed — 20/20. Press Reset to clear and try again.';
+  showToast('Answer key revealed');
+}
+
+/* ── Share & Print ── */
+function shareText(){
+  const name=document.getElementById('studentName').value.trim();
+  return `Reading Future Create 3 — Dictation Sheet (${unitSelect.value||'all units'})${name?' · '+name:''}`;
+}
+function shareWorksheet(){
+  if(navigator.share){navigator.share({title:'Reading Future Create 3 — Dictation Sheet',text:shareText(),url:location.href}).catch(()=>{});return;}
+  document.getElementById('sharePanel').classList.toggle('open');
+}
+function copyLink(){
+  const url=location.href;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard'));}
+  else{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}
+}
+function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Create 3 — Dictation Sheet')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
+function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}
+function shareX(){window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(location.href)}`,'_blank');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
+function printPDF(){document.getElementById('sharePanel').classList.remove('open');showToast('In the dialog, choose “Save as PDF” as destination');setTimeout(()=>window.print(),400);}
+window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
+</script>
+<script>
+/* ── Light / Dark Theme Toggle ── */
+(function(){
+  const btn = document.createElement('button');
+  btn.id = 'themeToggle'; btn.type = 'button';
+  btn.setAttribute('aria-label', 'Toggle light / dark theme');
+  btn.style.cssText = 'display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;cursor:pointer;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.35);color:inherit;transition:all .25s;margin-left:auto';
+  btn.onmouseover = function(){ this.style.filter='brightness(1.1)'; this.style.transform='translateY(-1px)'; };
+  btn.onmouseout = function(){ this.style.filter=''; this.style.transform=''; };
+  const bar = document.querySelector('.topbar');
+  if (bar) bar.appendChild(btn);
+  else document.body.appendChild(btn);
+  function apply(theme){
+    document.body.classList.toggle('light', theme === 'light');
+    document.documentElement.style.colorScheme = theme;
+    btn.innerHTML = theme === 'light' ? '\u{1F319} Dark' : '\u{2600}\u{FE0F} Light';
+    try{ localStorage.setItem('cm-theme', theme); }catch(e){}
+  }
+  let saved = 'dark';
+  try{ saved = localStorage.getItem('cm-theme') || 'dark'; }catch(e){}
+  apply(saved);
+  btn.onclick = ()=> apply(document.body.classList.contains('light') ? 'dark' : 'light');
+})();
+</script>
+<script>
+
+// CMC-ANSWER-GATE — gate answer keys for teachers only
+(function(){
+  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
+  catch(e) { window.CMC_IS_TEACHER = false; }
+  
+  function gateButton(fnName) {
+    var btns = document.querySelectorAll('[onclick*="' + fnName + '"]');
+    btns.forEach(function(btn) {
+      if (btn.getAttribute('data-cmc-gated')) return; // already gated
+      btn.setAttribute('data-cmc-gated', fnName);
+      var orig = btn.getAttribute('onclick');
+      btn.setAttribute('onclick', 'if(window.CMC_IS_TEACHER){' + fnName + '()}else{cmcTeacherOnlyPrompt(this)}');
+      if (!window.CMC_IS_TEACHER) {
+        btn.style.opacity = '0.55';
+        btn.style.cursor = 'not-allowed';
+        btn.title = 'Teachers only — sign in with an .edu or .edu.kh email';
+      }
+    });
+  }
+  
+  window.cmcTeacherOnlyPrompt = function(btn) {
+    var existing = document.getElementById('cmc-teacher-prompt');
+    if (existing) { existing.remove(); return; }
+    var p = document.createElement('div');
+    p.id = 'cmc-teacher-prompt';
+    p.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99996;max-width:420px;width:calc(100% - 32px);background:rgba(13,19,35,0.97);border:1px solid rgba(251,191,36,0.4);border-radius:14px;padding:24px;color:#f1f5f9;font-family:Inter,sans-serif;box-shadow:0 30px 90px rgba(0,0,0,0.65);backdrop-filter:blur(12px);';
+    p.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:16px">\u{1F512}</span><strong style="font-size:14px;color:#fbbf24">Answer keys are reserved for teachers</strong></div><p style="font-size:12.5px;line-height:1.6;color:#cbd5e1;margin:0 0 12px">To reveal the key, sign in with a work email containing <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">edu</code>.</p><div style="display:flex;gap:8px;justify-content:flex-end"><a href=\"https://cmckhmer.github.io/Creative-Minds-/\" style=\"display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,#fbbf24,#fcd34d);color:#041018;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none\">Sign in as teacher \u2192</a><button onclick=\"this.parentElement.parentElement.remove()\" style=\"background:transparent;border:1px solid rgba(255,255,255,0.1);color:#94a3b8;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer\">Close</button></div>';
+    document.body.appendChild(p);
+  };
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Gate Show Key buttons
+    gateButton('showKey');
+    // Gate Show Model Answers buttons
+    gateButton('toggleModels');
+  });
+})();
+
+
+// CMC-ANSWER-HIDE — hide per-question correct/incorrect marks for students
+(function(){
+  if (window.CMC_IS_TEACHER) return; // Teachers see everything
+  // Override the visual feedback: after checkAnswers runs, the page
+  // shows .correct / .incorrect classes on options + question cards.
+  // For students, we strip those classes so they only see the total score,
+  // not which specific answers were right/wrong.
+  var origCheck = window.checkAnswers;
+  if (typeof origCheck === 'function') {
+    window.checkAnswers = function() {
+      origCheck.apply(this, arguments);
+      // Remove per-question visual feedback for students
+      setTimeout(function() {
+        document.querySelectorAll('.option.correct-opt, .option.wrong-opt, .dblane.correct, .dblane.incorrect, .gap-slot select.correct, .gap-slot select.incorrect, .mc.correct, .mc.incorrect, .fill select.correct, .fill select.incorrect, .question-card.correct-answer, .question-card.wrong-answer, .q-explanation.show').forEach(function(el) {
+          el.classList.remove('correct-opt', 'wrong-opt', 'correct', 'incorrect', 'correct-answer', 'wrong-answer', 'show');
+        });
+        // Also hide any explanation panels
+        document.querySelectorAll('.q-explanation').forEach(function(el) {
+          el.style.display = 'none';
+        });
+      }, 100);
+    };
+  }
+})();
+
+</script>
+</body>
+</html>
+

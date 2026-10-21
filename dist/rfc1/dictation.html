@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Future Change 1 — Dictation Sheet</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{--bg:#05070f;--s2:#0d1526;--bd:rgba(148,163,184,.14);--cy:#22d3ee;--cyl:#67e8f9;--vi:#8b5cf6;--vil:#c4b5fd;--tx:#e2e8f0;--mu:#8fa3b8;--ok:#34d399;--er:#f87171;color-scheme:dark}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1100px 520px at 85% -10%,rgba(139,92,246,.16),transparent 60%),radial-gradient(900px 480px at 8% -5%,rgba(34,211,238,.12),transparent 60%);min-height:100vh;padding:32px 16px;color:var(--tx);transition:background .3s,color .3s}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 40%,transparent 100%)}
+.container{position:relative;z-index:1;max-width:1000px;margin:0 auto;background:rgba(9,13,24,.82);backdrop-filter:blur(14px);border:1px solid var(--bd);border-radius:20px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.65)}
+.topbar{display:flex;align-items:center;gap:12px;padding:13px 28px;background:linear-gradient(90deg,rgba(124,58,237,.28),rgba(34,211,238,.14));border-bottom:1px solid var(--bd)}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--cyl)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--cy);box-shadow:0 0 12px var(--cy)}
+.live-pill{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--vil);background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.4);border-radius:999px;padding:5px 12px;margin-left:auto}
+.live-pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--vi);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+#themeToggle{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;cursor:pointer;font:700 11px 'Inter';letter-spacing:.12em;text-transform:uppercase;background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.35);color:inherit}
+.hero{padding:44px 44px 28px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--cyl);margin-bottom:16px}
+.eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--cy),transparent)}
+.hero h1{font-family:'Space Grotesk';font-weight:700;font-size:clamp(28px,4.6vw,42px);line-height:1.08;text-transform:uppercase;color:#f8fafc}
+.hero h1 .grad{background:linear-gradient(90deg,var(--cyl),var(--vil));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin-top:14px;max-width:720px;color:var(--mu);font-size:14.5px;line-height:1.7}
+.info{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:16px;padding:22px 44px;background:rgba(13,19,35,.65);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.fg label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--mu);margin-bottom:7px}
+.fg input,.fg select{width:100%;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--tx);background:#0a101f;border:1px solid rgba(148,163,184,.2);border-radius:10px}
+.content{padding:32px 44px 44px}
+.unit-head{display:flex;align-items:center;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+.unit-head .bar{width:4px;height:30px;border-radius:2px;background:linear-gradient(180deg,var(--cy),var(--vi))}
+.unit-title{font-family:'Space Grotesk';font-size:24px;font-weight:700;color:#f1f5f9}
+.track-pill{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cyl);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4);border-radius:999px;padding:5px 12px}
+.unit-qr{margin-left:auto;width:84px;height:84px;border-radius:10px;border:1px solid var(--bd);background:#fff;padding:6px;object-fit:contain}
+.listen-note{font-size:12.5px;color:var(--mu);margin:0 0 18px 18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.stat{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:14px;text-align:center}
+.stat b{display:block;font-family:'Space Grotesk';font-size:24px;color:var(--cyl)}
+.stat span{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mu)}
+.passage-card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(13,19,35,.9));border:1px solid var(--bd);border-radius:12px;padding:26px 28px;font-size:15px;line-height:2.5;color:#cbd5e1}
+.dbwrap{display:inline-block;margin:0 4px;vertical-align:middle}
+.dbnum{font-size:11px;color:var(--vil);font-weight:700;margin-right:3px}
+.dblank{font-family:inherit;font-size:13.5px;text-align:center;color:var(--cyl);background:#0a101f;border:none;border-bottom:2px dashed rgba(34,211,238,.5);border-radius:6px 6px 0 0;padding:6px 8px;width:120px}
+.dblank.long{width:200px}
+.dblank:focus{outline:none;border-bottom-color:var(--cy);box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+.dblank.correct{border-bottom:2px solid var(--ok);background:rgba(52,211,153,.1);color:var(--ok)}
+.dblank.incorrect{border-bottom:2px solid var(--er);background:rgba(248,113,113,.1);color:var(--er)}
+.action-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.btn{flex:1;padding:13px;border:none;border-radius:10px;cursor:pointer;font:700 12.5px 'Inter';letter-spacing:.08em;text-transform:uppercase;min-width:130px}
+.btn-check{color:#041018;background:linear-gradient(90deg,var(--cy),var(--vi))}
+.btn-key{color:var(--ok);background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.4)}
+.btn-share{color:var(--cyl);background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.4)}
+.btn-print{color:var(--vil);background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.45)}
+.btn-reset{color:var(--mu);background:rgba(148,163,184,.1);border:1px solid var(--bd)}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.score-display{text-align:center;margin-top:16px;font-family:'Space Grotesk';font-size:17px;color:var(--cyl);display:none}
+.share-panel{display:none;margin:22px 44px 0;background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:16px 18px}
+.share-panel.open{display:block}
+.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.share-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-radius:10px;cursor:pointer;background:rgba(10,16,31,.7);border:1px solid rgba(148,163,184,.2);color:var(--tx);font-size:11.5px;font-weight:600}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:50;background:rgba(13,19,35,.95);border:1px solid rgba(34,211,238,.5);color:var(--cyl);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
+.placeholder .glyph{font-family:'Space Grotesk';font-size:44px;background:linear-gradient(90deg,var(--cy),var(--vi));-webkit-background-clip:text;background-clip:text;color:transparent}
+.placeholder p{margin-top:14px;color:var(--mu);font-size:15px}
+.footer{padding:16px 28px;border-top:1px solid var(--bd);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
+body.light{--bg:#eef2f7;--s2:#fff;--bd:#dbe3ec;--cy:#0891b2;--cyl:#0e7490;--vi:#7c3aed;--vil:#6d28d9;--tx:#0f172a;--mu:#52657d;--ok:#059669;--er:#dc2626;background:#eef2f7}
+body.light .container{background:rgba(255,255,255,.92);border-color:#dbe3ec;box-shadow:0 30px 90px rgba(15,23,42,.12)}
+body.light .topbar{background:linear-gradient(90deg,rgba(124,58,237,.10),rgba(8,145,178,.10));border-bottom-color:#dbe3ec}
+body.light .brand{color:#0e7490}
+body.light .live-pill{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.35)}
+body.light #themeToggle{background:#fff;border-color:#c3cfdd;color:#0e7490}
+body.light .hero h1{color:#0f172a}
+body.light .hero p,body.light .listen-note,body.light .stat span,body.light .footer{color:#52657d}
+body.light .info{background:#f8fafc;border-color:#dbe3ec}
+body.light .fg input,body.light .fg select{background:#fff;border-color:#c3cfdd;color:#0f172a}
+body.light .unit-title{color:#0f172a}
+body.light .track-pill{color:#0e7490;background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.35)}
+body.light .stat{background:#fff;border-color:#dbe3ec}
+body.light .stat b{color:#0e7490}
+body.light .passage-card{background:#fff;border-color:#dbe3ec;color:#334155}
+body.light .dblane{background:#f8fafc;color:#0e7490;border-bottom-color:rgba(8,145,178,.5)}
+body.light .btn-reset{color:#52657d;background:#f1f5f9;border-color:#c3cfdd}
+body.light .btn-share{color:#0e7490;background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.4)}
+body.light .btn-print{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.4)}
+body.light .btn-key{color:#047857;background:rgba(5,150,105,.08);border-color:rgba(5,150,105,.4)}
+body.light .share-item{background:#f8fafc;border-color:#c3cfdd;color:#334155}
+body.light .toast{background:#fff;border-color:#0891b2;color:#0e7490}
+body.light .placeholder{border-color:#c3cfdd}
+@media (max-width:768px){.info{grid-template-columns:1fr}.hero,.info,.content{padding-left:22px;padding-right:22px}.action-row{flex-direction:column}.share-panel{margin:22px}.dblane{width:90px}.dblane.long{width:150px}.unit-qr{width:64px;height:64px}}
+@media (max-width:640px){.share-grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:1fr}}
+@media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.score-display,.footer,.share-panel,.toast,#themeToggle{display:none!important}.container{box-shadow:none;border:none;background:#fff}*{color:#111!important;background:transparent!important;border-color:#ccc!important}.passage-card{line-height:2.6}.dblane{border-bottom:1px solid #999!important;color:#111!important}.dblane.correct,.dblane.incorrect{border-bottom:1px solid #999!important}.unit-qr{width:72px;height:72px;border:1px solid #ccc;background:#fff!important}}
+@page{margin:12mm}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="container">
+  <div class="topbar"><div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div><div class="live-pill"><span class="pulse"></span>Live Dictation</div></div>
+  <section class="hero">
+    <span class="eyebrow">Reading Future · Change 1 · Dictation Sheet</span>
+    <h1>Hear it. Type it.<br><span class="grad">Master every word.</span></h1>
+    <p>Play the unit track, then fill all 15 blanks in the passage. Check answers instantly (spelling-tolerant, multi-word aware), reveal the teacher key, or print / save as PDF for classroom use.</p>
+  </section>
+  <section class="info">
+    <div class="fg"><label for="studentName">Student Name</label><input type="text" id="studentName" placeholder="Enter your name"></div>
+    <div class="fg"><label for="dateField">Date</label><input type="date" id="dateField"></div>
+    <div class="fg"><label for="unitSelect">Unit Selector</label><select id="unitSelect" onchange="loadUnit()"><option value="">— Choose a unit —</option></select></div>
+  </section>
+  <section class="content" id="content"><div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its dictation passage.</p></div></section>
+  <div class="share-panel" id="sharePanel"><div class="share-grid">
+    <button class="share-item" onclick="copyLink()">🔗 Copy Link</button>
+    <button class="share-item" onclick="shareEmail()">✉️ Email</button>
+    <button class="share-item" onclick="shareWhatsApp()">💬 WhatsApp</button>
+    <button class="share-item" onclick="shareX()">📣 Post on X</button>
+  </div></div>
+  <div class="footer"><span>Reading Future Change 1 · Dictation Sheet</span><span>Interactive Edition · v1</span></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const QR_BASE64="";const QR_IMAGE=QR_BASE64||"qr.png";
+function qrFallback(u){return `https://api.qrserver.com/v1/create-qr-code/?size=168x168&bgcolor=FFFFFF&color=05070f&data=${encodeURIComponent('Reading Future Change 1 — '+u)}`;}
+/* Key format: "*" prefix = long blank; "|" separates accepted alternates. */
+const UNITS={
+"Unit 1. Hyperloop":{track:"03",
+text:"Los Angeles and San Francisco are cities in the [1] of California, in the U.S. They are about 650 [2] [3]. Millions of people travel between these cities every year. Today, the fastest way to travel between them is by airplane. It is about one [4]. However, a new idea could make this trip shorter. The Hyperloop is a kind of [5]. It could make the 650-kilometer trip in only thirty minutes. It could go 1,100 kilometers [6] hour, which is faster than an airplane. It would carry [7] in cars called pods. Pods would use [8] and low air [9] to [10] and move [11] tubes. This is how the Hyperloop would be able to go 650 [12] in only thirty minutes. The Hyperloop is [13] just an idea. It’s the idea of an [14] named Elon Musk. It would [15] billions of dollars, but it would save many people a lot of time.",
+ans:["state","kilometers","apart","hour","transportation|train","per","passengers","magnets","pressure","float","through","kilometers","still","inventor","cost"]},
+"Unit 2. City Animals":{track:"05",
+text:"Alaska is the [1] state in the U.S. Almost 300,000 people live in the city of Anchorage, in [2] Alaska. It is a very [3] place. One [4] thing about Anchorage is that [5] live in the city. Between 250 to 1,000 moose live in the city at [6] times of the year. The [7] moose live in Anchorage is because they feel [8] there. In the [9], bears try to kill and eat moose. But in the city, there is [10] of food to eat. Bears, moose, and other animals get food from [11]. In the winter, they can go into people’s [12] and eat [13] from the trees. In the summer, they can eat plants from people’s [14]. Most people don’t mind having moose in the city. Although some moose cause small problems, these animals make the city special. The people of Anchorage have even made the moose a [15] of the city.",
+ans:["largest","southern","unique","special","moose","different","reason","comfortable","wild","plenty","dumpsters","yards|gardens","branches","yards|gardens","symbol"]},
+"Unit 3. The Chunnel":{track:"07",
+text:"There is a sea in [1] called the English [2]. It is between southern England and [3] France. The shortest [4] in the English Channel is the Dover [5]. It is a little over thirty-three kilometers long. Before 1994, people had to [6] by airplane or boat to [7] the English Channel. But boats are slow, and airports are [8]. It was very [9]. In 1994, a more comfortable [10] of [11] opened. A train that travels in a [12] opened. This tunnel allows people to go under the Dover Strait. A boat crossing the English Channel takes about one hour and thirty minutes. After the “Chunnel” opened, it was [13] to cross the English Channel in thirty-five minutes. The name “Chunnel” comes from putting [14] the words “channel” and “tunnel.” Trains can carry passengers, cars, trucks, and [15] from England to France. The Chunnel allows people to travel between England and France quickly and easily.",
+ans:["Europe","Channel","northern","distance","Strait","travel","cross","busy","uncomfortable","type","transportation","tunnel","possible","together","goods|freight"]},
+"Unit 4. Manaus":{track:"09",
+text:"Brazil is a [1] in South America. Deep in the Amazon [2] is the city of Manaus, Brazil. Over 1.5 [3] people live there. A big city in the [4] of the rainforest is unique. But Manaus was [5] there for a reason. Manaus was built where two large [6] meet and become one. The two rivers are the Rio Negro and the Amazon River. Manaus started [7] a small city. In the [8], [9] from the rainforest was very [10]. Manaus is built in a good [11]. Many goods can be moved around and [12] easily. Rubber came from the rainforest. It was moved along the river and sold in Manaus. Manaus [13] grew bigger. It became a [14] for business. Rubber is not as important today. However, Manaus is still an important city. Now, computer screens, TVs, and other [15] goods are made there. Manaus is still a big and important place because of where it is.",
+ans:["country","Rainforest","million","middle","built","rivers","as","1900s","rubber","important","place","sold","rapidly","center","electronic"]},
+"Unit 5. The Science of Sleep":{track:"11",
+text:"Every night we fall asleep and then wake up the next morning. We go through the sleep-wake [1]. We need to do this every night to stay [2] and happy. The first part of the cycle is slow-wave sleep. In this [3], the body [4]. Breathing slows and the brain [5] less to [6]. It becomes difficult to wake up. The second stage is REM (Rapid Eye Movement) sleep. In this stage, body [7] rises and the heart [8] speeds up. The brain becomes [9] and we [10] dreaming. In this stage, the brain gets rid of unimportant information. Important things happen while we sleep. The body and mind are reset and [11]. Our bodies grow [12] and [13] muscles. The [14] system is also strengthened. Without enough sleep, we can get sick and feel sad. It can also cause [15] gain and other health problems. Thinking can become difficult. Try to sleep for eight hours every night.",
+ans:["cycle","healthy","stage","relaxes","responds","sound|noise","temperature","rate","active","experience","refreshed","tissue","repair","immune","weight"]},
+"Unit 6. Control Your Dreams":{track:"13",
+text:"[1] [2] your dreams. A bad dream could change into a beautiful [3]. A good dream would be [4]. A new headband lets you control your dreams. Users put it on when they go to sleep. They wear it the [5] night. The headband waits for the user to enter REM sleep. It senses body [6], body temperature, and brain [7]. This is when people usually have dreams. When REM sleep starts, the band goes into action. It sends out [8]. It plays low-volume sounds as [9]. While the user sleeps, the signals tell them that they are dreaming. Now, that person can control what they dream. They can play the piano or turn themselves into a [10]. They can go on an [11] [12]. Soon, [13] want to [14] their headband’s [15]. They want to let users share delightful dreams together. They’re working on connecting two people’s headbands to do this.",
+ans:["Imagine","controlling","fantasy","delightful","whole","movement","activity","lights","signals","superhero","ideal","vacation","developers","expand","abilities"]},
+"Unit 7. Sleeping Habits":{track:"15",
+text:"A [1] of sleep can make [2] hard. Kids who cannot concentrate well in school are more [3] to get [4] [5]. On the other hand, getting [6] sleep [7] kids to concentrate better. They can think [8] for longer [9] of time. That [10] them to do better at school. Studies show that kids who get enough sleep are more likely to get higher grades. This is why children should sleep about eight hours every night. Sometimes it can be difficult to fall asleep. Luckily, some simple [11] can fix this problem. Exercising [12] is helpful. People need more sleep after exercising. Relaxing before [13] also helps. Going to bed and waking up at the same time every day is helpful. A dark bedroom at night and a bright bedroom in the morning is good. It helps your body keep a regular sleep [14]. Kids who follow these habits are likely to improve their [15] in school.",
+ans:["lack","concentrating","likely","lower","grades","enough","enables","clearly","periods","allows","habits","regularly","bed|sleep","schedule","performance"]},
+"Unit 8. Testing Dreams":{track:"17",
+text:"A [1] of [2] wanted to know if smells [3] the [4] of dreams that we have. They did an experiment with two groups of people. The [5] of the [6] were [7]. Here is what the scientists did. They had one group of people sleep in a room that smelled like roses. Most people [8] that roses smell nice. The next morning, the scientists [9] the people. They [10] them if they had good dreams or bad dreams. The people said that they had good dreams. Next, the scientists had [11] group of people sleep in the same room. However, this time the room smelled like [12] eggs. The smell in the room was [13]. Again, the scientists interviewed the people the next morning. This time, the people said that they had bad dreams. This experiment seems to show us a way to [14] bad dreams. You just need to make [15] your room has a good smell.",
+ans:["group","scientists","affect","sorts","results","experiment","interesting","agree","interviewed","asked","another|a second","rotten","terrible","avoid","sure"]},
+"Unit 9. First in Flight: The Wright Brothers":{track:"19",
+text:"One day, a long time [1] in the United States, brothers Orville and Wilbur Wright [2] a toy [3]. It was a gift from their father. At that time, all flying [4] were just toys. The boys were very [5] in the helicopter. It gave them [6] about making real flying machines. As they got older, the brothers still wanted to [7] a flying machine. They built [8] of flying machines. In 1903, they built a real flying machine with an [9]. They wanted to try flying for real. Wilbur tried first, but his flight [10] after flying less than four [11]. The brothers [12] two days [13] the plane. Then they were ready to fly again. This time, Orville flew the plane for twelve seconds. He did not crash. After he landed, they [14] three more times that day. The last flight was almost 260 meters long and [15] one minute. The Wright brothers were first in flight.",
+ans:["ago","received","helicopter","machines","interested","ideas","invent","models","engine","crashed","seconds","spent","fixing","flew","lasted"]},
+"Unit 10. Amelia Earhart":{track:"21",
+text:"Amelia Earhart was an American [1] for women and in [2]. In 1928, she flew over the Atlantic [3] with a man. In 1932, she did it [4]. In 1935, she flew alone over the Pacific Ocean. She was the first woman to do all of these things. Two years later, Earhart tried to make [5] again. She wanted to be the first [6] pilot to fly around the world. She started this [7] with her [8], Fred Noonan. They almost [9] the trip. Sadly [10], they [11] [12] home. There was a problem with her airplane. They tried to land on a small island, but the [13] was cloudy. They couldn’t find the island. She tried to use her radio to get help, but she couldn’t hear anything. Earhart, Noonan, and the plane likely crashed [14] in the Pacific Ocean. People [15] for them, but they were never found. Her life story is still an important one now.",
+ans:["pioneer","aviation","Ocean","alone","history","female","voyage","navigator","finished","though","never","returned","weather","somewhere","searched"]},
+"Unit 11. Flying Around the World":{track:"23",
+text:"The Wright [1] became the first people ever to fly an [2]. On [3] 17th, 1903, they made four [4] [5]. The longest flight was about 260 meters. A little over twenty years later, airplane [6] had [7] a lot. On [8] 6th, 1924, eight U.S. Army pilots took off in four airplanes from the city of Seattle, Washington. Their [9] was to fly around the world. The airplanes were named [10] American cities: Seattle, Chicago, Boston, and New Orleans. After 175 days, only two of the four [11] planes finished the voyage. The Seattle crashed and was [12]. The Boston had [13] problems. After making seventy-four stops, the Chicago, New Orleans, and Boston II returned home. On September 28th, 1924, they landed back in Seattle, Washington. The first airplane, in 1903, could only fly 260 meters in a [14] for one minute. In twenty short years, they flew over 44,342 kilometers around the [15], for 175 days.",
+ans:["brothers","aircraft","December","brief","flights","technology","advanced","April","mission","after","original","destroyed","mechanical","*straight line|line","globe"]},
+"Unit 12. Solar Flight History":{track:"25",
+text:"Bertrand Piccard and Andre Borschberg are [1], [2], and [3]. They are from Switzerland. They made a special aircraft called the [4] Impulse 2. It’s [5] because it doesn’t use [6]. Instead, it only uses solar [7] to fly. The two pilots [8] to fly around the world. They wanted to be the first to do this using only solar power. They wanted to do this to make people think more about [9] energy. On March 9th, 2015, they took off in their special aircraft from Abu Dhabi in the U.A.E. [10], the pilots [11] for a five-month long voyage. However, technical problems and poor weather [12] caused long [13]. But both men were [14] to finish the trip. On July 26th, 2016, they landed their plane back in Abu Dhabi. They successfully [15] the trip after 505 days. They also made people think more about renewable energy sources.",
+ans:["scientists","pilots","pioneers","Solar","unique","fuel","energy","intended","renewable","Originally","planned","conditions","delays","determined","completed"]},
+"Unit 13. Smart Sportswear":{track:"27",
+text:"[1] [2] work hard. They want to be the best at their sport. They [3], eat healthy food, and [4] a lot. But [5] isn’t everything. Athletes need to be smart, too. The newest sports clothes [6] new [7] and technology. These smart clothes [8] athletes to be smarter. With this, athletes can [9] their performance. One [10] is a new swimsuit for [11] swimmers. The body, swimming cap, and [12] are all one [13]. This is more comfortable and [14] for the swimmers. They can swim faster and for a longer time. [15], some soccer players started wearing smart shirts. These shirts have a tiny computer in the back of the shirt. This computer sends over 200 bits of data per second to the coach. The coach can see how each athlete is doing. He can know when certain players need to rest. Athletes do everything they can to win. Now, with smart clothes, they can do even better.",
+ans:["Professional","athletes","practice","rest|sleep","strength","include","designs","enable","improve","example","competitive","goggles","piece","efficient","Recently|Today"]},
+"Unit 14. Water Safety":{track:"29",
+text:"People like to play in pools, rivers, lakes, and [1]. It is a lot of fun. But there is also a [2]. In [3] to stay safe, try to follow a few [4] [5] tips. First, do not go very far away by yourself. If you get into trouble, having someone [6] can help. Second, do not run nearby the water. You could [7] and fall down. You could get hurt or fall into [8] water. If you fall into deep water, it could be [9]. If you don’t know how to swim well, you might [10] and [11]. Panicking makes a person [12] in water. Third, learn how to [13] on your back. This is a good way to [14] if you get into deep water. Even if you feel unsafe, you should stay [15]. Wait for someone to help you and don’t panic. Following these simple tips will help you stay safe and have fun around water.",
+ans:["beaches","risk","order","water","safety","nearby","slip","deep","dangerous","panic","drown","sink","float","survive","calm"]},
+"Unit 15. Dodgeball":{track:"31",
+text:"Dodgeball is a famous, fast, and fun game that is easy to learn and play. The [1] of the game is [2]. You try to [3] other players by [4] them with a ball. They must dodge the ball to [5] being hit. That is why it is called “dodgeball.” The [6] is the person or team that hasn’t been hit by the [7] of the game. To play a game, you need [8] or more players. You can play on any sort of [9] or [10], as long as there is [11] room. It is played with two or more large, soft rubber balls. Dodgeball is [12] because there are different ways to play it. When there is an [13] number of players, you can play in teams. When there is an [14] number of players, you can play “every person for themselves.” It’s easy to understand why so many people around the [15] love this game.",
+ans:["aim","simple","eliminate","hitting","avoid","winner","end","four","field","court","enough","great","even","odd","world"]},
+"Unit 16. Golden Time that Saves Lives":{track:"33",
+text:"The [1] heart needs to [2] all the time. If a person’s heart is not beating, then there is no air going to the brain. If someone gets [3] and their heart stops beating, or they stop breathing, don’t panic. You have four “golden minutes” to help someone in this [4]. First, call for an [5]. Second, do [6] [7]. Lie the person flat on their back. Put both your hands on their chest. One hand must be on top of the other. Then, [8] the [9] of your body down on their chest and [10]. Do not [11] about hurting them. You need to [12] this very quickly, about 100–120 times per minute. Think of a fast song and push in time to the beat. [13] to do this until help [14]. These four “golden minutes” can save someone’s life! You can read more about this online. You can get the proper training from a [15] teacher.",
+ans:["human","beat","injured","situation","ambulance","chest","compressions","press","weight","release","worry","repeat","Continue","arrives","certified"]}
+};
+const unitSelect=document.getElementById('unitSelect');
+Object.keys(UNITS).forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;unitSelect.appendChild(o);});
+document.getElementById('dateField').valueAsDate=new Date();
+function norm(s){return s.toLowerCase().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,' ').trim();}
+function parseKey(raw){const long=raw.startsWith('*');if(long)raw=raw.slice(1);return{long,alts:raw.split('|').map(norm)};}
+function loadUnit(){
+ const unit=unitSelect.value,content=document.getElementById('content');
+ document.getElementById('sharePanel').classList.remove('open');
+ if(!unit){content.innerHTML=`<div class="placeholder"><div class="glyph">❖</div><p>Select a unit above to load its dictation passage.</p></div>`;return;}
+ const U=UNITS[unit];let html=U.text;
+ U.ans.forEach((raw,i)=>{const{long}=parseKey(raw);
+  html=html.replace(`[${i+1}]`,`<span class="dbwrap"><span class="dbnum">(${i+1})</span><input class="dblane${long?' long':''}" id="db-${i+1}" autocomplete="off" spellcheck="false"></span>`);});
+ const num=unit.match(/\d+/)[0];
+ content.innerHTML=`
+  <div class="unit-head"><span class="bar"></span><h2 class="unit-title">${unit}</h2><span class="track-pill">Audio Track ${U.track}</span><img class="unit-qr" src="${QR_IMAGE}" alt="Unit QR code" onerror="this.onerror=null;this.src=qrFallback('${unit}')"></div>
+  <p class="listen-note">Listen to the audio and fill in the blanks. Multi-word answers belong in the longer lines. Scan the QR code (top right) for the unit audio.</p>
+  <div class="stats"><div class="stat"><b>${U.ans.length}</b><span>Blanks</span></div><div class="stat"><b>${U.track}</b><span>Track</span></div><div class="stat"><b>${num}</b><span>Unit No.</span></div></div>
+  <div class="passage-card">${html}</div>
+  <div class="action-row">
+    <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
+    <button class="btn btn-key" data-cmc-gated="showKey" onclick="if(window.CMC_IS_TEACHER){showKey()}else{cmcTeacherOnlyPrompt(this)}">Show Key</button>
+    <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
+    <button class="btn btn-print" onclick="printPDF()">⎙ Print / Save PDF</button>
+    <button class="btn btn-reset" onclick="loadUnit()">Reset</button>
+  </div>
+  <div class="score-display" id="scoreDisplay"></div>`;
+}
+function checkAnswers(){
+ const U=UNITS[unitSelect.value];const total=U.ans.length;let score=0,answered=0;
+ U.ans.forEach((raw,i)=>{const inp=document.getElementById(`db-${i+1}`);const{alts}=parseKey(raw);const val=norm(inp.value);
+  inp.classList.remove('correct','incorrect');if(!val)return;answered++;
+  if(alts.includes(val)){inp.classList.add('correct');score++;}else inp.classList.add('incorrect');});
+ const disp=document.getElementById('scoreDisplay');disp.style.display='block';
+ disp.style.color=score===total?'var(--ok)':'var(--cyl)';
+ disp.innerHTML=score===total?`✓ Perfect dictation! ${total}/${total} correct.`:`Score: ${score}/${total} correct · ${total-answered} blank${total-answered===1?'':'s'} remaining.`;
+}
+function showKey(){
+ const U=UNITS[unitSelect.value];const total=U.ans.length;
+ U.ans.forEach((raw,i)=>{const inp=document.getElementById(`db-${i+1}`);const{long,alts}=parseKey(raw);
+  inp.value=long?raw.slice(1).split('|')[0]:alts[0];inp.classList.remove('incorrect');inp.classList.add('correct');});
+ const disp=document.getElementById('scoreDisplay');disp.style.display='block';disp.style.color='var(--ok)';
+ disp.innerHTML=`Answer key revealed — ${total}/${total}. Press Reset to clear and try again.`;showToast('Answer key revealed');
+}
+function shareText(){const n=document.getElementById('studentName').value.trim();return `Reading Future Change 1 — Dictation Sheet (${unitSelect.value||'all units'})${n?' · '+n:''}`;}
+function shareWorksheet(){if(navigator.share){navigator.share({title:'Reading Future Change 1 — Dictation Sheet',text:shareText(),url:location.href}).catch(()=>{});return;}document.getElementById('sharePanel').classList.toggle('open');}
+function copyLink(){const url=location.href;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard'));}else{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}}
+function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Change 1 — Dictation Sheet')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
+function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}
+function shareX(){window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(location.href)}`,'_blank');}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
+function printPDF(){document.getElementById('sharePanel').classList.remove('open');showToast('In the dialog, choose “Save as PDF” as destination');setTimeout(()=>window.print(),400);}
+window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
+/* ── Light / Dark Theme Toggle ── */
+(function(){const b=document.createElement('button');b.id='themeToggle';b.type='button';b.setAttribute('aria-label','Toggle light / dark theme');(document.querySelector('.topbar')||document.body).appendChild(b);
+ function apply(t){document.body.classList.toggle('light',t==='light');document.documentElement.style.colorScheme=t;b.innerHTML=t==='light'?'🌙 Dark':'☀️ Light';try{localStorage.setItem('cm-theme',t);}catch(e){}}
+ let s='dark';try{s=localStorage.getItem('cm-theme')||'dark';}catch(e){}apply(s);
+ b.onclick=()=>apply(document.body.classList.contains('light')?'dark':'light');})();
+</script>
+<style id="cmc-back-guard">
+  @media (max-width: 700px) {
+    body { padding-top: 96px !important; }
+  }
+</style>
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans','Inter',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
+    <span style="font-size:13px; line-height:1;">&#8592;</span> Back to CMC
+</a>
+<script id="cmc-role-gate">
+/* Teacher / student role gating — injected by scripts/gate_worksheet_keys.py */
+(function(){
+  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
+  catch(e) { window.CMC_IS_TEACHER = false; }
+
+  function addBadge(text, color, bgColor, borderColor) {
+    var b = document.createElement('div');
+    b.textContent = text;
+    b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:'+bgColor+';color:'+color+';border:1px solid '+borderColor+';backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+    document.body.appendChild(b);
+    return b;
+  }
+
+  function dimGateButtons() {
+    var btns = document.querySelectorAll('[data-cmc-gated]');
+    btns.forEach(function(btn){
+      btn.style.opacity = '0.55';
+      btn.style.cursor = 'not-allowed';
+      btn.title = 'Teachers only — sign in with an .edu.kh or .edu email';
+      var badge = document.createElement('span');
+      badge.textContent = '🔒 Teachers only';
+      badge.style.cssText = 'display:inline-block;margin-left:8px;font-size:10px;font-weight:600;color:#fbbf24;background:rgba(251,191,36,0.12);padding:2px 7px;border-radius:5px;border:1px solid rgba(251,191,36,0.35);vertical-align:middle';
+      // Append after the button
+      if (btn.parentNode) btn.parentNode.insertBefore(badge, btn.nextSibling);
+    });
+  }
+
+  window.cmcTeacherOnlyPrompt = function(btn) {
+    // Inline prompt — non-blocking, no alert()
+    var existing = document.getElementById('cmc-teacher-prompt');
+    if (existing) { existing.remove(); return; }
+    var p = document.createElement('div');
+    p.id = 'cmc-teacher-prompt';
+    p.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99996;max-width:420px;width:calc(100% - 32px);background:rgba(13,19,35,0.97);border:1px solid rgba(251,191,36,0.4);border-radius:14px;padding:24px;color:#f1f5f9;font-family:Inter,sans-serif;box-shadow:0 30px 90px rgba(0,0,0,0.65);backdrop-filter:blur(12px);';
+    p.innerHTML = '' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">' +
+        '<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:rgba(251,191,36,0.12);color:#fbbf24;font-size:16px">🔒</span>' +
+        '<strong style="font-size:14px;color:#fbbf24">Answer keys are reserved for teachers</strong>' +
+      '</div>' +
+      '<p style="font-size:12.5px;line-height:1.6;color:#cbd5e1;margin:0 0 12px">To reveal the key, sign in with a work email containing <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">edu</code> — for example <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">you@school.edu.kh</code> or <code style=\"background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px\">you@university.edu</code>. Students can take worksheets and see their scores, but answer keys stay locked.</p>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+        '<a href=\"https://cmckhmer.github.io/Creative-Minds-/#toefl-mini-test\" style=\"display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,#fbbf24,#fcd34d);color:#041018;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none\">Sign in as teacher →</a>' +
+        '<button onclick=\"this.parentElement.parentElement.remove()\" style=\"background:transparent;border:1px solid rgba(255,255,255,0.1);color:#94a3b8;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer\">Close</button>' +
+      '</div>';
+    document.body.appendChild(p);
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    if (window.CMC_IS_TEACHER) {
+      addBadge('🎓 Teacher mode — keys visible', '#6ee7b7', 'rgba(52,211,153,0.12)', 'rgba(52,211,153,0.35)');
+    } else {
+      addBadge('Student mode — keys locked', '#67e8f9', 'rgba(34,211,238,0.10)', 'rgba(34,211,238,0.30)');
+      dimGateButtons();
+    }
+  });
+})();
+</script>
+</body>
+</html>
+

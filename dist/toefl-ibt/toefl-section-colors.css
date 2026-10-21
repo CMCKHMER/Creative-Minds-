@@ -1,0 +1,136 @@
+/* ========================================
+   TOEFL Section-Specific Color Themes
+   ======================================== */
+
+/* Reading Section - Blue Theme (Default) */
+body.section-reading {
+    --section-primary: #2563eb;
+    --section-primary-dark: #1e40af;
+    --section-primary-light: #3b82f6;
+    --section-accent: #06b6d4;
+    --section-glow: rgba(37, 99, 235, 0.5);
+}
+
+/* Listening Section - Emerald/Green Theme */
+body.section-listening {
+    --section-primary: #10b981;
+    --section-primary-dark: #047857;
+    --section-primary-light: #34d399;
+    --section-accent: #2dd4bf;
+    --section-glow: rgba(16, 185, 129, 0.5);
+}
+
+body.section-listening .play-btn {
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4), 
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+body.section-listening .play-btn:hover {
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5);
+}
+
+body.section-listening .progress-fill {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+body.section-listening .option-3d.selected {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+body.section-listening .option-3d.selected .option-radio {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+/* Speaking Section - Orange Theme */
+body.section-speaking {
+    --section-primary: #f97316;
+    --section-primary-dark: #c2410c;
+    --section-primary-light: #fb923c;
+    --section-accent: #fbbf24;
+    --section-glow: rgba(249, 115, 22, 0.5);
+}
+
+body.section-speaking .play-btn {
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4), 
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+body.section-speaking .play-btn:hover {
+    box-shadow: 0 12px 30px rgba(249, 115, 22, 0.5);
+}
+
+body.section-speaking .progress-fill {
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+}
+
+body.section-speaking .option-3d.selected {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+}
+
+body.section-speaking .option-3d.selected .option-radio {
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+}
+
+body.section-speaking .btn-3d:hover {
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4), 
+                0 12px 24px rgba(249, 115, 22, 0.3), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+body.section-speaking .btn-3d {
+    box-shadow: 0 4px 6px rgba(249, 115, 22, 0.3), 
+                0 8px 16px rgba(249, 115, 22, 0.2), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2), 
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Writing Section - Purple Theme */
+body.section-writing {
+    --section-primary: #a855f7;
+    --section-primary-dark: #7e22ce;
+    --section-primary-light: #c084fc;
+    --section-accent: #e879f9;
+    --section-glow: rgba(168, 85, 247, 0.5);
+}
+
+body.section-writing .play-btn {
+    box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4), 
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+body.section-writing .play-btn:hover {
+    box-shadow: 0 12px 30px rgba(168, 85, 247, 0.5);
+}
+
+body.section-writing .progress-fill {
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+}
+
+body.section-writing .option-3d.selected {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+body.section-writing .option-3d.selected .option-radio {
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+}
+
+body.section-writing .btn-3d:hover {
+    box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4), 
+                0 12px 24px rgba(168, 85, 247, 0.3), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+body.section-writing .btn-3d {
+    box-shadow: 0 4px 6px rgba(168, 85, 247, 0.3), 
+                0 8px 16px rgba(168, 85, 247, 0.2), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2), 
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+body.section-writing .word-box:hover {
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+body.section-writing .writing-textarea:focus {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+}

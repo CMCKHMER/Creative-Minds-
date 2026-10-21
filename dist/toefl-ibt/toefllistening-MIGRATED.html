@@ -1,0 +1,2299 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <script>/* Pre-paint theme sync with the main site toggle ("cmc-theme" master, "toefl-theme" legacy). */
+try{var t=localStorage.getItem('cmc-theme')||localStorage.getItem('toefl-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEFL iBT - Listening Section</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Shared TOEFL Design System -->
+    <link rel="stylesheet" href="toefl-styles.css">
+    <link rel="stylesheet" href="toefl-section-colors.css">
+    
+    <style>
+        /* Listening-specific audio visualizer */
+        .audio-visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 40px;
+            justify-content: center;
+        }
+
+        .audio-bar {
+            width: 4px;
+            background: linear-gradient(180deg, var(--section-accent) 0%, var(--section-primary) 100%);
+            border-radius: 2px;
+            animation: pulse 1s ease-in-out infinite;
+            box-shadow: 0 0 6px var(--section-glow);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+    </style>
+<base target="_blank">
+
+    <!-- ==================== CMC THEME OVERRIDE ==================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23020617'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='100%25' stop-color='%236366f1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='34' fill='url(%23g)'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' font-family='sans-serif' font-weight='900' font-size='24' fill='white'%3ETOEFL%3C/text%3E%3C/svg%3E" />
+    <style id="cmc-theme-override">
+      body,
+      .light-theme-bg,
+      .light-theme-bg.dashboard-bg {
+          background: #020617 !important;
+          background-image:
+              radial-gradient(ellipse 80% 50% at 10% 20%, rgba(34, 211, 238, 0.10) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 90% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+              radial-gradient(ellipse 70% 60% at 80% 80%, rgba(94, 234, 212, 0.08) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 40% at 20% 70%, rgba(125, 211, 252, 0.08) 0%, transparent 50%),
+              linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+      }
+      .light-theme-bg::before, .light-theme-bg::after, body::before, body::after { display: none !important; background: none !important; }
+      .floating-shape { display: none !important; }
+      body { color: #f1f5f9 !important; }
+      .text-slate-900, .text-slate-800, .text-slate-700 { color: #f1f5f9 !important; }
+      .text-slate-600, .text-slate-500 { color: #cbd5e1 !important; }
+      .text-slate-400 { color: #94a3b8 !important; }
+      h1, h2, h3, h4 { color: #f8fafc !important; }
+      label, .form-label { color: #cbd5e1 !important; }
+      p { color: #cbd5e1 !important; }
+      .glass-frame, .glass-card, .card, .panel {
+          background: rgba(255, 255, 255, 0.04) !important;
+          backdrop-filter: blur(12px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          color: #f1f5f9 !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+      }
+      .glass-frame::before { display: none !important; background: none !important; }
+      h1, h2, .display-title { font-family: 'Syne', 'Plus Jakarta Sans', sans-serif !important; letter-spacing: -0.02em !important; }
+      body, button, input, select, textarea, label, p, span, div { font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important; }
+      .font-display, .text-display { font-family: 'Syne', 'Plus Jakarta Sans', sans-serif !important; }
+      input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
+          background: rgba(255, 255, 255, 0.05) !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          color: #f1f5f9 !important;
+          padding: 10px 14px !important;
+          border-radius: 10px !important;
+          transition: border-color 0.2s ease, background 0.2s ease !important;
+      }
+      input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+          background: rgba(34, 211, 238, 0.06) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+          outline: none !important;
+      }
+      input::placeholder, textarea::placeholder { color: #64748b !important; }
+      .btn-primary, button.btn-primary, .primary-btn {
+          background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%) !important;
+          color: #0f172a !important;
+          border: none !important;
+          font-weight: 700 !important;
+          padding: 12px 24px !important;
+          border-radius: 10px !important;
+          box-shadow: 0 8px 24px rgba(56, 189, 248, 0.25) !important;
+          transition: all 0.2s ease !important;
+          cursor: pointer !important;
+      }
+      .btn-primary:hover, button.btn-primary:hover, .primary-btn:hover {
+          filter: brightness(1.15) !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 0 12px 32px rgba(56, 189, 248, 0.4) !important;
+      }
+      .btn-secondary, button.btn-secondary, .secondary-btn {
+          background: rgba(255, 255, 255, 0.06) !important;
+          color: #f1f5f9 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          font-weight: 600 !important;
+          padding: 12px 24px !important;
+          border-radius: 10px !important;
+          transition: all 0.2s ease !important;
+          cursor: pointer !important;
+      }
+      .btn-secondary:hover, button.btn-secondary:hover, .secondary-btn:hover {
+          background: rgba(255, 255, 255, 0.10) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+          color: #67e8f9 !important;
+      }
+      button:not(.btn-primary):not(.btn-secondary):not(.btn-danger):not(.btn-success):not(.icon-btn):not([class*="bg-red"]):not([class*="bg-green"]) {
+          background: rgba(255, 255, 255, 0.06) !important;
+          color: #f1f5f9 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          font-weight: 600 !important;
+          border-radius: 10px !important;
+          transition: all 0.2s ease !important;
+      }
+      button:not(.btn-primary):not(.btn-secondary):not(.btn-danger):not(.btn-success):not(.icon-btn):hover {
+          background: rgba(34, 211, 238, 0.10) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+      }
+      .status-pill { background: rgba(255, 255, 255, 0.06) !important; border: 1px solid rgba(255, 255, 255, 0.10) !important; color: #cbd5e1 !important; }
+      .status-pill.completed { background: rgba(16, 185, 129, 0.18) !important; color: #6ee7b7 !important; border: 1px solid rgba(16, 185, 129, 0.4) !important; }
+      .status-pill.pending { background: rgba(245, 158, 11, 0.18) !important; color: #fcd34d !important; border: 1px solid rgba(245, 158, 11, 0.4) !important; }
+      .status-pill.recording { background: rgba(239, 68, 68, 0.18) !important; color: #fca5a5 !important; border: 1px solid rgba(239, 68, 68, 0.4) !important; }
+      .card, .section-card, .answer-card, .question-card, .nav-item, .section-nav-item {
+          background: rgba(255, 255, 255, 0.04) !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          color: #f1f5f9 !important;
+          border-radius: 12px !important;
+          transition: all 0.25s ease !important;
+      }
+      .card:hover, .section-card:hover, .answer-card:hover, .question-card:hover, .nav-item:hover, .section-nav-item:hover {
+          background: rgba(34, 211, 238, 0.06) !important;
+          border-color: rgba(34, 211, 238, 0.4) !important;
+      }
+      .answer-card.selected, .question-card.selected, .nav-item.active, .section-nav-item.active {
+          background: rgba(34, 211, 238, 0.10) !important;
+          border-color: rgba(34, 211, 238, 0.5) !important;
+          box-shadow: 0 0 24px rgba(34, 211, 238, 0.18) !important;
+      }
+      a, .link { color: #67e8f9 !important; }
+      a:hover, .link:hover { color: #a5f3fc !important; }
+      .brand-text, .brand-name {
+          background: linear-gradient(100deg, #a5f3fc 0%, #5eead4 45%, #a5b4fc 100%) !important;
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+          color: transparent !important;
+      }
+      .reading-passage, .passage-text, .article-text, [class*="reading-text"] {
+          background: rgba(15, 23, 42, 0.7) !important;
+          color: #e2e8f0 !important;
+          border: 1px solid rgba(255, 255, 255, 0.06) !important;
+          padding: 24px !important;
+          border-radius: 12px !important;
+          line-height: 1.7 !important;
+      }
+      .reading-passage p, .passage-text p, .article-text p { color: #cbd5e1 !important; }
+      audio {
+          background: rgba(15, 23, 42, 0.8) !important;
+          border-radius: 10px !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      }
+      audio::-webkit-media-controls-panel { background: rgba(15, 23, 42, 0.9) !important; }
+      .writing-area, .writing-textarea, .response-area {
+          background: rgba(255, 255, 255, 0.04) !important;
+          color: #f1f5f9 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          border-radius: 10px !important;
+      }
+      .timer, .section-timer, .countdown {
+          background: rgba(15, 23, 42, 0.85) !important;
+          color: #67e8f9 !important;
+          border: 1px solid rgba(34, 211, 238, 0.3) !important;
+          font-family: 'Space Grotesk', monospace !important;
+          font-weight: 700 !important;
+      }
+      .timer.warning { color: #fbbf24 !important; border-color: rgba(245, 158, 11, 0.4) !important; }
+      .timer.critical { color: #f87171 !important; border-color: rgba(239, 68, 68, 0.5) !important; }
+      ::-webkit-scrollbar { width: 10px; height: 10px; }
+      ::-webkit-scrollbar-track { background: #020617; }
+      ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(34, 211, 238, 0.3), rgba(99, 102, 241, 0.3)); border-radius: 5px; }
+      ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, rgba(34, 211, 238, 0.5), rgba(99, 102, 241, 0.5)); }
+      ::selection { background: rgba(34, 211, 238, 0.3); color: #fff; }
+      .tab-bar, .section-tabs { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 12px !important; }
+      .tab-btn, .section-tab { color: #cbd5e1 !important; background: transparent !important; border: none !important; }
+      .tab-btn.active, .section-tab.active { background: rgba(34, 211, 238, 0.12) !important; color: #67e8f9 !important; }
+      .progress-bar, .progress-track { background: rgba(255, 255, 255, 0.08) !important; }
+      .progress-fill { background: linear-gradient(90deg, #38bdf8 0%, #5eead4 50%, #818cf8 100%) !important; }
+      .navbar, .top-nav, .header-bar {
+          background: rgba(2, 6, 23, 0.85) !important;
+          backdrop-filter: blur(12px) !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      }
+      .navbar a, .top-nav a { color: #cbd5e1 !important; }
+      .navbar a:hover, .top-nav a:hover { color: #67e8f9 !important; }
+      .security-warning-card {
+          background: rgba(15, 23, 42, 0.96) !important;
+          border: 2px solid rgba(239, 68, 68, 0.5) !important;
+          color: #fca5a5 !important;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 60px rgba(239, 68, 68, 0.2) !important;
+      }
+      .security-warning-card h2, .security-warning-card h3 { color: #fca5a5 !important; }
+      .recording-indicator, .rec-indicator {
+          background: rgba(239, 68, 68, 0.15) !important;
+          color: #fca5a5 !important;
+          border: 1px solid rgba(239, 68, 68, 0.4) !important;
+      }
+      .recording-dot { background: #ef4444 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6) !important; }
+      .mcq-option, .question-option {
+          background: rgba(255, 255, 255, 0.04) !important;
+          color: #e2e8f0 !important;
+          border: 1px solid rgba(255, 255, 255, 0.10) !important;
+          border-radius: 10px !important;
+          transition: all 0.2s ease !important;
+      }
+      .mcq-option:hover, .question-option:hover { background: rgba(34, 211, 238, 0.06) !important; border-color: rgba(34, 211, 238, 0.4) !important; }
+      .mcq-option.selected, .question-option.selected { background: rgba(34, 211, 238, 0.10) !important; border-color: rgba(34, 211, 238, 0.5) !important; }
+      .mcq-option.correct, .question-option.correct { background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(16, 185, 129, 0.5) !important; color: #6ee7b7 !important; }
+      .mcq-option.incorrect, .question-option.incorrect { background: rgba(239, 68, 68, 0.15) !important; border-color: rgba(239, 68, 68, 0.5) !important; color: #fca5a5 !important; }
+      input, textarea, select { font-size: 16px !important; }
+      .muted-text, .text-muted, .helper-text { color: #94a3b8 !important; }
+    
+html[data-theme="light"] body, html[data-theme="light"] .light-theme-bg { background:#f8fafc!important;color:#1e293b!important;background-image:none!important }
+html[data-theme="light"] .glass-frame, html[data-theme="light"] .card, html[data-theme="light"] .panel { background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.1)!important;color:#1e293b!important }
+html[data-theme="light"] input, html[data-theme="light"] textarea, html[data-theme="light"] select { background:#fff!important;border-color:#cbd5e1!important;color:#1e293b!important }
+html[data-theme="light"] .text-slate-900, html[data-theme="light"] h1, html[data-theme="light"] h2, html[data-theme="light"] h3 { color:#1e293b!important }
+html[data-theme="light"] p, html[data-theme="light"] .text-slate-600, html[data-theme="light"] .text-slate-500 { color:#475569!important }
+html[data-theme="light"] .text-white { color:#1e293b!important }
+html[data-theme="light"] button { background:#fff!important;color:#1e293b!important;border-color:#cbd5e1!important }
+html[data-theme="light"] .btn-primary { background:linear-gradient(135deg,#0284c7,#6366f1)!important;color:#fff!important }
+html[data-theme="light"] .toefl-header { background:rgba(255,255,255,.9)!important;border-color:rgba(0,0,0,.08)!important }
+html[data-theme="light"] .timer-display { background:#1e293b!important;color:#fff!important }
+html[data-theme="light"] .question-card, html[data-theme="light"] .mcq-option { background:rgba(0,0,0,.02)!important;border-color:rgba(0,0,0,.1)!important;color:#1e293b!important }
+.theme-toggle{position:fixed;top:16px;right:16px;z-index:99996;width:40px;height:40px;border-radius:10px;background:rgba(15,23,42,.9);backdrop-filter:blur(8px);border:1px solid rgba(56,189,248,.3);color:#67e8f9;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+html[data-theme="light"] .theme-toggle{background:rgba(255,255,255,.9);border-color:rgba(2,132,199,.2);color:#0284c7}
+.theme-toggle:hover{transform:scale(1.1)}
+
+
+/* AI-generated dashboard/section background overlay */
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url('img/hero-bg.png');
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  opacity:.10;mix-blend-mode:screen;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 80%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 80%)}
+html[data-theme="light"] body::after{opacity:.06;mix-blend-mode:multiply;
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 85%);
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 20%,black 0%,transparent 85%)}
+
+
+/* CMC SHARE BUTTON */
+#cmc-share-btn{position:fixed;left:16px;bottom:16px;z-index:99994;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:17px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+#cmc-share-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 30px rgba(56,189,248,.4)}
+#cmc-share-panel{position:fixed;left:16px;bottom:70px;z-index:99994;min-width:240px;padding:10px;border-radius:14px;background:rgba(15,23,42,.96);backdrop-filter:blur(16px);border:1px solid rgba(56,189,248,.25);box-shadow:0 12px 40px rgba(0,0,0,.5);color:#f1f5f9;font-family:'Plus Jakarta Sans',sans-serif;display:none}
+#cmc-share-panel.open{display:block;animation:cmcShareIn .18s ease-out}
+@keyframes cmcShareIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#cmc-share-panel .share-title{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#67e8f9;padding:4px 8px 8px}
+#cmc-share-panel a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;text-decoration:none;transition:all .15s}
+#cmc-share-panel a:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel a i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel .share-copy{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;cursor:pointer;transition:all .15s}
+#cmc-share-panel .share-copy:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel .share-copy i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel hr{border:none;border-top:1px solid rgba(255,255,255,.10);margin:6px 0}
+html[data-theme="light"] #cmc-share-panel{background:rgba(255,255,255,.96);border-color:rgba(2,132,199,.2);color:#1e293b;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+html[data-theme="light"] #cmc-share-panel .share-title{color:#0284c7}
+html[data-theme="light"] #cmc-share-panel a{color:#334155}
+html[data-theme="light"] #cmc-share-panel a:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel .share-copy{color:#334155}
+html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
+
+</style>
+
+<!-- Google Analytics 4 (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){window.dataLayer.push(arguments)}
+  window.gtag=gtag;
+  gtag('js',new Date());
+  gtag('config','G-XXXXXXXXXX',{send_page_view:true});
+  // cmcTrack helper — safe to call before/after gtag loads.
+  window.cmcTrack=function(ev,params){try{if(typeof window.gtag==='function'){window.gtag('event',ev,params||{})}}catch(e){}};
+</script>
+  <link rel="stylesheet" href="../assets/css/cmc-utilities.css">
+</head>
+<body class="section-listening">
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
+    <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
+</a>
+
+    <!-- Start Screen Overlay -->
+    <div id="start-screen" class="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+        <div class="glass-frame max-w-2xl w-full p-8 text-center">
+            <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30 pulse-animation">
+                <i class="fas fa-headphones text-4xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-4">TOEFL iBT Listening Section</h1>
+            <p class="text-slate-400 mb-8 text-lg">This test contains 2 modules with a total of 47 questions. You will have 29 minutes to complete the entire test.</p>
+
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="glass-frame p-4">
+                    <div class="text-2xl font-bold text-blue-400">47</div>
+                    <div class="text-sm text-slate-400 mt-1">Questions</div>
+                </div>
+                <div class="glass-frame p-4">
+                    <div class="text-2xl font-bold text-emerald-400">2</div>
+                    <div class="text-sm text-slate-400 mt-1">Modules</div>
+                </div>
+                <div class="glass-frame p-4">
+                    <div class="text-2xl font-bold text-purple-400">29 min</div>
+                    <div class="text-sm text-slate-400 mt-1">Total Time</div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <button onclick="startTest()" class="btn-3d btn-3d-large pulse-animation">
+                    <i class="fas fa-play mr-3"></i>Start Test & Timer
+                </button>
+                <p class="text-slate-500 text-sm">Click the button above when you're ready to begin</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <div class="glass-frame px-6 py-3 flex items-center gap-3">
+                        <i class="fas fa-headphones text-3xl text-blue-500"></i>
+                        <div>
+                            <h1 class="text-xl font-bold text-white tracking-tight">TOEFL iBT</h1>
+                            <p class="text-xs text-slate-400 uppercase tracking-widest">Listening Section</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <div id="timer-container" class="timer-display paused">
+                        <i class="fas fa-hourglass-half mr-2 text-sm"></i><span id="timer">29:00</span>
+                    </div>
+                    <button id="submit-btn" onclick="submitListening()" class="btn-3d opacity-50 cursor-not-allowed" disabled title="Submit test">
+                        <i class="fas fa-paper-plane mr-2"></i>Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div id="test-container" class="max-w-7xl mx-auto px-6 py-8 flex gap-8 opacity-50 pointer-events-none">
+        <!-- Sidebar -->
+        <aside class="w-72 flex-shrink-0">
+            <div class="glass-frame p-6 sticky top-28">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-6">
+                    <i class="fas fa-chart-pie text-blue-500 mr-2"></i>Progress
+                </h3>
+
+                <div class="flex justify-between text-sm mb-3">
+                    <span class="text-slate-400">Completed</span>
+                    <span id="progress-text" class="font-bold" style="color: var(--section-primary);">0%</span>
+                </div>
+                <div class="progress-container h-3">
+                    <div id="progress-bar" class="progress-fill" style="width: 0%"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-6">
+                    <div class="stat-card" style="border-left: 3px solid var(--success);">
+                        <div id="correct-count" class="text-2xl font-bold text-emerald-400">0</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Correct</div>
+                    </div>
+                    <div class="stat-card" style="border-left: 3px solid var(--error);">
+                        <div id="incorrect-count" class="text-2xl font-bold text-red-400">0</div>
+                        <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Incorrect</div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-700">
+                    <h4 class="text-sm font-bold text-slate-300 mb-4">Modules</h4>
+                    <div class="flex gap-2">
+                        <button onclick="switchModule(1)" id="mod1-btn" class="module-btn active flex-1">Module 1</button>
+                        <button onclick="switchModule(2)" id="mod2-btn" class="module-btn flex-1">Module 2</button>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <p class="text-xs text-slate-400 mb-2"><i class="fas fa-exclamation-triangle text-yellow-400 mr-1"></i> <strong>Listening Only</strong></p>
+                    <p class="text-xs text-slate-500 mb-2">No transcripts or text provided. Listen to audio and answer questions.</p>
+                    <p class="text-xs text-slate-400"><i class="fas fa-info-circle text-blue-400 mr-1"></i> Each audio plays only once</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+            <!-- Module 1 -->
+            <div id="module-1" class="module-content fade-in">
+                <div class="glass-frame p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fas fa-headphones" style="color: var(--section-primary);"></i>
+                        Listening Module 1
+                    </h2>
+                    <p class="text-slate-400 mt-2">Listen to conversations, announcements, and academic talks. Answer questions based on what you hear.</p>
+                </div>
+
+                <!-- Listen and Choose a Response (Questions 1-8) -->
+                <div class="question-frame">
+                    <div class="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <p class="text-sm text-blue-300"><i class="fas fa-headphones mr-2"></i><strong>Listen Only:</strong> Click the play button to hear the audio. No text transcript will be shown.</p>
+                    </div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-blue">Listen and Choose a Response</span>
+                        <span class="text-slate-500 text-sm">Questions 1-8</span>
+                    </div>
+                    <p class="text-slate-400 mb-6">You will hear short statements or questions. Choose the best response.</p>
+
+                    <!-- Question 1 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l1q1">
+                            <button class="play-btn" onclick="playAudio('l1q1')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2"><i class="fas fa-play-circle mr-1"></i>Click to play (Listen carefully - plays once)</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l1q1" src="listening/Listening1_Listen_Response_Question1.mp3" onended="audioEnded('l1q1')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Man:</strong> "Does the building have a parking garage?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l1q1', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) No, I haven't received it yet.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q1', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) Yes, it's just around the corner.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q1', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) Let's walk to the park.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q1', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) Several times a week.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l1q2">
+                            <button class="play-btn" onclick="playAudio('l1q2')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 2 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l1q2" src="listening/Listening1_Listen_Response_Question2.mp3" onended="audioEnded('l1q2')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Woman:</strong> "Didn't you book a trip to Australia?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l1q2', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) No, the airport is on the right.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q2', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) Yes, I loved that book!</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q2', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) I'd be happy to sell tickets for the fundraiser.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q2', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) I'm going to New Zealand instead.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l1q3">
+                            <button class="play-btn" onclick="playAudio('l1q3')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 3 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l1q3" src="listening/Listening1_Listen_Response_Question3.mp3" onended="audioEnded('l1q3')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Woman:</strong> "Who's conducting the safety training?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l1q3', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) Elizabeth would be the person to ask.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q3', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) We'll be gathering in the main conference room.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q3', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) Did Robert place the food order?</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q3', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) The train station closes at midnight.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 4 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l1q4">
+                            <button class="play-btn" onclick="playAudio('l1q4')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 4 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l1q4" src="listening/Listening1_Listen_Response_Question4.mp3" onended="audioEnded('l1q4')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Man:</strong> "Can I purchase this shirt in a different size?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l1q4', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) Are you looking for the same color?</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q4', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) Yes, we stock a variety of styles of pants.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q4', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) All of our stores are open on Sundays.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q4', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) The store will be remodeled this month.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 5 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l1q5">
+                            <button class="play-btn" onclick="playAudio('l1q5')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 5 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l1q5" src="listening/Listening1_Listen_Response_Question5.mp3" onended="audioEnded('l1q5')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Man:</strong> "Why did Sharon relocate to Belfast?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l1q5', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) The suitcases can be stored overhead.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q5', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) Because I have a doctor's appointment.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q5', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) I know you have some vacation time coming up.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q5', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) She was offered a new job there.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 6 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l1q6">
+                            <button class="play-btn" onclick="playAudio('l1q6')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 6 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l1q6" src="listening/Listening1_Listen_Response_Question6.mp3" onended="audioEnded('l1q6')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Woman:</strong> "How much do these watches cost?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l1q6', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) Did you watch the game yesterday?</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q6', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) They start at a hundred dollars.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q6', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) These models feature a new display.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q6', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) The admission fee has gone up by twenty dollars.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 7 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l1q7">
+                            <button class="play-btn" onclick="playAudio('l1q7')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 7 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l1q7" src="listening/Listening1_Listen_Response_Question7.mp3" onended="audioEnded('l1q7')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Woman:</strong> "Where can I buy a charger for my phone?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l1q7', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) Battery recycling is available on Saturdays.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q7', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) The cost of those phones just went up.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q7', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) There's a shopping center a few minutes from here.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q7', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) The cashier charged me too much.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 8 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l1q8">
+                            <button class="play-btn" onclick="playAudio('l1q8')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 8 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l1q8" src="listening/Listening1_Listen_Response_Question8.mp3" onended="audioEnded('l1q8')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Man:</strong> "What streaming services do you like to watch shows on?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l1q8', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) I don't have a cleaning service.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q8', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) I'm too busy to watch anything right now.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q8', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) The stream runs behind the house.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l1q8', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) The magazine subscription is monthly.</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversation 1 (Questions 9-10) -->
+                <div class="question-frame">
+                    <div class="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <p class="text-sm text-blue-300"><i class="fas fa-headphones mr-2"></i><strong>Listen Only:</strong> Click the play button to hear the audio. No text transcript will be shown.</p>
+                    </div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-green">Listen to a Conversation</span>
+                        <span class="text-slate-500 text-sm">Questions 9-10</span>
+                    </div>
+
+                    <div class="audio-player mb-6" id="audio-conv1">
+                        <button class="play-btn" onclick="playAudio('conv1')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2"><i class="fas fa-play-circle mr-1"></i>Conversation Audio (plays once)</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="conv1" src="listening/Listening1_Conversation_Questions_9-10.mp3" onended="audioEnded('conv1')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-6 space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="speaker-icon"><i class="fas fa-female"></i></div>
+                            <div class="conversation-bubble flex-1">
+                                <p class="text-slate-300">Have you decided which gym to join?</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 flex-row-reverse">
+                            <div class="speaker-icon"><i class="fas fa-male"></i></div>
+                            <div class="conversation-bubble right flex-1">
+                                <p class="text-slate-300">I'm torn between the NanoFitness Gym near my house and the Downtown Trainers gym near my office.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="speaker-icon"><i class="fas fa-female"></i></div>
+                            <div class="conversation-bubble flex-1">
+                                <p class="text-slate-300">The second one might suit you. You'll enjoy working up some sweat right after sitting at your desk in front of the computer all day, five days a week.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 flex-row-reverse">
+                            <div class="speaker-icon"><i class="fas fa-male"></i></div>
+                            <div class="conversation-bubble right flex-1">
+                                <p class="text-slate-300">True. And Downtown Trainers has the better instructors and nicer equipment, too. But weekends is actually when I do most of my working out, and it'd be easier to do it near home than drive downtown.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">9</div>
+                                <p class="font-medium text-white text-lg">What kind of job does the man most likely have?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q9', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Fitness instructor</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q9', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Driver</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q9', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Office worker</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q9', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) Equipment manufacturer</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">10</div>
+                                <p class="font-medium text-white text-lg">What does the man indicate about weekends?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q10', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) He sometimes needs to go to work on weekends.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q10', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) He sometimes repairs equipment in his house on weekends.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q10', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) He likes to exercise outdoors on weekends.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q10', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) He exercises more on weekends than on other days.</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversation 2 (Questions 11-12) -->
+                <div class="question-frame">
+                    <div class="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <p class="text-sm text-blue-300"><i class="fas fa-headphones mr-2"></i><strong>Listen Only:</strong> Click the play button to hear the audio. No text transcript will be shown.</p>
+                    </div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-green">Listen to a Conversation</span>
+                        <span class="text-slate-500 text-sm">Questions 11-12</span>
+                    </div>
+
+                    <div class="audio-player mb-6" id="audio-conv2">
+                        <button class="play-btn" onclick="playAudio('conv2')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2">Conversation 2 - Click to play</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="conv2" src="listening/Listening1_Conversation_Questions_11-12.mp3" onended="audioEnded('conv2')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-6 space-y-4">
+                        <div class="flex items-start gap-4 flex-row-reverse">
+                            <div class="speaker-icon"><i class="fas fa-male"></i></div>
+                            <div class="conversation-bubble right flex-1">
+                                <p class="text-slate-300">Did you manage to fix your computer?</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="speaker-icon"><i class="fas fa-female"></i></div>
+                            <div class="conversation-bubble flex-1">
+                                <p class="text-slate-300">No, it's still acting up. I think I need professional help.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 flex-row-reverse">
+                            <div class="speaker-icon"><i class="fas fa-male"></i></div>
+                            <div class="conversation-bubble right flex-1">
+                                <p class="text-slate-300">I know a great repair shop downtown. They fixed mine really quickly last month.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="speaker-icon"><i class="fas fa-female"></i></div>
+                            <div class="conversation-bubble flex-1">
+                                <p class="text-slate-300">Could you send me their contact information?</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 flex-row-reverse">
+                            <div class="speaker-icon"><i class="fas fa-male"></i></div>
+                            <div class="conversation-bubble right flex-1">
+                                <p class="text-slate-300">Sure, I'll email it to you right after this meeting.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">11</div>
+                                <p class="font-medium text-white text-lg">Why does the woman need professional help?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q11', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Her computer is not working properly.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q11', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) She needs to choose a new computer.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q11', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) She needs new software on her computer.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q11', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) She has lost access to her email account.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">12</div>
+                                <p class="font-medium text-white text-lg">What will the man do after the meeting?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q12', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Offer the woman some advice</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q12', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Call a downtown shop</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q12', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Get his computer fixed</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q12', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) Share some contact information</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Announcement (Questions 13-14) -->
+                <div class="question-frame">
+                    <div class="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <p class="text-sm text-blue-300"><i class="fas fa-headphones mr-2"></i><strong>Listen Only:</strong> Click the play button to hear the audio. No text transcript will be shown.</p>
+                    </div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-orange">Listen to an Announcement</span>
+                        <span class="text-slate-500 text-sm">Questions 13-14</span>
+                    </div>
+
+                    <div class="audio-player mb-6" id="audio-ann1">
+                        <button class="play-btn" onclick="playAudio('ann1')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2"><i class="fas fa-play-circle mr-1"></i>Announcement Audio (plays once)</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="ann1" src="listening/Listening1_Announcement_Questions_13-14.mp3" onended="audioEnded('ann1')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-6 border-l-4 border-l-orange-500">
+                        <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                            <i class="fas fa-broadcast-tower text-orange-400"></i>
+                            Campus Radio Announcement:
+                        </h4>
+                        <p class="text-slate-300 italic leading-relaxed">"Hello everyone. We are excited to invite you to the annual science fair next Friday at 3 P.M. in the university gym. There will be exhibits from various departments showcasing innovative projects in the fields of biology, physics, and chemistry. In addition, there will be lectures on scientific topics aimed at a general audience. Don't miss it!"</p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">13</div>
+                                <p class="font-medium text-white text-lg">Who is the intended audience of the lectures?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q13', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Science students</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q13', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) University professors</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q13', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Everyone at the science fair</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q13', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) A panel of judges</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">14</div>
+                                <p class="font-medium text-white text-lg">What does the speaker hope the listeners will do?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q14', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Attend an event</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q14', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Submit a science project</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q14', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Join the university gym</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q14', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) Volunteer for an event</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Talk (Questions 15-18) -->
+                <div class="question-frame">
+                    <div class="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <p class="text-sm text-blue-300"><i class="fas fa-headphones mr-2"></i><strong>Listen Only:</strong> Click the play button to hear the audio. No text transcript will be shown.</p>
+                    </div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-purple">Listen to an Academic Talk</span>
+                        <span class="text-slate-500 text-sm">Questions 15-18</span>
+                    </div>
+
+                    <div class="audio-player mb-6" id="audio-talk1">
+                        <button class="play-btn" onclick="playAudio('talk1')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2"><i class="fas fa-play-circle mr-1 text-green-400"></i><span class="text-green-400">Audio Available</span> - Lecture Audio (plays once)</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="talk1" src="listening/Listening1_Academic Talk_Questions_15-18.mp3" onended="audioEnded('talk1')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-6">
+                        <h4 class="font-semibold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-university text-purple-400"></i>
+                            Anthropology Class - The Potlatch
+                        </h4>
+                        <div class="text-slate-300 leading-relaxed space-y-4 text-sm">
+                            <p>"The potlatch is a ceremonial event among Indigenous peoples of the Pacific Northwest coast of North America. A potlatch involves the host giving away their possessions, including food, blankets, and even money, to guests.</p>
+                            <p>This practice serves multiple social functions, like redistributing wealth, reinforcing social bonds, and asserting status. Potlatches are often held to mark significant occasions, like weddings and such, and they involve feasting, dancing, and storytelling. The lavishness of a potlatch can elevate the host's status by demonstrating wealth and generosity.</p>
+                            <p>One fascinating aspect of the potlatch is its role in the social and economic structures of the communities that practice it. By redistributing wealth, potlatches ensure that resources circulate within the community, preventing the concentration of wealth in the hands of a few individuals. This practice strengthens community ties and fosters mutual support.</p>
+                            <p>For people who don't understand the function of potlatches, they may appear to be a waste of resources. Potlatches were even prohibited by the Canadian government in the late-nineteenth century because of this perceived wastefulness. The ban was lifted in the mid-twentieth century, and today, potlatches continue to be an important cultural practice. Let's now examine how Indigenous communities have revived this tradition."</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">15</div>
+                                <p class="font-medium text-white text-lg">What aspect of the Indigenous peoples of the Northwest coast of North America is the talk mainly about?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q15', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Their economic structures</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q15', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) A traditional event that they participate in</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q15', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Their relationship with the Canadian government</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q15', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) The role of dancing and storytelling in their social functions</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">16</div>
+                                <p class="font-medium text-white text-lg">What can a host gain from a potlatch?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q16', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Food</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q16', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Money</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q16', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Items like blankets</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q16', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) Social status</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">17</div>
+                                <p class="font-medium text-white text-lg">What does the speaker imply about the Canadian government of the late-nineteenth century?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q17', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) It was not aware of the social function of potlatches.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q17', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) It wanted Indigenous people to include other Canadians in potlatches.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q17', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Its policies contributed to economic growth.</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q17', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) It was extremely supportive of Indigenous traditions.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">18</div>
+                                <p class="font-medium text-white text-lg">What aspect of potlatches will the speaker discuss next?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l1q18', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) The ways in which communities brought them back</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q18', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) The countries that ban them</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q18', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Their effect on wealth distribution</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l1q18', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) Their possible future decline</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module 2 -->
+            <div id="module-2" class="module-content hidden">
+                <div class="glass-frame p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fas fa-headphones" style="color: var(--section-primary);"></i>
+                        Listening Module 2
+                    </h2>
+                    <p class="text-slate-400 mt-2">Continue with the next set of listening questions.</p>
+                </div>
+
+                <!-- Listen and Choose a Response (Questions 1-8) -->
+                <div class="question-frame">
+                    <div class="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <p class="text-sm text-blue-300"><i class="fas fa-headphones mr-2"></i><strong>Listen Only:</strong> Click the play button to hear the audio. No text transcript will be shown.</p>
+                    </div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-blue">Listen and Choose a Response</span>
+                        <span class="text-slate-500 text-sm">Questions 1-8</span>
+                    </div>
+                    <p class="text-slate-400 mb-6">You will hear short statements or questions. Choose the best response.</p>
+
+                    <!-- Question 1 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l2q1">
+                            <button class="play-btn" onclick="playAudio('l2q1')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2"><i class="fas fa-play-circle mr-1"></i>Click to play (Listen carefully - plays once)</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l2q1" src="listening/Listening2_Listen_Response_Question1.mp3" onended="audioEnded('l2q1')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Man:</strong> "Don't you have class right now?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l2q1', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) My professor is out this week.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q1', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) The syllabus was just posted.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q1', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) Yes, it's in my backpack.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q1', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) I don't think I received that email.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l2q2">
+                            <button class="play-btn" onclick="playAudio('l2q2')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 2 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l2q2" src="listening/Listening2_Listen_Response_Question2.mp3" onended="audioEnded('l2q2')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Woman:</strong> "Have you met our new neighbor?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l2q2', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) It's a quiet neighborhood.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q2', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) I haven't yet.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q2', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) Yes, I'll drop it off tomorrow.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q2', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) Not usually at this time of day.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l2q3">
+                            <button class="play-btn" onclick="playAudio('l2q3')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 3 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l2q3" src="listening/Listening2_Listen_Response_Question3.mp3" onended="audioEnded('l2q3')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Woman:</strong> "Why does my computer keep shutting down?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l2q3', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) Sure, you can borrow my charging cord.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q3', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) The door should remain shut and locked.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q3', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) Because the schedule was changed at the last minute.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q3', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) Sounds like it needs to be repaired.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 4 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l2q4">
+                            <button class="play-btn" onclick="playAudio('l2q4')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 4 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l2q4" src="listening/Listening2_Listen_Response_Question4.mp3" onended="audioEnded('l2q4')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Man:</strong> "Why didn't Andy come to the business dinner?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l2q4', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) I just met his assistant.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q4', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) The cafeteria closes at 2 o'clock.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q4', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) He's working late tonight.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q4', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) Because I lost my invitation.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 5 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l2q5">
+                            <button class="play-btn" onclick="playAudio('l2q5')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 5 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l2q5" src="listening/Listening2_Listen_Response_Question5.mp3" onended="audioEnded('l2q5')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Man:</strong> "Should we repaint the classrooms in that building?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l2q5', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) They usually study together.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q5', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) The library is past the cafeteria.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q5', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) I think it's time to do it.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q5', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) Some new classroom furniture.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 6 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l2q6">
+                            <button class="play-btn" onclick="playAudio('l2q6')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 6 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l2q6" src="listening/Listening2_Listen_Response_Question6.mp3" onended="audioEnded('l2q6')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Woman:</strong> "Would you mind making copies of the syllabus for me?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l2q6', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) I'll put them on your desk.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q6', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) Yes, I'll pass along the message.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q6', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) I like that new coffee maker.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q6', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) No, the other one is better.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 7 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l2q7">
+                            <button class="play-btn" onclick="playAudio('l2q7')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 7 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l2q7" src="listening/Listening2_Listen_Response_Question7.mp3" onended="audioEnded('l2q7')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Woman:</strong> "You managed to get to the concert, didn't you?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l2q7', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) I was able to make it to the trade show.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q7', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) I do not play any instruments.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q7', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) My manager agreed to the new schedule.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q7', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) It was a very long line.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question 8 -->
+                    <div class="mb-8">
+                        <div class="audio-player mb-4" id="audio-l2q8">
+                            <button class="play-btn" onclick="playAudio('l2q8')">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <p class="text-slate-400 text-sm mb-2">Question 8 - Click to play audio</p>
+                            <div class="audio-wave">
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                                <div class="audio-bar"></div>
+                            </div>
+                            <audio id="l2q8" src="listening/Listening2_Listen_Response_Question8.mp3" onended="audioEnded('l2q8')"></audio>
+                        </div>
+                        <div class="transcript-box">
+                            <p><strong>Man:</strong> "Does the restaurant use organic vegetables?"</p>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="option-3d" onclick="selectOption('l2q8', 'A', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(A) The menu features two fish entrées.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q8', 'B', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(B) It depends on the season.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q8', 'C', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(C) The cost of broccoli has increased.</span>
+                            </label>
+                            <label class="option-3d" onclick="selectOption('l2q8', 'D', this)">
+                                <div class="option-radio"></div>
+                                <span class="text-slate-300">(D) Yes, the natural lighting is wonderful.</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversation 1 (Questions 9-10) -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-green">Listen to a Conversation</span>
+                        <span class="text-slate-500 text-sm">Questions 9-10</span>
+                    </div>
+
+                    <div class="audio-player mb-6" id="audio-conv3">
+                        <button class="play-btn" onclick="playAudio('conv3')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2"><i class="fas fa-play-circle mr-1"></i>Conversation Audio (plays once)</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="conv3" src="listening/Listening2_Conversation_Question_9-10.mp3" onended="audioEnded('conv3')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-6 space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="speaker-icon"><i class="fas fa-female"></i></div>
+                            <div class="conversation-bubble flex-1">
+                                <p class="text-slate-300">Did you finish setting up the new online store?</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 flex-row-reverse">
+                            <div class="speaker-icon"><i class="fas fa-male"></i></div>
+                            <div class="conversation-bubble right flex-1">
+                                <p class="text-slate-300">Almost. There's just a few more product descriptions to write.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="speaker-icon"><i class="fas fa-female"></i></div>
+                            <div class="conversation-bubble flex-1">
+                                <p class="text-slate-300">Do you need any help with that? I know the stuff we sell pretty well.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 flex-row-reverse">
+                            <div class="speaker-icon"><i class="fas fa-male"></i></div>
+                            <div class="conversation-bubble right flex-1">
+                                <p class="text-slate-300">Thank you! I'd love to collaborate with you on this. Would you like to meet in my office after lunch?</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="speaker-icon"><i class="fas fa-female"></i></div>
+                            <div class="conversation-bubble flex-1">
+                                <p class="text-slate-300">Later in the afternoon would be safer. I have a lunch-time meeting with our newest client today, and I don't know how long that's gonna take.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">9</div>
+                                <p class="font-medium text-white text-lg">What does the woman offer to help with?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l2q9', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Deciding which products to sell</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q9', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Finding new clients</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q9', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Producing goods</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q9', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) Describing items for sale</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">10</div>
+                                <p class="font-medium text-white text-lg">Why does the woman mention a client?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l2q10', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) To emphasize the need for an online store</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q10', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) To propose a strategy for increasing sales</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q10', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) To illustrate the importance of collaboration</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q10', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) To explain why she prefers not to plan a meeting after lunch</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Announcement (Questions 11-12) -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-orange">Listen to an Announcement</span>
+                        <span class="text-slate-500 text-sm">Questions 11-12</span>
+                    </div>
+
+                    <div class="audio-player mb-6" id="audio-ann2">
+                        <button class="play-btn" onclick="playAudio('ann2')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2"><i class="fas fa-play-circle mr-1"></i>Announcement Audio (plays once)</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="ann2" src="listening/Listening2_Announcement_Questions_11-12.mp3" onended="audioEnded('ann2')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-6 border-l-4 border-l-orange-500">
+                        <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                            <i class="fas fa-broadcast-tower text-orange-400"></i>
+                            Classroom Announcement:
+                        </h4>
+                        <p class="text-slate-300 italic leading-relaxed">"Attention everyone. Several students have added this class in recent weeks, and as you can see, it is a bit crowded in here. So starting next week, our class will meet in Room 204 instead of Room 105. Room 204 is in the same building, but one floor up in the east wing. Please remember the change and arrive on time."</p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">11</div>
+                                <p class="font-medium text-white text-lg">What is the reason for the change described in the announcement?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l2q11', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) Repairs to a classroom</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q11', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Increased class enrollment</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q11', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) A change in meeting time</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q11', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) An additional assignment</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">12</div>
+                                <p class="font-medium text-white text-lg">Why does the speaker mention the east wing?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l2q12', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) To announce the location of an event</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q12', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) To notify students of upcoming repairs</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q12', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) To direct students to the professor's office</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q12', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) To help students find a classroom</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Talk (Questions 13-16) -->
+                <div class="question-frame">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="badge badge-purple">Listen to an Academic Talk</span>
+                        <span class="text-slate-500 text-sm">Questions 13-16</span>
+                    </div>
+
+                    <div class="audio-player mb-6" id="audio-talk2">
+                        <button class="play-btn" onclick="playAudio('talk2')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <p class="text-slate-400 text-sm mb-2"><i class="fas fa-play-circle mr-1"></i>Lecture Audio (plays once)</p>
+                        <div class="audio-wave">
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                            <div class="audio-bar"></div>
+                        </div>
+                        <audio id="talk2" src="listening/Listening2_Academic Talk_Questions_13-16.mp3" onended="audioEnded('talk2')"></audio>
+                    </div>
+
+                    <div class="glass-frame p-6 mb-6">
+                        <h4 class="font-semibold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-university text-purple-400"></i>
+                            Economics Class - The Gig Economy
+                        </h4>
+                        <div class="text-slate-300 leading-relaxed space-y-4 text-sm">
+                            <p>"Today, we are going to talk about the concept of the gig economy. The gig economy is a labor market characterized by short-term contracts or freelance work, as opposed to permanent jobs. It has gained significant traction in recent years because of technological advancements and the rise of digital platforms like ride-sharing apps and freelance websites.</p>
+                            <p>In a gig economy, workers typically take on multiple short-term jobs or projects, and they often do so through online platforms that connect them directly with clients. This can offer greater flexibility compared to traditional employment, as workers can choose when and where they wanna work. Companies benefit from the gig economy by reducing overhead costs associated with full-time employees, like for office space. This allows them to vary their workforce according to demand, which can be particularly useful during peak seasons or for specific projects.</p>
+                            <p>On the other hand, gig workers may face difficulties in securing consistent work and may have to juggle multiple gigs to make a living. Next, we will discuss potential regulatory responses to protect gig workers and after that: the implications of the gig economy on traditional labor markets."</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">13</div>
+                                <p class="font-medium text-white text-lg">What is the main topic of the talk?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l2q13', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) The advantages of traditional employment</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q13', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) The benefits of using apps instead of websites</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q13', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) A new type of work tied to advances in technology</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q13', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) A plan to restructure contract work</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">14</div>
+                                <p class="font-medium text-white text-lg">Why does the speaker mention ride-sharing apps and freelance websites?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l2q14', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) To give examples of digital platforms in the gig economy</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q14', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) To explain a problem with overhead costs</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q14', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) To discuss how work conditions for gig workers have improved</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q14', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) To illustrate technologies used both by companies and by their customers</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">15</div>
+                                <p class="font-medium text-white text-lg">According to the speaker, what is a challenge for gig workers?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l2q15', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) High overhead costs</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q15', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) Limited flexibility</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q15', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) Lack of a stable income</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q15', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) Little office space</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="question-block">
+                            <div class="flex items-start gap-4 mb-4">
+                                <div class="q-number">16</div>
+                                <p class="font-medium text-white text-lg">What will the speaker discuss next?</p>
+                            </div>
+                            <div class="space-y-3 ml-12">
+                                <label class="option-3d" onclick="selectOption('l2q16', 'A', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(A) The challenges of digital platforms for gig workers</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q16', 'B', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(B) The efforts of regulators to protect gig workers</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q16', 'C', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(C) The types of labor markets with many gig workers</span>
+                                </label>
+                                <label class="option-3d" onclick="selectOption('l2q16', 'D', this)">
+                                    <div class="option-radio"></div>
+                                    <span class="text-slate-300">(D) The advantages of flexible working hours for gig workers</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div class="mt-8 text-center">
+            <button onclick="submitListening()" class="btn-3d">
+                <i class="fas fa-paper-plane mr-2"></i>Submit
+            </button>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="results-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="glass-frame max-w-lg w-full p-8 text-center">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
+                <i class="fas fa-trophy text-3xl text-white"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Listening Section Complete!</h3>
+            <p class="text-slate-400 mb-8">Here is your performance summary:</p>
+
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--success);">
+                    <div id="result-correct" class="text-3xl font-bold text-emerald-400">0</div>
+                    <div class="text-sm text-slate-400 mt-1">Correct</div>
+                </div>
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--error);">
+                    <div id="result-incorrect" class="text-3xl font-bold text-red-400">0</div>
+                    <div class="text-sm text-slate-400 mt-1">Incorrect</div>
+                </div>
+                <div class="glass-frame p-4" style="border-left: 3px solid var(--primary-blue);">
+                    <div id="result-score" class="text-3xl font-bold text-blue-400">0%</div>
+                    <div class="text-sm text-slate-400 mt-1">Score</div>
+                </div>
+            </div>
+
+            <button onclick="closeResults()" class="btn-3d px-8 py-3">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        // Answer Key
+        const answerKey = {
+            // Module 1
+            'l1q1': 'B', 'l1q2': 'D', 'l1q3': 'A', 'l1q4': 'A', 'l1q5': 'D',
+            'l1q6': 'B', 'l1q7': 'C', 'l1q8': 'B', 'l1q9': 'C', 'l1q10': 'D',
+            'l1q11': 'A', 'l1q12': 'D', 'l1q13': 'C', 'l1q14': 'A', 'l1q15': 'B',
+            'l1q16': 'D', 'l1q17': 'A', 'l1q18': 'A',
+            // Module 2
+            'l2q1': 'A', 'l2q2': 'B', 'l2q3': 'D', 'l2q4': 'C', 'l2q5': 'C',
+            'l2q6': 'A', 'l2q7': 'D', 'l2q8': 'B', 'l2q9': 'D', 'l2q10': 'D',
+            'l2q11': 'B', 'l2q12': 'D', 'l2q13': 'C', 'l2q14': 'A', 'l2q15': 'C',
+            'l2q16': 'B'
+        };
+
+        let userAnswers = {};
+        let testStarted = false;
+        let timeRemaining = 29 * 60; // 29 minutes in seconds
+        let timerInterval = null;
+        let timerRunning = false;
+        let currentlyPlaying = null;
+
+        // Start Test Function
+        function startTest() {
+            testStarted = true;
+
+            // Hide start screen
+            const startScreen = document.getElementById('start-screen');
+            if (startScreen) {
+                startScreen.classList.add('hidden');
+            }
+
+            // Enable test container
+            const testContainer = document.getElementById('test-container');
+            if (testContainer) {
+                testContainer.classList.remove('opacity-50', 'pointer-events-none');
+                testContainer.classList.add('fade-in');
+            }
+
+            // Enable submit button
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            // Update timer display to active state
+            const timerContainer = document.getElementById('timer-container');
+            if (timerContainer) {
+                timerContainer.classList.remove('paused');
+                timerContainer.innerHTML = '<i class="fas fa-hourglass-half mr-2 text-sm"></i><span id="timer">29:00</span>';
+            }
+
+            // Start the countdown timer
+            startTimer();
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Start Timer (Countdown)
+        function startTimer() {
+            timerRunning = true;
+            timerInterval = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                } else {
+                    handleTimeUp();
+                }
+            }, 1000);
+        }
+
+        // Update Timer Display
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer');
+            if (!timerEl) return;
+
+            const mins = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+            const secs = (timeRemaining % 60).toString().padStart(2, '0');
+            timerEl.textContent = mins + ':' + secs;
+
+            // Change color when time is running low (less than 5 minutes)
+            const timerContainer = document.getElementById('timer-container');
+            if (timerContainer && timeRemaining < 300) {
+                timerContainer.style.color = 'var(--error)';
+                timerContainer.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                timerContainer.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
+            }
+        }
+
+        // Handle Time Up
+        function handleTimeUp() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            submitListening();
+        }
+
+        // Stop Timer
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+            }
+        }
+
+        // Switch Module
+        function switchModule(module) {
+            if (!testStarted) return;
+
+            document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+            const modEl = document.getElementById('module-' + module);
+            if (modEl) {
+                modEl.classList.remove('hidden');
+                modEl.classList.add('fade-in');
+            }
+
+            const mod1Btn = document.getElementById('mod1-btn');
+            const mod2Btn = document.getElementById('mod2-btn');
+            if (mod1Btn) mod1Btn.className = module === 1 ? 'module-btn active flex-1' : 'module-btn flex-1';
+            if (mod2Btn) mod2Btn.className = module === 2 ? 'module-btn active flex-1' : 'module-btn flex-1';
+        }
+
+        // Play Audio
+        function playAudio(audioId) {
+            if (!testStarted) {
+                return;
+            }
+
+            const audio = document.getElementById(audioId);
+            const player = document.getElementById('audio-' + audioId);
+
+            if (!audio || !player) {
+                console.error('Audio element not found:', audioId);
+                return;
+            }
+
+            // Add error handling
+            audio.onerror = function() {
+                console.error('Error loading audio:', audioId, audio.error);
+            };
+
+
+            // Stop any currently playing audio
+            if (currentlyPlaying && currentlyPlaying !== audio) {
+                currentlyPlaying.pause();
+                currentlyPlaying.currentTime = 0;
+                document.querySelectorAll('.audio-player').forEach(p => p.classList.remove('playing'));
+                document.querySelectorAll('.play-btn i').forEach(icon => icon.className = 'fas fa-play');
+            }
+
+            if (audio.paused) {
+                audio.play().catch(e => {
+                    console.error('Play error:', e);
+                });
+                player.classList.add('playing');
+                player.querySelector('.play-btn i').className = 'fas fa-pause';
+                currentlyPlaying = audio;
+            } else {
+                audio.pause();
+                player.classList.remove('playing');
+                player.querySelector('.play-btn i').className = 'fas fa-play';
+                currentlyPlaying = null;
+            }
+        }
+
+        // Audio Ended
+        function audioEnded(audioId) {
+            const player = document.getElementById('audio-' + audioId);
+            if (player) {
+                player.classList.remove('playing');
+                player.querySelector('.play-btn i').className = 'fas fa-play';
+            }
+            currentlyPlaying = null;
+        }
+
+        // Select Option
+        function selectOption(qid, value, element) {
+            if (!testStarted) return;
+
+            userAnswers[qid] = value;
+            const container = element.parentElement;
+            container.querySelectorAll('.option-3d').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            updateProgress();
+        }
+
+        // Update Progress
+        function updateProgress() {
+            const totalQuestions = Object.keys(answerKey).length;
+            const answered = Object.keys(userAnswers).length;
+            const progress = Math.round((answered / totalQuestions) * 100);
+
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            if (progressBar) progressBar.style.width = progress + '%';
+            if (progressText) progressText.textContent = progress + '%';
+
+            let correct = 0;
+            let incorrect = 0;
+            for (const qid in userAnswers) {
+                if (answerKey[qid]) {
+                    if (userAnswers[qid] === answerKey[qid]) {
+                        correct++;
+                    } else {
+                        incorrect++;
+                    }
+                }
+            }
+            const correctEl = document.getElementById('correct-count');
+            const incorrectEl = document.getElementById('incorrect-count');
+            if (correctEl) correctEl.textContent = correct;
+            if (incorrectEl) incorrectEl.textContent = incorrect;
+        }
+
+        // Submit Listening
+        function submitListening() {
+            stopTimer();
+
+            let correct = 0;
+            let incorrect = 0;
+
+            for (const qid in userAnswers) {
+                if (answerKey[qid]) {
+                    if (userAnswers[qid] === answerKey[qid]) {
+                        correct++;
+                    } else {
+                        incorrect++;
+                    }
+                }
+            }
+
+            const totalAnswered = correct + incorrect;
+            const score = totalAnswered > 0 ? Math.round((correct / totalAnswered) * 100) : 0;
+
+            const resultCorrect = document.getElementById('result-correct');
+            const resultIncorrect = document.getElementById('result-incorrect');
+            const resultScore = document.getElementById('result-score');
+            const resultsModal = document.getElementById('results-modal');
+
+            if (resultCorrect) resultCorrect.textContent = correct;
+            if (resultIncorrect) resultIncorrect.textContent = incorrect;
+            if (resultScore) resultScore.textContent = score + '%';
+            if (resultsModal) resultsModal.classList.remove('hidden');
+        }
+
+        // Close Results
+        function closeResults() {
+            const modal = document.getElementById('results-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // Close modal on outside click
+        window.onclick = function(e) {
+            const modal = document.getElementById('results-modal');
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+        });
+    </script>
+
+<!-- CMC SHARE BUTTON -->
+<button id="cmc-share-btn" title="Share this page" aria-label="Share this page"><i class="fas fa-share-nodes"></i></button>
+<div id="cmc-share-panel" role="menu" aria-label="Share options">
+  <div class="share-title">Share this page</div>
+  <a data-share="facebook" target="_blank" rel="noopener"><i class="fab fa-facebook" style="color:#1877f2"></i> Facebook</a>
+  <a data-share="x" target="_blank" rel="noopener"><i class="fab fa-x-twitter" style="color:#e2e8f0"></i> X (Twitter)</a>
+  <a data-share="whatsapp" target="_blank" rel="noopener"><i class="fab fa-whatsapp" style="color:#25d366"></i> WhatsApp</a>
+  <a data-share="telegram" target="_blank" rel="noopener"><i class="fab fa-telegram" style="color:#229ed9"></i> Telegram</a>
+  <a data-share="linkedin" target="_blank" rel="noopener"><i class="fab fa-linkedin" style="color:#0a66c2"></i> LinkedIn</a>
+  <a data-share="email"><i class="fas fa-envelope" style="color:#f59e0b"></i> Email</a>
+  <hr>
+  <div class="share-copy" id="cmc-share-copy"><i class="fas fa-link" style="color:#67e8f9"></i> <span>Copy link</span></div>
+</div>
+
+
+<script>
+(function(){
+  var btn=document.getElementById('cmc-share-btn');
+  var panel=document.getElementById('cmc-share-panel');
+  if(!btn||!panel)return;
+  btn.addEventListener('click',function(e){e.stopPropagation();panel.classList.toggle('open')});
+  document.addEventListener('click',function(e){if(!panel.contains(e.target)&&e.target!==btn)panel.classList.remove('open')});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')panel.classList.remove('open')});
+  function buildURL(svc){
+    var u=encodeURIComponent(window.location.href);
+    var t=encodeURIComponent(document.title||'CMC Network practice page');
+    if(svc==='facebook')return 'https://www.facebook.com/sharer/sharer.php?u='+u;
+    if(svc==='x')return 'https://twitter.com/intent/tweet?url='+u+'&text='+t;
+    if(svc==='whatsapp')return 'https://api.whatsapp.com/send?text='+t+'%20'+u;
+    if(svc==='telegram')return 'https://t.me/share/url?url='+u+'&text='+t;
+    if(svc==='linkedin')return 'https://www.linkedin.com/sharing/share-offsite/?url='+u;
+    if(svc==='email')return 'mailto:?subject='+t+'&body='+u;
+    return '#';
+  }
+  panel.querySelectorAll('a[data-share]').forEach(function(a){
+    a.addEventListener('click',function(){
+      var svc=a.getAttribute('data-share');
+      if(svc==='email'){a.href=buildURL('email');return}
+      a.href=buildURL(svc);cmcTrack('share_click',{service:svc});});
+  });
+  var copyBtn=document.getElementById('cmc-share-copy');
+  if(copyBtn){
+    copyBtn.addEventListener('click',function(){
+      var label=copyBtn.querySelector('span');
+      var done=function(){if(label){var orig=label.textContent;label.textContent='Copied!';setTimeout(function(){label.textContent=orig},1500)}};
+      try{navigator.clipboard.writeText(window.location.href).then(done).catch(function(){done()});cmcTrack('share_click',{service:'copy_link'})}catch(e){done()}
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
