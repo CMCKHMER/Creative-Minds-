@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight, BookOpen, Check, ClipboardCheck, Feather, Gamepad2, GraduationCap, Headphones, Headset, Shapes } from 'lucide-react';
+import { ArrowUpRight, Blocks, BookOpen, Check, ClipboardCheck, Feather, Gamepad2, GraduationCap, Headphones, Headset, Shapes } from 'lucide-react';
 import { CLASSROOM_ASSIGNMENTS } from '../data/assignments';
 import { TOEFL_JUNIOR_ASSESSMENTS } from '../data/toeflJuniorAssessments';
 import { Reveal } from './Reveal';
@@ -12,7 +12,23 @@ const practiceAreas = [
   { label: 'Writing', icon: ClipboardCheck },
 ];
 
-const contentCards = [
+type ContentCard = {
+  stat: string;
+  statLabel: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  accent: string;
+  link: string;
+  linkText: string;
+  features: string[];
+  /** Optional full-bleed AI artwork rendered behind the card content. */
+  image?: string;
+  /** object-position for the artwork, e.g. "32% center". */
+  imagePosition?: string;
+};
+
+const contentCards: ContentCard[] = [
   {
     stat: '06',
     statLabel: 'Classroom assignment packs',
@@ -58,6 +74,19 @@ const contentCards = [
     features: ['No login required', 'Progress saved locally', 'Grammar + vocabulary + reading'],
   },
   {
+    stat: '3D',
+    statLabel: 'Voxel build studio',
+    title: 'Brick Forge',
+    description: 'A 3D voxel building studio where students forge worlds block by block — guided Campaign challenges, Free Build, shared Class Projects, and Team Build. Runs in the browser and saves progress on the device.',
+    icon: Blocks,
+    accent: 'emerald',
+    image: './images/card-brick-forge.jpg',
+    imagePosition: '32% center',
+    link: 'https://cmckhmer.github.io/Project-Build/',
+    linkText: 'Enter Brick Forge',
+    features: ['4 build modes', 'No install · runs offline', 'Class + team projects'],
+  },
+  {
     stat: '06',
     statLabel: 'OSW listening worksheets',
     title: 'Oxford Skills World · Listening 3',
@@ -76,6 +105,7 @@ const accentMap: Record<string, { border: string; text: string; bg: string; stat
   violet: { border: 'border-violet-300/25', text: 'text-violet-300', bg: 'bg-violet-300/5', stat: 'text-violet-200' },
   amber: { border: 'border-amber-300/25', text: 'text-amber-300', bg: 'bg-amber-300/5', stat: 'text-amber-200' },
   sky: { border: 'border-sky-300/25', text: 'text-sky-300', bg: 'bg-sky-300/5', stat: 'text-sky-200' },
+  emerald: { border: 'border-emerald-300/25', text: 'text-emerald-300', bg: 'bg-emerald-300/5', stat: 'text-emerald-200' },
 };
 
 export const SocialProof: React.FC = () => {
@@ -96,7 +126,7 @@ export const SocialProof: React.FC = () => {
               A practical toolkit, ready to explore.
             </h2>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-400">
-              {classroomPackCount} classroom assignment packs, {assessmentCount} TOEFL Junior assessments, a full TOEFL iBT mock test, {`8`} learning games, and 6 Oxford Skills World listening worksheets — all free, all in the browser.
+              {classroomPackCount} classroom assignment packs, {assessmentCount} TOEFL Junior assessments, a full TOEFL iBT mock test, {`8`} learning games, the Brick Forge 3D voxel build studio, and 6 Oxford Skills World listening worksheets — all free, all in the browser.
             </p>
             </div>
           </Reveal>
@@ -111,9 +141,21 @@ export const SocialProof: React.FC = () => {
                   key={index}
                   href={card.link}
                   {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  className={`cmc-glass group relative flex flex-col gap-3 p-5 ${accent.border}`}
+                  className={`cmc-glass group relative flex flex-col gap-3 overflow-hidden p-5 ${accent.border}`}
                 >
-                  <div className="flex items-start justify-between">
+                  {card.image && (
+                    <span aria-hidden="true" className="pointer-events-none absolute inset-0">
+                      <img
+                        src={card.image}
+                        alt=""
+                        loading="lazy"
+                        style={card.imagePosition ? { objectPosition: card.imagePosition } : undefined}
+                        className="h-full w-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-[1.05]"
+                      />
+                      <span className="absolute inset-0 bg-gradient-to-br from-slate-950/92 via-slate-950/62 to-slate-950/82" />
+                    </span>
+                  )}
+                  <div className="relative flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <span className={`cmc-icon-glow grid h-10 w-10 place-items-center rounded-xl border ${accent.border} ${accent.bg} ${accent.text}`}>
                         <Icon className="h-5 w-5" aria-hidden="true" />
@@ -125,11 +167,11 @@ export const SocialProof: React.FC = () => {
                     </div>
                     <ArrowUpRight className="h-4 w-4 text-slate-500 opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />
                   </div>
-                  <div>
+                  <div className="relative">
                     <h3 className="text-sm font-bold text-white">{card.title}</h3>
                     <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{card.description}</p>
                   </div>
-                  <div className="mt-auto flex flex-wrap gap-1.5 pt-2">
+                  <div className="relative mt-auto flex flex-wrap gap-1.5 pt-2">
                     {card.features.map((feat, fi) => (
                       <span key={fi} className={`inline-flex items-center gap-1 rounded-md border ${accent.border} px-2 py-0.5 text-[10px] font-medium ${accent.text}`}>
                         <Check className="h-2.5 w-2.5" aria-hidden="true" />
@@ -137,7 +179,7 @@ export const SocialProof: React.FC = () => {
                       </span>
                     ))}
                   </div>
-                  <span className={`mt-1 text-xs font-bold ${accent.text} group-hover:underline`}>
+                  <span className={`relative mt-1 text-xs font-bold ${accent.text} group-hover:underline`}>
                     {card.linkText} →
                   </span>
                 </a>
