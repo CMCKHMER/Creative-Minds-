@@ -20,6 +20,11 @@ rules_version = '2';
 //   - students/{uid}: each student can read/write only their own profile.
 //   - classes + enrollments: public read (code lookup / dashboards),
 //     signed-in writes, students enroll themselves.
+//   - assessment_classes (+ students subcollection): the Daily Student
+//     Assessment Records workspace. TEACHERS ONLY — the signed-in account's
+//     email must contain "edu" (the same heuristic RoleGate uses site-wide).
+//     This replaces the retired Google Apps Script/Sheets backend, whose
+//     "Anyone" web-app deployment let any visitor read or wipe all records.
 //   - Everything else: denied.
 //
 // VERIFIED against the live write shape (Oct 2026): every worksheet POST
@@ -29,6 +34,16 @@ rules_version = '2';
 // the Bearer token's own uid.
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // A signed-in account whose email contains "edu" — the exact heuristic
+    // the CMC app (RoleGate / firebaseAuth.detectRoleFromEmail) uses to
+    // decide who is a teacher. RE2 has no look-around, so keep this in sync
+    // with the app if the heuristic ever changes.
+    function isCmcTeacher() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.matches('.*[eE][dD][uU].*');
+    }
 
     match /drill_attempts {
       allow read: if true; // public scoreboard (ticker / leaderboard / dashboard)
@@ -73,6 +88,26 @@ service cloud.firestore {
         allow read: if true;
         allow create, update: if request.auth != null && request.auth.uid == studentUid;
         allow delete: if false;
+      }
+    }
+
+    // Daily Student Assessment Records — teachers-only workspace.
+    // Read: any teacher (staff-room visibility of rosters/averages).
+    // Write: any teacher (collegial editing — every write is stamped with
+    // updatedBy + server updatedAt in the client data layer, so edits are
+    // attributable). Classes are archived, never deleted, from the client.
+    match /assessment_classes/{classId} {
+      allow read: if isCmcTeacher();
+      allow create: if isCmcTeacher()
+        && request.resource.data.teacherUid == request.auth.uid
+        && request.resource.data.teacherUid is string;
+      allow update: if isCmcTeacher();
+      allow delete: if false;
+
+      match /students/{studentId} {
+        allow read: if isCmcTeacher();
+        allow create, update: if isCmcTeacher();
+        allow delete: if isCmcTeacher();
       }
     }
 

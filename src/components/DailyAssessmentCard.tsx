@@ -1,7 +1,10 @@
-import { ArrowUpRight, BarChart3, ClipboardCheck, FileText, FolderKanban, ListChecks, LockKeyhole, MessageSquareText } from 'lucide-react';
+import { lazy, Suspense, useState } from 'react';
+import { ArrowUpRight, BarChart3, ClipboardCheck, FileText, FolderKanban, ListChecks, Loader2, LockKeyhole, MessageSquareText, RefreshCw } from 'lucide-react';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 
-const ASSESSMENT_RECORDS_URL = 'https://cmckhmer.github.io/Student-Assesment-Records/';
+// Lazy: the workspace (and its Firebase Firestore chunk) loads only when a
+// teacher actually opens it — keeps it off the critical path for everyone else.
+const AssessmentWorkspace = lazy(() => import('./AssessmentWorkspace').then((m) => ({ default: m.AssessmentWorkspace })));
 
 const recordAreas = [
   { label: 'Reading & literacy', detail: 'Comprehension · vocabulary · accuracy', icon: FileText },
@@ -18,6 +21,9 @@ export function DailyAssessmentCard({ onOpenAuth }: { onOpenAuth?: () => void } 
   // AssignmentPreview teacher-key gating + the TeacherToolsPage gate.
   const session = useSignedInSession();
   const isTeacher = session?.role === 'teacher';
+  // The workspace now lives INSIDE this page (Firestore-backed) — the old
+  // external Google-Sheets-powered site is retired.
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
   return (
     <section id="daily-assessment" aria-labelledby="daily-assessment-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-cyan-100/10 bg-[#07131f] py-20 sm:py-24 lg:py-28">
       {/* Full-bleed semi-transparent card background image */}
@@ -31,17 +37,23 @@ export function DailyAssessmentCard({ onOpenAuth }: { onOpenAuth?: () => void } 
         <div>
           <span className="cmc-eyebrow"><span className="h-px w-8 bg-cyan-300" aria-hidden="true" />CMC connected workspace</span>
           <h2 id="daily-assessment-title" className="cmc-h2">Daily Student<br /><span className="cmc-gradient-text">Assessment Records.</span></h2>
-          <p className="cmc-lead">Continue into the existing CMC assessment workspace to review daily records across literacy, speaking, projects, quizzes, homework, participation, and overall progress.</p>
+          <p className="cmc-lead">Open the built-in assessment workspace to record daily scores across literacy, speaking, projects, quizzes, homework, participation, and overall progress — with live class averages, printable reports, and CSV export.</p>
           {isTeacher ? (
             <>
               <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-                <a href={ASSESSMENT_RECORDS_URL} target="_blank" rel="noopener noreferrer" aria-label="Open Student Assessment Records in a new tab" className="group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-300 via-teal-200 to-sky-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_12px_36px_-14px_rgba(45,212,191,.72)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_44px_-14px_rgba(45,212,191,.82)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">
-                  Open the assessment workspace <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
-                </a>
-                <span className="text-[10px] text-slate-500">Opens in a new tab · teacher access</span>
+                <button
+                  type="button"
+                  onClick={() => setWorkspaceOpen((v) => !v)}
+                  aria-expanded={workspaceOpen}
+                  aria-controls="assessment-workspace-panel"
+                  className="group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-300 via-teal-200 to-sky-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_12px_36px_-14px_rgba(45,212,191,.72)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_44px_-14px_rgba(45,212,191,.82)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200"
+                >
+                  {workspaceOpen ? 'Close the assessment workspace' : 'Open the assessment workspace'}
+                  <ArrowUpRight className={`h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 ${workspaceOpen ? 'rotate-90' : ''}`} aria-hidden="true" />
+                </button>
+                <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"><RefreshCw className="h-3 w-3 text-cyan-300/70" aria-hidden="true" /> Real-time sync · saves to this site's Firebase</span>
               </div>
-              <a href={ASSESSMENT_RECORDS_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-slate-500 underline decoration-slate-700 underline-offset-4 transition hover:text-cyan-100">cmckhmer.github.io/Student-Assesment-Records <ArrowUpRight className="h-3 w-3" aria-hidden="true" /></a>
-              <p className="mt-4 flex max-w-xl items-start gap-2 text-[10px] leading-relaxed text-slate-500"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/70" aria-hidden="true" /><span>This is a separate service, outside the current site's Supabase membership checks. Verify its access controls, storage, and privacy with that site's administrator before entering student records.</span></p>
+              <p className="mt-4 flex max-w-xl items-start gap-2 text-[10px] leading-relaxed text-slate-500"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/70" aria-hidden="true" /><span>Records live in this site's Firestore — readable and writable only by signed-in teacher accounts ("edu" emails). Every save is stamped, and co-teachers see updates in real time.</span></p>
             </>
           ) : (
             <div className="mt-7 rounded-xl border border-amber-200/20 bg-amber-100/[0.04] p-4 sm:p-5">
@@ -85,10 +97,25 @@ export function DailyAssessmentCard({ onOpenAuth }: { onOpenAuth?: () => void } 
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex items-start gap-2.5 border-t border-white/8 pt-4 text-[10px] leading-relaxed text-slate-500"><MessageSquareText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-200/80" aria-hidden="true" /><span>The linked workspace also includes student comments, teacher notes, and an overall score view.</span></div>
+            <div className="mt-4 flex items-start gap-2.5 border-t border-white/8 pt-4 text-[10px] leading-relaxed text-slate-500"><MessageSquareText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-200/80" aria-hidden="true" /><span>The workspace also includes student comments, teacher feedback, sponsorship tracking, class remarks, and a printable overall score view.</span></div>
           </div>
         </div>
       </div>
+
+      {/* In-page workspace — Firestore-backed, teacher-gated (mounted on demand) */}
+      {isTeacher && workspaceOpen && session && (
+        <div id="assessment-workspace-panel" className="relative">
+          <Suspense
+            fallback={(
+              <div className="relative mx-auto mt-12 flex max-w-7xl items-center justify-center gap-2 px-5 py-16 text-xs font-semibold text-slate-400">
+                <Loader2 className="h-4 w-4 animate-spin text-cyan-300" aria-hidden="true" /> Loading assessment workspace…
+              </div>
+            )}
+          >
+            <AssessmentWorkspace session={{ localId: session.localId, email: session.email, displayName: session.displayName }} />
+          </Suspense>
+        </div>
+      )}
     </section>
   );
 }
