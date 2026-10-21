@@ -1382,11 +1382,10 @@ html.light .cmc-quick--emerald:hover { border-color: rgba(5, 150, 105, 0.45); bo
 }
 
 /* ============================================================
-   keep-dark restores: LMS Studio + TOEFL iBT full-bleed sections.
-   These sections keep their dark artwork in light mode; the global
-   re-light overrides below were leaking into them (white cards with
-   white text). Restore the dark surfaces + neon accents inside
-   [data-keep-dark] scopes.
+   keep-dark restores: dark artwork zones (games, news, CTA,
+   photo strips, etc). TOEFL iBT + LMS Studio banners no longer
+   use data-keep-dark — they follow the light theme via the
+   ID-scoped rules at the end of this file.
    ============================================================ */
 html.light [data-keep-dark] .bg-\[\#061018\],
 html.light [data-keep-dark].bg-\[\#061018\] { background-color: #061018; }
@@ -1399,3 +1398,38 @@ html.light [data-keep-dark] .bg-slate-950\/40 { background-color: rgba(2, 6, 23,
 html.light [data-keep-dark] .text-cyan-200 { color: #a5f3fc; }
 html.light [data-keep-dark] .text-slate-600 { color: #94a3b8; }
 html.light [data-keep-dark] .text-emerald-200 { color: #6ee7b7; }
+
+/* ============================================================
+   Light theme: TOEFL iBT (#toefl-ibt-mock) + LMS Studio
+   (#lms-workspace) banners. Both previously carried
+   data-keep-dark (stayed dark in light mode); they now follow
+   the light theme like every other section. The global light
+   block already converts their hex surfaces (#07131f, #061018,
+   #0b1724/90), the slate-950/55 photo veils and the core text/
+   border utilities — the ID-scoped rules below only fill the
+   remaining utility gaps (accent chips, teal/sky/emerald text,
+   hairline borders). Scoped by ID so nearby keep-dark artwork
+   zones are untouched.
+   ============================================================ */
+html.light #toefl-ibt-mock { border-color: rgba(8, 145, 178, 0.14); }
+html.light #toefl-ibt-mock .border-white\/8 { border-color: rgba(15, 23, 42, 0.1); }
+html.light #toefl-ibt-mock .bg-white\/\[0\.03\] { background-color: rgba(15, 23, 42, 0.04); }
+html.light #toefl-ibt-mock .hover\:bg-white\/\[0\.035\]:hover { background-color: rgba(15, 23, 42, 0.045); }
+html.light #toefl-ibt-mock .text-teal-200 { color: #0f766e; }
+html.light #toefl-ibt-mock .text-teal-200\/80 { color: rgba(15, 118, 110, 0.85); }
+html.light #toefl-ibt-mock .text-sky-200 { color: #0369a1; }
+html.light #toefl-ibt-mock .text-cyan-300\/70 { color: rgba(8, 145, 178, 0.75); }
+html.light #toefl-ibt-mock .border-cyan-300\/15 { border-color: rgba(8, 145, 178, 0.28); }
+html.light #toefl-ibt-mock .border-teal-300\/15 { border-color: rgba(13, 148, 136, 0.28); }
+html.light #toefl-ibt-mock .border-sky-300\/15 { border-color: rgba(2, 132, 199, 0.28); }
+html.light #toefl-ibt-mock .bg-cyan-300\/5 { background-color: rgba(8, 145, 178, 0.07); }
+html.light #toefl-ibt-mock .bg-teal-300\/5 { background-color: rgba(13, 148, 136, 0.07); }
+html.light #toefl-ibt-mock .bg-sky-300\/5 { background-color: rgba(2, 132, 199, 0.07); }
+html.light #lms-workspace { border-color: rgba(15, 23, 42, 0.12); }
+html.light #lms-workspace .border-white\/8 { border-color: rgba(15, 23, 42, 0.1); }
+html.light #lms-workspace .text-emerald-100 { color: #065f46; }
+html.light #lms-workspace .border-emerald-200\/20,
+html.light #lms-workspace .border-emerald-200\/30 { border-color: rgba(5, 150, 105, 0.28); }
+html.light #lms-workspace .bg-emerald-200\/\[0\.05\],
+html.light #lms-workspace .bg-emerald-200\/\[0\.06\] { background-color: rgba(5, 150, 105, 0.08); }
+html.light #lms-workspace .hover\:bg-emerald-200\/\[0\.12\]:hover { background-color: rgba(5, 150, 105, 0.14); }

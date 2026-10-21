@@ -73,7 +73,7 @@ const previewSvg = `data:image/svg+xml,${encodeURIComponent(`
 
 export function TOEFLiBTCard() {
   return (
-    <section id="toefl-ibt-mock" aria-labelledby="toefl-ibt-title" data-keep-dark className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-cyan-100/10 bg-[#07131f] py-20 sm:py-24 lg:py-28">
+    <section id="toefl-ibt-mock" aria-labelledby="toefl-ibt-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-cyan-100/10 bg-[#07131f] py-20 sm:py-24 lg:py-28">
       {/* Full-bleed semi-transparent card background image */}
       <img src="./images/card-toefl-ibt.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
@@ -82,10 +82,6 @@ export function TOEFLiBTCard() {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.026)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.026)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_at_66%_45%,black,transparent_72%)]" />
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_.86fr] lg:gap-16">
-        {/* The whole section is data-keep-dark: the full-bleed artwork banner
-            (photo + slate overlay + neon accents) stays dark in light mode,
-            so the light copy on the left and the preview card on the right
-            keep their original contrast (see keep-dark restores in index.css). */}
         <div>
           <span className="cmc-eyebrow"><span className="h-px w-8 bg-cyan-300" aria-hidden="true" />Full-length practice exam</span>
           <h2 id="toefl-ibt-title" className="cmc-h2">TOEFL iBT<br /><span className="cmc-gradient-text">Full Mock Test.</span></h2>
