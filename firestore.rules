@@ -26,7 +26,12 @@ rules_version = '2';
 //   - teacher_chat/{msgId}: public read, signed-in create, immutable.
 //   - students/{uid}: each student can read/write only their own profile.
 //   - classes/{classId} + enrollments: public read (code lookup /
-//     dashboards), signed-in writes, students enroll themselves.
+//     dashboards), signed-in writes, students enroll themselves. DELETE is
+//     owner-only: the class doc's teacherUid must match the caller, and
+//     enrollment cleanup is allowed for the teacherUid stamped on each
+//     enrollment doc at join time (or by the enrolled student themself —
+//     "leave class"). No rules get() calls, so bulk cleanup in one pass
+//     never hits the document-access limit.
 //   - assessment_classes/{classId} (+ students subcollection): the Daily
 //     Student Assessment Records workspace. TEACHERS ONLY — the signed-in
 //     account's email must contain "edu" (the same heuristic RoleGate uses
@@ -91,12 +96,24 @@ service cloud.firestore {
     match /classes/{classId} {
       allow read: if true; // class-code lookup + dashboards
       allow create, update: if request.auth != null;
-      allow delete: if false;
+      // Owner-only delete: `resource` is the class doc being removed, and
+      // every class doc carries teacherUid (createClass stamps it), so this
+      // costs no extra reads. Delete also implicitly drops the class code
+      // from join lookups (getClassByCode queries this collection).
+      allow delete: if request.auth != null
+        && resource.data.teacherUid == request.auth.uid;
 
       match /enrollments/{studentUid} {
         allow read: if true;
         allow create, update: if request.auth != null && request.auth.uid == studentUid;
-        allow delete: if false;
+        // Delete: the enrolled student themself (leave class), or the class
+        // owner (teacherUid was stamped on the enrollment doc at join time).
+        // Docs created before that stamping began have no teacherUid —
+        // resource.data.teacherUid is then null and the comparison denies,
+        // which is safe: they remain harmless orphans under a deleted class.
+        allow delete: if request.auth != null
+          && (request.auth.uid == studentUid
+              || resource.data.teacherUid == request.auth.uid);
       }
     }
 

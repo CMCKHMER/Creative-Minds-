@@ -100,12 +100,16 @@ export async function getClassByCode(code: string) {
 
 // ── Enrollments ──────────────────────────────────────────────────────
 
-export async function enrollStudent(classId: string, studentUid: string, studentName: string) {
+// teacherUid is stamped onto the enrollment doc so the security rules can
+// authorize teacher-side enrollment cleanup (class deletion) with a plain
+// `resource.data.teacherUid` check — no rules `get()` calls, no batch limits.
+export async function enrollStudent(classId: string, studentUid: string, studentName: string, teacherUid?: string) {
   const f = await fs();
   if (!f) return false;
   try {
     await f.setDoc(f.doc(f.db, 'classes', classId, 'enrollments', studentUid), {
       studentName,
+      ...(teacherUid ? { teacherUid } : {}),
       enrolledAt: f.serverTimestamp(),
     });
     // Also stamp the student profile. setDoc+merge (not updateDoc) so this
@@ -128,6 +132,34 @@ export async function listClassEnrollments(classId: string) {
   } catch (e) {
     console.warn('[firestore] listClassEnrollments:', e);
     return [];
+  }
+}
+
+/**
+ * Deletes a class and, best-effort, its enrollment records.
+ *
+ * Rules only allow the class owner (resource.data.teacherUid) to delete the
+ * class doc. Enrollment cleanup runs first and tolerates failure — docs the
+ * rules refuse to remove (e.g. enrollments created before teacherUid was
+ * stamped) simply stay behind as harmless orphans: nothing queries a deleted
+ * class's subcollection, and the class code can no longer be joined because
+ * the lookup doc is gone.
+ */
+export async function deleteClassTeacher(classId: string): Promise<boolean> {
+  const f = await fs();
+  if (!f) return false;
+  try {
+    try {
+      const snap = await f.getDocs(f.collection(f.db, 'classes', classId, 'enrollments'));
+      const results = await Promise.allSettled(snap.docs.map(d => f.deleteDoc(d.ref)));
+      const blocked = results.filter(r => r.status === 'rejected').length;
+      if (blocked) console.warn(`[firestore] deleteClassTeacher: ${blocked} enrollment doc(s) could not be removed (left as orphans)`);
+    } catch { /* subcollection read failing must not block the class delete */ }
+    await f.deleteDoc(f.doc(f.db, 'classes', classId));
+    return true;
+  } catch (e) {
+    console.warn('[firestore] deleteClassTeacher:', e);
+    return false;
   }
 }
 

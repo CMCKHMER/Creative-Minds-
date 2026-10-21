@@ -4,7 +4,7 @@ import { useMemberAuth } from '../hooks/useMemberAuth';
 import { useStudentAuth } from '../hooks/useStudentAuth';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
 import { getFirebaseDb } from '../lib/firebase';
-import { listTeacherClasses, listTeacherAttempts, createClass, getClassByCode, enrollStudent } from '../lib/firebaseDb';
+import { listTeacherClasses, listTeacherAttempts, createClass, getClassByCode, enrollStudent, deleteClassTeacher } from '../lib/firebaseDb';
 import { useStudentAttempts } from '../hooks/useDrillAttempts';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import { StudentAuthModal } from './StudentAuthModal';
@@ -27,6 +27,13 @@ export function FirebaseDashboard() {
   const [newClassName, setNewClassName] = useState('');
   const [newClassProgram, setNewClassProgram] = useState('GEP');
   const [newClassGrade, setNewClassGrade] = useState('');
+
+  // Class deletion (teacher). Two-step inline confirm on the class card:
+  // first tap shows "Delete?", second tap on Delete fires the Firestore
+  // removal. deletingId tracks which card is confirming; deleteBusy gates
+  // the button while the (enrollments + class doc) cleanup is in flight.
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   // A user is recognized as a teacher if EITHER the Supabase member-auth
   // flow (old TeacherPassModal path) OR the Firebase REST flow (new
@@ -118,6 +125,18 @@ export function FirebaseDashboard() {
     }
   };
 
+  const handleDeleteClass = async (classId: string) => {
+    if (deleteBusy) return;
+    setDeleteBusy(true);
+    const ok = await deleteClassTeacher(classId);
+    setDeleteBusy(false);
+    setDeletingId(null);
+    if (ok) {
+      if (selectedClass === classId) setSelectedClass(null);
+      await loadData();
+    }
+  };
+
   // Student's own attempts (real-time via the SDK listener). The hook
   // no-ops until the student is signed in; its query already scopes rows
   // to the signed-in student and sorts them newest-first.
@@ -136,7 +155,7 @@ export function FirebaseDashboard() {
       setJoining(false);
       return;
     }
-    const ok = await enrollStudent(cls.id, studentUid, signedInDisplayName);
+    const ok = await enrollStudent(cls.id, studentUid, signedInDisplayName, cls.teacherUid);
     if (!ok) {
       setJoinError('Could not join this class. Try again in a moment.');
       setJoining(false);
@@ -262,10 +281,35 @@ export function FirebaseDashboard() {
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Classes</p>
               {classes.length === 0 && <p className="text-xs text-slate-600">No classes yet. Create one to get started.</p>}
               {classes.map((c: any) => (
-                <button key={c.id} onClick={() => setSelectedClass(c.id)} className={`w-full rounded-lg border p-3 text-left transition ${selectedClass === c.id ? 'border-cyan-500/50 bg-cyan-500/10' : 'border-white/10 bg-slate-950/40 hover:border-white/20'}`}>
-                  <p className="text-xs font-bold text-white">{c.name}</p>
-                  <p className="mt-0.5 text-[10px] text-slate-500">{c.program} · Code: {c.code}</p>
-                </button>
+                <div key={c.id} className="relative">
+                  <button onClick={() => setSelectedClass(c.id)} className={`w-full rounded-lg border p-3 pr-9 text-left transition ${selectedClass === c.id ? 'border-cyan-500/50 bg-cyan-500/10' : 'border-white/10 bg-slate-950/40 hover:border-white/20'}`}>
+                    <p className="text-xs font-bold text-white">{c.name}</p>
+                    <p className="mt-0.5 text-[10px] text-slate-500">{c.program} · Code: {c.code}</p>
+                  </button>
+                  {deletingId === c.id ? (
+                    <div className="absolute inset-0 rounded-lg border border-rose-500/50 bg-slate-950/95 p-2.5">
+                      <p className="text-[11px] font-bold text-rose-200">Delete “{c.name}”?</p>
+                      <p className="mt-0.5 text-[9px] leading-snug text-slate-500">Students can no longer join or see it. This cannot be undone.</p>
+                      <div className="mt-2 flex gap-1.5">
+                        <button disabled={deleteBusy} onClick={() => void handleDeleteClass(c.id)} className="rounded-md bg-rose-500/90 px-2.5 py-1 text-[10px] font-bold text-white transition hover:bg-rose-500 disabled:opacity-50">
+                          {deleteBusy ? 'Deleting…' : 'Delete'}
+                        </button>
+                        <button onClick={() => setDeletingId(null)} disabled={deleteBusy} className="rounded-md border border-white/10 px-2.5 py-1 text-[10px] font-semibold text-slate-400 transition hover:text-white disabled:opacity-50">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      aria-label={`Delete class ${c.name}`}
+                      title="Delete this class"
+                      onClick={(e) => { e.stopPropagation(); setDeletingId(c.id); }}
+                      className="absolute right-1.5 top-1.5 rounded-md px-1.5 py-0.5 text-[11px] font-bold text-slate-600 transition hover:bg-rose-500/10 hover:text-rose-300"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               ))}
               {classes.length > 0 && (
                 <p className="pt-1 text-[10px] leading-relaxed text-slate-600">
