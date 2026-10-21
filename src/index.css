@@ -1380,6 +1380,30 @@ html.light .cmc-quick--emerald:hover { border-color: rgba(5, 150, 105, 0.45); bo
     0 1px 0 #047857,
     0 8px 18px -10px rgba(5, 150, 105, 0.5);
 }
+/* violet flavor (Bi-Weekly Planner CTA) */
+.cmc-btn-3d--violet {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(135deg, rgba(196, 181, 253, 0.95) 0%, rgba(103, 232, 249, 0.9) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 0 #6d28d9,
+    0 16px 32px -14px rgba(139, 92, 246, 0.6);
+}
+.cmc-btn-3d--violet:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.25),
+    0 6px 0 #6d28d9,
+    0 22px 44px -16px rgba(139, 92, 246, 0.65);
+}
+.cmc-btn-3d--violet:active {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 1px 0 #6d28d9,
+    0 8px 18px -10px rgba(139, 92, 246, 0.5);
+}
 
 /* ============================================================
    keep-dark restores: dark artwork zones (games, news, CTA,
@@ -1433,3 +1457,34 @@ html.light #lms-workspace .border-emerald-200\/30 { border-color: rgba(5, 150, 1
 html.light #lms-workspace .bg-emerald-200\/\[0\.05\],
 html.light #lms-workspace .bg-emerald-200\/\[0\.06\] { background-color: rgba(5, 150, 105, 0.08); }
 html.light #lms-workspace .hover\:bg-emerald-200\/\[0\.12\]:hover { background-color: rgba(5, 150, 105, 0.14); }
+
+/* ============================================================
+   Light theme: TOEFL ITP Bi-Weekly Planner (#toefl-itp-planner).
+   Same treatment as the two banners above — the section never
+   carried data-keep-dark, so the global light block already
+   re-lights its surfaces and core text; these ID-scoped rules
+   fill the accent/hairline gaps (teal/cyan week icons, violet/
+   amber chips, locked-state card tint) without touching other
+   dark artwork zones.
+   ============================================================ */
+html.light #toefl-itp-planner { border-color: rgba(109, 40, 217, 0.14); }
+html.light #toefl-itp-planner .border-white\/8 { border-color: rgba(15, 23, 42, 0.1); }
+html.light #toefl-itp-planner .bg-white\/\[0\.03\] { background-color: rgba(15, 23, 42, 0.04); }
+html.light #toefl-itp-planner .hover\:bg-white\/\[0\.035\]:hover { background-color: rgba(15, 23, 42, 0.045); }
+html.light #toefl-itp-planner .text-teal-200 { color: #0f766e; }
+html.light #toefl-itp-planner .text-cyan-200\/80 { color: rgba(21, 94, 117, 0.85); }
+html.light #toefl-itp-planner .text-violet-300\/70 { color: rgba(109, 40, 217, 0.75); }
+html.light #toefl-itp-planner .hover\:text-violet-100:hover { color: #6d28d9; }
+html.light #toefl-itp-planner .border-teal-300\/15 { border-color: rgba(13, 148, 136, 0.28); }
+html.light #toefl-itp-planner .border-cyan-300\/15 { border-color: rgba(8, 145, 178, 0.28); }
+html.light #toefl-itp-planner .border-violet-300\/15,
+html.light #toefl-itp-planner .border-violet-300\/20 { border-color: rgba(109, 40, 217, 0.25); }
+html.light #toefl-itp-planner .border-amber-300\/15 { border-color: rgba(180, 83, 9, 0.25); }
+html.light #toefl-itp-planner .bg-teal-300\/5 { background-color: rgba(13, 148, 136, 0.07); }
+html.light #toefl-itp-planner .bg-cyan-300\/5 { background-color: rgba(8, 145, 178, 0.07); }
+html.light #toefl-itp-planner .bg-violet-300\/5 { background-color: rgba(109, 40, 217, 0.06); }
+html.light #toefl-itp-planner .bg-amber-300\/5 { background-color: rgba(180, 83, 9, 0.06); }
+html.light #toefl-itp-planner .border-amber-200\/15,
+html.light #toefl-itp-planner .border-amber-200\/20 { border-color: rgba(180, 83, 9, 0.22); }
+html.light #toefl-itp-planner .bg-amber-100\/\[0\.03\] { background-color: rgba(180, 83, 9, 0.04); }
+html.light #toefl-itp-planner .bg-amber-200\/\[0\.05\] { background-color: rgba(180, 83, 9, 0.07); }

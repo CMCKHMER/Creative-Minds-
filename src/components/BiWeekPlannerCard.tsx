@@ -93,7 +93,7 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
           <h2 id="biweek-title" className="cmc-h2">TOEFL ITP<br /><span className="cmc-gradient-text">Bi-Weekly Planner.</span></h2>
           <p className="cmc-lead">A structured 8-week preparation plan covering all three TOEFL ITP sections — Listening, Structure & Written Expression, and Reading. Each week includes practice drills with timers, auto-scoring, and individual shareable links. Teacher-made materials from Oxford Skills World and Reading Explorer.</p>
           <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <a href={PLANNER_URL} target="_blank" rel="noopener noreferrer" aria-label="Open the TOEFL ITP Bi-Weekly Planner in a new tab" className="group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-violet-300 via-cyan-200 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_12px_36px_-14px_rgba(139,92,246,.72)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_44px_-14px_rgba(139,92,246,.82)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-200">
+            <a href={PLANNER_URL} target="_blank" rel="noopener noreferrer" aria-label="Open the TOEFL ITP Bi-Weekly Planner in a new tab" className="cmc-btn-3d cmc-btn-3d--violet group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-200">
               Open the planner <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
             </a>
             <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"><Clock3 className="h-3 w-3 text-violet-300/70" aria-hidden="true" />15 test pages · 146 questions · 3 audio passages</span>
@@ -160,7 +160,7 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
               <button
                 type="button"
                 onClick={onOpenAuth}
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-300 to-amber-200 px-5 py-3 text-sm font-bold text-slate-950 shadow-[0_12px_35px_-12px_rgba(251,191,36,.7)] transition hover:-translate-y-0.5"
+                className="cmc-btn-3d cmc-btn-3d--violet mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-200"
               >
                 <GraduationCap className="h-4 w-4" aria-hidden="true" />
                 Sign in as teacher
