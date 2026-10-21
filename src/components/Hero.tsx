@@ -26,6 +26,8 @@ interface HeroShortcut {
   title: string;
   description: string;
   icon: typeof BookOpen;
+  /** Accent hue for the icon chip + hover glow of the quick-launch card. */
+  accent: 'cyan' | 'violet' | 'amber' | 'emerald';
   /** Optional external link — when present the card renders as an <a>
    *  instead of a button that triggers onSelectFeatureCard. */
   href?: string;
@@ -37,24 +39,28 @@ const shortcuts: HeroShortcut[] = [
     title: 'TOEFL iBT Full Mock Test',
     description: 'Complete 4-section exam with audio, recording, and timer. ~3 hours.',
     icon: GraduationCap,
+    accent: 'cyan',
   },
   {
     id: 'games',
     title: 'Learning Games',
     description: '8 playable games: grammar, vocabulary, reading, listening, and more.',
     icon: Gamepad2,
+    accent: 'violet',
   },
   {
     id: 'resources',
     title: 'Assignment Packs',
     description: 'Ready-to-use classroom handouts with separate teacher keys and rubrics.',
     icon: BookOpen,
+    accent: 'amber',
   },
   {
     id: 'kid-grades',
     title: 'Kid 5–12 Pathway',
     description: 'Grade-by-grade Reading Future worksheets. Kid 6 + Kid 11 live; other grades planned.',
     icon: ClipboardCheck,
+    accent: 'emerald',
   },
 ];
 
@@ -221,41 +227,50 @@ export const Hero = ({
       </section>
 
       <section ref={shortcutsRef} className="border-y border-white/10 bg-[#081622]/95 backdrop-blur" aria-label="Explore Creative Minds Network tools">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
-          {shortcuts.map((shortcut, index) => {
-            const Icon = shortcut.icon;
-            const shortcutClass = `cmc-shortcut cmc-card group relative flex items-start gap-4 p-5 text-left sm:p-6 ${shortcutsVisible ? 'is-visible' : ''}`;
-            const content = (
-              <>
-                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300 transition-transform duration-300 group-hover:-translate-y-1" aria-hidden="true" />
-                <span className="min-w-0">
-                  <span className="flex items-center gap-1.5 text-sm font-bold text-white">
-                    {shortcut.title}
-                    <ArrowUpRight className="h-3.5 w-3.5 text-cyan-300 opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />
-                  </span>
-                  <span className="mt-1 block text-xs leading-relaxed text-slate-400">{shortcut.description}</span>
-                </span>
-              </>
-            );
+        <div className="mx-auto max-w-7xl px-5 py-5 sm:px-8 sm:py-6 lg:px-12 lg:py-7">
+          {/* Strip header — labels the row as an intentional quick-launch dock */}
+          <div className={`cmc-shortcut mb-4 flex items-center gap-3 sm:mb-5 ${shortcutsVisible ? 'is-visible' : ''}`}>
+            <span className="cmc-quick-label text-[10px] font-bold uppercase tracking-[0.26em]">Quick launch</span>
+            <span className="cmc-quick-rule h-px flex-1" aria-hidden="true" />
+            <span className="cmc-quick-hint hidden text-[10px] font-semibold uppercase tracking-[0.18em] sm:inline">Free for classrooms</span>
+          </div>
 
-            return (
-              shortcut.href ? (
-                <a key={shortcut.id} href={shortcut.href} target="_blank" rel="noopener noreferrer" className={shortcutClass} style={{ transitionDelay: `${index * 85}ms` }}>
-                  {content}
-                </a>
-              ) : (
-                <button
-                  key={shortcut.id}
-                  type="button"
-                  onClick={() => onSelectFeatureCard(shortcut.id)}
-                  className={shortcutClass}
-                  style={{ transitionDelay: `${index * 85}ms` }}
-                >
-                  {content}
-                </button>
-              )
-            );
-          })}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {shortcuts.map((shortcut, index) => {
+              const Icon = shortcut.icon;
+              const shortcutClass = `cmc-shortcut cmc-card cmc-quick cmc-quick--${shortcut.accent} group relative flex flex-col items-start gap-2.5 p-5 text-left ${shortcutsVisible ? 'is-visible' : ''}`;
+              const content = (
+                <>
+                  <span className="cmc-quick-chip flex h-10 w-10 items-center justify-center rounded-xl border">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <span className="flex w-full items-start justify-between gap-2">
+                    <span className="text-sm font-bold leading-snug text-white">{shortcut.title}</span>
+                    <ArrowUpRight className="cmc-quick-arrow mt-0.5 h-3.5 w-3.5 shrink-0 opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />
+                  </span>
+                  <span className="text-xs leading-relaxed text-slate-400">{shortcut.description}</span>
+                </>
+              );
+
+              return (
+                shortcut.href ? (
+                  <a key={shortcut.id} href={shortcut.href} target="_blank" rel="noopener noreferrer" className={shortcutClass} style={{ transitionDelay: `${index * 85}ms` }}>
+                    {content}
+                  </a>
+                ) : (
+                  <button
+                    key={shortcut.id}
+                    type="button"
+                    onClick={() => onSelectFeatureCard(shortcut.id)}
+                    className={shortcutClass}
+                    style={{ transitionDelay: `${index * 85}ms` }}
+                  >
+                    {content}
+                  </button>
+                )
+              );
+            })}
+          </div>
         </div>
       </section>
     </>
