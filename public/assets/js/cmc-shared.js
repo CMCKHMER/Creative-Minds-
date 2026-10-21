@@ -40,6 +40,7 @@
   catch (e) { global.CMC_IS_TEACHER = false; }
   document.addEventListener('DOMContentLoaded', function () {
     var b = document.createElement('div');
+    b.id = 'cmc-role-badge';
     if (global.CMC_IS_TEACHER) {
       b.textContent = '🎓 Teacher mode';
       b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(52,211,153,0.12);color:#6ee7b7;border:1px solid rgba(52,211,153,0.35);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
