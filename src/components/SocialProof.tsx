@@ -148,6 +148,10 @@ export const SocialProof: React.FC = () => {
                   key={index}
                   href={card.link}
                   {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  // Artwork cards keep their dark scrim + light text even in
+                  // light mode — the AI artwork underneath stays dark, so
+                  // flipping the overlay text would wreck contrast.
+                  {...(card.image ? { 'data-keep-dark': 'true' } : {})}
                   className={`cmc-glass group relative flex flex-col gap-3 overflow-hidden p-5 ${accent.border}`}
                 >
                   {card.image && (

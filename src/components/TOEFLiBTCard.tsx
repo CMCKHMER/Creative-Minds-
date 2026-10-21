@@ -82,7 +82,9 @@ export function TOEFLiBTCard() {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.026)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.026)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_at_66%_45%,black,transparent_72%)]" />
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_.86fr] lg:gap-16">
-        <div>
+        {/* Left column sits on the dark full-bleed artwork — keep its light
+            text even in light mode (data-keep-dark, see index.css). */}
+        <div data-keep-dark>
           <span className="cmc-eyebrow"><span className="h-px w-8 bg-cyan-300" aria-hidden="true" />Full-length practice exam</span>
           <h2 id="toefl-ibt-title" className="cmc-h2">TOEFL iBT<br /><span className="cmc-gradient-text">Full Mock Test.</span></h2>
           <p className="cmc-lead">Run the complete four-section TOEFL iBT mock test in your browser — Reading, Listening, Speaking (with microphone recording), and Writing. Includes audio playback, a per-section timer, progress tracking, and a security-notice flow that simulates the real exam experience.</p>

@@ -15,6 +15,16 @@
     <!-- PWA — installable app + offline support (see public/sw.js) -->
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="theme-color" content="#0f172a" />
+    <!-- Theme pre-paint: apply the saved light-mode choice before first
+         paint so reloading in light mode never flashes dark. Default dark. -->
+    <script>
+      try {
+        if (localStorage.getItem('cmc-theme') === 'light') {
+          document.documentElement.classList.add('light');
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#eef3f9');
+        }
+      } catch (e) { /* storage unavailable — stay dark */ }
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

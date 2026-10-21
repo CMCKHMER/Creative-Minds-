@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 import { clearPersistedSession } from '../lib/firebaseAuth';
+import { ThemeToggle } from './ThemeToggle';
 
 interface NavbarProps {
   onOpenQuickLinks: () => void;
@@ -126,12 +127,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Brand Logo matching the original screenshot */}
               <a href="#top" aria-label="CMC Network home" className="flex items-center gap-2.5 group">
                 <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-sky-400 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-400/30 transition-all">
-                  <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 to-indigo-200 text-sm">
+                  <div data-keep-dark className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 to-indigo-200 text-sm">
                     CMC
                   </div>
                 </div>
                 <div className="flex flex-col leading-none">
-                  <span className="cmc-nav-wordmark font-bold text-base sm:text-lg tracking-tight text-white group-hover:text-cyan-200 transition">
+                  <span className="cmc-nav-wordmark hidden whitespace-nowrap font-bold text-base sm:inline sm:text-lg tracking-tight text-white group-hover:text-cyan-200 transition">
                     CMC Network Hub
                   </span>
                   <span className="text-[10px] text-slate-500 font-medium hidden xl:inline">
@@ -153,6 +154,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Right Actions */}
             <div className="flex items-center gap-2.5 sm:gap-3">
+              {/* Light/dark theme toggle — site-wide, choice persisted */}
+              <ThemeToggle />
+
               {/* View Student Demo Button */}
               <button
                 onClick={onOpenStudentDemo}
