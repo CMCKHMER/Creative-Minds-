@@ -8,51 +8,134 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-/* ===== DARK (default) ===== */
-:root{--bg:#020617;--card:rgba(255,255,255,.04);--border:rgba(255,255,255,.10);--accent:#38bdf8;--text:#f1f5f9;--muted:#94a3b8;--shadow:rgba(0,0,0,.3)}
-/* ===== LIGHT ===== */
-html[data-theme="light"]{--bg:#f8fafc;--card:rgba(255,255,255,.85);--border:rgba(0,0,0,.10);--accent:#0284c7;--text:#1e293b;--muted:#64748b;--shadow:rgba(0,0,0,.08)}
+/* ===== TOKENS — matched to the main site hero (src/index.css cmc-* system) ===== */
+:root{--bg:#020617;--hero-bg:#061523;--card:rgba(255,255,255,.04);--border:rgba(255,255,255,.10);--accent:#38bdf8;--text:#f1f5f9;--muted:#94a3b8;--shadow:rgba(0,0,0,.3)}
+html[data-theme="light"]{--bg:#e2e8f0;--hero-bg:#e3e9f1;--card:rgba(255,255,255,.78);--border:rgba(15,23,42,.10);--accent:#0e7490;--text:#0c1a2c;--muted:#5c6b7d;--shadow:rgba(15,23,42,.08)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
 body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(56,189,248,.08),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(139,92,246,.08),transparent 50%)}
 html[data-theme="light"] body::before{background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(14,165,233,.06),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(168,85,247,.04),transparent 50%)}
 .font-display{font-family:'Syne',sans-serif;letter-spacing:-0.02em}
 .font-mono2{font-family:'Space Grotesk',monospace}
-.glass{background:var(--card);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:14px;transition:background .3s,border-color .3s}
-.week-card{transition:all .25s ease;cursor:pointer;overflow:hidden;position:relative}
-.week-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px var(--shadow);border-color:rgba(56,189,248,.3)}
-html[data-theme="light"] .week-card:hover{border-color:rgba(2,132,199,.4)}
+:focus-visible{outline:2px solid #67e8f9;outline-offset:3px}
+
+/* ===== HERO BAND — same 4-layer stack as the React hero =====
+   photo plane -> veil -> glow -> orbit, one image graded per theme */
+.bp-hero{position:relative;overflow:hidden;background:var(--hero-bg);padding:92px 0 84px}
+.bp-hero::after{content:'';position:absolute;bottom:0;left:0;right:0;z-index:2;height:1px;background:linear-gradient(90deg,transparent,rgba(125,211,252,.45),transparent)}
+.bp-hero-photo{position:absolute;inset:-2%;z-index:0;width:104%;height:104%;object-fit:cover;object-position:58% center;filter:saturate(.85) contrast(1.10) brightness(.78);animation:bpBreathe 22s ease-in-out infinite alternate;pointer-events:none}
+.bp-hero-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(4,18,30,.98) 0%,rgba(4,18,30,.93) 25%,rgba(4,18,30,.74) 48%,rgba(4,18,30,.18) 100%),linear-gradient(0deg,rgba(4,18,30,.75) 0%,transparent 31%,transparent 74%,rgba(4,18,30,.3) 100%)}
+.bp-hero-glow{position:absolute;inset:-10%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 73% 50%,rgba(90,255,239,.13),transparent 34%),radial-gradient(ellipse at 16% 78%,rgba(23,156,177,.16),transparent 37%);animation:bpDrift 11s ease-in-out infinite alternate}
+.bp-hero-orbit{position:absolute;top:4%;right:-6%;width:min(46vw,560px);height:auto;z-index:1;opacity:.72;animation:bpSpin 42s linear infinite;transform-origin:center;pointer-events:none}
+@keyframes bpBreathe{from{transform:scale(1.03)}to{transform:scale(1.105)}}
+@keyframes bpDrift{from{opacity:.75}to{opacity:1}}
+@keyframes bpSpin{to{transform:rotate(360deg)}}
+html[data-theme="light"] .bp-hero{background:linear-gradient(180deg,#e3e9f1 0%,#e0e7ef 55%,#e8edf4 100%)}
+html[data-theme="light"] .bp-hero::after{background:linear-gradient(90deg,transparent,rgba(2,132,199,.28),transparent)}
+html[data-theme="light"] .bp-hero-photo{filter:saturate(.9) contrast(.98) brightness(1.05)}
+html[data-theme="light"] .bp-hero-veil{background:linear-gradient(90deg,rgba(228,234,242,.95) 0%,rgba(228,234,242,.82) 24%,rgba(228,234,242,.3) 50%,rgba(228,234,242,.04) 100%),linear-gradient(0deg,rgba(223,230,239,.6) 0%,transparent 30%,transparent 76%,rgba(228,234,242,.32) 100%)}
+html[data-theme="light"] .bp-hero-glow{background:radial-gradient(ellipse at 73% 50%,rgba(14,165,233,.14),transparent 34%),radial-gradient(ellipse at 16% 78%,rgba(99,102,241,.1),transparent 37%)}
+html[data-theme="light"] .bp-hero-orbit{opacity:.4}
+.bp-hero-inner{position:relative;z-index:2;max-width:72rem;margin:0 auto;padding:0 1rem}
+@media(min-width:640px){.bp-hero-inner{padding:0 1.5rem}}
+.bp-eyebrow{display:flex;align-items:center;gap:12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.28em;color:#a5f3fc;margin-bottom:18px}
+.bp-eyebrow::before{content:'';width:36px;height:1px;background:rgba(103,232,249,.8)}
+.bp-eyebrow i{font-size:11px;color:#67e8f9}
+html[data-theme="light"] .bp-eyebrow{color:#0e7490}
+html[data-theme="light"] .bp-eyebrow::before{background:rgba(2,132,199,.6)}
+html[data-theme="light"] .bp-eyebrow i{color:#0891b2}
+/* headline: Syne 800 solid rows + cyan stroke echo behind (hero .cmc-title) */
+.bp-title{margin:0 0 16px;font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.1rem,5.4vw,3.7rem);line-height:1.0;letter-spacing:-.04em}
+.bp-title-row{display:block;position:relative;width:fit-content}
+.bp-title-row--first{font-size:.62em;letter-spacing:-.03em;margin-bottom:.14em}
+.bp-title-solid{position:relative;z-index:1;display:block;color:#f4faff;text-shadow:0 8px 35px rgba(4,18,30,.2)}
+.bp-title-row--accent .bp-title-solid{background:linear-gradient(100deg,#a5f3fc,#5eead4,#a5b4fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.bp-title-echo{position:absolute;top:0;left:0;z-index:0;transform:translate3d(6px,6px,0);transition:transform .65s cubic-bezier(.16,1,.3,1);pointer-events:none;color:transparent;-webkit-text-stroke:1.25px rgba(127,225,232,.5)}
+.bp-title-row--accent .bp-title-echo{-webkit-text-stroke-color:rgba(190,255,243,.42)}
+.bp-hero:hover .bp-title-echo{transform:translate3d(9px,9px,0)}
+html[data-theme="light"] .bp-title-solid{color:#0c1a2c;text-shadow:0 8px 35px rgba(203,212,224,.9)}
+html[data-theme="light"] .bp-title-row--accent .bp-title-solid{background-image:linear-gradient(100deg,#0e7490,#0891b2,#6d28d9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+html[data-theme="light"] .bp-title-echo{-webkit-text-stroke-color:rgba(2,132,199,.4)}
+html[data-theme="light"] .bp-title-row--accent .bp-title-echo{-webkit-text-stroke-color:rgba(13,148,136,.35)}
+.bp-sub{max-width:620px;font-size:15px;line-height:1.8;color:rgba(226,232,240,.88);margin:0}
+html[data-theme="light"] .bp-sub{color:#334155}
+/* accent-coded stat chips — hero quick-dock pattern */
+.bp-stats{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.bp-stat{display:inline-flex;align-items:center;gap:10px;padding:9px 14px 9px 9px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.015));backdrop-filter:blur(12px);font-size:13px;font-weight:600;color:var(--muted);transition:border-color .3s ease,box-shadow .3s ease}
+.bp-stat:hover{border-color:var(--chip);box-shadow:0 18px 44px -22px var(--glow)}
+.bp-stat-chip{display:flex;width:34px;height:34px;align-items:center;justify-content:center;border-radius:10px;border:1px solid var(--chip-br);background:var(--chip-bg);color:var(--chip);font-size:13px;transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.bp-stat:hover .bp-stat-chip{transform:translateY(-2px) scale(1.06)}
+.bp-stat-num{font-family:'Space Grotesk',monospace;font-size:19px;font-weight:700;color:var(--chip)}
+html[data-theme="light"] .bp-stat{border-color:rgba(15,23,42,.10);background:rgba(255,255,255,.6)}
+
+/* ===== ACCENT SYSTEM — hero quick-dock accents (cyan/violet/amber/emerald) =====
+   dark chip colors + light ink chips, 3D button gradients with hard base edge */
+.acc-cyan   {--chip:#67e8f9;--chip-br:rgba(103,232,249,.3);--chip-bg:rgba(103,232,249,.1);--glow:rgba(34,211,238,.5);--b1:rgba(103,232,249,.95);--b2:rgba(125,211,252,.95);--edge:#0e7490;--eglow:rgba(8,145,178,.6)}
+.acc-violet {--chip:#c4b5fd;--chip-br:rgba(196,181,253,.3);--chip-bg:rgba(167,139,250,.12);--glow:rgba(167,139,250,.5);--b1:rgba(196,181,253,.95);--b2:rgba(167,139,250,.92);--edge:#6d28d9;--eglow:rgba(139,92,246,.55)}
+.acc-amber  {--chip:#fcd34d;--chip-br:rgba(252,211,77,.3);--chip-bg:rgba(251,191,36,.1);--glow:rgba(251,191,36,.45);--b1:rgba(253,230,138,.95);--b2:rgba(252,211,77,.92);--edge:#b45309;--eglow:rgba(180,83,9,.5)}
+.acc-emerald{--chip:#6ee7b7;--chip-br:rgba(110,231,183,.3);--chip-bg:rgba(110,231,183,.1);--glow:rgba(52,211,153,.45);--b1:rgba(167,243,208,.95);--b2:rgba(110,231,183,.92);--edge:#047857;--eglow:rgba(5,150,105,.5)}
+html[data-theme="light"] .acc-cyan   {--chip:#0e7490;--chip-br:rgba(8,145,178,.3);--chip-bg:rgba(14,165,233,.1);--glow:rgba(8,145,178,.32)}
+html[data-theme="light"] .acc-violet {--chip:#6d28d9;--chip-br:rgba(109,40,217,.3);--chip-bg:rgba(139,92,246,.1);--glow:rgba(139,92,246,.32)}
+html[data-theme="light"] .acc-amber  {--chip:#b45309;--chip-br:rgba(180,83,9,.3);--chip-bg:rgba(251,191,36,.12);--glow:rgba(180,83,9,.28)}
+html[data-theme="light"] .acc-emerald{--chip:#047857;--chip-br:rgba(4,120,87,.3);--chip-bg:rgba(16,185,129,.1);--glow:rgba(5,150,105,.3)}
+
+/* ===== 3D GLASS-GRADIENT BUTTONS — hero .cmc-btn-3d (same in both themes) ===== */
+.btn3d{position:relative;isolation:isolate;display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:12px;font-size:13px;font-weight:700;color:#04141f;text-decoration:none;cursor:pointer;border:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),linear-gradient(135deg,var(--b1),var(--b2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(255,255,255,.25),0 4px 0 var(--edge),0 14px 28px -12px var(--eglow);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  transition:transform .16s cubic-bezier(.34,1.56,.64,1),box-shadow .16s ease,filter .2s ease}
+.btn3d:hover{transform:translateY(-2px);filter:saturate(1.08) brightness(1.04);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(255,255,255,.25),0 6px 0 var(--edge),0 20px 40px -14px var(--eglow)}
+.btn3d:active{transform:translateY(2px);filter:brightness(.98);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 1px 0 var(--edge),0 6px 16px -8px var(--eglow)}
+.btn3d.disabled,.btn3d[aria-disabled="true"]{cursor:not-allowed;filter:grayscale(.4) opacity(.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 0 rgba(15,23,42,.3)}
+.btn3d.disabled:hover,.btn3d.disabled:active{transform:none;filter:grayscale(.4) opacity(.5)}
+
+/* ===== CARDS — hero .cmc-card (radius 1.25rem, hover lift + accent glow) ===== */
+.glass{border-radius:1.25rem;border:1px solid var(--border);background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.015));backdrop-filter:blur(12px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s ease,box-shadow .3s ease,background .3s}
+.glass:hover{transform:translateY(-4px);border-color:rgba(103,232,249,.32);box-shadow:0 24px 60px -28px rgba(34,211,238,.45)}
+.week-card{overflow:hidden;position:relative;cursor:pointer;border-left:4px solid var(--line,transparent)}
+.week-card:hover{transform:translateY(-4px);border-color:rgba(103,232,249,.32);border-left-color:var(--line);box-shadow:0 24px 60px -28px var(--hglow,rgba(34,211,238,.45))}
 .week-card::after{content:'';position:absolute;inset:0;background-image:var(--bg-img,none);background-size:cover;opacity:.12;mix-blend-mode:screen;pointer-events:none;z-index:0}
-html[data-theme="light"] .week-card::after{opacity:.06;mix-blend-mode:multiply}
 .week-card>*{position:relative;z-index:1}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);text-decoration:none}
-html[data-theme="light"] .btn{background:#fff}
-.btn:hover{background:rgba(56,189,248,.10);border-color:rgba(56,189,248,.4)}
-html[data-theme="light"] .btn:hover{background:rgba(2,132,199,.06);border-color:rgba(2,132,199,.3)}
-.filter-btn{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
-.filter-btn:hover{color:var(--text);border-color:rgba(56,189,248,.3)}
-.filter-btn.active{background:var(--accent);color:#0f172a;border-color:var(--accent)}
+html[data-theme="light"] .glass{background:rgba(255,255,255,.78);border-color:rgba(15,23,42,.10)}
+html[data-theme="light"] .glass:hover{border-color:rgba(2,132,199,.4);box-shadow:0 24px 50px -28px rgba(8,145,178,.32)}
+html[data-theme="light"] .week-card{background:rgba(255,255,255,.85)!important;border-color:rgba(15,23,42,.10)!important;border-left-color:var(--line-l,var(--line))!important;box-shadow:0 4px 16px rgba(15,23,42,.04)}
+html[data-theme="light"] .week-card:hover{box-shadow:0 24px 50px -28px var(--hglow-l,rgba(8,145,178,.32));border-color:rgba(2,132,199,.4)!important;border-left-color:var(--line-l,var(--line))}
+html[data-theme="light"] .week-card::after{opacity:.06;mix-blend-mode:multiply}
+/* week chip (category badge) — themed via card accent vars */
+.week-chip{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:5px 10px;border-radius:999px;background:var(--chip-bg);color:var(--chip);border:1px solid var(--chip-br)}
+html[data-theme="light"] .week-chip{background:var(--chip-bg-l);color:var(--chip-l);border-color:transparent}
+
+/* ===== FILTER PILLS ===== */
+.filter-btn{padding:7px 15px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;transition:all .2s;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.filter-btn:hover{color:var(--text);border-color:rgba(103,232,249,.45);background:rgba(103,232,249,.08);transform:translateY(-1px)}
+.filter-btn.active{border:0;color:#04141f;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),linear-gradient(135deg,rgba(103,232,249,.95),rgba(125,211,252,.95));box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 0 #0e7490,0 10px 22px -10px rgba(8,145,178,.55)}
+.filter-btn.active:hover{transform:none;color:#04141f}
+html[data-theme="light"] .filter-btn{color:#5c6b7d;background:rgba(255,255,255,.55);border-color:rgba(15,23,42,.10)}
+html[data-theme="light"] .filter-btn:hover{color:#0c1a2c;border-color:rgba(2,132,199,.4);background:rgba(14,165,233,.08)}
+
 ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(56,189,248,.3),rgba(139,92,246,.3));border-radius:5px}
 ::selection{background:rgba(56,189,248,.3);color:#fff}
-.theme-toggle{position:fixed;top:16px;right:160px;z-index:99995;width:40px;height:40px;border-radius:10px;background:rgba(15,23,42,.9);backdrop-filter:blur(8px);border:1px solid rgba(56,189,248,.3);color:#67e8f9;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
-html[data-theme="light"] .theme-toggle{background:rgba(255,255,255,.9);border-color:rgba(2,132,199,.2);color:#0284c7}
-.theme-toggle:hover{transform:scale(1.1)}
-/* ===== COMPREHENSIVE LIGHT MODE OVERRIDES (biweek-planner dashboard) ===== */
-html[data-theme="light"] h1.text-white,
-html[data-theme="light"] h2.text-white,
-html[data-theme="light"] h3.text-white,
-html[data-theme="light"] h4.text-white,
-html[data-theme="light"] p.text-white,
-html[data-theme="light"] span.text-white,
-html[data-theme="light"] button.text-white,
-html[data-theme="light"] label.text-white,
-html[data-theme="light"] .text-white{color:#1e293b!important}
-html[data-theme="light"] .text-slate-100{color:#1e293b!important}
-html[data-theme="light"] .text-slate-200{color:#334155!important}
-html[data-theme="light"] .text-slate-300{color:#475569!important}
-html[data-theme="light"] .text-slate-400{color:#64748b!important}
-html[data-theme="light"] .text-slate-500{color:#94a3b8!important}
-html[data-theme="light"] .text-slate-600{color:#a8b3c2!important}
+html[data-theme="light"] ::selection{background:rgba(2,132,199,.25);color:#fff}
+
+/* ===== TOP-RIGHT FIXED BUTTONS — hero .cmc-btn-ghost glass pill ===== */
+.bp-topbtn{position:fixed;top:16px;right:16px;z-index:99995;display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;color:#f1f5f9;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:all .2s}
+.bp-topbtn:hover{transform:translateY(-2px);border-color:rgba(103,232,249,.45);background:rgba(103,232,249,.08);color:#a5f3fc}
+.bp-topbtn:active{transform:scale(.98)}
+html[data-theme="light"] .bp-topbtn{color:#0c1a2c;border-color:rgba(15,23,42,.16);background:rgba(255,255,255,.55)}
+html[data-theme="light"] .bp-topbtn:hover{color:#0e7490;border-color:rgba(2,132,199,.45);background:rgba(255,255,255,.85)}
+.theme-toggle{position:fixed;top:16px;right:170px;z-index:99995;width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#67e8f9;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+.theme-toggle:hover{transform:scale(1.08);border-color:rgba(103,232,249,.45)}
+html[data-theme="light"] .theme-toggle{color:#0284c7;border-color:rgba(15,23,42,.16);background:rgba(255,255,255,.55)}
+
+/* ===== COMPREHENSIVE LIGHT MODE TEXT OVERRIDES ===== */
+html[data-theme="light"] h1.text-white,html[data-theme="light"] h2.text-white,html[data-theme="light"] h3.text-white,html[data-theme="light"] h4.text-white,html[data-theme="light"] p.text-white,html[data-theme="light"] span.text-white,html[data-theme="light"] button.text-white,html[data-theme="light"] label.text-white,html[data-theme="light"] .text-white{color:#0c1a2c!important}
+html[data-theme="light"] .text-slate-100{color:#0c1a2c!important}
+html[data-theme="light"] .text-slate-200{color:#1e293b!important}
+html[data-theme="light"] .text-slate-300{color:#334155!important}
+html[data-theme="light"] .text-slate-400{color:#475569!important}
+html[data-theme="light"] .text-slate-500{color:#64748b!important}
+html[data-theme="light"] .text-slate-600{color:#7c8aa0!important}
 html[data-theme="light"] .text-cyan-50{color:#0c4a6e!important}
 html[data-theme="light"] .text-cyan-100{color:#0369a1!important}
 html[data-theme="light"] .text-cyan-200{color:#0e7490!important}
@@ -65,61 +148,16 @@ html[data-theme="light"] .text-emerald-100{color:#047857!important}
 html[data-theme="light"] .text-rose-400{color:#e11d48!important}
 html[data-theme="light"] .text-amber-400{color:#b45309!important}
 html[data-theme="light"] .text-teal-300{color:#0d9488!important}
+html[data-theme="light"] .bg-white\/5,html[data-theme="light"] .bg-white\/8,html[data-theme="light"] .bg-white\/10,html[data-theme="light"] .bg-white\/6{background-color:rgba(15,23,42,.04)!important}
+html[data-theme="light"] .border-white\/7,html[data-theme="light"] .border-white\/8,html[data-theme="light"] .border-white\/10{border-color:rgba(15,23,42,.10)!important}
+html[data-theme="light"] body{color:#0c1a2c}
+html[data-theme="light"] .bp-sub{color:#334155}
 
-html[data-theme="light"] .bg-white\/5,
-html[data-theme="light"] .bg-white\/8,
-html[data-theme="light"] .bg-white\/10,
-html[data-theme="light"] .bg-white\/6{background-color:rgba(0,0,0,.04)!important}
-html[data-theme="light"] .border-white\/7,
-html[data-theme="light"] .border-white\/8,
-html[data-theme="light"] .border-white\/10{border-color:rgba(0,0,0,.10)!important}
+/* ambient art behind content (kept — theme-aware) */
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:url('img/dashboard-bg.png');background-size:cover;background-position:center;background-repeat:no-repeat;opacity:.18;mix-blend-mode:screen;-webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 75%);mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 75%)}
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply;-webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 80%);mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 80%)}
 
-html[data-theme="light"] input.text-white{color:#1e293b!important;background-color:#fff!important;border-color:rgba(0,0,0,.12)!important}
-
-/* top-nav buttons */
-html[data-theme="light"] a[style*="background:rgba(15,23,42"]{background:rgba(255,255,255,.9)!important;border-color:rgba(2,132,199,.2)!important;color:#0284c7!important}
-html[data-theme="light"] a[style*="color:#67e8f9"]{color:#0284c7!important}
-
-/* week cards on dashboard */
-html[data-theme="light"] .week-card{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.10)!important;box-shadow:0 4px 16px rgba(0,0,0,.04)}
-html[data-theme="light"] .week-card:hover{box-shadow:0 12px 32px rgba(0,0,0,.10);border-color:rgba(2,132,199,.4)!important}
-html[data-theme="light"] .filter-btn{color:#64748b;background:transparent;border-color:rgba(0,0,0,.10)}
-html[data-theme="light"] .filter-btn:hover{color:#1e293b;border-color:rgba(2,132,199,.3)}
-html[data-theme="light"] .filter-btn.active{background:#0284c7;color:#fff;border-color:#0284c7}
-
-/* glass cards */
-html[data-theme="light"] .glass{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.10)!important;color:#1e293b}
-html[data-theme="light"] .glass *{color:inherit}
-html[data-theme="light"] .glass h1,
-html[data-theme="light"] .glass h2,
-html[data-theme="light"] .glass h3,
-html[data-theme="light"] .glass h4{color:#1e293b}
-
-/* dashboard hero gradient text in light mode */
-html[data-theme="light"] h1 span[style*="-webkit-background-clip:text"]{
-  background-image:linear-gradient(100deg,#0e7490,#0891b2,#6d28d9)!important;
-  -webkit-background-clip:text!important;
-  background-clip:text!important;
-  -webkit-text-fill-color:transparent!important;
-}
-
-/* selection */
-html[data-theme="light"] ::selection{background:rgba(2,132,199,.25);color:#fff}
-html[data-theme="light"] body{color:#1e293b}
-
-/* AI-generated dashboard hero background */
-body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background-image:url('img/dashboard-bg.png');
-  background-size:cover;background-position:center;background-repeat:no-repeat;
-  opacity:.18;mix-blend-mode:screen;
-  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 75%);
-  mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 75%)}
-html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply;
-  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 80%);
-  mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,black 0%,transparent 80%)}
-
-
-/* CMC SHARE BUTTON */
+/* ===== CMC SHARE BUTTON (unchanged behavior) ===== */
 #cmc-share-btn{position:fixed;left:16px;bottom:16px;z-index:99994;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:17px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;border:1px solid rgba(255,255,255,.18)}
 #cmc-share-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 30px rgba(56,189,248,.4)}
 #cmc-share-panel{position:fixed;left:16px;bottom:70px;z-index:99994;min-width:240px;padding:10px;border-radius:14px;background:rgba(15,23,42,.96);backdrop-filter:blur(16px);border:1px solid rgba(56,189,248,.25);box-shadow:0 12px 40px rgba(0,0,0,.5);color:#f1f5f9;font-family:'Plus Jakarta Sans',sans-serif;display:none}
@@ -141,6 +179,13 @@ html[data-theme="light"] #cmc-share-panel .share-copy{color:#334155}
 html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
 html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 
+/* ===== MOBILE ===== */
+@media(max-width:640px){
+  .bp-hero{padding:64px 0 60px}
+  .bp-hero-orbit{width:92vw;right:-18vw;opacity:.35}
+  .bp-hero-inner{padding:0 1rem}
+  .theme-toggle{right:150px}
+}
 </style>
 
 <!-- Google Analytics 4 (gtag.js) -->
@@ -152,27 +197,38 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
   <link rel="stylesheet" href="../assets/css/cmc-utilities.css">
 </head>
 <body>
-<a href="https://cmckhmer.github.io/Creative-Minds-/" style="position:fixed;top:16px;right:16px;z-index:99995;display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;background:rgba(15,23,42,.9);backdrop-filter:blur(8px);border:1px solid rgba(56,189,248,.3);color:#67e8f9;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;text-decoration:none;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.3)" onmouseover="this.style.borderColor='rgba(56,189,248,.6)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(56,189,248,.3)';this.style.transform=''">
-  <i class="fas fa-arrow-left" style="font-size:12px"></i> Back to CMC
-</a>
+<a class="bp-topbtn" href="https://cmckhmer.github.io/Creative-Minds-/"><i class="fas fa-arrow-left" style="font-size:12px"></i> Back to CMC</a>
 <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark"><i class="fas fa-sun"></i></button>
 
-<div class="relative z-10 max-w-6xl mx-auto px-4 py-10 sm:px-6">
+<!-- ===== HERO BAND — same stack as the main site hero ===== -->
+<header class="bp-hero">
+  <img class="bp-hero-photo" src="../images/classroom-hero-renaissance.png" alt="" aria-hidden="true">
+  <div class="bp-hero-veil"></div>
+  <div class="bp-hero-glow"></div>
+  <svg class="bp-hero-orbit" viewBox="0 0 600 600" fill="none" aria-hidden="true">
+    <circle cx="300" cy="300" r="256" stroke="#8EE6E4" stroke-opacity=".29" stroke-width="1.5" stroke-dasharray="2 12"/>
+    <circle cx="300" cy="300" r="204" stroke="#BAF4F0" stroke-opacity=".24" stroke-width="1.5"/>
+    <path d="M 300 44 A 256 256 0 0 1 556 300" stroke="#AAFFED" stroke-opacity=".75" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="300" cy="44" r="4" fill="#A5F3EA"/>
+    <circle cx="300" cy="44" r="14" stroke="#67E8F9" stroke-opacity=".15"/>
+  </svg>
+  <div class="bp-hero-inner">
+    <div class="bp-eyebrow"><i class="fas fa-calendar-check"></i> Bi-Weekly Study Plan · Weeks 2–8</div>
+    <h1 class="bp-title">
+      <span class="bp-title-row bp-title-row--first"><span class="bp-title-solid" data-echo>TOEFL ITP</span></span>
+      <span class="bp-title-row bp-title-row--accent"><span class="bp-title-solid">Bi-Weekly Planner</span><span class="bp-title-echo" aria-hidden="true">Bi-Weekly Planner</span></span>
+    </h1>
+    <p class="bp-sub">A structured preparation plan covering all three TOEFL ITP sections across Weeks 2–8. Each week includes practice drills with timers, auto-scoring, and individual shareable links.</p>
+    <div class="bp-stats">
+      <div class="bp-stat acc-cyan"><span class="bp-stat-chip"><i class="fas fa-headphones"></i></span><span>Listening</span></div>
+      <div class="bp-stat acc-violet"><span class="bp-stat-chip"><i class="fas fa-pen"></i></span><span>Structure</span></div>
+      <div class="bp-stat acc-amber"><span class="bp-stat-chip"><i class="fas fa-book-open"></i></span><span>Reading</span></div>
+      <div class="bp-stat acc-emerald"><span class="bp-stat-chip bp-stat-num">21</span><span>Practice drills</span></div>
+    </div>
+  </div>
+</header>
 
-  <!-- ===== HERO ===== -->
-  <header class="mb-10">
-    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-semibold text-cyan-300 mb-4">
-      <i class="fas fa-calendar-check text-xs"></i> Bi-Weekly Study Plan · Weeks 2–8
-    </div>
-    <h1 class="font-display text-4xl sm:text-5xl font-extrabold text-white mb-3">TOEFL ITP <span style="background:linear-gradient(100deg,#a5f3fc,#5eead4,#a5b4fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Bi-Weekly Planner</span></h1>
-    <p class="text-base text-slate-400 max-w-2xl leading-relaxed">A structured preparation plan covering all three TOEFL ITP sections across Weeks 2–8. Each week includes practice drills with timers, auto-scoring, and individual shareable links.</p>
-    <div class="mt-6 flex flex-wrap gap-4 text-sm">
-      <div class="glass px-4 py-2.5 flex items-center gap-2"><i class="fas fa-headphones text-cyan-300"></i><span class="text-slate-400">Listening</span></div>
-      <div class="glass px-4 py-2.5 flex items-center gap-2"><i class="fas fa-pen text-rose-400"></i><span class="text-slate-400">Structure</span></div>
-      <div class="glass px-4 py-2.5 flex items-center gap-2"><i class="fas fa-book-open text-amber-400"></i><span class="text-slate-400">Reading</span></div>
-      <div class="glass px-4 py-2.5 flex items-center gap-2"><span class="text-2xl font-bold text-violet-300 font-mono2">21</span><span class="text-slate-400">Practice drills</span></div>
-    </div>
-  </header>
+<div class="relative z-10 max-w-6xl mx-auto px-4 py-10 sm:px-6">
 
   <!-- ===== SCHEDULE ===== -->
   <section class="mb-8">
@@ -198,16 +254,16 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
     <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300 mb-2">Reference Materials</p>
     <h2 class="font-display text-2xl font-bold text-white mb-4">Recommended Books</h2>
     <div class="grid gap-3 sm:grid-cols-3">
-      <div class="glass p-4 transition-all hover:translateY-2" style="transition:all .25s"><div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:rgba(56,189,248,.1);color:#38bdf8"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">ETS TOEFL ITP Official Guide</h3><p class="text-xs text-slate-400 mt-1">Official test prep book from ETS with practice tests and answer keys.</p></div>
-      <div class="glass p-4 transition-all hover:translateY-2" style="transition:all .25s"><div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:rgba(139,92,246,.1);color:#a78bfa"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">Barron's TOEFL ITP</h3><p class="text-xs text-slate-400 mt-1">Comprehensive skill-building exercises for all three sections.</p></div>
-      <div class="glass p-4 transition-all hover:translateY-2" style="transition:all .25s"><div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:rgba(94,234,212,.1);color:#5eead4"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">Essential TOEFL Vocabulary</h3><p class="text-xs text-slate-400 mt-1">500+ high-frequency words with example sentences and exercises.</p></div>
+      <div class="glass p-4 acc-cyan"><div class="bp-stat-chip" style="width:40px;height:40px;font-size:16px;margin-bottom:12px"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">ETS TOEFL ITP Official Guide</h3><p class="text-xs text-slate-400 mt-1">Official test prep book from ETS with practice tests and answer keys.</p></div>
+      <div class="glass p-4 acc-violet"><div class="bp-stat-chip" style="width:40px;height:40px;font-size:16px;margin-bottom:12px"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">Barron's TOEFL ITP</h3><p class="text-xs text-slate-400 mt-1">Comprehensive skill-building exercises for all three sections.</p></div>
+      <div class="glass p-4 acc-emerald"><div class="bp-stat-chip" style="width:40px;height:40px;font-size:16px;margin-bottom:12px"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">Essential TOEFL Vocabulary</h3><p class="text-xs text-slate-400 mt-1">500+ high-frequency words with example sentences and exercises.</p></div>
     </div>
   </section>
 
   <!-- ===== TEACHER TIP ===== -->
   <section class="glass p-5 mb-8 border-l-4" style="border-left-color:#fbbf24">
     <div class="flex items-start gap-3">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(251,191,36,.12);color:#fbbf24"><i class="fas fa-lightbulb"></i></div>
+      <div class="bp-stat-chip acc-amber" style="width:40px;height:40px;font-size:16px;flex-shrink:0"><i class="fas fa-lightbulb"></i></div>
       <div><h2 class="font-display text-lg font-bold text-white">Teacher's Tip</h2><p class="text-sm text-slate-300 mt-1 leading-relaxed">Use the diagnostic test in Week 2 to identify each student's weakest section. Then focus the bi-weekly drills on that section while maintaining the others. Each drill has its own link — share individual tests with students directly.</p></div>
     </div>
   </section>
@@ -217,8 +273,13 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 
 <script>
 // ===== WEEK DATA =====
-const CAT_COLORS={listening:'#347d9b',structure:'#f87171',reading:'#fbbf24',orientation:'#5eead4'};
-const CAT_ICONS={listening:'fa-headphones',structure:'fa-pen',reading:'fa-book-open',orientation:'fa-flag-checkered'};
+// Accent-coded like the hero quick-launch dock: cyan/violet/amber/emerald.
+const ACC={
+  listening:{k:'cyan',chip:'#67e8f9',chipBg:'rgba(103,232,249,.12)',chipL:'#0e7490',chipBgL:'rgba(14,165,233,.10)',line:'#22d3ee',lineL:'#0284c7',hglow:'rgba(34,211,238,.5)',hglowL:'rgba(8,145,178,.32)',icon:'fa-headphones'},
+  structure:{k:'violet',chip:'#c4b5fd',chipBg:'rgba(167,139,250,.14)',chipL:'#6d28d9',chipBgL:'rgba(139,92,246,.10)',line:'#a78bfa',lineL:'#7c3aed',hglow:'rgba(167,139,250,.5)',hglowL:'rgba(139,92,246,.32)',icon:'fa-pen'},
+  reading:{k:'amber',chip:'#fcd34d',chipBg:'rgba(251,191,36,.12)',chipL:'#b45309',chipBgL:'rgba(251,191,36,.12)',line:'#fbbf24',lineL:'#b45309',hglow:'rgba(251,191,36,.45)',hglowL:'rgba(180,83,9,.3)',icon:'fa-book-open'},
+  orientation:{k:'emerald',chip:'#6ee7b7',chipBg:'rgba(110,231,183,.12)',chipL:'#047857',chipBgL:'rgba(16,185,129,.10)',line:'#34d399',lineL:'#047857',hglow:'rgba(52,211,153,.45)',hglowL:'rgba(5,150,105,.3)',icon:'fa-flag-checkered'}
+};
 const CAT_LABELS={listening:'Listening',structure:'Structure',reading:'Reading',orientation:'Orientation'};
 
 function svgPreview(cat,color){
@@ -272,51 +333,55 @@ const WEEKS=[
 const featured=document.getElementById('featured-week');
 const grid=document.getElementById('schedule-grid');
 WEEKS.forEach((w,idx)=>{
-  const color=CAT_COLORS[w.cat];
-  const icon=CAT_ICONS[w.cat];
+  const a=ACC[w.cat];
+  const icon=a.icon;
   const card=document.createElement('article');
-  card.className='week-card glass p-4';
-  card.style.borderLeft=`4px solid ${color}`;
+  card.className=`week-card glass p-4 acc-${a.k}`;
+  // per-card accent vars — ONLY the ones the acc-* class doesn't define:
+  // dark values (--line/--hglow) + light-theme values (--*-l). --chip/--chip-bg/
+  // --chip-br must come from the acc-* class so the light-theme selectors win.
+  card.style.setProperty('--line',a.line);
+  card.style.setProperty('--line-l',a.lineL);
+  card.style.setProperty('--hglow',a.hglow);
+  card.style.setProperty('--hglow-l',a.hglowL);
+  card.style.setProperty('--chip-l',a.chipL);
+  card.style.setProperty('--chip-bg-l',a.chipBgL);
   card.setAttribute('data-cat',w.cat);
-  card.style.setProperty('--bg-img',`url('${svgPreview(w.cat,color)}')`);
+  card.style.setProperty('--bg-img',`url('${svgPreview(w.cat,a.chip)}')`);
 
   const testButtons=w.tests.map(t=>{
     if(t.file==='#'){
-      return `<span class="btn opacity-40 cursor-not-allowed"><i class="fas ${t.icon} text-xs"></i> ${t.text}</span>`;
+      return `<span class="btn3d acc-${a.k} disabled" aria-disabled="true"><i class="fas ${t.icon} text-xs"></i> ${t.text}</span>`;
     }
-    return `<a href="tests/${t.file}" class="btn" target="_blank" rel="noopener"><i class="fas ${t.icon} text-xs"></i> ${t.text}</a>`;
+    return `<a href="tests/${t.file}" class="btn3d acc-${a.k}" target="_blank" rel="noopener"><i class="fas ${t.icon} text-xs"></i> ${t.text}</a>`;
   }).join('');
 
   // Featured card (Week 1 — Orientation & Diagnostic) gets a bigger,
-  // full-width layout with a "Start here" badge + 2-column test buttons.
+  // full-width layout with a 3D "Start here" badge + 3-column test buttons.
   if(idx===0){
     card.classList.add('p-6');
     card.innerHTML=`
       <div class="flex items-center justify-between mb-3">
-        <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-full" style="background:${color}20;color:${color}">
-          <i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}
-        </span>
-        <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style="background:rgba(56,189,248,.15);color:#67e8f9;border:1px solid rgba(56,189,248,.3)">
+        <span class="week-chip" style="font-size:11px;padding:6px 12px"><i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}</span>
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-3.5 py-2 rounded-full" style="color:#04141f;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),linear-gradient(135deg,rgba(103,232,249,.95),rgba(125,211,252,.95));box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 0 #0e7490,0 10px 22px -10px rgba(8,145,178,.6)">
           <i class="fas fa-flag-checkered text-xs"></i> Start here
         </span>
       </div>
       <h3 class="font-display text-xl font-bold text-white mt-1 leading-tight">${w.title}</h3>
       <p class="text-sm text-slate-400 mt-1">${w.skill}</p>
       <p class="text-sm text-slate-500 mt-2 border-t border-white/8 pt-2 leading-relaxed">${w.activity}</p>
-      <div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">${testButtons}</div>
+      <div class="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">${testButtons}</div>
     `;
     featured.appendChild(card);
   } else {
     card.innerHTML=`
       <div class="flex items-center justify-between mb-2">
-        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full" style="background:${color}20;color:${color}">
-          <i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}
-        </span>
+        <span class="week-chip"><i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}</span>
       </div>
       <h3 class="font-display text-base font-bold text-white mt-1 leading-tight">${w.title}</h3>
       <p class="text-[11px] text-slate-400 mt-0.5">${w.skill}</p>
       <p class="text-xs text-slate-500 mt-2 border-t border-white/8 pt-2 leading-relaxed">${w.activity}</p>
-      <div class="mt-3 flex flex-wrap gap-1.5">${testButtons}</div>
+      <div class="mt-3 flex flex-wrap gap-2">${testButtons}</div>
     `;
     grid.appendChild(card);
   }
