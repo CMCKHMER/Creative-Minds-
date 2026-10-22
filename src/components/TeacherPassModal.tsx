@@ -266,7 +266,7 @@ export const TeacherPassModal = ({
         <h2 id="member-auth-heading" className="mt-5 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white">{heading}</h2>
 
         {!firebaseConfigured ? (
-          <div className="mt-5 rounded-xl border border-amber-200/20 bg-amber-100/5 p-4 text-sm text-amber-50">
+          <div className="cmc-role-gate mt-5 rounded-xl border border-amber-200/20 bg-amber-100/5 p-4 text-sm text-amber-50">
             <p className="font-semibold">Live sign-in is one env var away.</p>
             <p className="mt-2 text-xs leading-relaxed text-amber-100/75">Email/Password + Google sign-in are already enabled in the Firebase console. To wire the React side, add <code className="rounded bg-amber-100/10 px-1.5 py-0.5">VITE_FIREBASE_API_KEY</code> to <code className="rounded bg-amber-100/10 px-1.5 py-0.5">.env.local</code> (Firebase → Project Settings → General → Web API Key), then redeploy. The static HTML pages already submit scores to this same Firebase project.</p>
           </div>

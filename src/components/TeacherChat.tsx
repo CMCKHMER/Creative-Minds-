@@ -261,7 +261,7 @@ export function TeacherChat({ onOpenAuth }: { onOpenAuth?: () => void }) {
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex items-start gap-3 ${msg.isAnnouncement ? 'rounded-xl border border-amber-200/20 bg-amber-100/[0.04] p-3.5' : ''}`}
+                  className={`flex items-start gap-3 ${msg.isAnnouncement ? 'cmc-role-gate rounded-xl border border-amber-200/20 bg-amber-100/[0.04] p-3.5' : ''}`}
                 >
                   <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[10px] font-bold ${msg.isAnnouncement ? 'bg-amber-300/15 text-amber-200' : 'bg-cyan-300/10 text-cyan-200'}`}>
                     {msg.authorName.charAt(0).toUpperCase()}
@@ -330,7 +330,7 @@ export function TeacherChat({ onOpenAuth }: { onOpenAuth?: () => void }) {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-amber-200/15 bg-amber-100/[0.03] p-8 text-center">
+          <div className="cmc-role-gate rounded-2xl border border-amber-200/15 bg-amber-100/[0.03] p-8 text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-amber-200/20 bg-amber-200/[0.05] text-amber-200">
               <LockKeyhole className="h-6 w-6" aria-hidden="true" />
             </span>

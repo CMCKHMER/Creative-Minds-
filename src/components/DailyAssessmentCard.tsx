@@ -56,7 +56,7 @@ export function DailyAssessmentCard({ onOpenAuth }: { onOpenAuth?: () => void } 
               <p className="mt-4 flex max-w-xl items-start gap-2 text-[10px] leading-relaxed text-slate-500"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/70" aria-hidden="true" /><span>Records live in this site's Firestore — readable and writable only by signed-in teacher accounts ("edu" emails). Every save is stamped, and co-teachers see updates in real time.</span></p>
             </>
           ) : (
-            <div className="mt-7 rounded-xl border border-amber-200/20 bg-amber-100/[0.04] p-4 sm:p-5">
+            <div className="cmc-role-gate mt-7 rounded-xl border border-amber-200/20 bg-amber-100/[0.04] p-4 sm:p-5">
               <div className="flex items-start gap-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber-300/15 text-amber-200">
                   <LockKeyhole className="h-4 w-4" aria-hidden="true" />

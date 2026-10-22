@@ -841,12 +841,12 @@ html.light .cmc-hero::after {
   background: linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.28), transparent);
 }
 html.light .cmc-hero-photo {
-  filter: saturate(0.78) contrast(0.94) brightness(1.12) opacity(0.55);
+  filter: saturate(0.9) contrast(0.98) brightness(1.05);
 }
 html.light .cmc-hero-veil {
   background:
-    linear-gradient(90deg, rgba(226, 232, 240, 0.97) 0%, rgba(226, 232, 240, 0.9) 25%, rgba(226, 232, 240, 0.6) 48%, rgba(226, 232, 240, 0.08) 100%),
-    linear-gradient(0deg, rgba(219, 227, 237, 0.85) 0%, transparent 31%, transparent 74%, rgba(226, 232, 240, 0.4) 100%);
+    linear-gradient(90deg, rgba(228, 234, 242, 0.95) 0%, rgba(228, 234, 242, 0.82) 24%, rgba(228, 234, 242, 0.3) 50%, rgba(228, 234, 242, 0.04) 100%),
+    linear-gradient(0deg, rgba(223, 230, 239, 0.6) 0%, transparent 30%, transparent 76%, rgba(228, 234, 242, 0.32) 100%);
 }
 html.light .cmc-hero-light {
   background:
@@ -1488,3 +1488,112 @@ html.light #toefl-itp-planner .border-amber-200\/15,
 html.light #toefl-itp-planner .border-amber-200\/20 { border-color: rgba(180, 83, 9, 0.22); }
 html.light #toefl-itp-planner .bg-amber-100\/\[0\.03\] { background-color: rgba(180, 83, 9, 0.04); }
 html.light #toefl-itp-planner .bg-amber-200\/\[0\.05\] { background-color: rgba(180, 83, 9, 0.07); }
+
+/* ============================================================
+   Light theme: background photos stay VISIBLE (user request:
+   light mode should show the same imagery as dark mode), and
+   the GEP/ISEC + Kid program hubs join the light theme fully.
+   The hubs previously carried data-keep-dark, but only a handful
+   of their utilities had keep-dark restores — the global light
+   rules half-washed them (light veil + lightened text over dark
+   surfaces = unreadable). They now follow the light theme like
+   the TOEFL/Studio/Planner banners, with the photo kept clearly
+   visible under a light scrim that is stronger on the text side.
+   ============================================================ */
+
+/* ---- 1. banner + hub background photos: clearly visible ---- */
+html.light #toefl-ibt-mock > img,
+html.light #lms-workspace > img,
+html.light #daily-assessment > img,
+html.light #toefl-itp-planner > img,
+html.light #gep-isec > img,
+html.light #kid-grades > img {
+  opacity: 0.85;
+  filter: saturate(0.94);
+}
+
+/* ---- 2. photo scrims: light, stronger on the text side ---- */
+html.light #toefl-ibt-mock .bg-slate-950\/55,
+html.light #lms-workspace .bg-slate-950\/55,
+html.light #daily-assessment .bg-slate-950\/55,
+html.light #toefl-itp-planner .bg-slate-950\/55 {
+  background-color: transparent;
+  background-image: linear-gradient(90deg, rgba(248, 250, 252, 0.9) 0%, rgba(248, 250, 252, 0.6) 40%, rgba(248, 250, 252, 0.26) 74%, rgba(248, 250, 252, 0.18) 100%);
+}
+html.light #gep-isec .bg-slate-950\/55,
+html.light #kid-grades .bg-slate-950\/55 {
+  background-color: transparent;
+  background-image: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(248, 250, 252, 0.68) 40%, rgba(248, 250, 252, 0.42) 100%);
+}
+
+/* ---- 3. dark-navy gradient stops -> light glass gradients ----
+   (recipe shared by GEP/ISEC cards, Kid cards, Teacher Tools
+   showcase card — upgrades apply to every user of the recipe) */
+html.light .bg-gradient-to-br.from-cyan-400\/\[0\.10\] {
+  background-image: linear-gradient(135deg, rgba(8, 145, 178, 0.13) 0%, rgba(255, 255, 255, 0.96) 46%, rgba(14, 165, 233, 0.12) 100%);
+}
+html.light .bg-gradient-to-br.from-violet-400\/\[0\.10\] {
+  background-image: linear-gradient(135deg, rgba(124, 58, 237, 0.11) 0%, rgba(255, 255, 255, 0.96) 46%, rgba(99, 102, 241, 0.11) 100%);
+}
+html.light .bg-gradient-to-br.from-violet-400\/\[0\.08\] {
+  background-image: linear-gradient(135deg, rgba(124, 58, 237, 0.09) 0%, rgba(255, 255, 255, 0.96) 46%, rgba(99, 102, 241, 0.09) 100%);
+}
+/* headings that sit on those now-light gradient cards */
+html.light .bg-gradient-to-br.from-cyan-400\/\[0\.10\] .text-white,
+html.light .bg-gradient-to-br.from-violet-400\/\[0\.10\] .text-white,
+html.light .bg-gradient-to-br.from-violet-400\/\[0\.08\] .text-white {
+  color: var(--cmc-l-ink) !important;
+}
+
+/* ---- 4. GEP/ISEC + Kid hubs: remaining utility gaps ---- */
+html.light #gep-isec .text-cyan-50,
+html.light #kid-grades .text-cyan-50 { color: #155e75; }
+html.light #gep-isec .text-emerald-100,
+html.light #kid-grades .text-emerald-100 { color: #065f46; }
+html.light #kid-grades .text-cyan-200\/75 { color: rgba(21, 94, 117, 0.78); }
+html.light #gep-isec .border-white\/7,
+html.light #gep-isec .border-white\/8,
+html.light #kid-grades .border-white\/7,
+html.light #kid-grades .border-white\/8 { border-color: rgba(15, 23, 42, 0.1); }
+html.light #gep-isec .bg-white\/\[0\.025\],
+html.light #kid-grades .bg-white\/\[0\.025\] { background-color: rgba(15, 23, 42, 0.04); }
+html.light #gep-isec .border-emerald-200\/20,
+html.light #kid-grades .border-emerald-200\/20 { border-color: rgba(5, 150, 105, 0.28); }
+html.light #gep-isec .bg-emerald-200\/\[0\.06\],
+html.light #kid-grades .bg-emerald-200\/\[0\.06\] { background-color: rgba(5, 150, 105, 0.08); }
+/* resource link rows: crisp white cards over the photo */
+html.light #gep-isec .bg-slate-950\/50,
+html.light #kid-grades .bg-slate-950\/50 { background-color: rgba(255, 255, 255, 0.82); }
+html.light #gep-isec .hover\:bg-slate-950\/55:hover,
+html.light #kid-grades .hover\:bg-slate-950\/55:hover { background-color: rgba(231, 237, 244, 0.88); }
+html.light #kid-grades .hover\:border-cyan-100\/45:hover { border-color: rgba(8, 145, 178, 0.45); }
+/* footer fine-print stays readable over the photo */
+html.light #gep-isec .text-slate-600,
+html.light #kid-grades .text-slate-600 { color: #475569; }
+
+/* ---- 5. RoleGate locked panels join the light theme ----
+   (they carried data-keep-dark but its amber/slate utilities had
+   no restores, so light mode half-washed them into unreadable
+   light text on light wash; scoped to .cmc-role-gate so keep-dark
+   artwork zones using the same amber utilities are untouched) */
+html.light .bg-gradient-to-br.from-amber-100\/\[0\.04\] {
+  background-image: linear-gradient(135deg, rgba(180, 83, 9, 0.05) 0%, rgba(255, 255, 255, 0.97) 46%, rgba(255, 251, 235, 0.92) 100%);
+}
+html.light .cmc-role-gate.bg-amber-100\/\[0\.04\] { background-color: rgba(255, 251, 235, 0.78); }
+html.light .cmc-role-gate.bg-amber-100\/\[0\.03\],
+html.light .cmc-role-gate.bg-amber-100\/5 { background-color: rgba(255, 251, 235, 0.75); }
+html.light .cmc-role-gate .border-amber-200\/15 { border-color: rgba(180, 83, 9, 0.24); }
+html.light .cmc-role-gate .border-amber-200\/20 { border-color: rgba(180, 83, 9, 0.28); }
+html.light .cmc-role-gate .border-amber-200\/30 { border-color: rgba(180, 83, 9, 0.32); }
+html.light .cmc-role-gate .text-amber-50 { color: #92400e; }
+html.light .cmc-role-gate .text-amber-100\/70,
+html.light .cmc-role-gate .text-amber-100\/75 { color: rgba(146, 64, 14, 0.88); }
+html.light .cmc-role-gate .text-amber-200 { color: #b45309; }
+html.light .cmc-role-gate .bg-amber-300\/10 { background-color: rgba(180, 83, 9, 0.1); }
+html.light .cmc-role-gate .bg-amber-300\/15 { background-color: rgba(180, 83, 9, 0.12); }
+html.light .cmc-role-gate .bg-amber-200\/10 { background-color: rgba(180, 83, 9, 0.08); }
+html.light .cmc-role-gate .bg-amber-200\/\[0\.05\] { background-color: rgba(180, 83, 9, 0.08); }
+html.light .cmc-role-gate .bg-amber-100\/10 { background-color: rgba(180, 83, 9, 0.1); }
+html.light .cmc-role-gate .hover\:bg-amber-200\/20:hover { background-color: rgba(180, 83, 9, 0.15); }
+html.light .cmc-role-gate .ring-amber-200\/30 { --tw-ring-color: rgba(180, 83, 9, 0.3); }
+html.light .cmc-role-gate .bg-white\/5 { background-color: rgba(15, 23, 42, 0.05); }
