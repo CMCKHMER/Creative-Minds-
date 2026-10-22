@@ -116,7 +116,7 @@ async function runQuery(collectionId: string, query: Record<string, unknown>): P
 }
 
 const fieldFilter = (field: string, op: string, value: unknown) => ({
-  where: { fieldFilter: { field, op, value: enc(value) } },
+  where: { fieldFilter: { field: { fieldPath: field }, op, value: enc(value) } },
 });
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -233,12 +233,16 @@ export async function putTestKey(key: TestKey): Promise<void> {
 // ── Assignments ──────────────────────────────────────────────────────
 
 export async function listAssignments(teacherUid: string): Promise<AssignmentDoc[]> {
+  // Equality-only query: Firestore's automatic single-field index covers it.
+  // (A where+orderBy pair would require a manually created composite index —
+  // sort client-side instead so the panel works with zero console setup.)
   const docs = await runQuery('test_assignments', {
-    ...fieldFilter('teacherUid', 'equal', teacherUid),
-    orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'descending' }],
+    ...fieldFilter('teacherUid', 'EQUAL', teacherUid),
     limit: 50,
   });
-  return docs as unknown as AssignmentDoc[];
+  return (docs as unknown as AssignmentDoc[]).sort((a, b) =>
+    (b.createdAt || '').localeCompare(a.createdAt || ''),
+  );
 }
 
 export async function createAssignment(input: {
@@ -284,16 +288,17 @@ export async function deleteAssignment(id: string): Promise<void> {
 
 export async function listSubmissions(assignmentId: string): Promise<SubmissionDoc[]> {
   const docs = await runQuery('test_submissions', {
-    ...fieldFilter('assignmentId', 'equal', assignmentId),
-    orderBy: [{ field: { fieldPath: 'submittedAt' }, direction: 'ascending' }],
+    ...fieldFilter('assignmentId', 'EQUAL', assignmentId),
     limit: 200,
   });
-  return docs as unknown as SubmissionDoc[];
+  return (docs as unknown as SubmissionDoc[]).sort((a, b) =>
+    (a.submittedAt || '').localeCompare(b.submittedAt || ''),
+  );
 }
 
 export async function listScores(assignmentId: string): Promise<ScoreDoc[]> {
   const docs = await runQuery('test_scores', {
-    ...fieldFilter('assignmentId', 'equal', assignmentId),
+    ...fieldFilter('assignmentId', 'EQUAL', assignmentId),
     limit: 200,
   });
   return docs as unknown as ScoreDoc[];

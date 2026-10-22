@@ -1315,6 +1315,29 @@ html.light [data-keep-dark] .hover\:bg-slate-750:hover { background-color: #3341
 html.light [data-keep-dark] .border-slate-800 { border-color: rgba(30, 41, 59, 0.9); }
 html.light [data-keep-dark] .border-slate-700 { border-color: rgba(51, 65, 85, 0.9); }
 
+/* round-7 restores: Bi-Weekly Private Tests teacher panel (data-keep-dark) —
+   step boxes, selects, scoreboard table and status colors back to dark */
+/* The root gradient stops are translucent (25/60/80% alpha): over the light
+   page they composite to washed grey. An opaque near-black base makes the
+   same gradient render exactly as it does in dark mode. (Dual selector: the
+   attribute and the gradient class share the SAME element here.) */
+html.light [data-keep-dark].from-violet-950\/25,
+html.light [data-keep-dark] .from-violet-950\/25 {
+  background-color: #020617;
+}
+html.light [data-keep-dark] .bg-slate-950\/50 { background-color: rgba(2, 6, 23, 0.5); }
+html.light [data-keep-dark] .bg-slate-950\/40 { background-color: rgba(2, 6, 23, 0.4); }
+html.light [data-keep-dark] .bg-slate-900 { background-color: #0f172a; }
+html.light [data-keep-dark] .bg-slate-900\/50 { background-color: rgba(15, 23, 42, 0.5); }
+html.light [data-keep-dark] .hover\:bg-white\/5:hover { background-color: rgba(255, 255, 255, 0.05); }
+html.light [data-keep-dark] .hover\:bg-white\/10:hover { background-color: rgba(255, 255, 255, 0.1); }
+html.light [data-keep-dark] .divide-white\/5 > :not(:last-child) { border-color: rgba(255, 255, 255, 0.08); }
+html.light [data-keep-dark] .text-slate-600 { color: #94a3b8; }
+html.light [data-keep-dark] .text-slate-700 { color: #334155; }
+html.light [data-keep-dark] .text-rose-200 { color: #fecdd3; }
+html.light [data-keep-dark] .text-rose-300 { color: #fda4af; }
+html.light [data-keep-dark] .hover\:text-rose-300:hover { color: #fda4af; }
+
 /* ============================================================
    Hero quick-launch strip — labeled 4-up card dock below hero
    ============================================================ */

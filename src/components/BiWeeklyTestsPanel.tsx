@@ -275,7 +275,7 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
   };
 
   return (
-    <div className="mt-8 rounded-2xl border border-violet-300/15 bg-gradient-to-br from-violet-950/25 via-slate-950/60 to-slate-950/80 p-5 sm:p-6">
+    <div data-keep-dark className="mt-8 rounded-2xl border border-violet-300/15 bg-gradient-to-br from-violet-950/25 via-slate-950/60 to-slate-950/80 p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-xl border border-violet-300/20 bg-violet-300/10 text-violet-200"><ClipboardList className="h-5 w-5" /></span>
