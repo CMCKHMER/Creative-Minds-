@@ -201,6 +201,18 @@ function getValidUid(token: string): string {
   }
 }
 
+/** The uid the REST transport (and therefore the security rules) actually
+ *  sees for the current session. The dashboard can resolve a teacher's id
+ *  from a DIFFERENT auth path (Supabase member flow vs the Firebase teacher
+ *  pass) — but every test_* rule checks `teacherUid == request.auth.uid`
+ *  against THIS token's uid, so writes must carry it. Returns null when no
+ *  Firebase session exists. */
+export async function getRestAuthUid(): Promise<string | null> {
+  const token = await getValidIdToken();
+  if (!token) return null;
+  return getValidUid(token) || null;
+}
+
 // ── Test shell metadata + keys ───────────────────────────────────────
 
 export async function putTestMeta(test: { testId: string; title: string; questionCount: number; groups: { id: string; title: string }[] }): Promise<void> {

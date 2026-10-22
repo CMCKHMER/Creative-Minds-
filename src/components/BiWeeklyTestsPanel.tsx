@@ -18,7 +18,7 @@ import {
   KeyRound, Link2, RefreshCw, Trash2, Users,
 } from 'lucide-react';
 import {
-  createAssignment, deleteAssignment, ensureTeacherRegistration, getTestKey,
+  createAssignment, deleteAssignment, ensureTeacherRegistration, getRestAuthUid, getTestKey,
   listAssignments, listScores, listSubmissions, putScore, putTestKey, putTestMeta,
   RestError,
   type AssignmentDoc, type ScoreDoc, type SubmissionDoc,
@@ -94,6 +94,13 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
   const [loadError, setLoadError] = useState<string>('');
   const [busy, setBusy] = useState(false);
 
+  // The uid the Firestore REST transport + rules actually see. The dashboard's
+  // `teacherUid` prop can come from a different auth path (Supabase member
+  // flow vs Firebase teacher pass) — create-assignment MUST carry the REST
+  // uid or the rules reject it (teacherUid == request.auth.uid).
+  const [testUid, setTestUid] = useState('');
+  const [createStatus, setCreateStatus] = useState<{ tone: 'ok' | 'err' | 'info'; text: string } | null>(null);
+
   // Create-assignment form
   const [formTestId, setFormTestId] = useState(PRIVATE_TEST_CATALOG[0].testId);
   const [formClassId, setFormClassId] = useState('');
@@ -124,17 +131,25 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
       .catch(() => setRegistered('no'));
   }, [teacherUid]);
 
-  // 1) Load assignments.
+  // 0b) Resolve the REST-session uid (the one the rules compare against).
+  useEffect(() => {
+    let alive = true;
+    void getRestAuthUid().then((uid) => { if (alive) setTestUid(uid ?? ''); });
+    return () => { alive = false; };
+  }, []);
+
+  // 1) Load assignments — by the REST uid (the one writes use and the rules
+  // check). Falls back to empty when no Firebase session exists.
   const refreshAssignments = useCallback(async () => {
-    if (!teacherUid) return;
+    if (!testUid) { setAssignments([]); return; }
     try {
-      const list = await listAssignments(teacherUid);
+      const list = await listAssignments(testUid);
       setAssignments(list);
       setLoadError('');
     } catch (err) {
       setLoadError(err instanceof RestError ? err.message : 'Could not load assignments.');
     }
-  }, [teacherUid]);
+  }, [testUid]);
 
   useEffect(() => { void refreshAssignments(); }, [refreshAssignments]);
 
@@ -166,7 +181,7 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
         const pending = subs.filter((s) => !scoreById.has(s.id));
         for (const sub of pending) {
           const grade: GradeResult = gradeSubmission(key, sub.answers ?? {});
-          try { await putScore(sub, grade, teacherUid); } catch { /* cache write is best-effort */ }
+          try { await putScore(sub, grade, testUid || teacherUid); } catch { /* cache write is best-effort */ }
         }
         if (pending.length) {
           const refreshed = await listScores(selected);
@@ -190,7 +205,7 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
     const onVisible = () => { if (document.visibilityState === 'visible') void tick(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => { alive = false; window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); };
-  }, [selected, assignments, teacherUid]);
+  }, [selected, assignments, teacherUid, testUid]);
 
   // 3) Answer-key install (accepts one file or many — select all keys at once).
   const handleKeyFiles = async (files: FileList) => {
@@ -223,27 +238,43 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
       : `Installed ${ok}${errs.length ? ` · ${errs.length} failed: ${errs.join(' · ')}` : ''}`);
   };
 
-  // 4) Create assignment.
+  // 4) Create assignment. EVERY outcome is reported in createStatus — a
+  // silent no-op here once read as "nothing happens" to the teacher.
   const handleCreate = async () => {
     const test = PRIVATE_TEST_CATALOG.find((t) => t.testId === formTestId);
     const cls = classes.find((c) => c.id === formClassId);
-    if (!test || !cls || !formClosesAt) return;
+    if (!test || !cls || !formClosesAt) {
+      setCreateStatus({ tone: 'err', text: 'Pick a test and a class first (Step 2), then try again.' });
+      return;
+    }
+    if (!testUid) {
+      setCreateStatus({ tone: 'err', text: 'No teacher session found — sign in again with your teacher pass (homepage button), then reopen this panel.' });
+      return;
+    }
     setBusy(true);
+    setCreateStatus({ tone: 'info', text: 'Creating the assignment…' });
     try {
       const created = await createAssignment({
         testId: test.testId,
         title: test.title,
         classId: cls.id,
         className: cls.name || cls.id,
-        teacherUid,
+        teacherUid: testUid, // rules compare against the REST token uid
         opensAt: new Date().toISOString(),
         closesAt: new Date(formClosesAt).toISOString(),
         durationMinutes: formMinutes,
       });
       await refreshAssignments();
       setSelected(created.id);
+      setCreateStatus({ tone: 'ok', text: `Assignment created ✓ — share it with ${cls.name} via "Copy student link" at the top of the scoreboard.` });
     } catch (err) {
-      setLoadError(err instanceof RestError ? err.message : 'Could not create the assignment.');
+      const msg = err instanceof RestError ? err.message : 'Could not create the assignment.';
+      setCreateStatus({
+        tone: 'err',
+        text: err instanceof RestError && err.status === 403
+          ? `Create denied by permissions (${msg}). Make sure you are signed in with your teacher (edu) account, then reload.`
+          : msg,
+      });
     } finally {
       setBusy(false);
     }
@@ -264,7 +295,7 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
       const subs = await listSubmissions(selectedAssignment.id);
       for (const sub of subs) {
         const grade = gradeSubmission(liveKey, sub.answers ?? {});
-        try { await putScore(sub, grade, teacherUid); } catch { /* best-effort */ }
+        try { await putScore(sub, grade, testUid || teacherUid); } catch { /* best-effort */ }
       }
       const refreshed = await listScores(selectedAssignment.id);
       const byId = new Map(refreshed.map((s) => [s.id, s]));
@@ -384,8 +415,22 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
             disabled={busy || !formClassId || registered !== 'yes'}
             className="mt-3 w-full rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
           >
-            {busy ? 'Working…' : 'Create assignment'}
+            {busy ? 'Creating…' : 'Create assignment'}
           </button>
+          {createStatus && (
+            <p
+              role="status"
+              className={`mt-2 rounded-lg border px-3 py-2 text-[11px] leading-relaxed ${
+                createStatus.tone === 'ok'
+                  ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'
+                  : createStatus.tone === 'err'
+                    ? 'border-rose-400/30 bg-rose-400/10 text-rose-200'
+                    : 'border-white/10 bg-white/5 text-slate-300'
+              }`}
+            >
+              {createStatus.text}
+            </p>
+          )}
         </div>
       </div>
 
