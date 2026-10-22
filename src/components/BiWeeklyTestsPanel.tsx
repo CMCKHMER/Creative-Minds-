@@ -492,15 +492,22 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
                   <button
                     onClick={() => {
                       const test = PRIVATE_TEST_CATALOG.find((t) => t.testId === selectedAssignment.testId);
+                      // NEVER fall back to another test's page: a mismatched
+                      // link + assignment pair is exactly what makes students
+                      // see "Wrong test". Fail loudly instead.
+                      if (!test) {
+                        setGradingNote(`This assignment points at unknown test "${selectedAssignment.testId}" — delete it and create the assignment again from Step 2.`);
+                        return;
+                      }
                       // GitHub Pages serves the app under a repo sub-path
                       // (e.g. /Creative-Minds-/); window.location.origin alone
                       // drops it and the copied link 404s. The app is
                       // hash-routed, so location.pathname IS that sub-path —
                       // reuse it (strip a trailing index.html for safety).
                       const appRoot = window.location.pathname.replace(/index\.html$/, '');
-                      const url = `${window.location.origin}${appRoot}biweek-planner/tests/private/${test?.slug ?? 'diagnostic'}.html?assignment=${selectedAssignment.id}`;
+                      const url = `${window.location.origin}${appRoot}biweek-planner/tests/private/${test.slug}.html?assignment=${selectedAssignment.id}`;
                       void navigator.clipboard.writeText(url).then(() => {
-                        setGradingNote('Student link copied — share it with the class (Google Classroom, Messenger, …).');
+                        setGradingNote(`Student link copied — share it with the class (Google Classroom, Messenger, …). Link: ${url}`);
                       });
                     }}
                     className="flex items-center gap-1.5 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 text-[10px] font-bold text-cyan-200 transition hover:bg-cyan-400/20"

@@ -462,7 +462,11 @@ function boot(){
   info('<p class="text-sm text-slate-300"><i class="fas fa-spinner fa-spin"></i> Checking your assignment&hellip;</p>');
   rest('/test_assignments/'+encodeURIComponent(assignmentId),{method:'GET'},function(res){
     if(!res.ok||!res.body||!res.body.fields){
-      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Assignment not found</h3><p class="text-sm text-slate-300">Ask your teacher to confirm the link, and that you are enrolled in the right class.</p>');
+      // Self-diagnosing: show the exact code from the URL + the two usual
+      // causes (truncated link when shared, or student not enrolled in the
+      // class — the security rules reject reads for non-enrolled students,
+      // which looks exactly like "not found").
+      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Assignment not found</h3><p class="text-sm text-slate-300">The assignment code in this link is: <code class="text-cyan-300">'+(assignmentId||'(missing)')+'</code></p><p class="text-sm text-slate-300 mt-2">Two usual causes: the link got cut off when it was shared, or you have not joined the class yet with its CMC-XXXXXX code on the homepage. Join the class, then reopen the exact link your teacher shared.</p>');
       return;
     }
     var f=fsFields(res.body.fields);
@@ -473,11 +477,14 @@ function boot(){
       durationMinutes:Number(dec(f.durationMinutes))||20
     };
     if(assignment.testId!==T.testId){
-      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Wrong test</h3><p class="text-sm text-slate-300">This link is for a different test than this page. Ask your teacher for the correct link.</p>');
+      // Self-diagnosing: name BOTH sides of the mismatch so the teacher can
+      // see which assignment/link pair got crossed.
+      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Wrong test</h3><p class="text-sm text-slate-300">This page is the <b class="text-cyan-300">'+T.testId+'</b> test, but the assignment in your link is for <b class="text-amber-300">'+(assignment.testId||'(none)')+'</b>.</p><p class="text-sm text-slate-300 mt-2">Ask your teacher to open that assignment in the dashboard, then press Copy student link on ITS scoreboard — the link and the test page must match.</p>');
       return;
     }
     if(assignment.classId!==classId){
-      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Not your class</h3><p class="text-sm text-slate-300 mb-3">This test was assigned to another class. Join the class with its code on the homepage first, then reopen this link.</p><a class="btn-primary btn" href="../../../"><i class="fas fa-users text-xs"></i> Go to homepage</a>');
+      // Self-diagnosing: show both class ids.
+      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Not your class</h3><p class="text-sm text-slate-300 mb-3">This test was assigned to <b class="text-cyan-300">'+String(assignment.className||assignment.classId).replace(/</g,'&lt;')+'</b>, but your account is joined to <b class="text-amber-300">'+String(classId||'(no class)').replace(/</g,'&lt;')+'</b>. Join the right class with its code on the homepage first, then reopen this link.</p><a class="btn-primary btn" href="../../../"><i class="fas fa-users text-xs"></i> Go to homepage</a>');
       return;
     }
     var now=Date.now();
