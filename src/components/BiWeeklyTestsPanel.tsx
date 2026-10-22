@@ -264,8 +264,11 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
         closesAt: new Date(formClosesAt).toISOString(),
         durationMinutes: formMinutes,
       });
-      await refreshAssignments();
       setSelected(created.id);
+      await refreshAssignments();
+      // Belt-and-braces: the scoreboard opens by SELECTING an assignment from
+      // the list, so never let a query hiccup hide the one just created.
+      setAssignments((prev) => (prev.some((a) => a.id === created.id) ? prev : [created, ...prev]));
       setCreateStatus({ tone: 'ok', text: `Assignment created ✓ — share it with ${cls.name} via "Copy student link" at the top of the scoreboard.` });
     } catch (err) {
       const msg = err instanceof RestError ? err.message : 'Could not create the assignment.';

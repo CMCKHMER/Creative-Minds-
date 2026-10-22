@@ -108,11 +108,18 @@ function decodeDoc(doc: { name: string; fields?: FsFields }): Record<string, unk
 
 /** Firestore runQuery helper — returns decoded docs (missing ids skipped). */
 async function runQuery(collectionId: string, query: Record<string, unknown>): Promise<Array<Record<string, unknown> & { id: string }>> {
-  const res = await fsCall<{ Array: Array<{ document?: { name: string; fields?: FsFields } }> }>(
+  // The REST endpoint answers with a TOP-LEVEL JSON ARRAY of RunQueryResponse
+  // rows ({ document, readTime } — plus readTime-only markers for skipped
+  // results). Reading `.Array` off an array is always undefined, which used to
+  // silently discard EVERY result: the assignments list stayed "None yet"
+  // forever even though creates succeeded.
+  type Row = { document?: { name: string; fields?: FsFields } };
+  const res = await fsCall<Array<Row> | { Array?: Row[] }>(
     `:runQuery`,
     { method: 'POST', body: JSON.stringify({ structuredQuery: { from: [{ collectionId, allDescendants: false }], ...query } }) },
   );
-  return (res.Array ?? []).filter((row) => row.document).map((row) => decodeDoc(row.document!));
+  const rows: Row[] = Array.isArray(res) ? res : (res.Array ?? []);
+  return rows.filter((row) => row?.document).map((row) => decodeDoc(row.document!));
 }
 
 const fieldFilter = (field: string, op: string, value: unknown) => ({
