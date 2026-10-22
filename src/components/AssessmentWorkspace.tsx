@@ -23,6 +23,7 @@ import {
   type AreaScores,
   type AssessmentStudentScores,
 } from '../lib/assessmentScoring';
+import { sanitizeScoreText } from '../lib/scoreInput';
 
 // ── Tab + field definitions (drive the whole UI) ─────────────────────
 
@@ -206,10 +207,19 @@ function ScoreCell(props: {
       disabled={disabled}
       value={text}
       placeholder="—"
+      // Spreadsheet-cell entry model: focusing selects the whole value, so
+      // typing REPLACES the saved score instead of appending after it (the
+      // appended "5" + new digit then clamped straight back to the cap —
+      // "every score I type starts with 5", Oct 2026).
+      onFocus={(e) => e.currentTarget.select()}
       onChange={(e) => {
-        const raw = e.target.value;
-        setText(raw);
-        const n = parseInt(raw, 10);
+        const capped = sanitizeScoreText(e.target.value, max);
+        // Refused keystrokes (extra digits, garbage) must leave the DOM now:
+        // assigning back resyncs the field even when the text state is
+        // unchanged and React bails out of the re-render.
+        if (e.target.value !== capped) e.target.value = capped;
+        setText(capped);
+        const n = parseInt(capped, 10);
         onChange(Number.isFinite(n) ? Math.min(Math.max(n, 0), max) : 0);
       }}
       className="w-16 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1.5 text-center text-xs font-semibold text-slate-100 outline-none transition focus:border-cyan-300/50 focus:bg-cyan-300/[0.06] disabled:opacity-40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -249,11 +259,15 @@ function TextCell(props: {
 // ── Error humanizer ──────────────────────────────────────────────────
 
 function humanizeError(e: unknown): string {
-  const code = (e as { code?: string })?.code ?? '';
-  if (code.includes('permission-denied') || String(e).includes('insufficient permissions')) {
-    return 'Firestore is refusing this request. The new security rules for assessment records have not been published yet — open the Firebase console → Firestore → Rules and publish the updated firestore.rules file from the repo (it gates every read/write to signed-in "edu" teacher accounts).';
+  const status = (e as { status?: number })?.status;
+  const msg = String((e as Error)?.message ?? e);
+  if (status === 401 || /session has expired/i.test(msg)) {
+    return 'Your session has expired. Close the workspace, click "Sign in as teacher" above, and reopen it — your records are safe.';
   }
-  return String((e as Error)?.message ?? e);
+  if (status === 403 || /permission|denied/i.test(msg)) {
+    return 'Firestore denied this request for your account. Sign out and sign in again to reconnect; if it keeps failing, the assessment-records security rules need republishing (Firebase console → Firestore → Rules — copy firestore.rules from the repo).';
+  }
+  return msg;
 }
 
 // ── Main component ───────────────────────────────────────────────────
@@ -309,7 +323,7 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
   // Load my classes once
   useEffect(() => {
     let alive = true;
-    listAssessmentClasses(uid)
+    listAssessmentClasses(uid, email)
       .then((rows) => {
         if (!alive) return;
         setClasses(rows);
