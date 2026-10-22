@@ -21,8 +21,20 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
   onExploreKidGrades
 }) => {
   return (
-    <section id="features" className="cmc-section relative scroll-mt-24 border-t border-slate-800/80 bg-slate-900/30 py-20 sm:py-24 lg:py-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="features" className="cmc-section cmc-features-scene relative isolate scroll-mt-24 border-t border-slate-800/80 py-20 sm:py-24 lg:py-28">
+      {/* Renaissance workshop backdrop — same art direction as the hero photo plane */}
+      <div className="cmc-bento-photo-plane" aria-hidden="true">
+        <img
+          src="./images/features-bento-renaissance.png"
+          alt=""
+          className="cmc-bento-photo"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div className="cmc-bento-veil" aria-hidden="true" />
+      <div className="cmc-bento-glow" aria-hidden="true" />
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="mx-auto mb-14 max-w-3xl text-center">
