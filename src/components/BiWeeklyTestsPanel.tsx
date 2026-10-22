@@ -25,11 +25,49 @@ import {
 } from '../lib/testDb';
 import { gradeSubmission, mostMissedQuestions, type GradeResult, type TestKey } from '../lib/biweeklyGrading';
 
-/** Private tests available for assignment. Extend as more pages are
- *  generated from the practice template. */
-const PRIVATE_TEST_CATALOG = [
-  { testId: 'biweek-diagnostic', title: 'Orientation Diagnostic (Week 2 · All Sections)', slug: 'diagnostic', defaultMinutes: 20 },
+/** Private tests available for assignment — every entry has a generated
+ *  answer-free page at biweek-planner/tests/private/<slug>.html plus a
+ *  .key.json (scripts/make_private_test.mjs) the teacher installs once.
+ *  Grouped for the dropdown; keep testId in sync with the generator
+ *  ('biweek-' + slug). */
+interface PrivateTestEntry { testId: string; title: string; slug: string; defaultMinutes: number; group: string; }
+const PRIVATE_TEST_CATALOG: PrivateTestEntry[] = [
+  // Orientation
+  { testId: 'biweek-diagnostic', title: 'Orientation Diagnostic (Week 2 · All Sections)', slug: 'diagnostic', defaultMinutes: 20, group: 'Orientation' },
+  // ISEC II bi-weekly series
+  { testId: 'biweek-isec2-w2-listening', title: 'W2 · Business Listening (B2 + C1)', slug: 'isec2-w2-listening', defaultMinutes: 15, group: 'ISEC II weekly tests' },
+  { testId: 'biweek-isec2-w3-grammar', title: 'W3 · C1 Grammar: Conciseness & Precision', slug: 'isec2-w3-grammar', defaultMinutes: 12, group: 'ISEC II weekly tests' },
+  { testId: 'biweek-isec2-w4-reading', title: 'W4 · C2 Reading: Corporate Epistemology', slug: 'isec2-w4-reading', defaultMinutes: 10, group: 'ISEC II weekly tests' },
+  { testId: 'biweek-isec2-w5-listening', title: 'W5 · C1 Listening: Innovation in Business', slug: 'isec2-w5-listening', defaultMinutes: 12, group: 'ISEC II weekly tests' },
+  { testId: 'biweek-isec2-w6-grammar', title: 'W6 · C2 Grammar: Modals & Conditionals', slug: 'isec2-w6-grammar', defaultMinutes: 15, group: 'ISEC II weekly tests' },
+  { testId: 'biweek-isec2-w7-reading', title: 'W7 · C2 Reading: The Algorithmic Enterprise', slug: 'isec2-w7-reading', defaultMinutes: 10, group: 'ISEC II weekly tests' },
+  { testId: 'biweek-week8-mock', title: 'Level 10 TOEFL Mock Test (30 questions)', slug: 'week8-mock', defaultMinutes: 30, group: 'ISEC II weekly tests' },
+  // Week 8 recaps
+  { testId: 'biweek-week8-recap-grammar', title: 'Grammar Drill — Recap', slug: 'week8-recap-grammar', defaultMinutes: 12, group: 'Week 8 recaps' },
+  { testId: 'biweek-week8-recap-listening', title: 'Listening Drill — Recap', slug: 'week8-recap-listening', defaultMinutes: 12, group: 'Week 8 recaps' },
+  { testId: 'biweek-week8-recap-reading', title: 'Reading Drill — Recap', slug: 'week8-recap-reading', defaultMinutes: 8, group: 'Week 8 recaps' },
+  // Earlier weekly drill series
+  { testId: 'biweek-week2-grammar', title: 'Week 2 · Grammar: Conditionals & Agreement', slug: 'week2-grammar', defaultMinutes: 12, group: 'Weekly drills (earlier cohort)' },
+  { testId: 'biweek-week3-listening', title: 'Week 3 · Listening: Chance Discoveries', slug: 'week3-listening', defaultMinutes: 15, group: 'Weekly drills (earlier cohort)' },
+  { testId: 'biweek-week4-reading', title: 'Week 4 · Reading: Genes, Health & Longevity', slug: 'week4-reading', defaultMinutes: 12, group: 'Weekly drills (earlier cohort)' },
+  { testId: 'biweek-week5-grammar', title: 'Week 5 · Grammar: Conditionals & Agreement', slug: 'week5-grammar', defaultMinutes: 12, group: 'Weekly drills (earlier cohort)' },
+  { testId: 'biweek-week6-listening', title: 'Week 6 · Listening: Student Athletes', slug: 'week6-listening', defaultMinutes: 15, group: 'Weekly drills (earlier cohort)' },
+  { testId: 'biweek-week7-reading', title: 'Week 7 · Reading: How We Name the Stars', slug: 'week7-reading', defaultMinutes: 10, group: 'Weekly drills (earlier cohort)' },
+  // Skills drills
+  { testId: 'biweek-grammar', title: 'Level 9b Grammar', slug: 'grammar', defaultMinutes: 10, group: 'Skills drills' },
+  { testId: 'biweek-structure', title: 'Level 11b Written Expressions', slug: 'structure', defaultMinutes: 10, group: 'Skills drills' },
+  { testId: 'biweek-business-listening', title: 'B2 Business Listening Drill', slug: 'business-listening', defaultMinutes: 10, group: 'Skills drills' },
+  { testId: 'biweek-inference-listening', title: 'Listening · Inference', slug: 'inference-listening', defaultMinutes: 8, group: 'Skills drills' },
+  { testId: 'biweek-prediction-listening', title: 'Listening · Prediction', slug: 'prediction-listening', defaultMinutes: 8, group: 'Skills drills' },
+  { testId: 'biweek-short-conversations', title: 'Listening · Short Conversations', slug: 'short-conversations', defaultMinutes: 8, group: 'Skills drills' },
 ];
+
+/** Catalog entries grouped for an <optgroup> dropdown. */
+const CATALOG_GROUPS = PRIVATE_TEST_CATALOG.reduce<{ label: string; items: PrivateTestEntry[] }[]>((acc, t) => {
+  const g = acc.find((x) => x.label === t.group);
+  if (g) g.items.push(t); else acc.push({ label: t.group, items: [t] });
+  return acc;
+}, []);
 
 interface FirebaseClass {
   id: string;
@@ -154,29 +192,35 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
     return () => { alive = false; window.clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); };
   }, [selected, assignments, teacherUid]);
 
-  // 3) Answer-key install.
-  const handleKeyFile = async (file: File) => {
-    setKeyStatus('');
-    try {
-      const parsed = JSON.parse(await file.text()) as TestKey;
-      if (!parsed?.testId || !Array.isArray(parsed?.questions) || parsed.questions.length === 0) {
-        setKeyStatus('That file does not look like a .key.json (missing testId/questions).');
-        return;
+  // 3) Answer-key install (accepts one file or many — select all keys at once).
+  const handleKeyFiles = async (files: FileList) => {
+    setKeyStatus('Installing…');
+    let ok = 0;
+    const errs: string[] = [];
+    for (const file of Array.from(files)) {
+      try {
+        const parsed = JSON.parse(await file.text()) as TestKey;
+        if (!parsed?.testId || !Array.isArray(parsed?.questions) || parsed.questions.length === 0) {
+          errs.push(`${file.name}: not a .key.json`);
+          continue;
+        }
+        await putTestKey(parsed);
+        await putTestMeta({
+          testId: parsed.testId,
+          title: parsed.title,
+          questionCount: parsed.questions.length,
+          groups: parsed.groups,
+        });
+        delete keyCache.current[parsed.testId];
+        ok += 1;
+      } catch (err) {
+        if (err instanceof RestError && err.status === 403) { errs.push('denied — register your teacher account first, then retry'); break; }
+        errs.push(`${file.name}: ${err instanceof Error ? err.message : String(err)}`);
       }
-      await putTestKey(parsed);
-      await putTestMeta({
-        testId: parsed.testId,
-        title: parsed.title,
-        questionCount: parsed.questions.length,
-        groups: parsed.groups,
-      });
-      delete keyCache.current[parsed.testId];
-      setKeyStatus(`Installed: ${parsed.title} (${parsed.questions.length} answers). Students can now be assigned this test.`);
-    } catch (err) {
-      setKeyStatus(err instanceof RestError && err.status === 403
-        ? 'Install denied — register your teacher account first (button below), then retry.'
-        : `Install failed: ${err instanceof Error ? err.message : String(err)}`);
     }
+    setKeyStatus(ok && errs.length === 0
+      ? `Installed ${ok} answer key${ok === 1 ? '' : 's'}. Those tests can now be assigned.`
+      : `Installed ${ok}${errs.length ? ` · ${errs.length} failed: ${errs.join(' · ')}` : ''}`);
   };
 
   // 4) Create assignment.
@@ -294,17 +338,18 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
       {/* Step 1 — key install */}
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4">
-          <p className="flex items-center gap-2 text-xs font-bold text-white"><KeyRound className="h-3.5 w-3.5 text-amber-300" /> Step 1 · Install an answer key</p>
+          <p className="flex items-center gap-2 text-xs font-bold text-white"><KeyRound className="h-3.5 w-3.5 text-amber-300" /> Step 1 · Install answer keys</p>
           <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
-            Pick the <code className="text-slate-300">.key.json</code> file for the test (kept off the website — it lives only on your device and in Firestore, readable by teachers only).
+            Pick the <code className="text-slate-300">.key.json</code> file for each test you want to assign — or select all of them at once (kept off the website; teachers-only in Firestore).
           </p>
           <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs font-bold text-amber-200 transition hover:bg-amber-400/20">
-            Choose .key.json file
+            Choose .key.json file(s)
             <input
               type="file"
               accept=".json,application/json"
+              multiple
               className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleKeyFile(f); e.target.value = ''; }}
+              onChange={(e) => { if (e.target.files?.length) void handleKeyFiles(e.target.files); e.target.value = ''; }}
             />
           </label>
           {keyStatus && <p className="mt-2 text-[11px] text-slate-300">{keyStatus}</p>}
@@ -314,8 +359,12 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
         <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4">
           <p className="flex items-center gap-2 text-xs font-bold text-white"><CalendarClock className="h-3.5 w-3.5 text-cyan-300" /> Step 2 · Assign a test</p>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <select value={formTestId} onChange={(e) => setFormTestId(e.target.value)} className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none">
-              {PRIVATE_TEST_CATALOG.map((t) => <option key={t.testId} value={t.testId}>{t.title}</option>)}
+            <select value={formTestId} onChange={(e) => { setFormTestId(e.target.value); const t = PRIVATE_TEST_CATALOG.find((x) => x.testId === e.target.value); if (t) setFormMinutes(t.defaultMinutes); }} className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none">
+              {CATALOG_GROUPS.map((g) => (
+                <optgroup key={g.label} label={g.label}>
+                  {g.items.map((t) => <option key={t.testId} value={t.testId}>{t.title}</option>)}
+                </optgroup>
+              ))}
             </select>
             <select value={formClassId} onChange={(e) => setFormClassId(e.target.value)} className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none">
               <option value="">Pick a class…</option>

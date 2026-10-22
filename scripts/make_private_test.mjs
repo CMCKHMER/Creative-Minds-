@@ -453,6 +453,10 @@ out = out.replaceAll('src="../../assets/', 'src="../../../assets/');
 out = out.replaceAll('href="../../?auth=student"', 'href="../../../?auth=student"');
 out = out.replaceAll('href="../../"', 'href="../../../"');
 out = out.replaceAll('../img/', '../../img/');
+// Same-directory media (audio/video <source>) must be re-depth too — the page
+// now lives in tests/private/ while the mp3s stay in tests/. Only bare
+// relative refs are touched (absolute, rooted, protocol, #, and ../ pass).
+out = out.replace(/(<source\s+src=")(?!(?:[a-z][a-z0-9+.-]*:|\/|#|\.\.\/|\.\/))/g, '$1../');
 out = out.replace(/<a href="\.\.\/index\.html"([^>]*)>([\s\S]*?)<\/a>/, (_m, attrs, inner) => `<a href="../../../"${attrs}>${String(inner).replace('Back to Planner', 'Back to CMC')}</a>`);
 if (!out.includes('CMC-PRIVATE-TEST-V1')) {
   console.error(`${slug}: engine swap failed — output would leak the practice engine; aborting`);

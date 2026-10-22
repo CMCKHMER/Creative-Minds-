@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ISEC II · C1 Listening: Innovation in Business · TOEFL ITP — Private (teacher-scored)</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* DARK */
+:root{--bg:#020617;--card:rgba(255,255,255,.04);--border:rgba(255,255,255,.10);--accent:#38bdf8;--text:#f1f5f9;--muted:#94a3b8;--shadow:rgba(0,0,0,.3)}
+/* LIGHT */
+html[data-theme="light"]{--bg:#f8fafc;--card:rgba(255,255,255,.85);--border:rgba(0,0,0,.10);--accent:#0284c7;--text:#1e293b;--muted:#64748b;--shadow:rgba(0,0,0,.08)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(56,189,248,.10),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(139,92,246,.10),transparent 50%)}
+.font-display{font-family:'Syne',sans-serif;letter-spacing:-0.02em}
+.glass{background:var(--card);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:14px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);text-decoration:none}
+.btn:hover{background:rgba(56,189,248,.10);border-color:rgba(56,189,248,.4)}
+.btn-primary{background:linear-gradient(135deg,#38bdf8,#6366f1);color:#0f172a;border:none;font-weight:700}
+.btn-primary:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 8px 24px rgba(56,189,248,.3)}
+.btn-primary:disabled{opacity:.5;cursor:wait}
+.question-card{padding:16px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.03);transition:all .2s}
+.question-card.needs-answer{border-color:#f87171;background:rgba(248,113,113,.05)}
+.option{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.02);cursor:pointer;line-height:1.4;transition:all .15s}
+.option:hover{border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.04)}
+.option:has(input:checked){border-color:var(--accent);background:rgba(56,189,248,.08)}
+.option input{accent-color:var(--accent);margin-top:3px;flex:none}
+.option-letter{font-weight:700;color:var(--accent);min-width:20px}
+.timer-face{font-variant-numeric:tabular-nums}
+.timer-face.warning{background:#f87171!important}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(56,189,248,.3),rgba(139,92,246,.3));border-radius:5px}
+::selection{background:rgba(56,189,248,.3);color:#fff}
+
+.theme-toggle{position:fixed;top:66px;right:16px;z-index:99995;width:40px;height:40px;border-radius:10px;background:rgba(15,23,42,.9);backdrop-filter:blur(8px);border:1px solid rgba(56,189,248,.3);color:#67e8f9;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+html[data-theme="light"] .theme-toggle{background:rgba(255,255,255,.9);border-color:rgba(2,132,199,.2);color:#0284c7}
+.theme-toggle:hover{transform:scale(1.1)}
+html[data-theme="light"] .question-card{background:rgba(0,0,0,.02);border-color:rgba(0,0,0,.10)}
+html[data-theme="light"] .option{border-color:rgba(0,0,0,.08);background:rgba(255,255,255,.5)}
+html[data-theme="light"] .option:hover{border-color:rgba(2,132,199,.3);background:rgba(2,132,199,.04)}
+html[data-theme="light"] .option:has(input:checked){border-color:var(--accent);background:rgba(2,132,199,.08)}
+html[data-theme="light"] input{color:#1e293b}
+html[data-theme="light"] input::placeholder{color:#94a3b8}
+html[data-theme="light"] .btn-primary{color:#fff}
+
+/* ===== COMPREHENSIVE LIGHT MODE OVERRIDES (biweek-planner) ===== */
+html[data-theme="light"] h1.text-white,
+html[data-theme="light"] h2.text-white,
+html[data-theme="light"] h3.text-white,
+html[data-theme="light"] h4.text-white,
+html[data-theme="light"] p.text-white,
+html[data-theme="light"] span.text-white,
+html[data-theme="light"] button.text-white,
+html[data-theme="light"] label.text-white,
+html[data-theme="light"] .text-white{color:#1e293b!important}
+html[data-theme="light"] .text-slate-100{color:#1e293b!important}
+html[data-theme="light"] .text-slate-200{color:#334155!important}
+html[data-theme="light"] .text-slate-300{color:#475569!important}
+html[data-theme="light"] .text-slate-400{color:#64748b!important}
+html[data-theme="light"] .text-slate-500{color:#94a3b8!important}
+html[data-theme="light"] .text-slate-600{color:#a8b3c2!important}
+html[data-theme="light"] .text-cyan-50{color:#0c4a6e!important}
+html[data-theme="light"] .text-cyan-100{color:#0369a1!important}
+html[data-theme="light"] .text-cyan-200{color:#0e7490!important}
+html[data-theme="light"] .text-cyan-300{color:#0891b2!important}
+html[data-theme="light"] .text-cyan-400{color:#0284c7!important}
+html[data-theme="light"] .text-violet-100{color:#5b21b6!important}
+html[data-theme="light"] .text-violet-200{color:#6d28d9!important}
+html[data-theme="light"] .text-violet-300{color:#7c3aed!important}
+html[data-theme="light"] .text-emerald-100{color:#047857!important}
+html[data-theme="light"] .text-rose-100{color:#9f1239!important}
+html[data-theme="light"] .text-rose-400{color:#e11d48!important}
+html[data-theme="light"] .text-amber-100{color:#92400e!important}
+html[data-theme="light"] .text-amber-400{color:#b45309!important}
+html[data-theme="light"] .text-teal-300{color:#0d9488!important}
+
+html[data-theme="light"] .bg-white\/5,
+html[data-theme="light"] .bg-white\/8,
+html[data-theme="light"] .bg-white\/10,
+html[data-theme="light"] .bg-white\/6,
+html[data-theme="light"] .bg-white\/3,
+html[data-theme="light"] .bg-white\/2{background-color:rgba(0,0,0,.04)!important}
+html[data-theme="light"] .border-white\/7,
+html[data-theme="light"] .border-white\/8,
+html[data-theme="light"] .border-white\/10{border-color:rgba(0,0,0,.10)!important}
+
+html[data-theme="light"] input.text-white,
+html[data-theme="light"] input[type="text"].text-white,
+html[data-theme="light"] input[type="date"].text-white,
+html[data-theme="light"] input[type="number"].text-white{color:#1e293b!important;background-color:#fff!important;border-color:rgba(0,0,0,.12)!important}
+html[data-theme="light"] input.text-white::placeholder{color:#94a3b8!important}
+
+html[data-theme="light"] .timer-face{background:#fff!important;border-color:rgba(0,0,0,.10)!important;color:#1e293b!important}
+html[data-theme="light"] .timer-face.warning{background:#f87171!important;color:#fff!important}
+
+/* top-nav buttons (Back to Planner, CMC) — override inline dark bg */
+html[data-theme="light"] .btn[style*="rgba(15,23,42"],
+html[data-theme="light"] a[style*="rgba(15,23,42"],
+html[data-theme="light"] a[style*="background:rgba(15,23,42"]{background:rgba(255,255,255,.9)!important;border-color:rgba(2,132,199,.2)!important;color:#0284c7!important;backdrop-filter:blur(8px)}
+html[data-theme="light"] a[style*="color:#67e8f9"]{color:#0284c7!important}
+
+/* kicker pills with inline color (text-cyan-300, text-teal-300) on test pages */
+html[data-theme="light"] .inline-flex[style*="color:"]{background:rgba(2,132,199,.08)!important}
+
+/* week cards on dashboard */
+html[data-theme="light"] .week-card{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.10)!important;box-shadow:0 4px 16px rgba(0,0,0,.04)}
+html[data-theme="light"] .week-card:hover{box-shadow:0 12px 32px rgba(0,0,0,.10);border-color:rgba(2,132,199,.4)!important}
+html[data-theme="light"] .filter-btn{color:#64748b;background:transparent;border-color:rgba(0,0,0,.10)}
+html[data-theme="light"] .filter-btn:hover{color:#1e293b;border-color:rgba(2,132,199,.3)}
+html[data-theme="light"] .filter-btn.active{background:#0284c7;color:#fff;border-color:#0284c7}
+
+/* transcript block */
+html[data-theme="light"] .glass[style*="border-left-color:#5eead4"] h4{color:#0d9488!important}
+html[data-theme="light"] .glass[style*="border-left-color:#5eead4"] p{color:#475569!important}
+
+/* glass cards */
+html[data-theme="light"] .glass{background:rgba(255,255,255,.85)!important;border-color:rgba(0,0,0,.10)!important;color:#1e293b}
+html[data-theme="light"] .glass *{color:inherit}
+html[data-theme="light"] .glass h1,
+html[data-theme="light"] .glass h2,
+html[data-theme="light"] .glass h3,
+html[data-theme="light"] .glass h4{color:#1e293b}
+
+/* selection */
+html[data-theme="light"] ::selection{background:rgba(2,132,199,.25);color:#fff}
+
+/* body bg already set by :root, but re-emphasize */
+html[data-theme="light"] body{color:#1e293b}
+
+
+/* AI-generated test page background */
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url('../../img/test-bg.png');
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  opacity:.12;mix-blend-mode:screen;
+  -webkit-mask-image:radial-gradient(ellipse 60% 50% at 50% 30%,black 0%,transparent 80%);
+  mask-image:radial-gradient(ellipse 60% 50% at 50% 30%,black 0%,transparent 80%)}
+html[data-theme="light"] body::after{opacity:.06;mix-blend-mode:multiply;
+  -webkit-mask-image:radial-gradient(ellipse 60% 50% at 50% 30%,black 0%,transparent 85%);
+  mask-image:radial-gradient(ellipse 60% 50% at 50% 30%,black 0%,transparent 85%)}
+
+
+/* CMC SHARE BUTTON */
+#cmc-share-btn{position:fixed;left:16px;bottom:16px;z-index:99994;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:17px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+#cmc-share-btn:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 30px rgba(56,189,248,.4)}
+#cmc-share-panel{position:fixed;left:16px;bottom:70px;z-index:99994;min-width:240px;padding:10px;border-radius:14px;background:rgba(15,23,42,.96);backdrop-filter:blur(16px);border:1px solid rgba(56,189,248,.25);box-shadow:0 12px 40px rgba(0,0,0,.5);color:#f1f5f9;font-family:'Plus Jakarta Sans',sans-serif;display:none}
+#cmc-share-panel.open{display:block;animation:cmcShareIn .18s ease-out}
+@keyframes cmcShareIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#cmc-share-panel .share-title{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#67e8f9;padding:4px 8px 8px}
+#cmc-share-panel a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;text-decoration:none;transition:all .15s}
+#cmc-share-panel a:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel a i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel .share-copy{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:12px;font-weight:600;color:#e2e8f0;cursor:pointer;transition:all .15s}
+#cmc-share-panel .share-copy:hover{background:rgba(56,189,248,.10);color:#fff}
+#cmc-share-panel .share-copy i{width:18px;text-align:center;font-size:14px}
+#cmc-share-panel hr{border:none;border-top:1px solid rgba(255,255,255,.10);margin:6px 0}
+html[data-theme="light"] #cmc-share-panel{background:rgba(255,255,255,.96);border-color:rgba(2,132,199,.2);color:#1e293b;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+html[data-theme="light"] #cmc-share-panel .share-title{color:#0284c7}
+html[data-theme="light"] #cmc-share-panel a{color:#334155}
+html[data-theme="light"] #cmc-share-panel a:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel .share-copy{color:#334155}
+html[data-theme="light"] #cmc-share-panel .share-copy:hover{background:rgba(2,132,199,.08);color:#0c4a6e}
+html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
+
+/* CMC-TEMPLATE-V2 */
+.qmap{position:sticky;top:70px;z-index:30;display:flex;flex-wrap:wrap;gap:4px;padding:10px 12px;margin-bottom:16px;border-radius:12px;border:1px solid var(--border);background:var(--card);backdrop-filter:blur(10px);max-height:60px;overflow-x:auto;overflow-y:hidden}
+.qmap-item{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);transition:all .15s;flex-shrink:0}
+.qmap-item:hover{border-color:var(--accent);color:var(--text);transform:translateY(-1px)}
+.qmap-item.answered{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#34d399}
+.qmap-item.flagged{background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.4);color:#fbbf24}
+.qmap-item.correct{background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.5);color:#34d399}
+.qmap-item.wrong{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);color:#f87171}
+.flag-btn{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;opacity:.4;border:1px solid transparent;background:transparent;color:var(--muted);transition:all .15s}
+.flag-btn:hover{opacity:1;border-color:rgba(251,191,36,.3);color:#fbbf24}
+.question-card{position:relative}
+.question-card.flagged{border-color:rgba(251,191,36,.3)}
+.sticky-timer-bar{position:sticky;top:0;z-index:35;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;margin:-10px -16px 16px;border-bottom:1px solid var(--border);background:var(--card);backdrop-filter:blur(12px)}
+.timer-face.warning{background:rgba(251,191,36,.15)!important;border-color:rgba(251,191,36,.5)!important;color:#fbbf24!important}
+.timer-face.danger{background:rgba(248,113,113,.15)!important;border-color:rgba(248,113,113,.5)!important;color:#f87171!important;animation:tp 1s ease-in-out infinite}
+@keyframes tp{0%,100%{opacity:1}50%{opacity:.6}}
+.review-modal{position:fixed;inset:0;z-index:99998;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
+.review-modal.open{display:flex}
+.review-modal-card{max-width:480px;width:calc(100% - 32px);border-radius:16px;border:1px solid var(--border);background:var(--bg);padding:24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.review-stat{display:inline-flex;flex-direction:column;align-items:center;gap:2px;margin:0 12px}
+.review-stat b{font-size:28px;font-weight:800;color:var(--text)}
+.review-stat span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.review-stat.unanswered b{color:#f87171}
+.review-stat.flagged b{color:#fbbf24}
+.review-stat.answered b{color:#34d399}
+.skill-breakdown{display:none;margin-top:12px;padding:16px;border-radius:12px;border:1px solid var(--border);background:var(--card)}
+.skill-breakdown.show{display:block}
+.skill-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.skill-bar-row .skill-name{width:80px;font-size:11px;font-weight:600;color:var(--muted);text-align:right}
+.skill-bar-track{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}
+.skill-bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.skill-bar-row .skill-score{width:48px;font-size:11px;font-weight:700;color:var(--text)}
+html[data-theme="light"] .qmap{background:rgba(255,255,255,.6)}
+html[data-theme="light"] .qmap-item{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.08)}
+html[data-theme="light"] .sticky-timer-bar{background:rgba(255,255,255,.7)}
+html[data-theme="light"] .review-modal-card{background:#fff}
+html[data-theme="light"] .skill-breakdown{background:rgba(255,255,255,.5)}
+</style>
+
+<!-- Google Analytics 4 (gtag.js) -->
+    <script src="../../../assets/js/cmc-shared.js?v=2"></script>
+  <link rel="stylesheet" href="../../../assets/css/cmc-utilities.css">
+<meta name="robots" content="noindex,nofollow">
+</head>
+<body>
+
+<!-- Top nav -->
+<div style="position:fixed;top:16px;right:16px;z-index:99995;display:flex;gap:8px">
+  <button class="theme-toggle" id="fsToggle" onclick="CMC.fs.toggle()" title="Fullscreen" style="position:static"><i class="fas fa-expand"></i></button>
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark" style="position:static"><i class="fas fa-sun"></i></button>
+  <a href="../../../" class="btn" style="background:rgba(15,23,42,.9);backdrop-filter:blur(8px)"><i class="fas fa-arrow-left text-xs"></i> Back to CMC</a>
+  <a href="https://cmckhmer.github.io/Creative-Minds-/" class="btn" style="background:rgba(15,23,42,.9);backdrop-filter:blur(8px);color:#67e8f9;border-color:rgba(56,189,248,.3)"><i class="fas fa-home text-xs"></i> CMC</a>
+</div>
+
+<div class="relative z-10 max-w-4xl mx-auto px-4 py-10 sm:px-6">
+  <div id="test-header"></div>
+  <div id="qmap" class="qmap"></div>
+<div class="glass rounded-lg p-4 mb-4"><h4 class="text-xs font-bold text-cyan-300 mb-2">Audio Passage</h4><audio controls style="width:100%"><source src="../isec2-week5.mp3" type="audio/mpeg">Your browser does not support audio.</audio></div>
+  <form id="test-form" novalidate></form>
+  <div id="review-modal" class="review-modal"><div class="review-modal-card"><h3 class="font-display text-xl font-bold mb-3" style="color:var(--text)">Ready to submit?</h3><div class="flex justify-center mb-4"><div class="review-stat answered"><b id="rv-answered">0</b><span>Answered</span></div><div class="review-stat unanswered"><b id="rv-unanswered">0</b><span>Unanswered</span></div><div class="review-stat flagged"><b id="rv-flagged">0</b><span>Flagged</span></div></div><p class="text-xs mb-5" style="color:var(--muted)" id="rv-msg">Unanswered questions will count as incorrect.</p><div class="flex justify-center gap-2"><button class="btn" type="button" id="rv-review">Review answers</button><button class="btn-primary btn" type="button" id="rv-submit">Submit now</button></div></div></div>
+</div>
+
+<script>
+window.CMC_PRIVATE_TEST={"testId":"biweek-isec2-w5-listening","meta":{"title":"ISEC II · C1 Listening: Innovation in Business","kicker":"Week 5 · L12B · Listening","icon":"fa-headphones","color":"#347d9b","instructions":"C1 Listening Drill. Listen to a podcast about innovation in business. Are the sentences true or false?","transcript":"","fields":["name","date"]},"groups":[{"id":"isec2-w5-list","title":"True/False Questions (10 questions)","focus":"","dirs":""}],"questions":[{"gid":"isec2-w5-list","qnum":1,"prompt":"This podcast focuses on some of the downsides of innovation.","choices":["True","False"]},{"gid":"isec2-w5-list","qnum":2,"prompt":"If they do not innovate, businesses will not survive.","choices":["True","False"]},{"gid":"isec2-w5-list","qnum":3,"prompt":"There are three main types of innovation.","choices":["True","False"]},{"gid":"isec2-w5-list","qnum":4,"prompt":"Incremental innovation involves a series of small changes.","choices":["True","False"]},{"gid":"isec2-w5-list","qnum":5,"prompt":"Disruptive innovation involves introducing a change that has an impact on the existing market.","choices":["True","False"]},{"gid":"isec2-w5-list","qnum":6,"prompt":"Architectural innovation relates to the complete restructuring of the market.","choices":["True","False"]},{"gid":"isec2-w5-list","qnum":7,"prompt":"Dyson's move from the vacuum cleaners to hairdryers is an example of radical innovation.","choices":["True","False"]},{"gid":"isec2-w5-list","qnum":8,"prompt":"Radical innovation can lead to the death of existing markets.","choices":["True","False"]},{"gid":"isec2-w5-list","qnum":9,"prompt":"The speaker suggests that you test your idea before you try to get support for it.","choices":["True","False"]},{"gid":"isec2-w5-list","qnum":10,"prompt":"The evaluation stage is when you think about exactly how to implement your ideas.","choices":["True","False"]}]};
+</script>
+<script>
+/* CMC-PRIVATE-TEST-V1 — student runtime for teacher-assigned bi-weekly tests.
+ * Answers are collected and submitted raw to Firestore (test_submissions);
+ * nothing is graded, revealed, or displayed here. Scores exist only on the
+ * teacher's dashboard. One attempt per student is enforced by the database
+ * (submission doc id = assignmentId__studentUid, create-only). */
+(function(){
+'use strict';
+var T=window.CMC_PRIVATE_TEST;
+var $=function(s){return document.querySelector(s)};
+var ls=function(k){try{return localStorage.getItem(k)}catch(e){return null}};
+var FB_API_KEY=window.CMC_FB_API_KEY||'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+var PROJECT='creative-minds-cambodia';
+var BASE='https://firestore.googleapis.com/v1/projects/'+PROJECT+'/databases/(default)/documents';
+var token=ls('cmc-student-token'),uid=ls('cmc-student-uid'),sname=ls('cmc-student-name'),classId=ls('cmc-student-classId');
+var tokenExp=Number(ls('cmc-student-token-expires')||'0');
+var assignmentId=new URLSearchParams(location.search).get('assignment')||'';
+var startedAt=null,integrity={fsExits:0,blurs:0},fsActive=false,submitted=false;
+
+function refresh(cb){
+  var rt=ls('cmc-student-refresh-token');
+  if(!rt){cb(null);return}
+  fetch('https://securetoken.googleapis.com/v1/token?key='+FB_API_KEY,{
+    method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(rt)
+  }).then(function(r){return r.ok?r.json():null}).then(function(d){
+    if(!d||!d.id_token){cb(null);return}
+    try{localStorage.setItem('cmc-student-token',d.id_token);
+      localStorage.setItem('cmc-student-token-expires',String(Date.now()+(Number(d.expires_in)||3600)*1000-60000));
+      if(d.refresh_token)localStorage.setItem('cmc-student-refresh-token',d.refresh_token);}catch(e){}
+    cb(d.id_token);
+  }).catch(function(){cb(null)});
+}
+function ensureToken(cb){ if(tokenExp&&tokenExp<=Date.now()){refresh(function(t){if(t)token=t;cb(token)})} else cb(token); }
+function rest(path,opts,cb){
+  ensureToken(function(tok){
+    if(!tok){cb({status:0,error:'Not signed in'});return}
+    fetch(BASE+path,Object.assign({},opts,{headers:Object.assign({'Content-Type':'application/json'},opts&&opts.noAuth?{}:{Authorization:'Bearer '+tok})}))
+      .then(function(r){ r.json().then(function(b){cb({status:r.status,body:b,ok:r.ok})},function(){cb({status:r.status,ok:r.ok,body:{}})}) })
+      .catch(function(){cb({status:0,error:'Network unreachable'})});
+  });
+}
+function fsFields(v){ return v&&v.fields?v.fields:{} }
+function dec(f){ if(!f)return ''; if('stringValue' in f)return f.stringValue; if('integerValue' in f)return Number(f.integerValue); if('timestampValue' in f)return f.timestampValue; if('booleanValue' in f)return f.booleanValue; return ''; }
+function field(f){ return fsFields(f) }
+
+function gate(htmlMsg){ $('#test-header').innerHTML='<div class="glass rounded-lg p-5 text-center" style="border-left:3px solid #f87171">'+htmlMsg+'</div>'; $('#qmap').style.display='none'; }
+function info(htmlMsg){ $('#test-header').innerHTML='<div class="glass rounded-lg p-5 text-center" style="border-left:3px solid #38bdf8">'+htmlMsg+'</div>'; }
+function authed(){ return !!(token&&uid&&sname); }
+
+// ── Header render (same look as the practice pages) ────────────────
+function renderHeader(){
+  var c=T.meta;
+  $('#test-header').innerHTML=
+    '<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-semibold mb-4" style="color:'+c.color+'"><i class="fas '+c.icon+' text-xs"></i> '+c.kicker+'</div>'+
+    '<h1 class="font-display text-3xl sm:text-4xl font-extrabold text-white mb-3">'+c.title+'</h1>'+
+    '<div class="glass rounded-lg p-3 mb-4 text-xs font-semibold" style="border-left:3px solid #a78bfa;color:#c4b5fd"><i class="fas fa-lock text-xs"></i> Private test &mdash; your answers go straight to your teacher. No score or correct answers are shown here.</div>'+
+    '<p class="text-sm text-slate-400 max-w-2xl leading-relaxed mb-4">'+c.instructions+'</p>'+
+    (c.transcript?'<div class="glass rounded-lg p-4 mb-4 border-l-2" style="border-left-color:#5eead4"><h4 class="text-xs font-bold text-teal-300 mb-1">Transcript</h4><p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed">'+c.transcript+'</p></div>':'');
+}
+
+// ── Questions ───────────────────────────────────────────────────────
+var cards=[];
+function renderQuestions(){
+  var form=$('#test-form');
+  var fieldsHtml='<div class="grid gap-2 rounded-lg glass p-3 sm:grid-cols-2">'+
+    '<div><label class="text-xs text-slate-400 mb-1 block font-semibold">Student Name</label><input id="t-name" value="'+(sname||'')+'" readonly class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm opacity-80"></div>'+
+    '<div><label class="text-xs text-slate-400 mb-1 block font-semibold">Class</label><input id="t-class" value="'+(assignment.className||assignment.classId)+'" readonly class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white text-sm opacity-80"></div>'+
+    '</div>';
+  var timerHtml='<div class="sticky-timer-bar"><span class="text-xs font-semibold" style="color:var(--muted)">Time:</span>'+
+    '<span class="timer-face rounded-lg px-3 py-1.5 font-bold text-white text-sm" style="background:rgba(15,23,42,.85);border:1px solid rgba(56,189,248,.2)" role="timer">--:--</span>'+
+    '<div class="min-w-[100px] flex-1 ml-3"><p class="progress-text font-bold text-xs text-slate-300" aria-live="polite">0 answered</p><div class="mt-1 h-1.5 overflow-hidden rounded-full bg-white/8"><div class="progress-bar h-full rounded-full transition-all" style="width:0%;background:linear-gradient(90deg,#38bdf8,#8b5cf6)"></div></div></div></div>';
+  var groupsHtml=T.groups.map(function(g){
+    return '<div class="mt-4"><h3 class="font-display text-sm font-bold text-white mb-1">'+g.title+'</h3>'+
+      (g.focus?'<p class="text-xs text-slate-500 mb-2">'+g.focus+'</p>':'')+
+      (g.dirs?'<p class="text-xs text-slate-500 mb-2">'+g.dirs+'</p>':'')+
+      '<div id="'+g.id+'" class="grid gap-2 lg:grid-cols-2"></div></div>';
+  }).join('');
+  form.innerHTML=fieldsHtml+timerHtml+groupsHtml+
+    '<div class="mt-4 flex flex-wrap items-center gap-2 border-t border-white/8 pt-3">'+
+    '<button class="btn-primary btn" type="submit" id="submit-btn"><i class="fas fa-paper-plane text-xs"></i> Submit for grading</button>'+
+    '<p id="t-result" class="hidden w-full rounded-lg p-3 text-sm" role="status" aria-live="polite"></p></div>';
+
+  T.groups.forEach(function(g){
+    var target=document.getElementById(g.id);
+    T.questions.filter(function(q){return q.gid===g.id}).forEach(function(q){
+      var card=document.createElement('div');
+      card.className='question-card';
+      card.dataset.qnum=String(q.qnum);
+      var opts=q.choices.map(function(choice,i){
+        return '<label class="option"><input type="radio" name="'+q.gid+'-q'+q.qnum+'" value="'+i+'"><span class="option-letter text-xs">'+String.fromCharCode(65+i)+'.</span><span class="text-xs text-slate-300">'+choice+'</span></label>';
+      }).join('');
+      card.innerHTML='<button class="flag-btn" type="button" title="Flag for review"><i class="far fa-flag"></i></button>'+
+        '<p class="font-semibold text-sm text-slate-200 mb-2 pr-7">'+q.qnum+'. '+q.prompt+'</p><div class="grid gap-1.5">'+opts+'</div>';
+      target.appendChild(card);
+      cards.push(card);
+      var fb=card.querySelector('.flag-btn');
+      fb.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();card.classList.toggle('flagged');fb.innerHTML=card.classList.contains('flagged')?'<i class="fas fa-flag" style="color:#fbbf24"></i>':'<i class="far fa-flag"></i>';updateQMap();});
+    });
+  });
+
+  var qmap=$('#qmap');
+  qmap.innerHTML='';
+  cards.forEach(function(card,i){
+    var item=document.createElement('button');
+    item.type='button';item.className='qmap-item';item.textContent=String(i+1);
+    item.title='Go to question '+(i+1);
+    item.addEventListener('click',function(){card.scrollIntoView({behavior:'smooth',block:'center'})});
+    qmap.appendChild(item);
+  });
+  function updateQMap(){
+    var items=qmap.querySelectorAll('.qmap-item');
+    cards.forEach(function(card,i){
+      if(!items[i])return;
+      items[i].className='qmap-item'+(card.querySelector('input:checked')?' answered':'')+(card.classList.contains('flagged')?' flagged':'');
+    });
+  }
+  window.__updateQMap=updateQMap;
+
+  var progressEl=document.querySelector('.progress-text'),bar=document.querySelector('.progress-bar');
+  function updateProgress(){
+    var ans=cards.filter(function(c){return c.querySelector('input:checked')}).length;
+    progressEl.textContent=ans+' of '+cards.length+' answered';
+    bar.style.width=Math.round(ans/cards.length*100)+'%';
+    updateQMap();
+  }
+  $('#test-form').addEventListener('change',updateProgress);
+  updateProgress();
+}
+
+// ── Timer (auto-start, locked to the assignment duration) ──────────
+var remaining=0,timerInterval=null;
+function startTimer(minutes){
+  remaining=Math.max(1,minutes|0)*60;
+  var face=document.querySelector('.timer-face');
+  function render(){
+    var m=Math.floor(remaining/60),s=remaining%60;
+    face.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+    face.classList.remove('warning','danger');
+    if(remaining>0&&remaining<=120)face.classList.add('warning');
+    if(remaining>0&&remaining<=30)face.classList.add('danger');
+    if(remaining===0){face.textContent='TIME UP';trySubmit(true);}
+  }
+  render();
+  timerInterval=setInterval(function(){remaining=Math.max(0,remaining-1);render()},1000);
+}
+
+// ── Integrity counters ─────────────────────────────────────────────
+document.addEventListener('fullscreenchange',function(){
+  var now=!!document.fullscreenElement;
+  if(fsActive&&!now)integrity.fsExits+=1;
+  fsActive=now;
+});
+window.addEventListener('blur',function(){ if(startedAt&&!submitted)integrity.blurs+=1; });
+
+// ── Submit ─────────────────────────────────────────────────────────
+function collectAnswers(){
+  var out={};
+  T.questions.forEach(function(q){
+    var checked=Array.prototype.slice.call(document.querySelectorAll('input[name="'+q.gid+'-q'+q.qnum+'"]:checked')).map(function(i){return i.value}).sort().join('|');
+    if(checked)out['q'+q.qnum]=checked;
+  });
+  return out;
+}
+function lockForm(){
+  cards.forEach(function(c){c.querySelectorAll('input').forEach(function(i){i.disabled=true})});
+  var b=$('#submit-btn');if(b){b.disabled=true;b.innerHTML='<i class="fas fa-check text-xs"></i> Submitted';}
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+function trySubmit(auto){
+  if(submitted)return;
+  var result=$('#t-result');
+  var answered=Object.keys(collectAnswers()).length;
+  if(!auto&&answered===0){result.textContent='Answer at least one question before submitting.';result.classList.remove('hidden');result.style.background='rgba(248,113,113,.1)';result.style.color='#f87171';return}
+  if(!auto){
+    var ok=window.confirm('Submit '+answered+' of '+cards.length+' answers?\n\nYou have ONE attempt. Your answers go to your teacher — no score or correct answers are shown back.');
+    if(!ok)return;
+  }
+  submitted=true;
+  var answers=collectAnswers();
+  var payload={fields:{
+    assignmentId:{stringValue:assignmentId},
+    testId:{stringValue:T.testId},
+    classId:{stringValue:assignment.classId},
+    studentUid:{stringValue:uid},
+    studentName:{stringValue:sname},
+    status:{stringValue:'submitted'},
+    answers:(function(){var f={};Object.keys(answers).forEach(function(k){f[k]={stringValue:answers[k]}});return {mapValue:{fields:f}}})(),
+    integrity:(function(){var f={};Object.keys(integrity).forEach(function(k){f[k]={integerValue:String(integrity[k])}});return {mapValue:{fields:f}}})(),
+    startedAt:{timestampValue:new Date(startedAt||Date.now()).toISOString()},
+    submittedAt:{timestampValue:new Date().toISOString()}
+  }};
+  var docId=assignmentId+'__'+uid;
+  rest('/test_submissions?documentId='+encodeURIComponent(docId),{method:'POST',body:JSON.stringify(payload)},function(res){
+    var result=$('#t-result');
+    if(res.status===200||res.status===201){
+      lockForm();
+      result.innerHTML='<i class="fas fa-check-circle"></i> Submitted &mdash; thank you, '+sname.replace(/</g,'&lt;')+'. Your teacher will review your results. You can close this page.';
+      result.classList.remove('hidden');
+      result.style.background='rgba(16,185,129,.12)';result.style.color='#6ee7b7';
+      result.scrollIntoView({behavior:'smooth',block:'center'});
+    } else if(res.status===409){
+      submitted=true;lockForm();
+      result.innerHTML='<i class="fas fa-info-circle"></i> This test was already submitted for your account. Nothing further to do.';
+      result.classList.remove('hidden');result.style.background='rgba(56,189,248,.1)';result.style.color='#7dd3fc';
+    } else {
+      submitted=false;
+      var msg=res.status===403?'The submission was rejected (permissions or the assignment window). Ask your teacher to check the assignment window.'
+        :res.status===0?'Network unreachable — press Submit again once you are back online.'
+        :'Submission failed (HTTP '+res.status+'). Try again, or ask your teacher for help.';
+      result.textContent=msg;
+      result.classList.remove('hidden');result.style.background='rgba(248,113,113,.1)';result.style.color='#f87171';
+    }
+  });
+}
+
+// ── Boot: gates in order, then render ──────────────────────────────
+var assignment=null;
+function boot(){
+  if(!T){gate('Private test payload missing.');return}
+  if(!authed()){
+    gate('<h3 class="font-display text-lg font-bold text-white mb-2">Sign in first</h3><p class="text-sm text-slate-300 mb-3">This is a private class test. Sign in with your student account on the CMC homepage, then open the test link your teacher shared again.</p><a class="btn-primary btn" href="../../../?auth=student"><i class="fas fa-sign-in-alt text-xs"></i> Sign in on the homepage</a>');
+    return;
+  }
+  if(!assignmentId){
+    gate('<h3 class="font-display text-lg font-bold text-white mb-2">Missing assignment code</h3><p class="text-sm text-slate-300">Open the exact link your teacher shared &mdash; it ends with <code>?assignment=...</code>.</p>');
+    return;
+  }
+  info('<p class="text-sm text-slate-300"><i class="fas fa-spinner fa-spin"></i> Checking your assignment&hellip;</p>');
+  rest('/test_assignments/'+encodeURIComponent(assignmentId),{method:'GET'},function(res){
+    if(!res.ok||!res.body||!res.body.fields){
+      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Assignment not found</h3><p class="text-sm text-slate-300">Ask your teacher to confirm the link, and that you are enrolled in the right class.</p>');
+      return;
+    }
+    var f=fsFields(res.body.fields);
+    assignment={
+      classId:dec(f.classId),testId:dec(f.testId),title:dec(f.title),
+      className:dec(f.className)||dec(f.classId),
+      opensAt:dec(f.opensAt),closesAt:dec(f.closesAt),
+      durationMinutes:Number(dec(f.durationMinutes))||20
+    };
+    if(assignment.testId!==T.testId){
+      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Wrong test</h3><p class="text-sm text-slate-300">This link is for a different test than this page. Ask your teacher for the correct link.</p>');
+      return;
+    }
+    if(assignment.classId!==classId){
+      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Not your class</h3><p class="text-sm text-slate-300 mb-3">This test was assigned to another class. Join the class with its code on the homepage first, then reopen this link.</p><a class="btn-primary btn" href="../../../"><i class="fas fa-users text-xs"></i> Go to homepage</a>');
+      return;
+    }
+    var now=Date.now();
+    if(now<new Date(assignment.opensAt).getTime()){
+      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Not open yet</h3><p class="text-sm text-slate-300">This test opens at '+new Date(assignment.opensAt).toLocaleString()+'. Come back then.</p>');
+      return;
+    }
+    if(now>new Date(assignment.closesAt).getTime()){
+      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Closed</h3><p class="text-sm text-slate-300">This test closed at '+new Date(assignment.closesAt).toLocaleString()+'. Ask your teacher if you think this is a mistake.</p>');
+      return;
+    }
+    // Already submitted?
+    rest('/test_submissions/'+encodeURIComponent(assignmentId+'__'+uid),{method:'GET'},function(sub){
+      if(sub.ok){
+        lockFormState('This test was already submitted for your account. Your teacher has your answers.');
+        return;
+      }
+      renderHeader();
+      renderQuestions();
+      $('#review-modal').addEventListener('click',function(){},false);
+      var reviewModal=document.getElementById('review-modal');
+      var rvReview=document.getElementById('rv-review'),rvSubmit=document.getElementById('rv-submit');
+      var rvAnswered=document.getElementById('rv-answered'),rvUnanswered=document.getElementById('rv-unanswered'),rvFlagged=document.getElementById('rv-flagged'),rvMsg=document.getElementById('rv-msg');
+      $('#test-form').addEventListener('submit',function(e){
+        e.preventDefault();
+        var answered=cards.filter(function(c){return c.querySelector('input:checked')}).length;
+        var unansweredCount=cards.length-answered;
+        var flaggedCount=cards.filter(function(c){return c.classList.contains('flagged')}).length;
+        rvAnswered.textContent=answered;rvUnanswered.textContent=unansweredCount;rvFlagged.textContent=flaggedCount;
+        if(unansweredCount>0){rvMsg.textContent=unansweredCount+' unanswered question'+(unansweredCount===1?'':'s')+' will be marked incorrect. You have ONE attempt.';rvMsg.style.color='#f87171';}
+        else{rvMsg.textContent='All answered. Submitting is final — no score is shown back.';rvMsg.style.color='#34d399';}
+        reviewModal.classList.add('open');
+      });
+      rvReview.addEventListener('click',function(){reviewModal.classList.remove('open');var fu=cards.find(function(c){return !c.querySelector('input:checked')})||cards.find(function(c){return c.classList.contains('flagged')});if(fu)fu.scrollIntoView({behavior:'smooth',block:'center'});});
+      rvSubmit.addEventListener('click',function(){reviewModal.classList.remove('open');trySubmit(false);});
+      startedAt=Date.now();
+      startTimer(assignment.durationMinutes);
+      try{if(window.CMC&&CMC.fs&&CMC.fs.supported()&&!CMC.fs.isActive())CMC.fs.enter();}catch(e){}
+    });
+  });
+}
+function lockFormState(msg){
+  renderHeader();
+  gate('<h3 class="font-display text-lg font-bold text-white mb-2"><i class="fas fa-check-circle" style="color:#34d399"></i> Already submitted</h3><p class="text-sm text-slate-300">'+msg+'</p>');
+}
+boot();
+})();
+</script>
+
+
+
+
+</body>
+</html>
