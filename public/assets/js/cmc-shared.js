@@ -241,4 +241,114 @@
       }
     } catch (e) {}
   };
+
+  /* ── 6. Fullscreen runtime (CMC.fs) + shared toast ──────────────── */
+  /* Same hardened behavior as the week8 recap drills' built-in engine:
+   *   - hidden / inert where fullscreen cannot work (iPhone Safari has no
+   *     element fullscreen API; Messenger/FB/IG in-app WebViews block it)
+   *   - blocked requests degrade to normal view with a toast, never lock up
+   *   - always-visible "Exit fullscreen" button while in fullscreen
+   *   - backdrop-filter / body overlay layers neutralized in :fullscreen
+   *     (they misrender on some mobile WebViews and hid page content)
+   * Pages with their own fullscreen engine (week8 recap drills) are inert:
+   * injection is skipped when the page already ships a #fs-exit element. */
+  (function () {
+    var UA = global.navigator.userAgent || '';
+    var IN_APP = /FBAN|FBAV|FB_IAB|FBSV|FBID|Instagram|Line|Zalo|Snapchat|musical_ly|; wv\)|\bwv\)/i.test(UA);
+    var IOS = /iP(hone|ad|od)/.test(UA) || (/Macintosh/.test(UA) && global.navigator.maxTouchPoints > 1);
+    var rootEl = document.documentElement;
+    var HAS_API = !!(rootEl && (rootEl.requestFullscreen || rootEl.webkitRequestFullscreen));
+
+    function supported() { return HAS_API && !IN_APP && !IOS; }
+    function isActive() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+    function say(msg) {
+      if (global.CMC && global.CMC.toast) global.CMC.toast(msg);
+    }
+    function enter() {
+      if (!supported()) return;
+      var el = document.documentElement;
+      var fn = el.requestFullscreen || el.webkitRequestFullscreen;
+      try {
+        var p = fn.call(el);
+        if (p && p.catch) {
+          p.catch(function () { say('Fullscreen was blocked — continuing in normal view.'); });
+        }
+      } catch (e) { say('Fullscreen is not available here — continuing in normal view.'); }
+    }
+    function exit() {
+      if (!isActive()) return;
+      var fn = document.exitFullscreen || document.webkitExitFullscreen;
+      try { var p = fn.call(document); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+    }
+    function toggle() {
+      if (isActive()) exit(); else if (supported()) enter();
+    }
+    global.CMC.fs = { supported: supported, isActive: isActive, enter: enter, exit: exit, toggle: toggle };
+
+    // Lazy toast host — usable before/without the DOM-ready injection.
+    function toast(msg) {
+      if (!document.body) return;
+      var t = document.getElementById('cmc-toast');
+      if (!t) { t = document.createElement('div'); t.id = 'cmc-toast'; document.body.appendChild(t); }
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(function () { t.classList.remove('show'); }, 2600);
+    }
+    global.CMC.toast = toast;
+
+    function inject() {
+      // Inert on pages that ship their own fullscreen UI (week8 recap drills).
+      if (document.getElementById('fs-exit')) return;
+      var st = document.createElement('style');
+      st.id = 'cmc-fs-style';
+      st.textContent =
+        'html:fullscreen body::before,html:fullscreen body::after,' +
+        'html:-webkit-full-screen body::before,html:-webkit-full-screen body::after{display:none!important}' +
+        'html:fullscreen .glass,html:fullscreen .theme-toggle,html:fullscreen .btn,' +
+        'html:-webkit-full-screen .glass,html:-webkit-full-screen .theme-toggle,html:-webkit-full-screen .btn{backdrop-filter:none!important}' +
+        '#fs-exit{position:fixed;bottom:16px;right:16px;z-index:99996;display:none;align-items:center;gap:6px;padding:9px 14px;border-radius:12px;border:1px solid rgba(248,113,113,.45);background:rgba(30,10,15,.93);color:#fca5a5;font-size:12px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.4)}' +
+        '#fs-exit:hover{background:rgba(60,15,25,.96);color:#fff}' +
+        'html[data-theme="light"] #fs-exit{background:rgba(255,255,255,.97);border-color:rgba(225,29,72,.4);color:#e11d48;box-shadow:0 8px 24px rgba(0,0,0,.12)}' +
+        '#cmc-toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(8px);z-index:99997;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;font-family:\'Plus Jakarta Sans\',sans-serif;background:rgba(2,6,23,.95);color:#e2e8f0;border:1px solid rgba(56,189,248,.35);box-shadow:0 10px 30px rgba(0,0,0,.45);max-width:88vw;text-align:center}' +
+        '#cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}' +
+        'html[data-theme="light"] #cmc-toast{background:rgba(255,255,255,.98);color:#1e293b;border-color:rgba(2,132,199,.35)}';
+      document.head.appendChild(st);
+
+      var exitBtn = document.createElement('button');
+      exitBtn.id = 'fs-exit';
+      exitBtn.type = 'button';
+      exitBtn.innerHTML = '<i class="fas fa-compress"></i> Exit fullscreen';
+      exitBtn.addEventListener('click', exit);
+      document.body.appendChild(exitBtn);
+
+      function onChange() {
+        var on = isActive();
+        exitBtn.style.display = on ? 'inline-flex' : 'none';
+        var tog = document.getElementById('fsToggle');
+        if (tog) {
+          var ico = tog.querySelector('i');
+          if (ico) ico.className = on ? 'fas fa-compress' : 'fas fa-expand';
+          tog.title = on ? 'Exit fullscreen' : 'Fullscreen';
+        }
+      }
+      function onErr() { say('Fullscreen is not available on this device.'); }
+      document.addEventListener('fullscreenchange', onChange);
+      document.addEventListener('webkitfullscreenchange', onChange);
+      document.addEventListener('fullscreenerror', onErr);
+      document.addEventListener('webkitfullscreenerror', onErr);
+
+      // Hide the toggle where fullscreen cannot work (in-app WebView, iPhone).
+      var tog = document.getElementById('fsToggle');
+      if (tog && !supported()) tog.style.display = 'none';
+      onChange();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inject);
+    } else {
+      inject();
+    }
+  })();
 })(window);
