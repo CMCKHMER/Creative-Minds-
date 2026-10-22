@@ -492,7 +492,13 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
                   <button
                     onClick={() => {
                       const test = PRIVATE_TEST_CATALOG.find((t) => t.testId === selectedAssignment.testId);
-                      const url = `${window.location.origin}/biweek-planner/tests/private/${test?.slug ?? 'diagnostic'}.html?assignment=${selectedAssignment.id}`;
+                      // GitHub Pages serves the app under a repo sub-path
+                      // (e.g. /Creative-Minds-/); window.location.origin alone
+                      // drops it and the copied link 404s. The app is
+                      // hash-routed, so location.pathname IS that sub-path —
+                      // reuse it (strip a trailing index.html for safety).
+                      const appRoot = window.location.pathname.replace(/index\.html$/, '');
+                      const url = `${window.location.origin}${appRoot}biweek-planner/tests/private/${test?.slug ?? 'diagnostic'}.html?assignment=${selectedAssignment.id}`;
                       void navigator.clipboard.writeText(url).then(() => {
                         setGradingNote('Student link copied — share it with the class (Google Classroom, Messenger, …).');
                       });
