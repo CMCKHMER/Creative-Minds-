@@ -39,6 +39,18 @@ const listeningGameScript = 'Teacher: The model wind turbine will be ready for t
 
 export const LEARNING_GAMES: LearningGame[] = [
   {
+    id: 'word-forge',
+    title: 'Word Forge · Prefix & Suffix Workshop',
+    skill: 'Vocabulary',
+    level: 'Grades 4–9',
+    duration: '4 activities · about 10 min',
+    description: 'A standalone morphology workshop: study 22 prefixes and 24 suffixes with examples and spelling tips, forge real words in the word-building machine, pair affixes with meanings in Match, then finish with the 20-question quiz. Signed-in students send quiz and match scores to the CMC leaderboard. Opens in a new tab.',
+    instructions: 'Open Word Forge in a new tab. Study the cards first, forge a few words, clear a Match round, then take the Quiz — your score goes to the leaderboard when you are signed in.',
+    externalUrl: './word-forge.html',
+    badge: 'New',
+    questions: [],
+  },
+  {
     id: 'writequest',
     title: 'WriteQuest · Guided Writing Studio',
     skill: 'Vocabulary',

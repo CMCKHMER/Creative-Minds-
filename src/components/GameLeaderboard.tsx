@@ -62,6 +62,8 @@ function gameNameFromSlug(slug: string): string {
     'writequest-paragraph': 'WriteQuest · Paragraph',
     'writequest-studio': 'WriteQuest · Studio',
     'writequest-home': 'WriteQuest · Home',
+    'word-forge-quiz': 'Word Forge · Quiz',
+    'word-forge-match': 'Word Forge · Match',
   };
   if (KNOWN[slug]) return KNOWN[slug];
   // Fall back to title-case of the slug
@@ -95,12 +97,14 @@ async function fetchGameAttempts(): Promise<Attempt[]> {
       submittedAt: submittedAtRaw ? Date.parse(submittedAtRaw) : 0,
     };
   });
-  // Filter to learning-games only (syntax-clash + writequest + future React games)
+  // Filter to learning-games only (syntax-clash + writequest + word-forge + future React games)
   return all.filter(a =>
     a.drillSlug.startsWith('syntax-clash') ||
     a.drillSlug.startsWith('writequest') ||
+    a.drillSlug.startsWith('word-forge') ||
     a.drillTitle.toLowerCase().includes('syntax clash') ||
-    a.drillTitle.toLowerCase().includes('writequest')
+    a.drillTitle.toLowerCase().includes('writequest') ||
+    a.drillTitle.toLowerCase().includes('word forge')
   );
 }
 

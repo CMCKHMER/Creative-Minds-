@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Word Forge — Prefix & Suffix Workshop · Glossy 3D Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,900;1,9..144,600&family=Nunito+Sans:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1e2749; --ink-soft:#3a4470;
+  --paper:#fbf6ea; --card:#fffdf6;
+  --pre:#e24e1b; --pre-soft:#fde8df;
+  --suf:#0e7c66; --suf-soft:#dff0ea;
+  --gold:#f2b32e; --gold-soft:#fdf0d3;
+  --rose:#d64560; --rose-soft:#fbe3e8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Nunito Sans',sans-serif;color:var(--ink);background:var(--paper);
+  background-image:repeating-linear-gradient(transparent 0 35px, rgba(30,39,73,.045) 35px 36px);
+  line-height:1.55;overflow-x:hidden;
+}
+h1,h2,h3,.display{font-family:'Fraunces',serif}
+.mono{font-family:'Space Mono',monospace}
+::selection{background:var(--gold);color:var(--ink)}
+
+/* ambient */
+.margin-line{position:fixed;top:0;bottom:0;left:58px;width:2px;background:rgba(226,78,27,.18);z-index:0;pointer-events:none}
+.glyphs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.glyphs span{position:absolute;font-family:'Fraunces',serif;font-style:italic;font-weight:900;color:var(--ink);opacity:.05;animation:drift var(--d,18s) ease-in-out infinite alternate}
+@keyframes drift{from{transform:translateY(0) rotate(var(--r,-4deg))}to{transform:translateY(-38px) rotate(calc(var(--r,-4deg) * -1))}}
+@media(max-width:760px){.margin-line{display:none}}
+
+.wrap{max-width:1120px;margin:0 auto;padding:0 clamp(1rem,4vw,2.5rem);position:relative;z-index:1}
+
+/* ===== nav — frosted glass bar ===== */
+nav{position:sticky;top:0;z-index:50;background:rgba(251,246,234,.8);backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15);border-bottom:3px solid var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 8px 20px -12px rgba(30,39,73,.45)}
+.nav-in{display:flex;align-items:center;gap:.6rem;padding:.7rem clamp(1rem,4vw,2.5rem);max-width:1120px;margin:0 auto}
+.logo{font-family:'Fraunces',serif;font-weight:900;font-size:1.1rem;text-decoration:none;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.logo b{color:var(--pre)}
+nav .links{display:flex;gap:.15rem;margin-left:auto;align-items:center}
+nav .links a{font-family:'Space Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);text-decoration:none;padding:.42rem .55rem;border:2px solid transparent;border-radius:8px;transition:.18s}
+nav .links a:hover{border-color:var(--ink);background:linear-gradient(180deg,rgba(255,255,255,.75),var(--gold-soft));transform:translateY(-2px);box-shadow:0 3px 0 rgba(30,39,73,.5)}
+
+/* ===== 3D glossy buttons ===== */
+.btn{
+  font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--ink);border:2px solid var(--ink);border-radius:11px;padding:.55rem .95rem;cursor:pointer;
+  background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0) 46%),linear-gradient(180deg,#ffd76e,#f2b32e 55%,#e39d10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),inset 0 -3px 0 rgba(146,84,0,.3),0 4px 0 var(--ink),0 10px 16px -6px rgba(30,39,73,.5);
+  transition:transform .12s,box-shadow .12s;text-shadow:0 1px 0 rgba(255,255,255,.35);
+}
+.btn:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),inset 0 -3px 0 rgba(146,84,0,.3),0 6px 0 var(--ink),0 14px 20px -6px rgba(30,39,73,.5)}
+.btn:active{transform:translateY(3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(146,84,0,.3),0 1px 0 var(--ink),0 4px 8px -4px rgba(30,39,73,.5)}
+.btn.ghost{background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 50%),linear-gradient(180deg,#fffdf6,#f1e8d2);text-shadow:none}
+@media(max-width:700px){nav .links a:not(.keep){display:none}}
+
+/* masthead */
+header.mast{padding:clamp(2.2rem,6vw,4.2rem) 0 2.2rem}
+.mast-grid{display:grid;grid-template-columns:1.25fr .95fr;gap:clamp(1.5rem,4vw,3rem);align-items:start}
+.kicker{font-family:'Space Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.2em;color:var(--pre);font-weight:700}
+.mast h1{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:900;line-height:1.02;margin:.5rem 0 1rem;letter-spacing:-.01em;text-shadow:0 2px 0 rgba(255,255,255,.7)}
+.mast h1 .hl{background:linear-gradient(transparent 62%,var(--gold) 62%)}
+.mast .lede{font-size:clamp(1rem,1.6vw,1.18rem);max-width:34rem;color:var(--ink-soft)}
+.steps{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1.3rem}
+.step{font-family:'Space Mono',monospace;font-size:.68rem;border:2px solid var(--ink);border-radius:999px;padding:.38rem .8rem;
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 55%),linear-gradient(180deg,#fffdf6,#f1e8d2);
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(30,39,73,.85),0 6px 10px -5px rgba(30,39,73,.4)}
+.step b{color:var(--pre)}
+.stats{margin-top:1rem;font-size:.68rem;letter-spacing:.05em;color:var(--ink-soft);text-transform:uppercase}
+.stats b{color:var(--ink)}
+
+/* ===== machine — dark glass panel ===== */
+.machine{position:relative;color:var(--paper);border:3px solid var(--ink);border-radius:18px;padding:1.4rem 1.4rem 1.2rem;
+  background:linear-gradient(155deg,rgba(255,255,255,.18),rgba(255,255,255,0) 42%),linear-gradient(180deg,#33406f,#1e2749 62%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -4px 0 rgba(0,0,0,.35),0 6px 0 rgba(15,20,40,.9),0 22px 34px -14px rgba(30,39,73,.65)}
+.machine::after{content:'';position:absolute;left:5%;right:5%;top:0;height:44%;background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,0));border-radius:0 0 45% 45%;pointer-events:none}
+.machine .tag{position:absolute;top:-14px;left:18px;color:var(--ink);font-family:'Space Mono',monospace;font-size:.63rem;font-weight:700;letter-spacing:.14em;padding:.3rem .7rem;border:2px solid var(--ink);border-radius:999px;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),linear-gradient(180deg,#ffd76e,#f2b32e);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 0 rgba(30,39,73,.8)}
+.machine .stage{min-height:122px;display:flex;flex-direction:column;justify-content:center;gap:.85rem;transition:opacity .25s;position:relative;z-index:1}
+.machine .parts{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.pill{font-family:'Space Mono',monospace;font-weight:700;font-size:1.1rem;padding:.33rem .7rem;border-radius:9px;border:2px solid rgba(251,246,234,.25)}
+.pill.p{background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0) 52%),linear-gradient(180deg,#f0692f,#e24e1b);border-color:#f0692f;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 rgba(0,0,0,.4)}
+.pill.b{background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,0) 60%);border-style:dashed}
+.pill.s{background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0) 52%),linear-gradient(180deg,#17a184,#0e7c66);border-color:#17a184;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 rgba(0,0,0,.4)}
+.machine .result{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(1.6rem,3.2vw,2.2rem);color:var(--gold);text-shadow:0 2px 6px rgba(0,0,0,.4)}
+.machine .caption{font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;opacity:.65}
+.legend{display:flex;gap:.9rem;flex-wrap:wrap;margin-top:1rem;font-family:'Space Mono',monospace;font-size:.64rem;position:relative;z-index:1}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:.35rem;border:1.5px solid var(--paper)}
+.legend .lp i{background:var(--pre)}.legend .lb i{background:transparent;border-style:dashed}.legend .ls i{background:var(--suf)}
+@media(max-width:880px){.mast-grid{grid-template-columns:1fr}}
+
+/* ===== ticker with glass sheen ===== */
+.ticker{position:relative;background:linear-gradient(180deg,#2a3560,#1e2749 70%);color:var(--paper);border-top:3px solid var(--ink);border-bottom:3px solid var(--ink);overflow:hidden;z-index:1}
+.ticker::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 55%);pointer-events:none}
+.ticker-track{display:flex;gap:2.2rem;width:max-content;padding:.55rem 0;animation:tick 42s linear infinite;font-family:'Space Mono',monospace;font-size:.76rem;letter-spacing:.06em}
+.ticker:hover .ticker-track{animation-play-state:paused}
+.ticker-track .p{color:#ff9d73}.ticker-track .s{color:#6fd6bd}.ticker-track .x{color:var(--gold)}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* sections */
+section{padding:clamp(2.4rem,6vw,4.2rem) 0 1rem}
+.sec-head{display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.sec-num{font-family:'Space Mono',monospace;font-weight:700;color:var(--paper);padding:.25rem .6rem;border-radius:7px;font-size:.85rem;
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 55%),linear-gradient(180deg,#33406f,#1e2749);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 3px 0 rgba(15,20,40,.8)}
+.sec-head h2{font-size:clamp(1.65rem,3.6vw,2.4rem);font-weight:900;text-shadow:0 2px 0 rgba(255,255,255,.7)}
+.sec-head p{flex-basis:100%;color:var(--ink-soft);max-width:46rem}
+
+/* badges */
+.tier{display:inline-block;margin-left:.35rem;font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.05em;border:1.5px solid var(--ink);border-radius:999px;padding:.2rem .55rem;background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 60%),var(--gold-soft);box-shadow:inset 0 1px 0 #fff,0 2px 0 rgba(30,39,73,.4);vertical-align:middle}
+.tier.t2{background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 60%),var(--suf-soft)}
+.tier.t3{background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 60%),var(--pre-soft)}
+
+/* study bar */
+.study-bar{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-bottom:1.3rem}
+.tab{font-family:'Space Mono',monospace;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:.55rem 1rem;border:2px solid var(--ink);border-radius:10px 10px 0 0;cursor:pointer;transition:.15s;position:relative;top:2px;
+  background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 55%),linear-gradient(180deg,#fffdf6,#efe5cc);
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(30,39,73,.85)}
+.tab:hover{transform:translateY(-2px)}
+.tab[aria-selected="true"]{color:var(--paper);
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 48%),linear-gradient(180deg,#33406f,#1e2749);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 3px 0 var(--gold),0 8px 14px -6px rgba(30,39,73,.5)}
+.tab .cnt{opacity:.6;font-weight:400}
+.tf{font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;padding:.42rem .75rem;border:2px solid var(--ink);border-radius:999px;cursor:pointer;transition:.14s;
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 58%),linear-gradient(180deg,#fffdf6,#f1e8d2);
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(30,39,73,.8)}
+.tf[aria-pressed="true"]{background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 50%),linear-gradient(180deg,#ffd76e,#f2b32e);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 0 rgba(30,39,73,.85)}
+.tf:hover{transform:translateY(-2px)}
+.search{margin-left:auto}
+.search input{font-family:'Space Mono',monospace;font-size:.78rem;padding:.55rem .85rem;border:2px solid var(--ink);border-radius:10px;color:var(--ink);width:200px;
+  background:linear-gradient(180deg,rgba(30,39,73,.06),rgba(255,255,255,0) 30%),#fff;
+  box-shadow:inset 0 2px 4px rgba(30,39,73,.15),inset 0 -1px 0 #fff,0 2px 0 rgba(30,39,73,.4)}
+.search input:focus{outline:none;box-shadow:inset 0 2px 4px rgba(30,39,73,.15),0 2px 0 var(--gold),0 6px 12px -6px rgba(30,39,73,.5)}
+
+/* ===== 3D glossy study cards ===== */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:1.2rem;padding-bottom:1.5rem;perspective:1200px}
+.card{position:relative;overflow:hidden;border:2px solid var(--ink);border-radius:14px;padding:1.15rem 1.15rem 1rem;
+  background:linear-gradient(180deg,#fffef9 0%,#fbf4e2 100%);
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(30,39,73,.85),0 14px 26px -12px rgba(30,39,73,.55);
+  transition:transform .25s ease,box-shadow .25s ease;transform-style:preserve-3d}
+.card::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.55) 46%,rgba(255,255,255,.18) 54%,transparent 68%);
+  transform:translateX(-135%) skewX(-8deg);transition:transform .75s ease}
+.card:hover{transform:perspective(900px) rotateX(2.4deg) translateY(-7px);
+  box-shadow:inset 0 1px 0 #fff,0 5px 0 rgba(30,39,73,.85),0 26px 38px -16px rgba(30,39,73,.55)}
+.card:hover::before{transform:translateX(135%) skewX(-8deg)}
+.card.side-pre{border-top:7px solid var(--pre)}
+.card.side-suf{border-top:7px solid var(--suf)}
+.card .affix{font-family:'Fraunces',serif;font-weight:900;font-size:2.1rem;line-height:1;text-shadow:0 1px 0 rgba(255,255,255,.8)}
+.side-pre .affix{color:var(--pre)}.side-suf .affix{color:var(--suf)}
+.card .mean{margin:.45rem 0 .6rem;font-weight:600}
+.job{display:inline-block;font-family:'Space Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;border:1.5px solid var(--ink);border-radius:999px;padding:.2rem .6rem;background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 60%),var(--gold-soft);box-shadow:inset 0 1px 0 #fff}
+.side-suf .job{background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 60%),var(--suf-soft)}
+.tip{display:inline-block;margin:.35rem 0 0;font-family:'Space Mono',monospace;font-size:.6rem;border:1.5px solid var(--ink);border-radius:999px;padding:.2rem .6rem;font-weight:700;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),linear-gradient(180deg,#ffd76e,#f2b32e);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 2px 0 rgba(30,39,73,.5)}
+.toggle{margin-top:.85rem;width:100%;font-family:'Space Mono',monospace;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border:2px dashed var(--ink);border-radius:9px;padding:.5rem;cursor:pointer;color:var(--ink);transition:.15s;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 60%)}
+.toggle:hover{background:linear-gradient(180deg,rgba(255,255,255,.8),var(--gold-soft));border-style:solid;box-shadow:inset 0 1px 0 #fff,0 2px 0 rgba(30,39,73,.5);transform:translateY(-1px)}
+.exs{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.card.open .exs{max-height:340px}
+.card.open .toggle{color:var(--paper);border-style:solid;
+  background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 50%),linear-gradient(180deg,#33406f,#1e2749);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 2px 0 rgba(15,20,40,.8)}
+.ex{display:flex;align-items:baseline;gap:.4rem;font-size:.9rem;padding:.42rem 0;border-bottom:1px dashed rgba(30,39,73,.25)}
+.ex:last-child{border-bottom:none}
+.ex .eq{font-family:'Space Mono',monospace;font-size:.76rem;white-space:nowrap}
+.ex .eq .p{color:var(--pre);font-weight:700}.ex .eq .s{color:var(--suf);font-weight:700}
+.ex .gl{color:var(--ink-soft);font-size:.82rem;margin-left:auto;text-align:right}
+@media(max-width:520px){.ex{flex-wrap:wrap}.ex .gl{margin-left:0;text-align:left;flex-basis:100%}}
+
+/* ===== panels (forge / match / quiz) ===== */
+.forge-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:1.5rem;align-items:start}
+@media(max-width:880px){.forge-grid{grid-template-columns:1fr}}
+.panel{position:relative;overflow:hidden;border:2px solid var(--ink);border-radius:16px;padding:1.15rem;
+  background:linear-gradient(180deg,#fffef9 0%,#faf3e1 100%);
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(30,39,73,.85),0 18px 30px -14px rgba(30,39,73,.5)}
+.panel::after{content:'';position:absolute;left:0;right:0;top:0;height:60px;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));pointer-events:none}
+.panel h3{font-size:.92rem;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.09em;margin-bottom:.65rem;position:relative;z-index:1}
+.panel h3 small{color:var(--ink-soft);text-transform:none;letter-spacing:0;font-weight:400}
+
+/* chips — 3D keys */
+.chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1rem;position:relative;z-index:1}
+.chip{font-family:'Space Mono',monospace;font-weight:700;font-size:.82rem;border:2px solid var(--ink);border-radius:10px;padding:.42rem .7rem;cursor:pointer;transition:.13s;
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 58%),#fff;
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 var(--ink),0 8px 12px -6px rgba(30,39,73,.45)}
+.chip:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 #fff,0 5px 0 var(--ink),0 12px 16px -6px rgba(30,39,73,.45)}
+.chip:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #fff,0 1px 0 var(--ink),0 3px 6px -3px rgba(30,39,73,.45)}
+.chip.sel-base{background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 50%),linear-gradient(180deg,#ffd76e,#f2b32e)}
+.chip.pre{color:var(--pre)}.chip.suf{color:var(--suf)}
+.chip.pre.sel{color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 50%),linear-gradient(180deg,#f0692f,#e24e1b)}
+.chip.suf.sel{color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 50%),linear-gradient(180deg,#17a184,#0e7c66)}
+.clear-row{display:flex;justify-content:flex-end;position:relative;z-index:1}
+.clear-row button{font-family:'Space Mono',monospace;font-size:.64rem;background:none;border:none;cursor:pointer;color:var(--ink-soft);text-decoration:underline}
+
+/* slots — recessed 3D sockets */
+.slots{display:flex;gap:.55rem;justify-content:center;margin-bottom:1.05rem}
+.slot{flex:1;max-width:170px;border:2px dashed var(--ink);border-radius:12px;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;font-family:'Space Mono',monospace;transition:.2s;
+  background:#fdf8ea;box-shadow:inset 0 3px 8px rgba(30,39,73,.16),inset 0 -1px 0 rgba(255,255,255,.9)}
+.slot .lbl{font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+.slot .val{font-weight:700;font-size:1.2rem}
+.slot.filled-pre{background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 55%),var(--pre-soft);border-style:solid;border-color:var(--pre);box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(226,78,27,.5)}
+.slot.filled-pre .val{color:var(--pre)}
+.slot.filled-suf{background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 55%),var(--suf-soft);border-style:solid;border-color:var(--suf);box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(14,124,102,.5)}
+.slot.filled-suf .val{color:var(--suf)}
+.slot.filled-base{background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0) 55%),var(--gold-soft);border-style:solid;box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(242,179,46,.6)}
+.bigword{text-align:center;font-family:'Fraunces',serif;font-weight:900;font-size:clamp(1.9rem,4.4vw,2.9rem);min-height:1.2em;text-shadow:0 2px 0 rgba(255,255,255,.8)}
+.bigword .p{color:var(--pre)}.bigword .s{color:var(--suf)}
+.bigword span{display:inline-block;animation:pop .35s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{from{transform:scale(.4) translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.bigword.bad{color:#8a8f9f;text-decoration:line-through;text-decoration-thickness:3px;text-decoration-color:var(--rose)}
+.pos-tag{display:block;text-align:center;margin:.35rem auto .6rem;font-family:'Space Mono',monospace;font-size:.62rem;text-transform:uppercase;letter-spacing:.13em;border:1.5px solid var(--ink);border-radius:999px;padding:.24rem .8rem;width:max-content;
+  background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 60%),var(--gold-soft);box-shadow:inset 0 1px 0 #fff,0 2px 0 rgba(30,39,73,.5)}
+.out-mean{text-align:center;font-size:1.02rem;font-weight:600;min-height:1.6em}
+.out-note{margin:.7rem auto 0;width:max-content;max-width:100%;font-family:'Space Mono',monospace;font-size:.66rem;border:2px solid var(--ink);border-radius:999px;padding:.28rem .8rem;font-weight:700;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),linear-gradient(180deg,#ffd76e,#f2b32e);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 0 rgba(30,39,73,.6)}
+.equation{margin-top:1rem;border-top:2px dashed rgba(30,39,73,.3);padding-top:.9rem;display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center;align-items:center;font-size:.85rem}
+.equation .bit{font-family:'Space Mono',monospace;font-size:.7rem;border:1.5px solid var(--ink);border-radius:8px;padding:.26rem .5rem;background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 60%),#fff;box-shadow:inset 0 1px 0 #fff,0 2px 0 rgba(30,39,73,.4)}
+.equation .bit.p{background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,0) 60%),var(--pre-soft);color:var(--pre)}
+.equation .bit.s{background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,0) 60%),var(--suf-soft);color:var(--suf)}
+.equation .arr{font-weight:800}
+.hint-line{text-align:center;color:var(--ink-soft);font-size:.92rem;min-height:1.6em}
+
+/* match */
+.match-panel{max-width:860px;margin:0 auto}
+.m-head{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:1.1rem;position:relative;z-index:1}
+.mode{font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;text-transform:uppercase;padding:.45rem .8rem;border:2px solid var(--ink);border-radius:9px;cursor:pointer;transition:.14s;
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 58%),linear-gradient(180deg,#fffdf6,#f1e8d2);
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(30,39,73,.8)}
+.mode:hover{transform:translateY(-2px)}
+.mode:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #fff,0 1px 0 rgba(30,39,73,.8)}
+.mode[aria-pressed="true"]{color:var(--paper);
+  background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 48%),linear-gradient(180deg,#33406f,#1e2749);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 3px 0 var(--gold)}
+.m-stats{margin-left:auto;font-family:'Space Mono',monospace;font-size:.68rem;display:flex;gap:.9rem}
+.m-stats b{color:var(--pre)}
+.match-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:1.1rem;position:relative;z-index:1}
+@media(max-width:560px){.match-grid{grid-template-columns:1fr 1.2fr}}
+.m-col{display:grid;gap:.55rem;align-content:start}
+.m-col h4{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;opacity:.6;margin-bottom:.15rem}
+.mcell{border:2px solid var(--ink);border-radius:10px;padding:.6rem .75rem;cursor:pointer;transition:.14s;text-align:left;font-size:.85rem;font-weight:700;min-height:48px;display:flex;align-items:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0) 60%),#fff;
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 var(--ink),0 8px 12px -6px rgba(30,39,73,.4)}
+.mcell.aff{font-family:'Space Mono',monospace;font-size:.92rem}
+.mcell:hover:not(.done){transform:translateY(-2px);box-shadow:inset 0 1px 0 #fff,0 5px 0 var(--ink),0 12px 16px -6px rgba(30,39,73,.4)}
+.mcell.sel{background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 50%),linear-gradient(180deg,#ffd76e,#f2b32e);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 4px 0 var(--ink);transform:translate(-2px,-2px)}
+.mcell.done{color:#fff;border-color:var(--suf);cursor:default;animation:pop .3s;
+  background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 50%),linear-gradient(180deg,#17a184,#0e7c66);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 3px 0 #085344}
+.mcell.nope{animation:shake .35s;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 50%),var(--rose-soft);border-color:var(--rose)}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.m-banner{display:none;margin-top:1.1rem;border:2px solid var(--ink);border-radius:11px;padding:.85rem 1rem;font-weight:700;position:relative;z-index:1;
+  background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0) 55%),var(--suf-soft);box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(14,124,102,.5)}
+.m-banner.show{display:block;animation:pop .3s both}
+
+/* quiz */
+.quiz-card{max-width:720px;margin:0 auto;border:2px solid var(--ink);border-radius:18px;padding:clamp(1.2rem,3vw,2rem);position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#fffef9 0%,#faf3e1 100%);
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(30,39,73,.85),0 22px 36px -16px rgba(30,39,73,.55)}
+.quiz-card::after{content:'';position:absolute;left:0;right:0;top:0;height:70px;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));pointer-events:none}
+.quiz-card > *{position:relative;z-index:1}
+.quiz-top{display:flex;justify-content:space-between;align-items:center;gap:.8rem;font-family:'Space Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem;flex-wrap:wrap}
+.score-chip{padding:.3rem .7rem;border-radius:8px;font-weight:700;color:var(--gold);
+  background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 50%),linear-gradient(180deg,#33406f,#1e2749);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 3px 0 rgba(15,20,40,.8)}
+.progress{height:14px;border:2px solid var(--ink);border-radius:999px;overflow:hidden;background:linear-gradient(180deg,rgba(30,39,73,.1),rgba(255,255,255,0) 45%),#fff;box-shadow:inset 0 2px 4px rgba(30,39,73,.2);margin-bottom:1.3rem}
+.progress i{display:block;height:100%;width:0;transition:width .4s ease;
+  background:linear-gradient(180deg,#ffd76e,#f2b32e 60%,#e39d10);box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
+.qtext{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(1.2rem,2.6vw,1.65rem);margin-bottom:1.15rem;line-height:1.25}
+.opts{display:grid;gap:.55rem}
+.opt{text-align:left;font-family:'Nunito Sans',sans-serif;font-weight:700;font-size:.98rem;border:2px solid var(--ink);border-radius:11px;padding:.75rem .95rem;cursor:pointer;transition:.14s;display:flex;gap:.7rem;align-items:baseline;
+  background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,0) 60%),#fff;
+  box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(30,39,73,.85),0 7px 12px -6px rgba(30,39,73,.4)}
+.opt .key{font-family:'Space Mono',monospace;font-size:.7rem;border:1.5px solid var(--ink);border-radius:6px;padding:.08rem .4rem;flex-shrink:0;background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 60%)}
+.opt:hover:not(:disabled){transform:translateY(-2px);background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,0) 55%),var(--gold-soft);box-shadow:inset 0 1px 0 #fff,0 5px 0 rgba(30,39,73,.85),0 11px 16px -6px rgba(30,39,73,.4)}
+.opt:active:not(:disabled){transform:translateY(2px);box-shadow:inset 0 1px 0 #fff,0 1px 0 rgba(30,39,73,.85)}
+.opt:disabled{cursor:default;opacity:.8}
+.opt.right{color:#fff;border-color:#0a5c4c;
+  background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 50%),linear-gradient(180deg,#17a184,#0e7c66);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 3px 0 #085344}
+.opt.right .key{border-color:#fff;background:rgba(255,255,255,.15)}
+.opt.wrong{animation:shake .35s;border-color:var(--rose);
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 50%),var(--rose-soft)}
+.feedback{margin-top:1rem;border:2px solid var(--ink);border-radius:11px;padding:.85rem 1rem;font-size:.94rem;display:none}
+.feedback.show{display:block;animation:pop .3s both}
+.feedback.good{background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0) 55%),var(--suf-soft);box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(14,124,102,.5)}
+.feedback.bad{background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0) 55%),var(--rose-soft);box-shadow:inset 0 1px 0 #fff,0 3px 0 rgba(214,69,96,.5)}
+.quiz-nav{margin-top:1.15rem;display:flex;justify-content:flex-end}
+.end-screen{text-align:center;padding:1.4rem 0}
+.end-screen .big{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(2.5rem,6vw,3.8rem);color:var(--pre);text-shadow:0 2px 0 rgba(255,255,255,.8)}
+.end-screen .rank{font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.15em;font-weight:700;margin:.4rem 0 .9rem}
+.end-screen p{color:var(--ink-soft);margin-bottom:1.2rem}
+
+/* footer / reveal / print */
+footer{margin-top:3rem;border-top:3px solid var(--ink);padding:1.5rem 0 2.4rem;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 40%),var(--gold-soft)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between}
+footer p{font-size:.9rem;max-width:34rem}
+
+/* reveal-on-scroll: visible by default; JS opts elements in. */
+.rv-init{opacity:0;transform:translateY(26px);transition:opacity .6s ease,transform .6s ease}
+.rv-init.in{opacity:1;transform:none}
+
+.print-only{display:none}
+@media print{
+  body{background:#fff}
+  body > *:not(#printSheet){display:none!important}
+  #printSheet{display:block!important;font-family:Georgia,serif;color:#000;padding:1.5cm}
+  #printSheet h1{font-size:1.5rem;border-bottom:3px solid #000;padding-bottom:.4rem;margin-bottom:.3rem}
+  #printSheet .meta{font-size:.8rem;margin-bottom:1rem;font-family:'Space Mono',monospace}
+  #printSheet h2{font-size:1rem;margin:1.1rem 0 .4rem;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #000;padding-bottom:.2rem}
+  #printSheet ol{margin-left:1.3rem;font-size:.9rem}
+  #printSheet li{margin-bottom:.45rem}
+  #printSheet .line{display:inline-block;border-bottom:1px solid #000;min-width:110px}
+  #printSheet .key{font-size:.68rem;margin-top:1.2rem;border-top:1px dashed #000;padding-top:.4rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .rv-init{opacity:1;transform:none}
+  .card::before{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="margin-line" aria-hidden="true"></div>
+<div class="glyphs" aria-hidden="true" id="glyphs"></div>
+
+<nav>
+  <div class="nav-in">
+    <a class="logo" href="#top">W<b>✱</b>RD&nbsp;F<b>ORGE</b></a>
+    <div class="links">
+      <a class="keep" href="./" title="Back to Creative Minds">← CMC</a>
+      <a href="#study">01 Study</a>
+      <a href="#forge">02 Forge</a>
+      <a href="#match">03 Match</a>
+      <a href="#quiz">04 Quiz</a>
+      <button class="btn ghost keep" style="margin-left:.4rem" onclick="window.print()">🖨 Print</button>
+    </div>
+  </div>
+</nav>
+
+<header class="mast" id="top">
+  <div class="wrap mast-grid">
+    <div>
+      <p class="kicker">Interactive grammar worksheet · Glossy 3D Edition · Morphology</p>
+      <h1>Build words.<br>Break their <span class="hl">meaning</span> open.</h1>
+      <p class="lede">A prefix glues onto the <strong>front</strong> of a base word and shifts its meaning. A suffix glues onto the <strong>end</strong> — and often changes the word's whole job. Work through the three levels, forge your own words, and prove it.</p>
+      <div class="steps">
+        <span class="step"><b>01</b> Study the pieces</span>
+        <span class="step"><b>02</b> Forge a word</span>
+        <span class="step"><b>03</b> Match-Up</span>
+        <span class="step"><b>04</b> Pass the quiz</span>
+      </div>
+      <p class="stats mono" id="statsLine"></p>
+    </div>
+    <div class="machine rv">
+      <span class="tag">⚙ THE MACHINE · LIVE DEMO</span>
+      <div class="stage" id="demoStage">
+        <div class="parts" id="demoParts"></div>
+        <div class="result" id="demoResult"></div>
+        <div class="caption" id="demoCap"></div>
+      </div>
+      <div class="legend">
+        <span class="lp"><i></i>prefix</span>
+        <span class="lb"><i></i>base word</span>
+        <span class="ls"><i></i>suffix</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker"></div></div>
+
+<main>
+<!-- 01 STUDY -->
+<section id="study">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-num">01</span>
+      <h2>Study the pieces</h2>
+      <p>Every card shows an affix, what it means, and what kind of word it builds. Levels: <span class="tier">★ Core</span> everyday essentials · <span class="tier t2">★★ Explorer</span> next up · <span class="tier t3">★★★ Wizard</span> advanced.</p>
+    </div>
+    <div class="study-bar rv">
+      <button class="tab" id="tabPre" aria-selected="true" onclick="setSide('pre')">Prefixes <span class="cnt" id="cntPre"></span></button>
+      <button class="tab" id="tabSuf" aria-selected="false" onclick="setSide('suf')">Suffixes <span class="cnt" id="cntSuf"></span></button>
+      <button class="tf" data-t="0" aria-pressed="true" onclick="setTier(0)">All levels</button>
+      <button class="tf" data-t="1" aria-pressed="false" onclick="setTier(1)">★</button>
+      <button class="tf" data-t="2" aria-pressed="false" onclick="setTier(2)">★★</button>
+      <button class="tf" data-t="3" aria-pressed="false" onclick="setTier(3)">★★★</button>
+      <div class="search"><input id="affixSearch" type="search" placeholder="🔎 search…" aria-label="Search affixes"></div>
+    </div>
+    <div class="cards" id="cardGrid"></div>
+  </div>
+</section>
+
+<!-- 02 FORGE -->
+<section id="forge">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-num">02</span>
+      <h2>The Word Forge</h2>
+      <p>Pick a base word, then snap on a prefix, a suffix — or both. Read the new meaning and the new part of speech. Some combinations are dead ends… find out which.</p>
+    </div>
+    <div class="forge-grid">
+      <div class="panel rv">
+        <h3>Choose a base word</h3>
+        <div class="chips" id="baseChips"></div>
+        <h3>Prefix <small>· front · optional</small></h3>
+        <div class="chips" id="preChips"></div>
+        <h3>Suffix <small>· end · optional</small></h3>
+        <div class="chips" id="sufChips"></div>
+        <div class="clear-row"><button onclick="resetForge()">↺ reset the forge</button></div>
+      </div>
+      <div class="panel rv">
+        <div class="slots">
+          <div class="slot" id="slotPre"><span class="lbl">prefix</span><span class="val">—</span></div>
+          <div class="slot" id="slotBase"><span class="lbl">base</span><span class="val">?</span></div>
+          <div class="slot" id="slotSuf"><span class="lbl">suffix</span><span class="val">—</span></div>
+        </div>
+        <div class="bigword" id="bigWord"></div>
+        <span class="pos-tag" id="posTag" style="display:none"></span>
+        <p class="out-mean hint-line" id="outMean">Pick a base word to start forging.</p>
+        <div id="outNoteWrap"></div>
+        <div class="equation" id="equation"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 MATCH -->
+<section id="match">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-num">03</span>
+      <h2>Match-Up</h2>
+      <p>Six pairs per round. Tap an affix, then tap its meaning. Clear the board in exactly six moves for a ★ perfect round.</p>
+    </div>
+    <div class="panel match-panel rv">
+      <div class="m-head">
+        <button class="mode" id="modePre" aria-pressed="true" onclick="setMode('pre')">Prefixes</button>
+        <button class="mode" id="modeSuf" aria-pressed="false" onclick="setMode('suf')">Suffixes</button>
+        <button class="mode" id="modeMix" aria-pressed="false" onclick="setMode('mix')">Mixed</button>
+        <div class="m-stats"><span>Moves: <b id="mMoves">0</b></span><span>Pairs: <b id="mPairs">0</b>/6</span><span>★ Perfects: <b id="mStars">0</b></span></div>
+      </div>
+      <div class="match-grid">
+        <div class="m-col"><h4>Affix</h4><div id="mLeft" style="display:grid;gap:.55rem"></div></div>
+        <div class="m-col"><h4>Meaning</h4><div id="mRight" style="display:grid;gap:.55rem"></div></div>
+      </div>
+      <div class="m-banner" id="mBanner"></div>
+      <div style="margin-top:1rem;display:flex;justify-content:flex-end"><button class="btn" onclick="newRound()">↻ New round</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 QUIZ -->
+<section id="quiz">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="sec-num">04</span>
+      <h2>Prove it</h2>
+      <p>Twenty questions across all three levels. Wrong answers teach you just as much — they show you the right one.</p>
+    </div>
+    <div class="quiz-card rv" id="quizCard"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Word-builder's rule:</strong> when in doubt, split the word. If you can see the base, you can guess the meaning. Keep forging. 🔧</p>
+    <button class="btn" onclick="window.print()">🖨 Print the paper worksheet</button>
+  </div>
+</footer>
+
+<!-- PRINTABLE WORKSHEET -->
+<div id="printSheet" class="print-only">
+  <h1>THE WORD FORGE — Prefix &amp; Suffix Worksheet</h1>
+  <p class="meta">Name: ______________________ &nbsp;&nbsp; Date: ____________ &nbsp;&nbsp; Score: ____ / 20</p>
+  <h2>Part A — Match the prefix to its meaning (6 marks)</h2>
+  <ol>
+    <li>re- &nbsp;&nbsp;___ &nbsp;&nbsp;&nbsp; a. before</li>
+    <li>un- &nbsp;&nbsp;___ &nbsp;&nbsp;&nbsp; b. wrongly</li>
+    <li>pre- &nbsp;___ &nbsp;&nbsp;&nbsp; c. again</li>
+    <li>mis- &nbsp;___ &nbsp;&nbsp;&nbsp; d. under, below</li>
+    <li>dis- &nbsp;___ &nbsp;&nbsp;&nbsp; e. not, the opposite of</li>
+    <li>sub- &nbsp;___ &nbsp;&nbsp;&nbsp; f. not, the opposite of (verbs)</li>
+  </ol>
+  <h2>Part B — Add a suffix. Write the new word AND its new meaning (6 marks)</h2>
+  <ol>
+    <li>kind + <span class="line"></span> → new word: <span class="line"></span> meaning: <span class="line" style="min-width:220px"></span></li>
+    <li>hope + <span class="line"></span> → new word: <span class="line"></span> meaning: <span class="line" style="min-width:220px"></span></li>
+    <li>teach + <span class="line"></span> → new word: <span class="line"></span> meaning: <span class="line" style="min-width:220px"></span></li>
+  </ol>
+  <h2>Part C — Circle the affix, then write what the whole word means (4 marks)</h2>
+  <ol>
+    <li><strong>rewrite</strong> — affix (circle): re / write / ite &nbsp;→ meaning: <span class="line" style="min-width:260px"></span></li>
+    <li><strong>fearless</strong> — affix (circle): fear / less / earless &nbsp;→ meaning: <span class="line" style="min-width:260px"></span></li>
+    <li><strong>preview</strong> — affix (circle): pre / view / viewe &nbsp;→ meaning: <span class="line" style="min-width:260px"></span></li>
+    <li><strong>unkindness</strong> — how many affixes can you find? <span class="line"></span> Name them: <span class="line" style="min-width:180px"></span></li>
+  </ol>
+  <h2>Part D — Wizard level (bonus, 4 marks)</h2>
+  <ol>
+    <li>tele- means <span class="line"></span> — so a <em>telephone</em> is: <span class="line" style="min-width:240px"></span></li>
+    <li>-ship builds nouns. What is <em>leadership</em>? <span class="line" style="min-width:280px"></span></li>
+  </ol>
+  <h2>Part E — Your turn (4 marks)</h2>
+  <ol>
+    <li>Write a sentence using <strong>unhelpful</strong>: <span class="line" style="min-width:340px"></span></li>
+    <li>Write a sentence using <strong>replay</strong>: <span class="line" style="min-width:340px"></span></li>
+    <li>Invent your own word with a prefix or suffix and define it: <span class="line" style="min-width:300px"></span></li>
+  </ol>
+  <p class="key">Teacher key — A: 1c, 2e, 3a, 4b, 5f, 6d · B: e.g. kindness (quality of being kind), hopeful/hopeless/hopefully, teacher (one who teaches) · C: re- "write again"; -less "without fear"; pre- "view before"; two affixes: un- and -ness · D: "far away" — a voice carried from far; the skill or position of being a leader</p>
+</div>
+
+<script>
+/* ============ CMC PAGE SYNC — drill_attempts (same pipeline as WriteQuest / Syntax Clash) ============
+   Reads the signed-in student session from localStorage (set by the React app at sign-in),
+   refreshes an expired Firebase ID token via securetoken, and POSTs one drill_attempts doc.
+   Not signed in → silent no-op: the game still works fully offline. */
+var CMC_SYNC=(function(){
+  var BASE='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents';
+  var KEY='AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  function refresh(cb){
+    var rt=ls('cmc-student-refresh-token');
+    if(!rt){cb(null);return}
+    fetch('https://securetoken.googleapis.com/v1/token?key='+KEY,{
+      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(rt)
+    }).then(function(r){return r.ok?r.json():null}).then(function(d){
+      if(d&&d.id_token){try{
+        localStorage.setItem('cmc-student-token',d.id_token);
+        localStorage.setItem('cmc-student-token-expires',String(Date.now()+(Number(d.expires_in)||3600)*1000-60000));
+        if(d.refresh_token)localStorage.setItem('cmc-student-refresh-token',d.refresh_token);
+      }catch(e){}cb(d.id_token)}else cb(null);
+    }).catch(function(){cb(null)});
+  }
+  return function(slug,title,pct,correct,total){
+    try{
+      var name=ls('cmc-student-name'),tok=ls('cmc-student-token');
+      if(!name||!tok)return;
+      var go=function(t){
+        if(!t)return;
+        var classId=ls('cmc-student-classId');
+        fetch(BASE+'/drill_attempts',{method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},
+          body:JSON.stringify({fields:{
+            drillSlug:{stringValue:slug},drillTitle:{stringValue:title},
+            drillSource:{stringValue:'learning-games'},
+            studentName:{stringValue:name},studentUid:{stringValue:ls('cmc-student-uid')||''},
+            classId:classId?{stringValue:classId}:{nullValue:null},
+            scorePct:{integerValue:String(Math.max(0,Math.min(100,Math.round(pct))))},
+            correctCount:{integerValue:String(Math.max(0,correct))},
+            totalCount:{integerValue:String(Math.max(0,total))},
+            submittedAt:{timestampValue:new Date().toISOString()}
+          }})
+        }).catch(function(){});
+      };
+      var exp=Number(ls('cmc-student-token-expires')||'0');
+      if(exp&&exp<=Date.now())refresh(go);else go(tok);
+    }catch(e){}
+  };
+})();
+
+/* ============ DATA ============ */
+const PREFIXES=[
+ {a:'un-',t:1,m:'not; the opposite of',job:'usually adjectives',ex:[['lock','un','to open by undoing the lock'],['happy','un','not happy'],['fair','un','not fair']]},
+ {a:'re-',t:1,m:'again; back',job:'usually verbs',ex:[['play','re','to play again'],['write','re','to write again'],['turn','re','to turn back']]},
+ {a:'pre-',t:1,m:'before; in advance',job:'verbs & nouns',ex:[['view','pre','to view before'],['heat','pre','to heat in advance'],['pay','pre','to pay in advance']]},
+ {a:'dis-',t:1,m:'not; the opposite of',job:'verbs & adjectives',ex:[['agree','dis','to not agree'],['appear','dis','to stop appearing'],['like','dis','to not like']]},
+ {a:'mis-',t:1,m:'wrongly; badly',job:'usually verbs',ex:[['spell','mis','to spell wrongly'],['lead','mis','to lead the wrong way'],['trust','mis','to trust wrongly']]},
+ {a:'over-',t:1,m:'too much; above',job:'verbs & adjectives',ex:[['cook','over','to cook too long'],['pack','over','to pack too much'],['flow','over','to flow over the edge']]},
+ {a:'under-',t:1,m:'too little; below',job:'verbs & adjectives',ex:[['cook','under','to cook too little'],['ground','under','below the ground'],['pay','under','to pay too little']]},
+ {a:'sub-',t:2,m:'under; below',job:'nouns & adjectives',ex:[['marine','sub','a vessel under the sea'],['way','sub','a way under the ground'],['zero','sub','below zero']]},
+ {a:'inter-',t:2,m:'between; among',job:'verbs & nouns',ex:[['nation','inter','between nations'],['act','inter','to act with each other'],['view','inter','a viewing between people']]},
+ {a:'super-',t:2,m:'above; beyond',job:'nouns & adjectives',ex:[['hero','super','a hero beyond ordinary'],['market','super','a market above the usual size'],['star','super','a star above all others']]},
+ {a:'anti-',t:2,m:'against',job:'adjectives & nouns',ex:[['freeze','anti','against freezing'],['germ','anti','against germs'],['social','anti','against being social']]},
+ {a:'fore-',t:2,m:'before; the front of',job:'nouns & verbs',ex:[['head','fore','the front of the head'],['see','fore','to see beforehand'],['cast','fore','to cast a prediction ahead']]},
+ {a:'non-',t:2,m:'not; without',job:'adjectives & nouns',ex:[['sense','non','without sense'],['fiction','non','not fiction — real facts'],['stop','non','without stopping']]},
+ {a:'co-',t:2,m:'together; jointly',job:'verbs & nouns',ex:[['operate','co','to operate together'],['pilot','co','a pilot who flies together with another'],['author','co','a writer who writes together with another']]},
+ {a:'ex-',t:2,m:'former; out of',job:'nouns & verbs',ex:[['port','ex','to carry goods out of a country'],['press','ex','to press out; to show a feeling'],['claim','ex','to cry out suddenly']]},
+ {a:'trans-',t:3,m:'across',job:'verbs & nouns',ex:[['port','trans','to carry across'],['mit','trans','to send across'],['atlantic','trans','across the Atlantic']]},
+ {a:'semi-',t:3,m:'half; partly',job:'nouns & adjectives',ex:[['circle','semi','half a circle'],['final','semi','a round before the final'],['tone','semi','half a tone']]},
+ {a:'multi-',t:3,m:'many',job:'adjectives & nouns',ex:[['task','multi','doing many tasks'],['colored','multi','having many colors'],['purpose','multi','having many purposes']]},
+ {a:'tele-',t:3,m:'far away',job:'nouns',ex:[['phone','tele','sound from far away'],['vision','tele','sight from far away'],['scope','tele','a tool for seeing far']]},
+ {a:'auto-',t:3,m:'self',job:'nouns & adjectives',ex:[['pilot','auto','a pilot that flies itself'],['graph','auto','something written by oneself'],['matic','auto','working by itself']]},
+ {a:'counter-',t:3,m:'against; opposite',job:'nouns & adjectives',ex:[['clockwise','counter','opposite to the clock\u2019s direction'],['attack','counter','an attack back'],['offer','counter','an offer made against another']]},
+ {a:'micro-',t:3,m:'extremely small',job:'nouns & adjectives',ex:[['scope','micro','a tool for seeing tiny things'],['wave','micro','a very small wave'],['chip','micro','a tiny chip']]},
+];
+const SUFFIXES=[
+ {a:'-ful',t:1,m:'full of',job:'makes ADJECTIVES',ex:[['care','ful','full of care'],['hope','ful','full of hope'],['play','ful','full of play']]},
+ {a:'-less',t:1,m:'without',job:'makes ADJECTIVES',ex:[['care','less','without care'],['hope','less','without hope'],['fear','less','without fear']]},
+ {a:'-ness',t:1,m:'the state or quality of',job:'makes NOUNS',tip:'y → i : happy → happiness',ex:[['kind','ness','the quality of being kind'],['dark','ness','the state of being dark'],['happy','ness','the state of being happy']]},
+ {a:'-ly',t:1,m:'in that way',job:'makes ADVERBS',ex:[['quick','ly','in a quick way'],['kind','ly','in a kind way'],['soft','ly','in a soft way']]},
+ {a:'-er / -or',t:1,m:'a person or thing that…',job:'makes NOUNS',ex:[['teach','er','a person who teaches'],['writ','er','a person who writes'],['act','or','a person who acts']]},
+ {a:'-able / -ible',t:1,m:'can be done',job:'makes ADJECTIVES',tip:'drops a final e : use → usable',ex:[['wash','able','can be washed'],['read','able','can be read'],['use','able','can be used']]},
+ {a:'-est',t:1,m:'the most',job:'makes COMPARISONS',tip:'big → biggest (double the g)',ex:[['tall','est','the most tall'],['fast','est','the most fast'],['kind','est','the most kind']]},
+ {a:'-ment',t:2,m:'the action or result of',job:'makes NOUNS',ex:[['agree','ment','the result of agreeing'],['move','ment','the action of moving'],['enjoy','ment','the state of enjoying']]},
+ {a:'-tion / -sion',t:2,m:'the act or state of',job:'makes NOUNS',ex:[['collec','tion','the act of collecting'],['deci','sion','the act of deciding'],['inven','tion','the thing invented']]},
+ {a:'-ous',t:2,m:'full of; having',job:'makes ADJECTIVES',ex:[['danger','ous','full of danger'],['fame','ous','having fame'],['nerve','ous','full of nerves']]},
+ {a:'-y',t:2,m:'having the quality of',job:'makes ADJECTIVES',tip:'doubles the consonant : sun → sunny',ex:[['rain','y','having rain'],['mess','y','full of mess'],['sun','ny','full of sun']]},
+ {a:'-ish',t:2,m:'somewhat; like',job:'makes ADJECTIVES',ex:[['child','ish','like a child'],['fool','ish','like a fool'],['redd','ish','somewhat red']]},
+ {a:'-ize',t:2,m:'to make; to become',job:'makes VERBS',ex:[['real','ize','to make real in the mind'],['memor','ize','to put into memory'],['organ','ize','to arrange into parts']]},
+ {a:'-en',t:2,m:'to make; to become',job:'makes VERBS',ex:[['wid','en','to make wide'],['sharp','en','to make sharp'],['wood','en','made of wood']]},
+ {a:'-let',t:2,m:'a small one',job:'makes NOUNS',ex:[['book','let','a small book'],['pig','let','a small pig'],['drop','let','a small drop']]},
+ {a:'-hood',t:3,m:'the state or time of',job:'makes NOUNS',ex:[['child','hood','the time of being a child'],['neighbor','hood','the place where neighbors live'],['adult','hood','the state of being an adult']]},
+ {a:'-ship',t:3,m:'the state or skill of',job:'makes NOUNS',ex:[['friend','ship','the state of being friends'],['leader','ship','the skill of being a leader'],['partner','ship','the state of being partners']]},
+ {a:'-dom',t:3,m:'the state or place of',job:'makes NOUNS',ex:[['free','dom','the state of being free'],['king','dom','the place a king rules'],['bore','dom','the state of being bored']]},
+ {a:'-ity',t:3,m:'the state or quality of',job:'makes NOUNS',ex:[['abil','ity','the quality of being able'],['creativ','ity','the quality of creating'],['curios','ity','the quality of being curious']]},
+ {a:'-ence / -ance',t:3,m:'the state of',job:'makes NOUNS',ex:[['sil','ence','the state of being silent'],['differ','ence','the state of being different'],['import','ance','the state of being important']]},
+ {a:'-ify / -fy',t:3,m:'to make; to become',job:'makes VERBS',ex:[['simpl','ify','to make simple'],['terr','ify','to make terrified'],['beauti','fy','to make beautiful']]},
+ {a:'-ward',t:3,m:'in that direction',job:'makes ADVERBS & ADJECTIVES',ex:[['for','ward','toward the front'],['back','ward','toward the back'],['up','ward','toward the top']]},
+ {a:'-wise',t:3,m:'in that direction or way',job:'makes ADVERBS',ex:[['clock','wise','in the way a clock moves'],['other','wise','in the other way'],['like','wise','in the same way']]},
+ {a:'-like',t:3,m:'resembling; like',job:'makes ADJECTIVES',ex:[['child','like','like a child'],['life','like','like real life'],['bird','like','like a bird']]},
+];
+
+const FORGE=[
+ {base:'help',pos:'verb',def:'to give someone support',entries:[
+  {suf:'-ful',word:'helpful',pos:'adjective',mean:'full of help; useful'},
+  {suf:'-less',word:'helpless',pos:'adjective',mean:'without help; unable to manage alone'},
+  {suf:'-er',word:'helper',pos:'noun',mean:'a person who helps'},
+  {suf:'-ing',word:'helping',pos:'noun',mean:'the act of helping — also a portion of food!'},
+  {pre:'un-',suf:'-ful',word:'unhelpful',pos:'adjective',mean:'not helpful'}]},
+ {base:'happy',pos:'adjective',def:'feeling or showing joy',entries:[
+  {pre:'un-',word:'unhappy',pos:'adjective',mean:'not happy'},
+  {suf:'-ness',word:'happiness',pos:'noun',mean:'the state of being happy',note:'spelling watch: y → i before -ness'},
+  {suf:'-ly',word:'happily',pos:'adverb',mean:'in a happy way',note:'spelling watch: y → i before -ly'},
+  {pre:'un-',suf:'-ness',word:'unhappiness',pos:'noun',mean:'the state of being unhappy',note:'y → i'}]},
+ {base:'kind',pos:'adjective',def:'caring, gentle and friendly',entries:[
+  {pre:'un-',word:'unkind',pos:'adjective',mean:'not kind'},
+  {suf:'-ness',word:'kindness',pos:'noun',mean:'the quality of being kind'},
+  {suf:'-ly',word:'kindly',pos:'adverb',mean:'in a kind way'},
+  {pre:'un-',suf:'-ness',word:'unkindness',pos:'noun',mean:'the quality of being unkind'}]},
+ {base:'play',pos:'verb',def:'to do things for fun',entries:[
+  {pre:'re-',word:'replay',pos:'verb',mean:'to play again'},
+  {suf:'-ful',word:'playful',pos:'adjective',mean:'full of play; fun-loving'},
+  {suf:'-er',word:'player',pos:'noun',mean:'a person who plays'},
+  {suf:'-ing',word:'playing',pos:'noun',mean:'the ongoing action of play'}]},
+ {base:'view',pos:'verb',def:'to look at something',entries:[
+  {pre:'pre-',word:'preview',pos:'noun',mean:'a viewing before the main event'},
+  {pre:'re-',word:'review',pos:'verb',mean:'to view again; to look over'},
+  {suf:'-er',word:'viewer',pos:'noun',mean:'a person who views'}]},
+ {base:'use',pos:'verb',def:'to put something into action',entries:[
+  {pre:'re-',word:'reuse',pos:'verb',mean:'to use again'},
+  {pre:'mis-',word:'misuse',pos:'verb',mean:'to use in the wrong way'},
+  {suf:'-ful',word:'useful',pos:'adjective',mean:'full of use; helpful'},
+  {suf:'-less',word:'useless',pos:'adjective',mean:'without any use'},
+  {suf:'-able',word:'usable',pos:'adjective',mean:'able to be used',note:'spelling watch: drop the e → use → usable'},
+  {pre:'un-',suf:'-able',word:'unusable',pos:'adjective',mean:'not able to be used',note:'drop the e'}]},
+ {base:'agree',pos:'verb',def:'to share the same opinion',entries:[
+  {pre:'dis-',word:'disagree',pos:'verb',mean:'to not agree'},
+  {suf:'-ment',word:'agreement',pos:'noun',mean:'the result of agreeing',note:'keep the e : agree + -ment'},
+  {suf:'-able',word:'agreeable',pos:'adjective',mean:'easy to agree with; pleasant',note:'the e stays here too'},
+  {pre:'dis-',suf:'-ment',word:'disagreement',pos:'noun',mean:'the result of disagreeing'}]},
+ {base:'teach',pos:'verb',def:'to help someone learn',entries:[
+  {pre:'re-',word:'reteach',pos:'verb',mean:'to teach again'},
+  {suf:'-er',word:'teacher',pos:'noun',mean:'a person who teaches'},
+  {suf:'-able',word:'teachable',pos:'adjective',mean:'able to be taught'},
+  {pre:'un-',suf:'-able',word:'unteachable',pos:'adjective',mean:'not able to be taught'}]},
+ {base:'write',pos:'verb',def:'to make letters and words',entries:[
+  {pre:'re-',word:'rewrite',pos:'verb',mean:'to write again'},
+  {suf:'-er',word:'writer',pos:'noun',mean:'a person who writes'},
+  {suf:'-ing',word:'writing',pos:'noun',mean:'the art of making words'}]},
+ {base:'hope',pos:'noun',def:'a wish for something to happen',entries:[
+  {suf:'-ful',word:'hopeful',pos:'adjective',mean:'full of hope'},
+  {suf:'-less',word:'hopeless',pos:'adjective',mean:'without hope'},
+  {suf:'-ly',word:'hopefully',pos:'adverb',mean:'in a hopeful way'}]},
+ {base:'move',pos:'verb',def:'to change position',entries:[
+  {pre:'re-',word:'remove',pos:'verb',mean:'to move away',note:'remove keeps its e'},
+  {suf:'-ment',word:'movement',pos:'noun',mean:'the action of moving'},
+  {suf:'-able',word:'movable',pos:'adjective',mean:'able to be moved',note:'spelling watch: drop the e → move → movable'},
+  {pre:'un-',suf:'-able',word:'unmovable',pos:'adjective',mean:'impossible to move'}]},
+ {base:'friend',pos:'noun',def:'a person you like and trust',entries:[
+  {suf:'-ly',word:'friendly',pos:'adjective',mean:'like a friend; kind'},
+  {suf:'-ship',word:'friendship',pos:'noun',mean:'the state of being friends'},
+  {suf:'-less',word:'friendless',pos:'adjective',mean:'without friends'},
+  {pre:'un-',suf:'-ly',word:'unfriendly',pos:'adjective',mean:'not friendly'}]},
+ {base:'child',pos:'noun',def:'a young person',entries:[
+  {suf:'-ish',word:'childish',pos:'adjective',mean:'like a child — often not in a good way'},
+  {suf:'-like',word:'childlike',pos:'adjective',mean:'like a child — often in a good way'},
+  {suf:'-hood',word:'childhood',pos:'noun',mean:'the time of being a child'},
+  {suf:'-less',word:'childless',pos:'adjective',mean:'without children'}]},
+ {base:'book',pos:'noun',def:'pages with words to read',entries:[
+  {suf:'-let',word:'booklet',pos:'noun',mean:'a small thin book'},
+  {suf:'-ish',word:'bookish',pos:'adjective',mean:'fond of reading; studious'}]},
+ {base:'lock',pos:'verb',def:'to fasten with a key',entries:[
+  {pre:'un-',word:'unlock',pos:'verb',mean:'to open a lock'},
+  {pre:'re-',word:'relock',pos:'verb',mean:'to lock again'},
+  {suf:'-able',word:'lockable',pos:'adjective',mean:'able to be locked'}]},
+ {base:'fear',pos:'noun',def:'a feeling of being scared',entries:[
+  {suf:'-ful',word:'fearful',pos:'adjective',mean:'full of fear'},
+  {suf:'-less',word:'fearless',pos:'adjective',mean:'without fear — brave'}]},
+ {base:'dark',pos:'adjective',def:'with little or no light',entries:[
+  {suf:'-ness',word:'darkness',pos:'noun',mean:'the state of being dark'},
+  {suf:'-en',word:'darken',pos:'verb',mean:'to make or become dark'},
+  {suf:'-ly',word:'darkly',pos:'adverb',mean:'in a dark way'}]},
+ {base:'joy',pos:'noun',def:'a feeling of great happiness',entries:[
+  {suf:'-ful',word:'joyful',pos:'adjective',mean:'full of joy'},
+  {suf:'-less',word:'joyless',pos:'adjective',mean:'without joy'},
+  {suf:'-ous',word:'joyous',pos:'adjective',mean:'full of joy; bringing joy'}]},
+ {base:'wide',pos:'adjective',def:'covering a lot from side to side',entries:[
+  {suf:'-en',word:'widen',pos:'verb',mean:'to make or become wide'},
+  {suf:'-ly',word:'widely',pos:'adverb',mean:'over a wide area; by many people'}]},
+ {base:'simple',pos:'adjective',def:'easy; not complicated',entries:[
+  {suf:'-ify',word:'simplify',pos:'verb',mean:'to make simple',note:"spelling watch: drop the 'le' → simplify"},
+  {suf:'-ity',word:'simplicity',pos:'noun',mean:'the quality of being simple',note:'the middle changes: simple → simplicity'}]},
+ {base:'port',pos:'verb',def:'to carry',entries:[
+  {pre:'trans-',word:'transport',pos:'noun',mean:'the act of carrying things across'},
+  {pre:'ex-',word:'export',pos:'verb',mean:'to carry goods out of a country'},
+  {suf:'-able',word:'portable',pos:'adjective',mean:'able to be carried'},
+  {suf:'-er',word:'porter',pos:'noun',mean:'a person who carries'}]},
+];
+const PRE_GLOSS={'un-':'not','re-':'again','pre-':'before','dis-':'not','mis-':'wrongly','trans-':'across','ex-':'out'};
+const SUF_GLOSS={'-ful':'full of','-less':'without','-er':'one who…','-ing':'the act of…','-ness':'the state of…','-ly':'in that way','-ment':'the result of…','-able':'can be…','-ship':'the state of…','-hood':'the time of being…','-like':'like…','-ish':'like…','-let':'a small…','-ous':'full of','-en':'to make…','-ify':'to make…','-ity':'the quality of…'};
+
+const QUIZ=[
+ {t:1,q:'What does the prefix re- mean?',o:['Before','Again','Against','Under'],a:1,x:'re- means “again” — replay is to play again.'},
+ {t:1,q:'Which word means “to look at something before anyone else”?',o:['review','viewer','preview','overlook'],a:2,x:'pre- (before) + view = preview.'},
+ {t:1,q:'In “unhappy”, what job does un- do?',o:['Adds more joy','Flips the meaning to “not happy”','Turns the word into a noun','Means “again”'],a:1,x:'un- flips the meaning: happy → not happy.'},
+ {t:1,q:'Which suffix turns “kind” into a NOUN?',o:['-ly','-ness','-ful','-ing'],a:1,x:'-ness makes nouns: kind → kindness, the quality of being kind.'},
+ {t:1,q:'Which suffix turns the adjective “quick” into an ADVERB?',o:['-ness','-er','-ly','-able'],a:2,x:'-ly makes adverbs: quickly tells HOW something is done.'},
+ {t:1,q:'Subway, submarine, subzero — what does sub- mean?',o:['Above','Again','Under / below','Before'],a:2,x:'sub- means under: under the street, under the sea, below zero.'},
+ {t:1,q:'Which suffix completes “teach___” for a person who teaches?',o:['-ment','-er','-less','-ous'],a:1,x:'-er/-or makes “a person who…”: teacher, writer, actor.'},
+ {t:1,q:'“Disagree” means…',o:['to agree again','to agree a lot','to agree wrongly','to not agree'],a:3,x:'dis- = not: disagree = not agree.'},
+ {t:1,q:'Which of these words is ALWAYS a noun?',o:['careful','quickly','kindness','unhappy'],a:2,x:'-ness always builds nouns: kindness names a quality.'},
+ {t:2,q:'“Misspell” means…',o:['to spell again','to spell before','to spell wrongly','to not spell'],a:2,x:'mis- means wrongly: misspell = spell wrongly.'},
+ {t:2,q:'Which word uses over- to mean “too much”?',o:['subway','overcook','replay','kindness'],a:1,x:'overcook = cook too much.'},
+ {t:2,q:'The suffix -ment usually makes…',o:['adjectives','verbs','nouns','adverbs'],a:2,x:'-ment builds nouns: agreement, movement, enjoyment.'},
+ {t:2,q:'A TELEphone carries your voice…',o:['to yourself','across the sea only','over a far distance','into the past'],a:2,x:'tele- means far away: sound traveling far.'},
+ {t:2,q:'What is a SEMIcircle?',o:['Double a circle','Half a circle','A circle drawn twice','A circle with no end'],a:1,x:'semi- means half: a semicircle is half a circle.'},
+ {t:2,q:'The suffix -ship in “friendship” builds…',o:['an adjective','a verb','an adverb','a noun naming a state or relationship'],a:3,x:'-ship builds nouns: friendship = the state of being friends.'},
+ {t:2,q:'What does -en do in “widen”?',o:['Makes it a verb meaning “to make wide”','Makes it the widest','Means “without width”','Turns it into a noun'],a:0,x:'-en makes verbs: widen, sharpen, darken.'},
+ {t:2,q:'An EX-president is…',o:['a future president','a former president','the best president','two presidents'],a:1,x:'ex- means former: someone who used to hold the role.'},
+ {t:2,q:'Something MULTICOLORED has…',o:['no colors','one color','many colors','a hidden color'],a:2,x:'multi- means many.'},
+ {t:3,q:'COUNTERCLOCKWISE means…',o:['faster than a clock','in the opposite direction of a clock\u2019s hands','behind a clock','without a clock'],a:1,x:'counter- means against / opposite.'},
+ {t:3,q:'The suffix -let means “small”. A BOOKLET is…',o:['a small book','a book about birds','half a book','a book read twice'],a:0,x:'-let shrinks things: booklet, piglet, droplet.'},
+];
+
+/* ============ STUDY ============ */
+let side='pre',tierF=0;
+const TIERNAME=['','CORE','EXPLORER','WIZARD'];
+function setSide(s){side=s;
+ document.getElementById('tabPre').setAttribute('aria-selected',s==='pre');
+ document.getElementById('tabSuf').setAttribute('aria-selected',s==='suf');
+ document.getElementById('affixSearch').value='';renderCards();}
+function setTier(t){tierF=t;
+ document.querySelectorAll('.tf').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.t===t));
+ renderCards();}
+function renderCards(){
+ const q=(document.getElementById('affixSearch').value||'').toLowerCase();
+ const list=(side==='pre'?PREFIXES:SUFFIXES).filter(d=>(!tierF||d.t===tierF)&&(!q||d.a.toLowerCase().includes(q)||d.m.toLowerCase().includes(q)));
+ const grid=document.getElementById('cardGrid');
+ grid.innerHTML=list.map((d,i)=>{
+   const isPre=side==='pre';
+   return `<article class="card side-${side}" style="animation:pop .35s ${Math.min(i,10)*0.04}s both">
+     <div class="affix">${d.a}</div>
+     <p class="mean">${d.m}</p>
+     <span class="job">${isPre?'→ '+d.job:'⚙ '+d.job}</span><span class="tier t${d.t}">${'★'.repeat(d.t)} ${TIERNAME[d.t]}</span>
+     ${d.tip?`<br><span class="tip">✏ ${d.tip}</span>`:''}
+     <button class="toggle" aria-expanded="false">See it transform ▾</button>
+     <div class="exs">${d.ex.map(e=>{
+        const affixTxt=isPre?e[1]+'-':'-'+e[1];
+        const word=isPre?e[1]+e[0]:e[0]+e[1];
+        const eq=isPre?`<span class="p">${affixTxt}</span> + ${e[0]}`:`${e[0]} + <span class="s">${affixTxt}</span>`;
+        return `<div class="ex"><span class="eq">${eq} → <strong>${word}</strong></span><span class="gl">${e[2]}</span></div>`;}).join('')}</div>
+   </article>`;}).join('')||'<p style="color:var(--ink-soft)">Nothing matches — try another level or spelling.</p>';
+ grid.querySelectorAll('.toggle').forEach(b=>b.addEventListener('click',()=>{
+   const c=b.closest('.card');c.classList.toggle('open');
+   b.setAttribute('aria-expanded',c.classList.contains('open'));
+   b.textContent=c.classList.contains('open')?'Hide examples ▴':'See it transform ▾';}));
+}
+document.getElementById('cntPre').textContent='('+PREFIXES.length+')';
+document.getElementById('cntSuf').textContent='('+SUFFIXES.length+')';
+document.getElementById('affixSearch').addEventListener('input',renderCards);
+renderCards();
+
+/* ============ FORGE ============ */
+const state={base:null,pre:null,suf:null};
+function forgeData(){return FORGE.find(f=>f.base===state.base)}
+function resetForge(){state.base=null;state.pre=null;state.suf=null;renderForge()}
+function setSlot(id,lbl,val,cls){const el=document.getElementById(id);el.className='slot'+(val?' '+cls:'');el.innerHTML=`<span class="lbl">${lbl}</span><span class="val">${val||'—'}</span>`}
+function renderForge(){
+ document.getElementById('baseChips').innerHTML=FORGE.map(f=>`<button class="chip ${state.base===f.base?'sel-base':''}" onclick="pickBase('${f.base}')">${f.base}</button>`).join('');
+ const d=forgeData();
+ const pres=d?[...new Set(d.entries.filter(e=>e.pre).map(e=>e.pre))]:[];
+ const sufs=d?[...new Set(d.entries.filter(e=>e.suf).map(e=>e.suf))]:[];
+ document.getElementById('preChips').innerHTML=pres.length?pres.map(p=>`<button class="chip pre ${state.pre===p?'sel':''}" onclick="pickPre('${p}')">${p}</button>`).join(''):'<span class="mono" style="font-size:.7rem;color:var(--ink-soft)">'+(d?'no prefixes for this base':'—')+'</span>';
+ document.getElementById('sufChips').innerHTML=sufs.length?sufs.map(s=>`<button class="chip suf ${state.suf===s?'sel':''}" onclick="pickSuf('${s}')">${s}</button>`).join(''):'<span class="mono" style="font-size:.7rem;color:var(--ink-soft)">'+(d?'no suffixes for this base':'—')+'</span>';
+ setSlot('slotPre','prefix',state.pre,'filled-pre');
+ setSlot('slotBase','base',d?d.base:'?','filled-base');
+ setSlot('slotSuf','suffix',state.suf,'filled-suf');
+ const bw=document.getElementById('bigWord'),mean=document.getElementById('outMean'),
+       tag=document.getElementById('posTag'),noteW=document.getElementById('outNoteWrap'),eq=document.getElementById('equation');
+ noteW.innerHTML='';tag.style.display='none';eq.innerHTML='';bw.className='bigword';
+ if(!d){bw.innerHTML='';mean.className='out-mean hint-line';mean.textContent='Pick a base word to start forging.';return;}
+ const entry=d.entries.find(e=>(e.pre||null)===state.pre&&(e.suf||null)===state.suf);
+ mean.className='out-mean';
+ if(!state.pre&&!state.suf){
+   bw.innerHTML=`<span style="animation-delay:.05s">${d.base}</span>`;
+   mean.textContent=`“${d.def}” — now glue on a prefix or suffix.`;
+ }else if(entry){
+   bw.innerHTML=`${entry.pre?`<span class="p" style="animation-delay:.05s">${entry.pre}</span>`:''}<span style="animation-delay:.15s">${d.base}</span>${entry.suf?`<span class="s" style="animation-delay:.25s">${entry.suf}</span>`:''}`;
+   tag.textContent='new word → '+entry.pos;tag.style.display='block';
+   mean.textContent=entry.mean.charAt(0).toUpperCase()+entry.mean.slice(1);
+   if(entry.note)noteW.innerHTML=`<p class="out-note">✏ ${entry.note}</p>`;
+   const bits=[];
+   if(entry.pre)bits.push(`<span class="bit p">${entry.pre} = ${PRE_GLOSS[entry.pre]||'…'}</span><span class="arr">+</span>`);
+   bits.push(`<span class="bit">${d.base} = ${d.def}</span>`);
+   if(entry.suf)bits.push(`<span class="arr">+</span><span class="bit s">${entry.suf} = ${SUF_GLOSS[entry.suf]||'…'}</span>`);
+   bits.push(`<span class="arr">=</span><strong>${entry.word}</strong>`);
+   eq.innerHTML=bits.join('');
+ }else if(state.pre&&!state.suf&&!d.entries.some(e=>e.pre===state.pre&&!e.suf)){
+   bw.innerHTML=`<span class="p" style="animation-delay:.05s">${state.pre}</span><span style="animation-delay:.15s">${d.base}</span>`;
+   mean.className='out-mean hint-line';
+   mean.textContent=`Hmm — “${state.pre}${d.base}” isn't in our forge. On this word, ${state.pre} needs a suffix partner. Try adding one below.`;
+ }else{
+   bw.classList.add('bad');
+   bw.innerHTML=`${state.pre?`<span class="p">${state.pre}</span>`:''}<span>${d.base}</span>${state.suf?`<span class="s">${state.suf}</span>`:''}`;
+   mean.className='out-mean hint-line';
+   mean.textContent=`“${(state.pre||'')+d.base+(state.suf||'')}” isn't a real word — not every combination works, and discovering that is part of the job! Try another mix.`;
+ }
+}
+function pickBase(b){state.base=b;state.pre=null;state.suf=null;renderForge()}
+function pickPre(p){state.pre=state.pre===p?null:p;renderForge()}
+function pickSuf(s){state.suf=state.suf===s?null:s;renderForge()}
+renderForge();
+
+/* ============ MATCH ============ */
+let mMode='pre',mMoves=0,mMatched=0,selL=null,selR=null,mBusy=false,mStars=0;
+function shuffle(a){return a.slice().sort(()=>Math.random()-.5)}
+function setMode(m){mMode=m;
+ ['pre','suf','mix'].forEach(x=>document.getElementById('mode'+x[0].toUpperCase()+x.slice(1)).setAttribute('aria-pressed',x===m));
+ newRound();}
+function newRound(){
+ const pool=(mMode==='pre'?PREFIXES:mMode==='suf'?SUFFIXES:[...PREFIXES,...SUFFIXES])
+   .map(d=>({k:d.a,m:d.m.split(';')[0]}));
+ const pick=shuffle(pool).slice(0,6);
+ mMoves=0;mMatched=0;selL=null;selR=null;mBusy=false;
+ document.getElementById('mMoves').textContent='0';
+ document.getElementById('mPairs').textContent='0';
+ document.getElementById('mBanner').className='m-banner';
+ document.getElementById('mLeft').innerHTML=shuffle(pick).map(p=>`<button class="mcell aff" data-key="${p.k}" onclick="mPick('L',this)">${p.k}</button>`).join('');
+ document.getElementById('mRight').innerHTML=shuffle(pick).map(p=>`<button class="mcell" data-key="${p.k}" onclick="mPick('R',this)">${p.m}</button>`).join('');
+}
+function mPick(side,el){
+ if(mBusy||el.classList.contains('done'))return;
+ if(side==='L'){if(selL)selL.classList.remove('sel');selL=el;}
+ else{if(selR)selR.classList.remove('sel');selR=el;}
+ el.classList.add('sel');
+ if(selL&&selR){
+   mBusy=true;mMoves++;document.getElementById('mMoves').textContent=mMoves;
+   const ok=selL.dataset.key===selR.dataset.key;
+   setTimeout(()=>{
+     if(ok){
+       selL.classList.remove('sel');selR.classList.remove('sel');
+       selL.classList.add('done');selR.classList.add('done');
+       mMatched++;document.getElementById('mPairs').textContent=mMatched;
+       if(mMatched===6){
+         const b=document.getElementById('mBanner');
+         if(mMoves===6){mStars++;document.getElementById('mStars').textContent=mStars;
+           b.innerHTML='🌟 PERFECT ROUND — six pairs in six moves!';}
+         else b.innerHTML=`✔ Round cleared in ${mMoves} moves.${mMoves<=9?' Sharp work.':' Try again for a perfect six!'}`;
+         b.className='m-banner show';
+         if(typeof CMC_SYNC==='function')CMC_SYNC('word-forge-match','Word Forge · Affix Match',Math.round(600/mMoves),6,6);}
+     }else{
+       selL.classList.add('nope');selR.classList.add('nope');
+       setTimeout(()=>{[selL,selR].forEach(c=>{if(c)c.classList.remove('nope','sel')});selL=null;selR=null;mBusy=false;},420);
+       return;
+     }
+     selL=null;selR=null;mBusy=false;
+   },ok?150:520);
+ }
+}
+newRound();
+
+/* ============ QUIZ ============ */
+let qi=0,score=0,answered=false,order=[];
+function startQuiz(){order=shuffle([...QUIZ.keys()]);qi=0;score=0;renderQuiz()}
+function renderQuiz(){
+ const card=document.getElementById('quizCard');
+ if(qi>=order.length){
+   const pct=Math.round(score/QUIZ.length*100);
+   if(typeof CMC_SYNC==='function')CMC_SYNC('word-forge-quiz','Word Forge · Prefix & Suffix Quiz',pct,score,QUIZ.length);
+   const rank=pct===100?'🏆 WORD WIZARD':pct>=75?'⭐ SHARP SPELLER':pct>=50?'🔨 APPRENTICE BUILDER':'🌱 KEEP FORGING';
+   card.innerHTML=`<div class="end-screen"><p class="kicker">Results</p>
+     <div class="big">${score} / ${QUIZ.length}</div><p class="rank">${rank}</p>
+     <p>${pct===100?'A perfect forge. Every affix answered to you.':pct>=75?'Strong work — a few affixes slipped past. Run it back?':pct>=50?'Good bones. Revisit the Study section, then try again.':'Every master builder starts with a crooked word. Study, then retry!'}</p>
+     <button class="btn" onclick="startQuiz()">↺ Forge again</button></div>`;
+   return;
+ }
+ answered=false;
+ const q=QUIZ[order[qi]];
+ card.innerHTML=`
+   <div class="quiz-top"><span>Question ${qi+1} of ${QUIZ.length} <span class="tier t${q.t}" style="margin-left:.5rem">${'★'.repeat(q.t)} Lv.${q.t}</span></span><span class="score-chip">Score: ${score}</span></div>
+   <div class="progress"><i style="width:${qi/QUIZ.length*100}%"></i></div>
+   <p class="qtext">${q.q}</p>
+   <div class="opts">${q.o.map((o,i)=>`<button class="opt" onclick="answer(${i})"><span class="key">${'ABCD'[i]}</span>${o}</button>`).join('')}</div>
+   <div class="feedback" id="fb"></div>
+   <div class="quiz-nav" id="qnav"></div>`;
+}
+function answer(i){
+ if(answered)return;answered=true;
+ const q=QUIZ[order[qi]],opts=document.querySelectorAll('.opt'),fb=document.getElementById('fb');
+ opts.forEach(b=>b.disabled=true);
+ opts[q.a].classList.add('right');
+ const good=i===q.a;
+ if(!good)opts[i].classList.add('wrong');else score++;
+ fb.className='feedback show '+(good?'good':'bad');
+ fb.innerHTML=`<strong>${good?'✔ Nailed it.':'✘ Not quite.'}</strong> ${q.x}`;
+ document.querySelector('.score-chip').textContent='Score: '+score;
+ document.getElementById('qnav').innerHTML=`<button class="btn" onclick="nextQ()">${qi+1===QUIZ.length?'See results →':'Next →'}</button>`;
+}
+function nextQ(){qi++;renderQuiz()}
+startQuiz();
+
+/* ============ MASTHEAD DEMO · TICKER · GLYPHS · STATS ============ */
+const DEMOS=[['un','lock','','unlock — to open'],['re','play','','replay — to play again'],['kind','','ness','kindness — the quality of being kind'],['pre','view','','preview — to view before'],['friend','','ship','friendship — the state of being friends'],['tele','phone','','telephone — sound from far away'],['dark','','en','darken — to make dark'],['dis','agree','','disagree — to not agree']];
+let di=0;
+function showDemo(){
+ const [p,b,s,full]=DEMOS[di];di=(di+1)%DEMOS.length;
+ const st=document.getElementById('demoStage');st.style.opacity=0;
+ setTimeout(()=>{
+   document.getElementById('demoParts').innerHTML=(p?`<span class="pill p">${p}-</span>`:'')+(b?`<span class="pill b">${b}</span>`:'')+(s?`<span class="pill s">-${s}</span>`:'');
+   document.getElementById('demoResult').textContent='→ '+full.split(' — ')[0];
+   document.getElementById('demoCap').textContent=full.split(' — ')[1]||'';
+   st.style.opacity=1;},260);
+}
+showDemo();setInterval(showDemo,3000);
+
+const TICKS=[['un','lock'],['kind','ness','s'],['re','play'],['pre','view'],['hope','ful'],['mis','use'],['agree','ment'],['teach','er'],['sub','way'],['fear','less'],['super','hero'],['quick','ly'],['friend','ship','s'],['tele','phone'],['dark','en','s'],['child','hood','s'],['book','let','s'],['multi','task'],['auto','pilot'],['micro','wave'],['counter','attack'],['wide','en','s']];
+const half=TICKS.map(t=>{
+ const a=t[2]==='s'?`<span class="x">${t[0]}</span><span class="s">${t[1]}</span>`:`<span class="p">${t[0]}-</span><span class="x">${t[1]}</span>`;
+ return a+' <span class="x">✳</span>';}).join(' ');
+document.getElementById('ticker').innerHTML=half+half;
+
+const GL=['un-','-ness','re-','-ful','pre-','-er','mis-','-tion','-ly','sub-','-able','dis-','-ship','tele-','-hood','multi-'];
+document.getElementById('glyphs').innerHTML=GL.map((g,i)=>
+ `<span style="left:${(i*6.1+2)%92}%;top:${(i*13+5)%88}%;font-size:${2.6+(i%4)}rem;--d:${13+i*1.4}s;--r:${i%2?5:-6}deg">${g}</span>`).join('');
+
+const totalCombos=FORGE.reduce((n,f)=>n+f.entries.length,0);
+document.getElementById('statsLine').innerHTML=
+ `<b>${PREFIXES.length}</b> prefixes · <b>${SUFFIXES.length}</b> suffixes · <b>${FORGE.length}</b> base words · <b>${totalCombos}</b> forge recipes · <b>${QUIZ.length}</b> quiz questions`;
+
+/* ============ REVEAL ON SCROLL — SAFE FALLBACK ============ */
+(function(){
+  const els=document.querySelectorAll('.rv');
+  const show=el=>el.classList.add('in');
+  if(!('IntersectionObserver' in window)){ els.forEach(show); return; }
+  els.forEach(el=>el.classList.add('rv-init'));
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){ show(e.target); io.unobserve(e.target); }
+  }),{threshold:.1,rootMargin:'0px 0px -5% 0px'});
+  els.forEach(el=>io.observe(el));
+  setTimeout(()=>els.forEach(show),2500);
+})();
+</script>
+</body>
+</html>
+
