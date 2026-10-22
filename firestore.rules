@@ -137,6 +137,96 @@ service cloud.firestore {
       }
     }
 
+    // ── Private bi-weekly test system (Option A: teacher-side grading) ──
+    //
+    // Flow: teacher creates test_assignments/{id} for a class → students open
+    // the private (answer-free) test page, sign in, and POST raw answers to
+    // test_submissions/{assignmentId}__{studentUid} → the teacher dashboard
+    // grades locally against test_keys/{testId} and caches scores in
+    // test_scores/{submissionId}. Students can NEVER read the key, any score,
+    // or anyone else's submission.
+    //
+    // teachers/{uid}: append-only allowlist that hardens the "email contains
+    // edu" heuristic for the sensitive collections (answer keys!). Any edu
+    // account may register itself ONCE (create), after which the doc is
+    // immutable. Sensitive collections require BOTH the edu heuristic AND an
+    // allowlist entry. To tighten further, replace isCmcTeacher() inside
+    // isVerifiedTeacher() with a hardcoded email check.
+
+    match /teachers/{uid} {
+      allow read: if request.auth != null; // role checks only; non-sensitive
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && isCmcTeacher();
+      allow update, delete: if false; // allowlist is append-only
+    }
+
+    function isVerifiedTeacher() {
+      return isCmcTeacher()
+        && request.auth.uid is string
+        && exists(/databases/$(database)/documents/teachers/$(request.auth.uid));
+    }
+
+    // Test shell metadata (title, groups, question count). NO answers here.
+    match /biweekly_tests/{testId} {
+      allow read: if true;
+      allow create, update: if isVerifiedTeacher();
+      allow delete: if false;
+    }
+
+    // THE answer key. The single most protected collection on the site.
+    match /test_keys/{testId} {
+      allow read, write: if isVerifiedTeacher();
+    }
+
+    // One assignment = test + class + window.
+    match /test_assignments/{assignmentId} {
+      allow read: if isVerifiedTeacher()
+        || (request.auth != null
+            && resource.data.classId is string
+            && exists(/databases/$(database)/documents/classes/$(resource.data.classId)/enrollments/$(request.auth.uid)));
+      allow create, update: if isVerifiedTeacher()
+        && request.resource.data.teacherUid == request.auth.uid;
+      allow delete: if isVerifiedTeacher()
+        && resource.data.teacherUid == request.auth.uid;
+    }
+
+    // Raw student answers. Doc ID is "{assignmentId}__{studentUid}" so the
+    // create-once rule IS the one-attempt rule: a second create with the same
+    // ID fails at the database level, not just in the UI. Students may GET
+    // their own doc (resume UX) but can never list or read anyone else's.
+    match /test_submissions/{docId} {
+      allow get: if isVerifiedTeacher()
+        || (request.auth != null
+            && resource.data.studentUid == request.auth.uid);
+      allow list: if isVerifiedTeacher();
+
+      allow create: if request.auth != null
+        && request.auth.uid is string
+        && request.resource.data.studentUid == request.auth.uid
+        && request.resource.data.assignmentId is string
+        && request.resource.data.testId is string
+        && request.resource.data.classId is string
+        && request.resource.data.studentName is string
+        && request.resource.data.status == 'submitted'
+        && request.resource.data.answers is map
+        && request.resource.data.answers.size() > 0
+        && request.resource.data.answers.size() <= 300
+        && request.resource.data.integrity is map
+        && docId == (request.resource.data.assignmentId + '__' + request.auth.uid)
+        && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.classId == request.resource.data.classId
+        && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.opensAt <= request.time
+        && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.closesAt >= request.time;
+
+      // Append-only: nobody (not even the teacher) rewrites a submission.
+      allow update, delete: if false;
+    }
+
+    // Computed scores + per-skill breakdown + most-missed data. Teachers only.
+    match /test_scores/{docId} {
+      allow read, write: if isVerifiedTeacher();
+    }
+
     // Default-deny everything not explicitly allowed above.
     match /{document=**} {
       allow read, write: if false;

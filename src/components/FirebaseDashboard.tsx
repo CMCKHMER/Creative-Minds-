@@ -8,6 +8,7 @@ import { listTeacherClasses, listTeacherAttempts, createClass, getClassByCode, e
 import { useStudentAttempts } from '../hooks/useDrillAttempts';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import { StudentAuthModal } from './StudentAuthModal';
+import { BiWeeklyTestsPanel } from './BiWeeklyTestsPanel';
 
 export function FirebaseDashboard() {
   const memberAuth = useMemberAuth();
@@ -359,6 +360,12 @@ export function FirebaseDashboard() {
               )}
             </div>
           </div>
+        )}
+
+        {/* Bi-Weekly Private Tests — teacher-only panel (assign, live
+            scoreboard, teacher-side grading; students never see scores). */}
+        {isTeacher && teacherUid && (
+          <BiWeeklyTestsPanel teacherUid={teacherUid} classes={classes} />
         )}
 
         {/* Student view: class join + own attempts */}
