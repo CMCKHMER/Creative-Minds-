@@ -204,7 +204,10 @@ function getValidUid(token: string): string {
 // ── Test shell metadata + keys ───────────────────────────────────────
 
 export async function putTestMeta(test: { testId: string; title: string; questionCount: number; groups: { id: string; title: string }[] }): Promise<void> {
-  await fsCall(`/biweekly_tests?documentId=${encodeURIComponent(test.testId)}`, {
+  // PATCH the DOCUMENT path directly. (?documentId= is only valid on POST-to-
+  // collection create; passing it on PATCH is rejected with HTTP 400
+  // "Unknown name 'documentId'" before rules even run.)
+  await fsCall(`/biweekly_tests/${encodeURIComponent(test.testId)}`, {
     method: 'PATCH',
     body: JSON.stringify({ fields: encMap({ ...test, updatedAt: new Date().toISOString() }) }),
   });
@@ -250,7 +253,16 @@ export async function createAssignment(input: {
 }): Promise<AssignmentDoc> {
   const doc = await fsCall<{ name: string; fields?: FsFields }>(`/test_assignments`, {
     method: 'POST',
-    body: JSON.stringify({ fields: encMap({ ...input, createdAt: new Date().toISOString() }) }),
+    // opensAt/closesAt MUST be stored as real timestamps (not ISO strings):
+    // the submission rules compare them against request.time, and a string-vs-
+    // timestamp comparison in rules CEL is a type error → always false → every
+    // student submission would be rejected with 403.
+    body: JSON.stringify({ fields: encMap({
+      ...input,
+      opensAt: new Date(input.opensAt),
+      closesAt: new Date(input.closesAt),
+      createdAt: new Date().toISOString(),
+    }) }),
   });
   return decodeDoc(doc) as unknown as AssignmentDoc;
 }
@@ -258,7 +270,9 @@ export async function createAssignment(input: {
 export async function updateAssignmentWindow(id: string, opensAt: string, closesAt: string): Promise<void> {
   await fsCall(`/test_assignments/${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    body: JSON.stringify({ fields: { opensAt: enc(opensAt), closesAt: enc(closesAt) } }),
+    // Timestamps, not strings — see createAssignment (rules compare these
+    // against request.time).
+    body: JSON.stringify({ fields: { opensAt: enc(new Date(opensAt)), closesAt: enc(new Date(closesAt)) } }),
   });
 }
 
