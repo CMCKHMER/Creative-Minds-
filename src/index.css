@@ -1019,10 +1019,18 @@ html.light .cmc-orb { opacity: 0.3; }
 /* ---- Toolkit section AI backdrop (SocialProof "A look inside") ----
    A faint dark desk-scene photo (headphones, bricks, dice, worksheets)
    behind the glass cards, softened by a dark scrim in the component.
-   The photo itself is dark and would muddy the light theme, so light
-   mode hides the layer entirely. */
+   The section is a data-keep-dark zone: it keeps its dark showcase look
+   in light mode too, so the photo shows in BOTH themes. Light mode gets
+   a solid slate-900 base under the photo + scrim — the plain
+   bg-slate-900/35 wash would otherwise sit on the light page background
+   and turn the band muddy grey. */
 .cmc-toolkit-bg-img { opacity: 0.45; }
-html.light .cmc-toolkit-bg-img { display: none; }
+html.light [data-keep-dark].bg-slate-900\/35 { background-color: #0f172a; }
+/* Keep the faint dark hairline divider on the dark band (the global
+   light-mode ::before override is tuned for light backgrounds). */
+html.light .cmc-section[data-keep-dark]::before {
+  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, .08), transparent);
+}
 
 /* generic glass helpers */
 html.light .glass-panel {
@@ -1148,6 +1156,13 @@ html.light [data-keep-dark] .text-cyan-200, html.light [data-keep-dark] .text-cy
 html.light [data-keep-dark] .text-violet-300 { color: #c4b5fd; }
 html.light [data-keep-dark] .text-emerald-200, html.light [data-keep-dark] .text-emerald-300 { color: #6ee7b7; }
 html.light [data-keep-dark] .text-amber-300 { color: #fcd34d; }
+/* sky accent (Oxford Skills World card) — was missed by earlier rounds:
+   the global html.light .text-sky-300 override turned its chips dark
+   blue on the dark card artwork. */
+html.light [data-keep-dark] .text-sky-300 { color: #7dd3fc; }
+html.light [data-keep-dark] .text-sky-200 { color: #bae6fd; }
+html.light [data-keep-dark] .border-sky-300\/25 { border-color: rgba(125, 211, 252, 0.25); }
+html.light [data-keep-dark] .bg-sky-300\/5 { background-color: rgba(125, 211, 252, 0.06); }
 html.light [data-keep-dark] .cmc-stat-num {
   background: linear-gradient(135deg, #67e8f9 0%, #a5b4fc 60%, #f0abfc 100%);
   -webkit-background-clip: text;
