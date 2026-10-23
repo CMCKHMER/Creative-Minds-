@@ -178,12 +178,13 @@ function demoData(): TickerData {
 // COMPONENT
 // ---------------------------------------------------------------------------
 
-// 2-minute poll, visibility-gated (see the effect below). Firestore free
-// tier allows 50K document reads/day — the old 250-docs-every-30s poll
-// exhausted that quota in under two hours of one open tab, returning
-// 429 "Quota exceeded" for every visitor until midnight Pacific reset.
-const REFRESH_MS = 120_000; // 2 min
+// 5-minute poll, visibility-gated, plus a 10-minute cooldown after any 429.
+// Firestore free tier allows 50K document reads/day — the old 250-docs-every-30s
+// poll exhausted that quota in under two hours of one open tab, and even the
+// later 100-docs-every-2-min poll still burned 72K reads in a single open day.
+const REFRESH_MS = 300_000; // 5 min while visible
 const FETCH_PAGE = 100; // docs per read — also caps quota per poll
+const QUOTA_COOLDOWN_MS = 600_000; // 10 min pause after a 429
 
 export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
   const [data, setData] = useState<TickerData>(() => demoData());
@@ -194,11 +195,15 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
 
   useEffect(() => {
     let cancelled = false;
+    // Quota cooldown: after a 429 the project is exhausted — stop reading for
+    // 10 minutes so one struggling tab doesn't deepen the shortage.
+    let cooldownUntil = 0;
 
     async function refresh() {
       // Quota guard: never poll while the tab is hidden — background tabs
       // cost the same Firestore reads but nobody sees the result.
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      if (Date.now() < cooldownUntil) return;
       setLoading(true);
       try {
         const attempts = await fetchRecentDrills(FETCH_PAGE);
@@ -214,7 +219,9 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
         }
       } catch (e) {
         if (cancelled) return;
-        setLastError(e instanceof Error ? e.message : 'Failed to load live stats');
+        const msg = e instanceof Error ? e.message : 'Failed to load live stats';
+        if (/429|Quota/i.test(msg)) cooldownUntil = Date.now() + QUOTA_COOLDOWN_MS;
+        setLastError(msg);
         // Only fall back if we don't already have live data
         setData((prev) => (prev.source === 'live' ? prev : demoData()));
       } finally {

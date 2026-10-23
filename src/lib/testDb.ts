@@ -51,6 +51,9 @@ async function fsCall<T = Record<string, unknown>>(path: string, init?: RequestI
   }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}) as { error?: { message?: string } });
+    if (res.status === 429) {
+      throw new RestError(429, 'Firestore daily quota reached — reads and writes pause until the free-tier quota resets (around 2:00 PM Cambodia time). Try again after the reset.');
+    }
     throw new RestError(res.status, body?.error?.message || `Firestore request failed (HTTP ${res.status})`);
   }
   return res.json() as Promise<T>;

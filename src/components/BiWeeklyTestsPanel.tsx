@@ -88,6 +88,9 @@ interface RowState {
 
 export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => {
   const [registered, setRegistered] = useState<'checking' | 'yes' | 'no'>('checking');
+  // Why registration shows 'no': 'rules' = allowlist doc rejected (publish the
+  // new rules / non-edu account); 'quota' = Firestore 429 — retry after reset.
+  const [regIssue, setRegIssue] = useState<'rules' | 'quota'>('rules');
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [keyStatus, setKeyStatus] = useState<string>('');
@@ -128,7 +131,10 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
     if (!teacherUid) return;
     ensureTeacherRegistration()
       .then((ok) => setRegistered(ok ? 'yes' : 'no'))
-      .catch(() => setRegistered('no'));
+      .catch((err) => {
+        setRegIssue(err instanceof RestError && err.status === 429 ? 'quota' : 'rules');
+        setRegistered('no');
+      });
   }, [teacherUid]);
 
   // 0b) Resolve the REST-session uid (the one the rules compare against).
@@ -265,11 +271,13 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
         durationMinutes: formMinutes,
       });
       setSelected(created.id);
-      await refreshAssignments();
-      // Belt-and-braces: the scoreboard opens by SELECTING an assignment from
-      // the list, so never let a query hiccup hide the one just created.
+      // Belt-and-braces FIRST: the scoreboard opens by SELECTING an assignment
+      // from the list, so never let a later hiccup hide the one just created.
       setAssignments((prev) => (prev.some((a) => a.id === created.id) ? prev : [created, ...prev]));
       setCreateStatus({ tone: 'ok', text: `Assignment created ✓ — share it with ${cls.name} via "Copy student link" at the top of the scoreboard.` });
+      // Best-effort background refresh — a read failure (e.g. a 429) here used
+      // to clobber the success above even though the create had succeeded.
+      try { await refreshAssignments(); } catch { /* keep the success state */ }
     } catch (err) {
       const msg = err instanceof RestError ? err.message : 'Could not create the assignment.';
       setCreateStatus({
@@ -364,7 +372,9 @@ export const BiWeeklyTestsPanel: React.FC<Props> = ({ teacherUid, classes }) => 
         </div>
         {registered === 'no' && (
           <p className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-200">
-            <FileWarning className="h-3.5 w-3.5" /> Teacher registration pending — publish the new rules, then reload.
+            <FileWarning className="h-3.5 w-3.5" /> {regIssue === 'quota'
+              ? 'Firestore daily quota reached — registration will succeed after the quota resets (around 2:00 PM Cambodia time).'
+              : 'Teacher registration pending — publish the new rules, then reload.'}
           </p>
         )}
       </div>

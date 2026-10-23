@@ -39,10 +39,12 @@ interface LeaderEntry {
   lastPlayed: number; // epoch ms
 }
 
-// 2-minute poll, visibility-gated. Firestore free tier allows 50K doc
-// reads/day — the previous 200-docs-every-30s polling here was the single
-// largest quota consumer on the site (one open tab = quota gone in ~2h).
-const REFRESH_MS = 120_000; // 2 min
+// 5-minute poll with a 10-minute quota cooldown. Firestore free tier allows
+// 50K document reads/day — this page fetches 100 docs per poll, so a 2-min
+// interval burned through the whole daily quota in one open afternoon and
+// every Firestore call site-wide started returning 429 until midnight PT.
+const REFRESH_MS = 300_000; // 5 min while visible
+const QUOTA_COOLDOWN_MS = 600_000; // 10 min pause after a 429
 const MAX_LEADERBOARD = 10;
 const MAX_RECENT = 5;
 
@@ -158,9 +160,13 @@ export function GameLeaderboard({ highlightPlayer }: GameLeaderboardProps) {
 
   useEffect(() => {
     let cancelled = false;
+    // Quota cooldown: after a 429 the project is exhausted — stop reading for
+    // 10 minutes so one struggling tab doesn't deepen the shortage.
+    let cooldownUntil = 0;
     async function refresh() {
       // Quota guard: skip polling while the tab is hidden.
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      if (Date.now() < cooldownUntil) return;
       setLoading(true);
       try {
         const result = await fetchGameAttempts();
@@ -170,7 +176,9 @@ export function GameLeaderboard({ highlightPlayer }: GameLeaderboardProps) {
         setLastFetch(Date.now());
       } catch (e) {
         if (cancelled) return;
-        setError(e instanceof Error ? e.message : 'Could not load the leaderboard');
+        const msg = e instanceof Error ? e.message : 'Could not load the leaderboard';
+        if (/429|Quota/i.test(msg)) cooldownUntil = Date.now() + QUOTA_COOLDOWN_MS;
+        setError(msg);
       } finally {
         if (!cancelled) setLoading(false);
       }
