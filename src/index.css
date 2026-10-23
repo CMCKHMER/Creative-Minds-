@@ -1016,6 +1016,14 @@ html.light .cmc-icon-glow::before {
 }
 html.light .cmc-orb { opacity: 0.3; }
 
+/* ---- Toolkit section AI backdrop (SocialProof "A look inside") ----
+   A faint dark desk-scene photo (headphones, bricks, dice, worksheets)
+   behind the glass cards, softened by a dark scrim in the component.
+   The photo itself is dark and would muddy the light theme, so light
+   mode hides the layer entirely. */
+.cmc-toolkit-bg-img { opacity: 0.45; }
+html.light .cmc-toolkit-bg-img { display: none; }
+
 /* generic glass helpers */
 html.light .glass-panel {
   background: rgba(255, 255, 255, 0.85);

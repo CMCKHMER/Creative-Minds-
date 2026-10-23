@@ -121,6 +121,14 @@ export const SocialProof: React.FC = () => {
 
   return (
     <section aria-labelledby="preview-materials-title" className="cmc-section scroll-mt-24 border-y border-slate-800/80 bg-slate-900/35 py-20 sm:py-24 lg:py-28">
+      {/* AI-generated toolkit backdrop — headphones (listening), bricks (Brick
+          Forge), dice (Dice & Wheel), pencils + worksheets (classroom packs).
+          Faint under a dark scrim so the glass cards stay readable; hidden in
+          light mode via .cmc-toolkit-bg-img rules in index.css. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <img src="./images/toolkit-bg.jpg" alt="" loading="lazy" className="cmc-toolkit-bg-img h-full w-full object-cover" />
+        <span className="absolute inset-0 bg-gradient-to-b from-slate-950/88 via-slate-950/60 to-slate-950/90" />
+      </div>
       {/* Animated gradient orbs — soft cyan + violet atmosphere */}
       <div aria-hidden="true" className="cmc-orb cmc-orb--cyan" style={{ width: 360, height: 360, top: '-8rem', left: '-6rem' }} />
       <div aria-hidden="true" className="cmc-orb cmc-orb--violet" style={{ width: 320, height: 320, bottom: '-8rem', right: '-4rem' }} />
