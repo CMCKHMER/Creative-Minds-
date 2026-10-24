@@ -28,6 +28,15 @@
   .quick-btn.active{color:#fff; background:linear-gradient(135deg,var(--cm-primary),var(--cm-secondary)); border-color:transparent}
   .quick-btn svg{width:14px; height:14px}
   .quick-sep{width:1px; height:24px; background:var(--line); margin:0 2px; flex-shrink:0}
+  /* ── Mode tabs + per-mode tool sets ───────────────────── */
+  .mode-tabs{display:flex; gap:2px; padding:3px; background:var(--panel-2); border:1px solid var(--line); border-radius:9px; flex-shrink:0}
+  .mode-tab{padding:4px 12px; border:1px solid transparent; background:transparent; color:var(--muted); border-radius:6px; cursor:pointer; font-family:inherit; font-size:11px; font-weight:700; white-space:nowrap; transition:all .15s}
+  .mode-tab:hover{color:var(--text); transform:translateY(-1px)}
+  .mode-tab.active{color:#fff; background:linear-gradient(135deg,var(--cm-primary),var(--cm-secondary)); border-color:transparent}
+  .quick-set{display:flex; align-items:center; gap:4px; flex-shrink:0}
+  .quick-set.hidden{display:none!important}
+  .quick-bar select{padding:4px 8px; background:var(--panel-2); border:1px solid var(--line); color:var(--text); border-radius:7px; font-family:inherit; font-size:11px; font-weight:600; cursor:pointer}
+  .quick-bar input[type=color]{width:28px; height:24px; padding:1px; border:1px solid var(--line); background:var(--panel-2); border-radius:6px; cursor:pointer}
   .quick-add{padding:5px 8px; border:1px dashed var(--line); background:transparent; color:var(--muted); border-radius:7px; cursor:pointer; font-size:14px; font-weight:600; transition:all .15s}
   .quick-add:hover{color:var(--amber); border-color:var(--amber)}
 
@@ -523,127 +532,166 @@
     <span class="file" id="filename" contenteditable spellcheck="false">untitled.project</span>
   </nav>
 
-  <!-- Quick-access toolbar (customizable) -->
+  <!-- Quick-access toolbar — one tool set per mode (Canvas / Docs / Excel / Code).
+       The mode tabs on the left switch sets; selectTool() keeps tabs + sets in sync. -->
   <div class="quick-bar" id="quickBar">
-    <button class="quick-btn" data-quick-tool="select" title="Select/Move">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 7-6 2-2 6-6-15z"/></svg>Select
-    </button>
-    <button class="quick-btn" data-quick-tool="brush" title="Brush">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l4 4L8.5 19.5 4 20l.5-4.5L15 5z"/></svg>Brush
-    </button>
-    <button class="quick-btn" data-quick-tool="text" title="Text">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>Text
-    </button>
-    <button class="quick-btn" data-quick-tool="doc" title="Document">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Doc
-    </button>
-    <button class="quick-btn" data-quick-tool="code" title="Code Editor" style="border-color:rgba(137,180,250,.3)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-      <span>Code</span>
-    </button>
-    <button class="quick-btn" data-quick-tool="sheet" title="Spreadsheet">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="9" y1="4" x2="9" y2="20"/></svg>Sheet
-    </button>
+    <div class="mode-tabs" role="tablist" aria-label="Studio mode">
+      <button class="mode-tab" data-mode="canvas" role="tab" aria-selected="false">Canvas</button>
+      <button class="mode-tab" data-mode="doc" role="tab" aria-selected="false">Docs</button>
+      <button class="mode-tab" data-mode="sheet" role="tab" aria-selected="false">Excel</button>
+      <button class="mode-tab" data-mode="code" role="tab" aria-selected="false">Code</button>
+    </div>
     <div class="quick-sep"></div>
-    <button class="quick-btn" data-quick-tool="rect" title="Rectangle">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="6" width="16" height="12" rx="1"/></svg>Rect
-    </button>
-    <button class="quick-btn" data-quick-tool="ellipse" title="Ellipse">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="8.5" ry="6.5"/></svg>Ellipse
-    </button>
-    <button class="quick-btn" data-quick-tool="gradient" title="Gradient">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Gradient
-    </button>
-    <div class="quick-sep"></div>
-    <button class="quick-btn" data-quick-tool="crop" title="Crop">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.13 1L6 16a2 2 0 002 2h15"/><path d="M1 6.13L16 6a2 2 0 012 2v15"/></svg>Crop
-    </button>
-    <button class="quick-btn" data-quick-tool="transform" title="Transform">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14v14H5z" stroke-dasharray="3 2"/></svg>Transform
-    </button>
-    <button class="quick-btn" data-quick-tool="picker" title="Eyedropper">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 7l4 4-8.5 8.5H5V16L13 7z"/><path d="M14.5 5.5l2-2 4 4-2 2"/></svg>Picker
-    </button>
-    <div class="quick-sep"></div>
-    <button class="quick-btn" data-quick-action="file-save-png" title="Save PNG">💾 Save</button>
-    <button class="quick-btn" data-quick-action="file-save-pdf" title="Save PDF">📄 PDF</button>
-    <button class="quick-btn" data-quick-action="file-import" title="Import Image">📁 Open</button>
-    <div class="quick-sep"></div>
-    <button class="quick-btn" data-quick-action="view-zoom-in" title="Zoom In">🔍+</button>
-    <button class="quick-btn" data-quick-action="view-zoom-out" title="Zoom Out">🔍−</button>
-    <button class="quick-btn" data-quick-action="view-zoom-fit" title="Fit">⤢ Fit</button>
+
+    <!-- ── Canvas tool set ── -->
+    <div class="quick-set" data-set="canvas" id="quickSet-canvas">
+      <button class="quick-btn" data-quick-tool="select" title="Select/Move">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 7-6 2-2 6-6-15z"/></svg>Select
+      </button>
+      <button class="quick-btn" data-quick-tool="brush" title="Brush">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l4 4L8.5 19.5 4 20l.5-4.5L15 5z"/></svg>Brush
+      </button>
+      <button class="quick-btn" data-quick-tool="eraser" title="Eraser">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 15l9-9 7 7-5 5H9l-5-3z"/><path d="M12 21h9"/></svg>Eraser
+      </button>
+      <button class="quick-btn" data-quick-tool="text" title="Text">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>Text
+      </button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" data-quick-tool="rect" title="Rectangle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="6" width="16" height="12" rx="1"/></svg>Rect
+      </button>
+      <button class="quick-btn" data-quick-tool="ellipse" title="Ellipse">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="8.5" ry="6.5"/></svg>Ellipse
+      </button>
+      <button class="quick-btn" data-quick-tool="gradient" title="Gradient">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Gradient
+      </button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" data-quick-tool="crop" title="Crop">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.13 1L6 16a2 2 0 002 2h15"/><path d="M1 6.13L16 6a2 2 0 012 2v15"/></svg>Crop
+      </button>
+      <button class="quick-btn" data-quick-tool="transform" title="Transform">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14v14H5z" stroke-dasharray="3 2"/></svg>Transform
+      </button>
+      <button class="quick-btn" data-quick-tool="picker" title="Eyedropper">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 7l4 4-8.5 8.5H5V16L13 7z"/><path d="M14.5 5.5l2-2 4 4-2 2"/></svg>Picker
+      </button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" data-quick-action="file-save-png" title="Save PNG">💾 Save</button>
+      <button class="quick-btn" data-quick-action="file-save-pdf" title="Save PDF">📄 PDF</button>
+      <button class="quick-btn" data-quick-action="file-import" title="Import Image">📁 Open</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" data-quick-action="view-zoom-in" title="Zoom In">🔍+</button>
+      <button class="quick-btn" data-quick-action="view-zoom-out" title="Zoom Out">🔍−</button>
+      <button class="quick-btn" data-quick-action="view-zoom-fit" title="Fit">⤢ Fit</button>
+    </div>
+
+    <!-- ── Docs tool set (moved out of the old header wordBar) ── -->
+    <div class="quick-set hidden" data-set="doc" id="quickSet-doc">
+      <select id="docBlock" title="Paragraph style">
+        <option value="p">Paragraph</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option>
+      </select>
+      <select id="docFont" title="Document font">
+        <option value="Instrument Sans">Sans</option><option value="Georgia">Serif</option><option value="Courier New">Mono</option>
+        <option value="Inter">Inter</option><option value="Roboto">Roboto</option><option value="Lato">Lato</option>
+        <option value="Montserrat">Montserrat</option><option value="Playfair Display">Playfair</option><option value="Merriweather">Merriweather</option>
+      </select>
+      <select onchange="docCmd('fontName', this.value); this.selectedIndex=0" title="Font">
+        <option value="">Font…</option><option value="Inter">Inter</option><option value="Syne">Syne</option><option value="Roboto">Roboto</option><option value="Lato">Lato</option><option value="Montserrat">Montserrat</option><option value="Playfair Display">Playfair</option><option value="Merriweather">Merriweather</option><option value="Source Sans 3">Source Sans</option><option value="Oswald">Oswald</option><option value="Poppins">Poppins</option><option value="Raleway">Raleway</option><option value="Georgia">Georgia</option><option value="Arial">Arial</option><option value="Courier New">Courier</option>
+      </select>
+      <select onchange="docCmd('fontSize', this.value); this.selectedIndex=0" title="Font Size">
+        <option value="">Size…</option><option value="1">8pt</option><option value="2">10pt</option><option value="3">12pt</option><option value="4">14pt</option><option value="5">18pt</option><option value="6">24pt</option><option value="7">36pt</option>
+      </select>
+      <input type="color" id="docColor" value="#000000" title="Text Color">
+      <input type="color" id="docHighlight" value="#ffff00" title="Highlight Color">
+      <button class="quick-btn" onclick="docCmd('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
+      <button class="quick-btn" onclick="docCmd('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
+      <button class="quick-btn" onclick="docCmd('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
+      <button class="quick-btn" onclick="docCmd('strikeThrough')" title="Strikethrough"><s>S</s></button>
+      <button class="quick-btn" onclick="docCmd('superscript')" title="Superscript">x²</button>
+      <button class="quick-btn" onclick="docCmd('subscript')" title="Subscript">x₂</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="docCmd('insertUnorderedList')" title="Bullets">•</button>
+      <button class="quick-btn" onclick="docCmd('insertOrderedList')" title="Numbers">1.</button>
+      <button class="quick-btn" onclick="docCmd('justifyLeft')" title="Align Left">≡←</button>
+      <button class="quick-btn" onclick="docCmd('justifyCenter')" title="Align Center">≡</button>
+      <button class="quick-btn" onclick="docCmd('justifyRight')" title="Align Right">≡→</button>
+      <button class="quick-btn" onclick="docCmd('justifyFull')" title="Justify">≡≡</button>
+      <button class="quick-btn" onclick="docCmd('indent')" title="Increase Indent">→|</button>
+      <button class="quick-btn" onclick="docCmd('outdent')" title="Decrease Indent">|←</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="insertTable()" title="Insert Table">▦</button>
+      <button class="quick-btn" onclick="tableCmd('insertRowAbove')" title="Insert Row Above">+Row↑</button>
+      <button class="quick-btn" onclick="tableCmd('insertRowBelow')" title="Insert Row Below">+Row↓</button>
+      <button class="quick-btn" onclick="tableCmd('insertColLeft')" title="Insert Column Left">+Col←</button>
+      <button class="quick-btn" onclick="tableCmd('insertColRight')" title="Insert Column Right">+Col→</button>
+      <button class="quick-btn" onclick="tableCmd('deleteRow')" title="Delete Row">−Row</button>
+      <button class="quick-btn" onclick="tableCmd('deleteCol')" title="Delete Column">−Col</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="insertLink()" title="Insert Link">🔗</button>
+      <button class="quick-btn" onclick="insertSpecialChar()" title="Special Characters">Ω</button>
+      <button class="quick-btn" onclick="formatPainter()" title="Format Painter">🖌</button>
+      <button class="quick-btn" onclick="findReplace()" title="Find &amp; Replace">🔍</button>
+      <button class="quick-btn" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
+    </div>
+
+    <!-- ── Excel tool set (moved out of the old header sheetBar) ── -->
+    <div class="quick-set hidden" data-set="sheet" id="quickSet-sheet">
+      <button class="quick-btn" onclick="sheetCmd('bold')" title="Bold"><b>B</b></button>
+      <button class="quick-btn" onclick="sheetCmd('italic')" title="Italic"><i>I</i></button>
+      <button class="quick-btn" onclick="sheetCmd('underline')" title="Underline"><u>U</u></button>
+      <button class="quick-btn" onclick="sheetCmd('alignLeft')" title="Align Left">≡←</button>
+      <button class="quick-btn" onclick="sheetCmd('alignCenter')" title="Align Center">≡</button>
+      <button class="quick-btn" onclick="sheetCmd('alignRight')" title="Align Right">≡→</button>
+      <button class="quick-btn" onclick="sheetCmd('fillColor')" title="Fill Color">🎨</button>
+      <button class="quick-btn" onclick="sheetCmd('textColor')" title="Text Color" style="color:#f38ba8">A</button>
+      <input type="color" id="sheetColor" value="#000000" title="Cell Text Color">
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="sheetCmd('insertRowAbove')" title="Insert row above">+Row</button>
+      <button class="quick-btn" onclick="sheetCmd('insertColLeft')" title="Insert column left">+Col</button>
+      <button class="quick-btn" onclick="sheetCmd('deleteRow')" title="Delete row">−Row</button>
+      <button class="quick-btn" onclick="sheetCmd('deleteCol')" title="Delete column">−Col</button>
+      <button class="quick-btn" onclick="sheetCmd('addSheet')" title="Add sheet">+Sheet</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="sheetCmd('freezeToggle')" title="Freeze Panes">⏸</button>
+      <button class="quick-btn" onclick="sheetRecalc()" title="Recalculate formulas">↻ Recalc</button>
+      <button class="quick-btn" onclick="sheetCmd('clearFormat')" title="Clear Format">⌫</button>
+      <button class="quick-btn" onclick="sheetCmd('clearAll')" title="Clear All">🗑</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="fileSavePng()" title="Export sheet as PNG">💾 PNG</button>
+      <button class="quick-btn" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
+    </div>
+
+    <!-- ── Code tool set ── -->
+    <div class="quick-set hidden" data-set="code" id="quickSet-code">
+      <select id="codeLangQuick" onchange="setCodeLangQuick(this.value)" title="Language">
+        <option value="javascript">JavaScript</option>
+        <option value="html">HTML</option>
+        <option value="css">CSS</option>
+        <option value="python">Python</option>
+        <option value="json">JSON</option>
+        <option value="markdown">Markdown</option>
+        <option value="plaintext">Plain Text</option>
+      </select>
+      <button class="quick-btn" onclick="codeRun()" title="Run code (Ctrl+Enter)">▶ Run</button>
+      <button class="quick-btn" onclick="codeFormat()" title="Format code">⌁ Format</button>
+      <button class="quick-btn" onclick="codeCopy()" title="Copy code">⧉ Copy</button>
+      <button class="quick-btn" onclick="codeClear()" title="Clear editor">🗑</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="codeToggleWrap()" id="codeWrapBtn" title="Toggle word wrap">↵ Wrap</button>
+      <button class="quick-btn" onclick="codeFontSize(-1)" title="Smaller code font">A−</button>
+      <button class="quick-btn" onclick="codeFontSize(1)" title="Larger code font">A+</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="codeDownload()" title="Download the code as a file">⬇ Download</button>
+      <button class="quick-btn" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
+    </div>
   </div>
 
   <header>
     <div class="top-actions">
-      <div id="wordBar" class="hidden" style="display:flex; gap:4px; margin-right:16px; padding-right:16px; border-right:1px solid var(--line); flex-wrap:wrap">
-        <select id="docBlock" style="width:auto;margin:0;padding:4px 8px;font-size:12px">
-          <option value="p">Paragraph</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option>
-        </select>
-        <select id="docFont" style="width:auto;margin:0;padding:4px 8px;font-size:12px">
-          <option value="Instrument Sans">Sans</option><option value="Georgia">Serif</option><option value="Courier New">Mono</option>
-          <option value="Inter">Inter</option><option value="Roboto">Roboto</option><option value="Lato">Lato</option>
-          <option value="Montserrat">Montserrat</option><option value="Playfair Display">Playfair</option><option value="Merriweather">Merriweather</option>
-        </select>
-        <select onchange="docCmd('fontName', this.value); this.selectedIndex=0" title="Font" style="padding:3px 6px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);border-radius:5px;font-size:11px"><option value="">Font…</option><option value="Inter">Inter</option><option value="Syne">Syne</option><option value="Roboto">Roboto</option><option value="Lato">Lato</option><option value="Montserrat">Montserrat</option><option value="Playfair Display">Playfair</option><option value="Merriweather">Merriweather</option><option value="Source Sans 3">Source Sans</option><option value="Oswald">Oswald</option><option value="Poppins">Poppins</option><option value="Raleway">Raleway</option><option value="Georgia">Georgia</option><option value="Arial">Arial</option><option value="Courier New">Courier</option></select>
-        <select onchange="docCmd('fontSize', this.value); this.selectedIndex=0" title="Font Size" style="padding:3px 6px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);border-radius:5px;font-size:11px"><option value="">Size…</option><option value="1">8pt</option><option value="2">10pt</option><option value="3">12pt</option><option value="4">14pt</option><option value="5">18pt</option><option value="6">24pt</option><option value="7">36pt</option></select>
-        <input type="color" onchange="docCmd('foreColor', this.value)" title="Text Color" style="width:28px;height:24px;padding:2px;border:1px solid var(--line);background:var(--panel-2);border-radius:5px;cursor:pointer">
-        <button class="tgl" onclick="docCmd('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
-        <button class="tgl" onclick="docCmd('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
-        <button class="tgl" onclick="docCmd('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
-        <button class="tgl" onclick="docCmd('strikeThrough')" title="Strikethrough"><s>S</s></button>
-        <button class="tgl" onclick="docCmd('superscript')" title="Superscript" style="font-size:10px">x²</button>
-        <button class="tgl" onclick="docCmd('subscript')" title="Subscript" style="font-size:10px">x₂</button>
-        <input type="color" id="docColor" value="#000000" style="width:28px;height:28px;border:none;background:none;cursor:pointer" title="Text Color">
-        <input type="color" id="docHighlight" value="#ffff00" style="width:28px;height:28px;border:none;background:none;cursor:pointer" title="Highlight Color">
-        <button class="tgl" onclick="docCmd('insertUnorderedList')" title="Bullets">•</button>
-        <button class="tgl" onclick="docCmd('insertOrderedList')" title="Numbers">1.</button>
-        <button class="tgl" onclick="docCmd('justifyLeft')" title="Align Left">≡←</button>
-        <button class="tgl" onclick="docCmd('justifyCenter')" title="Align Center">≡</button>
-        <button class="tgl" onclick="docCmd('justifyRight')" title="Align Right">≡→</button>
-        <button class="tgl" onclick="docCmd('justifyFull')" title="Justify">≡≡</button>
-        <button class="tgl" onclick="docCmd('indent')" title="Increase Indent">→|</button>
-        <button class="tgl" onclick="docCmd('outdent')" title="Decrease Indent">|←</button>
-        <span style="width:1px;height:24px;background:var(--line);margin:0 2px"></span>
-        <button class="tgl" onclick="insertTable()" title="Insert Table">▦</button>
-        <button class="tgl" onclick="tableCmd('insertRowAbove')" title="Insert Row Above" style="font-size:9px">+Row↑</button>
-        <button class="tgl" onclick="tableCmd('insertRowBelow')" title="Insert Row Below" style="font-size:9px">+Row↓</button>
-        <button class="tgl" onclick="tableCmd('insertColLeft')" title="Insert Column Left" style="font-size:9px">+Col←</button>
-        <button class="tgl" onclick="tableCmd('insertColRight')" title="Insert Column Right" style="font-size:9px">+Col→</button>
-        <button class="tgl" onclick="tableCmd('deleteRow')" title="Delete Row" style="font-size:9px">−Row</button>
-        <button class="tgl" onclick="tableCmd('deleteCol')" title="Delete Column" style="font-size:9px">−Col</button>
-        <span style="width:1px;height:24px;background:var(--line);margin:0 2px"></span>
-        <button class="tgl" onclick="insertLink()" title="Insert Link">🔗</button>
-        <button class="tgl" onclick="insertSpecialChar()" title="Special Characters">Ω</button>
-        <button class="tgl" onclick="formatPainter()" title="Format Painter">🖌</button>
-        <button class="tgl" onclick="findReplace()" title="Find & Replace">🔍</button>
-        <button class="tgl" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
-      </div>
-      <div id="codeBar" class="hidden" style="display:flex;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line);align-items:center">
-        <span style="color:#89b4fa;font-size:11px;font-weight:600">Code Editor</span>
-        <button class="tgl" onclick="codeRun()" title="Run code (Ctrl+Enter)">▶ Run</button>
-        <button class="tgl" onclick="codeDownload()" title="Download the code as a file">⬇ File</button>
-        <button class="tgl" onclick="printFromMode()" title="Print / Save as PDF">🖨 PDF</button>
-      </div>
-    <div id="sheetBar" class="hidden" style="display:flex;gap:6px;margin-right:16px;padding-right:16px;border-right:1px solid var(--line)">
-        <button class="tgl" onclick="sheetCmd('alignLeft')" title="Align Left">≡←</button>
-        <button class="tgl" onclick="sheetCmd('alignCenter')" title="Align Center">≡</button>
-        <button class="tgl" onclick="sheetCmd('alignRight')" title="Align Right">≡→</button>
-        <button class="tgl" onclick="sheetCmd('fillColor')" title="Fill Color" style="background:#4cc9f033">🎨</button>
-        <button class="tgl" onclick="sheetCmd('textColor')" title="Text Color" style="color:#e74c3c">A</button>
-        <button class="tgl" onclick="sheetCmd('freezeToggle')" title="Freeze Panes">⏸</button>
-        <button class="tgl" onclick="sheetCmd('clearFormat')" title="Clear Format">⌫</button>
-        <button class="tgl" onclick="sheetCmd('clearAll')" title="Clear All">🗑</button>
-        <button class="tgl" onclick="sheetCmd('bold')" title="Bold"><b>B</b></button>
-        <button class="tgl" onclick="sheetCmd('italic')" title="Italic"><i>I</i></button>
-        <button class="tgl" onclick="sheetCmd('underline')" title="Underline"><u>U</u></button>
-        <input type="color" id="sheetColor" value="#000000" style="width:28px;height:28px;border:none;background:none;cursor:pointer" title="Cell Text Color">
-        <button class="tgl" onclick="sheetCmd('insertRowAbove')" title="Insert row above">+Row</button>
-        <button class="tgl" onclick="sheetCmd('insertColLeft')" title="Insert column left">+Col</button>
-        <button class="tgl" onclick="sheetCmd('deleteRow')" title="Delete row">−Row</button>
-        <button class="tgl" onclick="sheetCmd('deleteCol')" title="Delete column">−Col</button>
-        <button class="tgl" onclick="sheetCmd('addSheet')" title="Add sheet">+Sheet</button>
-      </div>
       <button class="btn-ghost" id="importBtn">+ Image</button>
       <input type="file" id="fileInput" accept="image/*" hidden>
       <input type="file" id="openInput" accept="image/png,image/jpeg,application/json,.json" hidden>
@@ -1033,7 +1081,6 @@ const undoBtn = document.getElementById('undoBtn'), redoBtn = document.getElemen
 const exportBtn = document.getElementById('exportBtn'), importBtn = document.getElementById('importBtn');
 const fileInput = document.getElementById('fileInput'), openInput = document.getElementById('openInput');
 const clearBtn = document.getElementById('clearBtn');
-const wordBar = document.getElementById('wordBar'), sheetBar = document.getElementById('sheetBar');
 const vectorTextPanel = document.getElementById('vectorTextPanel');
 const cropBar = document.getElementById('cropBar'), cropApply = document.getElementById('cropApply'), cropCancel = document.getElementById('cropCancel');
 const cropDims = document.getElementById('cropDims');
@@ -1435,7 +1482,8 @@ function selectTool(t){
   sheetLayer.style.display = isSheet ? 'flex' : 'none';
   const isCode = t === 'code';
   codeLayer.style.display = isCode ? 'flex' : 'none';
-  codeBar.classList.toggle('hidden', !isCode);
+  // Sync the quick-bar: one tool set per mode (canvas / doc / sheet / code)
+  syncQuickMode(isCode ? 'code' : isDoc ? 'doc' : isSheet ? 'sheet' : 'canvas');
   if (isCode) {
     if (!codeEditor.value && !codeContent[currentCodeLang]) {
       const templates = {
@@ -1455,8 +1503,6 @@ function selectTool(t){
     updateLineNumbers();
     updateCodeStats();
   }
-  wordBar.classList.toggle('hidden', !isDoc);
-  sheetBar.classList.toggle('hidden', !isSheet);
   vectorTextPanel.classList.toggle('hidden', isDoc || isSheet || isCode); // vector text is canvas-only — the one tool that genuinely does not apply in doc/sheet/code
   preview.style.pointerEvents = (isDoc || isSheet) ? 'none' : 'auto';
   if (isSheet) { renderSheet(); renderSheetTabs(); }
@@ -2905,6 +2951,43 @@ exportBtn.onclick = () => { const fileMenu = document.querySelector('[data-menu=
 clearBtn.onclick = editClear;
 
 /* ── Quick-access toolbar wiring ────────────────────── */
+/* ── Mode tabs: Canvas / Docs / Excel / Code — one tool set per mode ── */
+function syncQuickMode(mode){
+  document.querySelectorAll('.quick-set').forEach(el => el.classList.toggle('hidden', el.dataset.set !== mode));
+  document.querySelectorAll('.mode-tab').forEach(b => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+}
+document.querySelectorAll('.mode-tab').forEach(tab => tab.addEventListener('click', () => {
+  const m = tab.dataset.mode;
+  selectTool(m === 'canvas' ? 'select' : m);
+}));
+/* Code tool set helpers (language mirror, word wrap, editor font size) */
+function setCodeLangQuick(v){
+  const s = document.getElementById('codeLang');
+  if (s) { s.value = v; updateCodeLang(); }
+  const q = document.getElementById('codeLangQuick');
+  if (q) q.value = v;
+}
+function codeToggleWrap(){
+  const ed = codeEditor;
+  const wrapOn = ed.style.whiteSpace !== 'pre-wrap';
+  ed.style.whiteSpace = wrapOn ? 'pre-wrap' : 'pre';
+  try { ed.wrap = wrapOn ? 'soft' : 'off'; } catch(err) {}
+  const btn = document.getElementById('codeWrapBtn');
+  if (btn) btn.classList.toggle('active', wrapOn);
+  statusFlash('Word wrap ' + (wrapOn ? 'on' : 'off'));
+}
+function codeFontSize(d){
+  const cur = parseFloat(getComputedStyle(codeEditor).fontSize) || 13;
+  const next = Math.min(24, Math.max(10, cur + d));
+  codeEditor.style.fontSize = next + 'px';
+  const ln = document.getElementById('codeLineNumbers');
+  if (ln) ln.style.fontSize = next + 'px';
+  statusFlash('Code font ' + Math.round(next) + 'px');
+}
 document.querySelectorAll('.quick-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const toolName = btn.dataset.quickTool;
@@ -3020,7 +3103,6 @@ const codeStats = document.getElementById('codeStats');
 const codeCursorPos = document.getElementById('codeCursorPos');
 const codeLangSelect = document.getElementById('codeLang');
 const codeLangLabel = document.getElementById('codeLangLabel');
-const codeBar = document.getElementById('codeBar');
 
 let codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' };
 let currentCodeLang = 'javascript';
