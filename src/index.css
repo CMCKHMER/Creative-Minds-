@@ -1017,14 +1017,19 @@ html.light .cmc-icon-glow::before {
 html.light .cmc-orb { opacity: 0.3; }
 
 /* ---- Toolkit section AI backdrop (SocialProof "A look inside") ----
-   Dark mode: faint desk-scene photo (headphones, bricks, dice,
-   worksheets) + per-card artwork under dark scrims form the dark
-   showcase band. Light mode hides both photo layers so the band falls
-   back to the global light palette (white wash band, ink text, light
-   glass cards, dark accent text) and matches the rest of the light
-   page — the dark AI photos would otherwise clash with it. */
+   Each theme gets its own AI desk-scene photo (headphones, bricks,
+   dice, worksheets): the dark navy shot in dark mode under a dark
+   scrim, the bright white shot in light mode under a white veil —
+   the band always shows a background image without wrecking text
+   contrast. Card artwork stays dark-mode-only (light glass cards
+   read better without it). */
 .cmc-toolkit-bg-img { opacity: 0.45; }
-html.light .cmc-toolkit-backdrop,
+.cmc-toolkit-bg-img-light { display: none; }
+html.light .cmc-toolkit-bg-img { display: none; }
+html.light .cmc-toolkit-bg-img-light { display: block; opacity: 0.6; }
+html.light .cmc-toolkit-scrim {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.9));
+}
 html.light .cmc-card-art { display: none; }
 /* Accent chip borders: the 300-hue pastels are tuned for dark cards and
    go faint on white — nudge them to 600-hue tints in light mode. */

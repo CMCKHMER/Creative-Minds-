@@ -125,14 +125,15 @@ export const SocialProof: React.FC = () => {
       className="cmc-section cmc-toolkit-band scroll-mt-24 border-y border-slate-800/80 bg-slate-900/35 py-20 sm:py-24 lg:py-28"
     >
       {/* AI-generated toolkit backdrop — headphones (listening), bricks (Brick
-          Forge), dice (Dice & Wheel), pencils + worksheets (classroom packs) —
-          faint under a dark scrim so the glass cards stay readable in dark
-          mode. Light mode hides both photo layers (.cmc-toolkit-backdrop and
-          .cmc-card-art rules in index.css) so the section falls back to the
-          global light palette and matches the rest of the light page. */}
+          Forge), dice (Dice & Wheel), pencils + worksheets (classroom packs).
+          Each theme shows its own shot: the dark navy photo under a dark scrim
+          in dark mode, the bright white photo under a white veil in light mode
+          (index.css swaps .cmc-toolkit-bg-img / .cmc-toolkit-bg-img-light and
+          recolors .cmc-toolkit-scrim). Card artwork stays dark-mode-only. */}
       <div aria-hidden="true" className="cmc-toolkit-backdrop pointer-events-none absolute inset-0">
         <img src="./images/toolkit-bg.jpg" alt="" loading="lazy" className="cmc-toolkit-bg-img h-full w-full object-cover" />
-        <span className="absolute inset-0 bg-gradient-to-b from-slate-950/88 via-slate-950/60 to-slate-950/90" />
+        <img src="./images/toolkit-bg-light.jpg" alt="" loading="lazy" className="cmc-toolkit-bg-img-light h-full w-full object-cover" />
+        <span className="cmc-toolkit-scrim absolute inset-0 bg-gradient-to-b from-slate-950/88 via-slate-950/60 to-slate-950/90" />
       </div>
       {/* Animated gradient orbs — soft cyan + violet atmosphere */}
       <div aria-hidden="true" className="cmc-orb cmc-orb--cyan" style={{ width: 360, height: 360, top: '-8rem', left: '-6rem' }} />
