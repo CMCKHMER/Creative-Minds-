@@ -1017,20 +1017,25 @@ html.light .cmc-icon-glow::before {
 html.light .cmc-orb { opacity: 0.3; }
 
 /* ---- Toolkit section AI backdrop (SocialProof "A look inside") ----
-   A faint dark desk-scene photo (headphones, bricks, dice, worksheets)
-   behind the glass cards, softened by a dark scrim in the component.
-   The section is a data-keep-dark zone: it keeps its dark showcase look
-   in light mode too, so the photo shows in BOTH themes. Light mode gets
-   a solid slate-900 base under the photo + scrim — the plain
-   bg-slate-900/35 wash would otherwise sit on the light page background
-   and turn the band muddy grey. */
+   Dark mode: faint desk-scene photo (headphones, bricks, dice,
+   worksheets) + per-card artwork under dark scrims form the dark
+   showcase band. Light mode hides both photo layers so the band falls
+   back to the global light palette (white wash band, ink text, light
+   glass cards, dark accent text) and matches the rest of the light
+   page — the dark AI photos would otherwise clash with it. */
 .cmc-toolkit-bg-img { opacity: 0.45; }
-html.light [data-keep-dark].bg-slate-900\/35 { background-color: #0f172a; }
-/* Keep the faint dark hairline divider on the dark band (the global
-   light-mode ::before override is tuned for light backgrounds). */
-html.light .cmc-section[data-keep-dark]::before {
-  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, .08), transparent);
-}
+html.light .cmc-toolkit-backdrop,
+html.light .cmc-card-art { display: none; }
+/* Accent chip borders: the 300-hue pastels are tuned for dark cards and
+   go faint on white — nudge them to 600-hue tints in light mode. */
+html.light .cmc-toolkit-band .border-cyan-300\/25 { border-color: rgba(8, 145, 178, 0.3); }
+html.light .cmc-toolkit-band .border-teal-300\/25 { border-color: rgba(13, 148, 136, 0.3); }
+html.light .cmc-toolkit-band .border-violet-300\/25 { border-color: rgba(124, 58, 237, 0.28); }
+html.light .cmc-toolkit-band .border-amber-300\/25 { border-color: rgba(217, 119, 6, 0.3); }
+html.light .cmc-toolkit-band .border-sky-300\/25 { border-color: rgba(2, 132, 199, 0.3); }
+html.light .cmc-toolkit-band .border-emerald-300\/25 { border-color: rgba(5, 150, 105, 0.3); }
+/* Practice-area icons: text-cyan-300/80 has no global light override */
+html.light .cmc-toolkit-band .text-cyan-300\/80 { color: rgba(8, 145, 178, 0.85); }
 
 /* generic glass helpers */
 html.light .glass-panel {

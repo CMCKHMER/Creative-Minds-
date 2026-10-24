@@ -122,17 +122,15 @@ export const SocialProof: React.FC = () => {
   return (
     <section
       aria-labelledby="preview-materials-title"
-      data-keep-dark="true"
-      className="cmc-section scroll-mt-24 border-y border-slate-800/80 bg-slate-900/35 py-20 sm:py-24 lg:py-28"
+      className="cmc-section cmc-toolkit-band scroll-mt-24 border-y border-slate-800/80 bg-slate-900/35 py-20 sm:py-24 lg:py-28"
     >
       {/* AI-generated toolkit backdrop — headphones (listening), bricks (Brick
           Forge), dice (Dice & Wheel), pencils + worksheets (classroom packs) —
-          faint under a dark scrim so the glass cards stay readable. The whole
-          section is a data-keep-dark zone, so this dark showcase band (artwork
-          included) renders the same in light mode; index.css gives it a solid
-          slate-900 base there. Per-card data-keep-dark attrs are redundant but
-          kept as belt-and-braces. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          faint under a dark scrim so the glass cards stay readable in dark
+          mode. Light mode hides both photo layers (.cmc-toolkit-backdrop and
+          .cmc-card-art rules in index.css) so the section falls back to the
+          global light palette and matches the rest of the light page. */}
+      <div aria-hidden="true" className="cmc-toolkit-backdrop pointer-events-none absolute inset-0">
         <img src="./images/toolkit-bg.jpg" alt="" loading="lazy" className="cmc-toolkit-bg-img h-full w-full object-cover" />
         <span className="absolute inset-0 bg-gradient-to-b from-slate-950/88 via-slate-950/60 to-slate-950/90" />
       </div>
@@ -163,14 +161,10 @@ export const SocialProof: React.FC = () => {
                   key={index}
                   href={card.link}
                   {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  // Artwork cards keep their dark scrim + light text even in
-                  // light mode — the AI artwork underneath stays dark, so
-                  // flipping the overlay text would wreck contrast.
-                  {...(card.image ? { 'data-keep-dark': 'true' } : {})}
                   className={`cmc-glass group relative flex flex-col gap-3 overflow-hidden p-5 ${accent.border}`}
                 >
                   {card.image && (
-                    <span aria-hidden="true" className="pointer-events-none absolute inset-0">
+                    <span aria-hidden="true" className="cmc-card-art pointer-events-none absolute inset-0">
                       <img
                         src={card.image}
                         alt=""
