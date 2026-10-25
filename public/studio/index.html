@@ -935,7 +935,7 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
     <span id="coords">x — · y —</span>
     <span id="toolLabel">Brush</span>
     <span id="zoomLabel">100%</span>
-    <span id="dims">1280 × 800 px</span>
+    <span id="dims">794 × 1123 px</span>
     <span id="statusFlash"></span>
     <span class="live"><i></i> ready</span>
   </footer>
@@ -992,7 +992,7 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
   <span class="modal-close" onclick="closeModal('pageSizeModal')">Close ×</span>
   <h2>Page Size</h2>
   <div class="dialog-field"><label>Preset</label><div class="preset-grid" id="pageSizePresets"></div></div>
-  <div class="dialog-field"><label>Custom width × height (px)</label><div style="display:flex; gap:8px"><input type="number" id="pageW" value="1280" min="1" max="8000"><input type="number" id="pageH" value="800" min="1" max="8000"></div></div>
+  <div class="dialog-field"><label>Custom width × height (px)</label><div style="display:flex; gap:8px"><input type="number" id="pageW" value="794" min="1" max="8000"><input type="number" id="pageH" value="1123" min="1" max="8000"></div></div>
   <div class="dialog-field"><label>Background</label><div class="bg-row" id="pageBgRow"></div></div>
   <div class="dialog-buttons"><button class="cancel" onclick="closeModal('pageSizeModal')">Cancel</button><button class="primary" id="pageSizeApply">Apply</button></div>
 </div></div>
@@ -1002,7 +1002,7 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
   <span class="modal-close" onclick="closeModal('imageResizeModal')">Close ×</span>
   <h2>Image Resize</h2>
   <p class="about" style="margin-bottom:14px">Scales the canvas content (not just the page). Uses bicubic-style smoothing.</p>
-  <div class="dialog-field"><label>New width × height (px)</label><div style="display:flex; gap:8px; align-items:center"><input type="number" id="rsW" value="1280" min="1" max="8000"><span>×</span><input type="number" id="rsH" value="800" min="1" max="8000"></div></div>
+  <div class="dialog-field"><label>New width × height (px)</label><div style="display:flex; gap:8px; align-items:center"><input type="number" id="rsW" value="794" min="1" max="8000"><span>×</span><input type="number" id="rsH" value="1123" min="1" max="8000"></div></div>
   <div class="dialog-field"><label>Lock aspect ratio</label><div class="seg"><button id="rsLockOn" class="on">Lock</button><button id="rsLockOff">Free</button></div></div>
   <div class="dialog-buttons"><button class="cancel" onclick="closeModal('imageResizeModal')">Cancel</button><button class="primary" id="imageResizeApply">Apply</button></div>
 </div></div>
@@ -1111,7 +1111,7 @@ const caretGuide = document.getElementById('caretGuide');
 const blendModeEl = document.getElementById('blendMode');
 const layerOpacityEl = document.getElementById('layerOpacity'), layerOpOut = document.getElementById('layerOpOut');
 const layerList = document.getElementById('layerList'), historyList = document.getElementById('historyList');
-let W=1280, H=800;
+let W=794, H=1123; // A4 portrait at 96dpi — all tools start portrait
 
 let tool='brush', color='#06b6d4', size=8, opacity=1, hardness=80, shapeFill=false, bgColor='#ffffff';
 let drawing=false, startPt=null, lastPt=null, prevMid=null;
@@ -2653,7 +2653,7 @@ function printFromMode(){
     statusFlash('Print / Save-as-PDF opened for the document');
   } else if (mode === 'sheet') {
     const tbl = buildSheetTableNode(); if (!tbl) return;
-    printWindow(name + ' — ' + (sheets[currentSheet] ? sheets[currentSheet].name : 'Sheet'), tbl.outerHTML, { landscape: true, css: 'table{font-size:9.5pt;} th,td{padding:3px 6px;}' });
+    printWindow(name + ' — ' + (sheets[currentSheet] ? sheets[currentSheet].name : 'Sheet'), tbl.outerHTML, { css: 'table{font-size:9.5pt;} th,td{padding:3px 6px;}' });
     statusFlash('Print / Save-as-PDF opened for the spreadsheet');
   } else if (mode === 'code') {
     printWindow(name + ' — Code', '<pre>' + escapeHtml(codeEditor.value) + '</pre>');
@@ -2711,7 +2711,7 @@ function canvasToBlob(callback, type='image/png', quality=0.92){
   o.drawImage(base,0,0); o.drawImage(textLayer,0,0);
   out.toBlob(callback, type, quality);
 }
-function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(1280, 800); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' }; codeEditor.value = ''; updateLineNumbers(); updateCodeStats(); bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; sheetCellUndo = []; sheetCellRedo = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
+function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(794, 1123); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' }; codeEditor.value = ''; updateLineNumbers(); updateCodeStats(); bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; sheetCellUndo = []; sheetCellRedo = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
 function fileOpen(){ openInput.click(); }
 openInput.onchange = e => {
   const f = e.target.files[0]; if (!f) return;
