@@ -83,6 +83,10 @@
   .tool::after{content:attr(data-tip); position:fixed; left:64px; opacity:0; pointer-events:none; background:#0c0e14; color:var(--text); font-size:11px; padding:6px 12px; border-radius:6px; border:1px solid var(--line); white-space:nowrap; transition:opacity .15s; z-index:1000; box-shadow:0 8px 24px rgba(0,0,0,.5); font-weight:600}
   .tool:hover::after{opacity:1}
   .rail hr{width:26px; border:none; border-top:1px solid var(--line); margin:4px 0}
+  /* Left rail is canvas-only: dim + disable it in Docs/Excel/Code so a click never switches the view back to canvas */
+  .rail.off .tool{opacity:.35; cursor:not-allowed}
+  .rail.off .tool:hover{color:var(--muted); background:transparent; transform:none}
+  .rail.off .tool::after{content:'Canvas tool — return to the Canvas tab to use the left toolbar'}
 
   /* Stage & Rulers */
   .stage-wrap{position:relative; overflow:hidden; display:grid; grid-template-columns:24px 1fr; grid-template-rows:24px 1fr; background:#101218}
@@ -1454,7 +1458,8 @@ lineHeightEl.oninput=()=>{tLineHeight=(+lineHeightEl.value)/100; lhOut.textConte
 
 /* ── Tool Selection ────────────────────────────────── */
 const toolNames={select:'Select/Move',brush:'Brush',eraser:'Eraser',line:'Line',rect:'Rectangle',ellipse:'Ellipse',gradient:'Gradient',text:'Vector Text',doc:'Document Mode (Word)',sheet:'Spreadsheet (Excel)',transform:'Free Transform',perspective:'Perspective Warp',crop:'Crop',margins:'Margins & Guides',picker:'Eyedropper',code:'Code Editor'};
-document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>selectTool(b.dataset.tool));
+const railEl=document.getElementById('rail');
+document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>{ if(railEl.classList.contains('off') && railEl.contains(b)) return; selectTool(b.dataset.tool); });
 function selectTool(t){
   if (!toolNames[t]) t = 'brush';
   // Commit any text being typed BEFORE tearing down the editing state,
@@ -1482,6 +1487,8 @@ function selectTool(t){
   codeLayer.style.display = isCode ? 'flex' : 'none';
   // Sync the quick-bar: one tool set per mode (canvas / doc / sheet / code)
   syncQuickMode(isCode ? 'code' : isDoc ? 'doc' : isSheet ? 'sheet' : 'canvas');
+  // Dim + disable the left rail outside Canvas mode — its tools are canvas-only and must never switch the view
+  railEl.classList.toggle('off', isDoc || isSheet || isCode);
   if (isCode) {
     if (!codeEditor.value && !codeContent[currentCodeLang]) {
       const templates = {
