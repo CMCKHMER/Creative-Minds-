@@ -13,6 +13,7 @@
 
 import { firebaseConfigured, getFirebaseAuth } from './firebase';
 import { clearPersistedSession, detectRoleFromEmail } from './firebaseAuth';
+import { createStudentProfile } from './firebaseDb';
 import type { User } from 'firebase/auth';
 
 export interface StudentProfile {
@@ -31,36 +32,77 @@ export interface StudentAuthState {
   error: string | null;
 }
 
-/** Sign up a new student with email + password */
+/** Sign up a new student with email + password.
+ *  SECURITY: the account is created unverified — the verification link is
+ *  sent, the fresh session is torn down immediately, and the caller shows
+ *  a check-your-inbox state. The student signs in only AFTER clicking it. */
 export async function studentSignUp(
   email: string,
   password: string,
   displayName: string,
-): Promise<{ ok: boolean; error?: string }> {
+  profile?: { grade?: number; school?: string },
+): Promise<{ ok: boolean; error?: string; pendingVerification?: boolean; uid?: string; email?: string }> {
   const auth = await getFirebaseAuth();
   if (!auth) return { ok: false, error: 'Firebase not configured' };
-  const { createUserWithEmailAndPassword, updateProfile } = await import('firebase/auth');
+  const { createUserWithEmailAndPassword, updateProfile, sendEmailVerification, signOut } = await import('firebase/auth');
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     if (displayName) await updateProfile(cred.user, { displayName });
-    // Bridge: make the worksheets/REST surfaces see this session too.
-    await persistSessionFromSdkUser(cred.user, displayName);
-    return { ok: true };
+    // Create the Firestore profile doc while the (unverified) auth context
+    // still exists — students/{uid} create is the one write allowed pre-
+    // verification, updates need verification.
+    try {
+      await createStudentProfile(cred.user.uid, {
+        displayName,
+        email,
+        grade: profile?.grade,
+        school: profile?.school,
+      });
+    } catch { /* profile is re-creatable; verification flow must not block */ }
+    // Send the proof-of-ownership link.
+    try {
+      await sendEmailVerification(cred.user, {
+        url: `${window.location.origin}${window.location.pathname}`,
+        handleCodeInApp: false,
+      });
+    } catch { /* best-effort — sign-in resends automatically */ }
+    // Tear the session down: no usable session exists until verified.
+    await signOut(auth);
+    clearPersistedSession();
+    return { ok: true, pendingVerification: true, uid: cred.user.uid, email: cred.user.email || email };
   } catch (err: any) {
     return { ok: false, error: err?.message ?? 'Sign up failed' };
   }
 }
 
-/** Sign in an existing student */
+/** Sign in an existing student.
+ *  SECURITY GATE: email/password accounts without a verified email get no
+ *  session — a fresh verification link is sent and a typed result is
+ *  returned so the UI can show the check-your-inbox state. */
 export async function studentSignIn(
   email: string,
   password: string,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; needsVerification?: boolean }> {
   const auth = await getFirebaseAuth();
   if (!auth) return { ok: false, error: 'Firebase not configured' };
-  const { signInWithEmailAndPassword } = await import('firebase/auth');
+  const { signInWithEmailAndPassword, sendEmailVerification, signOut } = await import('firebase/auth');
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
+    if (!cred.user.emailVerified) {
+      try {
+        await sendEmailVerification(cred.user, {
+          url: `${window.location.origin}${window.location.pathname}`,
+          handleCodeInApp: false,
+        });
+      } catch { /* best-effort — the user can retry */ }
+      await signOut(auth);
+      clearPersistedSession();
+      return {
+        ok: false,
+        needsVerification: true,
+        error: `Please verify your email before signing in. We just sent a fresh verification link to ${cred.user.email || email} — open it, tap “Verify”, then sign in again.`,
+      };
+    }
     await persistSessionFromSdkUser(cred.user);
     return { ok: true };
   } catch (err: any) {
@@ -116,6 +158,10 @@ function idTokenExpiryMs(idToken: string): number {
 }
 
 async function persistSessionFromSdkUser(user: User, displayNameOverride?: string): Promise<void> {
+  // Verification gate — an unverified SDK account must never bridge into
+  // the localStorage session the worksheets use for authenticated writes
+  // (covers the onAuthStateChanged self-heal path too).
+  if (!user.emailVerified) { clearPersistedSession(); return; }
   try {
     const idToken = await user.getIdToken();
     localStorage.setItem('cmc-student-token', idToken);

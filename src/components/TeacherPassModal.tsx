@@ -10,8 +10,8 @@ import {
   sendPasswordReset,
   signInWithEmail,
   signUpWithEmail,
+  toRestoredSession,
   type FirebaseAuthError,
-  type FirebaseSession,
   type RestoredSession,
 } from '../lib/firebaseAuth';
 
@@ -29,20 +29,6 @@ interface TeacherPassModalProps {
 
 function emailRedirectUrl(): string {
   return `${window.location.origin}${window.location.pathname}#toefl-mini-test`;
-}
-
-/** Normalize a fresh Firebase REST session into the shape of the
- *  persisted-session type so both can live in the same React state. */
-function toRestoredSession(session: FirebaseSession): RestoredSession {
-  return {
-    idToken: session.idToken,
-    localId: session.localId,
-    email: session.email,
-    displayName: session.displayName || session.email,
-    emailVerified: session.emailVerified,
-    isExpired: session.expiresAt > 0 && Date.now() >= session.expiresAt,
-    role: session.role ?? detectRoleFromEmail(session.email),
-  };
 }
 
 export const TeacherPassModal = ({
@@ -145,15 +131,14 @@ export const TeacherPassModal = ({
         teachingRole: role,
         continueUrl: emailRedirectUrl(),
       });
+      // SECURITY: no session is persisted until the email is verified.
+      // The session object lives in React state only (powering "Resend").
       setResendAvailable(true);
       setActiveSession(toRestoredSession(session));
-      setMode('authenticated');
-      window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
-      if (session.emailVerified) {
-        setMessage('Account created. You can now sign in to your member dashboard.');
-      } else {
-        setMessage(`Account created. A verification link was sent to ${email.trim()}. You can keep using the site meanwhile; verify your email to unlock member-only features.`);
-      }
+      setMode('check-email');
+      setMessage(session.verificationSent === false
+        ? `Your account was created, but the verification email could not be sent just now. Tap "Resend verification link" below in a moment, then click the link and sign in.`
+        : `We sent a verification link to ${email.trim().toLowerCase()}. Open the email, click “Verify”, then come back and sign in. This proves the address is yours — accounts that never verify stay locked out.`);
     } catch (e) {
       const authErr = e as FirebaseAuthError;
       setError(authErr instanceof Error ? authErr.message : 'Sign-up failed. Please try again.');
@@ -185,6 +170,18 @@ export const TeacherPassModal = ({
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
     } catch (e) {
       const authErr = e as FirebaseAuthError;
+      // Verification gate: send the user to the check-your-inbox state
+      // with a working Resend button (the error carries the unpersisted
+      // session token that powers it).
+      if (authErr?.code === 'EMAIL_NOT_VERIFIED') {
+        if (authErr.pendingSession) {
+          setActiveSession(toRestoredSession(authErr.pendingSession));
+          setResendAvailable(true);
+        }
+        setMode('check-email');
+        setMessage(`We just sent a fresh verification link to ${email.trim().toLowerCase()}. Open the email, click “Verify”, then sign in again. Didn't get it? Use “Resend verification link” below.`);
+        return;
+      }
       setError(authErr instanceof Error ? authErr.message : 'Sign-in failed. Please check your email and password.');
       setErrorCode(authErr?.code ?? null);
     } finally {
@@ -348,8 +345,11 @@ export const TeacherPassModal = ({
             <CheckCircle2 className="h-5 w-5 text-cyan-200" aria-hidden="true" />
             <p className="mt-3 text-sm font-semibold text-white">Verify your email to activate member access.</p>
             <p className="mt-2 text-xs leading-relaxed text-slate-300">{message}</p>
+            {activeSession?.email && (
+              <p className="mt-2 text-[11px] font-semibold text-cyan-200">Verification sent to: {activeSession.email}</p>
+            )}
             <button type="button" disabled={!resendAvailable || busy} onClick={resendVerification} className="mt-4 text-xs font-semibold text-cyan-200 hover:text-white disabled:opacity-50">{busy ? 'Sending…' : 'Resend verification link'}</button>
-            <button type="button" onClick={() => switchMode('sign-in')} className="mt-4 block w-full rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5">Return to sign in</button>
+            <button type="button" onClick={() => switchMode('sign-in')} className="mt-4 block w-full rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5">I've verified — sign in</button>
           </div>
         )}
 

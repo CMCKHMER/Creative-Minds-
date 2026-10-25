@@ -6,6 +6,7 @@ import {
   restoreSession,
   signInWithEmail,
   signUpWithEmail,
+  toRestoredSession,
   type RestoredSession,
 } from '../lib/firebaseAuth';
 
@@ -83,16 +84,18 @@ export function useFirebaseAuth(): FirebaseAuthState & FirebaseAuthActions {
     hydrated,
 
     async signUp(input) {
-      await signUpWithEmail(input);
-      const restored = restoreSession()!;
-      setSession(restored);
-      window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
-      return restored;
+      // SECURITY: no session is persisted until the email is verified —
+      // the hook state stays signed-out and the caller shows the
+      // check-your-inbox flow using the returned info.
+      const session = await signUpWithEmail(input);
+      return toRestoredSession(session);
     },
 
     async signIn(input) {
-      await signInWithEmail(input);
-      const restored = restoreSession()!;
+      // Only verified sessions get past signInWithEmail, so persisting
+      // here is safe.
+      const session = await signInWithEmail(input);
+      const restored = toRestoredSession(session);
       setSession(restored);
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
       return restored;

@@ -37,6 +37,9 @@ export interface FirebaseSession {
   emailVerified: boolean;
   expiresIn: number; // seconds until idToken expires
   expiresAt: number; // epoch ms when idToken expires
+  /** True when the verification email was dispatched successfully at
+   *  sign-up; false means the UI should steer the user to "Resend". */
+  verificationSent?: boolean;
   /**
    * Role — populated by signUpWithEmail / signInWithEmail after the
    * session is persisted to localStorage. Auto-detected from the email
@@ -75,6 +78,7 @@ export type FirebaseAuthErrorCode =
   | 'WEAK_PASSWORD'
   | 'TOO_MANY_ATTEMPTS_TRY_LATER'
   | 'OPERATION_NOT_ALLOWED'
+  | 'EMAIL_NOT_VERIFIED'
   | 'INVALID_EMAIL'
   | 'USER_DISABLED'
   | 'USER_NOT_FOUND'
@@ -85,6 +89,9 @@ export type FirebaseAuthErrorCode =
 export interface FirebaseAuthError extends Error {
   code: FirebaseAuthErrorCode;
   rawMessage: string;
+  /** Sign-ins blocked by the verification gate carry the (unpersisted)
+   *  session so the UI can offer a working "Resend verification" button. */
+  pendingSession?: FirebaseSession;
 }
 
 /**
@@ -107,6 +114,7 @@ function toAuthError(e: unknown): FirebaseAuthError {
     'EMAIL_EXISTS', 'EMAIL_NOT_FOUND', 'INVALID_PASSWORD', 'WEAK_PASSWORD',
     'TOO_MANY_ATTEMPTS_TRY_LATER', 'OPERATION_NOT_ALLOWED', 'INVALID_EMAIL',
     'USER_DISABLED', 'USER_NOT_FOUND', 'EXPIRED_ID_TOKEN', 'INVALID_ID_TOKEN',
+    'EMAIL_NOT_VERIFIED',
   ];
   const code = (KNOWN_CODES.includes(codeRaw) ? codeRaw : 'unknown') as FirebaseAuthErrorCode;
 
@@ -119,6 +127,7 @@ function toAuthError(e: unknown): FirebaseAuthError {
     WEAK_PASSWORD: 'Password must be at least 8 characters and not commonly used. Try a longer, more unique password.',
     TOO_MANY_ATTEMPTS_TRY_LATER: 'Too many attempts. Wait a minute or two and try again. (This protects against automated attacks.)',
     OPERATION_NOT_ALLOWED: 'Email/Password sign-in is not enabled for this Firebase project. Contact the site administrator.',
+    EMAIL_NOT_VERIFIED: 'Please verify your email before signing in. We just sent a fresh verification link to your inbox — open it, click “Verify”, then sign in again.',
     INVALID_EMAIL: 'That email address looks malformed. Check for typos (e.g., missing @ or .com).',
     USER_DISABLED: 'This account has been disabled by an administrator. Contact the site administrator.',
     USER_NOT_FOUND: 'No account exists with this email. Try creating a new account instead.',
@@ -160,7 +169,10 @@ async function authFetch(endpoint: string, body: Record<string, unknown>): Promi
     localId: r.localId,
     email: r.email,
     displayName: r.displayName ?? null,
-    emailVerified: r.emailVerified ?? false,
+    // The REST responses (signUp / signInWithPassword) do NOT include an
+    // emailVerified field — the server-minted `email_verified` claim inside
+    // the ID token is the only reliable signal. Verified live Oct 2026.
+    emailVerified: tokenEmailVerified(r.idToken) ?? r.emailVerified ?? false,
     expiresIn: expiresInSec,
     expiresAt: Date.now() + expiresInSec * 1000,
   };
@@ -189,34 +201,30 @@ export async function signUpWithEmail(input: SignUpInput): Promise<FirebaseSessi
     returnSecureToken: true,
     displayName: input.displayName || undefined,
   });
-  // Persist extra profile fields alongside the token so the static HTML
-  // pages and any future Firestore writes can read them. The account role
-  // is always the email-detected enum so `cmc-student-role` stays clean;
-  // the free-text teaching role is kept as profile metadata only.
-  persistSession(session, {
-    displayName: input.displayName,
-    school: input.school,
-    role: input.role || detectRoleFromEmail(session.email),
-    teachingRole: input.teachingRole,
-  });
-  // Mirror the fresh account into the SDK auth state (dashboard/listeners).
-  bridgeToSdk(input.email, input.password);
-  // Send email verification (non-blocking — the user can still sign in
-  // immediately, but won't be "verified" until they click the link).
-  void sendEmailVerification(session.idToken, input.continueUrl).catch(() => {});
-  // Return a session enriched with the role we just persisted to
-  // localStorage. FirebaseSession itself doesn't include role (it's a
-  // Firebase-REST-API type), but callers (TeacherPassModal, useFirebaseAuth)
-  // read `session.role` to decide which success message + badge to show.
-  // restoreSession() returns the canonical role — from localStorage if
-  // we set it, otherwise auto-detected from the email domain.
-  const restored = restoreSession();
-  return restored ? { ...session, role: restored.role } : session;
+  // SECURITY: every account starts unverified. A usable session is NOT
+  // persisted to localStorage and NOT mirrored into the SDK auth state —
+  // the user must first prove the address is theirs by clicking the
+  // verification link in their inbox. The returned session exists only so
+  // the calling UI can show the check-your-inbox state and offer "Resend".
+  try {
+    await sendEmailVerification(session.idToken, input.continueUrl);
+    session.verificationSent = true;
+  } catch {
+    session.verificationSent = false; // UI steers the user to "Resend"
+  }
+  // Role detection (email domain contains "edu" → teacher) so callers can
+  // tailor the success message. Profile fields (school, teaching role) are
+  // re-collected by persistSession on the first VERIFIED sign-in.
+  session.role = input.role || detectRoleFromEmail(session.email);
+  return session;
 }
 
 export interface SignInInput {
   email: string;
   password: string;
+  /** Where a fresh verification email should land the user (unverified
+   *  sign-ins only). */
+  continueUrl?: string;
 }
 
 export async function signInWithEmail(input: SignInInput): Promise<FirebaseSession> {
@@ -225,6 +233,16 @@ export async function signInWithEmail(input: SignInInput): Promise<FirebaseSessi
     password: input.password,
     returnSecureToken: true,
   });
+  // SECURITY GATE: only accounts with a verified email may hold a session.
+  // Unverified attempts are refused BEFORE anything is persisted or
+  // mirrored into the SDK, and a fresh verification link is sent so the
+  // user is never stuck with a dead one.
+  if (!session.emailVerified) {
+    void sendEmailVerification(session.idToken, input.continueUrl).catch(() => { /* best-effort */ });
+    const err = toAuthError({ error: { message: 'EMAIL_NOT_VERIFIED' } });
+    err.pendingSession = session;
+    throw err;
+  }
   // Load any previously saved profile fields from localStorage.
   const profile = loadStoredProfile(session.localId);
   persistSession(session, profile);
@@ -396,24 +414,37 @@ export async function refreshIdToken(): Promise<string | null> {
 
 /** Returns a currently-valid ID token — the stored one when it still has
  *  >5 minutes of life, otherwise a refreshed one. Null when there is no
- *  session or refresh failed. */
+ *  session, refresh failed, or the account's email is not verified —
+ *  unverified sessions must not authenticate writes anywhere on the site. */
 export async function getValidIdToken(): Promise<string | null> {
   const token = storedValue('cmc-student-token');
   if (!token) return null;
   const expiresAt = Number(storedValue('cmc-student-token-expires') || '0');
-  if (expiresAt > Date.now() + 5 * 60_000) return token;
-  return refreshIdToken();
+  const current = expiresAt > Date.now() + 5 * 60_000 ? token : await refreshIdToken();
+  if (!current) return null;
+  if (tokenEmailVerified(current) === false) {
+    clearPersistedSession();
+    return null;
+  }
+  return current;
 }
 
 /** Boot-time session self-heal: silently refresh an expired/near-expiry
- *  token so worksheet submissions keep working without re sign-in. */
+ *  token so worksheet submissions keep working without re sign-in.
+ *  Also the verification enforcement point for restored sessions: any
+ *  session whose (refreshed) token says email_verified=false is dropped —
+ *  this cleans up sessions minted before the requirement existed. */
 export async function ensureFreshSession(): Promise<RestoredSession | null> {
   const session = restoreSession();
   if (!session) return null;
   const expiresAt = Number(storedValue('cmc-student-token-expires') || '0');
-  if (expiresAt > Date.now() + 5 * 60_000) return session;
-  await refreshIdToken();
-  return restoreSession() ?? session;
+  if (expiresAt <= Date.now() + 5 * 60_000) await refreshIdToken();
+  const current = restoreSession() ?? session;
+  if (!current.emailVerified) {
+    clearPersistedSession();
+    return null;
+  }
+  return current;
 }
 
 // ── SDK session mirror ────────────────────────────────────────────
@@ -472,6 +503,24 @@ export interface RestoredSession {
   role: 'teacher' | 'student';
 }
 
+/** Decode the `email_verified` claim from a Firebase ID token (JWT) with
+ *  no network call. Null when the claim can't be read — callers then fall
+ *  back to the locally stored flag. The claim is minted by the server, so
+ *  a freshly refreshed token always reflects current verification state. */
+export function tokenEmailVerified(idToken: string): boolean | null {
+  try {
+    const payload = idToken.split('.')[1] || '';
+    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(b64).split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join(''),
+    );
+    const claim = (JSON.parse(json) as { email_verified?: boolean }).email_verified;
+    return typeof claim === 'boolean' ? claim : null;
+  } catch {
+    return null;
+  }
+}
+
 export function restoreSession(): RestoredSession | null {
   try {
     const idToken = localStorage.getItem('cmc-student-token');
@@ -479,7 +528,11 @@ export function restoreSession(): RestoredSession | null {
     const localId = localStorage.getItem('cmc-student-uid') || '';
     const email = localStorage.getItem('cmc-student-email') || '';
     const displayName = localStorage.getItem('cmc-student-name') || email;
-    const emailVerified = localStorage.getItem('cmc-student-verified') === '1';
+    // The server-minted token claim is authoritative (a token refreshed
+    // after clicking the verification link flips to true); the localStorage
+    // flag is only a fallback for tokens we can't decode.
+    const claimedVerified = tokenEmailVerified(idToken);
+    const emailVerified = claimedVerified ?? localStorage.getItem('cmc-student-verified') === '1';
     const expiresAtRaw = localStorage.getItem('cmc-student-token-expires');
     const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0;
     // Prefer the stored role; fall back to detecting from the email so the
@@ -498,6 +551,22 @@ export function restoreSession(): RestoredSession | null {
   } catch {
     return null;
   }
+}
+
+/** Normalize a fresh (in-memory) FirebaseSession into the persisted-session
+ *  shape shared by the hook and the auth modal. */
+export function toRestoredSession(session: FirebaseSession): RestoredSession {
+  return {
+    idToken: session.idToken,
+    localId: session.localId,
+    email: session.email,
+    displayName: session.displayName || session.email,
+    emailVerified: session.emailVerified,
+    isExpired: session.expiresAt > 0 && Date.now() >= session.expiresAt,
+    role: session.role === 'teacher' || session.role === 'student'
+      ? session.role
+      : detectRoleFromEmail(session.email),
+  };
 }
 
 export function getProjectId(): string {

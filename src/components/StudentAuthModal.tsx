@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { GraduationCap, LockKeyhole, Mail, User, ArrowRight } from 'lucide-react';
-import { useStudentAuth } from '../hooks/useStudentAuth';
 import { studentSignUp, studentSignIn, studentGoogleSignIn } from '../lib/studentAuth';
-import { createStudentProfile } from '../lib/firebaseDb';
 
 export function StudentAuthModal({
   isOpen,
@@ -20,11 +18,11 @@ export function StudentAuthModal({
   const [grade, setGrade] = useState('');
   const [school, setSchool] = useState('');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
-  const studentAuth = useStudentAuth();
 
   useEffect(() => {
-    if (isOpen) { setError(''); setMode(initialMode); }
+    if (isOpen) { setError(''); setNotice(''); setMode(initialMode); }
   }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
@@ -38,22 +36,30 @@ export function StudentAuthModal({
       if (!name.trim()) { setError('Please enter your name.'); setBusy(false); return; }
       if (!email.trim()) { setError('Please enter your email.'); setBusy(false); return; }
       if (password.length < 6) { setError('Password must be at least 6 characters.'); setBusy(false); return; }
-      const res = await studentSignUp(email, password, name);
+      const res = await studentSignUp(email, password, name, {
+        grade: grade ? parseInt(grade) : undefined,
+        school: school || undefined,
+      });
       if (!res.ok) { setError(res.error || 'Sign up failed.'); setBusy(false); return; }
-      // Create student profile in Firestore
-      const student = studentAuth.student;
-      if (student) {
-        await createStudentProfile(student.uid, {
-          displayName: name,
-          email,
-          grade: grade ? parseInt(grade) : undefined,
-          school: school || undefined,
-        });
-      }
+      // SECURITY: the account exists but has NO session until the email is
+      // verified (the profile doc was already created by studentSignUp).
+      // Show the check-your-inbox state and keep the modal open.
+      setNotice(`Account created! We sent a verification link to ${res.email || email}. Open the email, tap “Verify”, then sign in — accounts that never verify can't sign in.`);
+      setBusy(false);
+      return;
     } else {
       if (!email.trim() || !password) { setError('Please enter your email and password.'); setBusy(false); return; }
       const res = await studentSignIn(email, password);
-      if (!res.ok) { setError(res.error || 'Sign in failed.'); setBusy(false); return; }
+      if (!res.ok) {
+        if (res.needsVerification) {
+          // Instructional, not an error — cyan notice with next steps.
+          setNotice(res.error || 'Please verify your email before signing in.');
+        } else {
+          setError(res.error || 'Sign in failed.');
+        }
+        setBusy(false);
+        return;
+      }
     }
     setBusy(false);
     onClose();
@@ -86,6 +92,12 @@ export function StudentAuthModal({
             {mode === 'sign-up' ? 'Create a free student account to track your drill scores' : 'Sign in to see your drill history and scores'}
           </p>
         </div>
+
+        {notice && (
+          <div className="mb-4 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-xs leading-relaxed text-cyan-100">
+            {notice}
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">

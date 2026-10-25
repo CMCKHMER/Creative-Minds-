@@ -40,6 +40,15 @@ rules_version = '2';
 //     all records.
 //   - Everything else: denied.
 //
+// EMAIL VERIFICATION GATE (Oct 2026): every account must verify its email
+// address (Firebase sends the link at sign-up; sign-in is blocked until it
+// is clicked). isVerifiedUser() enforces this server-side: unverified
+// sessions can authenticate NOTHING except creating their own students/
+// {uid} profile doc at sign-up. This is defense in depth — the client
+// already refuses to hold or mint sessions for unverified accounts.
+// ⚠️ PUBLISH REQUIRED: these rules take effect only after pasting this
+// file into Firebase Console → Firestore → Rules and clicking Publish.
+//
 // VERIFIED against the live write shape (Oct 2026): every worksheet POST
 // (biweek-planner, toefl-ibt, rfc2, rfc3, syntax-clash, writequest, the
 // React submitScore module and CMC.submitDrill) sends integer scorePct
@@ -49,20 +58,30 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // A signed-in account whose email contains "edu" — the exact heuristic
-    // the CMC app (RoleGate / firebaseAuth.detectRoleFromEmail) uses to
-    // decide who is a teacher. RE2 has no look-around, so keep this in sync
-    // with the app if the heuristic ever changes.
+    // A signed-in account whose email contains "edu" AND that finished
+    // email verification — the same heuristic the CMC app
+    // (RoleGate / firebaseAuth.detectRoleFromEmail) uses to decide who is
+    // a teacher, hardened with the verification gate. RE2 has no
+    // look-around, so keep this in sync with the app if the heuristic
+    // ever changes.
     function isCmcTeacher() {
       return request.auth != null
+        && request.auth.token.email_verified == true
         && request.auth.token.email != null
         && request.auth.token.email.matches('.*[eE][dD][uU].*');
+    }
+
+    // A signed-in account that proved its email address by clicking the
+    // verification link. Required for every student-reachable write.
+    function isVerifiedUser() {
+      return request.auth != null
+        && request.auth.token.email_verified == true;
     }
 
     match /drill_attempts/{attemptId} {
       allow read: if true; // public scoreboard (ticker / leaderboard / dashboard)
 
-      allow create: if request.auth != null
+      allow create: if isVerifiedUser()
         && request.resource.data.studentUid == request.auth.uid
         && request.resource.data.studentUid is string
         && request.resource.data.studentName is string
@@ -83,35 +102,39 @@ service cloud.firestore {
 
     match /teacher_chat/{msgId} {
       allow read: if true; // public chat wall
-      allow create: if request.auth != null
+      allow create: if isVerifiedUser()
         && request.resource.data.authorName is string
         && request.resource.data.text is string;
       allow update, delete: if false;
     }
 
     match /students/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      // CREATE with just sign-in: the signup flow writes the profile doc
+      // while the brand-new (still unverified) auth context exists. Every
+      // other access — read included — requires a verified email.
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow read, update, delete: if isVerifiedUser() && request.auth.uid == uid;
     }
 
     match /classes/{classId} {
       allow read: if true; // class-code lookup + dashboards
-      allow create, update: if request.auth != null;
+      allow create, update: if isVerifiedUser();
       // Owner-only delete: `resource` is the class doc being removed, and
       // every class doc carries teacherUid (createClass stamps it), so this
       // costs no extra reads. Delete also implicitly drops the class code
       // from join lookups (getClassByCode queries this collection).
-      allow delete: if request.auth != null
+      allow delete: if isVerifiedUser()
         && resource.data.teacherUid == request.auth.uid;
 
       match /enrollments/{studentUid} {
         allow read: if true;
-        allow create, update: if request.auth != null && request.auth.uid == studentUid;
+        allow create, update: if isVerifiedUser() && request.auth.uid == studentUid;
         // Delete: the enrolled student themself (leave class), or the class
         // owner (teacherUid was stamped on the enrollment doc at join time).
         // Docs created before that stamping began have no teacherUid —
         // resource.data.teacherUid is then null and the comparison denies,
         // which is safe: they remain harmless orphans under a deleted class.
-        allow delete: if request.auth != null
+        allow delete: if isVerifiedUser()
           && (request.auth.uid == studentUid
               || resource.data.teacherUid == request.auth.uid);
       }
@@ -182,7 +205,7 @@ service cloud.firestore {
     // One assignment = test + class + window.
     match /test_assignments/{assignmentId} {
       allow read: if isVerifiedTeacher()
-        || (request.auth != null
+        || (isVerifiedUser()
             && resource.data.classId is string
             && exists(/databases/$(database)/documents/classes/$(resource.data.classId)/enrollments/$(request.auth.uid)));
       allow create, update: if isVerifiedTeacher()
@@ -197,11 +220,11 @@ service cloud.firestore {
     // their own doc (resume UX) but can never list or read anyone else's.
     match /test_submissions/{docId} {
       allow get: if isVerifiedTeacher()
-        || (request.auth != null
+        || (isVerifiedUser()
             && resource.data.studentUid == request.auth.uid);
       allow list: if isVerifiedTeacher();
 
-      allow create: if request.auth != null
+      allow create: if isVerifiedUser()
         && request.auth.uid is string
         && request.resource.data.studentUid == request.auth.uid
         && request.resource.data.assignmentId is string
