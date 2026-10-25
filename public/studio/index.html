@@ -661,8 +661,10 @@
       <button class="quick-btn" onclick="sheetCmd('textColor')" title="Text Color" style="color:#f38ba8">A</button>
       <input type="color" id="sheetColor" value="#000000" title="Cell Text Color">
       <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="sheetCmd('insertRowAbove')" title="Insert row above">+Row</button>
-      <button class="quick-btn" onclick="sheetCmd('insertColLeft')" title="Insert column left">+Col</button>
+      <button class="quick-btn" onclick="sheetCmd('insertRowAbove')" title="Insert row above">+Row↑</button>
+      <button class="quick-btn" onclick="sheetCmd('insertRowBelow')" title="Insert row below">+Row↓</button>
+      <button class="quick-btn" onclick="sheetCmd('insertColLeft')" title="Insert column left">+Col←</button>
+      <button class="quick-btn" onclick="sheetCmd('insertColRight')" title="Insert column right">+Col→</button>
       <button class="quick-btn" onclick="sheetCmd('deleteRow')" title="Delete row">−Row</button>
       <button class="quick-btn" onclick="sheetCmd('deleteCol')" title="Delete column">−Col</button>
       <button class="quick-btn" onclick="sheetCmd('addSheet')" title="Add sheet">+Sheet</button>
@@ -1854,6 +1856,8 @@ function sheetCmd(cmd){
   if (cmd === 'addSheet') { let n = sheets.length + 1; const used = new Set(sheets.map(s => s.name)); while (used.has('Sheet' + n)) n++; sheets.push({ name: 'Sheet' + n, rows: 30, cols: 12, cells: {} }); currentSheet = sheets.length - 1; renderSheet(); renderSheetTabs(); }
   else if (cmd === 'insertRowAbove') { const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (r >= selectedCell.row) newCells[(r+1)+','+c] = sheet.cells[k]; else newCells[k] = sheet.cells[k]; }); sheet.cells = newCells; sheet.rows++; rowHeights = shiftSizeMap(rowHeights, selectedCell.row, 1); if (freezeRows >= selectedCell.row) freezeRows++; renderSheet(); }
   else if (cmd === 'insertColLeft') { const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (c >= selectedCell.col) newCells[r+','+(c+1)] = sheet.cells[k]; else newCells[k] = sheet.cells[k]; }); sheet.cells = newCells; sheet.cols++; colWidths = shiftSizeMap(colWidths, selectedCell.col, 1); if (freezeCols >= selectedCell.col) freezeCols++; renderSheet(); }
+  else if (cmd === 'insertRowBelow') { const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (r > selectedCell.row) newCells[(r+1)+','+c] = sheet.cells[k]; else newCells[k] = sheet.cells[k]; }); sheet.cells = newCells; sheet.rows++; rowHeights = shiftSizeMap(rowHeights, selectedCell.row + 1, 1); if (freezeRows > selectedCell.row) freezeRows++; renderSheet(); }
+  else if (cmd === 'insertColRight') { const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (c > selectedCell.col) newCells[r+','+(c+1)] = sheet.cells[k]; else newCells[k] = sheet.cells[k]; }); sheet.cells = newCells; sheet.cols++; colWidths = shiftSizeMap(colWidths, selectedCell.col + 1, 1); if (freezeCols > selectedCell.col) freezeCols++; renderSheet(); }
   else if (cmd === 'deleteRow') { if (sheet.rows <= 1) return; const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (r === selectedCell.row) return; newCells[(r > selectedCell.row ? r-1 : r)+','+c] = sheet.cells[k]; }); sheet.cells = newCells; sheet.rows--; rowHeights = shiftSizeMap(rowHeights, selectedCell.row, -1, selectedCell.row); if (freezeRows > selectedCell.row) freezeRows--; else if (freezeRows === selectedCell.row) freezeRows = 0; renderSheet(); }
   else if (cmd === 'deleteCol') { if (sheet.cols <= 1) return; const newCells = {}; Object.keys(sheet.cells).forEach(k => { const [r,c] = k.split(',').map(Number); if (c === selectedCell.col) return; newCells[r+','+(c > selectedCell.col ? c-1 : c)] = sheet.cells[k]; }); sheet.cells = newCells; sheet.cols--; colWidths = shiftSizeMap(colWidths, selectedCell.col, -1, selectedCell.col); if (freezeCols > selectedCell.col) freezeCols--; else if (freezeCols === selectedCell.col) freezeCols = 0; renderSheet(); }
   else if (cmd === 'bold' || cmd === 'italic' || cmd === 'underline') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style[cmd] = !sheet.cells[k].style[cmd]; renderSheet(); }
@@ -1945,29 +1949,63 @@ sheetGrid.addEventListener('keypress', e => {
   if (e.target.matches('input')) return;
   if (e.key.length === 1) { setCell(selectedCell.row, selectedCell.col, e.key); startCellEdit(); const td = sheetGrid.querySelector(`td.cell[data-r="${selectedCell.row}"][data-c="${selectedCell.col}"]`); const input = td && td.querySelector('input'); if (input) { input.value = e.key; input.setSelectionRange(1, 1); } }
 });
+// Right-click a row/column header: insert above/below or left/right, or delete —
+// the right-clicked row/col is selected first so the commands target it.
+sheetGrid.addEventListener('contextmenu', e => {
+  const rowHead = e.target.closest('th.row-h');
+  const colHead = e.target.closest('th.col-h');
+  if (!rowHead && !colHead) return;
+  e.preventDefault();
+  const sheet = sheets[currentSheet];
+  if (rowHead) {
+    const r = [...sheetGrid.querySelectorAll('tbody th.row-h')].indexOf(rowHead);
+    selectedCell = { row: r, col: Math.min(selectedCell.col, sheet.cols - 1) };
+    renderSheet();
+    openSheetCtxMenu(e, [
+      {label:'Insert row above', fn:()=>sheetCmd('insertRowAbove')},
+      {label:'Insert row below', fn:()=>sheetCmd('insertRowBelow')},
+      {label:'Delete row', danger:true, disabled: sheet.rows<=1, title:'A sheet needs at least one row', fn:()=>sheetCmd('deleteRow')}
+    ]);
+  } else {
+    const c = [...sheetGrid.querySelectorAll('thead th.col-h')].indexOf(colHead);
+    selectedCell = { row: Math.min(selectedCell.row, sheet.rows - 1), col: c };
+    renderSheet();
+    openSheetCtxMenu(e, [
+      {label:'Insert column left', fn:()=>sheetCmd('insertColLeft')},
+      {label:'Insert column right', fn:()=>sheetCmd('insertColRight')},
+      {label:'Delete column', danger:true, disabled: sheet.cols<=1, title:'A sheet needs at least one column', fn:()=>sheetCmd('deleteCol')}
+    ]);
+  }
+});
 function renderSheetTabs(){
   sheetTabs.innerHTML = '<span class="sheet-tab-add" onclick="sheetCmd(\'addSheet\')">+</span>';
   // Append tabs before the "+" button so Sheet1..N stay in creation order.
   // Right-click a tab for Rename / Delete (Excel-style tab menu).
-  sheets.forEach((s, i) => { const tab = document.createElement('span'); tab.className = 'sheet-tab' + (i === currentSheet ? ' active' : ''); tab.textContent = s.name; tab.title = 'Click to switch — right-click for rename/delete'; tab.onclick = () => { currentSheet = i; renderSheet(); renderSheetTabs(); }; tab.oncontextmenu = (e) => { e.preventDefault(); openSheetTabMenu(e, i); }; sheetTabs.insertBefore(tab, sheetTabs.querySelector('.sheet-tab-add')); });
+  sheets.forEach((s, i) => { const tab = document.createElement('span'); tab.className = 'sheet-tab' + (i === currentSheet ? ' active' : ''); tab.textContent = s.name; tab.title = 'Click to switch — right-click for rename/delete'; tab.onclick = () => { currentSheet = i; renderSheet(); renderSheetTabs(); }; tab.oncontextmenu = (e) => { e.preventDefault(); openSheetCtxMenu(e, [ {label:'Rename', fn:()=>renameSheetAt(i)}, {label:'Delete', danger:true, disabled: sheets.length<=1, title:'A workbook needs at least one sheet', fn:()=>deleteSheetAt(i)} ]); }; sheetTabs.insertBefore(tab, sheetTabs.querySelector('.sheet-tab-add')); });
 }
 
-/* ── Sheet tab context menu: Rename / Delete ──────── */
-const sheetTabMenu=document.createElement('div'); sheetTabMenu.className='sheet-tab-menu'; document.body.appendChild(sheetTabMenu);
-function openSheetTabMenu(e, i){
-  const last = sheets.length <= 1;
-  sheetTabMenu.innerHTML = '<button onclick="renameSheetAt(' + i + ')">Rename</button>'
-    + '<button class="danger" onclick="deleteSheetAt(' + i + ')"' + (last ? ' disabled title="A workbook needs at least one sheet"' : '') + '>Delete</button>';
-  sheetTabMenu.style.display = 'block';
-  sheetTabMenu.style.left = Math.min(e.clientX, window.innerWidth - sheetTabMenu.offsetWidth - 8) + 'px';
-  sheetTabMenu.style.top = Math.min(e.clientY, window.innerHeight - sheetTabMenu.offsetHeight - 8) + 'px';
+/* ── Sheet context menus: tabs (rename/delete) + row/col headers ── */
+const sheetCtxMenu=document.createElement('div'); sheetCtxMenu.className='sheet-tab-menu'; document.body.appendChild(sheetCtxMenu);
+function openSheetCtxMenu(e, entries){
+  sheetCtxMenu.innerHTML = '';
+  entries.forEach(en=>{
+    const b=document.createElement('button');
+    b.textContent=en.label;
+    if(en.danger) b.className='danger';
+    if(en.disabled){ b.disabled=true; if(en.title) b.title=en.title; }
+    b.onclick=()=>{ closeSheetCtxMenu(); en.fn(); };
+    sheetCtxMenu.appendChild(b);
+  });
+  sheetCtxMenu.style.display = 'block';
+  sheetCtxMenu.style.left = Math.max(4, Math.min(e.clientX, window.innerWidth - sheetCtxMenu.offsetWidth - 8)) + 'px';
+  sheetCtxMenu.style.top = Math.max(4, Math.min(e.clientY, window.innerHeight - sheetCtxMenu.offsetHeight - 8)) + 'px';
 }
-function closeSheetTabMenu(){ sheetTabMenu.style.display = 'none'; }
-document.addEventListener('click', e => { if (!sheetTabMenu.contains(e.target)) closeSheetTabMenu(); });
-document.addEventListener('contextmenu', e => { if (!e.target.closest('.sheet-tab') && sheetTabMenu.style.display === 'block') closeSheetTabMenu(); });
-window.addEventListener('blur', closeSheetTabMenu);
+function closeSheetCtxMenu(){ sheetCtxMenu.style.display = 'none'; }
+document.addEventListener('click', e => { if (!sheetCtxMenu.contains(e.target)) closeSheetCtxMenu(); });
+document.addEventListener('contextmenu', e => { if (!e.target.closest('.sheet-tab, .row-h, .col-h') && sheetCtxMenu.style.display === 'block') closeSheetCtxMenu(); });
+window.addEventListener('blur', closeSheetCtxMenu);
 function renameSheetAt(i){
-  closeSheetTabMenu();
+  closeSheetCtxMenu();
   const name = prompt('Rename sheet:', sheets[i].name);
   if (name === null) return;
   const trimmed = name.trim();
@@ -1976,7 +2014,7 @@ function renameSheetAt(i){
   renderSheetTabs(); scheduleAutoSave();
 }
 function deleteSheetAt(i){
-  closeSheetTabMenu();
+  closeSheetCtxMenu();
   if (sheets.length <= 1) { alert('A workbook needs at least one sheet.'); return; }
   const s = sheets[i];
   if (!confirm('Delete "' + s.name + '"? All cells in this sheet will be permanently removed.')) return;
