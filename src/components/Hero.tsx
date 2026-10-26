@@ -31,6 +31,10 @@ interface HeroShortcut {
   /** Optional external link — when present the card renders as an <a>
    *  instead of a button that triggers onSelectFeatureCard. */
   href?: string;
+  /** Optional AI artwork rendered behind the card content (hidden in light
+   *  theme via the .cmc-quick-bg rule — the light theme turns the strip
+   *  white, so the dark-navy art would clash). */
+  image?: string;
 }
 
 const shortcuts: HeroShortcut[] = [
@@ -40,6 +44,7 @@ const shortcuts: HeroShortcut[] = [
     description: 'Complete 4-section exam with audio, recording, and timer. ~3 hours.',
     icon: GraduationCap,
     accent: 'cyan',
+    image: './images/quick-toefl.png',
   },
   {
     id: 'games',
@@ -47,6 +52,7 @@ const shortcuts: HeroShortcut[] = [
     description: '8 playable games: grammar, vocabulary, reading, listening, and more.',
     icon: Gamepad2,
     accent: 'violet',
+    image: './images/quick-games.png',
   },
   {
     id: 'resources',
@@ -54,6 +60,7 @@ const shortcuts: HeroShortcut[] = [
     description: 'Ready-to-use classroom handouts with separate teacher keys and rubrics.',
     icon: BookOpen,
     accent: 'amber',
+    image: './images/quick-assignments.png',
   },
   {
     id: 'kid-grades',
@@ -61,6 +68,7 @@ const shortcuts: HeroShortcut[] = [
     description: 'Grade-by-grade Reading Future worksheets. Kid 6 + Kid 11 live; other grades planned.',
     icon: ClipboardCheck,
     accent: 'emerald',
+    image: './images/quick-kids.png',
   },
 ];
 
@@ -238,17 +246,32 @@ export const Hero = ({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {shortcuts.map((shortcut, index) => {
               const Icon = shortcut.icon;
-              const shortcutClass = `cmc-shortcut cmc-card cmc-quick cmc-quick--${shortcut.accent} group relative flex flex-col items-start gap-2.5 p-5 text-left ${shortcutsVisible ? 'is-visible' : ''}`;
+              const shortcutClass = `cmc-shortcut cmc-card cmc-quick cmc-quick--${shortcut.accent} group relative flex flex-col items-start gap-2.5 overflow-hidden p-5 text-left ${shortcutsVisible ? 'is-visible' : ''}`;
               const content = (
                 <>
-                  <span className="cmc-quick-chip flex h-10 w-10 items-center justify-center rounded-xl border">
+                  {shortcut.image && (
+                    <>
+                      {/* AI artwork behind the card — decorative, pointer-transparent. */}
+                      <img
+                        src={shortcut.image}
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        decoding="async"
+                        className="cmc-quick-bg pointer-events-none absolute inset-0 h-full w-full object-cover opacity-50 transition-opacity duration-300 group-hover:opacity-60"
+                      />
+                      {/* Left-to-right veil keeps title/description readable. */}
+                      <span className="cmc-quick-bg pointer-events-none absolute inset-0 bg-gradient-to-r from-[#081622] via-[#081622]/55 to-[#081622]/5" aria-hidden="true" />
+                    </>
+                  )}
+                  <span className="cmc-quick-chip relative flex h-10 w-10 items-center justify-center rounded-xl border">
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <span className="flex w-full items-start justify-between gap-2">
+                  <span className="relative flex w-full items-start justify-between gap-2">
                     <span className="text-sm font-bold leading-snug text-white">{shortcut.title}</span>
-                    <ArrowUpRight className="cmc-quick-arrow mt-0.5 h-3.5 w-3.5 shrink-0 opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />
+                    <ArrowUpRight className="cmc-quick-arrow relative mt-0.5 h-3.5 w-3.5 shrink-0 opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />
                   </span>
-                  <span className="text-xs leading-relaxed text-slate-400">{shortcut.description}</span>
+                  <span className="relative text-xs leading-relaxed text-slate-400">{shortcut.description}</span>
                 </>
               );
 

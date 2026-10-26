@@ -1433,6 +1433,11 @@ html.light [data-keep-dark] .hover\:text-rose-300:hover { color: #fda4af; }
 .cmc-quick--amber .cmc-quick-arrow { color: #fcd34d; }
 .cmc-quick--emerald .cmc-quick-arrow { color: #6ee7b7; }
 
+/* AI artwork behind the quick-launch cards (dark theme only — the light
+   theme turns the strip white, so the dark-navy art is hidden like
+   .cmc-card-art). Applies to both the <img> layer and the gradient veil. */
+html.light .cmc-quick-bg { display: none; }
+
 /* light mode — dark accent ink on pale tinted chips */
 html.light .cmc-quick-label { color: #475569; }
 html.light .cmc-quick-hint { color: #64748b; }
