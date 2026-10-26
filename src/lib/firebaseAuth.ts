@@ -215,7 +215,10 @@ export async function signUpWithEmail(input: SignUpInput): Promise<FirebaseSessi
   // Role detection (email domain contains "edu" → teacher) so callers can
   // tailor the success message. Profile fields (school, teaching role) are
   // re-collected by persistSession on the first VERIFIED sign-in.
-  session.role = input.role || detectRoleFromEmail(session.email);
+  // Admin accounts always resolve to the teacher role — every gate opens.
+  session.role = isAdminUid(session.localId)
+    ? 'teacher'
+    : input.role || detectRoleFromEmail(session.email);
   return session;
 }
 
@@ -299,6 +302,28 @@ interface StoredProfile {
 }
 
 /**
+ * Site-owner admin grant (Oct 2026).
+ *
+ * Keyed by Firebase UID — not email — because the UID is immutable across
+ * email changes and is already public (it appears on the live `classes`
+ * docs as teacherUid). The listed account owns every class on the project
+ * (verified via the public classes collection, Oct 2026).
+ *
+ * Role VALUE stays the existing 'teacher' enum on purpose: every gate on
+ * the site — the React `session.role === 'teacher'` checks AND the static
+ * pages' `localStorage['cmc-student-role'] === 'teacher'` check — opens
+ * with zero per-consumer changes, and no static page can be missed.
+ * Server-side, firestore.rules ORs the same UID into isCmcTeacher() and
+ * waives the teachers/{uid} allowlist requirement (isCmcAdmin).
+ */
+export const ADMIN_UIDS: readonly string[] = ['5iLvnjzmV8QY7WFZhyTq6PIgcI63'];
+
+/** True when the given uid carries the site-owner admin grant. */
+export function isAdminUid(uid?: string | null): boolean {
+  return !!uid && ADMIN_UIDS.includes(uid);
+}
+
+/**
  * Detect role from email domain. Per the user's rule:
  *   - Email domain contains "edu" (e.g., `.edu.kh`, `.edu`, `education.*`)
  *     → teacher
@@ -345,8 +370,11 @@ function persistSession(session: FirebaseSession, profile: StoredProfile): void 
     // canonical rule: email domain contains "edu" → teacher, else student.
     // `profile.role` must be the account enum ('teacher' | 'student') —
     // free-text teaching roles are stored separately as `teachingRole`.
-    const role =
-      profile.role === 'teacher' || profile.role === 'student'
+    // Admin accounts are pinned to 'teacher' regardless of what a stale
+    // stored profile says, so the persisted role never downgrades them.
+    const role = isAdminUid(session.localId)
+      ? 'teacher'
+      : profile.role === 'teacher' || profile.role === 'student'
         ? profile.role
         : detectRoleFromEmail(session.email);
     localStorage.setItem('cmc-student-token', session.idToken);
@@ -537,8 +565,11 @@ export function restoreSession(): RestoredSession | null {
     const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0;
     // Prefer the stored role; fall back to detecting from the email so the
     // session is correct even if the role was added in a later release.
+    // Admin accounts always resolve to 'teacher' — this also upgrades an
+    // ALREADY signed-in pre-grant session (stored role 'student') without
+    // requiring a fresh sign-in.
     const storedRole = localStorage.getItem('cmc-student-role') as 'teacher' | 'student' | null;
-    const role = storedRole || detectRoleFromEmail(email);
+    const role = isAdminUid(localId) ? 'teacher' : storedRole || detectRoleFromEmail(email);
     return {
       idToken,
       localId,
@@ -563,9 +594,11 @@ export function toRestoredSession(session: FirebaseSession): RestoredSession {
     displayName: session.displayName || session.email,
     emailVerified: session.emailVerified,
     isExpired: session.expiresAt > 0 && Date.now() >= session.expiresAt,
-    role: session.role === 'teacher' || session.role === 'student'
-      ? session.role
-      : detectRoleFromEmail(session.email),
+    role: isAdminUid(session.localId)
+      ? 'teacher'
+      : session.role === 'teacher' || session.role === 'student'
+        ? session.role
+        : detectRoleFromEmail(session.email),
   };
 }
 

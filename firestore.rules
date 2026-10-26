@@ -58,17 +58,32 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // A signed-in account whose email contains "edu" AND that finished
-    // email verification — the same heuristic the CMC app
-    // (RoleGate / firebaseAuth.detectRoleFromEmail) uses to decide who is
-    // a teacher, hardened with the verification gate. RE2 has no
-    // look-around, so keep this in sync with the app if the heuristic
-    // ever changes.
+    // SITE-OWNER ADMIN GRANT (Oct 2026): the owner's account is admin of
+    // the whole site, keyed by Firebase UID (immutable across email
+    // changes; the uid is already public via the classes collection as
+    // teacherUid). Email verification is still required. OR'd into
+    // isCmcTeacher() so EVERY teacher gate opens for this account, and
+    // isVerifiedTeacher() waives the teachers/{uid} allowlist doc for it.
+    // The same UID is hardcoded client-side (src/lib/firebaseAuth.ts
+    // ADMIN_UIDS) — keep the two in sync.
+    function isCmcAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.uid == '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+    }
+
+    // A signed-in account whose email contains "edu" — or the site-owner
+    // admin account — that finished email verification. This is the same
+    // heuristic the CMC app (RoleGate / firebaseAuth.detectRoleFromEmail)
+    // uses to decide who is a teacher, hardened with the verification gate
+    // and extended with the admin grant. RE2 has no look-around, so keep
+    // this in sync with the app if the heuristic ever changes.
     function isCmcTeacher() {
       return request.auth != null
         && request.auth.token.email_verified == true
         && request.auth.token.email != null
-        && request.auth.token.email.matches('.*[eE][dD][uU].*');
+        && (request.auth.token.email.matches('.*[eE][dD][uU].*')
+            || isCmcAdmin());
     }
 
     // A signed-in account that proved its email address by clicking the
@@ -185,9 +200,10 @@ service cloud.firestore {
     }
 
     function isVerifiedTeacher() {
-      return isCmcTeacher()
-        && request.auth.uid is string
-        && exists(/databases/$(database)/documents/teachers/$(request.auth.uid));
+      return request.auth.uid is string
+        && (isCmcAdmin()
+            || (isCmcTeacher()
+                && exists(/databases/$(database)/documents/teachers/$(request.auth.uid))));
     }
 
     // Test shell metadata (title, groups, question count). NO answers here.

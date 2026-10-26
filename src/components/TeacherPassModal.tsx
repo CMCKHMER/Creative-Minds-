@@ -11,6 +11,7 @@ import {
   signInWithEmail,
   signUpWithEmail,
   toRestoredSession,
+  isAdminUid,
   type FirebaseAuthError,
   type RestoredSession,
 } from '../lib/firebaseAuth';
@@ -164,9 +165,11 @@ export const TeacherPassModal = ({
       });
       setActiveSession(toRestoredSession(session));
       setMode('authenticated');
-      setMessage(session.role === 'teacher'
-        ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the practice room are unlocked — explore them whenever you like.'
-        : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like.');
+      setMessage(isAdminUid(session.localId)
+        ? 'You\'re signed in as the site admin. Everything — Teacher Tools, answer keys, assignments, grading, assessment records — is unlocked across the whole site.'
+        : session.role === 'teacher'
+          ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the practice room are unlocked — explore them whenever you like.'
+          : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like.');
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
     } catch (e) {
       const authErr = e as FirebaseAuthError;
@@ -357,16 +360,18 @@ export const TeacherPassModal = ({
           <div className="mt-5 rounded-xl border border-cyan-200/20 bg-cyan-100/5 p-4">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 shrink-0 text-cyan-200" aria-hidden="true" />
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${activeSession?.role === 'teacher' ? 'bg-emerald-300/15 text-emerald-200' : 'bg-cyan-300/15 text-cyan-200'}`}>
-                {activeSession?.role === 'teacher' ? 'Teacher account' : 'Student account'}
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${isAdminUid(activeSession?.localId) ? 'bg-amber-300/15 text-amber-200' : activeSession?.role === 'teacher' ? 'bg-emerald-300/15 text-emerald-200' : 'bg-cyan-300/15 text-cyan-200'}`}>
+                {isAdminUid(activeSession?.localId) ? 'Admin account' : activeSession?.role === 'teacher' ? 'Teacher account' : 'Student account'}
               </span>
             </div>
             <p className="mt-3 text-sm font-semibold text-white">{activeSession?.email ? `Signed in as ${activeSession.email}.` : 'Account session established.'}</p>
             <p className="mt-2 text-xs leading-relaxed text-slate-300">
               {message || (activeSession?.emailVerified
-                ? (activeSession?.role === 'teacher'
-                    ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the Resource Library are unlocked — explore them whenever you like.'
-                    : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like. Answer keys and teacher tools stay locked.')
+                ? (isAdminUid(activeSession?.localId)
+                    ? 'You\'re signed in as the site admin. Every tool, key, assignment and grading surface on the site is unlocked — explore them whenever you like.'
+                    : activeSession?.role === 'teacher'
+                      ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the Resource Library are unlocked — explore them whenever you like.'
+                      : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like. Answer keys and teacher tools stay locked.')
                 : 'You can keep using the site while your email verifies. Member-only features unlock after email confirmation.')}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">

@@ -12,7 +12,7 @@
 // score submission because they only look at localStorage.
 
 import { firebaseConfigured, getFirebaseAuth } from './firebase';
-import { clearPersistedSession, detectRoleFromEmail } from './firebaseAuth';
+import { clearPersistedSession, detectRoleFromEmail, isAdminUid } from './firebaseAuth';
 import { createStudentProfile } from './firebaseDb';
 import type { User } from 'firebase/auth';
 
@@ -168,7 +168,9 @@ async function persistSessionFromSdkUser(user: User, displayNameOverride?: strin
     localStorage.setItem('cmc-student-name', displayNameOverride || user.displayName || user.email || '');
     localStorage.setItem('cmc-student-uid', user.uid);
     localStorage.setItem('cmc-student-email', user.email || '');
-    localStorage.setItem('cmc-student-role', detectRoleFromEmail(user.email || ''));
+    // Admin accounts are pinned to 'teacher' — an SDK-path sign-in must
+    // never downgrade the persisted role for the site-owner account.
+    localStorage.setItem('cmc-student-role', isAdminUid(user.uid) ? 'teacher' : detectRoleFromEmail(user.email || ''));
     localStorage.setItem('cmc-student-token-expires', String(idTokenExpiryMs(idToken) - 60_000));
     localStorage.setItem('cmc-student-verified', user.emailVerified ? '1' : '0');
     // The SDK user's own refresh token works with the securetoken REST grant
