@@ -1433,39 +1433,32 @@ html.light [data-keep-dark] .hover\:text-rose-300:hover { color: #fda4af; }
 .cmc-quick--amber .cmc-quick-arrow { color: #fcd34d; }
 .cmc-quick--emerald .cmc-quick-arrow { color: #6ee7b7; }
 
-/* AI artwork behind the quick-launch cards (dark theme only — the light
-   theme turns the strip white, so the dark-navy art is hidden like
-   .cmc-card-art). Applies to both the <img> layer and the gradient veil. */
-html.light .cmc-quick-bg { display: none; }
+/* AI artwork behind the quick-launch cards. Applies to both the <img>
+   layer and the gradient veil — visible in BOTH themes (light mode keeps
+   the dark photo-card look, see the html.light .cmc-quick rule below). */
+/* Light mode: the quick-launch cards KEEP the dark photo-card look so the
+   AI artwork shows in BOTH themes (user request, Oct 2026). Dark navy
+   cards on the white strip preserve text contrast over the art — title
+   stays white, description slate-400, veil unchanged. Comes after
+   html.light .cmc-card so this background wins the cascade. */
+html.light .cmc-quick {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #081622;
+  box-shadow: 0 18px 40px -30px rgba(15, 23, 42, 0.45);
+}
+/* The quick cards stay dark in light mode, so their white titles must
+   remain white — the global html.light .text-white swap above (which maps
+   white text to dark ink on white cards) must not reach into them. */
+html.light .cmc-quick .text-white { color: #ffffff; }
 
-/* light mode — dark accent ink on pale tinted chips */
+/* light mode — dark accent ink on pale tinted chips.
+   NOTE: the per-accent .cmc-quick-chip light overrides ("dark ink on pale
+   tinted chips") were removed when the quick cards switched to keeping
+   their dark photo-card look in light mode — chips now use the pastel
+   dark-theme styling in both themes, which reads correctly over the art. */
 html.light .cmc-quick-label { color: #475569; }
 html.light .cmc-quick-hint { color: #64748b; }
 html.light .cmc-quick-rule { background: linear-gradient(90deg, rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0.04)); }
-html.light .cmc-quick--cyan .cmc-quick-chip {
-  color: #0e7490;
-  border-color: rgba(8, 145, 178, 0.3);
-  background: rgba(14, 165, 233, 0.1);
-  box-shadow: none;
-}
-html.light .cmc-quick--violet .cmc-quick-chip {
-  color: #6d28d9;
-  border-color: rgba(124, 58, 237, 0.3);
-  background: rgba(124, 58, 237, 0.08);
-  box-shadow: none;
-}
-html.light .cmc-quick--amber .cmc-quick-chip {
-  color: #b45309;
-  border-color: rgba(217, 119, 6, 0.32);
-  background: rgba(245, 158, 11, 0.12);
-  box-shadow: none;
-}
-html.light .cmc-quick--emerald .cmc-quick-chip {
-  color: #047857;
-  border-color: rgba(5, 150, 105, 0.3);
-  background: rgba(16, 185, 129, 0.1);
-  box-shadow: none;
-}
 html.light .cmc-quick--cyan:hover { border-color: rgba(8, 145, 178, 0.45); box-shadow: 0 24px 50px -28px rgba(14, 165, 233, 0.4); }
 html.light .cmc-quick--violet:hover { border-color: rgba(124, 58, 237, 0.45); box-shadow: 0 24px 50px -28px rgba(124, 58, 237, 0.35); }
 html.light .cmc-quick--amber:hover { border-color: rgba(217, 119, 6, 0.45); box-shadow: 0 24px 50px -28px rgba(217, 119, 6, 0.32); }
