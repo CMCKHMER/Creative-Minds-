@@ -242,17 +242,17 @@ async function fetchServerAggregate(): Promise<TickerData | null> {
     // zero attempts ever keeps the demo board so the ticker isn't blank.
     if (stats.totalDrills === 0) return demoData();
 
-    const leaderboard: LeaderEntry[] = (f.leaderboard?.arrayValue?.values ?? [])
-      .map((v) => {
-        const lf = v.mapValue?.fields;
-        const name = lf?.name?.stringValue;
-        if (!name) return null;
-        const drills = numField(lf.drills);
-        const avgScore = numField(lf.avgScore);
-        if (!Number.isFinite(drills) || !Number.isFinite(avgScore)) return null;
-        return { name, drills, avgScore, source: 'live' as const };
-      })
-      .filter((e): e is LeaderEntry => e !== null);
+    const leaderboard: LeaderEntry[] = [];
+    for (const v of f.leaderboard?.arrayValue?.values ?? []) {
+      const lf = v.mapValue?.fields;
+      const name = lf?.name?.stringValue;
+      if (!name) continue;
+      const drills = numField(lf.drills);
+      const avgScore = numField(lf.avgScore);
+      if (Number.isFinite(drills) && Number.isFinite(avgScore)) {
+        leaderboard.push({ name, drills, avgScore, source: 'live' });
+      }
+    }
 
     return { stats, leaderboard, source: 'live', fetchedAt: Date.now() };
   } catch {
