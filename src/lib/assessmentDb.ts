@@ -123,13 +123,49 @@ export interface AssessmentStudentDoc extends AssessmentStudentScores {
   amount: string;
   comments: string;
   teacherComment: string;
+  /** Weekly entries keyed by the week's Monday date (ISO "YYYY-MM-DD").
+   *  Each entry holds the same score/notes fields as the top level. The
+   *  top-level (flat) fields keep the ORIGINAL pre-weekly record so older
+   *  data and exports stay intact. */
+  weeks: Record<string, AssessmentWeekEntry>;
   updatedAt: number | null;
   updatedBy: string;
+}
+
+/** One week's scores for one student — sparse by design: only fields the
+ *  teacher actually entered are present. Values mirror the flat field
+ *  types (numbers for scores, strings for notes). */
+export type AssessmentWeekEntry = Record<string, number | string>;
+
+/** Fields that identify the student (roster-level) — they always live in
+ *  the flat document, never inside a week entry. */
+export const STUDENT_IDENTITY_FIELDS: ReadonlySet<string> = new Set([
+  'name', 'schoolId', 'sponsorship', 'amount', 'comments', 'teacherComment',
+]);
+
+/** Monday of the week containing `date` (local time), as "YYYY-MM-DD".
+ *  Cambodia has no DST and teachers' devices use local time, so a local
+ *  Monday is the correct week key everywhere. */
+export function weekKeyOf(date: Date = new Date()): string {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const shift = (d.getDay() + 6) % 7; // Mon=0 … Sun=6
+  d.setDate(d.getDate() - shift);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+/** "Week of 26 Oct 2026" style label for a "YYYY-MM-DD" week key. */
+export function formatWeekLabel(key: string): string {
+  const d = new Date(`${key}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return key;
+  return `Week of ${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
 }
 
 export function newStudentRow(): Omit<AssessmentStudentDoc, 'id' | 'updatedAt' | 'updatedBy'> {
   return {
     name: '', schoolId: '', sponsorship: 'Pending', amount: '', comments: '', teacherComment: '',
+    weeks: {},
     ...emptyStudentScores(),
   };
 }
@@ -147,12 +183,29 @@ function toStudent(id: string, data: Fields): AssessmentStudentDoc {
     const v = data[k] as Record<string, unknown> | undefined;
     return v && typeof v.stringValue === 'string' ? v.stringValue : '';
   };
+  // weeks: map<weekKey, map<field, value>> — parse only the leaf shapes we
+  // ship (numbers and strings); anything else is ignored defensively.
+  const weeks: Record<string, AssessmentWeekEntry> = {};
+  const wv = data.weeks as Record<string, unknown> | undefined;
+  const wMap = wv && typeof wv === 'object' ? (wv.mapValue as { fields?: Fields } | undefined) : undefined;
+  for (const [key, raw] of Object.entries(wMap?.fields ?? {})) {
+    const inner = (raw as { mapValue?: { fields?: Fields } }).mapValue?.fields;
+    if (!inner) continue;
+    const entry: AssessmentWeekEntry = {};
+    for (const [fk, fv] of Object.entries(inner)) {
+      const leaf = fv as Record<string, unknown>;
+      if (typeof leaf.integerValue === 'string') entry[fk] = parseInt(leaf.integerValue, 10) || 0;
+      else if (typeof leaf.stringValue === 'string') entry[fk] = leaf.stringValue;
+    }
+    if (Object.keys(entry).length) weeks[key] = entry;
+  }
   const ts = data.updatedAt as Record<string, unknown> | undefined;
   const iso = ts && typeof ts.timestampValue === 'string' ? ts.timestampValue : null;
   return {
     id,
     name: str('name'), schoolId: str('schoolId'), sponsorship: str('sponsorship') || 'Pending',
     amount: str('amount'), comments: str('comments'), teacherComment: str('teacherComment'),
+    weeks,
     listening: num('listening'), speaking: num('speaking'), pronunciation: num('pronunciation'),
     fluency: num('fluency'), listeningNotes: str('listeningNotes'),
     comprehension: num('comprehension'), vocabulary: num('vocabulary'), readingSpeed: num('readingSpeed'),
@@ -350,6 +403,84 @@ export async function patchAssessmentStudent(
 
 export async function removeAssessmentStudent(classId: string, studentId: string): Promise<void> {
   await fsCall(`/assessment_classes/${classId}/students/${studentId}`, { method: 'DELETE' });
+}
+
+// ── Weekly entries (weeks.<weekKey>.<field> map leaves) ─────────────
+
+/** Build the nested REST body for dotted field paths, e.g.
+ *  ["weeks.2026-10-26.listening", "updatedAt"] →
+ *  { fields: { weeks: { mapValue: { fields: { "2026-10-26": { mapValue:
+ *  { fields: { listening: … } } } } } } }, updatedAt: … }.
+ *  Week keys are ISO dates (digits + hyphens), so the dot-separated path
+ *  segments stay unambiguous. */
+function buildNestedBody(dottedKeys: string[], values: Record<string, unknown>): { fields: Fields } {
+  const root: Fields = {};
+  for (const path of dottedKeys) {
+    const segments = path.split('.');
+    let cursor: Fields = root;
+    for (let i = 0; i < segments.length - 1; i++) {
+      const seg = segments[i];
+      const next = cursor[seg] as { mapValue?: { fields: Fields } } | undefined;
+      if (next?.mapValue) cursor = next.mapValue.fields;
+      else {
+        const fresh: Fields = {};
+        cursor[seg] = { mapValue: { fields: fresh } };
+        cursor = fresh;
+      }
+    }
+    cursor[segments[segments.length - 1]] = enc(values[path]);
+  }
+  return { fields: root };
+}
+
+/** Save (parts of) one week's entry for a student. Each field patches the
+ *  single leaf weeks.<weekKey>.<field>, so two teachers editing different
+ *  fields — or different weeks — never overwrite each other. */
+export async function patchAssessmentStudentWeek(
+  classId: string,
+  studentId: string,
+  weekKey: string,
+  patch: Record<string, string | number>,
+  actorEmail: string,
+): Promise<void> {
+  const dottedKeys: string[] = [];
+  const values: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(patch)) {
+    const path = `weeks.${weekKey}.${k}`;
+    dottedKeys.push(path);
+    values[path] = v;
+  }
+  const masks = [...dottedKeys, 'updatedAt', 'updatedBy']
+    .map((k) => `updateMask.fieldPaths=${encodeURIComponent(k)}`)
+    .join('&');
+  const body = buildNestedBody(dottedKeys, values);
+  await fsCall(`/assessment_classes/${classId}/students/${studentId}?${masks}`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      fields: {
+        ...body.fields,
+        updatedAt: enc(new Date().toISOString()),
+        updatedBy: enc(actorEmail),
+      },
+    }),
+  });
+}
+
+/** Remove a student's whole week entry (masked-but-absent leaf deletes the
+ *  map key). Used by the workspace's "delete week" control. */
+export async function clearAssessmentWeek(
+  classId: string,
+  studentId: string,
+  weekKey: string,
+): Promise<void> {
+  const masks = [
+    `updateMask.fieldPaths=${encodeURIComponent(`weeks.${weekKey}`)}`,
+    'updateMask.fieldPaths=updatedAt',
+  ].join('&');
+  await fsCall(`/assessment_classes/${classId}/students/${studentId}?${masks}`, {
+    method: 'PATCH',
+    body: JSON.stringify(encodeFields({ updatedAt: new Date().toISOString() })),
+  });
 }
 
 export async function duplicateAssessmentStudent(

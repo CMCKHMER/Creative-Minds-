@@ -1,24 +1,30 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, BookOpen, ClipboardCheck, ClipboardList, Copy, Download, FileText,
+  AlertTriangle, BookOpen, CalendarDays, ClipboardCheck, ClipboardList, Copy, Download, FileText,
   Gamepad2, Headphones, Home, Loader2, Plus, Printer, RefreshCw, Search, Trash2,
   Users, Wand2, X,
 } from 'lucide-react';
 import {
   addAssessmentStudent,
+  clearAssessmentWeek,
   createAssessmentClass,
   duplicateAssessmentStudent,
+  formatWeekLabel,
   listAssessmentClasses,
   newStudentRow,
   patchAssessmentStudent,
+  patchAssessmentStudentWeek,
   removeAssessmentStudent,
+  STUDENT_IDENTITY_FIELDS,
   subscribeAssessmentStudents,
   updateAssessmentClass,
+  weekKeyOf,
   type AssessmentClassDoc,
   type AssessmentStudentDoc,
 } from '../lib/assessmentDb';
 import {
   areaScores,
+  emptyStudentScores,
   scoreTone,
   type AreaScores,
   type AssessmentStudentScores,
@@ -298,13 +304,16 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
   }
 
   // Local-until-saved overlay (keeps typing responsive between debounced
-  // writes). Kept in STATE (re-renders pick it up immediately); a mirror ref
-  // updated in an effect lets the debounced save timers read the latest
-  // values without re-scheduling.
-  const [overlay, setOverlay] = useState<Map<string, Record<string, string | number>>>(new Map());
-  const overlayMirror = useRef<Map<string, Record<string, string | number>>>(overlay);
+  // writes). Each entry remembers its DESTINATION ('flat' = the original
+  // top-level fields, or a week key) so a pending edit can never land in
+  // the wrong week if the teacher switches weeks mid-save. Kept in STATE
+  // (re-renders pick it up immediately); a mirror ref updated in an effect
+  // lets the debounced save timers read the latest values without
+  // re-scheduling.
+  const [overlay, setOverlay] = useState<Map<string, { patch: Record<string, string | number>; dest: string }>>(new Map());
+  const overlayMirror = useRef<Map<string, { patch: Record<string, string | number>; dest: string }>>(overlay);
   useEffect(() => { overlayMirror.current = overlay; }, [overlay]);
-  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const timersRef = useRef<Map<string, { timer: ReturnType<typeof setTimeout>; dest: string }>>(new Map());
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'error'>('idle');
 
   // UI state
@@ -314,6 +323,27 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Weekly entries: null = the original (pre-weekly) top-level record;
+  // otherwise the ISO Monday key ("YYYY-MM-DD") of the selected week.
+  // Weeks live in a `weeks` map on each student doc — the flat fields keep
+  // the original data so nothing already recorded is lost or moved.
+  const [weekKey, setWeekKey] = useState<string | null>(null);
+  const [weekForClassId, setWeekForClassId] = useState<string | null>(classId);
+  if (weekForClassId !== classId) {
+    setWeekForClassId(classId);
+    setWeekKey(null);
+  }
+  const todayWeekKey = useMemo(() => weekKeyOf(), []);
+  const weekOptions = useMemo(() => {
+    const keys = new Set<string>();
+    for (const s of students) {
+      for (const [k, entry] of Object.entries(s.weeks ?? {})) {
+        if (Object.keys(entry ?? {}).length) keys.add(k);
+      }
+    }
+    return [...keys].sort().reverse();
+  }, [students]);
 
   const activeClass = useMemo(
     () => classes?.find((c) => c.id === classId) ?? null,
@@ -351,19 +381,26 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
     return unsub;
   }, [classId]);
 
-  // Debounced per-row save: collect overlay keys → patch → drop overlay on success
-  const scheduleSave = useCallback((studentId: string) => {
+  // Debounced per-row save: collect overlay keys → patch (flat or week
+  // leaf paths, per the captured destination) → drop overlay on success.
+  // The destination is captured at schedule time: switching weeks while a
+  // save is pending never redirects those edits into the new week.
+  const scheduleSave = useCallback((studentId: string, dest: string) => {
     if (!classId) return;
     const timers = timersRef.current;
     const existing = timers.get(studentId);
-    if (existing) clearTimeout(existing);
+    if (existing) clearTimeout(existing.timer);
     setSaveState('saving');
-    timers.set(studentId, setTimeout(async () => {
+    timers.set(studentId, { timer: setTimeout(async () => {
       timers.delete(studentId);
-      const patch = overlayMirror.current.get(studentId);
-      if (!patch || !classId) return;
+      const entry = overlayMirror.current.get(studentId);
+      if (!entry || entry.dest !== dest || !classId) return;
       try {
-        await patchAssessmentStudent(classId, studentId, patch, email);
+        if (dest === 'flat') {
+          await patchAssessmentStudent(classId, studentId, entry.patch, email);
+        } else {
+          await patchAssessmentStudentWeek(classId, studentId, dest, entry.patch, email);
+        }
         setOverlay((prev) => {
           if (!prev.has(studentId)) return prev;
           const next = new Map(prev);
@@ -375,18 +412,25 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
         setSaveState('error');
         setRosterError(humanizeError(e));
       }
-    }, 700));
+    }, 700), dest });
   }, [classId, email]);
 
   const changeField = useCallback((studentId: string, key: string, value: string | number) => {
     if (!classId) return;
+    // Identity fields (name, schoolId, sponsorship, …) always live on the
+    // student doc itself; score fields go to the selected week when one is
+    // active, otherwise to the original top-level record.
+    const dest = STUDENT_IDENTITY_FIELDS.has(key) ? 'flat' : (weekKey ?? 'flat');
     setOverlay((prev) => {
+      const prevEntry = prev.get(studentId);
+      const sameDest = prevEntry && prevEntry.dest === dest;
+      const patch = { ...(sameDest ? prevEntry.patch : {}), [key]: value };
       const next = new Map(prev);
-      next.set(studentId, { ...(next.get(studentId) ?? {}), [key]: value });
+      next.set(studentId, { patch, dest });
       return next;
     });
-    scheduleSave(studentId);
-  }, [classId, scheduleSave]);
+    scheduleSave(studentId, dest);
+  }, [classId, weekKey, scheduleSave]);
 
   // Row actions
   const addRow = useCallback(async (count = 1) => {
@@ -423,10 +467,49 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
     setBusy(false);
   }, [classId, busy]);
 
-  // Effective record = remote snapshot merged with local unsaved edits
+  // Delete the selected week's entry from every student that has one. The
+  // original top-level record and all other weeks are untouched.
+  const deleteWeek = useCallback(async () => {
+    if (!classId || !weekKey || busy) return;
+    const withData = students.filter((s) => Object.keys(s.weeks?.[weekKey] ?? {}).length > 0);
+    if (withData.length === 0) { setWeekKey(null); return; }
+    if (!window.confirm(`Delete ${formatWeekLabel(weekKey)} for ${withData.length} student${withData.length === 1 ? '' : 's'}? That week's scores cannot be recovered. Other weeks and the original record stay.`)) return;
+    setBusy(true);
+    try {
+      for (const s of withData) await clearAssessmentWeek(classId, s.id, weekKey);
+      setWeekKey(null);
+    } catch (e) { setRosterError(humanizeError(e)); }
+    setBusy(false);
+  }, [classId, weekKey, busy, students]);
+
+  // Effective record = what the tabs display for the SELECTED view:
+  //  - identity fields always come from the flat doc (plus any pending edits)
+  //  - score fields come from the selected week's entry when one is active
+  //    (blank = not assessed that week), otherwise from the flat fields
+  //  - pending overlay edits apply only when their destination matches the
+  //    view, so typing into week A never bleeds into week B mid-save
   const effectiveStudents = useMemo(
-    () => students.map((s) => ({ ...s, ...(overlay.get(s.id) ?? {}) }) as AssessmentStudentDoc),
-    [students, overlay],
+    () => students.map((s) => {
+      const entry = overlay.get(s.id);
+      let base: AssessmentStudentDoc = s;
+      if (weekKey) {
+        const weekData = s.weeks?.[weekKey] ?? {};
+        base = { ...s, ...emptyStudentScores(), ...weekData } as AssessmentStudentDoc;
+      }
+      if (entry) {
+        const sameView = entry.dest === 'flat' ? weekKey === null : entry.dest === weekKey;
+        if (sameView) {
+          base = { ...base, ...entry.patch } as AssessmentStudentDoc;
+        } else {
+          const idPatch = Object.fromEntries(
+            Object.entries(entry.patch).filter(([k]) => STUDENT_IDENTITY_FIELDS.has(k)),
+          );
+          if (Object.keys(idPatch).length) base = { ...base, ...idPatch } as AssessmentStudentDoc;
+        }
+      }
+      return base;
+    }),
+    [students, overlay, weekKey],
   );
   const visibleStudents = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -524,6 +607,56 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
           </div>
         )}
 
+        {/* Assessment week selector — weekly entries keyed by the week's
+            Monday date. 'Initial record' shows/edits the original flat
+            fields (everything recorded before weekly tracking existed). */}
+        {activeClass && (
+          <div className="flex flex-wrap items-center gap-2 border-b border-white/8 bg-white/[0.015] px-5 py-3">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md border border-cyan-300/20 bg-cyan-300/5 text-cyan-200"><CalendarDays className="h-3 w-3" aria-hidden="true" /></span>
+            <span className="shrink-0 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Assessment week</span>
+            <select
+              value={weekKey ?? '__base__'}
+              onChange={(e) => setWeekKey(e.target.value === '__base__' ? null : e.target.value)}
+              className="max-w-56 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-slate-100 outline-none transition focus:border-cyan-300/50"
+              aria-label="Assessment week"
+            >
+              <option value="__base__">Initial record (no date)</option>
+              {weekOptions.map((k) => <option key={k} value={k}>{formatWeekLabel(k)}</option>)}
+            </select>
+            <input
+              type="date"
+              value={weekKey ?? todayWeekKey}
+              onChange={(e) => { if (e.target.value) setWeekKey(weekKeyOf(new Date(`${e.target.value}T00:00:00`))); }}
+              className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-slate-100 outline-none transition focus:border-cyan-300/50"
+              aria-label="Pick a week by date"
+            />
+            <button
+              type="button"
+              onClick={() => setWeekKey(todayWeekKey)}
+              disabled={weekKey === todayWeekKey}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-[11px] font-bold text-cyan-100 transition hover:-translate-y-0.5 disabled:opacity-40"
+            >
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" /> This week
+            </button>
+            {weekKey && (
+              <button
+                type="button"
+                onClick={() => void deleteWeek()}
+                disabled={busy}
+                title="Delete this week's scores for every student"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-rose-300/25 bg-rose-400/10 px-3 py-2 text-[11px] font-bold text-rose-100 transition hover:-translate-y-0.5 disabled:opacity-40"
+              >
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Delete week
+              </button>
+            )}
+            <span className="ml-auto text-[10px] font-semibold text-slate-500">
+              {weekKey
+                ? `Recording into ${formatWeekLabel(weekKey)} — other weeks stay as history`
+                : 'Recording into the original record — pick a date above to start a new week'}
+            </span>
+          </div>
+        )}
+
         {(loadError || rosterError) && (
           <div className="flex items-start gap-2.5 border-b border-rose-300/20 bg-rose-400/[0.07] px-5 py-3 text-xs leading-relaxed text-rose-100">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-300" aria-hidden="true" />
@@ -618,11 +751,12 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
 
           {tab === 'report' && classId && (
             <ReportTab
-              students={students}
+              students={effectiveStudents}
               schoolName={classMeta.schoolName || activeClass?.schoolName || ''}
               className={activeClass?.name ?? ''}
               teacherName={classMeta.teacherName || activeClass?.teacherName || ''}
               remarks={activeClass?.remarks ?? ''}
+              weekKey={weekKey}
               onError={(m) => setRosterError(m)}
             />
           )}
@@ -889,7 +1023,7 @@ function buildCsv(students: AssessmentStudentDoc[]): string {
   return '\uFEFF' + [head.map(esc).join(','), ...rows].join('\r\n');
 }
 
-function buildReportHtml(o: { students: AssessmentStudentDoc[]; schoolName: string; className: string; teacherName: string; remarks: string }): string {
+function buildReportHtml(o: { students: AssessmentStudentDoc[]; schoolName: string; className: string; teacherName: string; remarks: string; weekLabel?: string }): string {
   const rows = o.students.map((s, i) => {
     const a = areaScores(s);
     const cell = (v: number) => `<td style="padding:7px 10px;text-align:center;color:${v <= 0 ? '#94a3b8' : v >= 70 ? '#059669' : v >= 50 ? '#b45309' : '#dc2626'};font-weight:600">${v > 0 ? v + '%' : '—'}</td>`;
@@ -908,7 +1042,7 @@ function buildReportHtml(o: { students: AssessmentStudentDoc[]; schoolName: stri
   .meta{display:flex;gap:26px;margin:0 0 14px;font-size:12px;color:#334155}.remarks{margin-top:18px;font-size:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px}
   @media print{body{margin:10mm}}</style></head><body>
   <h1>Daily Student Assessment Report</h1>
-  <h2>Creative Minds Network · generated ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</h2>
+  <h2>Creative Minds Network · generated ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}${o.weekLabel ? ` · ${escapeHtml(o.weekLabel)}` : ''}</h2>
   <div class="meta"><span><strong>School:</strong> ${escapeHtml(o.schoolName || '—')}</span><span><strong>Class:</strong> ${escapeHtml(o.className || '—')}</span><span><strong>Teacher:</strong> ${escapeHtml(o.teacherName || '—')}</span><span><strong>Students:</strong> ${o.students.length}</span></div>
   <table><thead><tr><th>#</th><th>Student</th><th>School ID</th><th>Sponsorship</th><th>Listening</th><th>Reading</th><th>PBL</th><th>Quizzes</th><th>Homework</th><th>Participation</th><th>Overall</th></tr></thead><tbody>${rows}</tbody></table>
   ${o.remarks ? `<div class="remarks"><strong>Overall remarks:</strong> ${escapeHtml(o.remarks)}</div>` : ''}
@@ -925,14 +1059,16 @@ function ReportTab(props: {
   className: string;
   teacherName: string;
   remarks: string;
+  weekKey: string | null;
   onError: (m: string) => void;
 }) {
-  const { students, schoolName, className, teacherName, remarks, onError } = props;
+  const { students, schoolName, className, teacherName, remarks, weekKey, onError } = props;
+  const weekLabel = weekKey ? formatWeekLabel(weekKey) : '';
   const print = () => {
     try {
       const w = window.open('', '_blank', 'width=980,height=760');
       if (!w) throw new Error('Pop-up blocked — allow pop-ups for this site to print the report.');
-      w.document.write(buildReportHtml({ students, schoolName, className, teacherName, remarks }));
+      w.document.write(buildReportHtml({ students, schoolName, className, teacherName, remarks, weekLabel }));
       w.document.close();
     } catch (e) { onError(String((e as Error).message ?? e)); }
   };
@@ -942,7 +1078,7 @@ function ReportTab(props: {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `cmc-assessment-${(className || 'class').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `cmc-assessment-${(className || 'class').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${weekKey ?? 'initial'}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) { onError(String((e as Error).message ?? e)); }
@@ -952,8 +1088,8 @@ function ReportTab(props: {
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3.5">
         <FileText className="h-5 w-5 text-cyan-200" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-white">Class report — {students.length} students</p>
-          <p className="mt-0.5 text-[11px] text-slate-500">Print a formal summary or export the full score sheet as CSV for Excel / Google Sheets.</p>
+          <p className="text-xs font-bold text-white">Class report — {students.length} students{weekLabel ? ` · ${weekLabel}` : ''}</p>
+          <p className="mt-0.5 text-[11px] text-slate-500">Print a formal summary or export the full score sheet as CSV for Excel / Google Sheets. The report covers the week selected above.</p>
         </div>
         <button type="button" onClick={csv} className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3.5 py-2 text-[11px] font-bold text-cyan-100 transition hover:-translate-y-0.5"><Download className="h-3.5 w-3.5" /> Download CSV</button>
         <button type="button" onClick={print} className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-3.5 py-2 text-[11px] font-bold text-slate-950 transition hover:-translate-y-0.5"><Printer className="h-3.5 w-3.5" /> Print report</button>

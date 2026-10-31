@@ -4,14 +4,15 @@ import {
   clearPersistedSession,
   detectRoleFromEmail,
   firebaseConfigured,
+  isAdminUid,
   isTeacherEmail,
   restoreSession,
   sendEmailVerification,
   sendPasswordReset,
   signInWithEmail,
+  signInWithGoogle,
   signUpWithEmail,
   toRestoredSession,
-  isAdminUid,
   type FirebaseAuthError,
   type RestoredSession,
 } from '../lib/firebaseAuth';
@@ -30,6 +31,19 @@ interface TeacherPassModalProps {
 
 function emailRedirectUrl(): string {
   return `${window.location.origin}${window.location.pathname}#toefl-mini-test`;
+}
+
+/** Official four-color Google "G" — kept as a tiny inline SVG so no icon
+ *  package or network fetch is involved. */
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true">
+      <path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.2H12v4.3h6.5c-.1 1.1-.8 2.7-2.4 3.8l3.7 2.9c2.3-2.1 3.7-5.2 3.7-8.8z" />
+      <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.7-2.9c-1 .7-2.4 1.2-4.2 1.2-3.1 0-5.8-2.1-6.8-5l-3.9 3C3.3 21.3 7.3 24 12 24z" />
+      <path fill="#FBBC05" d="M5.2 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.7.4-2.4l-3.9-3C.5 8.2 0 10 0 12s.5 3.8 1.3 5.4l3.9-3z" />
+      <path fill="#EA4335" d="M12 4.7c1.8 0 3 .8 3.7 1.4l3.2-3.1C17.9 1.1 15.2 0 12 0 7.3 0 3.3 2.7 1.3 6.6l3.9 3c1-2.9 3.7-4.9 6.8-4.9z" />
+    </svg>
+  );
 }
 
 export const TeacherPassModal = ({
@@ -236,6 +250,30 @@ export const TeacherPassModal = ({
     window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
   };
 
+  /** Shared welcome copy for both sign-in paths (password + Google). */
+  const welcomeFor = (session: RestoredSession): string =>
+    isAdminUid(session.localId)
+      ? 'You\'re signed in as the site admin. Everything — Teacher Tools, answer keys, assignments, grading, assessment records — is unlocked across the whole site.'
+      : session.role === 'teacher'
+        ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the practice room are unlocked — explore them whenever you like.'
+        : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like.';
+
+  const handleGoogleSignIn = async () => {
+    resetFeedback();
+    setBusy(true);
+    try {
+      const session = await signInWithGoogle();
+      setActiveSession(toRestoredSession(session));
+      setMode('authenticated');
+      setMessage(welcomeFor(toRestoredSession(session)));
+      window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Google sign-in failed. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const switchMode = (nextMode: AuthMode) => {
     resetFeedback();
     setMode(nextMode);
@@ -316,6 +354,15 @@ export const TeacherPassModal = ({
             <button disabled={busy} type="submit" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-cyan-200">
               {busy ? 'Creating account…' : 'Create account'} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
+            <div className="flex items-center gap-3" aria-hidden="true">
+              <span className="h-px flex-1 bg-white/10" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">or</span>
+              <span className="h-px flex-1 bg-white/10" />
+            </div>
+            <button type="button" disabled={busy} onClick={() => void handleGoogleSignIn()} className="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50">
+              <GoogleIcon /> Sign up with Google
+            </button>
+            <p className="text-center text-[10px] leading-relaxed text-slate-500">Faster path: a Google account skips the email-verification step — the role still follows the "edu" email rule.</p>
             <p className="text-center text-xs text-slate-500">Already a member? <button type="button" onClick={() => switchMode('sign-in')} className="font-semibold text-cyan-200 hover:text-white">Sign in</button></p>
           </form>
         )}
@@ -329,7 +376,18 @@ export const TeacherPassModal = ({
               <span className="relative mt-1.5 block"><LockKeyhole className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={password} onChange={(event) => setPassword(event.target.value)} required type={showPassword ? 'text' : 'password'} autoComplete="current-password" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-12 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder="Your password" /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-500 hover:text-white">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></span>
             </label>
             <div className="flex justify-end"><button type="button" onClick={() => switchMode('reset')} className="text-xs text-cyan-200 hover:text-white">Forgot password?</button></div>
-            <button disabled={busy} type="submit" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">{busy ? 'Signing in…' : 'Sign in'} <ArrowRight className="h-4 w-4" aria-hidden="true" /></button>
+            <button disabled={busy} type="submit" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
+              {busy ? 'Signing in…' : 'Sign in'} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <div className="flex items-center gap-3" aria-hidden="true">
+              <span className="h-px flex-1 bg-white/10" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">or</span>
+              <span className="h-px flex-1 bg-white/10" />
+            </div>
+            <button type="button" disabled={busy} onClick={() => void handleGoogleSignIn()} className="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50">
+              <GoogleIcon /> Continue with Google
+            </button>
+            <p className="text-center text-[10px] leading-relaxed text-slate-500">Google / Gmail accounts are verified automatically — the same teacher/student rules apply ("edu" email → teacher tools).</p>
             <p className="text-center text-xs text-slate-500">New to CMC? <button type="button" onClick={() => switchMode('sign-up')} className="font-semibold text-cyan-200 hover:text-white">Create an account</button></p>
           </form>
         )}

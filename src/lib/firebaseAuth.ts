@@ -257,6 +257,90 @@ export async function signInWithEmail(input: SignInInput): Promise<FirebaseSessi
   return restored ? { ...session, role: restored.role } : session;
 }
 
+// ── Google (Gmail) sign-in ───────────────────────────────────────────
+// Uses the Firebase SDK popup flow — the Identity Toolkit REST API has no
+// OAuth broker, and the SDK is already a lazy dependency (bridgeToSdk uses
+// it). On success the SDK auth state is ALREADY signed in (the popup IS the
+// SDK session — dashboard listeners just work, no bridgeToSdk call needed);
+// persistSession mirrors it into the same localStorage keys every static
+// worksheet page reads, so the two auth worlds stay aligned.
+
+function googleAuthError(e: unknown): Error {
+  const code = String((e as { code?: string })?.code || '');
+  const MESSAGES: Record<string, string> = {
+    'auth/operation-not-allowed':
+      'Google sign-in is not enabled for this Firebase project yet. In Firebase Console → Authentication → Sign-in method, enable the "Google" provider, then try again.',
+    'auth/unauthorized-domain':
+      `This domain (${typeof location !== 'undefined' ? location.host : 'this page'}) is not authorized for Google sign-in. In Firebase Console → Authentication → Settings → Authorized domains, add cmckhmer.github.io (plus localhost for testing).`,
+    'auth/popup-blocked':
+      'The browser blocked the Google sign-in window. Allow pop-ups for this site and try again.',
+    'auth/popup-closed-by-user':
+      'Google sign-in was cancelled — the window closed before it finished.',
+    'auth/cancelled-popup-request':
+      'Another Google sign-in window is already open. Finish or close it first.',
+    'auth/account-exists-with-different-credential':
+      'This Google email already has a password account on CMC. Sign in with that email and password instead — or pick a different Google account.',
+    'auth/network-request-failed':
+      'Network unreachable — check the connection and try again.',
+    'auth/user-disabled':
+      'This account has been disabled by an administrator. Contact the site administrator.',
+  };
+  return new Error(MESSAGES[code] || 'Google sign-in failed. Please try again.');
+}
+
+/**
+ * Sign in (or auto-create an account) with a Google / Gmail account through
+ * a popup. Google verifies the email server-side, so the verification gate
+ * passes naturally — the role still comes from the email domain (contains
+ * "edu" → teacher), exactly like password accounts.
+ */
+export async function signInWithGoogle(): Promise<FirebaseSession> {
+  const { getFirebaseAuth } = await import('./firebase');
+  const auth = await getFirebaseAuth();
+  if (!auth) throw new Error('Firebase is not configured.');
+  const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  let uid: string;
+  let email: string;
+  let displayName: string | null;
+  let refreshToken: string;
+  let idToken: string;
+  try {
+    const cred = await signInWithPopup(auth, provider);
+    uid = cred.user.uid;
+    email = cred.user.email ?? '';
+    displayName = cred.user.displayName;
+    refreshToken = cred.user.refreshToken;
+    idToken = await cred.user.getIdToken();
+  } catch (e) {
+    throw googleAuthError(e);
+  }
+  if (!email) {
+    throw new Error('Your Google account has no email address on it — sign up with an email account instead.');
+  }
+  const session: FirebaseSession = {
+    idToken,
+    refreshToken,
+    localId: uid,
+    email,
+    displayName,
+    // The server-minted claim inside the fresh token is authoritative
+    // (firestore.rules isVerifiedUser reads the same claim).
+    emailVerified: tokenEmailVerified(idToken) ?? true,
+    expiresIn: 3600,
+    expiresAt: Date.now() + 3600_000,
+  };
+  if (!session.emailVerified) {
+    // Practically unreachable for Google accounts — kept as a hard gate so
+    // the verification invariant can never be bypassed by any provider.
+    throw new Error('Your Google account email is not verified — confirm it with Google first, then try again.');
+  }
+  persistSession(session, loadStoredProfile(session.localId));
+  const restored = restoreSession();
+  return restored ? { ...session, role: restored.role } : session;
+}
+
 export async function sendEmailVerification(idToken: string, continueUrl?: string): Promise<void> {
   if (!API_KEY) return;
   const url = `${BASE}/accounts:sendOobCode?key=${API_KEY}`;
