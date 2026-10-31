@@ -25,6 +25,9 @@ export type DrillSource =
   | 'syntax-clash'
   | 'tense-master'
   | 'writequest'
+  // The Brain Lounge arcade page (#brain-lounge) — cartridges in
+  // src/games/registry.ts submit here (e.g. neon-sequence levels cleared).
+  | 'brain-lounge'
   // Logged by the private (teacher-assigned) test pages after a successful
   // test_submissions POST — completion only, score 0 until the teacher grades.
   | 'assignment';

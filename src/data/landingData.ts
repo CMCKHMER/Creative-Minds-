@@ -11,6 +11,15 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     path: '#daily-assessment'
   },
   {
+    id: 'brain-lounge',
+    title: 'The Brain Lounge · Arcade',
+    category: 'Games & Arcade',
+    badge: 'New',
+    description: 'Open the dedicated arcade page for CMC-built games — memory, reflex and logic cartridges with more dropping into reserved bays soon.',
+    iconName: 'Brain',
+    path: '#brain-lounge'
+  },
+  {
     id: 'kid-grades',
     title: 'Kid Program · Grades 5–12',
     category: 'Curriculum Paths',

@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>/* Pre-paint theme restore — synced with the main site "cmc-theme" toggle. */
+try{var _cmT=localStorage.getItem('cmc-theme')||localStorage.getItem('cm-theme')||'dark';
+if(_cmT==='light'){document.documentElement.setAttribute('data-cm-pre','light');
+document.documentElement.style.colorScheme='light';
+var _cmS=document.createElement('style');
+_cmS.textContent='html[data-cm-pre="light"] body:not(.light){background:#eef2f7!important;color:#0f172a!important}';
+document.head.appendChild(_cmS);
+document.addEventListener('DOMContentLoaded',function(){document.documentElement.removeAttribute('data-cm-pre');});}}catch(e){}
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reading Future Create 3 — Dictation Sheet</title>
@@ -125,8 +135,89 @@ body.light .score-display{color:#0e7490}
 <script id="cmc-role-gate">
 /* Teacher / student role gating — injected by scripts/gate_worksheet_keys.py */
 (function(){
-  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
-  catch(e) { window.CMC_IS_TEACHER = false; }
+  /* Fail-closed: localStorage role is NEVER trusted (students could edit it).
+     Verified-teacher status is proven server-side by cmcVerifyTeacher(). */
+  window.CMC_IS_TEACHER = false;
+
+  /* ── Server-verified teacher check (spoof-proof) ──
+     The gate used to trust localStorage 'cmc-student-role'. Now teacher
+     status comes from Firestore's own security rules: a REST read of the
+     teachers-only assessment_classes collection succeeds (HTTP 200) ONLY
+     when the Bearer token is a REAL Firebase-issued ID token for an
+     email-verified account with an "edu" email domain — or the site-owner
+     admin UID. That mirrors isCmcTeacher() in firestore.rules, so a
+     spoofed localStorage token or a hand-crafted JWT is rejected with
+     401/403 and the keys stay locked. Expired tokens are silently
+     refreshed via the securetoken grant (same flow as cmc-shared.js). */
+  var CMC_FB_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+  var CMC_TEACHER_BADGE_HTML = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(52,211,153,0.12);color:#6ee7b7;border:1px solid rgba(52,211,153,0.35);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+  function cmcRefreshToken(cb){
+    try {
+      var rt = localStorage.getItem('cmc-student-refresh-token');
+      if (!rt) { cb(null); return; }
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_FB_API_KEY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+        if (!d || !d.id_token) { cb(null); return; }
+        try {
+          localStorage.setItem('cmc-student-token', d.id_token);
+          localStorage.setItem('cmc-student-token-expires', String(Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000));
+          if (d.refresh_token) localStorage.setItem('cmc-student-refresh-token', d.refresh_token);
+        } catch(e) {}
+        cb(d.id_token);
+      }).catch(function(){ cb(null); });
+    } catch(e) { cb(null); }
+  }
+  function cmcRulesSayTeacher(tok){
+    return fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/assessment_classes?pageSize=1', {
+      headers: tok ? { 'Authorization': 'Bearer ' + tok } : {}
+    }).then(function(r){ return r.status === 200; }).catch(function(){ return false; });
+  }
+  window.cmcVerifyTeacher = function(){
+    try {
+      var tok = localStorage.getItem('cmc-student-token');
+      var first = tok ? cmcRulesSayTeacher(tok) : Promise.resolve(false);
+      return first.then(function(ok){
+        if (ok) return true;
+        // 401/expired or no token: refresh once via the bridged session,
+        // then re-ask the rules. Still failing -> locked (fail-closed).
+        return new Promise(function(res){
+          cmcRefreshToken(function(t){
+            if (!t) { res(false); return; }
+            cmcRulesSayTeacher(t).then(res);
+          });
+        });
+      });
+    } catch(e) { return Promise.resolve(false); }
+  };
+  window.cmcUnlockGateButtons = function(){
+    try {
+      document.querySelectorAll('[data-cmc-gated]').forEach(function(btn){
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+        btn.removeAttribute('title');
+        var n = btn.nextElementSibling;
+        if (n && n.tagName === 'SPAN' && n.textContent.indexOf('Teachers only') >= 0) n.remove();
+      });
+    } catch(e) {}
+  };
+  document.addEventListener('DOMContentLoaded', function(){
+    window.cmcVerifyTeacher().then(function(ok){
+      if (!ok) return;
+      window.CMC_IS_TEACHER = true;
+      // Swap whatever role badge is on screen for the verified-teacher one.
+      document.querySelectorAll('div').forEach(function(el){
+        var st = el.getAttribute('style') || '';
+        if (st.indexOf('top:62px;right:16px') >= 0 && /Student mode|Teacher mode/.test(el.textContent || '')) {
+          el.textContent = '🎓 Teacher mode — keys visible';
+          el.style.cssText = CMC_TEACHER_BADGE_HTML;
+        }
+      });
+      window.cmcUnlockGateButtons();
+    });
+  });
 
   function addBadge(text, color, bgColor, borderColor) {
     var b = document.createElement('div');
@@ -171,7 +262,7 @@ body.light .score-display{color:#0e7490}
   };
 
   document.addEventListener('DOMContentLoaded', function(){
-    if (window.CMC_IS_TEACHER) {
+    if (false) { // fail-closed — cmcVerifyTeacher() flips this after server verification
       addBadge('🎓 Teacher mode — keys visible', '#6ee7b7', 'rgba(52,211,153,0.12)', 'rgba(52,211,153,0.35)');
     } else {
       addBadge('Student mode — keys locked', '#67e8f9', 'rgba(34,211,238,0.10)', 'rgba(34,211,238,0.30)');
@@ -401,11 +492,12 @@ window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').
     document.body.classList.toggle('light', theme === 'light');
     document.documentElement.style.colorScheme = theme;
     btn.innerHTML = theme === 'light' ? '\u{1F319} Dark' : '\u{2600}\u{FE0F} Light';
-    try{ localStorage.setItem('cm-theme', theme); }catch(e){}
+    try{ localStorage.setItem('cm-theme', theme); localStorage.setItem('cmc-theme', theme); }catch(e){}
   }
   let saved = 'dark';
-  try{ saved = localStorage.getItem('cm-theme') || 'dark'; }catch(e){}
+  try{ saved = localStorage.getItem('cmc-theme') || localStorage.getItem('cm-theme') || 'dark'; }catch(e){}
   apply(saved);
+  try{window.addEventListener('storage',function(e){if(e.key==='cmc-theme'&&(e.newValue==='light'||e.newValue==='dark'))apply(e.newValue);});}catch(e){}
   btn.onclick = ()=> apply(document.body.classList.contains('light') ? 'dark' : 'light');
 })();
 </script>
@@ -413,8 +505,9 @@ window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').
 
 // CMC-ANSWER-GATE — gate answer keys for teachers only
 (function(){
-  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
-  catch(e) { window.CMC_IS_TEACHER = false; }
+  /* Fail-closed: localStorage role is NEVER trusted (students could edit it).
+     Verified-teacher status is proven server-side by cmcVerifyTeacher(). */
+  window.CMC_IS_TEACHER = false;
   
   function gateButton(fnName) {
     var btns = document.querySelectorAll('[onclick*="' + fnName + '"]');
@@ -452,7 +545,8 @@ window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').
 
 // CMC-ANSWER-HIDE — hide per-question correct/incorrect marks for students
 (function(){
-  if (window.CMC_IS_TEACHER) return; // Teachers see everything
+  /* Teachers keep full feedback — but only once cmcVerifyTeacher() has
+     upgraded the flag server-side; checked again at grading time. */
   // Override the visual feedback: after checkAnswers runs, the page
   // shows .correct / .incorrect classes on options + question cards.
   // For students, we strip those classes so they only see the total score,
@@ -461,6 +555,7 @@ window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').
   if (typeof origCheck === 'function') {
     window.checkAnswers = function() {
       origCheck.apply(this, arguments);
+      if (window.CMC_IS_TEACHER) return; // verified teacher — keep per-question feedback
       // Remove per-question visual feedback for students
       setTimeout(function() {
         document.querySelectorAll('.option.correct-opt, .option.wrong-opt, .dblane.correct, .dblane.incorrect, .gap-slot select.correct, .gap-slot select.incorrect, .mc.correct, .mc.incorrect, .fill select.correct, .fill select.incorrect, .question-card.correct-answer, .question-card.wrong-answer, .q-explanation.show').forEach(function(el) {

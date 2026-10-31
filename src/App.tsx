@@ -37,6 +37,7 @@ const TeacherPassModal = lazy(() => import('./components/TeacherPassModal').then
 const StudentDemoModal = lazy(() => import('./components/StudentDemoModal').then(m => ({ default: m.StudentDemoModal })));
 const MiniMockTest = lazy(() => import('./components/MiniMockTest').then(m => ({ default: m.MiniMockTest })));
 const LearningGamesPage = lazy(() => import('./components/LearningGamesPage').then(m => ({ default: m.LearningGamesPage })));
+const BrainLoungePage = lazy(() => import('./components/BrainLoungePage').then(m => ({ default: m.BrainLoungePage })));
 
 export function App() {
   const [quickDrawerOpen, setQuickDrawerOpen] = useState(false);
@@ -53,12 +54,14 @@ export function App() {
   const [isGamesPage, setIsGamesPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#games');
   const [isTeacherToolsPage, setIsTeacherToolsPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#teacher-tools');
   const [isNewsPage, setIsNewsPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#news');
+  const [isBrainLoungePage, setIsBrainLoungePage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#brain-lounge');
 
   useEffect(() => {
     const syncRoute = () => {
       setIsGamesPage(window.location.hash === '#games');
       setIsTeacherToolsPage(window.location.hash === '#teacher-tools');
       setIsNewsPage(window.location.hash === '#news');
+      setIsBrainLoungePage(window.location.hash === '#brain-lounge');
     };
     window.addEventListener('hashchange', syncRoute);
     return () => window.removeEventListener('hashchange', syncRoute);
@@ -105,10 +108,15 @@ export function App() {
     window.location.hash = 'news';
   };
 
+  const openBrainLoungePage = () => {
+    window.location.hash = 'brain-lounge';
+  };
+
   const returnHome = () => {
     setIsGamesPage(false);
     setIsTeacherToolsPage(false);
     setIsNewsPage(false);
+    setIsBrainLoungePage(false);
     window.location.hash = 'top';
   };
 
@@ -147,6 +155,8 @@ export function App() {
       scrollToSection('lms-workspace');
     } else if (toolId === 'cambodia-news') {
       openNewsPage();
+    } else if (toolId === 'brain-lounge') {
+      openBrainLoungePage();
     } else if (toolId === 'pre-kid' || toolId === 'chinese-language') {
       scrollToSection('resources');
     } else {
@@ -181,6 +191,15 @@ export function App() {
     if (isNewsPage) return (
     <Suspense fallback={null}>
       <NewsPage onBackHome={returnHome} />
+    </Suspense>
+  );
+
+  // The Brain Lounge — dedicated arcade page for CMC-built games
+  // (cartridge registry in src/games/registry.ts). Reachable from the
+  // navbar, Quick Links, or directly via #brain-lounge.
+  if (isBrainLoungePage) return (
+    <Suspense fallback={null}>
+      <BrainLoungePage onBackHome={returnHome} />
     </Suspense>
   );
 

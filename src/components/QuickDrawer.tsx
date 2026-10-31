@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, Search, Sparkles, GraduationCap, FileSpreadsheet, 
   UploadCloud, Type, Users, BarChart3, Gamepad2, 
-  Baby, BookOpen, Languages, ArrowUpRight, CheckCircle2, ClipboardCheck
+  Baby, BookOpen, Languages, ArrowUpRight, CheckCircle2, ClipboardCheck,
+  Brain
 } from 'lucide-react';
 import { QUICK_LINKS } from '../data/landingData';
 
@@ -48,6 +49,7 @@ export const QuickDrawer: React.FC<QuickDrawerProps> = ({
       case 'Users': return <Users {...props} />;
       case 'BarChart3': return <BarChart3 {...props} />;
       case 'Gamepad2': return <Gamepad2 {...props} />;
+      case 'Brain': return <Brain {...props} />;
       case 'Baby': return <Baby {...props} />;
       case 'BookOpen': return <BookOpen {...props} />;
       case 'Languages': return <Languages {...props} />;

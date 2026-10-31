@@ -149,6 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <a href="#toefl-junior-assessments" className="cmc-nav-link">Assessments</a>
               <a href="#toefl-ibt-mock" className="cmc-nav-link" title="TOEFL iBT Full Mock Test">TOEFL iBT</a>
               <a href="#games" className="cmc-nav-link">Games</a>
+              <a href="#brain-lounge" className="cmc-nav-link" title="The Brain Lounge · CMC arcade games">Brain Lounge</a>
               <a href="#faq" className="cmc-nav-link">FAQ</a>
             </nav>
 
@@ -316,6 +317,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="rounded bg-cyan-900/60 px-2 py-0.5 text-[10px] text-cyan-200">15 sets</span>
               </a>
               <a href="#games" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between rounded-lg px-3 py-2 text-slate-200 transition hover:bg-slate-900"><span>Learning Games</span><span className="rounded bg-violet-900/50 px-2 py-0.5 text-[10px] text-violet-200">Play Lab</span></a>
+              <a href="#brain-lounge" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between rounded-lg px-3 py-2 text-slate-200 transition hover:bg-slate-900"><span>The Brain Lounge · Arcade</span><span className="rounded bg-fuchsia-900/50 px-2 py-0.5 text-[10px] text-fuchsia-200">New</span></a>
               <a href="#teacher-tools" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between rounded-lg px-3 py-2 text-slate-200 transition hover:bg-slate-900"><span>Teacher Tools · Dice & Wheel</span><span className="rounded bg-cyan-900/50 px-2 py-0.5 text-[10px] text-cyan-200">Live</span></a>
               <a href="#daily-assessment" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between rounded-lg px-3 py-2 text-slate-200 transition hover:bg-slate-900"><span>Daily Student Assessment</span><span className="rounded bg-cyan-900/50 px-2 py-0.5 text-[10px] text-cyan-200">Records</span></a>
               <a href="#kid-grades" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between rounded-lg px-3 py-2 text-slate-200 transition hover:bg-slate-900"><span>Kid Program · Grades 5–12</span><span className="rounded bg-cyan-900/50 px-2 py-0.5 text-[10px] text-cyan-200">Kid 6 + 11</span></a>
