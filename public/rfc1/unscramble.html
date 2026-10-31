@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>/* Pre-paint theme restore — synced with the main site "cmc-theme" toggle. */
+try{var _cmT=localStorage.getItem('cmc-theme')||localStorage.getItem('cm-theme')||'dark';
+if(_cmT==='light'){document.documentElement.setAttribute('data-cm-pre','light');
+document.documentElement.style.colorScheme='light';
+var _cmS=document.createElement('style');
+_cmS.textContent='html[data-cm-pre="light"] body:not(.light){background:#eef2f7!important;color:#0f172a!important}';
+document.head.appendChild(_cmS);
+document.addEventListener('DOMContentLoaded',function(){document.documentElement.removeAttribute('data-cm-pre');});}}catch(e){}
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reading Future Change 1 — Unscramble Sheet</title>
@@ -310,8 +320,9 @@ function showToast(m){const t=document.getElementById('toast');t.textContent=m;t
 function printPDF(){document.getElementById('sharePanel').classList.remove('open');showToast('In the dialog, choose “Save as PDF” as destination');setTimeout(()=>window.print(),400);}
 window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
 (function(){const b=document.createElement('button');b.id='themeToggle';b.type='button';b.setAttribute('aria-label','Toggle light / dark theme');(document.querySelector('.topbar')||document.body).appendChild(b);
- function apply(t){document.body.classList.toggle('light',t==='light');document.documentElement.style.colorScheme=t;b.innerHTML=t==='light'?'🌙 Dark':'☀️ Light';try{localStorage.setItem('cm-theme',t);}catch(e){}}
- let s='dark';try{s=localStorage.getItem('cm-theme')||'dark';}catch(e){}apply(s);
+ function apply(t){document.body.classList.toggle('light',t==='light');document.documentElement.style.colorScheme=t;b.innerHTML=t==='light'?'🌙 Dark':'☀️ Light';try{localStorage.setItem('cm-theme',t);localStorage.setItem('cmc-theme',t);}catch(e){}}
+ let s='dark';try{s=localStorage.getItem('cmc-theme')||localStorage.getItem('cm-theme')||'dark';}catch(e){}apply(s);
+try{window.addEventListener('storage',function(e){if(e.key==='cmc-theme'&&(e.newValue==='light'||e.newValue==='dark'))apply(e.newValue);});}catch(e){}
  b.onclick=()=>apply(document.body.classList.contains('light')?'dark':'light');})();
 </script>
 <style id="cmc-back-guard">
