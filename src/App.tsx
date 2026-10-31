@@ -224,6 +224,13 @@ export function App() {
           sidePanel={<NewsSidePanel onSeeAll={openNewsPage} />}
         />
 
+        {/* Blog-style announcement board — FIRST content section on the
+            homepage: news & info that visitors should see first, right under
+            the hero. Public to read. Only approved admins (site owner +
+            accounts approved in board's "Approve admins" panel, stored in
+            site_config/admins) can publish/edit/pin/delete posts. */}
+        <AnnouncementBoard />
+
         {/* Main-hero themed link to the separate daily student record workspace */}
         <DailyAssessmentCard onOpenAuth={() => openMemberAuth('sign-up')} />
 
@@ -248,12 +255,6 @@ export function App() {
 
         {/* Available learning materials and skills */}
         <SocialProof />
-
-        {/* Blog-style announcement board — below the news feed, public to
-            read. Only approved admins (site owner + accounts approved in
-            board's "Approve admins" panel, stored in site_config/admins)
-            can publish/edit/pin/delete posts. */}
-        <AnnouncementBoard />
 
         {/* Kid Program grade 5-12 resource pathway; Kid 6 + Kid 11 currently linked. */}
         <KidGradeHub />
