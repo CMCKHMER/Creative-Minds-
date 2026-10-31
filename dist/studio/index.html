@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Creative Minds — Studio</title>
+  <meta name="description" content="Creative Minds Studio — free browser canvas, document, spreadsheet and code workspace for classrooms.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@400;700&family=Merriweather:wght@400;700&family=Source+Sans+3:wght@400;600;700&family=Oswald:wght@400;600&family=Poppins:wght@400;600;700&family=Raleway:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -164,7 +165,7 @@
   .no-panel #panelToggle{right:0px; border-radius:7px 0 0 7px}
   .sec{animation:rise .4s both; animation-delay:calc(var(--i)*40ms)}
   @keyframes rise{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
-  .sec h3{font-family:'Syne'; font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:8px; margin-bottom:10px}
+  .sec :is(h2,h3){font-family:'Syne'; font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:8px; margin-bottom:10px}
   .sec h3::before{content:''; width:14px; height:3px; border-radius:2px; background:var(--tick,var(--amber))}
   .sec h3 .h-actions{margin-left:auto; display:flex; gap:4px}
   .sec h3 .h-act{width:20px; height:20px; display:grid; place-items:center; border:1px solid var(--line); border-radius:5px; background:var(--panel-2); color:var(--muted); cursor:pointer; font-size:11px; transition:all .15s}
@@ -347,7 +348,7 @@
 .welcome-card{padding:24px 20px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2);cursor:pointer;transition:all .2s;text-align:center}
 .welcome-card:hover{border-color:var(--cm-primary);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.3)}
 .welcome-card svg{width:32px;height:32px;margin-bottom:12px;color:var(--cm-primary)}
-.welcome-card h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.welcome-card :is(h2,h3){font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
 .welcome-card p{font-size:11px;color:var(--muted);line-height:1.5}
 
 
@@ -366,6 +367,7 @@
 </style>
 </head>
 <body>
+  <h1 style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Creative Minds Studio</h1>
 <!-- Back to CMC floating button (visible in the top-right corner — same
      pattern as every other standalone HTML worksheet on the site). -->
 <a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:8px; right:8px; z-index:99995; display:flex; align-items:center; gap:8px; padding:6px 12px; border-radius:8px; background:rgba(20,22,30,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Instrument Sans',sans-serif; font-size:11px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(20,22,30,0.9)';this.style.transform=''" aria-label="Back to CMC home">
@@ -377,19 +379,19 @@
   <div class="welcome-grid">
     <div class="welcome-card" onclick="welcomeChoose('canvas')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
-      <h3>Canvas</h3><p>Draw, paint, and design with brushes, shapes, layers</p>
+      <h2>Canvas</h2><p>Draw, paint, and design with brushes, shapes, layers</p>
     </div>
     <div class="welcome-card" onclick="welcomeChoose('doc')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
-      <h3>Document</h3><p>Word-style rich text with fonts, formatting, headers</p>
+      <h2>Document</h2><p>Word-style rich text with fonts, formatting, headers</p>
     </div>
     <div class="welcome-card" onclick="welcomeChoose('sheet')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-      <h3>Spreadsheet</h3><p>Excel-style cells with formulas, resize, formatting</p>
+      <h2>Spreadsheet</h2><p>Excel-style cells with formulas, resize, formatting</p>
     </div>
     <div class="welcome-card" onclick="welcomeChoose('code')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-      <h3>Code</h3><p>Write code in JS, HTML, CSS, Python, JSON, Markdown</p>
+      <h2>Code</h2><p>Write code in JS, HTML, CSS, Python, JSON, Markdown</p>
     </div>
   </div>
   <p style="margin-top:24px;font-size:11px;color:#5b6b80">Or press Esc to start with a blank canvas</p>
@@ -720,23 +722,23 @@
 
   <div class="workspace">
     <nav class="rail" id="rail">
-      <button class="tool" data-tool="select" data-tip="Select/Move — M (click to select, drag to move)"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M5 3l14 7-6 2-2 6-6-15z"/></svg></button>
+      <button class="tool" data-tool="select" aria-label="Select/Move tool" data-tip="Select/Move — M (click to select, drag to move)"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M5 3l14 7-6 2-2 6-6-15z"/></svg></button>
       <hr>
-      <button class="tool active" data-tool="brush" data-tip="Brush — B (paint freehand)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M15 5l4 4L8.5 19.5 4 20l.5-4.5L15 5z"/></svg></button>
-      <button class="tool" data-tool="eraser" data-tip="Eraser — E (erase pixels)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 15l9-9 7 7-5 5H9l-5-3z"/><path d="M12 21h9"/></svg></button>
+      <button class="tool active" data-tool="brush" aria-label="Brush tool" data-tip="Brush — B (paint freehand)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M15 5l4 4L8.5 19.5 4 20l.5-4.5L15 5z"/></svg></button>
+      <button class="tool" data-tool="eraser" aria-label="Eraser tool" data-tip="Eraser — E (erase pixels)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 15l9-9 7 7-5 5H9l-5-3z"/><path d="M12 21h9"/></svg></button>
       <hr>
-      <button class="tool" data-tool="line" data-tip="Line — L (draw straight lines)"><svg width="19" height="19" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="5" y1="19" x2="19" y2="5"/></svg></button>
-      <button class="tool" data-tool="rect" data-tip="Rectangle — R (filled or stroked)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
-      <button class="tool" data-tool="ellipse" data-tip="Ellipse — O (filled or stroked)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="8.5" ry="6.5"/></svg></button>
-      <button class="tool" data-tool="gradient" data-tip="Gradient — G (linear, radial, conic)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><defs><linearGradient id="grd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".9"/><stop offset="1" stop-color="currentColor" stop-opacity=".1"/></linearGradient></defs><rect x="3" y="3" width="18" height="18" rx="2" fill="url(#grd)" stroke="none"/></svg></button>
+      <button class="tool" data-tool="line" aria-label="Line tool" data-tip="Line — L (draw straight lines)"><svg width="19" height="19" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="5" y1="19" x2="19" y2="5"/></svg></button>
+      <button class="tool" data-tool="rect" aria-label="Rectangle tool" data-tip="Rectangle — R (filled or stroked)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
+      <button class="tool" data-tool="ellipse" aria-label="Ellipse tool" data-tip="Ellipse — O (filled or stroked)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="8.5" ry="6.5"/></svg></button>
+      <button class="tool" data-tool="gradient" aria-label="Gradient tool" data-tip="Gradient — G (linear, radial, conic)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><defs><linearGradient id="grd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".9"/><stop offset="1" stop-color="currentColor" stop-opacity=".1"/></linearGradient></defs><rect x="3" y="3" width="18" height="18" rx="2" fill="url(#grd)" stroke="none"/></svg></button>
       <hr>
-      <button class="tool" data-tool="text" data-tip="Vector Text — T (click to place)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></button>
+      <button class="tool" data-tool="text" aria-label="Vector Text tool" data-tip="Vector Text — T (click to place)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></button>
       <hr>
-      <button class="tool" data-tool="transform" data-tip="Free Transform — V (rotate/scale/skew)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14v14H5z" stroke-dasharray="3 2"/><circle cx="5" cy="5" r="2" fill="currentColor"/><circle cx="19" cy="5" r="2" fill="currentColor"/><circle cx="5" cy="19" r="2" fill="currentColor"/><circle cx="19" cy="19" r="2" fill="currentColor"/></svg></button>
-      <button class="tool" data-tool="perspective" data-tip="Perspective Warp — P (4-corner drag)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8L20 4 16 20 8 16z" stroke-dasharray="3 2"/><circle cx="4" cy="8" r="2" fill="currentColor"/><circle cx="20" cy="4" r="2" fill="currentColor"/><circle cx="8" cy="16" r="2" fill="currentColor"/><circle cx="16" cy="20" r="2" fill="currentColor"/></svg></button>
-      <button class="tool" data-tool="crop" data-tip="Crop — C (cut to selection)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.13 1L6 16a2 2 0 002 2h15"/><path d="M1 6.13L16 6a2 2 0 012 2v15"/></svg></button>
-      <button class="tool" data-tool="margins" data-tip="Margins — drag to set page margins, width, height"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="1" stroke-dasharray="3 2"/><rect x="7" y="7" width="10" height="10" rx="0.5" fill="none" stroke-dasharray="2 1.5"/></svg></button>
-      <button class="tool" data-tool="picker" data-tip="Eyedropper — I (sample color)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 7l4 4-8.5 8.5H5V16L13 7z"/><path d="M14.5 5.5l2-2 4 4-2 2"/></svg></button>
+      <button class="tool" data-tool="transform" aria-label="Free Transform tool" data-tip="Free Transform — V (rotate/scale/skew)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14v14H5z" stroke-dasharray="3 2"/><circle cx="5" cy="5" r="2" fill="currentColor"/><circle cx="19" cy="5" r="2" fill="currentColor"/><circle cx="5" cy="19" r="2" fill="currentColor"/><circle cx="19" cy="19" r="2" fill="currentColor"/></svg></button>
+      <button class="tool" data-tool="perspective" aria-label="Perspective Warp tool" data-tip="Perspective Warp — P (4-corner drag)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8L20 4 16 20 8 16z" stroke-dasharray="3 2"/><circle cx="4" cy="8" r="2" fill="currentColor"/><circle cx="20" cy="4" r="2" fill="currentColor"/><circle cx="8" cy="16" r="2" fill="currentColor"/><circle cx="16" cy="20" r="2" fill="currentColor"/></svg></button>
+      <button class="tool" data-tool="crop" aria-label="Crop tool" data-tip="Crop — C (cut to selection)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6.13 1L6 16a2 2 0 002 2h15"/><path d="M1 6.13L16 6a2 2 0 012 2v15"/></svg></button>
+      <button class="tool" data-tool="margins" aria-label="Margins tool" data-tip="Margins — drag to set page margins, width, height"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="1" stroke-dasharray="3 2"/><rect x="7" y="7" width="10" height="10" rx="0.5" fill="none" stroke-dasharray="2 1.5"/></svg></button>
+      <button class="tool" data-tool="picker" aria-label="Eyedropper tool" data-tip="Eyedropper — I (sample color)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 7l4 4-8.5 8.5H5V16L13 7z"/><path d="M14.5 5.5l2-2 4 4-2 2"/></svg></button>
     </nav>
 
     <div class="stage-wrap">
@@ -821,7 +823,7 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
 
     <aside class="panel" id="panel">
       <section class="sec" style="--i:0; --tick:var(--cm-primary)">
-        <h3>Colour</h3>
+        <h2>Colour</h2>
         <div class="palette-tabs">
           <button class="palette-tab on" data-palette="default">Default</button>
           <button class="palette-tab" data-palette="cmyk">CMYK</button>
@@ -835,14 +837,14 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
       </section>
 
       <section class="sec" style="--i:1; --tick:var(--teal)">
-        <h3>Brush</h3>
+        <h2>Brush</h2>
         <div class="slider-row"><label>Size <output id="sizeOut">8</output></label><input type="range" id="size" min="1" max="80" value="8"></div>
         <div class="slider-row"><label>Opacity <output id="opOut">100%</output></label><input type="range" id="opacity" min="5" max="100" value="100"></div>
         <div class="slider-row"><label>Hardness <output id="hardOut">80%</output></label><input type="range" id="hardness" min="0" max="100" value="80"></div>
       </section>
 
       <section class="sec" style="--i:2; --tick:var(--pink)" id="vectorTextPanel">
-        <h3>Vector Text</h3>
+        <h2>Vector Text</h2>
         <select id="fontFam">
           <optgroup label="Sans-serif">
             <option value="'Instrument Sans', sans-serif">Instrument Sans</option>
@@ -886,19 +888,19 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
       </section>
 
       <section class="sec" style="--i:3; --tick:var(--coral)">
-        <h3>Shapes</h3>
+        <h2>Shapes</h2>
         <div class="seg"><button id="strokeBtn" class="on">Stroke</button><button id="fillBtn">Fill</button></div>
       </section>
 
       <section class="sec" style="--i:4; --tick:var(--green)">
-        <h3>Photo Filters</h3>
+        <h2>Photo Filters</h2>
         <div class="chips" id="presets"></div>
         <div id="filterSliders"></div>
         <div class="filter-actions"><button id="applyFilters">Apply</button><button id="resetFilters">Reset</button></div>
       </section>
 
       <section class="sec" style="--i:5; --tick:var(--blue)">
-        <h3>Layers <span class="h-actions"><span class="h-act" data-layer-act="new" title="New layer">＋</span><span class="h-act" data-layer-act="dup" title="Duplicate">⧉</span><span class="h-act" data-layer-act="merge" title="Merge down">↧</span><span class="h-act" data-layer-act="delete" title="Delete">🗑</span></span></h3>
+        <h2>Layers <span class="h-actions"><span class="h-act" data-layer-act="new" title="New layer">＋</span><span class="h-act" data-layer-act="dup" title="Duplicate">⧉</span><span class="h-act" data-layer-act="merge" title="Merge down">↧</span><span class="h-act" data-layer-act="delete" title="Delete">🗑</span></span></h2>
         <select id="blendMode" title="Blend mode">
           <option value="source-over">Normal</option>
           <option value="multiply">Multiply</option>
@@ -922,13 +924,13 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
       </section>
 
       <section class="sec" style="--i:6; --tick:var(--teal)">
-        <h3>Canvas</h3>
+        <h2>Canvas</h2>
         <div class="bg-row" id="bgRow"></div>
         <button class="btn-clear" id="clearBtn">Clear canvas</button>
       </section>
 
       <section class="sec" style="--i:7; --tick:var(--muted)">
-        <h3>History</h3>
+        <h2>History</h2>
         <div class="history-list" id="historyList"></div>
       </section>
 
@@ -957,27 +959,27 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
 <div class="modal-overlay" id="helpModal"><div class="modal">
   <span class="modal-close" onclick="closeModal('helpModal')">Close ×</span>
   <h2>Keyboard Shortcuts</h2>
-  <div class="modal-section"><h3>Tools</h3>
+  <div class="modal-section"><h2>Tools</h2>
     <div class="shortcut-row"><span>Brush / Eraser / Line</span><span>B / E / L</span></div>
     <div class="shortcut-row"><span>Rectangle / Ellipse / Gradient</span><span>R / O / G</span></div>
     <div class="shortcut-row"><span>Vector Text / Document / Spreadsheet</span><span>T / D / S</span></div>
     <div class="shortcut-row"><span>Free Transform / Crop / Eyedropper</span><span>V / C / I</span></div>
     <div class="shortcut-row"><span>Perspective Warp</span><span>P</span></div>
   </div>
-  <div class="modal-section"><h3>File</h3>
+  <div class="modal-section"><h2>File</h2>
     <div class="shortcut-row"><span>New / Open</span><span>Ctrl+N / Ctrl+O</span></div>
     <div class="shortcut-row"><span>Save PNG / Save Project / Save PDF</span><span>Ctrl+S / Ctrl+Shift+S / Ctrl+Shift+P</span></div>
     <div class="shortcut-row"><span>Print</span><span>Ctrl+P</span></div>
   </div>
-  <div class="modal-section"><h3>Edit</h3>
+  <div class="modal-section"><h2>Edit</h2>
     <div class="shortcut-row"><span>Undo / Redo</span><span>Ctrl+Z / Ctrl+Y</span></div>
     <div class="shortcut-row"><span>Cut / Copy / Paste</span><span>Ctrl+X / C / V</span></div>
     <div class="shortcut-row"><span>Duplicate / Select All</span><span>Ctrl+D / Ctrl+A</span></div>
   </div>
-  <div class="modal-section"><h3>Layer</h3>
+  <div class="modal-section"><h2>Layer</h2>
     <div class="shortcut-row"><span>New / Duplicate / Merge Down</span><span>Ctrl+Shift+N / Ctrl+J / Ctrl+E</span></div>
   </div>
-  <div class="modal-section"><h3>View</h3>
+  <div class="modal-section"><h2>View</h2>
     <div class="shortcut-row"><span>Zoom In / Out / Fit / 100%</span><span>Ctrl++ / - / 0 / 1</span></div>
   </div>
 </div></div>
@@ -1449,7 +1451,7 @@ setColor(color);
 hex.addEventListener('change',e=>{ let v=e.target.value.trim(); if(!v.startsWith('#'))v='#'+v; /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)?(setColor(v), addRecentColor(v)):e.target.value=color; });
 
 ['#ffffff','#f5f1e8','#dde3ea','#12141c','#0e2233','#1c1224'].forEach((c,i)=>{
-  const b=document.createElement('button'); b.className='bg-sw'+(i===0?' on':''); b.style.background=c;
+  const b=document.createElement('button'); b.className='bg-sw'+(i===0?' on':''); b.style.background=c; b.setAttribute('aria-label','Canvas background '+c); b.title='Canvas background '+c;
   b.onclick=()=>{ bgColor=c; wrap.style.background=c; bgRow.querySelectorAll('.bg-sw').forEach(x=>x.classList.remove('on')); b.classList.add('on'); composite(); };
   bgRow.appendChild(b);
 });
@@ -2321,7 +2323,7 @@ function buildPageSizePresets(){
 }
 buildPageSizePresets();
 let pageBgColor = '#ffffff';
-(function(){ const pbgRow = document.getElementById('pageBgRow'); ['#ffffff','#f5f1e8','#dde3ea','#12141c','#0e2233','#1c1224'].forEach((c,i)=>{ const b=document.createElement('button'); b.className='bg-sw'+(i===0?' on':''); b.style.background=c; b.onclick=()=>{ pageBgColor=c; pbgRow.querySelectorAll('.bg-sw').forEach(x=>x.classList.remove('on')); b.classList.add('on'); }; pbgRow.appendChild(b); }); })();
+(function(){ const pbgRow = document.getElementById('pageBgRow'); ['#ffffff','#f5f1e8','#dde3ea','#12141c','#0e2233','#1c1224'].forEach((c,i)=>{ const b=document.createElement('button'); b.className='bg-sw'+(i===0?' on':''); b.style.background=c; b.setAttribute('aria-label','Page background '+c); b.title='Page background '+c; b.onclick=()=>{ pageBgColor=c; pbgRow.querySelectorAll('.bg-sw').forEach(x=>x.classList.remove('on')); b.classList.add('on'); }; pbgRow.appendChild(b); }); })();
 document.getElementById('pageSizeApply').onclick = () => { const w = +document.getElementById('pageW').value, h = +document.getElementById('pageH').value; pushUndo('Page size'); bgColor = pageBgColor; wrap.style.background = bgColor; setCanvasSize(w, h); closeModal('pageSizeModal'); };
 
 /* ══ IMAGE RESIZE / EXTEND / ROTATE / FLIP ═════════ */
