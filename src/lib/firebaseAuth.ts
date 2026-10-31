@@ -288,6 +288,33 @@ function googleAuthError(e: unknown): Error {
   return new Error(MESSAGES[code] || 'Google sign-in failed. Please try again.');
 }
 
+/** Decode a Firebase ID-token payload (JWT part 2) into a claims object. */
+function decodeIdTokenClaims(idToken: string): Record<string, unknown> {
+  try {
+    const b64 = (idToken.split('.')[1] || '').replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4))
+        .split('')
+        .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join(''),
+    );
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+/** The google.com identity email nested under the `firebase` claim. */
+function googleIdentityEmail(claims: Record<string, unknown>): string {
+  const fb = claims.firebase as { identities?: { 'google.com'?: unknown[] } } | undefined;
+  const ids = fb?.identities?.['google.com'];
+  if (Array.isArray(ids)) {
+    const found = ids.find((x) => typeof x === 'string' && (x as string).includes('@'));
+    if (typeof found === 'string') return found;
+  }
+  return '';
+}
+
 /**
  * Sign in (or auto-create an account) with a Google / Gmail account through
  * a popup. Google verifies the email server-side, so the verification gate
@@ -298,47 +325,59 @@ export async function signInWithGoogle(): Promise<FirebaseSession> {
   const { getFirebaseAuth } = await import('./firebase');
   const auth = await getFirebaseAuth();
   if (!auth) throw new Error('Firebase is not configured.');
-  const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
+  const { GoogleAuthProvider, getAdditionalUserInfo, signInWithPopup } = await import('firebase/auth');
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
+  // Defaults already include email+profile; request them EXPLICITLY so a
+  // consent-screen scope change can never silently drop the email.
+  provider.addScope('email');
+  provider.addScope('profile');
   let uid: string;
   let email: string;
   let displayName: string | null;
   let refreshToken: string;
   let idToken: string;
+  let diag = '';
   try {
     const cred = await signInWithPopup(auth, provider);
     uid = cred.user.uid;
-    email = cred.user.email ?? '';
     displayName = cred.user.displayName;
     refreshToken = cred.user.refreshToken;
     idToken = await cred.user.getIdToken();
     // Some Google accounts come back with an EMPTY top-level email even
-    // though the OAuth flow carried one (stale/shadowed user records,
-    // Workspace accounts with contact sharing off). Recover the address
-    // from the two places Firebase mirrors the Google profile, then from a
-    // full server reload, before giving up — otherwise real users get a
-    // bogus "no email address" error on a perfectly normal Gmail account.
-    if (!email) {
-      email = cred.user.providerData.find((p) => p.email)?.email ?? '';
-    }
-    if (!email) {
-      const { getAdditionalUserInfo } = await import('firebase/auth');
-      const profile = getAdditionalUserInfo(cred)?.profile as { email?: unknown } | null | undefined;
-      if (profile && typeof profile.email === 'string' && profile.email) email = profile.email;
-    }
+    // though the OAuth flow completed (supervised/Family-Link accounts,
+    // Workspace accounts with contact sharing off, stale user records).
+    // Recover the address from every place it can hide, in priority order:
+    // user record → provider entries → raw OAuth profile → ID-token claims
+    // (email claim, then firebase.identities.google.com) → server reload.
+    const providerEmails = cred.user.providerData.map((p) => p.email).filter((x): x is string => !!x);
+    const profile = (getAdditionalUserInfo(cred)?.profile || {}) as Record<string, unknown>;
+    const claims = decodeIdTokenClaims(idToken);
+    email = cred.user.email
+      || providerEmails[0]
+      || (typeof profile.email === 'string' && profile.email ? profile.email : '')
+      || (typeof claims.email === 'string' && claims.email ? claims.email : '')
+      || googleIdentityEmail(claims)
+      || '';
     if (!email) {
       try {
         await cred.user.reload();
-        email = auth.currentUser?.email ?? '';
-        if (!email) email = auth.currentUser?.providerData.find((p) => p.email)?.email ?? '';
+        const fresh = auth.currentUser;
+        email = fresh?.email || fresh?.providerData.map((p) => p.email).filter((x): x is string => !!x)[0] || '';
       } catch { /* reload failed — fall through to the friendly error */ }
     }
+    // Compact diagnostic so a user screenshot of the failure pinpoints
+    // exactly which sources existed: pd = provider entries with an email,
+    // pf = OAuth profile keys, tk = ID-token email claim, nw = new account.
+    diag = `pd=${providerEmails.length} pf=${Object.keys(profile).slice(0, 6).join('+') || '-'} tk=${typeof claims.email === 'string' && claims.email ? '1' : '0'} nw=${getAdditionalUserInfo(cred)?.isNewUser ? '1' : '0'}`;
   } catch (e) {
+    // Surface whatever diagnostics we captured before the popup failed.
+    if (diag) console.warn('[cmc-auth] Google sign-in failed after popup — diag:', diag);
     throw googleAuthError(e);
   }
   if (!email) {
-    throw new Error('Google did not share an email address for this account. Try a different Google account, or sign up with an email and password instead.');
+    console.warn('[cmc-auth] Google sign-in completed without an email — diagnostics:', diag);
+    throw new Error(`Google did not share an email address for this account (diag ${diag}). Try a different Google account — a personal @gmail.com account works best — or sign up with an email and password instead.`);
   }
   const session: FirebaseSession = {
     idToken,
