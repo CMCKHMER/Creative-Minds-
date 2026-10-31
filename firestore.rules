@@ -266,6 +266,20 @@ service cloud.firestore {
       allow read, write: if isVerifiedTeacher();
     }
 
+    // SERVER-AGGREGATED TICKER STATS (Blaze plan, Oct 2026): the scheduled
+    // rollupTicker Cloud Function (functions/index.js) rewrites
+    // ticker_stats/latest every 5 minutes with the homepage ticker's stats.
+    // Public read lets every visitor's ticker fetch ONE pre-aggregated
+    // document per poll instead of running the week-window + two count()
+    // queries itself — per-visitor cost drops to a single read no matter how
+    // busy the week is. Writes are DENIED to all clients: the doc is
+    // maintained exclusively by the Cloud Function, whose Admin SDK access
+    // bypasses security rules entirely.
+    match /ticker_stats/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Default-deny everything not explicitly allowed above.
     match /{document=**} {
       allow read, write: if false;

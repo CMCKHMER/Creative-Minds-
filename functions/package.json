@@ -1,0 +1,17 @@
+{
+  "name": "cmc-ticker-functions",
+  "description": "Creative Minds Cambodia — server-side ticker stats rollup (Blaze plan, stays inside free allowances)",
+  "private": true,
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "scripts": {
+    "deploy": "npx --yes firebase-tools@latest deploy --only functions,firestore:rules",
+    "logs": "npx --yes firebase-tools@latest functions:log"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.1"
+  }
+}

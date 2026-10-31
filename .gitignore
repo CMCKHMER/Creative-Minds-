@@ -1,5 +1,12 @@
 # Dependencies
 node_modules/
+functions/node_modules/
+
+# Firebase CLI emulators / debug logs
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-debug.log
 
 # Build output / dist
 dist/tsconfig.tsbuildinfo

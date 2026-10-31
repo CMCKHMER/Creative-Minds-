@@ -76,7 +76,12 @@ const DEMO_STATS: AggregateStats = {
 // ---------------------------------------------------------------------------
 // FIRESTORE REST API
 // ---------------------------------------------------------------------------
-// Three query shapes, all public-read under the security rules:
+// Preferred path: ONE read of the pre-aggregated ticker_stats/latest doc
+// (see SERVER-AGGREGATED STATS below — written every 5 minutes by the
+// rollupTicker Cloud Function).
+//
+// Fallback path (used while the doc is missing/stale): three query shapes,
+// all public-read under the security rules:
 //   1. runQuery            — every attempt in the last 7 days (leaderboard +
 //                            today/this-week/active counts). Reads billed =
 //                            docs returned, so it stays small no matter how
@@ -85,15 +90,15 @@ const DEMO_STATS: AggregateStats = {
 //                            approach capped "All-time drills" at 100).
 //   3. runAggregationQuery — exact assignment-submission count (single-field
 //                            equality filter — no composite index needed).
-// Net effect per poll: ~2 + (docs in the last week) reads instead of a flat
-// 100 — roughly 95% fewer reads, so even many open tabs stay inside the
-// free 50K reads/day on the Blaze plan.
+// Net effect per poll on the fallback path: ~2 + (docs in the last week)
+// reads instead of a flat 100.
 
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
 interface FirestoreField {
   stringValue?: string;
   integerValue?: string;
+  doubleValue?: number;
   timestampValue?: string;
 }
 
@@ -177,6 +182,85 @@ async function countAttempts(filter?: FieldFilterBody): Promise<number> {
 }
 
 // ---------------------------------------------------------------------------
+// SERVER-AGGREGATED STATS (Blaze plan)
+// ---------------------------------------------------------------------------
+// The rollupTicker Cloud Function (functions/index.js) recomputes the exact
+// same stats every 5 minutes — week window + two count() aggregations — and
+// writes them to ticker_stats/latest. When that document is fresh, one GET
+// per poll replaces all three queries: per-visitor cost is a single read no
+// matter how busy the week is, and the aggregate is shared by every open
+// tab instead of recomputed per tab.
+//
+// SAFETY: if the document is missing (function not deployed yet), stale
+// (>20 min — the function runs every 5, so 4 missed runs means trouble), or
+// malformed, we return null and the caller falls back to the query path.
+// The ticker works identically before, during and after the function deploy.
+
+const SERVER_STATS_STALE_MS = 20 * 60_000;
+
+interface ServerStatsFields {
+  drillsToday?: FirestoreField;
+  drillsThisWeek?: FirestoreField;
+  activeStudents?: FirestoreField;
+  totalDrills?: FirestoreField;
+  assignmentsWeek?: FirestoreField;
+  assignmentsTotal?: FirestoreField;
+  updatedAt?: FirestoreField;
+  leaderboard?: {
+    arrayValue?: { values?: Array<{ mapValue?: { fields?: Record<string, FirestoreField> } }> };
+  };
+}
+
+function numField(f: FirestoreField | undefined): number {
+  return Number(f?.integerValue ?? f?.doubleValue ?? NaN);
+}
+
+/** The pre-aggregated ticker doc, or null when absent/stale/malformed. */
+async function fetchServerAggregate(): Promise<TickerData | null> {
+  try {
+    const res = await fetch(`${FIRESTORE_BASE}/ticker_stats/latest`);
+    if (!res.ok) return null;
+    const doc = (await res.json()) as { fields?: ServerStatsFields };
+    const f = doc.fields;
+    if (!f) return null;
+
+    const updatedAtRaw = f.updatedAt?.stringValue || f.updatedAt?.timestampValue;
+    const updatedAt = updatedAtRaw ? Date.parse(updatedAtRaw) : NaN;
+    const stats: AggregateStats = {
+      drillsToday: numField(f.drillsToday),
+      drillsThisWeek: numField(f.drillsThisWeek),
+      activeStudents: numField(f.activeStudents),
+      totalDrills: numField(f.totalDrills),
+      assignmentsWeek: numField(f.assignmentsWeek),
+      assignmentsTotal: numField(f.assignmentsTotal),
+    };
+    const complete = Object.values(stats).every((n) => Number.isFinite(n) && n >= 0);
+    const fresh = Number.isFinite(updatedAt) && Date.now() - updatedAt <= SERVER_STATS_STALE_MS;
+    if (!complete || !fresh) return null;
+
+    // Same empty-project rule as the query path: a reachable project with
+    // zero attempts ever keeps the demo board so the ticker isn't blank.
+    if (stats.totalDrills === 0) return demoData();
+
+    const leaderboard: LeaderEntry[] = (f.leaderboard?.arrayValue?.values ?? [])
+      .map((v) => {
+        const lf = v.mapValue?.fields;
+        const name = lf?.name?.stringValue;
+        if (!name) return null;
+        const drills = numField(lf.drills);
+        const avgScore = numField(lf.avgScore);
+        if (!Number.isFinite(drills) || !Number.isFinite(avgScore)) return null;
+        return { name, drills, avgScore, source: 'live' as const };
+      })
+      .filter((e): e is LeaderEntry => e !== null);
+
+    return { stats, leaderboard, source: 'live', fetchedAt: Date.now() };
+  } catch {
+    return null; // any problem → silent fallback to the query path
+  }
+}
+
+// ---------------------------------------------------------------------------
 // AGGREGATION
 // ---------------------------------------------------------------------------
 
@@ -257,6 +341,8 @@ function demoData(): TickerData {
 // Firestore free tier allows 50K document reads/day — the old 250-docs-every-30s
 // poll exhausted that quota in under two hours of one open tab, and even the
 // later 100-docs-every-2-min poll still burned 72K reads in a single open day.
+// Once the rollupTicker Cloud Function is deployed, a poll costs exactly ONE
+// read (the pre-aggregated ticker_stats/latest doc) as long as it is fresh.
 const REFRESH_MS = 300_000; // 5 min while visible
 const WEEK_LIMIT = 1000; // week-window query cap — a week with more attempts than this would undercount today/week stats
 const QUOTA_COOLDOWN_MS = 600_000; // 10 min pause after a 429
@@ -281,6 +367,16 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
       if (Date.now() < cooldownUntil) return;
       setLoading(true);
       try {
+        // Preferred: the Cloud Function's pre-aggregated doc — one read.
+        const server = await fetchServerAggregate();
+        if (cancelled) return;
+        if (server) {
+          setData(server);
+          setLastError(null);
+          return;
+        }
+
+        // Fallback: run the queries ourselves (server doc missing/stale).
         const startOfToday = new Date();
         startOfToday.setHours(0, 0, 0, 0);
         const weekStartMs = startOfToday.getTime() - 6 * 24 * 60 * 60 * 1000;
