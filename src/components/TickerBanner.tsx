@@ -76,6 +76,18 @@ const DEMO_STATS: AggregateStats = {
 // ---------------------------------------------------------------------------
 // FIRESTORE REST API
 // ---------------------------------------------------------------------------
+// Three query shapes, all public-read under the security rules:
+//   1. runQuery            — every attempt in the last 7 days (leaderboard +
+//                            today/this-week/active counts). Reads billed =
+//                            docs returned, so it stays small no matter how
+//                            big the collection grows.
+//   2. runAggregationQuery — exact all-time count (the old documents.list
+//                            approach capped "All-time drills" at 100).
+//   3. runAggregationQuery — exact assignment-submission count (single-field
+//                            equality filter — no composite index needed).
+// Net effect per poll: ~2 + (docs in the last week) reads instead of a flat
+// 100 — roughly 95% fewer reads, so even many open tabs stay inside the
+// free 50K reads/day on the Blaze plan.
 
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
@@ -89,9 +101,31 @@ interface FirestoreDoc {
   fields?: Record<string, FirestoreField>;
 }
 
-interface FirestoreListResponse {
-  documents?: FirestoreDoc[];
+interface FirestoreErrorBody {
   error?: { message?: string };
+}
+
+/** Firestore REST value filter used in runQuery/runAggregationQuery bodies. */
+interface FieldFilterBody {
+  fieldFilter: {
+    field: { fieldPath: string };
+    op: 'EQUAL' | 'GREATER_THAN_OR_EQUAL';
+    value: Record<string, string>;
+  };
+}
+
+async function fireStorePost(path: ':runQuery' | ':runAggregationQuery', body: unknown): Promise<unknown> {
+  const res = await fetch(`${FIRESTORE_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as FirestoreErrorBody;
+    const msg = data.error?.message || `HTTP ${res.status}`;
+    throw new Error(`Firestore query failed: ${msg}`);
+  }
+  return res.json();
 }
 
 function parseDoc(doc: FirestoreDoc): DrillAttempt | null {
@@ -106,28 +140,47 @@ function parseDoc(doc: FirestoreDoc): DrillAttempt | null {
   };
 }
 
-async function fetchRecentDrills(limit = 100): Promise<DrillAttempt[]> {
-  // Public read on `drill_attempts` is usually restricted by Firestore
-  // security rules, so this will often 403 in production. We catch that
-  // and fall back to the DEMO data so the ticker always has something
-  // to show.
-  const url = `${FIRESTORE_BASE}/drill_attempts?pageSize=${limit}&orderBy=submittedAt%20desc`;
-  const res = await fetch(url, { method: 'GET' });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({} as FirestoreListResponse));
-    const msg = (data as FirestoreListResponse).error?.message || `HTTP ${res.status}`;
-    throw new Error(`Firestore list failed: ${msg}`);
-  }
-  const data = (await res.json()) as FirestoreListResponse;
-  if (!data.documents) return [];
-  return data.documents.map(parseDoc).filter((d): d is DrillAttempt => d !== null);
+/** Every attempt from `sinceMs` (inclusive), newest first. */
+async function fetchWeekAttempts(sinceMs: number, limit = 1000): Promise<DrillAttempt[]> {
+  const rows = (await fireStorePost(':runQuery', {
+    structuredQuery: {
+      from: [{ collectionId: 'drill_attempts' }],
+      where: {
+        fieldFilter: {
+          field: { fieldPath: 'submittedAt' },
+          op: 'GREATER_THAN_OR_EQUAL',
+          value: { timestampValue: new Date(sinceMs).toISOString() },
+        },
+      },
+      orderBy: [{ field: { fieldPath: 'submittedAt' }, direction: 'DESCENDING' }],
+      limit,
+    },
+  })) as Array<{ document?: FirestoreDoc }>;
+  return rows
+    .filter((r): r is { document: FirestoreDoc } => !!r?.document)
+    .map((r) => parseDoc(r.document))
+    .filter((d): d is DrillAttempt => d !== null);
+}
+
+/** Exact document count, optionally filtered (auto-indexed filters only). */
+async function countAttempts(filter?: FieldFilterBody): Promise<number> {
+  const rows = (await fireStorePost(':runAggregationQuery', {
+    structuredAggregationQuery: {
+      structuredQuery: {
+        from: [{ collectionId: 'drill_attempts' }],
+        ...(filter ? { where: filter } : {}),
+      },
+      aggregations: [{ alias: 'count', count: {} }],
+    },
+  })) as Array<{ result?: { aggregateFields?: { count?: { integerValue?: string } } } }>;
+  return Number(rows?.[0]?.result?.aggregateFields?.count?.integerValue ?? '0');
 }
 
 // ---------------------------------------------------------------------------
 // AGGREGATION
 // ---------------------------------------------------------------------------
 
-function aggregate(attempts: DrillAttempt[]): TickerData {
+function aggregate(weekAttempts: DrillAttempt[], allTimeTotal: number, assignmentsTotalExact: number): TickerData {
   const now = Date.now();
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);
@@ -137,22 +190,18 @@ function aggregate(attempts: DrillAttempt[]): TickerData {
   let drillsToday = 0;
   let drillsThisWeek = 0;
   let assignmentsWeek = 0;
-  let assignmentsTotal = 0;
   const studentSet = new Set<string>();
   const perName: Record<string, { drills: number; scoreSum: number }> = {};
 
-  for (const a of attempts) {
+  for (const a of weekAttempts) {
     if (!a.submittedAt) continue;
     if (a.drillSource === 'assignment') {
       // Assigned tests: counted in their own stats and toward "active
       // students", but NOT in the leaderboard — the submission is logged
       // before the teacher grades it, so its scorePct is always 0 and
       // would drag every average toward 0%.
-      assignmentsTotal += 1;
-      if (a.submittedAt >= startOfWeekMs) {
-        assignmentsWeek += 1;
-        studentSet.add(a.studentName);
-      }
+      assignmentsWeek += 1;
+      studentSet.add(a.studentName);
       continue;
     }
     if (a.submittedAt >= startOfTodayMs) drillsToday += 1;
@@ -176,12 +225,14 @@ function aggregate(attempts: DrillAttempt[]): TickerData {
 
   return {
     stats: {
-      totalDrills: attempts.length - assignmentsTotal,
+      // Exact totals come from count() aggregation queries — never capped
+      // by the page size, unlike the old newest-100 fetch.
+      totalDrills: allTimeTotal,
       activeStudents: studentSet.size,
       drillsToday,
       drillsThisWeek,
       assignmentsWeek,
-      assignmentsTotal,
+      assignmentsTotal: assignmentsTotalExact,
     },
     leaderboard,
     source: 'live',
@@ -207,7 +258,7 @@ function demoData(): TickerData {
 // poll exhausted that quota in under two hours of one open tab, and even the
 // later 100-docs-every-2-min poll still burned 72K reads in a single open day.
 const REFRESH_MS = 300_000; // 5 min while visible
-const FETCH_PAGE = 100; // docs per read — also caps quota per poll
+const WEEK_LIMIT = 1000; // week-window query cap — a week with more attempts than this would undercount today/week stats
 const QUOTA_COOLDOWN_MS = 600_000; // 10 min pause after a 429
 
 export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
@@ -230,15 +281,29 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
       if (Date.now() < cooldownUntil) return;
       setLoading(true);
       try {
-        const attempts = await fetchRecentDrills(FETCH_PAGE);
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const weekStartMs = startOfToday.getTime() - 6 * 24 * 60 * 60 * 1000;
+        const [weekAttempts, allTimeTotal, assignmentsTotal] = await Promise.all([
+          fetchWeekAttempts(weekStartMs, WEEK_LIMIT),
+          countAttempts(),
+          countAttempts({
+            fieldFilter: {
+              field: { fieldPath: 'drillSource' },
+              op: 'EQUAL',
+              value: { stringValue: 'assignment' },
+            },
+          }),
+        ]);
         if (cancelled) return;
-        if (attempts.length === 0) {
-          // Firestore reachable but empty — keep the demo board so the
-          // ticker isn't blank on day 1.
+        if (allTimeTotal === 0) {
+          // Firestore reachable but the project has never had an attempt —
+          // keep the demo board so the ticker isn't blank on day 1. A quiet
+          // WEEK with real history still shows LIVE (zeros are accurate).
           setData(demoData());
           setLastError(null);
         } else {
-          setData(aggregate(attempts));
+          setData(aggregate(weekAttempts, allTimeTotal, assignmentsTotal));
           setLastError(null);
         }
       } catch (e) {
