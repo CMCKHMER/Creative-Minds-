@@ -8,6 +8,16 @@ export const GRADE_BOOK_NAMES: Record<number, string> = {
   11: 'Reading Future Create 3',
 };
 
+// AI-generated card artwork (public/images) for the grades that have live
+// materials — same decorative treatment as the Quick Launch cards: image
+// behind the card at low opacity with a dark veil so text stays readable.
+// Planned grades intentionally have no artwork (nothing to showcase yet).
+export const GRADE_CARD_IMAGES: Record<number, string> = {
+  6: './images/card-kid6-connect2.jpg',
+  7: './images/card-kid7-change1.jpg',
+  11: './images/card-kid11-create3.jpg',
+};
+
 export function KidGradeHub() {
   const availableResourceCount = KID_GRADE_RESOURCES.reduce((sum, grade) => sum + grade.materials.length, 0);
   const availableGradeCount = KID_GRADE_RESOURCES.filter((grade) => grade.status === 'available' && grade.materials.length > 0).length;
@@ -41,7 +51,15 @@ export function KidGradeHub() {
             const isAvailable = resource.status === 'available' && resource.materials.length > 0;
             return (
               <article key={resource.grade} aria-label={isAvailable ? `Kid ${resource.grade}, ${resource.materials.length} resources available` : `Kid ${resource.grade}, materials planned`} className={`flex min-h-[190px] flex-col rounded-2xl border p-4 transition duration-300 sm:p-5 ${isAvailable ? 'relative overflow-hidden border-cyan-200/25 bg-gradient-to-br from-cyan-400/[0.10] via-slate-900/90 to-indigo-500/[0.08] shadow-[0_20px_60px_-45px_rgba(34,211,238,.65)] hover:-translate-y-1 hover:border-cyan-100/45 hover:shadow-[0_28px_70px_-42px_rgba(34,211,238,.6)]' : 'border-white/[0.07] bg-slate-950/30 hover:border-white/15 hover:bg-slate-950/55'}`}>
-                <div className="flex items-center justify-between gap-3">
+                {isAvailable && GRADE_CARD_IMAGES[resource.grade] && (
+                  <>
+                    {/* AI artwork behind the card — decorative, pointer-transparent. */}
+                    <img src={GRADE_CARD_IMAGES[resource.grade]} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+                    {/* Dark veil keeps the title, badge and worksheet links readable. */}
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#081522]/55 via-[#081522]/72 to-[#081522]/88" />
+                  </>
+                )}
+                <div className="relative z-10 flex items-center justify-between gap-3">
                   <span className={`font-[var(--font-display)] text-3xl font-bold tracking-tight ${isAvailable ? 'text-white' : 'text-slate-400'}`}>Kid {resource.grade}</span>
                   {isAvailable
                     ? <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-emerald-200/[0.06] px-2.5 py-1 text-[9px] font-bold tracking-[0.12em] text-emerald-100 uppercase"><CheckCircle2 className="h-3 w-3" aria-hidden="true" />{resource.materials.length} resources</span>
@@ -50,8 +68,8 @@ export function KidGradeHub() {
 
                 {isAvailable ? (
                   <>
-                    <div className="mt-4"><h3 className="text-sm font-semibold leading-snug text-cyan-50">{GRADE_BOOK_NAMES[resource.grade] ?? `Kid ${resource.grade} learning materials`}</h3><p className="mt-1.5 text-[10px] leading-relaxed text-slate-500">Select an existing resource to open its worksheet page:</p></div>
-                    <div className="mt-3 space-y-2">
+                    <div className="relative z-10 mt-4"><h3 className="text-sm font-semibold leading-snug text-cyan-50">{GRADE_BOOK_NAMES[resource.grade] ?? `Kid ${resource.grade} learning materials`}</h3><p className="mt-1.5 text-[10px] leading-relaxed text-slate-500">Select an existing resource to open its worksheet page:</p></div>
+                    <div className="relative z-10 mt-3 space-y-2">
                       {resource.materials.map((material) => (
                         <a key={material.id} href={material.href} target="_blank" rel="noopener noreferrer" aria-label={`Open Kid ${resource.grade}: ${material.title} in a new tab`} className="group/link flex items-start gap-2 rounded-lg border border-white/7 bg-slate-950/50 p-2.5 transition hover:border-cyan-200/25 hover:bg-cyan-200/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200">
                           <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-200" aria-hidden="true" />
