@@ -10,6 +10,9 @@
  *  • chess3d — one duel: win → 1/1 (100 %), draw → 1/2 (50 %),
  *    loss → 0/1 (0 %); the pair decodes back into a W-D-L record (see
  *    src/games/chess3d/game/stats.ts).
+ *  • galica — one arcade run: correctCount carries the RAW score (points),
+ *    scorePct = floor(score / 100) capped at 100, totalCount stays 0
+ *    (see public/arcade/galica/index.html CMC_GALICA_SUBMIT).
  */
 
 export interface LoungeAttempt {
@@ -38,6 +41,14 @@ export interface ChessRecord {
   lastPlayed: number;
 }
 
+export interface GalicaEntry {
+  name: string;
+  plays: number;
+  bestScore: number; // highest single-run raw score (points)
+  bestPct: number; // 0-100, every 100 points = 1%
+  lastPlayed: number;
+}
+
 /** Points on the chess ladder: 2 per win, 1 per draw (loss = 0). */
 export function chessPoints(record: ChessRecord): number {
   return record.wins * 2 + record.draws;
@@ -49,6 +60,10 @@ export function isBrickforgeAttempt(a: LoungeAttempt): boolean {
 
 export function isChessAttempt(a: LoungeAttempt): boolean {
   return a.drillSource === "brain-lounge" && a.drillSlug === "chess3d";
+}
+
+export function isGalicaAttempt(a: LoungeAttempt): boolean {
+  return a.drillSource === "brain-lounge" && a.drillSlug === "galica";
 }
 
 export function aggregateBrickforge(attempts: LoungeAttempt[]): BrickEntry[] {
@@ -93,6 +108,26 @@ export function aggregateChess(attempts: LoungeAttempt[]): ChessRecord[] {
       y.wins - x.wins ||
       x.losses - y.losses || // fewer losses break ties
       y.lastPlayed - x.lastPlayed,
+  );
+}
+
+export function aggregateGalica(attempts: LoungeAttempt[]): GalicaEntry[] {
+  const byName = new Map<string, GalicaEntry>();
+  for (const a of attempts) {
+    if (!isGalicaAttempt(a)) continue;
+    let entry = byName.get(a.studentName);
+    if (!entry) {
+      entry = { name: a.studentName, plays: 0, bestScore: 0, bestPct: 0, lastPlayed: 0 };
+      byName.set(a.studentName, entry);
+    }
+    entry.plays += 1;
+    // Raw score lives in correctCount (totalCount is always 0 for galica).
+    entry.bestScore = Math.max(entry.bestScore, a.correctCount);
+    entry.bestPct = Math.max(entry.bestPct, a.scorePct);
+    entry.lastPlayed = Math.max(entry.lastPlayed, a.submittedAt);
+  }
+  return [...byName.values()].sort(
+    (x, y) => y.bestScore - x.bestScore || y.plays - x.plays || y.lastPlayed - x.lastPlayed,
   );
 }
 

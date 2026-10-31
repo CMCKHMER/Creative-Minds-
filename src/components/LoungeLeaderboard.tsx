@@ -1,13 +1,15 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Crown, Flame, RefreshCw, Swords, TrendingUp, Trophy } from 'lucide-react';
+import { Crown, Flame, RefreshCw, Rocket, Swords, TrendingUp, Trophy } from 'lucide-react';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import {
   aggregateBrickforge,
   aggregateChess,
+  aggregateGalica,
   chessPoints,
   timeAgo,
   type BrickEntry,
   type ChessRecord,
+  type GalicaEntry,
   type LoungeAttempt,
 } from '../lib/brainLoungeStats';
 import { useSignedInPlayerName } from './GameLeaderboard';
@@ -67,13 +69,17 @@ function BoardShell({
   icon: ReactNode;
   title: string;
   subtitle: string;
-  accent: 'brick' | 'chess';
+  accent: 'brick' | 'chess' | 'galica';
   loading: boolean;
   lastFetch: number;
   children: ReactNode;
 }) {
-  const accentRing = accent === 'brick' ? 'border-orange-400/25' : 'border-emerald-300/25';
-  const accentIcon = accent === 'brick' ? 'from-orange-300/15 to-amber-500/10 text-orange-200' : 'from-emerald-300/15 to-teal-500/10 text-emerald-200';
+  const accentRing = accent === 'brick' ? 'border-orange-400/25' : accent === 'galica' ? 'border-cyan-300/25' : 'border-emerald-300/25';
+  const accentIcon = accent === 'brick'
+    ? 'from-orange-300/15 to-amber-500/10 text-orange-200'
+    : accent === 'galica'
+      ? 'from-cyan-300/15 to-sky-500/10 text-cyan-200'
+      : 'from-emerald-300/15 to-teal-500/10 text-emerald-200';
   return (
     <div className={`flex flex-col rounded-2xl border ${accentRing} bg-slate-950/60 p-5 backdrop-blur-xl`}>
       <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3.5">
@@ -209,6 +215,53 @@ function ChessBoard({ records, you, loading, lastFetch }: { records: ChessRecord
   );
 }
 
+function GalicaBoard({ entries, you, loading, lastFetch }: { entries: GalicaEntry[]; you: string | null; loading: boolean; lastFetch: number }) {
+  return (
+    <BoardShell
+      icon={<Rocket className="h-4.5 w-4.5" aria-hidden="true" />}
+      title="Galica"
+      subtitle="Arcade shooter · highest score"
+      accent="galica"
+      loading={loading}
+      lastFetch={lastFetch}
+    >
+      {entries.length === 0 ? (
+        <EmptyBoard line="No sorties recorded yet." />
+      ) : (
+        <ol className="space-y-1.5">
+          {entries.slice(0, MAX_ROWS).map((entry, index) => {
+            const isYou = you && entry.name === you;
+            return (
+              <li
+                key={entry.name}
+                className={`flex items-center gap-3 rounded-lg border px-3 py-2 transition ${
+                  isYou
+                    ? 'border-cyan-300/40 bg-cyan-300/[0.06] shadow-[0_0_0_1px_rgba(103,232,249,0.25)]'
+                    : 'border-white/8 bg-slate-950/40 hover:bg-slate-950/60'
+                }`}
+              >
+                <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-bold ${rankColor(index)} ${index < 3 ? 'bg-white/5' : ''}`}>
+                  {index < 3 ? <Crown className="h-3.5 w-3.5" aria-hidden="true" /> : index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-white">
+                    {entry.name}
+                    {isYou && <span className="ml-1.5 rounded bg-cyan-300/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-cyan-200">You</span>}
+                  </p>
+                  <p className="text-[9px] text-slate-500">
+                    {entry.plays} {entry.plays === 1 ? 'sortie' : 'sorties'} · last {timeAgo(entry.lastPlayed)}
+                  </p>
+                </div>
+                <span className="shrink-0 font-mono text-xs font-bold text-cyan-200">{entry.bestScore.toLocaleString()}</span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </BoardShell>
+  );
+}
+
 export function LoungeLeaderboard() {
   const [attempts, setAttempts] = useState<LoungeAttempt[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -250,10 +303,12 @@ export function LoungeLeaderboard() {
 
   const brick = aggregateBrickforge(attempts);
   const chess = aggregateChess(attempts);
+  const galica = aggregateGalica(attempts);
   const totalRuns =
     brick.reduce((sum, e) => sum + e.plays, 0) +
-    chess.reduce((sum, r) => sum + r.wins + r.draws + r.losses, 0);
-  const players = new Set([...brick, ...chess].map((e) => e.name)).size;
+    chess.reduce((sum, r) => sum + r.wins + r.draws + r.losses, 0) +
+    galica.reduce((sum, e) => sum + e.plays, 0);
+  const players = new Set([...brick, ...chess, ...galica].map((e) => e.name)).size;
   const firstLoad = lastFetch === 0 && !error;
 
   return (
@@ -264,7 +319,7 @@ export function LoungeLeaderboard() {
         </p>
         <h2 className="mt-2 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">Lounge leaderboard</h2>
         <p className="mt-2 max-w-2xl text-xs leading-relaxed text-slate-400">
-          Signed-in players track their record here automatically — the deepest BrickForge run and the Arena Chess 3D duel ladder.
+          Signed-in players track their record here automatically — the deepest BrickForge run, the Arena Chess 3D duel ladder and the Galica high-score table.
           {!you && ' Sign in with your CMC account to claim your spot.'}
         </p>
       </div>
@@ -281,9 +336,10 @@ export function LoungeLeaderboard() {
         </p>
       )}
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         <BrickBoard entries={brick} you={you} loading={firstLoad} lastFetch={lastFetch} />
         <ChessBoard records={chess} you={you} loading={firstLoad} lastFetch={lastFetch} />
+        <GalicaBoard entries={galica} you={you} loading={firstLoad} lastFetch={lastFetch} />
       </div>
 
       {!you && (

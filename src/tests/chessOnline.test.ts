@@ -16,9 +16,11 @@ import { chessScoreFields } from '../games/chess3d/game/stats';
 import {
   aggregateBrickforge,
   aggregateChess,
+  aggregateGalica,
   chessPoints,
   isBrickforgeAttempt,
   isChessAttempt,
+  isGalicaAttempt,
   type LoungeAttempt,
 } from '../lib/brainLoungeStats';
 
@@ -149,6 +151,9 @@ describe('lounge stats filters', () => {
     expect(isBrickforgeAttempt(attempt({ drillSlug: 'chess3d' }))).toBe(false);
     expect(isChessAttempt(attempt({ drillSlug: 'chess3d' }))).toBe(true);
     expect(isChessAttempt(attempt({ drillSlug: 'brickforge' }))).toBe(false);
+    expect(isGalicaAttempt(attempt({ drillSlug: 'galica' }))).toBe(true);
+    expect(isGalicaAttempt(attempt({ drillSlug: 'brickforge' }))).toBe(false);
+    expect(isGalicaAttempt(attempt({ drillSource: 'learning-games' }))).toBe(false);
   });
 });
 
@@ -218,6 +223,37 @@ describe('chess ladder aggregation', () => {
       attempt({ drillSlug: 'chess3d', correctCount: 0, totalCount: 0 }),
     ]);
     expect(ladder[0]).toMatchObject({ wins: 0, draws: 0, losses: 0 });
+  });
+});
+
+describe('galica high-score aggregation', () => {
+  it('keeps the best raw score per pilot and ranks by it', () => {
+    const entries = aggregateGalica([
+      attempt({ drillSlug: 'galica', studentName: 'A', correctCount: 4200, scorePct: 42, submittedAt: 100 }),
+      attempt({ drillSlug: 'galica', studentName: 'A', correctCount: 9850, scorePct: 98, submittedAt: 200 }),
+      attempt({ drillSlug: 'galica', studentName: 'B', correctCount: 12000, scorePct: 100, submittedAt: 300 }),
+      attempt({ drillSlug: 'galica', studentName: 'C', correctCount: 0, scorePct: 0, submittedAt: 400 }),
+    ]);
+    expect(entries.map((e) => e.name)).toEqual(['B', 'A', 'C']);
+    expect(entries[1]).toMatchObject({ bestScore: 9850, bestPct: 98, plays: 2, lastPlayed: 200 });
+  });
+
+  it('breaks best-score ties by plays then recency', () => {
+    const entries = aggregateGalica([
+      attempt({ drillSlug: 'galica', studentName: 'A', correctCount: 3000, submittedAt: 100 }),
+      attempt({ drillSlug: 'galica', studentName: 'B', correctCount: 3000, submittedAt: 500 }),
+      attempt({ drillSlug: 'galica', studentName: 'B', correctCount: 500, submittedAt: 600 }),
+    ]);
+    expect(entries.map((e) => e.name)).toEqual(['B', 'A']);
+  });
+
+  it('never lets other cartridges leak into the Galica table', () => {
+    const entries = aggregateGalica([
+      attempt({ drillSlug: 'brickforge', studentName: 'A', correctCount: 10, scorePct: 100 }),
+      attempt({ drillSlug: 'chess3d', studentName: 'B', correctCount: 1, totalCount: 1, scorePct: 100 }),
+      attempt({ drillSource: 'learning-games', drillSlug: 'galica', studentName: 'C', correctCount: 900 }),
+    ]);
+    expect(entries).toEqual([]);
   });
 });
 
