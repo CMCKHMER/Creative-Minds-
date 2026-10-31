@@ -142,15 +142,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               </a>
             </div>
 
-            {/* Middle Nav Links - Desktop (consolidated to 4 primary links;
-                the rest live in Quick Links drawer to avoid clutter) */}
-            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:flex" aria-label="Primary">
-              <a href="#features" className="cmc-nav-link">Features</a>
+            {/* Middle Nav Links - Desktop. Hard-capped at 4 primary links
+                (see src/tests/navbarPrimary.test.ts): with the Menu button,
+                brand, theme toggle, Demo and the user pill, anything more
+                overlaps the logo at 1280px. Features + FAQ live in the
+                footer/mobile menu; every other destination is in the
+                Quick Links drawer. */}
+            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-5 xl:flex" aria-label="Primary">
               <a href="#toefl-junior-assessments" className="cmc-nav-link">Assessments</a>
               <a href="#toefl-ibt-mock" className="cmc-nav-link" title="TOEFL iBT Full Mock Test">TOEFL iBT</a>
               <a href="#games" className="cmc-nav-link">Games</a>
               <a href="#brain-lounge" className="cmc-nav-link" title="The Brain Lounge · CMC arcade games">Brain Lounge</a>
-              <a href="#faq" className="cmc-nav-link">FAQ</a>
             </nav>
 
             {/* Right Actions */}
