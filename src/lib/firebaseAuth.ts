@@ -313,11 +313,32 @@ export async function signInWithGoogle(): Promise<FirebaseSession> {
     displayName = cred.user.displayName;
     refreshToken = cred.user.refreshToken;
     idToken = await cred.user.getIdToken();
+    // Some Google accounts come back with an EMPTY top-level email even
+    // though the OAuth flow carried one (stale/shadowed user records,
+    // Workspace accounts with contact sharing off). Recover the address
+    // from the two places Firebase mirrors the Google profile, then from a
+    // full server reload, before giving up — otherwise real users get a
+    // bogus "no email address" error on a perfectly normal Gmail account.
+    if (!email) {
+      email = cred.user.providerData.find((p) => p.email)?.email ?? '';
+    }
+    if (!email) {
+      const { getAdditionalUserInfo } = await import('firebase/auth');
+      const profile = getAdditionalUserInfo(cred)?.profile as { email?: unknown } | null | undefined;
+      if (profile && typeof profile.email === 'string' && profile.email) email = profile.email;
+    }
+    if (!email) {
+      try {
+        await cred.user.reload();
+        email = auth.currentUser?.email ?? '';
+        if (!email) email = auth.currentUser?.providerData.find((p) => p.email)?.email ?? '';
+      } catch { /* reload failed — fall through to the friendly error */ }
+    }
   } catch (e) {
     throw googleAuthError(e);
   }
   if (!email) {
-    throw new Error('Your Google account has no email address on it — sign up with an email account instead.');
+    throw new Error('Google did not share an email address for this account. Try a different Google account, or sign up with an email and password instead.');
   }
   const session: FirebaseSession = {
     idToken,

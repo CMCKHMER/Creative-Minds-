@@ -21,7 +21,7 @@ import { KidGradeHub } from './components/KidGradeHub';
 import { GEPISecHub } from './components/GEPISecHub';
 import { TeacherToolsPage } from './components/TeacherTools';
 import { NewsSidePanel, NewsPage } from './components/NewsWindow';
-import { TeacherChat } from './components/TeacherChat';
+import { AnnouncementBoard } from './components/AnnouncementBoard';
 import { LMSCard } from './components/LMSCard';
 const FirebaseDashboard = lazy(() => import('./components/FirebaseDashboard').then(m => ({ default: m.FirebaseDashboard })));
 import { Sparkles, ArrowUp } from 'lucide-react';
@@ -223,17 +223,18 @@ export function App() {
 
         {/* TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15 test pages.
             Teacher-account-only: the planner content is gated inside the card
-            (same pattern as TeacherChat); the standalone planner hub is gated
+            (RoleGate); the standalone planner hub is gated
             by public/biweek-planner/teacher-gate.js. */}
         <BiWeekPlannerCard onOpenAuth={() => openMemberAuth('sign-in')} />
 
         {/* Available learning materials and skills */}
         <SocialProof />
 
-        {/* Teacher-only chat & announcements — below the news feed,
-            visible to all but only teachers can post. Students see
-            a locked "Teacher access required" prompt. */}
-        <TeacherChat onOpenAuth={() => openMemberAuth('sign-up')} />
+        {/* Blog-style announcement board — below the news feed, public to
+            read. Only approved admins (site owner + accounts approved in
+            board's "Approve admins" panel, stored in site_config/admins)
+            can publish/edit/pin/delete posts. */}
+        <AnnouncementBoard />
 
         {/* Kid Program grade 5-12 resource pathway; Kid 6 + Kid 11 currently linked. */}
         <KidGradeHub />

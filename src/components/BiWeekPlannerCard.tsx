@@ -66,7 +66,7 @@ const previewSvg = `data:image/svg+xml,${encodeURIComponent(`
  * The section shell (background image + glows) always renders so the
  * homepage layout never shifts, but the planner content (8-week plan,
  * "Open the planner" link, preview card) only renders for signed-in
- * teachers — same pattern as TeacherChat. Signed-out visitors and
+ * teachers (RoleGate). Signed-out visitors and
  * students see a locked "Teacher access required" prompt.
  *
  * The standalone planner hub (public/biweek-planner/) is gated separately

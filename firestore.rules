@@ -23,7 +23,15 @@ rules_version = '2';
 //     creates only for SIGNED-IN users submitting their OWN uid — a
 //     signed-in student cannot forge scores for classmates; scores are
 //     immutable (no update/delete by clients).
-//   - teacher_chat/{msgId}: public read, signed-in create, immutable.
+//   - teacher_chat/{msgId}: RETIRED (Nov 2026) — replaced by the blog-style
+//     `announcements` board. Kept publicly readable so old messages stay
+//     reachable, but every write is denied: the chat UI is gone.
+//   - announcements/{postId}: public read (blog-style board on the landing
+//     page); create/update/delete ONLY for approved admins — the site owner
+//     (isCmcAdmin) plus any UID listed in site_config/admins.uids.
+//   - site_config/{configId}: public read, owner-only write. The admins doc
+//     here is the approval allowlist the owner manages in-app, so approving
+//     a new announcement admin never requires redeploying these rules.
 //   - students/{uid}: each student can read/write only their own profile.
 //   - classes/{classId} + enrollments: public read (code lookup /
 //     dashboards), signed-in writes, students enroll themselves. DELETE is
@@ -116,11 +124,52 @@ service cloud.firestore {
     }
 
     match /teacher_chat/{msgId} {
-      allow read: if true; // public chat wall
-      allow create: if isVerifiedUser()
+      allow read: if true; // retired chat wall — old messages stay readable
+      // Retired Nov 2026: replaced by /announcements. No client writes it.
+      allow create, update, delete: if false;
+    }
+
+    // ANNOUNCEMENT BOARD (Nov 2026): blog-style replacement for teacher_chat.
+    // Everyone can read; only APPROVED ADMINS can publish, edit, pin or
+    // delete. Approval = the site-owner UID (isCmcAdmin) or an entry in the
+    // site_config/admins allowlist doc, which the owner manages in-app.
+    function isCmcApprovedAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && (isCmcAdmin()
+            || (exists(/databases/$(database)/documents/site_config/admins)
+                && request.auth.uid in
+                    get(/databases/$(database)/documents/site_config/admins).data.get('uids', [])));
+    }
+
+    match /announcements/{postId} {
+      allow read: if true; // public blog-style board
+
+      allow create: if isCmcApprovedAdmin()
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.body is string
+        && request.resource.data.body.size() <= 20000
+        && request.resource.data.imageUrl is string
+        && request.resource.data.imageUrl.size() <= 900000 // downscaled data URL; keeps docs under 1 MiB
+        && request.resource.data.pinned is bool
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.authorUid is string
         && request.resource.data.authorName is string
-        && request.resource.data.text is string;
-      allow update, delete: if false;
+        && request.resource.data.authorEmail is string
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+
+      // Collegial editing, like assessment_classes: any approved admin can
+      // edit/pin/delete any post. Writes are stamped with authorUid at
+      // create time, so authorship stays attributable.
+      allow update, delete: if isCmcApprovedAdmin();
+    }
+
+    match /site_config/{configId} {
+      allow read: if true; // approved admins read the list to check their own status
+      allow write: if isCmcAdmin(); // only the owner grants/revokes admin access
     }
 
     match /students/{uid} {
