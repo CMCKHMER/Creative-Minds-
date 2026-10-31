@@ -16,7 +16,8 @@ import type { ComponentType } from 'react';
  *      • Add an entry with load: () => import('./<id>/<Id>Game').
  *        Vite code-splits it automatically — players only download a
  *        game's chunk when they press Play.
- *      • (Sample: ./neon-sequence/NeonSequence — copy its structure.)
+ *      • (Examples: ./brickforge/BrickForge, ./chess3d/Chess3D — copy
+ *        their structure.)
  *
  * 2) mode: 'standalone' — the game is a self-contained HTML/JS file.
  *      • Drop it in public/arcade/<id>/index.html (it ships as-is).
@@ -77,18 +78,18 @@ export interface BrainGameDef {
  */
 export const BRAIN_GAMES: BrainGameDef[] = [
   {
-    id: 'neon-sequence',
-    title: 'Neon Sequence',
-    tagline: 'Watch the pads light up, then repeat the pattern. One wrong tap ends the run.',
-    genre: 'Memory',
+    id: 'brickforge',
+    title: 'BrickForge',
+    tagline: 'Smash the wall, chain combos, catch power-ups — don\u2019t let the ember drop.',
+    genre: 'Reflex',
     difficulty: 2,
-    emoji: '🧠',
-    gradient: 'from-fuchsia-400/25 via-violet-500/10 to-cyan-400/15',
+    emoji: '⚒️',
+    gradient: 'from-orange-400/25 via-amber-500/10 to-red-400/15',
     status: 'live',
     mode: 'react',
-    load: () => import('./neon-sequence/NeonSequence'),
-    controls: 'Mouse, touch or keys 1–4',
-    scoreLabel: 'Levels cleared',
+    load: () => import('./brickforge/BrickForge'),
+    controls: 'Mouse / drag · touch · ← → or A D · Space launches',
+    scoreLabel: 'Combo score',
   },
   {
     id: 'chess3d',

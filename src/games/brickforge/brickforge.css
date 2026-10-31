@@ -1,0 +1,91 @@
+/* BrickForge cartridge styles — ported from the author's standalone build
+ * (src/index.css) and scoped under .brickforge-root so nothing leaks into
+ * the CMC site. Keyframes are renamed bf-* to stay collision-free. */
+
+.brickforge-root {
+  font-family: "Chakra Petch", "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.brickforge-root .forge-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(255, 110, 30, 0.22), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% -10%, rgba(255, 170, 80, 0.08), transparent 70%),
+    #07080c;
+}
+
+.brickforge-root .btn-forge {
+  background: linear-gradient(180deg, #ffd27a 0%, #ff8a3d 55%, #ff5a1f 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 200, 120, 0.5) inset,
+    0 6px 24px -6px rgba(255, 120, 40, 0.8),
+    0 2px 0 rgba(120, 40, 0, 0.6);
+  animation: bf-btn-pulse 1.8s ease-in-out infinite;
+}
+.brickforge-root .btn-forge:hover {
+  filter: brightness(1.08);
+}
+
+@keyframes bf-btn-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 200, 120, 0.5) inset,
+      0 6px 24px -6px rgba(255, 120, 40, 0.8),
+      0 2px 0 rgba(120, 40, 0, 0.6);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 220, 160, 0.8) inset,
+      0 8px 34px -4px rgba(255, 140, 60, 1),
+      0 2px 0 rgba(120, 40, 0, 0.6);
+  }
+}
+
+.brickforge-root .title-glow {
+  text-shadow:
+    0 0 18px rgba(255, 140, 60, 0.55),
+    0 0 40px rgba(255, 90, 30, 0.35),
+    0 2px 0 rgba(0, 0, 0, 0.6);
+}
+.brickforge-root .title-glow-red {
+  text-shadow:
+    0 0 18px rgba(255, 60, 60, 0.6),
+    0 0 40px rgba(255, 40, 40, 0.35);
+}
+
+.brickforge-root .overlay-in {
+  animation: bf-overlay-in 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes bf-overlay-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.brickforge-root .row-glow {
+  text-shadow: 0 0 12px rgba(255, 170, 80, 0.8);
+}
+
+.brickforge-root .new-record {
+  animation: bf-record-blink 0.9s ease-in-out infinite;
+}
+@keyframes bf-record-blink {
+  0%,
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 14px rgba(255, 180, 90, 0.9);
+  }
+  50% {
+    opacity: 0.6;
+    text-shadow: 0 0 4px rgba(255, 180, 90, 0.4);
+  }
+}
