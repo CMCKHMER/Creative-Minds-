@@ -148,18 +148,87 @@ body.light .score-display{color:#0e7490}
 <script id="cmc-role-gate">
 /* CMC role indicator — shows Teacher mode / Student mode badge */
 (function(){
-  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
-  catch(e) { window.CMC_IS_TEACHER = false; }
+  /* Fail-closed: localStorage role is NEVER trusted (students could edit it).
+     Verified-teacher status is proven server-side by cmcVerifyTeacher(). */
+  window.CMC_IS_TEACHER = false;
+
+  /* ── Server-verified teacher check (spoof-proof) ──
+     The gate used to trust localStorage 'cmc-student-role'. Now teacher
+     status comes from Firestore's own security rules: a REST read of the
+     teachers-only assessment_classes collection succeeds (HTTP 200) ONLY
+     when the Bearer token is a REAL Firebase-issued ID token for an
+     email-verified account with an "edu" email domain — or the site-owner
+     admin UID. That mirrors isCmcTeacher() in firestore.rules, so a
+     spoofed localStorage token or a hand-crafted JWT is rejected with
+     401/403 and the keys stay locked. Expired tokens are silently
+     refreshed via the securetoken grant (same flow as cmc-shared.js). */
+  var CMC_FB_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+  function cmcRefreshToken(cb){
+    try {
+      var rt = localStorage.getItem('cmc-student-refresh-token');
+      if (!rt) { cb(null); return; }
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_FB_API_KEY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+        if (!d || !d.id_token) { cb(null); return; }
+        try {
+          localStorage.setItem('cmc-student-token', d.id_token);
+          localStorage.setItem('cmc-student-token-expires', String(Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000));
+          if (d.refresh_token) localStorage.setItem('cmc-student-refresh-token', d.refresh_token);
+        } catch(e) {}
+        cb(d.id_token);
+      }).catch(function(){ cb(null); });
+    } catch(e) { cb(null); }
+  }
+  function cmcRulesSayTeacher(tok){
+    return fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/assessment_classes?pageSize=1', {
+      headers: tok ? { 'Authorization': 'Bearer ' + tok } : {}
+    }).then(function(r){ return r.status === 200; }).catch(function(){ return false; });
+  }
+  window.cmcVerifyTeacher = function(){
+    try {
+      var tok = localStorage.getItem('cmc-student-token');
+      var first = tok ? cmcRulesSayTeacher(tok) : Promise.resolve(false);
+      return first.then(function(ok){
+        if (ok) return true;
+        // 401/expired or no token: refresh once via the bridged session,
+        // then re-ask the rules. Still failing -> locked (fail-closed).
+        return new Promise(function(res){
+          cmcRefreshToken(function(t){
+            if (!t) { res(false); return; }
+            cmcRulesSayTeacher(t).then(res);
+          });
+        });
+      });
+    } catch(e) { return Promise.resolve(false); }
+  };
+  window.cmcUnlockGateButtons = function(){
+    try {
+      document.querySelectorAll('[data-cmc-gated]').forEach(function(btn){
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+        btn.removeAttribute('title');
+        var n = btn.nextElementSibling;
+        if (n && n.tagName === 'SPAN' && n.textContent.indexOf('Teachers only') >= 0) n.remove();
+      });
+    } catch(e) {}
+  };
+
   document.addEventListener('DOMContentLoaded', function(){
     var b = document.createElement('div');
-    if (window.CMC_IS_TEACHER) {
+    // Fail-closed: everyone paints student; verified teachers upgrade async.
+    b.textContent = 'Student mode';
+    b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(34,211,238,0.10);color:#67e8f9;border:1px solid rgba(34,211,238,0.30);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+    document.body.appendChild(b);
+    window.cmcVerifyTeacher().then(function(ok){
+      if (!ok) return;
+      window.CMC_IS_TEACHER = true;
       b.textContent = '🎓 Teacher mode';
       b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(52,211,153,0.12);color:#6ee7b7;border:1px solid rgba(52,211,153,0.35);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
-    } else {
-      b.textContent = 'Student mode';
-      b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(34,211,238,0.10);color:#67e8f9;border:1px solid rgba(34,211,238,0.30);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
-    }
-    document.body.appendChild(b);
+      window.cmcUnlockGateButtons();
+    });
   });
 })();
 </script>
@@ -487,8 +556,9 @@ window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').
 
 // CMC-ANSWER-GATE — gate answer keys for teachers only
 (function(){
-  try { window.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
-  catch(e) { window.CMC_IS_TEACHER = false; }
+  /* Fail-closed: localStorage role is NEVER trusted (students could edit it).
+     Verified-teacher status is proven server-side by cmcVerifyTeacher(). */
+  window.CMC_IS_TEACHER = false;
   
   function gateButton(fnName) {
     var btns = document.querySelectorAll('[onclick*="' + fnName + '"]');

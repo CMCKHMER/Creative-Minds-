@@ -36,19 +36,42 @@
   };
 
   /* ── 2. Role indicator badge ────────────────────────────────────── */
-  try { global.CMC_IS_TEACHER = localStorage.getItem('cmc-student-role') === 'teacher'; }
-  catch (e) { global.CMC_IS_TEACHER = false; }
+  global.CMC_IS_TEACHER = false; // fail-closed — verified server-side below
+  var CMC_TEACHER_BADGE_CSS = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(52,211,153,0.12);color:#6ee7b7;border:1px solid rgba(52,211,153,0.35);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+  var CMC_STUDENT_BADGE_CSS = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(34,211,238,0.10);color:#67e8f9;border:1px solid rgba(34,211,238,0.30);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
+
+  /* Server-verified teacher check for these standalone pages — identical
+     contract to the worksheets: the ONLY proof is that Firestore's own
+     rules (isCmcTeacher) accept the session's Bearer token on a
+     teachers-only read. localStorage 'cmc-student-role' is never trusted. */
+  function cmcRulesSayTeacher(tok) {
+    return fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/assessment_classes?pageSize=1', {
+      headers: tok ? { 'Authorization': 'Bearer ' + tok } : {}
+    }).then(function (r) { return r.status === 200; }).catch(function () { return false; });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var b = document.createElement('div');
     b.id = 'cmc-role-badge';
-    if (global.CMC_IS_TEACHER) {
-      b.textContent = '🎓 Teacher mode';
-      b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(52,211,153,0.12);color:#6ee7b7;border:1px solid rgba(52,211,153,0.35);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
-    } else {
-      b.textContent = 'Student mode';
-      b.style.cssText = 'position:fixed;top:62px;right:16px;z-index:99994;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(34,211,238,0.10);color:#67e8f9;border:1px solid rgba(34,211,238,0.30);backdrop-filter:blur(8px);font-family:Inter,sans-serif;letter-spacing:0.02em;';
-    }
+    // Fail-closed: everyone paints student until the rules say otherwise.
+    b.textContent = 'Student mode';
+    b.style.cssText = CMC_STUDENT_BADGE_CSS;
     document.body.appendChild(b);
+    function upgrade() {
+      global.CMC_IS_TEACHER = true;
+      b.textContent = '🎓 Teacher mode';
+      b.style.cssText = CMC_TEACHER_BADGE_CSS;
+    }
+    var tok = null;
+    try { tok = localStorage.getItem('cmc-student-token'); } catch (e) {}
+    var first = tok ? cmcRulesSayTeacher(tok) : Promise.resolve(false);
+    first.then(function (ok) {
+      if (ok) { upgrade(); return; }
+      refreshFirebaseToken(function (t) {
+        if (!t) return;
+        cmcRulesSayTeacher(t).then(function (ok2) { if (ok2) upgrade(); });
+      });
+    });
   });
 
   /* ── 3. Theme toggle — synced with the main site sun/moon toggle ── */
