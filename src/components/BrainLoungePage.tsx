@@ -1,6 +1,7 @@
 import { Suspense, lazy, useState, type ComponentType } from 'react';
 import { ArrowLeft, CalendarClock, Cpu, ExternalLink, Gamepad2, Lightbulb, Play, Sparkles, Zap } from 'lucide-react';
 import { BRAIN_GAMES, liveBrainGames, reservedBays, type BrainGameDef, type BrainGameProps } from '../games/registry';
+import { LoungeLeaderboard } from './LoungeLeaderboard';
 
 /**
  * THE BRAIN LOUNGE — dedicated arcade page (#brain-lounge).
@@ -179,6 +180,9 @@ export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
             </div>
           </section>
         )}
+
+        {/* Player stats — leaderboard for the cartridges above */}
+        <LoungeLeaderboard />
 
         {/* Creator note */}
         <aside className="mt-12 flex flex-col items-start gap-3 rounded-2xl border border-dashed border-white/12 bg-slate-950/40 p-6 sm:flex-row sm:items-center">

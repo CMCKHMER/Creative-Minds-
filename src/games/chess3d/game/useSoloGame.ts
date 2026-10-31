@@ -3,7 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { aiClient } from "./ai/client";
 import { levelById, type LevelId } from "./ai/levels";
 import { detectResult, replay } from "./chessRules";
+import { outcomeFor } from "./online";
 import { getPlayerName } from "./player";
+import { submitChessResult } from "./stats";
 import type { Color, GameResult, PublicGame } from "./types";
 import { useToast, type GameController } from "./useGame";
 
@@ -31,10 +33,16 @@ export function useSoloGame(config: SoloConfig, onExit: () => void): GameControl
   const movesRef = useRef<string[]>([]);
   const resultRef = useRef<GameResult | null>(null);
 
-  const finish = useCallback((res: GameResult) => {
-    resultRef.current = res;
-    setResult(res);
-  }, []);
+  const finish = useCallback(
+    (res: GameResult) => {
+      resultRef.current = res;
+      setResult(res);
+      // Player stats: every finished duel vs the computer lands on the
+      // Lounge leaderboard (silent no-op for guests).
+      submitChessResult(outcomeFor(res, human));
+    },
+    [human],
+  );
 
   const commit = useCallback(
     (from: string, to: string, promotion?: string): boolean => {

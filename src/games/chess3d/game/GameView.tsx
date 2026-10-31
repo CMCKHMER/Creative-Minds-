@@ -108,7 +108,7 @@ function PlayerCard({
   );
 }
 
-export default function GameView({ ctrl, mode, onExit }: { ctrl: GameController; mode: "local" | "solo"; onExit: () => void }) {
+export default function GameView({ ctrl, mode, onExit }: { ctrl: GameController; mode: "local" | "solo" | "online"; onExit: () => void }) {
   const { game, error, toast, move, act } = ctrl;
 
   if (error) {
@@ -150,7 +150,7 @@ function GameInner({
   move: GameController["move"];
   act: GameController["act"];
   toast: string | null;
-  mode: "local" | "solo";
+  mode: "local" | "solo" | "online";
   solo?: SoloInfo;
   onExit: () => void;
 }) {
@@ -610,7 +610,7 @@ function Actions({
 }: {
   seated: boolean;
   active: boolean;
-  mode: "local" | "solo";
+  mode: "local" | "solo" | "online";
   opponentOffered: boolean;
   iOffered: boolean;
   confirmResign: boolean;

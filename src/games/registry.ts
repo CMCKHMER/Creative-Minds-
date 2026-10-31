@@ -94,7 +94,7 @@ export const BRAIN_GAMES: BrainGameDef[] = [
   {
     id: 'chess3d',
     title: 'Arena Chess 3D',
-    tagline: 'Hand-sculpted 3D pieces and animated duels — challenge five AI strengths or pass & play a friend.',
+    tagline: 'Hand-sculpted 3D pieces — duel five AI strengths, a friend on one screen, or a classmate online with a room code.',
     genre: 'Strategy',
     difficulty: 3,
     emoji: '♟️',
@@ -102,8 +102,8 @@ export const BRAIN_GAMES: BrainGameDef[] = [
     status: 'live',
     mode: 'react',
     load: () => import('./chess3d/Chess3D'),
-    controls: 'Mouse or touch · drag to orbit the camera',
-    scoreLabel: '5 AI strengths',
+    controls: 'Mouse or touch · drag to orbit · online room codes',
+    scoreLabel: 'Wins · draws · losses',
   },
   {
     id: 'bay-03',

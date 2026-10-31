@@ -329,6 +329,51 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ONLINE CHESS ROOMS (Nov 2026): the realtime table for Arena Chess 3D
+    // online duels. One document per room (5-letter code as the doc id):
+    // the host creates it, a guest claims the open seat, then both players
+    // append SAN moves. BOTH clients replay the move list through chess.js
+    // and validate every transition locally — these rules enforce identity
+    // and document shape, not move legality (a hostile writer could inject
+    // nonsense into their OWN room; it can never touch anyone else's, and
+    // the replaying client simply shows the position the moves produce).
+    // All writes require a verified account; reads too, so room codes are
+    // only reachable by real CMC members.
+    match /chess_rooms/{roomId} {
+      allow read: if isVerifiedUser();
+
+      // Create: only your own room, brand-new and empty, code == doc id.
+      allow create: if isVerifiedUser()
+        && request.resource.data.code == roomId
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.hostName is string
+        && request.resource.data.hostName.size() > 0
+        && request.resource.data.hostName.size() <= 40
+        && request.resource.data.hostColor in ['w', 'b']
+        && request.resource.data.guestUid == null
+        && request.resource.data.guestName == null
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.moves is list
+        && request.resource.data.moves.size() == 0
+        && request.resource.data.result == null
+        && request.resource.data.drawOffer == null
+        && request.resource.data.gameNo == 1;
+
+      // Join: a verified player claims the open guest seat. Afterwards,
+      // only the two seated players may touch the room (move appends,
+      // resign, draw offers, rematch gameNo bump). Firestore cannot verify
+      // chess legality — that is the client replay's job — but identity is
+      // hard-enforced: nobody else can read, join or disturb the table.
+      allow update: if isVerifiedUser()
+        && ((resource.data.guestUid == null
+             && request.resource.data.guestUid == request.auth.uid)
+            || request.auth.uid == resource.data.hostUid
+            || request.auth.uid == resource.data.guestUid);
+
+      // Cleanup: the host can take a dead table down.
+      allow delete: if isVerifiedUser() && resource.data.hostUid == request.auth.uid;
+    }
+
     // Default-deny everything not explicitly allowed above.
     match /{document=**} {
       allow read, write: if false;
