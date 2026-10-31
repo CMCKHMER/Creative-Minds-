@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { BRAIN_GAMES, liveBrainGames, reservedBays, type BrainGameDef } from '../games/registry';
 import { MILESTONE_STAGES, milestonePct } from '../games/brickforge/scoring';
@@ -76,10 +78,10 @@ describe('brain lounge registry', () => {
     expect(reservedBays().length).toBeGreaterThanOrEqual(1);
   });
 
-  it('leads the shelf with BrickForge and keeps Neon Sequence retired', () => {
+  it('leads the shelf with BrickForge, Galica in bay 2, Neon Sequence retired', () => {
     expect(BRAIN_GAMES[0]?.id).toBe('brickforge');
     expect(BRAIN_GAMES.some((g) => g.id === 'neon-sequence')).toBe(false);
-    expect(liveBrainGames().map((g) => g.id)).toEqual(['brickforge', 'chess3d']);
+    expect(liveBrainGames().map((g) => g.id)).toEqual(['brickforge', 'chess3d', 'galica']);
   });
 
   it('react cartridges load a default component', async () => {
@@ -200,5 +202,31 @@ describe('brickforge hall of smiths', () => {
     expect(loadLastName()).toBe('');
     saveLastName('ember');
     expect(loadLastName()).toBe('ember');
+  });
+});
+
+/** Galica cartridge — the lounge's first standalone shooter. The registry
+ * points at a shipped file, so this pins the file, its score-sync wiring and
+ * the entry shape together: editing or losing any one of them fails here
+ * instead of showing a dead "Open game" link on the live shelf. */
+describe('galica standalone cartridge', () => {
+  const galica = BRAIN_GAMES.find((g) => g.id === 'galica');
+
+  it('is registered as a live standalone cartridge', () => {
+    expect(galica).toBeDefined();
+    expect(galica!.status).toBe('live');
+    expect(galica!.mode).toBe('standalone');
+    expect(galica!.launchUrl).toBe('./arcade/galica/index.html');
+  });
+
+  it('ships the game file with its page-sync hook intact', () => {
+    const html = readFileSync(
+      resolve(process.cwd(), 'public', 'arcade', 'galica', 'index.html'),
+      'utf8',
+    );
+    expect(html).toContain('var CMC_GALICA_SUBMIT'); // sync block defined…
+    expect(html.match(/CMC_GALICA_SUBMIT\(/g)?.length).toBeGreaterThanOrEqual(2); // …and fired from both game-over sites
+    expect(html).toContain("drillSource:{stringValue:'brain-lounge'}");
+    expect(html).toContain('</html>');
   });
 });
