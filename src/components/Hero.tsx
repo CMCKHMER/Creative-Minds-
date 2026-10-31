@@ -44,7 +44,7 @@ const shortcuts: HeroShortcut[] = [
     description: 'Complete 4-section exam with audio, recording, and timer. ~3 hours.',
     icon: GraduationCap,
     accent: 'cyan',
-    image: './images/quick-toefl.png',
+    image: './images/quick-toefl.webp',
   },
   {
     id: 'games',
@@ -52,7 +52,7 @@ const shortcuts: HeroShortcut[] = [
     description: '8 playable games: grammar, vocabulary, reading, listening, and more.',
     icon: Gamepad2,
     accent: 'violet',
-    image: './images/quick-games.png',
+    image: './images/quick-games.webp',
   },
   {
     id: 'resources',
@@ -60,7 +60,7 @@ const shortcuts: HeroShortcut[] = [
     description: 'Ready-to-use classroom handouts with separate teacher keys and rubrics.',
     icon: BookOpen,
     accent: 'amber',
-    image: './images/quick-assignments.png',
+    image: './images/quick-assignments.webp',
   },
   {
     id: 'kid-grades',
@@ -130,7 +130,7 @@ export const Hero = ({
       >
         <div className="cmc-hero-photo-plane" aria-hidden="true">
           <img
-            src="./images/classroom-hero-renaissance.png"
+            src="./images/classroom-hero-renaissance.webp"
             alt=""
             className="cmc-hero-photo"
             fetchPriority="high"

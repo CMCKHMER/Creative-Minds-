@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, RotateCcw, Sparkles, XCircle, Volume2, VolumeX } from 'lucide-react';
 import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
@@ -154,6 +154,13 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
 }
 
 export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
+  // Hash routes share one HTML shell — set the page <title> on mount and
+  // restore the landing title on unmount.
+  useEffect(() => {
+    const prev = document.title;
+    document.title = 'Learning Games · Creative Minds';
+    return () => { document.title = prev; };
+  }, []);
   const [activeSkill, setActiveSkill] = useState<'All games' | LearningGameSkill>('All games');
   const [selectedGame, setSelectedGame] = useState<LearningGame | null>(null);
   const filteredGames = LEARNING_GAMES.filter((game) => activeSkill === 'All games' || game.skill === activeSkill);

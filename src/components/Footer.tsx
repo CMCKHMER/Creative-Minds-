@@ -110,7 +110,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenQuickLinks, onOpenTeacherP
           
           {/* Col 1 */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">Teacher Tools</h4>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white">Teacher Tools</h3>
             <ul className="space-y-2 text-slate-400">
               <li>
                 <a href="#interactive-demo" className="hover:text-cyan-300 transition">Feedback preview (sample only)</a>
@@ -137,7 +137,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenQuickLinks, onOpenTeacherP
 
           {/* Col 2 */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">Curriculum Levels</h4>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white">Curriculum Levels</h3>
             <ul className="space-y-2 text-slate-400">
               <li>
                 <a href="#resources" className="hover:text-cyan-300 transition">Pre-Kid Early Phonics</a>
@@ -162,7 +162,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenQuickLinks, onOpenTeacherP
 
           {/* Col 3 */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">Schools & Admin</h4>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white">Schools & Admin</h3>
             <ul className="space-y-2 text-slate-400">
               <li>
                 <button onClick={onOpenTeacherPass} className="hover:text-cyan-300 transition text-left cursor-pointer">Create a member account</button>
@@ -187,7 +187,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenQuickLinks, onOpenTeacherP
 
           {/* Col 4 */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">Standards & Safety</h4>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white">Standards & Safety</h3>
             <ul className="space-y-2 text-slate-400">
               <li className="flex items-center gap-1.5">
                 <Shield className="w-3.5 h-3.5 text-cyan-400" />

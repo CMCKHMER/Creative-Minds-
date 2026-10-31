@@ -36,7 +36,7 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onSuccess }) => {
       {/* Background horizon image — teacher aspiration scene */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <img
-          src="./images/upgrade/final-cta-horizon.png"
+          src="./images/upgrade/final-cta-horizon.webp"
           alt=""
           aria-hidden="true"
           className="h-full w-full object-cover opacity-30"

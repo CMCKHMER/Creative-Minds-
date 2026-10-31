@@ -246,6 +246,13 @@ export function NewsSidePanel({ onSeeAll }: { onSeeAll: () => void }) {
    ========================================================================= */
 
 export function NewsPage({ onBackHome }: { onBackHome: () => void }) {
+  // Hash routes share one HTML shell — set the page <title> on mount and
+  // restore the landing title on unmount.
+  useEffect(() => {
+    const prev = document.title;
+    document.title = 'Cambodia Education News · Creative Minds';
+    return () => { document.title = prev; };
+  }, []);
   const [refreshKey, setRefreshKey] = useState(0);
   const { data, isLoading, error } = useHeadlines(refreshKey);
 
@@ -315,7 +322,7 @@ export function NewsPage({ onBackHome }: { onBackHome: () => void }) {
       <section data-keep-dark className="relative isolate overflow-hidden border-b border-white/8">
         <div className="absolute inset-0 -z-20">
           <img
-            src="./images/news/news-hero.png"
+            src="./images/news/news-hero.webp"
             alt=""
             aria-hidden="true"
             className="h-full w-full object-cover opacity-30"

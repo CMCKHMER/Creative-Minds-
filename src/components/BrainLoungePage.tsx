@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState, type ComponentType } from 'react';
+import { Suspense, lazy, useEffect, useState, type ComponentType } from 'react';
 import { ArrowLeft, CalendarClock, Cpu, ExternalLink, Gamepad2, Lightbulb, Play, Sparkles, Zap } from 'lucide-react';
 import { BRAIN_GAMES, liveBrainGames, reservedBays, type BrainGameDef, type BrainGameProps } from '../games/registry';
 import { LoungeLeaderboard } from './LoungeLeaderboard';
@@ -83,6 +83,13 @@ function Cartridge({ game, onPlay }: { game: BrainGameDef; onPlay: (game: BrainG
 }
 
 export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
+  // Hash routes share one HTML shell — set the page <title> on mount and
+  // restore the landing title on unmount.
+  useEffect(() => {
+    const prev = document.title;
+    document.title = 'The Brain Lounge · CMC Arcade';
+    return () => { document.title = prev; };
+  }, []);
   const [activeGame, setActiveGame] = useState<BrainGameDef | null>(null);
   const live = liveBrainGames();
   const reserved = reservedBays();

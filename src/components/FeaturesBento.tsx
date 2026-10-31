@@ -25,7 +25,7 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
       {/* Renaissance workshop backdrop — same art direction as the hero photo plane */}
       <div className="cmc-bento-photo-plane" aria-hidden="true">
         <img
-          src="./images/features-bento-renaissance.png"
+          src="./images/features-bento-renaissance.webp"
           alt=""
           className="cmc-bento-photo"
           loading="lazy"

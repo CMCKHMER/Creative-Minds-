@@ -559,6 +559,13 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
    ========================================================================= */
 
 export function TeacherToolsPage({ onBackHome, onOpenAuth }: { onBackHome: () => void; onOpenAuth?: () => void }) {
+  // Hash routes share one HTML shell — set the page <title> on mount and
+  // restore the landing title on unmount.
+  useEffect(() => {
+    const prev = document.title;
+    document.title = 'Teacher Tools · Creative Minds';
+    return () => { document.title = prev; };
+  }, []);
   return (
     <main className="min-h-screen overflow-hidden bg-[#070d17] text-slate-100">
       {/* Sticky top bar — matches LearningGamesPage */}
@@ -673,7 +680,7 @@ export function TeacherToolsPage({ onBackHome, onOpenAuth }: { onBackHome: () =>
             {/* Showcase image */}
             <div className="relative aspect-[1344/500] w-full overflow-hidden">
               <img
-                src="./images/teacher-tools/studio-card.png"
+                src="./images/teacher-tools/studio-card.webp"
                 alt="Creative Minds Studio — layers, blend modes, fonts, photo filters, Word + Excel modes, PDF export"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 decoding="async"

@@ -121,7 +121,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ onOpenTeacherPass }) => 
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-white">Have a specific school inquiry?</h4>
+              <h3 className="text-sm font-bold text-white">Have a specific school inquiry?</h3>
               <p className="text-xs text-slate-400">Create an account to access the verified member practice room.</p>
             </div>
           </div>

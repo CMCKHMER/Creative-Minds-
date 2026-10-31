@@ -93,9 +93,11 @@ export function RoleGate({
         <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300/20 to-amber-500/10 text-amber-200 ring-1 ring-amber-200/30">
           <GraduationCap className="h-7 w-7" aria-hidden="true" />
         </span>
-        <h2 className="mt-6 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">
+        {/* h1 — when a page is fully gated, this prompt IS the page's main
+            heading (guest views had no h1 at all, e.g. #teacher-tools). */}
+        <h1 className="mt-6 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">
           {title}
-        </h2>
+        </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-300">{description}</p>
 
         {onOpenAuth && (
