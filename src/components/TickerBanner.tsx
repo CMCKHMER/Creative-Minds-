@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Activity, ChevronRight, Sparkles, TrendingUp, Trophy, Users, X } from 'lucide-react';
+import { Activity, ChevronRight, ClipboardList, Sparkles, TrendingUp, Trophy, Users, X } from 'lucide-react';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 
 interface TickerBannerProps {
@@ -24,6 +24,12 @@ interface AggregateStats {
   activeStudents: number;
   drillsToday: number;
   drillsThisWeek: number;
+  // Teacher-assigned tests (drillSource === 'assignment'). Counted separately
+  // so the "drills" numbers stay pure drills — assignment submissions are
+  // logged by the private test pages with score 0 (grading is teacher-side),
+  // so mixing them into the drill stats/leaderboard would fake 0% averages.
+  assignmentsWeek: number;
+  assignmentsTotal: number;
 }
 
 interface LeaderEntry {
@@ -63,6 +69,8 @@ const DEMO_STATS: AggregateStats = {
   activeStudents: 219,
   drillsToday: 184,
   drillsThisWeek: 1172,
+  assignmentsWeek: 46,
+  assignmentsTotal: 512,
 };
 
 // ---------------------------------------------------------------------------
@@ -128,11 +136,25 @@ function aggregate(attempts: DrillAttempt[]): TickerData {
 
   let drillsToday = 0;
   let drillsThisWeek = 0;
+  let assignmentsWeek = 0;
+  let assignmentsTotal = 0;
   const studentSet = new Set<string>();
   const perName: Record<string, { drills: number; scoreSum: number }> = {};
 
   for (const a of attempts) {
     if (!a.submittedAt) continue;
+    if (a.drillSource === 'assignment') {
+      // Assigned tests: counted in their own stats and toward "active
+      // students", but NOT in the leaderboard — the submission is logged
+      // before the teacher grades it, so its scorePct is always 0 and
+      // would drag every average toward 0%.
+      assignmentsTotal += 1;
+      if (a.submittedAt >= startOfWeekMs) {
+        assignmentsWeek += 1;
+        studentSet.add(a.studentName);
+      }
+      continue;
+    }
     if (a.submittedAt >= startOfTodayMs) drillsToday += 1;
     if (a.submittedAt >= startOfWeekMs) drillsThisWeek += 1;
     if (a.submittedAt >= startOfWeekMs) studentSet.add(a.studentName);
@@ -154,10 +176,12 @@ function aggregate(attempts: DrillAttempt[]): TickerData {
 
   return {
     stats: {
-      totalDrills: attempts.length,
+      totalDrills: attempts.length - assignmentsTotal,
       activeStudents: studentSet.size,
       drillsToday,
       drillsThisWeek,
+      assignmentsWeek,
+      assignmentsTotal,
     },
     leaderboard,
     source: 'live',
@@ -384,6 +408,18 @@ lastError: string | null,
   // Stat: total drills
   nodes.push(
     <TickerStat key="total" icon={<Sparkles className="h-3.5 w-3.5" />} label="All-time drills" value={d.stats.totalDrills} />
+  );
+  nodes.push(separator);
+
+  // Stats: teacher-assigned tests (private bi-weekly tests). Their own
+  // numbers — submissions arrive before grading, so they are completions
+  // even though no score exists yet.
+  nodes.push(
+    <TickerStat key="assign-week" icon={<ClipboardList className="h-3.5 w-3.5" />} label="Assignment tests this week" value={d.stats.assignmentsWeek} />
+  );
+  nodes.push(separator);
+  nodes.push(
+    <TickerStat key="assign-total" icon={<ClipboardList className="h-3.5 w-3.5" />} label="Assignment tests total" value={d.stats.assignmentsTotal} />
   );
   nodes.push(separator);
 

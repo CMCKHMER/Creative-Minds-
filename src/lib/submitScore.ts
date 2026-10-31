@@ -24,7 +24,10 @@ export type DrillSource =
   | 'mini-mock'
   | 'syntax-clash'
   | 'tense-master'
-  | 'writequest';
+  | 'writequest'
+  // Logged by the private (teacher-assigned) test pages after a successful
+  // test_submissions POST — completion only, score 0 until the teacher grades.
+  | 'assignment';
 
 export interface ScoreSubmission {
   drillSlug: string;

@@ -174,7 +174,12 @@ export function FirebaseDashboard() {
   // Stats
   const stats = useMemo(() => {
     const total = attempts.length;
-    const avgScore = total > 0 ? Math.round(attempts.reduce((s: number, a: any) => s + (a.scorePct || 0), 0) / total) : 0;
+    // Assignment submissions sit at scorePct 0 until the teacher grades them
+    // (grading writes to test_scores, not back here — drill_attempts is
+    // append-only). Keep them out of the average so one ungraded test can't
+    // tank the class number; they still count toward total activity.
+    const graded = attempts.filter((a: any) => a.drillSource !== 'assignment');
+    const avgScore = graded.length > 0 ? Math.round(graded.reduce((s: number, a: any) => s + (a.scorePct || 0), 0) / graded.length) : 0;
     const uniqueStudents = new Set(attempts.map((a: any) => a.studentUid || a.studentName)).size;
     const recentCount = attempts.filter((a: any) => {
       const ts = a.submittedAt?.toDate?.() || new Date(a.submittedAt);
@@ -343,12 +348,23 @@ export function FirebaseDashboard() {
                     {(selectedClass ? attempts.filter((a: any) => a.classId === selectedClass) : attempts).slice(0, 50).map((a: any, i: number) => (
                       <tr key={i} className="hover:bg-white/5">
                         <td className="px-4 py-3 text-xs font-medium text-slate-200">{a.studentName || 'Unknown'}</td>
-                        <td className="px-4 py-3 text-xs text-slate-400">{a.drillTitle || a.drillSlug}</td>
+                        <td className="px-4 py-3 text-xs text-slate-400">
+                          {a.drillTitle || a.drillSlug}
+                          {a.drillSource === 'assignment' && (
+                            <span className="ml-1.5 rounded bg-violet-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-300">Assignment</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-center">
-                          <span className={`font-mono font-bold text-xs ${(a.scorePct || 0) >= 80 ? 'text-emerald-300' : (a.scorePct || 0) >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
-                            {a.scorePct || 0}%
-                          </span>
-                          <span className="ml-1 text-[10px] text-slate-600">({a.correctCount}/{a.totalCount})</span>
+                          {a.drillSource === 'assignment' ? (
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Pending grade</span>
+                          ) : (
+                            <>
+                              <span className={`font-mono font-bold text-xs ${(a.scorePct || 0) >= 80 ? 'text-emerald-300' : (a.scorePct || 0) >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
+                                {a.scorePct || 0}%
+                              </span>
+                              <span className="ml-1 text-[10px] text-slate-600">({a.correctCount}/{a.totalCount})</span>
+                            </>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-right text-[10px] text-slate-500">
                           {a.submittedAt?.toDate ? a.submittedAt.toDate().toLocaleDateString() : '—'}
@@ -422,8 +438,17 @@ export function FirebaseDashboard() {
                 <tbody className="divide-y divide-white/5">
                   {studentAttempts.map((a: any, i: number) => (
                     <tr key={i}>
-                      <td className="px-4 py-3 text-xs text-slate-300">{a.drillTitle || a.drillSlug}</td>
-                      <td className="px-4 py-3 text-center font-mono font-bold text-xs text-cyan-300">{a.scorePct}%</td>
+                      <td className="px-4 py-3 text-xs text-slate-300">
+                        {a.drillTitle || a.drillSlug}
+                        {a.drillSource === 'assignment' && (
+                          <span className="ml-1.5 rounded bg-violet-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-300">Assignment</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {a.drillSource === 'assignment'
+                          ? <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Pending grade</span>
+                          : <span className="font-mono font-bold text-xs text-cyan-300">{a.scorePct}%</span>}
+                      </td>
                       <td className="px-4 py-3 text-right text-[10px] text-slate-500">{a.submittedAt?.toDate?.()?.toLocaleDateString() || '—'}</td>
                     </tr>
                   ))}
@@ -506,6 +531,7 @@ interface CommunityDoc { fields?: Record<string, CommunityField> }
 interface CommunityAttempt {
   name: string;
   drill: string;
+  drillSource: string;
   scorePct: number;
   at: number;
 }
@@ -517,6 +543,7 @@ function parseCommunityDoc(doc: CommunityDoc): CommunityAttempt | null {
   return {
     name: f.studentName?.stringValue || 'Anonymous',
     drill: f.drillTitle?.stringValue || f.drillSlug?.stringValue || 'Drill',
+    drillSource: f.drillSource?.stringValue || 'drill',
     scorePct: Number(f.scorePct?.integerValue || '0'),
     at: tsRaw ? Date.parse(tsRaw) : 0,
   };
@@ -551,7 +578,10 @@ function CommunityLive() {
   }, []);
 
   const last24h = recent.filter((a) => Date.now() - a.at < 86_400_000).length;
-  const avg = recent.length ? Math.round(recent.reduce((s, a) => s + a.scorePct, 0) / recent.length) : 0;
+  // Assignment submissions sit in the feed at scorePct 0 until the teacher
+  // grades them — keep them out of the public average (same rule as the ticker).
+  const graded = recent.filter((a) => a.drillSource !== 'assignment');
+  const avg = graded.length ? Math.round(graded.reduce((s, a) => s + a.scorePct, 0) / graded.length) : 0;
   const students = new Set(recent.map((a) => a.name)).size;
 
   return (
@@ -593,8 +623,17 @@ function CommunityLive() {
               {recent.slice(0, 6).map((a, i) => (
                 <tr key={i} className="hover:bg-white/5">
                   <td className="px-4 py-3 text-xs font-medium text-slate-200">{a.name}</td>
-                  <td className="px-4 py-3 text-xs text-slate-400">{a.drill}</td>
-                  <td className="px-4 py-3 text-center font-mono text-xs font-bold text-cyan-300">{a.scorePct}%</td>
+                  <td className="px-4 py-3 text-xs text-slate-400">
+                    {a.drill}
+                    {a.drillSource === 'assignment' && (
+                      <span className="ml-1.5 rounded bg-violet-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-300">Assignment</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {a.drillSource === 'assignment'
+                      ? <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Pending grade</span>
+                      : <span className="font-mono text-xs font-bold text-cyan-300">{a.scorePct}%</span>}
+                  </td>
                   <td className="px-4 py-3 text-right text-[10px] text-slate-500">{timeAgo(a.at)}</td>
                 </tr>
               ))}
