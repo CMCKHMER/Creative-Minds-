@@ -850,9 +850,9 @@ function drwShop(){drwBg(true);
       cx.fillStyle=sel?'#00ffaa':'#7a8a7a';cx.font='11px "Press Start 2P"';cx.textAlign='center';
       cx.fillText('LAUNCH \u25B8 NEXT WAVE',GW/2,y+8);}}
   cx.fillStyle='#6a8a7a';cx.font='7px "Press Start 2P"';cx.textAlign='center';
-  cx.fillText('UP/DOWN SELECT \u00B7 Z/SPACE CONFIRM \u00B7 ENTER LAUNCH',GW/2,612);
-  // edge-triggered navigation
-  const up=keys.ArrowUp||keys.KeyW,down=keys.ArrowDown||keys.KeyS;
+  cx.fillText('UP/DOWN or \u25C0\u25B6 SELECT \u00B7 Z/SPACE CONFIRM \u00B7 ENTER/BOMB LAUNCH',GW/2,612);
+  // edge-triggered navigation (touch pad ◀ ▶ also navigate shop rows on mobile)
+  const up=keys.ArrowUp||keys.KeyW||ts.l,down=keys.ArrowDown||keys.KeyS||ts.r;
   if(!up&&!down)navLock=false;
   else if(!navLock){navLock=true;if(up)shopIdx=(shopIdx+rows-1)%rows;else shopIdx=(shopIdx+1)%rows;}
   // edge-triggered confirm

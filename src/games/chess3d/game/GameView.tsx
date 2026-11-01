@@ -42,7 +42,7 @@ function IconButton({
       onClick={onClick}
       title={title}
       aria-label={title}
-      className={`grid h-10 w-10 place-items-center rounded-xl border text-lg backdrop-blur transition hover:scale-105 ${
+      className={`grid h-9 w-9 place-items-center rounded-xl border text-base backdrop-blur transition hover:scale-105 sm:h-10 sm:w-10 sm:text-lg ${
         active
           ? "border-amber-300/60 bg-amber-300/20 text-amber-100"
           : "border-white/10 bg-slate-900/70 text-slate-200 hover:bg-slate-800/80"
@@ -357,22 +357,26 @@ function GameInner({
         </Suspense>
       </div>
 
-      {/* top bar */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
+      {/* top bar — icon-only and tighter on phones so nothing collides */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-2 sm:gap-3 sm:p-3">
         <div className="pointer-events-auto flex items-center gap-2">
           <button
             onClick={onExit}
-            className="grid h-10 place-items-center rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm font-medium backdrop-blur hover:bg-slate-800/80"
+            aria-label="Back to the lounge shelf"
+            className="grid h-9 place-items-center rounded-xl border border-white/10 bg-slate-900/70 px-2.5 text-sm font-medium backdrop-blur hover:bg-slate-800/80 sm:h-10 sm:px-3"
           >
-            ← Lounge shelf
+            <span className="flex items-center gap-2">
+              <span aria-hidden="true">←</span>
+              <span className="hidden sm:inline">Lounge shelf</span>
+            </span>
           </button>
           {mode === "local" && (
-            <span className="grid h-10 place-items-center rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm text-slate-300 backdrop-blur">
+            <span className="hidden h-10 place-items-center rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm text-slate-300 backdrop-blur sm:grid">
               Pass &amp; play
             </span>
           )}
           {mode === "solo" && solo && (
-            <span className="flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm text-slate-200 backdrop-blur">
+            <span className="hidden h-10 items-center gap-2 rounded-xl border border-white/10 bg-slate-900/70 px-3 text-sm text-slate-200 backdrop-blur sm:flex">
               <span className="text-lg text-amber-200">{solo.levelGlyph}</span>
               <span>
                 vs <b className="font-semibold text-white">{solo.levelName}</b>
@@ -397,7 +401,7 @@ function GameInner({
             }}
             title={blood ? "Blood: on (click to turn off)" : "Blood: off (click to turn on)"}
             aria-pressed={blood}
-            className={`flex h-10 items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold backdrop-blur transition hover:scale-105 ${
+            className={`flex h-9 items-center gap-1.5 rounded-xl border px-2.5 text-sm font-semibold backdrop-blur transition hover:scale-105 sm:h-10 sm:px-3 ${
               blood ? "border-red-400/60 bg-red-900/50 text-red-100" : "border-white/10 bg-slate-900/70 text-slate-400 hover:bg-slate-800/80"
             }`}
           >
@@ -429,8 +433,8 @@ function GameInner({
         </div>
       </div>
 
-      {/* player cards */}
-      <div className="pointer-events-none absolute left-3 top-16 flex flex-col gap-2">
+      {/* player cards — below the centered turn pill on phones */}
+      <div className="pointer-events-none absolute left-3 top-[6.75rem] flex flex-col gap-2 lg:top-16">
         <PlayerCard
           color={topColor}
           name={nameOf(topColor)}
