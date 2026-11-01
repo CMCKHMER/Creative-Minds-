@@ -50,6 +50,7 @@
     "vitest": "4.1.12"
   },
   "overrides": {
-    "@grpc/grpc-js": "^1.13.6"
+    "@grpc/grpc-js": "^1.13.6",
+    "minimatch": "^11.0.1"
   }
 }
