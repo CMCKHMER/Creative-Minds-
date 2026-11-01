@@ -3,6 +3,7 @@ import { ArrowDownToLine, ArrowRight, BookOpen, Check, ClipboardList, Pause, Pla
 import type { AssignmentQuestion, AssignmentSection, ClassroomAssignment } from '../types/assignment';
 import { downloadAssignment, openAssignmentPrintView, type AssignmentCopy } from '../utils/assignmentDocument';
 import { assignmentAudioPrompt } from '../utils/assignmentAudio';
+import { resolveListeningAudio, splitSpeechTurns } from '../utils/listeningAudio';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 
@@ -14,42 +15,86 @@ interface AssignmentPreviewProps {
 function SpeechPromptButton({ kind, text }: { kind: 'listening' | 'speaking'; text: string }) {
   const [playing, setPlaying] = useState(false);
   const [notice, setNotice] = useState('');
+  const [audioUrl, setAudioUrl] = useState<string>('');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const label = kind === 'listening' ? 'Play listening passage' : 'Hear speaking-task prompt';
+  // Speaker-labelled scripts sound more natural without the labels and with a
+  // slight pitch alternation between turns.
+  const hasTurns = splitSpeechTurns(text).length > 1;
+
+  useEffect(() => {
+    let alive = true;
+    resolveListeningAudio(text).then((url) => {
+      if (alive && url) setAudioUrl(url);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [text]);
 
   useEffect(() => () => {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   }, []);
 
+  const speakDevice = () => {
+    window.speechSynthesis.cancel();
+    const turns = hasTurns ? splitSpeechTurns(text) : [{ speaker: null, text }];
+    turns.forEach((turn, ti) => {
+      const utterance = new SpeechSynthesisUtterance(turn.text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      if (hasTurns && ti % 2 === 1) utterance.pitch = 0.88;
+      if (ti === turns.length - 1) {
+        utterance.onend = () => {
+          setPlaying(false);
+          setNotice('Prompt finished. Replay if needed.');
+        };
+        utterance.onerror = () => {
+          setPlaying(false);
+          setNotice('Audio could not play. Use the visible text to continue.');
+        };
+      }
+      window.speechSynthesis.speak(utterance);
+    });
+    setPlaying(true);
+    setNotice('Playing synthesized speech from your device voice; this is not a recording.');
+  };
+
   const togglePlayback = () => {
     setNotice('');
+    if (playing) {
+      window.speechSynthesis.cancel();
+      audioRef.current?.pause();
+      setPlaying(false);
+      setNotice('Playback stopped.');
+      return;
+    }
+
+    if (audioUrl) {
+      const el = audioRef.current;
+      if (el) {
+        el.currentTime = 0;
+        el.play()
+          .then(() => setPlaying(true))
+          .catch(() => {
+            setAudioUrl('');
+            if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+              setNotice('Audio is unavailable in this browser. Use the written directions; a teacher can read the listening script from the key.');
+              return;
+            }
+            speakDevice();
+          });
+      }
+      return;
+    }
+
     if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
       setPlaying(false);
       setNotice('Audio is unavailable in this browser. Use the written directions; a teacher can read the listening script from the key.');
       return;
     }
 
-    if (playing) {
-      window.speechSynthesis.cancel();
-      setPlaying(false);
-      setNotice('Playback stopped.');
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.9;
-    utterance.onend = () => {
-      setPlaying(false);
-      setNotice('Prompt finished. Replay if needed.');
-    };
-    utterance.onerror = () => {
-      setPlaying(false);
-      setNotice('Audio could not play. Use the visible text to continue.');
-    };
-    setPlaying(true);
-    setNotice('Playing synthesized speech from your device voice; this is not a recording.');
-    window.speechSynthesis.speak(utterance);
+    speakDevice();
   };
 
   return (
@@ -57,7 +102,7 @@ function SpeechPromptButton({ kind, text }: { kind: 'listening' | 'speaking'; te
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <span className={`grid h-8 w-8 place-items-center rounded-lg border ${kind === 'listening' ? 'border-cyan-200/30 bg-white/70 text-cyan-800' : 'border-violet-200/30 bg-white/70 text-violet-800'}`}><Volume2 className="h-4 w-4" aria-hidden="true" /></span>
-          <span><span className={`block text-xs font-semibold ${kind === 'listening' ? 'text-cyan-950' : 'text-violet-950'}`}>{label}</span><span className="mt-0.5 block text-[9px] text-slate-500">Device-generated English voice · not a recorded speaker</span></span>
+          <span><span className={`block text-xs font-semibold ${kind === 'listening' ? 'text-cyan-950' : 'text-violet-950'}`}>{label}</span><span className="mt-0.5 block text-[9px] text-slate-500">{audioUrl ? 'Recorded multi-voice narration' : 'Device-generated English voice · not a recorded speaker'}</span></span>
         </div>
         <button type="button" onClick={togglePlayback} aria-pressed={playing} className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 ${kind === 'listening' ? 'border-cyan-800/15 bg-white/75 text-cyan-950 hover:bg-white focus-visible:outline-cyan-700' : 'border-violet-800/15 bg-white/75 text-violet-950 hover:bg-white focus-visible:outline-violet-700'}`}>
           {playing ? <Pause className="h-3.5 w-3.5" aria-hidden="true" /> : <Play className="h-3.5 w-3.5 fill-current" aria-hidden="true" />}
@@ -65,6 +110,9 @@ function SpeechPromptButton({ kind, text }: { kind: 'listening' | 'speaking'; te
         </button>
       </div>
       <p role="status" aria-live="polite" className="mt-2 min-h-3 text-[9px] text-slate-500">{notice}</p>
+      {audioUrl && (
+        <audio ref={audioRef} src={audioUrl} preload="metadata" onEnded={() => setPlaying(false)} className="hidden" />
+      )}
       {kind === 'speaking' && <p className="mt-1 text-[9px] leading-relaxed text-slate-500">Hear the prompt, then answer aloud yourself. The browser voice models the task instruction.</p>}
       {kind === 'listening' && <p className="mt-1 text-[9px] leading-relaxed text-slate-500">The student version offers audio playback; the text transcript stays in the teacher key.</p>}
     </div>

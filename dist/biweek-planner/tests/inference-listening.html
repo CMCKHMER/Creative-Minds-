@@ -230,6 +230,7 @@ html[data-theme="light"] .q-explanation{background:rgba(2,132,199,.04);border-co
 <div class="relative z-10 max-w-4xl mx-auto px-4 py-10 sm:px-6">
   <div id="test-header"></div>
   <div id="qmap" class="qmap"></div>
+  <div class="glass rounded-lg p-4 mb-4"><h4 class="text-xs font-bold text-cyan-300 mb-2">Audio Conversation · Will and Kiera</h4><audio controls preload="none" style="width:100%"><source src="inference-listening.mp3" type="audio/mpeg">Your browser does not support audio.</audio></div>
   <form id="test-form" novalidate></form>
   <div id="review-modal" class="review-modal"><div class="review-modal-card"><h3 class="font-display text-xl font-bold mb-3" style="color:var(--text)">Ready to submit?</h3><div class="flex justify-center mb-4"><div class="review-stat answered"><b id="rv-answered">0</b><span>Answered</span></div><div class="review-stat unanswered"><b id="rv-unanswered">0</b><span>Unanswered</span></div><div class="review-stat flagged"><b id="rv-flagged">0</b><span>Flagged</span></div></div><p class="text-xs mb-5" style="color:var(--muted)" id="rv-msg">Unanswered questions will count as incorrect.</p><div class="flex justify-center gap-2"><button class="btn" type="button" id="rv-review">Review answers</button><button class="btn-primary btn" type="button" id="rv-submit">Submit now</button></div></div></div>
 </div>
@@ -240,7 +241,7 @@ window.TEST_CONFIG={
   kicker:'Week 3 · Listening',
   color:'#347d9b',
   icon:'fa-search',
-  instructions:'Your teacher will play or read the workplace conversation in class — answer the questions after listening. (This drill has no built-in audio.)',
+  instructions:'Listen to the workplace conversation between Will and Kiera, take notes, and answer the inference questions after listening. You may replay the audio while practising.',
   fields:['name', 'date'],
   transcript:'',
   groups:[

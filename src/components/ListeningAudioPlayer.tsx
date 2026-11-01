@@ -8,6 +8,7 @@ import {
   splitIntoSentences,
   stopSpeech,
 } from '../utils/speech';
+import { resolveListeningAudio, splitSpeechTurns } from '../utils/listeningAudio';
 
 interface ListeningAudioPlayerProps {
   /** Full spoken transcript (kept out of the visible DOM until the learner opens it). */
@@ -21,6 +22,14 @@ interface ListeningAudioPlayerProps {
   compact?: boolean;
 }
 
+type Mode = 'resolving' | 'file' | 'tts';
+
+interface FlatLine {
+  text: string;
+  pitch: number;
+  turnIndex: number;
+}
+
 export function ListeningAudioPlayer({
   script,
   title = 'Listening passage',
@@ -28,15 +37,19 @@ export function ListeningAudioPlayer({
   tone = 'cyan',
   compact = false,
 }: ListeningAudioPlayerProps) {
-  const sentences = useMemo(() => splitIntoSentences(script), [script]);
+  const turns = useMemo(() => splitSpeechTurns(script), [script]);
+  const [mode, setMode] = useState<Mode>('resolving');
+  const [audioUrl, setAudioUrl] = useState<string>('');
   const [playing, setPlaying] = useState(false);
   const [playsUsed, setPlaysUsed] = useState(0);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceURI, setVoiceURI] = useState<string>('');
   const [rate, setRate] = useState(0.95);
-  const [activeSentence, setActiveSentence] = useState(-1);
+  const [activeLine, setActiveLine] = useState(-1);
   const [status, setStatus] = useState('');
   const [elapsed, setElapsed] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number | null>(null);
   const activeRef = useRef(false);
 
@@ -44,12 +57,51 @@ export function ListeningAudioPlayer({
   const limited = typeof maxPlays === 'number';
   const playsLeft = limited ? Math.max(0, (maxPlays as number) - playsUsed) : Infinity;
   const exhausted = limited && playsLeft <= 0 && !playing;
-  const totalSecs = useMemo(() => estimateDurationSeconds(script, rate), [script, rate]);
+  const totalSecs = duration || estimateDurationSeconds(script, rate);
 
-  // Stop any speech when this player unmounts (question change, finish, navigation).
+  // Flatten turns into speakable lines for the device-voice fallback.
+  const flatLines = useMemo<FlatLine[]>(() => {
+    const lines: FlatLine[] = [];
+    turns.forEach((t, ti) => {
+      const pitch = turns.length > 1 && ti % 2 === 1 ? 0.88 : 1.0;
+      for (const s of splitIntoSentences(t.text)) lines.push({ text: s, pitch, turnIndex: ti });
+    });
+    return lines;
+  }, [turns]);
+
+  // Resolve bundled studio audio for this script (falls back to device voice).
+  useEffect(() => {
+    let alive = true;
+    setMode('resolving');
+    setStatus('');
+    setAudioUrl('');
+    setDuration(0);
+    resolveListeningAudio(script).then((url) => {
+      if (!alive) return;
+      if (url) {
+        setAudioUrl(url);
+        setMode('file');
+      } else {
+        setMode('tts');
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, [script]);
+
+  // Stop any speech/audio when this player unmounts or the script changes.
   useEffect(() => () => stopSpeech(), []);
+  useEffect(() => {
+    stopSpeech();
+    audioRef.current?.pause();
+    setPlaying(false);
+    setActiveLine(-1);
+    setElapsed(0);
+    if (timerRef.current) window.clearInterval(timerRef.current);
+  }, [script]);
 
-  // Load voices (Chrome loads them async).
+  // Load voices (Chrome loads them async) — only needed for the fallback path.
   useEffect(() => {
     if (!supported) return;
     const load = () => {
@@ -72,24 +124,12 @@ export function ListeningAudioPlayer({
     };
   }, [supported, voiceURI]);
 
-  // Stop speech when unmounting or when the script changes.
+  // Elapsed clock while playing (device-voice path has no real timeline).
   useEffect(() => {
-    return () => stopSpeech();
-  }, []);
-  useEffect(() => {
-    stopSpeech();
-    setPlaying(false);
-    setActiveSentence(-1);
-    setElapsed(0);
-    if (timerRef.current) window.clearInterval(timerRef.current);
-  }, [script]);
-
-  // Elapsed clock while playing.
-  useEffect(() => {
-    if (!playing) {
+    if (mode === 'file' || !playing) {
       if (timerRef.current) window.clearInterval(timerRef.current);
       timerRef.current = null;
-      return;
+      if (!playing) return;
     }
     const started = Date.now() - elapsed * 1000;
     timerRef.current = window.setInterval(() => {
@@ -99,9 +139,56 @@ export function ListeningAudioPlayer({
       if (timerRef.current) window.clearInterval(timerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing]);
+  }, [playing, mode]);
 
-  const speak = (fromSentence = 0) => {
+  const finishStatus = (used: number) => {
+    setStatus(
+      limited
+        ? `Finished play ${used} of ${maxPlays}. ${maxPlays - used > 0 ? `${maxPlays - used} replay${maxPlays - used === 1 ? '' : 's'} left.` : 'No replays left — use the transcript to review.'}`
+        : 'Finished. Replay as often as you like while you practise.',
+    );
+  };
+
+  // ---- Studio audio path ----
+  const playFile = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (exhausted) {
+      setStatus('You have used all plays for this listening. Open the transcript to review, or move on.');
+      return;
+    }
+    stopSpeech();
+    el.currentTime = 0;
+    el.playbackRate = rate;
+    const used = playsUsed + 1;
+    setPlaysUsed(used);
+    setElapsed(0);
+    setActiveLine(-1);
+    setPlaying(true);
+    setStatus('Playing the recorded narration for this passage.');
+    el.play().catch(() => {
+      setPlaying(false);
+      setMode('tts');
+      setStatus('The recording could not start — switching to the device voice. Press play again.');
+    });
+  };
+
+  const onFileEnded = () => {
+    setPlaying(false);
+    setActiveLine(-1);
+    finishStatus(playsUsed);
+  };
+
+  const onFileError = () => {
+    if (mode === 'file') {
+      setMode('tts');
+      setPlaying(false);
+      setStatus('Recording unavailable — using the device voice instead.');
+    }
+  };
+
+  // ---- Device-voice fallback path ----
+  const speak = () => {
     setStatus('');
     if (!supported) {
       setStatus('Audio is unavailable in this browser. Ask your teacher to read the script aloud, or open the transcript below.');
@@ -112,71 +199,57 @@ export function ListeningAudioPlayer({
       return;
     }
     stopSpeech();
-    const text = sentences.slice(fromSentence).join(' ');
-    if (!text) return;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = rate;
+    if (flatLines.length === 0) return;
     const chosen = voices.find((v) => (v.voiceURI || v.name) === voiceURI);
-    if (chosen) utterance.voice = chosen;
-
     activeRef.current = true;
-    // Map boundary charIndex back to the sliced sentence list.
-    let cumulative = 0;
-    const offsets: number[] = [];
-    sentences.slice(fromSentence).forEach((s) => {
-      offsets.push(cumulative);
-      cumulative += s.length + 1;
+    flatLines.forEach((line, i) => {
+      const utterance = new SpeechSynthesisUtterance(line.text);
+      utterance.lang = 'en-US';
+      utterance.rate = rate;
+      utterance.pitch = line.pitch;
+      if (chosen) utterance.voice = chosen;
+      utterance.onstart = () => setActiveLine(line.turnIndex);
+      if (i === flatLines.length - 1) {
+        utterance.onend = () => {
+          activeRef.current = false;
+          setPlaying(false);
+          setActiveLine(-1);
+          setElapsed(0);
+          finishStatus(playsUsed + 1);
+        };
+        utterance.onerror = () => {
+          activeRef.current = false;
+          setPlaying(false);
+          setActiveLine(-1);
+          setStatus('The device voice could not play. Open the transcript to read the passage instead.');
+        };
+      }
+      window.speechSynthesis.speak(utterance);
     });
-    utterance.onboundary = (e) => {
-      const idx = (e as SpeechSynthesisEvent).charIndex ?? 0;
-      let current = 0;
-      offsets.forEach((off, i) => {
-        if (idx >= off) current = i;
-      });
-      setActiveSentence(fromSentence + current);
-    };
-    utterance.onend = () => {
-      activeRef.current = false;
-      setPlaying(false);
-      setActiveSentence(-1);
-      setElapsed(0);
-      setStatus(
-        limited
-          ? `Finished play ${playsUsed + 1} of ${maxPlays}. ${playsLeft - 1 > 0 ? `${playsLeft - 1} replay${playsLeft - 1 === 1 ? '' : 's'} left.` : 'No replays left — use the transcript to review.'}`
-          : 'Finished. Replay as often as you like while you practise.',
-      );
-    };
-    utterance.onerror = () => {
-      activeRef.current = false;
-      setPlaying(false);
-      setActiveSentence(-1);
-      setStatus('The device voice could not play. Open the transcript to read the passage instead.');
-    };
 
     setPlaysUsed((n) => n + 1);
     setElapsed(0);
-    setActiveSentence(fromSentence);
+    setActiveLine(0);
     setPlaying(true);
     setStatus('Playing with your device’s English voice — this is synthesized practice audio, not a studio recording.');
-    try {
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      setPlaying(false);
-      setStatus('The device voice could not start. Open the transcript instead.');
-    }
   };
 
   const toggle = () => {
     if (playing) {
       stopSpeech();
+      audioRef.current?.pause();
       activeRef.current = false;
       setPlaying(false);
-      setActiveSentence(-1);
+      setActiveLine(-1);
       setStatus('Paused. Press play to hear the passage again from the start.');
       return;
     }
-    speak(0);
+    if (mode === 'resolving') {
+      setStatus('Preparing audio…');
+      return;
+    }
+    if (mode === 'file') playFile();
+    else speak();
   };
 
   const replay = () => {
@@ -184,11 +257,20 @@ export function ListeningAudioPlayer({
       setStatus('No replays left for this listening. The transcript below stays available for review.');
       return;
     }
-    speak(0);
+    if (mode === 'file') playFile();
+    else speak();
   };
 
-  const progress = Math.min(1, elapsed / Math.max(1, totalSecs));
+  const changeRate = (value: number) => {
+    setRate(value);
+    if (audioRef.current) audioRef.current.playbackRate = value;
+  };
+
+  const progress = mode === 'file' && duration > 0
+    ? Math.min(1, elapsed / duration)
+    : Math.min(1, elapsed / Math.max(1, totalSecs));
   const isCyan = tone === 'cyan';
+  const isFile = mode === 'file';
 
   return (
     <div
@@ -211,7 +293,7 @@ export function ListeningAudioPlayer({
           <div>
             <p className="text-xs font-bold text-white">{title}</p>
             <p className="mt-0.5 text-[10px] text-slate-400">
-              Device voice · ~{formatClock(totalSecs)} · {sentences.length} sentence{sentences.length === 1 ? '' : 's'}
+              {isFile ? 'Recorded narration' : mode === 'resolving' ? 'Preparing audio…' : 'Device voice'} · ~{formatClock(totalSecs)} · {turns.length} speaker{turns.length === 1 ? '' : 's'}
               {limited ? ` · ${playsLeft} play${playsLeft === 1 ? '' : 's'} left` : ' · unlimited replays'}
             </p>
           </div>
@@ -239,7 +321,7 @@ export function ListeningAudioPlayer({
         <button
           type="button"
           onClick={toggle}
-          disabled={exhausted}
+          disabled={exhausted || mode === 'resolving'}
           aria-pressed={playing}
           aria-label={playing ? 'Stop listening audio' : 'Play listening audio'}
           className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 ${
@@ -254,7 +336,7 @@ export function ListeningAudioPlayer({
         <button
           type="button"
           onClick={replay}
-          disabled={exhausted || playing}
+          disabled={exhausted || playing || mode === 'resolving'}
           className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/12 px-3.5 py-2.5 text-[11px] font-semibold text-slate-200 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
@@ -275,27 +357,29 @@ export function ListeningAudioPlayer({
         </div>
       </div>
 
-      {/* Voice + speed */}
-      <div className="grid gap-2 px-4 pt-3 sm:grid-cols-2 sm:px-5">
-        <label className="block text-[10px] font-semibold text-slate-400">
-          Voice
-          <span className="relative mt-1.5 block">
-            <Volume2 className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" aria-hidden="true" />
-            <select
-              value={voiceURI}
-              onChange={(e) => setVoiceURI(e.target.value)}
-              disabled={!supported || voices.length === 0}
-              className="w-full appearance-none rounded-lg border border-white/10 bg-slate-950/70 py-2.5 pr-3 pl-9 text-[11px] text-slate-200 outline-none transition focus:border-cyan-300/50 disabled:opacity-50"
-            >
-              {voices.length === 0 && <option value="">System default voice</option>}
-              {voices.map((v) => (
-                <option key={v.voiceURI || v.name} value={v.voiceURI || v.name}>
-                  {v.name} ({v.lang})
-                </option>
-              ))}
-            </select>
-          </span>
-        </label>
+      {/* Speed (+ voice for the device-voice fallback) */}
+      <div className={`grid gap-2 px-4 pt-3 sm:px-5 ${isFile ? '' : 'sm:grid-cols-2'}`}>
+        {!isFile && (
+          <label className="block text-[10px] font-semibold text-slate-400">
+            Voice
+            <span className="relative mt-1.5 block">
+              <Volume2 className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" aria-hidden="true" />
+              <select
+                value={voiceURI}
+                onChange={(e) => setVoiceURI(e.target.value)}
+                disabled={!supported || voices.length === 0}
+                className="w-full appearance-none rounded-lg border border-white/10 bg-slate-950/70 py-2.5 pr-3 pl-9 text-[11px] text-slate-200 outline-none transition focus:border-cyan-300/50 disabled:opacity-50"
+              >
+                {voices.length === 0 && <option value="">System default voice</option>}
+                {voices.map((v) => (
+                  <option key={v.voiceURI || v.name} value={v.voiceURI || v.name}>
+                    {v.name} ({v.lang})
+                  </option>
+                ))}
+              </select>
+            </span>
+          </label>
+        )}
         <div className="text-[10px] font-semibold text-slate-400">
           <span id="listening-speed-label">Speed</span>
           <div className="mt-1.5 flex gap-1" role="group" aria-labelledby="listening-speed-label">
@@ -307,7 +391,7 @@ export function ListeningAudioPlayer({
               <button
                 key={opt.label}
                 type="button"
-                onClick={() => setRate(opt.value)}
+                onClick={() => changeRate(opt.value)}
                 aria-pressed={Math.abs(rate - opt.value) < 0.001}
                 className={`flex-1 rounded-lg border px-2 py-2 font-mono text-[11px] transition ${
                   Math.abs(rate - opt.value) < 0.001
@@ -324,11 +408,11 @@ export function ListeningAudioPlayer({
         </div>
       </div>
 
-      {/* Live sentence highlight (practice aid, not the hidden transcript) */}
-      {playing && activeSentence >= 0 && (
+      {/* Live speaker line (device-voice path) */}
+      {!isFile && playing && activeLine >= 0 && turns[activeLine] && (
         <p className="mx-4 mt-3 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-[11px] leading-relaxed text-slate-300 sm:mx-5" aria-live="polite">
-          <span className={`font-bold ${isCyan ? 'text-cyan-200' : 'text-violet-200'}`}>Now playing — sentence {activeSentence + 1} of {sentences.length}: </span>
-          {sentences[activeSentence]}
+          <span className={`font-bold ${isCyan ? 'text-cyan-200' : 'text-violet-200'}`}>Now playing{turns[activeLine].speaker ? ` — ${turns[activeLine].speaker}` : ''}: </span>
+          {turns[activeLine].text}
         </p>
       )}
 
@@ -354,19 +438,36 @@ export function ListeningAudioPlayer({
             </span>
           </summary>
           <div className="space-y-2 border-t border-white/10 p-3 font-serif text-xs leading-relaxed text-slate-300">
-            {sentences.map((s, i) => (
-              <p key={i} className={i === activeSentence ? (isCyan ? 'text-cyan-100' : 'text-violet-100') : undefined}>
-                {s}
+            {turns.map((t, i) => (
+              <p key={i} className={i === activeLine ? (isCyan ? 'text-cyan-100' : 'text-violet-100') : undefined}>
+                {t.speaker && <span className="font-bold">{t.speaker}: </span>}
+                {t.text}
               </p>
             ))}
           </div>
         </details>
         {!compact && (
           <p className="pt-2 text-[9px] leading-relaxed text-slate-600">
-            Synthesized on-device English voice for classroom practice — not a studio recording, not an official TOEFL track.
+            {isFile
+              ? 'Recorded multi-voice narration for classroom practice — not an official TOEFL track.'
+              : 'Synthesized on-device English voice for classroom practice — not a studio recording, not an official TOEFL track.'}
           </p>
         )}
       </div>
+
+      {/* Hidden audio element for the recorded-narration path */}
+      {isFile && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          preload="metadata"
+          onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
+          onTimeUpdate={(e) => setElapsed(e.currentTarget.currentTime)}
+          onEnded={onFileEnded}
+          onError={onFileError}
+          className="hidden"
+        />
+      )}
     </div>
   );
 }
