@@ -38,6 +38,7 @@ const PRIVATE_TEST_CATALOG: PrivateTestEntry[] = [
   { testId: 'biweek-isec2-w2-listening', title: 'W2 · Business Listening (B2 + C1)', slug: 'isec2-w2-listening', defaultMinutes: 15, group: 'ISEC II weekly tests' },
   { testId: 'biweek-isec2-w3-grammar', title: 'W3 · C1 Grammar: Conciseness & Precision', slug: 'isec2-w3-grammar', defaultMinutes: 12, group: 'ISEC II weekly tests' },
   { testId: 'biweek-isec2-w4-reading', title: 'W4 · C2 Reading: Corporate Epistemology', slug: 'isec2-w4-reading', defaultMinutes: 10, group: 'ISEC II weekly tests' },
+  { testId: 'biweek-isec2-w4-inference', title: 'W4 · Reading: Recognizing Inference (Aii L11b)', slug: 'isec2-w4-inference', defaultMinutes: 15, group: 'ISEC II weekly tests' },
   { testId: 'biweek-isec2-w5-listening', title: 'W5 · C1 Listening: Innovation in Business', slug: 'isec2-w5-listening', defaultMinutes: 12, group: 'ISEC II weekly tests' },
   { testId: 'biweek-isec2-w6-grammar', title: 'W6 · C2 Grammar: Modals & Conditionals', slug: 'isec2-w6-grammar', defaultMinutes: 15, group: 'ISEC II weekly tests' },
   { testId: 'biweek-isec2-w7-reading', title: 'W7 · C2 Reading: The Algorithmic Enterprise', slug: 'isec2-w7-reading', defaultMinutes: 10, group: 'ISEC II weekly tests' },
