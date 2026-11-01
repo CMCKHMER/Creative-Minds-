@@ -113,7 +113,7 @@ export default function GameView({ ctrl, mode, onExit }: { ctrl: GameController;
 
   if (error) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#080b12] px-6 text-center text-slate-200">
+      <div className="fixed inset-0 z-[60] grid place-items-center overflow-y-auto bg-[#080b12] px-6 text-center text-slate-200">
         <div className="max-w-md rounded-3xl border border-white/10 bg-slate-900/70 p-8">
           <div className="text-5xl">♞</div>
           <h1 className="mt-4 text-xl font-semibold">Table unavailable</h1>
@@ -127,7 +127,7 @@ export default function GameView({ ctrl, mode, onExit }: { ctrl: GameController;
   }
   if (!game) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#080b12] text-sm tracking-[0.3em] text-amber-200/70">
+      <div className="fixed inset-0 z-[60] grid place-items-center bg-[#080b12] text-sm tracking-[0.3em] text-amber-200/70">
         TAKING A SEAT…
       </div>
     );
@@ -325,7 +325,11 @@ function GameInner({
   const iOffered = seated && game.drawOffer === you;
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#080b12] text-slate-100 select-none">
+    // z-[60] keeps the fullscreen arena above all page chrome (navbar z-40,
+    // ticker z-40) AND above the Lounge leaderboard cards below the stage
+    // section — without it those backdrop-blur cards paint on top of the
+    // fixed arena, because they come later in the DOM (paint order).
+    <div className="fixed inset-0 z-[60] overflow-hidden bg-[#080b12] text-slate-100 select-none">
       <div className="absolute inset-0 lg:right-[19.5rem]">
         <Suspense
           fallback={
