@@ -10,3 +10,12 @@ ui-debug.log
 
 # Build output / dist
 dist/tsconfig.tsbuildinfo
+
+# Local env files — never commit real values.
+# The Firebase web config in this app is public-by-design (it ships in the
+# client bundle and is also hardcoded as a fallback in src/lib/firebase.ts),
+# but env files should still stay local. Copy .env.example to .env.local
+# if you want to override values.
+.env
+.env.local
+.env.*.local
