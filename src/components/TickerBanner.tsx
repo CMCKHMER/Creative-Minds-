@@ -353,6 +353,7 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const fetchedRef = useRef(false);
+  const refreshInFlightRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -365,6 +366,9 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
       // cost the same Firestore reads but nobody sees the result.
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       if (Date.now() < cooldownUntil) return;
+      if (refreshInFlightRef.current) return;
+
+      refreshInFlightRef.current = true;
       setLoading(true);
       try {
         // Preferred: the Cloud Function's pre-aggregated doc — one read.
@@ -411,6 +415,7 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
         setData((prev) => (prev.source === 'live' ? prev : demoData()));
       } finally {
         if (!cancelled) setLoading(false);
+        refreshInFlightRef.current = false;
         fetchedRef.current = true;
       }
     }
@@ -456,8 +461,8 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
   if (!visible) return null;
 
   const sourceBadge = data.source === 'live'
-    ? <span title="Live data — real student submissions to Firestore" className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-emerald-200 uppercase"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />Live</span>
-    : <span title="No real student submissions yet — these are sample numbers. As soon as a signed-in student completes a worksheet, the ticker flips to LIVE." className="inline-flex items-center gap-1 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-amber-200 uppercase"><span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Demo</span>;
+    ? <span title="Live data — real student submissions to Firestore" className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-emerald-200">LIVE</span>
+    : <span title="No real student submissions yet — these are sample numbers. As soon as a signed-in student completes a worksheet, the ticker flips to LIVE." className="inline-flex items-center gap-1 rounded-full bg-slate-700/80 px-2 py-0.5 text-[10px] font-bold tracking-wider text-slate-300">DEMO</span>;
 
   return (
     <div
@@ -523,7 +528,6 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
       `}</style>
     </div>
   );
-
 }
 
 function TickerStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
@@ -537,10 +541,10 @@ function TickerStat({ icon, label, value }: { icon: React.ReactNode; label: stri
 }
 
 function buildTickerItems(
-d: TickerData,
-isLoading: boolean,
-onOpenTeacherPass: (() => void) | undefined,
-lastError: string | null,
+  d: TickerData,
+  isLoading: boolean,
+  onOpenTeacherPass: (() => void) | undefined,
+  lastError: string | null,
 ): React.ReactNode[] {
   const separator = (
     <span aria-hidden="true" className="px-3 text-slate-600">·</span>
@@ -613,7 +617,7 @@ lastError: string | null,
       key="cta"
       type="button"
       onClick={onOpenTeacherPass}
-      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-[11px] font-semibold text-cyan-200 transition hover:bg-cyan-300/20 hover:text-white"
+      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-[11px] font-semibold text-cyan-200 transition hover:bg-cyan-300/20"
     >
       Be the next <ChevronRight className="h-3 w-3" aria-hidden="true" />
     </button>
