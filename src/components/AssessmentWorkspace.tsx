@@ -385,6 +385,11 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
   // leaf paths, per the captured destination) → drop overlay on success.
   // The destination is captured at schedule time: switching weeks while a
   // save is pending never redirects those edits into the new week.
+  // The overlay is dropped ONLY if the entry is still the one this save
+  // flushed: `changeField` replaces the entry object on every keystroke, so
+  // an edit made while the patch is in flight survives as a new object and
+  // its own timer persists it — dropping unconditionally used to discard
+  // the newer unsaved edits (silent data loss on two quick score entries).
   const scheduleSave = useCallback((studentId: string, dest: string) => {
     if (!classId) return;
     const timers = timersRef.current;
@@ -402,6 +407,7 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
           await patchAssessmentStudentWeek(classId, studentId, dest, entry.patch, email);
         }
         setOverlay((prev) => {
+          if (prev.get(studentId) !== entry) return prev; // newer edit pending — keep it
           if (!prev.has(studentId)) return prev;
           const next = new Map(prev);
           next.delete(studentId);

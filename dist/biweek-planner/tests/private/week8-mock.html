@@ -253,7 +253,7 @@ var PROJECT='creative-minds-cambodia';
 var BASE='https://firestore.googleapis.com/v1/projects/'+PROJECT+'/databases/(default)/documents';
 var token=ls('cmc-student-token'),uid=ls('cmc-student-uid'),sname=ls('cmc-student-name'),classId=ls('cmc-student-classId');
 var tokenExp=Number(ls('cmc-student-token-expires')||'0');
-var assignmentId=new URLSearchParams(location.search).get('assignment')||'';
+var assignmentId=(new URLSearchParams(location.search).get('assignment')||'').replace(/[^A-Za-z0-9_-]/g,'');
 var startedAt=null,integrity={fsExits:0,blurs:0},fsActive=false,submitted=false;
 
 function refresh(cb){

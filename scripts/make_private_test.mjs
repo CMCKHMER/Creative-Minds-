@@ -148,7 +148,7 @@ var PROJECT='creative-minds-cambodia';
 var BASE='https://firestore.googleapis.com/v1/projects/'+PROJECT+'/databases/(default)/documents';
 var token=ls('cmc-student-token'),uid=ls('cmc-student-uid'),sname=ls('cmc-student-name'),classId=ls('cmc-student-classId');
 var tokenExp=Number(ls('cmc-student-token-expires')||'0');
-var assignmentId=new URLSearchParams(location.search).get('assignment')||'';
+var assignmentId=(new URLSearchParams(location.search).get('assignment')||'').replace(/[^A-Za-z0-9_-]/g,'');
 var startedAt=null,integrity={fsExits:0,blurs:0},fsActive=false,submitted=false;
 
 function refresh(cb){
@@ -377,8 +377,22 @@ function trySubmit(auto){
 var assignment=null;
 function boot(){
   if(!T){gate('Private test payload missing.');return}
+  var PREVIEW=false;
+  try{PREVIEW=(localStorage.getItem('cmc-student-role')==='teacher');}catch(_pe){}
+  if(!assignmentId&&PREVIEW){
+      assignment={classId:'',testId:(T&&T.testId)||'',title:'',className:'(teacher preview)',opensAt:new Date(0).toISOString(),closesAt:new Date(0).toISOString(),durationMinutes:0};
+      renderHeader();
+      renderQuestions();
+      var _ph=document.getElementById('test-header');
+      if(_ph)_ph.insertAdjacentHTML('afterbegin','<div class="glass rounded-lg p-3 mb-4 text-xs font-semibold" style="border-left:3px solid #fbbf24;color:#fcd34d"><i class="fas fa-chalkboard-teacher text-xs"></i> <b>Teacher preview</b> &mdash; students reach this test only after signing in with their student account and opening the assignment link you shared. Submitting is disabled in preview.</div>');
+      var _pf=document.getElementById('test-form');
+      if(_pf)_pf.addEventListener('submit',function(e){e.preventDefault();if(_ph)_ph.insertAdjacentHTML('afterbegin','<div class="glass rounded-lg p-3 mb-4 text-xs font-semibold" style="border-left:3px solid #fbbf24;color:#fcd34d"><i class="fas fa-ban text-xs"></i> Preview only &mdash; submission is disabled. Students submit through their own assignment link.</div>');});
+      return;
+    return;
+  }
   if(!authed()){
-    gate('<h3 class="font-display text-lg font-bold text-white mb-2">Sign in first</h3><p class="text-sm text-slate-300 mb-3">This is a private class test. Sign in with your student account on the CMC homepage, then open the test link your teacher shared again.</p><a class="btn-primary btn" href="../../?auth=student"><i class="fas fa-sign-in-alt text-xs"></i> Sign in on the homepage</a>');
+    gate('<h3 class="font-display text-lg font-bold text-white mb-2">Sign in first</h3><p class="text-sm text-slate-300 mb-3">This is a private class test. Sign in with your student account on the CMC homepage, then open the test link your teacher shared again.</p><a class="btn-primary btn" href="../../../?auth=student"><i class="fas fa-sign-in-alt text-xs"></i> Sign in on the homepage</a>');
+    try{var _h=document.getElementById('test-header');var _n=_h?_h.nextElementSibling:null;while(_n){_n.style.display='none';_n=_n.nextElementSibling;}}catch(_he){}
     return;
   }
   if(!assignmentId){
@@ -410,7 +424,7 @@ function boot(){
     }
     if(assignment.classId!==classId){
       // Self-diagnosing: show both class ids.
-      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Not your class</h3><p class="text-sm text-slate-300 mb-3">This test was assigned to <b class="text-cyan-300">'+String(assignment.className||assignment.classId).replace(/</g,'&lt;')+'</b>, but your account is joined to <b class="text-amber-300">'+String(classId||'(no class)').replace(/</g,'&lt;')+'</b>. Join the right class with its code on the homepage first, then reopen this link.</p><a class="btn-primary btn" href="../../"><i class="fas fa-users text-xs"></i> Go to homepage</a>');
+      gate('<h3 class="font-display text-lg font-bold text-white mb-2">Not your class</h3><p class="text-sm text-slate-300 mb-3">This test was assigned to <b class="text-cyan-300">'+String(assignment.className||assignment.classId).replace(/</g,'&lt;')+'</b>, but your account is joined to <b class="text-amber-300">'+String(classId||'(no class)').replace(/</g,'&lt;')+'</b>. Join the right class with its code on the homepage first, then reopen this link.</p><a class="btn-primary btn" href="../../../"><i class="fas fa-users text-xs"></i> Go to homepage</a>');
       return;
     }
     var now=Date.now();
