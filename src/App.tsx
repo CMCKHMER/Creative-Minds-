@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { QuickDrawer } from './components/QuickDrawer';
 import { Hero } from './components/Hero';
@@ -56,79 +56,48 @@ export function App() {
   const [isNewsPage, setIsNewsPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#news');
   const [isBrainLoungePage, setIsBrainLoungePage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#brain-lounge');
 
-  useEffect(() => {
-    const syncRoute = () => {
-      setIsGamesPage(window.location.hash === '#games');
-      setIsTeacherToolsPage(window.location.hash === '#teacher-tools');
-      setIsNewsPage(window.location.hash === '#news');
-      setIsBrainLoungePage(window.location.hash === '#brain-lounge');
-    };
-    window.addEventListener('hashchange', syncRoute);
-    return () => window.removeEventListener('hashchange', syncRoute);
-  }, []);
-
-  const openMemberAuth = (mode: 'sign-up' | 'sign-in' = 'sign-up') => {
+  const openMemberAuth = useCallback((mode: 'sign-up' | 'sign-in' = 'sign-up') => {
     setAuthInitialMode(mode);
     setTeacherPassModalOpen(true);
-  };
-
-  // Deep-link support for the teacher-only planner hub: the locked screen
-  // on public/biweek-planner/ (teacher-gate.js) sends unauthenticated
-  // visitors here with ?auth=teacher so the teacher sign-in modal opens
-  // immediately. The param is stripped after handling so a refresh doesn't
-  // re-pop the modal, and already-signed-in teachers are skipped.
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('auth') !== 'teacher') return;
-      params.delete('auth');
-      const qs = params.toString();
-      window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
-      if (restoreSession()?.role === 'teacher') return;
-      openMemberAuth('sign-in');
-    } catch {
-      /* noop */
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleMemberSignOut = () => {
+  const handleMemberSignOut = useCallback(() => {
     void supabase?.auth.signOut();
-  };
+  }, []);
 
-  const openGamesPage = () => {
+  const openGamesPage = useCallback(() => {
     window.location.hash = 'games';
-  };
+  }, []);
 
-  const openTeacherToolsPage = () => {
+  const openTeacherToolsPage = useCallback(() => {
     window.location.hash = 'teacher-tools';
-  };
+  }, []);
 
-  const openNewsPage = () => {
+  const openNewsPage = useCallback(() => {
     window.location.hash = 'news';
-  };
+  }, []);
 
-  const openBrainLoungePage = () => {
+  const openBrainLoungePage = useCallback(() => {
     window.location.hash = 'brain-lounge';
-  };
+  }, []);
 
-  const returnHome = () => {
+  const returnHome = useCallback(() => {
     setIsGamesPage(false);
     setIsTeacherToolsPage(false);
     setIsNewsPage(false);
     setIsBrainLoungePage(false);
     window.location.hash = 'top';
-  };
+  }, []);
 
   // Smooth scroll handler
-  const scrollToSection = (id: string) => {
+  const scrollToSection = useCallback((id: string) => {
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
-  };
+  }, []);
 
-  const handleQuickLinkSelect = (toolId: string) => {
+  const handleQuickLinkSelect = useCallback((toolId: string) => {
     if (toolId === 'learning-games') {
       openGamesPage();
     } else if (toolId === 'daily-assessment') {
@@ -162,9 +131,9 @@ export function App() {
     } else {
       scrollToSection('features');
     }
-  };
+  }, [openBrainLoungePage, openGamesPage, openNewsPage, openTeacherToolsPage, scrollToSection]);
 
-  const handleHeroFeatureSelect = (feature: string) => {
+  const handleHeroFeatureSelect = useCallback((feature: string) => {
     if (feature === 'auto-grading' || feature === 'prefix-suffix' || feature === 'analytics') {
       scrollToSection('interactive-demo');
     } else if (feature === 'resources') {
@@ -174,21 +143,52 @@ export function App() {
     } else {
       scrollToSection('features');
     }
-  };
+  }, [scrollToSection]);
 
-    if (isGamesPage) return (
+  useEffect(() => {
+    const syncRoute = () => {
+      setIsGamesPage(window.location.hash === '#games');
+      setIsTeacherToolsPage(window.location.hash === '#teacher-tools');
+      setIsNewsPage(window.location.hash === '#news');
+      setIsBrainLoungePage(window.location.hash === '#brain-lounge');
+    };
+    window.addEventListener('hashchange', syncRoute);
+    return () => window.removeEventListener('hashchange', syncRoute);
+  }, []);
+
+  // Deep-link support for the teacher-only planner hub: the locked screen
+  // on public/biweek-planner/ (teacher-gate.js) sends unauthenticated
+  // visitors here with ?auth=teacher so the teacher sign-in modal opens
+  // immediately. The param is stripped after handling so a refresh doesn't
+  // re-pop the modal, and already-signed-in teachers are skipped.
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('auth') !== 'teacher') return;
+      params.delete('auth');
+      const qs = params.toString();
+      window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
+      if (restoreSession()?.role === 'teacher') return;
+      openMemberAuth('sign-in');
+    } catch {
+      /* noop */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openMemberAuth]);
+
+  if (isGamesPage) return (
     <Suspense fallback={null}>
       <LearningGamesPage onBackHome={returnHome} />
     </Suspense>
   );
 
-    if (isTeacherToolsPage) return (
+  if (isTeacherToolsPage) return (
     <Suspense fallback={null}>
       <TeacherToolsPage onBackHome={returnHome} onOpenAuth={() => openMemberAuth('sign-up')} />
     </Suspense>
   );
 
-    if (isNewsPage) return (
+  if (isNewsPage) return (
     <Suspense fallback={null}>
       <NewsPage onBackHome={returnHome} />
     </Suspense>
@@ -205,7 +205,6 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col relative selection:bg-cyan-500 selection:text-white">
-      
       {/* Sticky Top Navbar */}
       <Navbar
         onOpenQuickLinks={() => setQuickDrawerOpen(true)}
@@ -361,7 +360,7 @@ export function App() {
       <div className="fixed bottom-24 right-6 z-40 flex items-center gap-2">
         <button
           onClick={() => setQuickDrawerOpen(true)}
-          className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-cyan-500/40 text-cyan-300 text-xs font-semibold shadow-xl backdrop-blur-md transition hover:scale-105 active:scale-95 cursor-pointer"
+          className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-cyan-500/40 text-cyan-300 text-xs font-semibold shadow-xl backdrop-blur-md transition hover:scale-105 active:scale-95"
         >
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
           <span>Quick Links</span>
@@ -369,13 +368,12 @@ export function App() {
 
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="p-2.5 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white shadow-xl backdrop-blur-md transition hover:scale-105 active:scale-95 cursor-pointer"
+          className="p-2.5 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white shadow-xl backdrop-blur-md transition hover:scale-105 active:scale-95"
           aria-label="Scroll to top"
         >
           <ArrowUp className="w-4 h-4" />
         </button>
       </div>
-
     </div>
   );
 }
