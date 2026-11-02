@@ -479,8 +479,7 @@ function boot(){
   if(!T){gate('Private test payload missing.');return}
   var PREVIEW=false;
   try{PREVIEW=(localStorage.getItem('cmc-student-role')==='teacher');}catch(_pe){}
-  if(!authed()){
-    if(PREVIEW){
+  if(!assignmentId&&PREVIEW){
       assignment={classId:'',testId:(T&&T.testId)||'',title:'',className:'(teacher preview)',opensAt:new Date(0).toISOString(),closesAt:new Date(0).toISOString(),durationMinutes:0};
       renderHeader();
       renderQuestions();
@@ -489,8 +488,10 @@ function boot(){
       var _pf=document.getElementById('test-form');
       if(_pf)_pf.addEventListener('submit',function(e){e.preventDefault();if(_ph)_ph.insertAdjacentHTML('afterbegin','<div class="glass rounded-lg p-3 mb-4 text-xs font-semibold" style="border-left:3px solid #fbbf24;color:#fcd34d"><i class="fas fa-ban text-xs"></i> Preview only &mdash; submission is disabled. Students submit through their own assignment link.</div>');});
       return;
-    }
-    gate('<h3 class="font-display text-lg font-bold text-white mb-2">Sign in first</h3><p class="text-sm text-slate-300 mb-3">This is a private class test. Sign in with your student account on the CMC homepage, then open the test link your teacher shared again.</p><a class="btn-primary btn" href="../../../?auth=student"><i class="fas fa-sign-in-alt text-xs"></i> Sign in on the homepage</a>');
+    return;
+  }
+  if(!authed()){
+    gate('<h3 class="font-display text-lg font-bold text-white mb-2">Sign in first</h3><p class="text-sm text-slate-300 mb-3">This is a private class test. Sign in with your student account on the CMC homepage, then open the test link your teacher shared again.</p><p class="text-xs text-slate-400 mb-3"><i class="fas fa-chalkboard-teacher text-xs"></i> <b>Teacher?</b> Sign in once with your teacher account on the CMC homepage and reopen this page &mdash; every private test then opens in full teacher preview with all questions visible.</p><a class="btn-primary btn" href="../../../?auth=student"><i class="fas fa-sign-in-alt text-xs"></i> Sign in on the homepage</a>');
     try{var _h=document.getElementById('test-header');var _n=_h?_h.nextElementSibling:null;while(_n){_n.style.display='none';_n=_n.nextElementSibling;}}catch(_he){}
     return;
   }
