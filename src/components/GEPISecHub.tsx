@@ -71,7 +71,7 @@ export function GEPISecHub() {
   return (
     <section id="gep-isec" aria-labelledby="gep-isec-hub-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#0a1a2c] py-20 sm:py-24 lg:py-28">
       {/* Full-bleed semi-transparent card background image */}
-      <img src="./images/card-gep-isec.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+      <img src="./images/card-gep-isec.jpg" srcSet={"./images/card-gep-isec-640w.jpg 640w, ./images/card-gep-isec-1280w.jpg 1280w, ./images/card-gep-isec.jpg 1536w"} sizes="100vw" alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-13rem] -z-10 h-[36rem] w-[36rem] rounded-full bg-cyan-500/[0.10] blur-[135px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-14rem] -z-10 h-[36rem] w-[36rem] rounded-full bg-violet-500/[0.14] blur-[135px]" />

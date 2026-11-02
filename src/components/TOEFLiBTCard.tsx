@@ -75,7 +75,7 @@ export function TOEFLiBTCard() {
   return (
     <section id="toefl-ibt-mock" aria-labelledby="toefl-ibt-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-cyan-100/10 bg-[#07131f] py-20 sm:py-24 lg:py-28">
       {/* Full-bleed semi-transparent card background image */}
-      <img src="./images/card-toefl-ibt.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+      <img src="./images/card-toefl-ibt.jpg" srcSet={"./images/card-toefl-ibt-640w.jpg 640w, ./images/card-toefl-ibt-1280w.jpg 1280w, ./images/card-toefl-ibt.jpg 1672w"} sizes="100vw" alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-12rem] h-[34rem] w-[34rem] rounded-full bg-cyan-400/[0.11] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-14rem] h-[35rem] w-[35rem] rounded-full bg-violet-500/[0.13] blur-[135px]" />

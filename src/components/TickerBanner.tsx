@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ChevronRight, ClipboardList, Sparkles, TrendingUp, Trophy, Users, X } from 'lucide-react';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 
@@ -347,12 +347,15 @@ const REFRESH_MS = 300_000; // 5 min while visible
 const WEEK_LIMIT = 1000; // week-window query cap — a week with more attempts than this would undercount today/week stats
 const QUOTA_COOLDOWN_MS = 600_000; // 10 min pause after a 429
 
-export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
+export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
   const [data, setData] = useState<TickerData>(() => demoData());
   const [visible, setVisible] = useState(true);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
-  const fetchedRef = useRef(false);
+  // Single-flight guard: the interval tick, the visibility catch-up and the
+  // initial timeout can all land while a previous fetch is still in flight
+  // (slow network / 429 retry). Skip instead of stacking duplicate requests.
+  const inFlightRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -365,6 +368,8 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
       // cost the same Firestore reads but nobody sees the result.
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       if (Date.now() < cooldownUntil) return;
+      if (inFlightRef.current) return; // one active refresh at a time
+      inFlightRef.current = true;
       setLoading(true);
       try {
         // Preferred: the Cloud Function's pre-aggregated doc — one read.
@@ -410,8 +415,8 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
         // Only fall back if we don't already have live data
         setData((prev) => (prev.source === 'live' ? prev : demoData()));
       } finally {
+        inFlightRef.current = false;
         if (!cancelled) setLoading(false);
-        fetchedRef.current = true;
       }
     }
 
@@ -491,9 +496,15 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
           <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[#04111c] to-transparent" aria-hidden="true" />
 
           <div className="flex w-max animate-[ticker-scroll_60s_linear_infinite] hover:[animation-play-state:paused]">
-            {/* Render items twice so the marquee loops seamlessly */}
-            {[...items, ...items].map((node, i) => (
-              <span key={i} className="inline-flex items-center">{node}</span>
+            {/* Render items twice so the marquee loops seamlessly. Two stable
+                key prefixes ("a" and "b" halves) instead of one doubled
+                index-keyed array: React matches each span across updates
+                instead of remounting the whole strip when an item changes. */}
+            {items.map((node, i) => (
+              <span key={`a${i}`} className="inline-flex items-center">{node}</span>
+            ))}
+            {items.map((node, i) => (
+              <span key={`b${i}`} className="inline-flex items-center">{node}</span>
             ))}
           </div>
         </div>
@@ -524,7 +535,7 @@ export function TickerBanner({ onOpenTeacherPass }: TickerBannerProps) {
     </div>
   );
 
-}
+});
 
 function TickerStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (

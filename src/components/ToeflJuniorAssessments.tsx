@@ -74,7 +74,7 @@ export function ToeflJuniorAssessments() {
               <button key={id} type="button" role="tab" aria-selected={activeSkill === id} onClick={() => setActiveSkill(id)} className={`relative inline-flex shrink-0 items-center gap-2 overflow-hidden rounded-lg px-3 py-2 text-[11px] font-semibold transition sm:px-4 ${activeSkill === id ? 'bg-white/[0.09] text-white shadow-inner' : 'text-slate-400 hover:text-white'}`}>
                 {image && (
                   <>
-                    <img src={image} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+                    <img src={image} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
                     <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
                   </>
                 )}

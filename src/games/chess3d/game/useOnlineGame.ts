@@ -27,6 +27,8 @@ export interface OnlineIdentity {
 /** Poll cadence: brisk while the table is live, relaxed once it's over. */
 const POLL_ACTIVE_MS = 1200;
 const POLL_IDLE_MS = 5000;
+/** Backstop while the tab is hidden — real catch-up happens on visibilitychange. */
+const POLL_HIDDEN_MS = 30_000;
 
 export function useOnlineGame(config: { code: string; identity: OnlineIdentity }): GameController {
   const { code, identity } = config;
@@ -73,6 +75,14 @@ export function useOnlineGame(config: { code: string; identity: OnlineIdentity }
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const tick = async () => {
+      // Hidden tab: pause the room reads entirely — nobody is watching, and
+      // a 1.2 s Firestore poll in a background tab burns reads for nothing.
+      // A slow backstop keeps the loop alive; visibilitychange re-kicks it
+      // at full speed the moment the student returns.
+      if (typeof document !== 'undefined' && document.hidden) {
+        if (!stopped) timer = setTimeout(() => void tick(), POLL_HIDDEN_MS);
+        return;
+      }
       try {
         const data = await getRoom(code);
         if (stopped) return;
@@ -97,10 +107,19 @@ export function useOnlineGame(config: { code: string; identity: OnlineIdentity }
       }
     };
 
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible" || stopped) return;
+      // Catch up immediately instead of waiting out the backstop timer.
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void tick(), 0);
+    };
+
     void tick();
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       stopped = true;
       if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [code, applyRoom]);
 

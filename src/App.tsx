@@ -1,29 +1,11 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { Suspense, lazy, memo, useCallback, useEffect, useState, type ComponentType } from 'react';
 import { Navbar } from './components/Navbar';
 import { QuickDrawer } from './components/QuickDrawer';
 import { Hero } from './components/Hero';
-import { SocialProof } from './components/SocialProof';
-import { InteractiveShowcase } from './components/InteractiveShowcase';
-import { FeaturesBento } from './components/FeaturesBento';
-import { ResourceLibrary } from './components/ResourceLibrary';
-import { RoiCalculator } from './components/RoiCalculator';
-import { ComparisonTable } from './components/ComparisonTable';
-import { Testimonials } from './components/Testimonials';
-import { Pricing } from './components/Pricing';
-import { FaqSection } from './components/FaqSection';
-import { CtaSection } from './components/CtaSection';
 import { Footer } from './components/Footer';
-import { ToeflJuniorAssessments } from './components/ToeflJuniorAssessments';
-import { DailyAssessmentCard } from './components/DailyAssessmentCard';
-import { TOEFLiBTCard } from './components/TOEFLiBTCard';
-import { BiWeekPlannerCard } from './components/BiWeekPlannerCard';
-import { KidGradeHub } from './components/KidGradeHub';
-import { GEPISecHub } from './components/GEPISecHub';
 import { TeacherToolsPage } from './components/TeacherTools';
 import { NewsSidePanel, NewsPage } from './components/NewsWindow';
-import { AnnouncementBoard } from './components/AnnouncementBoard';
-import { LMSCard } from './components/LMSCard';
-const FirebaseDashboard = lazy(() => import('./components/FirebaseDashboard').then(m => ({ default: m.FirebaseDashboard })));
+import { LazyMount } from './components/LazyMount';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { useFirebaseAuth } from './hooks/useFirebaseAuth';
@@ -31,13 +13,49 @@ import { restoreSession } from './lib/firebaseAuth';
 import { supabase } from './lib/supabase';
 import { TickerBanner } from './components/TickerBanner';
 
+/**
+ * Below-the-fold homepage sections: each is (a) its own async chunk — the
+ * code leaves the initial bundle and downloads only when the section
+ * approaches the viewport, and (b) memoized — App-level state changes
+ * (Quick Drawer, modals, hash routes) no longer re-render the whole page.
+ * Paired with <LazyMount> in the JSX, which also defers every effect
+ * (Firestore reads, image loads) until the section is near the viewport.
+ */
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- the loader
+ * projects each module's named export; memo() re-wraps it. (ComponentType<any>
+ * avoids React's contravariance fight on the generic constraint; every call
+ * site passes the same props the statically-imported components were
+ * type-checked with before this refactor.) */
+function lazySection(loader: () => Promise<{ default: ComponentType<any> }>) {
+  return lazy(() => loader().then((m) => ({ default: memo(m.default) })));
+}
+const AnnouncementBoard = lazySection(() => import('./components/AnnouncementBoard').then(m => ({ default: m.AnnouncementBoard })));
+const DailyAssessmentCard = lazySection(() => import('./components/DailyAssessmentCard').then(m => ({ default: m.DailyAssessmentCard })));
+const TOEFLiBTCard = lazySection(() => import('./components/TOEFLiBTCard').then(m => ({ default: m.TOEFLiBTCard })));
+const LMSCard = lazySection(() => import('./components/LMSCard').then(m => ({ default: m.LMSCard })));
+const BiWeekPlannerCard = lazySection(() => import('./components/BiWeekPlannerCard').then(m => ({ default: m.BiWeekPlannerCard })));
+const SocialProof = lazySection(() => import('./components/SocialProof').then(m => ({ default: m.SocialProof })));
+const KidGradeHub = lazySection(() => import('./components/KidGradeHub').then(m => ({ default: m.KidGradeHub })));
+const GEPISecHub = lazySection(() => import('./components/GEPISecHub').then(m => ({ default: m.GEPISecHub })));
+const InteractiveShowcase = lazySection(() => import('./components/InteractiveShowcase').then(m => ({ default: m.InteractiveShowcase })));
+const FeaturesBento = lazySection(() => import('./components/FeaturesBento').then(m => ({ default: m.FeaturesBento })));
+const ToeflJuniorAssessments = lazySection(() => import('./components/ToeflJuniorAssessments').then(m => ({ default: m.ToeflJuniorAssessments })));
+const ResourceLibrary = lazySection(() => import('./components/ResourceLibrary').then(m => ({ default: m.ResourceLibrary })));
+const RoiCalculator = lazySection(() => import('./components/RoiCalculator').then(m => ({ default: m.RoiCalculator })));
+const ComparisonTable = lazySection(() => import('./components/ComparisonTable').then(m => ({ default: m.ComparisonTable })));
+const Testimonials = lazySection(() => import('./components/Testimonials').then(m => ({ default: m.Testimonials })));
+const Pricing = lazySection(() => import('./components/Pricing').then(m => ({ default: m.Pricing })));
+const FaqSection = lazySection(() => import('./components/FaqSection').then(m => ({ default: m.FaqSection })));
+const CtaSection = lazySection(() => import('./components/CtaSection').then(m => ({ default: m.CtaSection })));
+
 // Lazy-load heavy modals and the games route into separate chunks so they
 // don't bloat the initial landing-page download. They load on demand.
 const TeacherPassModal = lazy(() => import('./components/TeacherPassModal').then(m => ({ default: m.TeacherPassModal })));
 const StudentDemoModal = lazy(() => import('./components/StudentDemoModal').then(m => ({ default: m.StudentDemoModal })));
-const MiniMockTest = lazy(() => import('./components/MiniMockTest').then(m => ({ default: m.MiniMockTest })));
+const MiniMockTest = lazy(() => import('./components/MiniMockTest').then(m => ({ default: memo(m.MiniMockTest) })));
 const LearningGamesPage = lazy(() => import('./components/LearningGamesPage').then(m => ({ default: m.LearningGamesPage })));
 const BrainLoungePage = lazy(() => import('./components/BrainLoungePage').then(m => ({ default: m.BrainLoungePage })));
+const FirebaseDashboard = lazy(() => import('./components/FirebaseDashboard').then(m => ({ default: memo(m.FirebaseDashboard) })));
 
 export function App() {
   const [quickDrawerOpen, setQuickDrawerOpen] = useState(false);
@@ -227,98 +245,139 @@ export function App() {
             homepage: news & info that visitors should see first, right under
             the hero. Public to read. Only approved admins (site owner +
             accounts approved in board's "Approve admins" panel, stored in
-            site_config/admins) can publish/edit/pin/delete posts. */}
-        <AnnouncementBoard />
+            site_config/admins) can publish/edit/pin/delete posts.
+            LazyMount: mount + its Firestore read defer until it nears the
+            viewport; the placeholder keeps the anchor id so links still work. */}
+        <LazyMount id="announcements" minHeight={620}>
+          <AnnouncementBoard />
+        </LazyMount>
 
         {/* Main-hero themed link to the separate daily student record workspace */}
-        <DailyAssessmentCard onOpenAuth={() => openMemberAuth('sign-up')} />
+        <LazyMount id="daily-assessment" minHeight={480}>
+          <DailyAssessmentCard onOpenAuth={() => openMemberAuth('sign-up')} />
+        </LazyMount>
 
         {/* Full TOEFL iBT mock test card — opens 4-section practice exam in a new tab */}
-        <TOEFLiBTCard />
+        <LazyMount id="toefl-ibt-mock" minHeight={460}>
+          <TOEFLiBTCard />
+        </LazyMount>
 
         {/* LMS Workspace — teacher-only gated feature (requires signup) */}
-        <LMSCard onOpenAuth={() => openMemberAuth('sign-up')} />
+        <LazyMount id="lms-workspace" minHeight={480}>
+          <LMSCard onOpenAuth={() => openMemberAuth('sign-up')} />
+        </LazyMount>
 
         {/* Firebase real-time dashboard — live class results + student score tracking.
-            Lazy-mounted: this boundary is what pulls the ~500 KB Firebase SDK
-            chunk out of the initial page load — it downloads after first paint. */}
-        <Suspense fallback={<div className="min-h-[120px]" aria-hidden="true" />}>
+            Lazy chunk (Firebase SDK stays out of the initial load) AND now
+            lazy-MOUNTED: the chunk download and its live listeners start only
+            when the dashboard approaches the viewport. */}
+        <LazyMount minHeight={240}>
           <FirebaseDashboard />
-        </Suspense>
+        </LazyMount>
 
         {/* TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15 test pages.
             Teacher-account-only: the planner content is gated inside the card
             (RoleGate); the standalone planner hub is gated
             by public/biweek-planner/teacher-gate.js. */}
-        <BiWeekPlannerCard onOpenAuth={() => openMemberAuth('sign-in')} />
+        <LazyMount id="toefl-itp-planner" minHeight={560}>
+          <BiWeekPlannerCard onOpenAuth={() => openMemberAuth('sign-in')} />
+        </LazyMount>
 
         {/* Available learning materials and skills */}
-        <SocialProof />
+        <LazyMount minHeight={520}>
+          <SocialProof />
+        </LazyMount>
 
         {/* Kid Program grade 5-12 resource pathway; Kid 6 + Kid 11 currently linked. */}
-        <KidGradeHub />
+        <LazyMount id="kid-grades" minHeight={640}>
+          <KidGradeHub />
+        </LazyMount>
 
         {/* GEP & ISEC adult-level program resources (Bi-Weekly Planner + ISEC drills). */}
-        <GEPISecHub />
+        <LazyMount id="gep-isec" minHeight={640}>
+          <GEPISecHub />
+        </LazyMount>
 
         {/* Teacher Tools: Dice, Wheel, and Studio — available at #teacher-tools
             (via Quick Drawer, navbar, or direct URL). Not shown inline on the
             homepage to keep it focused on content, not tools. */}
 
         {/* Live Interactive Sandbox: Auto-Grader, Worksheet Generator & Roster */}
-        <InteractiveShowcase />
+        <LazyMount id="interactive-demo" minHeight={720}>
+          <InteractiveShowcase />
+        </LazyMount>
 
         {/* Core Features Bento Grid */}
-        <FeaturesBento
-          onExploreMockTest={() => scrollToSection('toefl-mini-test')}
-          onExploreJuniorAssessments={() => scrollToSection('toefl-junior-assessments')}
-          onExploreGames={openGamesPage}
-          onExploreDailyAssessment={() => scrollToSection('daily-assessment')}
-          onExploreKidGrades={() => scrollToSection('kid-grades')}
-        />
+        <LazyMount id="features" minHeight={640}>
+          <FeaturesBento
+            onExploreMockTest={() => scrollToSection('toefl-mini-test')}
+            onExploreJuniorAssessments={() => scrollToSection('toefl-junior-assessments')}
+            onExploreGames={openGamesPage}
+            onExploreDailyAssessment={() => scrollToSection('daily-assessment')}
+            onExploreKidGrades={() => scrollToSection('kid-grades')}
+          />
+        </LazyMount>
 
         {/* Member-gated timed TOEFL-style mini mock */}
-        <MiniMockTest
-          key={memberAuth.member?.userId ?? firebaseAuth.session?.localId ?? 'guest'}
-          accessStatus={memberAuth.status}
-          member={memberAuth.member}
-          firebaseSession={firebaseAuth.session}
-          onOpenAuth={openMemberAuth}
-          onSignOut={handleMemberSignOut}
-        />
+        <LazyMount id="toefl-mini-test" minHeight={560}>
+          <MiniMockTest
+            key={memberAuth.member?.userId ?? firebaseAuth.session?.localId ?? 'guest'}
+            accessStatus={memberAuth.status}
+            member={memberAuth.member}
+            firebaseSession={firebaseAuth.session}
+            onOpenAuth={openMemberAuth}
+            onSignOut={handleMemberSignOut}
+          />
+        </LazyMount>
 
-        <ToeflJuniorAssessments />
+        <LazyMount id="toefl-junior-assessments" minHeight={620}>
+          <ToeflJuniorAssessments />
+        </LazyMount>
 
         {/* Teacher Resource Library & Download Vault */}
-        <ResourceLibrary />
+        <LazyMount id="resources" minHeight={560}>
+          <ResourceLibrary />
+        </LazyMount>
 
         {/* Time Savings / ROI Calculator */}
-        <RoiCalculator
-          onOpenTeacherPass={() => openMemberAuth('sign-up')}
-        />
+        <LazyMount id="roi-calc" minHeight={520}>
+          <RoiCalculator
+            onOpenTeacherPass={() => openMemberAuth('sign-up')}
+          />
+        </LazyMount>
 
         {/* Traditional vs. CMC Comparison Matrix */}
-        <ComparisonTable
-          onOpenTeacherPass={() => openMemberAuth('sign-up')}
-        />
+        <LazyMount minHeight={560}>
+          <ComparisonTable
+            onOpenTeacherPass={() => openMemberAuth('sign-up')}
+          />
+        </LazyMount>
 
         {/* What educators can explore in the current build */}
-        <Testimonials />
+        <LazyMount minHeight={520}>
+          <Testimonials />
+        </LazyMount>
 
         {/* Transparent Teacher & School Pricing */}
-        <Pricing
-          onOpenTeacherPass={() => openMemberAuth('sign-up')}
-        />
+        <LazyMount id="pricing" minHeight={560}>
+          <Pricing
+            onOpenTeacherPass={() => openMemberAuth('sign-up')}
+          />
+        </LazyMount>
 
         {/* Searchable FAQ */}
-        <FaqSection
-          onOpenTeacherPass={() => openMemberAuth('sign-up')}
-        />
+        <LazyMount id="faq" minHeight={560}>
+          <FaqSection
+            onOpenTeacherPass={() => openMemberAuth('sign-up')}
+          />
+        </LazyMount>
 
         {/* High-Impact Final CTA */}
-        <CtaSection
-          onSuccess={() => openMemberAuth('sign-up')}
-        />
+        <LazyMount minHeight={420}>
+          <CtaSection
+            onSuccess={() => openMemberAuth('sign-up')}
+          />
+        </LazyMount>
       </main>
 
       {/* Footer */}
