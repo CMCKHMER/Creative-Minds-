@@ -120,6 +120,34 @@ describe('news headline feed', () => {
   });
 });
 
+describe('blog feed (Blogger mirror)', () => {
+  interface BlogPost {
+    title: string;
+    url: string;
+    published: string;
+    snippet: string;
+    thumbnail: string;
+    media: string;
+  }
+  const blogFile = resolve(PUBLIC_DIR, 'blog', 'posts.json');
+  const feed = JSON.parse(readFileSync(blogFile, 'utf8'));
+
+  it('declares a count that matches the posts array', () => {
+    expect(Array.isArray(feed.posts)).toBe(true);
+    expect(feed.count).toBe(feed.posts.length);
+    expect(feed.posts.length).toBeGreaterThan(0);
+  });
+
+  it('every post has a title, a blogspot url, a date, and a known media kind', () => {
+    for (const post of feed.posts as BlogPost[]) {
+      expect(post.title?.trim()).toBeTruthy();
+      expect(post.url).toMatch(/^https:\/\/creativemindscambodia\.blogspot\.com\//);
+      expect(post.published?.trim()).toBeTruthy();
+      expect(['video', 'audio', 'post']).toContain(post.media);
+    }
+  });
+});
+
 describe('kid grade resource pathway files', () => {
   it('every local material href points at a file in public/', () => {
     const missing: string[] = [];

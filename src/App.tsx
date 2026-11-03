@@ -30,6 +30,7 @@ function lazySection(loader: () => Promise<{ default: ComponentType<any> }>) {
   return lazy(() => loader().then((m) => ({ default: memo(m.default) })));
 }
 const AnnouncementBoard = lazySection(() => import('./components/AnnouncementBoard').then(m => ({ default: m.AnnouncementBoard })));
+const BlogSection = lazySection(() => import('./components/BlogSection'));
 const DailyAssessmentCard = lazySection(() => import('./components/DailyAssessmentCard').then(m => ({ default: m.DailyAssessmentCard })));
 const TOEFLiBTCard = lazySection(() => import('./components/TOEFLiBTCard').then(m => ({ default: m.TOEFLiBTCard })));
 const LMSCard = lazySection(() => import('./components/LMSCard').then(m => ({ default: m.LMSCard })));
@@ -250,6 +251,17 @@ export function App() {
             viewport; the placeholder keeps the anchor id so links still work. */}
         <LazyMount id="announcements" minHeight={620}>
           <AnnouncementBoard />
+        </LazyMount>
+
+        {/* "From the Blog" — the personal stream: writings, music and videos
+            mirrored from creativemindscambodia.blogspot.com. A scheduled
+            Action (blog-sync.yml) regenerates ./blog/posts.json from the
+            Blogger feed, same static pattern as the news headlines. The
+            educational announcements stay on the board above; this section is
+            the director's own thoughts & stories. Renders nothing if the
+            feed file is missing, so the homepage never shows a dead panel. */}
+        <LazyMount id="blog" minHeight={560}>
+          <BlogSection />
         </LazyMount>
 
         {/* Main-hero themed link to the separate daily student record workspace */}
