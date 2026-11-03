@@ -112,8 +112,8 @@
       '<h1 style="margin:20px 0 0;font-family:Syne,Plus Jakarta Sans,sans-serif;font-size:24px;line-height:1.2;' +
       'font-weight:800;letter-spacing:-0.02em;color:' + text + '">Teacher access required</h1>' +
       '<p style="margin:14px auto 0;max-width:360px;font-size:13px;line-height:1.65;color:' + muted + '">' +
-      'This TOEFL ITP Bi-Weekly Planner content is reserved for Creative Minds teacher accounts. ' +
-      'Sign in with a work email containing <b>&ldquo;edu&rdquo;</b> (e.g., you@school.edu.kh) to unlock the full 8-week study plan and its tests.</p>' +
+      'This TOEFL ITP Bi-Weekly Planner content is reserved for Aii CAP Campus teacher accounts. ' +
+      'Sign in with your school email containing <b>&ldquo;edu&rdquo;</b> (e.g., you@school.edu.kh) to unlock the full 8-week study plan and its tests.</p>' +
       '<a id="cmc-teacher-gate-signin" href="' + SIGNIN_URL + '" ' +
       'style="margin-top:24px;display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;' +
       'background:linear-gradient(100deg,#c4b5fd,#67e8f9);color:#0f172a;font-size:13px;font-weight:700;' +

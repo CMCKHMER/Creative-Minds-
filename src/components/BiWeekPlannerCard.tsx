@@ -61,12 +61,14 @@ const previewSvg = `data:image/svg+xml,${encodeURIComponent(`
 `)}`;
 
 /**
- * TOEFL ITP Bi-Weekly Planner — teacher-account-only.
+ * TOEFL ITP Bi-Weekly Planner — teacher-account-only, built for the
+ * teachers of Aii CAP Campus (they receive direct links to this area,
+ * so everything the section says is addressed to them).
  *
- * The section shell (background image + glows) always renders so the
- * homepage layout never shifts, but the planner content (8-week plan,
- * "Open the planner" link, preview card) only renders for signed-in
- * teachers (RoleGate). Signed-out visitors and
+ * The section shell (Aii Language Center logo watermark + glows) always
+ * renders so the homepage layout never shifts, but the planner content
+ * (8-week plan, "Open the planner" link, preview card) only renders for
+ * signed-in teachers (RoleGate). Signed-out visitors and
  * students see a locked "Teacher access required" prompt.
  *
  * The standalone planner hub (public/biweek-planner/) is gated separately
@@ -80,18 +82,20 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
 
   return (
     <section id="toefl-itp-planner" aria-labelledby="biweek-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-violet-100/10 bg-[#0a0f1f] py-20 sm:py-24 lg:py-28">
-      {/* Full-bleed semi-transparent card background image */}
-      <img src="./images/card-biweek-planner.jpg" srcSet={"./images/card-biweek-planner-640w.jpg 640w, ./images/card-biweek-planner-1280w.jpg 1280w, ./images/card-biweek-planner.jpg 1536w"} sizes="100vw" alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
+      {/* Aii Language Center logo watermark (white bg removed to PNG alpha)
+          — replaces the old classroom photo background at the owner's
+          request so the section reads as Aii CAP Campus branded. */}
+      <img src="./images/aii-language-center-logo.png" alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-40" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/85 via-slate-950/60 to-slate-950/85 lg:bg-gradient-to-r lg:from-slate-950/95 lg:via-slate-950/55 lg:to-slate-950/25" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-12rem] h-[34rem] w-[34rem] rounded-full bg-violet-400/[0.11] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-14rem] h-[35rem] w-[35rem] rounded-full bg-cyan-400/[0.10] blur-[135px]" />
 
       {isTeacher ? (
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_.86fr] lg:gap-16">
         <div>
-          <span className="cmc-eyebrow"><span className="h-px w-8 bg-violet-300" aria-hidden="true" />8-Week Study Plan</span>
+          <span className="cmc-eyebrow"><span className="h-px w-8 bg-violet-300" aria-hidden="true" />Aii CAP Campus · 8-Week Study Plan</span>
           <h2 id="biweek-title" className="cmc-h2">TOEFL ITP<br /><span className="cmc-gradient-text">Bi-Weekly Planner.</span></h2>
-          <p className="cmc-lead">A structured 8-week preparation plan covering all three TOEFL ITP sections — Listening, Structure & Written Expression, and Reading. Each week includes practice drills with timers, auto-scoring, and individual shareable links. Teacher-made materials from Oxford Skills World and Reading Explorer.</p>
+          <p className="cmc-lead">Built for the teachers of Aii CAP Campus: a structured 8-week preparation plan covering all three TOEFL ITP sections — Listening, Structure & Written Expression, and Reading. Each week includes practice drills with timers, auto-scoring, and individual shareable links you can drop straight into your class group. Teacher-made materials from Oxford Skills World and Reading Explorer.</p>
           <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <a href={PLANNER_URL} aria-label="Open the TOEFL ITP Bi-Weekly Planner" className="cmc-btn-3d cmc-btn-3d--violet group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-200">
               Open the planner <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
@@ -154,7 +158,7 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
             </span>
             <p className="mt-5 text-sm font-semibold text-white">Teacher access required</p>
             <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-400">
-              The 8-week TOEFL ITP Bi-Weekly Planner is reserved for Creative Minds teacher accounts. Sign in with a work email containing &quot;edu&quot; (e.g., you@school.edu.kh) to unlock the full weekly schedule, drills, and mock test links.
+              The 8-week TOEFL ITP Bi-Weekly Planner is reserved for Aii CAP Campus teacher accounts. Sign in with your school email containing &quot;edu&quot; (e.g., you@school.edu.kh) to unlock the full weekly schedule, drills, and mock test links.
             </p>
             {onOpenAuth && (
               <button
