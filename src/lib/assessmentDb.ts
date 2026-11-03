@@ -87,11 +87,21 @@ type Fields = Record<string, unknown>;
 const docIdOf = (name: string): string => name.split('/').pop() ?? '';
 
 /** Encode a JS value into a Firestore REST typed value. All score fields are
- *  integers; everything else ships as a string. */
-function enc(value: unknown): Record<string, unknown> {
+ *  integers; everything else ships as a string — EXCEPT plain objects, which
+ *  encode as nested mapValue so record-shaped data (the `weeks` history map)
+ *  survives the trip. Encoding an object as a string used to stringify it to
+ *  "[object Object]", silently destroying every weekly entry on duplicate. */
+export function enc(value: unknown): Record<string, unknown> {
   if (typeof value === 'number') return { integerValue: String(Math.round(value)) };
   if (typeof value === 'boolean') return { booleanValue: value };
   if (value === null || value === undefined) return { nullValue: null };
+  if (typeof value === 'object') {
+    // Plain records → map<field, value>. Array entries land as index keys —
+    // no assessment field uses arrays today, but the shape stays lossless.
+    const fields: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) fields[k] = enc(v);
+    return { mapValue: { fields } };
+  }
   return { stringValue: String(value) };
 }
 
@@ -488,10 +498,34 @@ export async function duplicateAssessmentStudent(
   student: AssessmentStudentDoc,
   actorEmail: string,
 ): Promise<string | null> {
-  // shallow copy minus the doc-managed fields (id / timestamps / actor)
+  return addAssessmentStudent(classId, transferRecordOf(student), actorEmail);
+}
+
+// ── Class transfer (move a student with ALL stats intact) ────────────
+
+/** Pure payload for moving or copying a student between classes: every field
+ *  except the doc-managed ones (id, updatedAt, updatedBy). Flat scores, notes,
+ *  identity, sponsorship, and the full `weeks` history ride along intact. */
+export function transferRecordOf(student: AssessmentStudentDoc): Record<string, unknown> {
   const rest = { ...student } as Record<string, unknown>;
   delete rest.id;
   delete rest.updatedAt;
   delete rest.updatedBy;
-  return addAssessmentStudent(classId, rest, actorEmail);
+  return rest;
+}
+
+/** Move a student (all stats, notes, and weekly history) from one class to
+ *  another. Order is deliberate: the copy into the destination class lands
+ *  FIRST, then the source row is deleted — so the worst case after a mid-
+ *  transfer failure is the student existing in BOTH classes (fixable by
+ *  deleting the leftover source copy), never a student in NEITHER. */
+export async function transferAssessmentStudent(
+  fromClassId: string,
+  toClassId: string,
+  student: AssessmentStudentDoc,
+  actorEmail: string,
+): Promise<string | null> {
+  const newId = await addAssessmentStudent(toClassId, transferRecordOf(student), actorEmail);
+  await removeAssessmentStudent(fromClassId, student.id);
+  return newId;
 }

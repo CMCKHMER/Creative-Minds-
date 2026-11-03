@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, BookOpen, CalendarDays, ClipboardCheck, ClipboardList, Copy, Download, FileText,
+  AlertTriangle, ArrowLeftRight, BookOpen, Bot, CalendarDays, ClipboardCheck, ClipboardList, Copy, Download, FileText,
   Gamepad2, Headphones, Home, Loader2, Plus, Printer, RefreshCw, Search, Trash2,
   Users, Wand2, X,
 } from 'lucide-react';
@@ -17,6 +17,7 @@ import {
   removeAssessmentStudent,
   STUDENT_IDENTITY_FIELDS,
   subscribeAssessmentStudents,
+  transferAssessmentStudent,
   updateAssessmentClass,
   weekKeyOf,
   type AssessmentClassDoc,
@@ -30,15 +31,18 @@ import {
   type AssessmentStudentScores,
 } from '../lib/assessmentScoring';
 import { sanitizeScoreText } from '../lib/scoreInput';
+import { AssessmentInsights } from './AssessmentInsights';
+import { TransferStudentModal } from './TransferStudentModal';
 
 // ── Tab + field definitions (drive the whole UI) ─────────────────────
 
 type TabKey =
-  | 'roster' | 'listening' | 'reading' | 'pbl' | 'quiz'
+  | 'roster' | 'insights' | 'listening' | 'reading' | 'pbl' | 'quiz'
   | 'homework' | 'participation' | 'overall' | 'report';
 
 const TABS: Array<{ key: TabKey; label: string; icon: React.ElementType }> = [
   { key: 'roster', label: 'Roster', icon: ClipboardList },
+  { key: 'insights', label: 'AI Insights', icon: Bot },
   { key: 'listening', label: 'Listening & Speaking', icon: Headphones },
   { key: 'reading', label: 'Reading', icon: BookOpen },
   { key: 'pbl', label: 'PBL', icon: Gamepad2 },
@@ -66,7 +70,7 @@ interface TabDef {
   notesLabel?: string;
 }
 
-const TAB_DEFS: Record<Exclude<TabKey, 'roster' | 'overall' | 'report'>, TabDef> = {
+const TAB_DEFS: Record<Exclude<TabKey, 'roster' | 'overall' | 'report' | 'insights'>, TabDef> = {
   listening: {
     title: 'Listening & Speaking',
     blurb: 'Rate each skill 0–5. Unrated skills are skipped, not counted as zero.',
@@ -406,6 +410,16 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
         } else {
           await patchAssessmentStudentWeek(classId, studentId, dest, entry.patch, email);
         }
+        // Optimistic merge: paint the persisted patch into the roster NOW.
+        // The 6-second poll used to keep serving the pre-save snapshot after
+        // the overlay dropped, so a just-saved score visibly "un-saved" for
+        // up to a whole poll cycle (post-save revert flicker).
+        setStudents((prev) => prev.map((s) => {
+          if (s.id !== studentId) return s;
+          if (dest === 'flat') return { ...s, ...entry.patch } as AssessmentStudentDoc;
+          const weekEntry = { ...(s.weeks?.[dest] ?? {}), ...entry.patch };
+          return { ...s, weeks: { ...(s.weeks ?? {}), [dest]: weekEntry } } as AssessmentStudentDoc;
+        }));
         setOverlay((prev) => {
           if (prev.get(studentId) !== entry) return prev; // newer edit pending — keep it
           if (!prev.has(studentId)) return prev;
@@ -473,6 +487,34 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
     setBusy(false);
   }, [classId, busy]);
 
+  // Class transfer: move a student (all stats + weekly history) to another
+  // class. The modal picks the destination; the DB layer copies first and
+  // deletes second, so the student can never end up in neither class.
+  const [transferStudent, setTransferStudent] = useState<AssessmentStudentDoc | null>(null);
+  const [transferError, setTransferError] = useState<string | null>(null);
+  const [transferNotice, setTransferNotice] = useState<string | null>(null);
+  const transferRow = useCallback(async (s: AssessmentStudentDoc, toClassId: string) => {
+    if (!classId || busy) return;
+    setBusy(true);
+    setTransferError(null);
+    try {
+      await transferAssessmentStudent(classId, toClassId, s, email);
+      // Optimistic removal — the 6-second poll would otherwise keep listing
+      // the student under the old class for a full cycle.
+      setStudents((prev) => prev.filter((x) => x.id !== s.id));
+      setOverlay((prev) => {
+        if (!prev.has(s.id)) return prev;
+        const next = new Map(prev);
+        next.delete(s.id);
+        return next;
+      });
+      const dest = (classes ?? []).find((c) => c.id === toClassId);
+      setTransferNotice(`${s.name || 'Student'} moved to ${dest?.name || 'the other class'} — all scores, notes, and weekly history came along.`);
+      setTransferStudent(null);
+    } catch (e) { setTransferError(humanizeError(e)); }
+    setBusy(false);
+  }, [classId, busy, email, classes]);
+
   // Delete the selected week's entry from every student that has one. The
   // original top-level record and all other weeks are untouched.
   const deleteWeek = useCallback(async () => {
@@ -524,32 +566,54 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
       s.name.toLowerCase().includes(q) || s.schoolId.toLowerCase().includes(q));
   }, [effectiveStudents, search]);
 
-  // Class-details draft (school / teacher name) — editable in the class bar.
-  // Draft state wins while the user types; the debounced save mirrors into a
-  // ref so the timer always reads the latest values.
-  const [metaDraft, setMetaDraft] = useState<{ schoolName: string; teacherName: string } | null>(null);
+  // Class-details draft (school / teacher name / overall remarks) — ONE
+  // unified draft + ONE debounced saver with a dirty-key set. Previously the
+  // class bar and the Overall tab's remarks each grabbed the same timer ref,
+  // so typing in one silently CANCELLED the other's pending save (the last
+  // keystroke won and the other field's edit never reached Firestore).
+  const [metaDraft, setMetaDraft] = useState<{ schoolName: string; teacherName: string; remarks: string } | null>(null);
   const [metaForClassId, setMetaForClassId] = useState(classId);
   if (metaForClassId !== classId) {
     // switching class — reset the local draft during render (React docs pattern)
     setMetaForClassId(classId);
     setMetaDraft(null);
   }
-  const metaMirror = useRef<{ schoolName: string; teacherName: string } | null>(null);
+  const metaMirror = useRef<{ schoolName: string; teacherName: string; remarks: string } | null>(null);
   useEffect(() => { metaMirror.current = metaDraft; }, [metaDraft]);
+  const metaDirty = useRef<Set<'schoolName' | 'teacherName' | 'remarks'>>(new Set());
   const classMeta = metaDraft ?? {
     schoolName: activeClass?.schoolName ?? '',
     teacherName: activeClass?.teacherName ?? '',
+    remarks: activeClass?.remarks ?? '',
   };
   const metaTimers = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const changeClassMeta = useCallback((key: 'schoolName' | 'teacherName', value: string) => {
+  const changeClassMeta = useCallback((key: 'schoolName' | 'teacherName' | 'remarks', value: string) => {
     if (!classId) return;
     setMetaDraft((prev) => ({
       schoolName: key === 'schoolName' ? value : (prev?.schoolName ?? activeClass?.schoolName ?? ''),
       teacherName: key === 'teacherName' ? value : (prev?.teacherName ?? activeClass?.teacherName ?? ''),
+      remarks: key === 'remarks' ? value : (prev?.remarks ?? activeClass?.remarks ?? ''),
     }));
+    metaDirty.current.add(key);
     if (metaTimers.current) clearTimeout(metaTimers.current);
     metaTimers.current = setTimeout(() => {
-      updateAssessmentClass(classId, metaMirror.current ?? {}).catch((e) => setRosterError(humanizeError(e)));
+      const draft = metaMirror.current;
+      if (!draft || metaDirty.current.size === 0) return;
+      // Field-masked patch: only the keys actually edited ship, so a
+      // co-teacher editing a different field can never be clobbered.
+      const patch: Partial<Pick<AssessmentClassDoc, 'schoolName' | 'teacherName' | 'remarks'>> = {};
+      for (const k of metaDirty.current) patch[k] = draft[k];
+      metaDirty.current = new Set();
+      updateAssessmentClass(classId, patch)
+        .then(() => {
+          // Mirror the persisted values into the class list so the class bar,
+          // Overall tab, and Report tab reflect them without a reload.
+          setClasses((prev) => (prev ?? []).map((c) => (c.id === classId ? { ...c, ...patch } : c)));
+        })
+        .catch((e) => {
+          for (const k of Object.keys(patch) as Array<'schoolName' | 'teacherName' | 'remarks'>) metaDirty.current.add(k);
+          setRosterError(humanizeError(e));
+        });
     }, 800);
   }, [classId, activeClass]);
 
@@ -663,6 +727,14 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
           </div>
         )}
 
+        {transferNotice && (
+          <div className="flex items-start gap-2.5 border-b border-emerald-300/20 bg-emerald-400/[0.07] px-5 py-3 text-xs leading-relaxed text-emerald-100">
+            <ArrowLeftRight className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />
+            <span>{transferNotice}</span>
+            <button type="button" onClick={() => setTransferNotice(null)} className="ml-auto shrink-0 rounded p-0.5 text-emerald-200/70 hover:text-emerald-100" aria-label="Dismiss notice"><X className="h-3.5 w-3.5" /></button>
+          </div>
+        )}
+
         {(loadError || rosterError) && (
           <div className="flex items-start gap-2.5 border-b border-rose-300/20 bg-rose-400/[0.07] px-5 py-3 text-xs leading-relaxed text-rose-100">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-300" aria-hidden="true" />
@@ -733,6 +805,18 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
               onChange={changeField}
               onDuplicate={(s) => void duplicateRow(s)}
               onDelete={(s) => void deleteRow(s)}
+              onTransfer={(s) => { setTransferError(null); setTransferStudent(s); }}
+              transferDisabled={(classes?.length ?? 0) < 2}
+            />
+          )}
+
+          {tab === 'insights' && classId && students.length > 0 && (
+            <AssessmentInsights students={students} />
+          )}
+          {tab === 'insights' && classId && students.length === 0 && (
+            <EmptyState
+              title="Nothing to analyze yet"
+              body="AI Insights reads the recorded scores for this class. Add students and record at least one assessment — the trend analysis appears here automatically."
             />
           )}
 
@@ -746,13 +830,7 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
           )}
 
           {tab === 'overall' && classId && visibleStudents.length > 0 && (
-            <OverallTab students={visibleStudents} remarks={activeClass?.remarks ?? ''} onRemarks={(v) => {
-              if (!classId) return;
-              if (metaTimers.current) clearTimeout(metaTimers.current);
-              metaTimers.current = setTimeout(() => {
-                updateAssessmentClass(classId, { remarks: v }).catch((e) => setRosterError(humanizeError(e)));
-              }, 800);
-            }} />
+            <OverallTab students={visibleStudents} remarks={classMeta.remarks} onRemarks={(v) => changeClassMeta('remarks', v)} />
           )}
 
           {tab === 'report' && classId && (
@@ -786,6 +864,18 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
           }}
           onClose={() => { setShowCreate(false); setCreateError(null); }}
           error={createError}
+        />
+      )}
+
+      {transferStudent && classId && (
+        <TransferStudentModal
+          student={transferStudent}
+          classes={classes ?? []}
+          currentClassId={classId}
+          busy={busy}
+          error={transferError}
+          onConfirm={(toClassId) => void transferRow(transferStudent, toClassId)}
+          onClose={() => { setTransferStudent(null); setTransferError(null); }}
         />
       )}
     </div>
@@ -844,8 +934,10 @@ function RosterTab(props: {
   onChange: (id: string, key: string, value: string | number) => void;
   onDuplicate: (s: AssessmentStudentDoc) => void;
   onDelete: (s: AssessmentStudentDoc) => void;
+  onTransfer: (s: AssessmentStudentDoc) => void;
+  transferDisabled: boolean;
 }) {
-  const { students, disabled, onChange, onDuplicate, onDelete } = props;
+  const { students, disabled, onChange, onDuplicate, onDelete, onTransfer, transferDisabled } = props;
   return (
     <TableShell
       head={(
@@ -883,6 +975,13 @@ function RosterTab(props: {
             <td className="px-3 py-2.5 text-center"><span className={`cmc-stat-num text-base ${toneClass(scoreTone(scores.overall))}`}>{scores.overall > 0 ? `${scores.overall}%` : '—'}</span></td>
             <td className="px-3 py-2.5">
               <div className="flex items-center justify-end gap-1">
+                <button
+                  type="button"
+                  title={transferDisabled ? 'Create a second class to transfer students' : 'Transfer to another class (all stats move too)'}
+                  disabled={disabled || transferDisabled}
+                  onClick={() => onTransfer(s)}
+                  className="rounded-md border border-white/10 bg-white/[0.04] p-1.5 text-slate-400 transition hover:text-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
+                ><ArrowLeftRight className="h-3.5 w-3.5" /></button>
                 <button type="button" title="Duplicate" disabled={disabled} onClick={() => onDuplicate(s)} className="rounded-md border border-white/10 bg-white/[0.04] p-1.5 text-slate-400 transition hover:text-cyan-200 disabled:opacity-40"><Copy className="h-3.5 w-3.5" /></button>
                 <button type="button" title="Delete" disabled={disabled} onClick={() => onDelete(s)} className="rounded-md border border-white/10 bg-white/[0.04] p-1.5 text-slate-400 transition hover:text-rose-300 disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" /></button>
               </div>
