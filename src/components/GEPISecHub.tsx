@@ -125,7 +125,7 @@ export function GEPISecHub() {
                     {program.resources.map((resource, idx) => {
                       const Icon = resource.icon;
                       return (
-                        <a key={idx} href={resource.href} target="_blank" rel="noopener noreferrer" aria-label={`Open ${resource.title} in a new tab`} className="group/link flex items-start gap-2.5 rounded-lg border border-white/7 bg-slate-950/50 p-3 transition hover:border-violet-200/25 hover:bg-violet-200/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-200">
+                        <a key={idx} href={resource.href} aria-label={`Open ${resource.title}`} className="group/link flex items-start gap-2.5 rounded-lg border border-white/7 bg-slate-950/50 p-3 transition hover:border-violet-200/25 hover:bg-violet-200/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-200">
                           <Icon className="mt-0.5 h-4 w-4 shrink-0 text-violet-200" aria-hidden="true" />
                           <span className="min-w-0 flex-1">
                             <span className="block text-[11px] font-semibold leading-snug text-slate-200 group-hover/link:text-violet-100">{resource.title}</span>

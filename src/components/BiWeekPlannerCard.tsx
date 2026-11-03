@@ -93,12 +93,12 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
           <h2 id="biweek-title" className="cmc-h2">TOEFL ITP<br /><span className="cmc-gradient-text">Bi-Weekly Planner.</span></h2>
           <p className="cmc-lead">A structured 8-week preparation plan covering all three TOEFL ITP sections — Listening, Structure & Written Expression, and Reading. Each week includes practice drills with timers, auto-scoring, and individual shareable links. Teacher-made materials from Oxford Skills World and Reading Explorer.</p>
           <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <a href={PLANNER_URL} target="_blank" rel="noopener noreferrer" aria-label="Open the TOEFL ITP Bi-Weekly Planner in a new tab" className="cmc-btn-3d cmc-btn-3d--violet group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-200">
+            <a href={PLANNER_URL} aria-label="Open the TOEFL ITP Bi-Weekly Planner" className="cmc-btn-3d cmc-btn-3d--violet group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-200">
               Open the planner <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
             </a>
             <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"><Clock3 className="h-3 w-3 text-violet-300/70" aria-hidden="true" />15 test pages · 146 questions · 3 audio passages</span>
           </div>
-          <a href={PLANNER_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-slate-500 underline decoration-slate-700 underline-offset-4 transition hover:text-violet-100">cmckhmer.github.io/Creative-Minds-/biweek-planner <ArrowUpRight className="h-3 w-3" aria-hidden="true" /></a>
+          <a href={PLANNER_URL} className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-slate-500 underline decoration-slate-700 underline-offset-4 transition hover:text-violet-100">cmckhmer.github.io/Creative-Minds-/biweek-planner <ArrowUpRight className="h-3 w-3" aria-hidden="true" /></a>
           <p className="mt-4 flex max-w-xl items-start gap-2 text-[10px] leading-relaxed text-slate-500"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-300/70" aria-hidden="true" /><span>Test answers stay in your browser tab — nothing is submitted or saved to a server. Audio files (MP3s) load from the same CMC deploy.</span></p>
         </div>
 

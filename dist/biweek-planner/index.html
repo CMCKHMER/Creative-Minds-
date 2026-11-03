@@ -358,7 +358,7 @@ WEEKS.forEach((w,idx)=>{
     if(t.file==='#'){
       return `<span class="btn3d acc-${a.k} disabled" aria-disabled="true"><i class="fas ${t.icon} text-xs"></i> ${t.text}</span>`;
     }
-    return `<a href="tests/${t.file}" class="btn3d acc-${a.k}" target="_blank" rel="noopener"><i class="fas ${t.icon} text-xs"></i> ${t.text}</a>`;
+    return `<a href="tests/${t.file}" class="btn3d acc-${a.k}"><i class="fas ${t.icon} text-xs"></i> ${t.text}</a>`;
   }).join('');
 
   // Featured card (Week 1 — Orientation & Diagnostic) gets a bigger,

@@ -76,8 +76,6 @@ export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
               {isTeacher ? (
                 <a
                   href={STUDIO_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="cmc-btn-3d cmc-btn-3d--emerald inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-slate-950"
                 >
                   Open Studio <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -93,7 +91,7 @@ export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
                 </button>
               )}
               <span className="text-[11px] text-slate-500">
-                {isTeacher ? 'Opens in a new tab · teacher access' : 'Free teacher account required'}
+                {isTeacher ? 'Teacher access · same tab' : 'Free teacher account required'}
               </span>
             </div>
           </div>
@@ -128,7 +126,7 @@ export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
                       <p className="mt-1 text-2xl font-bold text-white">Browser</p>
                     </div>
                   </div>
-                  <a href={STUDIO_URL} target="_blank" rel="noopener noreferrer" className="cmc-btn-3d cmc-btn-3d--emerald block rounded-lg py-2.5 text-center text-xs font-bold text-slate-950">
+                  <a href={STUDIO_URL} className="cmc-btn-3d cmc-btn-3d--emerald block rounded-lg py-2.5 text-center text-xs font-bold text-slate-950">
                     Launch Studio →
                   </a>
                 </div>

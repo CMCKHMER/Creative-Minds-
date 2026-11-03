@@ -87,12 +87,12 @@ export function TOEFLiBTCard() {
           <h2 id="toefl-ibt-title" className="cmc-h2">TOEFL iBT<br /><span className="cmc-gradient-text">Full Mock Test.</span></h2>
           <p className="cmc-lead">Run the complete four-section TOEFL iBT mock test in your browser — Reading, Listening, Speaking (with microphone recording), and Writing. Includes audio playback, a per-section timer, progress tracking, and a security-notice flow that simulates the real exam experience.</p>
           <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <a href={TOEFL_IBT_URL} target="_blank" rel="noopener noreferrer" aria-label="Open TOEFL iBT full mock test in a new tab" className="cmc-btn-3d group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">
+            <a href={TOEFL_IBT_URL} aria-label="Open the TOEFL iBT full mock test" className="cmc-btn-3d group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">
               Start the mock test <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
             </a>
-            <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"><Clock3 className="h-3 w-3 text-cyan-300/70" aria-hidden="true" />Full test runs ~3 hours · opens in a new tab</span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"><Clock3 className="h-3 w-3 text-cyan-300/70" aria-hidden="true" />Full test runs ~3 hours</span>
           </div>
-          <a href={TOEFL_IBT_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-slate-500 underline decoration-slate-700 underline-offset-4 transition hover:text-cyan-100">cmckhmer.github.io/Creative-Minds-/toefl-ibt <ArrowUpRight className="h-3 w-3" aria-hidden="true" /></a>
+          <a href={TOEFL_IBT_URL} className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-slate-500 underline decoration-slate-700 underline-offset-4 transition hover:text-cyan-100">cmckhmer.github.io/Creative-Minds-/toefl-ibt <ArrowUpRight className="h-3 w-3" aria-hidden="true" /></a>
           <p className="mt-4 flex max-w-xl items-start gap-2 text-[10px] leading-relaxed text-slate-500"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/70" aria-hidden="true" /><span>Test responses stay in your browser tab — nothing is submitted or saved to a server. Audio files (MP3s) load from the same CMC deploy.</span></p>
         </div>
 

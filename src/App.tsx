@@ -137,7 +137,7 @@ export function App() {
     } else if (toolId === 'teacher-tools') {
       openTeacherToolsPage();
     } else if (toolId === 'cm-studio') {
-      window.open('./studio/', '_blank', 'noopener,noreferrer');
+      window.location.assign('./studio/');
     } else if (toolId === 'lms-workspace') {
       scrollToSection('lms-workspace');
     } else if (toolId === 'cambodia-news') {
@@ -257,7 +257,7 @@ export function App() {
           <DailyAssessmentCard onOpenAuth={() => openMemberAuth('sign-up')} />
         </LazyMount>
 
-        {/* Full TOEFL iBT mock test card — opens 4-section practice exam in a new tab */}
+        {/* Full TOEFL iBT mock test card — opens 4-section practice exam */}
         <LazyMount id="toefl-ibt-mock" minHeight={460}>
           <TOEFLiBTCard />
         </LazyMount>

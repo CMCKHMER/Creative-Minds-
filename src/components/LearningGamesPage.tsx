@@ -218,7 +218,7 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
                     <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-400">{game.description}</p>
                     <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>{game.level}</span><span aria-hidden="true">·</span><span>{game.duration}</span></div>
                                    {game.externalUrl ? (
-                      <a href={game.externalUrl} target="_blank" rel="noopener noreferrer" className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+                      <a href={game.externalUrl} className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
                         Open game
                         <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
                       </a>

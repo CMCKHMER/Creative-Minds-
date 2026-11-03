@@ -69,7 +69,7 @@ function Cartridge({ game, onPlay }: { game: BrainGameDef; onPlay: (game: BrainG
         </button>
       )}
       {live && (game.mode === 'standalone' || game.mode === 'external') && game.launchUrl && (
-        <a href={game.launchUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:brightness-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300">
+        <a href={game.launchUrl} className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:brightness-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300">
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /> Open game
         </a>
       )}
@@ -97,8 +97,8 @@ export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
 
   const openGame = (game: BrainGameDef) => {
     if (game.mode === 'standalone' || game.mode === 'external') {
-      // Standalone/external cartridges open in their own tab.
-      if (game.launchUrl) window.open(game.launchUrl, '_blank', 'noopener,noreferrer');
+      // Standalone/external cartridges navigate in the same tab.
+      if (game.launchUrl) window.location.assign(game.launchUrl);
       return;
     }
     setActiveGame(game);

@@ -22,8 +22,8 @@ export interface LearningGame {
   questions: LearningGameQuestion[];
   /**
    * Optional link to a standalone HTML game (e.g. ./writequest.html).
-   * When present, the card renders as an anchor that opens the URL in a new tab
-   * instead of launching the in-page React question player.
+   * When present, the card renders as an anchor that navigates to the URL
+   * in the same tab instead of launching the in-page React question player.
    */
   externalUrl?: string;
   /** Optional badge label for external/featured cards (e.g. "Live", "Featured"). */
@@ -44,8 +44,8 @@ export const LEARNING_GAMES: LearningGame[] = [
     skill: 'Vocabulary',
     level: 'Grades 4–9',
     duration: '4 activities · about 10 min',
-    description: 'A standalone morphology workshop: study 22 prefixes and 24 suffixes with examples and spelling tips, forge real words in the word-building machine, pair affixes with meanings in Match, then finish with the 20-question quiz. Signed-in students send quiz and match scores to the CMC leaderboard. Opens in a new tab.',
-    instructions: 'Open Word Forge in a new tab. Study the cards first, forge a few words, clear a Match round, then take the Quiz — your score goes to the leaderboard when you are signed in.',
+    description: 'A standalone morphology workshop: study 22 prefixes and 24 suffixes with examples and spelling tips, forge real words in the word-building machine, pair affixes with meanings in Match, then finish with the 20-question quiz. Signed-in students send quiz and match scores to the CMC leaderboard.',
+    instructions: 'Open Word Forge. Study the cards first, forge a few words, clear a Match round, then take the Quiz — your score goes to the leaderboard when you are signed in.',
     externalUrl: './word-forge.html',
     badge: 'New',
     questions: [],
@@ -56,8 +56,8 @@ export const LEARNING_GAMES: LearningGame[] = [
     skill: 'Vocabulary',
     level: 'Grades 5–9',
     duration: 'Self-paced · about 8 min',
-    description: 'A standalone writing studio: draft a short response, get rubric-style feedback on sentence variety and word count, then revise. Opens in a new tab — no login, no student data.',
-    instructions: 'Open WriteQuest in a new tab and follow the prompts inside the studio.',
+    description: 'A standalone writing studio: draft a short response, get rubric-style feedback on sentence variety and word count, then revise. No login, no student data.',
+    instructions: 'Open WriteQuest and follow the prompts inside the studio.',
     externalUrl: './writequest.html',
     badge: 'Live',
     questions: [],
@@ -68,8 +68,8 @@ export const LEARNING_GAMES: LearningGame[] = [
     skill: 'Grammar',
     level: 'Grades 5–12',
     duration: 'Endless · about 5 min/run',
-    description: 'A self-contained grammar arcade: judge sentences, fix errors, spot the wrong word, and breach security layers in the Terminal Heist. Nine modes, five heist targets, daily challenge, 25 achievements, four themes. Opens in a new tab — no login, no student data.',
-    instructions: 'Open Syntax Clash Pro in a new tab and pick a mode from the menu. Try Daily Challenge for a shared seed, or Terminal Heist to earn money and emblems.',
+    description: 'A self-contained grammar arcade: judge sentences, fix errors, spot the wrong word, and breach security layers in the Terminal Heist. Nine modes, five heist targets, daily challenge, 25 achievements, four themes. No login, no student data.',
+    instructions: 'Open Syntax Clash Pro and pick a mode from the menu. Try Daily Challenge for a shared seed, or Terminal Heist to earn money and emblems.',
     externalUrl: './syntax-clash-pro.html',
     badge: 'New',
     questions: [],
@@ -80,8 +80,8 @@ export const LEARNING_GAMES: LearningGame[] = [
     skill: 'Grammar',
     level: 'Grades 5–12',
     duration: '12 tenses · about 4 min per tense',
-    description: 'Learn all 12 English verb tenses with explanations, examples, signal words, and quizzes. Progressive unlock from Basic to Expert. Best-streak tracking, mistake review, keyboard shortcuts. Same CMC visual family — opens in a new tab, no login, no student data.',
-    instructions: 'Open Tense Master in a new tab. Read the lesson, take the 6-question quiz, then move on. Keys 1-4 or A-D answer, Enter advances, Esc goes back.',
+    description: 'Learn all 12 English verb tenses with explanations, examples, signal words, and quizzes. Progressive unlock from Basic to Expert. Best-streak tracking, mistake review, keyboard shortcuts. Same CMC visual family — no login, no student data.',
+    instructions: 'Open Tense Master. Read the lesson, take the 6-question quiz, then move on. Keys 1-4 or A-D answer, Enter advances, Esc goes back.',
     externalUrl: 'https://cmckhmer.github.io/TenseMaster/',
     badge: 'New',
     questions: [],

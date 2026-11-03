@@ -156,12 +156,10 @@ export const SocialProof: React.FC = () => {
             {contentCards.map((card, index) => {
               const accent = accentMap[card.accent] || accentMap.cyan;
               const Icon = card.icon;
-              const isExternal = card.link.startsWith('http');
               return (
                 <a
                   key={index}
                   href={card.link}
-                  {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   className={`cmc-glass group relative flex flex-col gap-3 overflow-hidden p-5 ${accent.border}`}
                 >
                   {card.image && (

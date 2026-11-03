@@ -9,7 +9,7 @@ describe('student learning games', () => {
 
     it('has valid answer keys, explanations, and at least three rounds per in-page game', () => {
         for (const game of LEARNING_GAMES) {
-      // External-link games (e.g. WriteQuest) open in a new tab and have no
+      // External-link games (e.g. WriteQuest) navigate in the same tab and have no
       // in-page questions, so skip the question-shape assertions for them.
       if (game.externalUrl) {
         expect(game.externalUrl.trim()).not.toBe('');

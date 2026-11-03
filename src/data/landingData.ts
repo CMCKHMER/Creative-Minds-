@@ -42,7 +42,7 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     title: 'TOEFL iBT Full Mock Test',
     category: 'Assessment & Tests',
     badge: 'Full exam',
-    description: 'Open the complete four-section TOEFL iBT mock test in a new tab — Reading, Listening (audio), Speaking (mic recording), and Writing.',
+    description: 'Run the complete four-section TOEFL iBT mock test right here — Reading, Listening (audio), Speaking (mic recording), and Writing.',
     iconName: 'BookOpen',
     path: '#toefl-ibt-mock'
   },

@@ -202,8 +202,6 @@ export function NewsSidePanel({ onSeeAll }: { onSeeAll: () => void }) {
                 <li key={`sp-${i}`}>
                   <a
                     href={h.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="group block px-4 py-3 transition hover:bg-cyan-200/[0.05]"
                   >
                     <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -449,8 +447,6 @@ export function NewsPage({ onBackHome }: { onBackHome: () => void }) {
                   <a
                     key={`pg-${i}`}
                     href={h.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="group flex flex-col gap-2 rounded-xl border border-white/8 bg-slate-950/40 p-4 transition hover:-translate-y-0.5 hover:border-cyan-200/30 hover:bg-cyan-200/[0.04]"
                   >
                     <div className="flex items-center justify-between gap-2">

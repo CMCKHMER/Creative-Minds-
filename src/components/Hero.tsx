@@ -277,7 +277,7 @@ export const Hero = ({
 
               return (
                 shortcut.href ? (
-                  <a key={shortcut.id} href={shortcut.href} target="_blank" rel="noopener noreferrer" className={shortcutClass} style={{ transitionDelay: `${index * 85}ms` }}>
+                  <a key={shortcut.id} href={shortcut.href} className={shortcutClass} style={{ transitionDelay: `${index * 85}ms` }}>
                     {content}
                   </a>
                 ) : (

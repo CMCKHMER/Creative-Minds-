@@ -22,12 +22,12 @@ import type { ComponentType } from 'react';
  * 2) mode: 'standalone' — the game is a self-contained HTML/JS file.
  *      • Drop it in public/arcade/<id>/index.html (it ships as-is).
  *      • Add an entry with launchUrl: './arcade/<id>/index.html'.
- *        The lounge opens it in a new tab so the game keeps its own
+ *        The lounge opens it in the same tab so the game keeps its own
  *        canvas/fullscreen behaviour.
  *
  * 3) mode: 'external'   — the game lives somewhere else (itch.io,
  *      Scratch, Articulate, …). Add launchUrl: 'https://…' and the
- *      cartridge opens it in a new tab.
+ *      cartridge opens it in the same tab.
  *
  * Scores: React games that want the shared scoreboard call
  * submitScore({ drillSlug, drillTitle, drillSource: 'brain-lounge', … })

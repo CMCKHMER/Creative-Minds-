@@ -526,8 +526,6 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
                 {/* Studio preview tile */}
                 <a
                   href="./studio/"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="group/studio rounded-xl border border-violet-200/25 bg-gradient-to-br from-violet-400/[0.10] via-slate-900/80 to-indigo-500/[0.06] p-4 transition hover:-translate-y-0.5 hover:border-violet-200/45"
                 >
                   <div className="mb-2 flex items-center gap-2">
@@ -544,7 +542,7 @@ export function TeacherToolsCard({ onOpen }: { onOpen: () => void }) {
               </div>
               <p className="mt-3 flex items-center gap-1.5 text-[10px] text-slate-500">
                 <Sparkles className="h-3 w-3 text-cyan-300/60" />
-                Click "Open Teacher Tools" to launch the live dice + wheel. Click the Studio tile to open the full editor in a new tab.
+                Click "Open Teacher Tools" to launch the live dice + wheel. Click the Studio tile to open the full editor.
               </p>
             </div>
           </div>
@@ -669,12 +667,10 @@ export function TeacherToolsPage({ onBackHome, onOpenAuth }: { onBackHome: () =>
           </article>
         </div>
 
-        {/* Creative Minds Studio — full creative editor (opens in new tab) */}
+        {/* Creative Minds Studio — full creative editor (same tab) */}
         <Reveal className="mt-6">
           <a
             href="./studio/"
-            target="_blank"
-            rel="noopener noreferrer"
             className="group relative block overflow-hidden rounded-2xl border border-violet-200/25 bg-gradient-to-br from-violet-400/[0.08] via-slate-900/90 to-indigo-500/[0.06] transition hover:-translate-y-0.5 hover:border-violet-200/45"
           >
             {/* Showcase image */}
