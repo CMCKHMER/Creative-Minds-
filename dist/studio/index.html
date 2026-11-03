@@ -759,11 +759,11 @@
         <div class="canvas-wrap" id="wrap">
           <canvas id="base"></canvas>
           <canvas id="textLayer"></canvas>
-          <div class="doc-header" id="docHeader" contenteditable="true" spellcheck="false" data-placeholder="Double-click to edit header…"></div>
+          <div class="doc-header" id="docHeader" contenteditable="true" spellcheck="false" data-placeholder="Type your header here…"></div>
           <div class="doc-layer" id="docLayer" contenteditable="true" spellcheck="true">
             <h1>Document Title</h1><p>Start typing your document here. Use the toolbar above to format text, change fonts, or add lists.</p>
           </div>
-          <div class="doc-footer" id="docFooter" contenteditable="true" spellcheck="false" data-placeholder="Double-click to edit footer…"></div>
+          <div class="doc-footer" id="docFooter" contenteditable="true" spellcheck="false" data-placeholder="Type your footer here…"></div>
 <!-- CMC-CODE-EDITOR (sibling of sheetLayer, NOT nested inside it) -->
           <div class="code-layer" id="codeLayer">
             <div class="code-toolbar">
@@ -1234,7 +1234,7 @@ let currentSheet = 0;
 let selectedCell = { row: 0, col: 0 };
 
 /* Clipboard */
-let clipboardImg = null, clipboardText = null;
+let clipboardImg = null, clipboardText = null, sheetClipboard = null;
 
 /* History */
 let undoStack=[], redoStack=[];
@@ -1287,7 +1287,7 @@ function rebuildImgs(json, done){
   } catch(e) { imgObjects = []; if (done) done(); }
 }
 function pushUndo(label){
-  const snapshot = { label: label || 'Edit', w: W, h: H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts: JSON.stringify(texts), imgs: serializeImgs(), doc: docLayer.innerHTML, sheets: JSON.stringify(sheets), currentSheet, docRotation };
+  const snapshot = { label: label || 'Edit', w: W, h: H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts: JSON.stringify(texts), imgs: serializeImgs(), doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML, docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show'), sheets: JSON.stringify(sheets), currentSheet, docRotation };
   undoStack.push(snapshot);
   if(undoStack.length>40) undoStack.shift();
   redoStack=[];
@@ -1312,6 +1312,10 @@ function restore(snap){
         bgColor = snap.bgColor; wrap.style.background = bgColor;
         texts = JSON.parse(snap.texts); selected = -1; selectedImg = -1; textEditing = null;
         docLayer.innerHTML = snap.doc || '';
+        docHeader.innerHTML = snap.docHeader || '';
+        docFooter.innerHTML = snap.docFooter || '';
+        docHeader.classList.toggle('show', !!snap.docHeaderShow);
+        docFooter.classList.toggle('show', !!snap.docFooterShow);
         docRotation = snap.docRotation || 0; applyDocRotation();
         if (snap.sheets) { sheets = JSON.parse(snap.sheets); currentSheet = snap.currentSheet || 0; renderSheet(); renderSheetTabs(); }
         rebuildImgs(snap.imgs, () => { renderTexts(); });
@@ -1329,7 +1333,7 @@ function redo(){
   if (tool === 'doc') { docLayer.focus(); document.execCommand('redo'); return; }
   if (tool === 'sheet') { if (sheetCellRedo.length) sheetRedoApply(); else statusFlash('Nothing to redo in this sheet'); return; }
   if(!redoStack.length)return; undoStack.push(snapshotCurrent('Redo point')); restore(redoStack.pop()); updateHistoryUI(); renderHistoryList(); }
-function snapshotCurrent(label){ return { label: label || 'Edit', w: W, h: H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts: JSON.stringify(texts), imgs: serializeImgs(), doc: docLayer.innerHTML, sheets: JSON.stringify(sheets), currentSheet, docRotation }; }
+function snapshotCurrent(label){ return { label: label || 'Edit', w: W, h: H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts: JSON.stringify(texts), imgs: serializeImgs(), doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML, docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show'), sheets: JSON.stringify(sheets), currentSheet, docRotation }; }
 function updateHistoryUI(){ undoBtn.disabled=!undoStack.length; redoBtn.disabled=!redoStack.length; }
 undoBtn.onclick=undo; redoBtn.onclick=redo; updateHistoryUI();
 function renderHistoryList(){
@@ -1350,7 +1354,7 @@ let autoSaveTimer = null;
 function scheduleAutoSave(){ if (autoSaveTimer) clearTimeout(autoSaveTimer); autoSaveTimer = setTimeout(doAutoSave, 30000); }
 function doAutoSave(){
   try {
-    const proj = { version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, sheets, currentSheet, docRotation, code: codeContent, codeLang: currentCodeLang };
+    const proj = { version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML, docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show'), sheets, currentSheet, docRotation, code: codeContent, codeLang: currentCodeLang };
     localStorage.setItem('cm-studio-auto-save', JSON.stringify(proj));
   } catch(e) {}
 }
@@ -1358,7 +1362,7 @@ function offerRecovery(){
   try {
     const saved = localStorage.getItem('cm-studio-auto-save');
     if (!saved) return;
-    setTimeout(() => { if (confirm('Creative Minds Studio found auto-saved work from a previous session. Restore it?')) { loadProject(JSON.parse(saved)); filename.textContent = 'recovered.project'; } }, 500);
+    setTimeout(() => { if (confirm('Creative Minds Studio found auto-saved work from a previous session. Restore it?')) { document.getElementById('welcomeScreen').classList.add('hidden'); loadProject(JSON.parse(saved)); filename.textContent = 'recovered.project'; } }, 500);
   } catch(e) {}
 }
 function loadProject(proj){
@@ -1380,6 +1384,10 @@ function loadProject(proj){
         bgColor = proj.bgColor || '#ffffff'; wrap.style.background = bgColor;
         texts = proj.texts || []; selected = -1; selectedImg = -1;
         docLayer.innerHTML = proj.doc || '<h1>Document Title</h1><p>Start typing…</p>';
+        docHeader.innerHTML = proj.docHeader || '';
+        docFooter.innerHTML = proj.docFooter || '';
+        docHeader.classList.toggle('show', !!proj.docHeaderShow);
+        docFooter.classList.toggle('show', !!proj.docFooterShow);
         sheets = proj.sheets || [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }];
         currentSheet = proj.currentSheet || 0;
         docRotation = proj.docRotation || 0; applyDocRotation();
@@ -1630,11 +1638,24 @@ let painterStored = null;
 function formatPainter(){
   docLayer.focus();
   if (painterStored) {
-    // Second click = apply stored format
-    document.execCommand('removeFormat', false, null);
-    document.execCommand('insertHTML', false, '<span style="' + painterStored + '">');
-    painterStored = null;
-    alert('Format applied!');
+    // Second click = apply the stored format to the current selection.
+    // The old insertHTML('<span …>') replaced the selection with an empty
+    // span — i.e. it silently DELETED the user's text. Wrap the selected
+    // range in the styled span instead, preserving the text.
+    const sel = window.getSelection();
+    if (sel.rangeCount && !sel.isCollapsed) {
+      const range = sel.getRangeAt(0);
+      const span = document.createElement('span');
+      span.setAttribute('style', painterStored);
+      try { range.surroundContents(span); }
+      catch (err) { const frag = range.extractContents(); span.appendChild(frag); range.insertNode(span); }
+      sel.removeAllRanges();
+      painterStored = null;
+      pushUndo('Format painter');
+      statusFlash('Format applied');
+    } else {
+      alert('Select the text to format first, then click the painter again.');
+    }
   } else {
     // First click = copy current selection's format
     const sel = window.getSelection();
@@ -1656,23 +1677,36 @@ function formatPainter(){
 function findReplace(){
   const search = prompt('Find:', '');
   if (!search) return;
-  const replace = prompt('Replace with:', '');
-  if (replace === null) return;
-  // Use the browser's built-in find, or do a simple HTML replace
-  const html = docLayer.innerHTML;
-  if (!replace) {
+  const replace = prompt('Replace with (leave empty to only search):', '');
+  if (replace === null || replace === '') {
     // Find only — just highlight by scrolling
     const found = window.find(search, false, false, true, false, true, false);
     if (!found) alert('Not found: ' + search);
-  } else {
-    // Replace all
-    const newHtml = html.replace(new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replace);
-    docLayer.innerHTML = newHtml;
-    pushUndo('Find & Replace');
+    return;
   }
+  // Replace in TEXT nodes only. The old version regex-replaced the raw HTML,
+  // so a search like "cat" could corrupt class names, styles and attributes.
+  const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  let count = 0;
+  const walker = document.createTreeWalker(docLayer, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n => {
+    if (!n.nodeValue) return;
+    const re = new RegExp(escaped, 'gi');
+    if (!re.test(n.nodeValue)) return;
+    n.nodeValue = n.nodeValue.replace(re, () => { count++; return replace; });
+  });
+  if (count) { pushUndo('Find & Replace'); statusFlash('Replaced ' + count + (count === 1 ? ' occurrence' : ' occurrences')); }
+  else alert('Not found: ' + search);
 }
 document.getElementById('docColor').addEventListener('input', e => docCmd('foreColor', e.target.value));
 document.getElementById('docBlock').addEventListener('change', e => docCmd('formatBlock', e.target.value));
+/* Auto-save the document as the user types (header/footer included) — typing
+   in the doc used to never reach the autosave scheduler at all. */
+docLayer.addEventListener('input', scheduleAutoSave);
+docHeader.addEventListener('input', scheduleAutoSave);
+docFooter.addEventListener('input', scheduleAutoSave);
 
 /* Doc rotation (CSS transform — doesn't bake pixels, but visible) */
 function applyDocRotation(){ docLayer.style.transform = `rotate(${docRotation}deg)`; }
@@ -1681,6 +1715,10 @@ function resetDocRotation(){ docRotation = 0; applyDocRotation(); }
 
 /* ══ SPREADSHEET ENGINE (EXCEL) ═════════════════════ */
 function colName(n){ let s=''; n=Math.max(0,n); do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n/26) - 1; } while (n >= 0); return s; }
+/* "AA"-style multi-letter column index (A=0 … Z=25, AA=26) — the inverse of
+   colName(). The old charCodeAt(0)-65 math parsed AA1 as A1, so formulas
+   silently read the wrong cells once a sheet passed column Z. */
+function colIndex(s){ let n = 0; for (let i = 0; i < s.length; i++) n = n * 26 + (s.charCodeAt(i) - 64); return n - 1; }
 function cellKey(r,c){ return r+','+c; }
 function getCell(r,c){ return sheets[currentSheet].cells[cellKey(r,c)] || {v:''}; }
 /* Cell-level undo for the spreadsheet (CMC-UNIFIED-TOOLS). Canvas undo
@@ -1697,7 +1735,22 @@ function recordSheetEdit(sheetIdx, r, c, prev){
   if (sheetCellUndo.length > 80) sheetCellUndo.shift();
   sheetCellRedo = [];
 }
+/* Whole-workbook state for structural undo (rows/cols/tabs/styles/freeze). */
+function sheetFullState(){ return { sheets: JSON.parse(JSON.stringify(sheets)), currentSheet, rowHeights: { ...rowHeights }, colWidths: { ...colWidths }, freezeRows, freezeCols }; }
+function sheetSnapshotPush(){ sheetCellUndo.push({ changes: [], full: sheetFullState() }); if (sheetCellUndo.length > 80) sheetCellUndo.shift(); sheetCellRedo = []; }
 function applySheetEntry(entry, pushTo){
+  if (entry.full) {
+    // Structural entry — restore the whole workbook and record the current
+    // state as the opposite (redo/undo) entry.
+    const opposite = { changes: [], full: sheetFullState() };
+    sheets = entry.full.sheets; currentSheet = Math.max(0, Math.min(entry.full.currentSheet, sheets.length - 1));
+    rowHeights = entry.full.rowHeights || {}; colWidths = entry.full.colWidths || {};
+    freezeRows = entry.full.freezeRows || 0; freezeCols = entry.full.freezeCols || 0;
+    selectedCell = { row: Math.min(selectedCell.row, Math.max(0, sheets[currentSheet].rows - 1)), col: Math.min(selectedCell.col, Math.max(0, sheets[currentSheet].cols - 1)) };
+    pushTo.push(opposite);
+    renderSheet(); renderSheetTabs(); scheduleAutoSave();
+    return;
+  }
   const opposite = { changes: [] };
   entry.changes.slice().reverse().forEach(ch => {
     const sh = sheets[ch.sheetIdx]; if (!sh) return;
@@ -1713,8 +1766,8 @@ function applySheetEntry(entry, pushTo){
 }
 function sheetUndoApply(){ const e = sheetCellUndo.pop(); if (!e) return; applySheetEntry(e, sheetCellRedo); statusFlash('Sheet: undo'); }
 function sheetRedoApply(){ const e = sheetCellRedo.pop(); if (!e) return; applySheetEntry(e, sheetCellUndo); statusFlash('Sheet: redo'); }
-function setCell(r,c,v){ const k = cellKey(r,c); const sh = sheets[currentSheet]; if (!sh) return; const cur = sh.cells[k]; if (cur && cur.v === v) return; recordSheetEdit(currentSheet, r, c, cur ? cur.v : ''); if (!cur) sh.cells[k] = {v:''}; sh.cells[k].v = v; }
-function parseRange(s){ const m = s.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/); if (!m) return null; const c1 = m[1].charCodeAt(0) - 65, r1 = parseInt(m[2]) - 1; const c2 = m[3].charCodeAt(0) - 65, r2 = parseInt(m[4]) - 1; return { r1, c1, r2: Math.max(r1,r2), c2: Math.max(c1,c2) }; }
+function setCell(r,c,v){ const k = cellKey(r,c); const sh = sheets[currentSheet]; if (!sh) return; const cur = sh.cells[k]; if (cur && cur.v === v) return; recordSheetEdit(currentSheet, r, c, cur ? cur.v : ''); if (!cur) sh.cells[k] = {v:''}; sh.cells[k].v = v; scheduleAutoSave(); }
+function parseRange(s){ const m = s.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/); if (!m) return null; const c1 = colIndex(m[1]), r1 = parseInt(m[2]) - 1; const c2 = colIndex(m[3]), r2 = parseInt(m[4]) - 1; return { r1, c1, r2: Math.max(r1,r2), c2: Math.max(c1,c2) }; }
 function evalFormula(formula, visited=new Set()){
   if (typeof formula !== 'string' || !formula.startsWith('=')) return formula;
   let expr = formula.slice(1);
@@ -1737,7 +1790,7 @@ function evalFormula(formula, visited=new Set()){
   for (const ref of refs) {
     if (visited.has(ref)) return '#CIRC'; visited.add(ref);
     const m = ref.match(/^([A-Z]+)(\d+)$/); if (!m) continue;
-    const c = m[1].charCodeAt(0) - 65; const r = parseInt(m[2]) - 1;
+    const c = colIndex(m[1]); const r = parseInt(m[2]) - 1;
     const cell = getCell(r, c); let val = cell.v;
     if (typeof val === 'string' && val.startsWith('=')) val = evalFormula(val, new Set(visited));
     const num = parseFloat(val);
@@ -1845,6 +1898,7 @@ function evalFormula(formula, visited=new Set()){
 function sheetRecalc(){ renderSheet(); }
 function sheetApplyFormula(){ setCell(selectedCell.row, selectedCell.col, sheetFormula.value); sheetFormula.value = ''; renderSheet(); }
 function sheetCmd(cmd){
+  sheetSnapshotPush(); // every structural/style command becomes undoable as a whole-workbook snapshot
   const sheet = sheets[currentSheet];
   // Shift an index-keyed resize map (rowHeights / colWidths) when rows or
   // columns are inserted/deleted, so custom sizes follow their content.
@@ -1874,6 +1928,7 @@ function sheetCmd(cmd){
   else if (cmd === 'fillColor') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style.bg = '#4cc9f033'; renderSheet(); }
   else if (cmd === 'textColor') { const k = cellKey(selectedCell.row, selectedCell.col); if (!sheet.cells[k]) sheet.cells[k] = {v:''}; sheet.cells[k].style = sheet.cells[k].style || {}; sheet.cells[k].style.color = '#e74c3c'; renderSheet(); }
 
+  scheduleAutoSave();
 }
 function renderSheet(){
   const sheet = sheets[currentSheet]; if (!sheet) return;
@@ -2014,6 +2069,7 @@ function renameSheetAt(i){
   if (name === null) return;
   const trimmed = name.trim();
   if (!trimmed) return;
+  sheetSnapshotPush();
   sheets[i].name = trimmed.slice(0, 31);
   renderSheetTabs(); scheduleAutoSave();
 }
@@ -2022,6 +2078,7 @@ function deleteSheetAt(i){
   if (sheets.length <= 1) { alert('A workbook needs at least one sheet.'); return; }
   const s = sheets[i];
   if (!confirm('Delete "' + s.name + '"? All cells in this sheet will be permanently removed.')) return;
+  sheetSnapshotPush();
   sheets.splice(i, 1);
   if (currentSheet > i) currentSheet--;
   if (currentSheet >= sheets.length) currentSheet = sheets.length - 1;
@@ -2802,7 +2859,7 @@ function canvasToBlob(callback, type='image/png', quality=0.92){
   o.drawImage(base,0,0); o.drawImage(textLayer,0,0);
   out.toBlob(callback, type, quality);
 }
-function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(794, 1123); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' }; codeEditor.value = ''; updateLineNumbers(); updateCodeStats(); bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; sheetCellUndo = []; sheetCellRedo = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
+function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(794, 1123); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docHeader.innerHTML = ''; docFooter.innerHTML = ''; docHeader.classList.remove('show'); docFooter.classList.remove('show'); docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' }; codeEditor.value = ''; updateLineNumbers(); updateCodeStats(); bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; sheetCellUndo = []; sheetCellRedo = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
 function fileOpen(){ openInput.click(); }
 openInput.onchange = e => {
   const f = e.target.files[0]; if (!f) return;
@@ -2924,7 +2981,7 @@ function buildSimplePdf(pageW, pageH, imgBytes, imgW, imgH){
   for (const c of chunks) { result.set(c, pos); pos += c.length; }
   return result;
 }
-function fileSaveJson(){ const proj = { version: 1, app: 'creative-minds-studio', savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, sheets, currentSheet, docRotation, code: codeContent, codeLang: currentCodeLang }; downloadBlob(new Blob([JSON.stringify(proj, null, 2)], { type: 'application/json' }), (filename.textContent || 'untitled') + '.json'); }
+function fileSaveJson(){ const proj = { version: 1, app: 'creative-minds-studio', savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML, docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show'), sheets, currentSheet, docRotation, code: codeContent, codeLang: currentCodeLang }; downloadBlob(new Blob([JSON.stringify(proj, null, 2)], { type: 'application/json' }), (filename.textContent || 'untitled') + '.json'); }
 function filePrint(){
   if (currentMode() !== 'canvas') { printFromMode(); return; }
   canvasToBlob(blob => { if (!blob) return; const url = URL.createObjectURL(blob); const w = window.open(url); if (!w) { alert('The print window was blocked by your browser\u2019s pop-up blocker. Allow pop-ups for this page and try again.'); return; } w.onload = () => { w.print(); }; }); }
@@ -2980,7 +3037,7 @@ function editDuplicate(){ if (tool === 'text' && selected >= 0) { pushUndo('Dupl
 function editSelectAll(){
   if (tool === 'code') { codeEditor.focus(); codeEditor.select(); return; }
   if (tool === 'doc') { docLayer.focus(); document.execCommand('selectAll'); } else if (tool === 'text') { selected = texts.length - 1; if (selected >= 0) { drawSelection(); syncPanelToText(texts[selected]); } } else if (tool === 'sheet') { selectedCell = { row: 0, col: 0 }; renderSheet(); } }
-function editClear(){ if (!confirm('Clear the canvas, layers, texts, doc, and sheets?')) return; pushUndo('Clear all'); sheetCellUndo = []; sheetCellRedo = []; initLayers(); for (const layer of layers) layer.canvas.getContext('2d').clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; renderTexts(); docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; renderSheet(); renderSheetTabs(); composite(); renderLayerList(); }
+function editClear(){ if (!confirm('Clear the canvas, layers, texts, doc, and sheets?')) return; pushUndo('Clear all'); sheetCellUndo = []; sheetCellRedo = []; initLayers(); for (const layer of layers) layer.canvas.getContext('2d').clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; renderTexts(); docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docHeader.innerHTML = ''; docFooter.innerHTML = ''; docHeader.classList.remove('show'); docFooter.classList.remove('show'); docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; renderSheet(); renderSheetTabs(); composite(); renderLayerList(); }
 
 /* ══ VIEW ACTIONS ═════════════════════════════════ */
 function viewZoomIn(){ zoomPct = Math.min(400, zoomPct + 25); applyZoom(); }
@@ -3101,7 +3158,34 @@ selectTool = function(t) {
 /* Keyboard */
 const keyMap={b:'brush',e:'eraser',l:'line',r:'rect',o:'ellipse',g:'gradient',t:'text',c:'crop',i:'picker',d:'doc',s:'sheet',v:'transform',p:'perspective',m:'select',n:'margins',k:'code'};
 window.addEventListener('keydown',e=>{
-  if(e.target.matches('input, [contenteditable], textarea')) return;
+  const typing = !!(e.target && e.target.matches && e.target.matches('input, [contenteditable], textarea'));
+  const inSheet = !!(e.target && e.target.closest && e.target.closest('.sheet-layer'));
+  const ctrl = e.ctrlKey||e.metaKey;
+  /* While typing in the Doc / Code editors keep the browser's native editing
+     (undo, copy/paste, select-all) and only intercept the app's file
+     shortcuts that used to leak to the browser — Ctrl+S opened "Save page",
+     Ctrl+N opened a new window, Ctrl+P printed the whole studio UI. */
+  if (typing) {
+    if (ctrl && e.shiftKey && e.key.toLowerCase()==='p'){ e.preventDefault(); fileSavePdf(); return; }
+    if (ctrl && e.shiftKey && e.key==='S'){ e.preventDefault(); fileSaveJson(); return; }
+    if (ctrl && !e.shiftKey && e.key.toLowerCase()==='s'){ e.preventDefault(); fileSavePng(); return; }
+    if (ctrl && e.key.toLowerCase()==='o'){ e.preventDefault(); fileOpen(); return; }
+    if (ctrl && !e.shiftKey && e.key.toLowerCase()==='p'){ e.preventDefault(); filePrint(); return; }
+    return;
+  }
+  /* Spreadsheet grid focused: the grid's own keydown handler owns navigation
+     and type-to-edit — the canvas letter shortcuts must never steal the
+     keystroke (typing "best" used to select Brush and leave the sheet).
+     Ctrl+C/X/V work on the selected CELL instead of the canvas image. */
+  if (inSheet) {
+    if (ctrl && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
+    if (ctrl && e.key.toLowerCase()==='y'){ e.preventDefault(); redo(); return; }
+    if (ctrl && e.key.toLowerCase()==='c'){ e.preventDefault(); const cv=cellDisplayValue(getCell(selectedCell.row,selectedCell.col)); sheetClipboard=cv; try{navigator.clipboard.writeText(cv);}catch(err){} statusFlash('Cell copied'); return; }
+    if (ctrl && e.key.toLowerCase()==='x'){ e.preventDefault(); const cv=cellDisplayValue(getCell(selectedCell.row,selectedCell.col)); sheetClipboard=cv; try{navigator.clipboard.writeText(cv);}catch(err){} setCell(selectedCell.row,selectedCell.col,''); renderSheet(); statusFlash('Cell cut'); return; }
+    if (ctrl && e.key.toLowerCase()==='v'){ e.preventDefault(); if(sheetClipboard!=null){ setCell(selectedCell.row,selectedCell.col,sheetClipboard); renderSheet(); statusFlash('Cell pasted'); } return; }
+    if (e.key==='Escape'){ cancelCrop(); selected=-1; drawSelection(); closeAllMenus(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('show')); return; }
+    return;
+  }
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault(); e.shiftKey?redo():undo(); return;}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault(); redo(); return;}
   if((e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key.toLowerCase()==='n'){e.preventDefault(); ACTIONS['layer-new'](); return;}
@@ -3246,6 +3330,7 @@ codeEditor.addEventListener('input', () => {
   updateLineNumbers();
   updateCodeStats();
   updateCursorPos();
+  scheduleAutoSave();
 });
 codeEditor.addEventListener('click', updateCursorPos);
 codeEditor.addEventListener('keyup', updateCursorPos);
@@ -3639,10 +3724,10 @@ function showFillHandle() {
           const dr = targetRow - startCell.row;
           const dc = targetCol - startCell.col;
           val = val.replace(/([A-Z]+)(\d+)/g, (m, col, row) => {
-            const c = col.charCodeAt(0) - 65 + dc;
+            const c = colIndex(col) + dc;
             const r = parseInt(row) + dr;
             if (c < 0 || r < 1) return m;
-            return String.fromCharCode(65 + c) + r;
+            return colName(c) + r;
           });
         }
         setCell(targetRow, targetCol, val);
@@ -3659,7 +3744,9 @@ function showFillHandle() {
 }
 
 
-// offerRecovery(); // disabled — start blank
+/* Auto-save is live again: flush pending work on close, offer recovery on load. */
+window.addEventListener('beforeunload', doAutoSave);
+offerRecovery();
 
 /* ── Init (moved here from earlier to avoid TDZ errors) ─── */
 selectTool('select');
