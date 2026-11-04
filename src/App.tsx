@@ -253,14 +253,12 @@ export function App() {
           <AnnouncementBoard />
         </LazyMount>
 
-        {/* "From the Blog" — the personal stream: writings, music and videos
-            mirrored from creativemindscambodia.blogspot.com. A scheduled
-            Action (blog-sync.yml) regenerates ./blog/posts.json from the
-            Blogger feed, same static pattern as the news headlines. The
-            educational announcements stay on the board above; this section is
-            the director's own thoughts & stories. Renders nothing if the
-            feed file is missing, so the homepage never shows a dead panel. */}
-        <LazyMount id="blog" minHeight={560}>
+        {/* "From the Blog" — the personal stream on Blogger, kept deliberately
+            quiet: one small Blogger-style badge linking to
+            creativemindscambodia.blogspot.com instead of a large card grid.
+            The educational announcements stay on the board above; this strip
+            only marks the director's own writings, songs & videos. */}
+        <LazyMount id="blog" minHeight={96}>
           <BlogSection />
         </LazyMount>
 
