@@ -49,7 +49,7 @@ export default function BrickForge({ onExit }: BrainGameProps) {
       setTick((t) => t + 1);
       if (p === "gameover") {
         // Shared scoreboard: levels cleared of 10 milestone stages.
-        // submitScore is a silent no-op for guests — anonymous play is fine.
+        // Guests submit too — submitScore asks their name once (Nov 2026).
         void submitScore({
           drillSlug: "brickforge",
           drillTitle: "BrickForge · Brain Lounge",

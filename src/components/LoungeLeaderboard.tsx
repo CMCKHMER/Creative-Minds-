@@ -345,7 +345,8 @@ export function LoungeLeaderboard() {
       {!you && (
         <p className="mt-4 text-[10px] leading-relaxed text-slate-600">
           <TrendingUp className="mr-1 inline h-3 w-3 text-cyan-300/60" aria-hidden="true" />
-          Guests can play everything — stats only attach to the board once you sign in.
+          Guests can play everything — enter your name when a run ends and your stats appear on
+          the board and the homepage ticker too.
         </p>
       )}
     </section>

@@ -22,7 +22,7 @@ export function chessScoreFields(outcome: ChessOutcome): { scorePct: number; cor
   return { scorePct: 0, correctCount: 0, totalCount: 1 };
 }
 
-/** Silent no-op for guests — anonymous play stays anonymous. */
+/** Guests submit under their entered name; signed-in players under their account. */
 export function submitChessResult(outcome: ChessOutcome): void {
   void submitScore({
     drillSlug: CHESS_DRILL_SLUG,

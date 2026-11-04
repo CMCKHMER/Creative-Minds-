@@ -429,11 +429,30 @@ export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: Ti
     };
     document.addEventListener('visibilitychange', onVisible);
 
+    // Instant refresh after a game/activity submits a stat. submitScore
+    // dispatches "cmc-drill-submitted" on every successful POST; a short
+    // delay lets the write land, and the 12s throttle collapses bursts
+    // (finishing several games / levels in a row) into one extra read.
+    // The single-flight, hidden-tab and quota-cooldown guards above still
+    // apply, so this can never stampede the free-tier quota.
+    let lastBump = 0;
+    let bumpTimer = 0;
+    const onDrillSubmitted = () => {
+      const now = Date.now();
+      if (now - lastBump < 12_000) return;
+      lastBump = now;
+      window.clearTimeout(bumpTimer);
+      bumpTimer = window.setTimeout(refresh, 2_500);
+    };
+    window.addEventListener('cmc-drill-submitted', onDrillSubmitted);
+
     return () => {
       cancelled = true;
       window.clearTimeout(t);
       window.clearInterval(interval);
+      window.clearTimeout(bumpTimer);
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('cmc-drill-submitted', onDrillSubmitted);
     };
   }, []);
 

@@ -543,13 +543,12 @@ var CMC_SYNC=(function(){
   }
   return function(slug,title,pct,correct,total){
     try{
-      var name=ls('cmc-student-name'),tok=ls('cmc-student-token');
-      if(!name||!tok)return;
+      var name=ls('cmc-student-name')||(function(){try{var _pn=JSON.parse(localStorage.getItem('cmc-player-name')||'null');return _pn&&_pn.name?String(_pn.name).slice(0,40):''}catch(_pe){return ''}})()||'',tok=ls('cmc-student-token');
+      if(!name){try{name=(prompt("Who's playing? Enter a name to appear on the leaderboard & ticker:")||'').trim().slice(0,40)}catch(_pe){name=''}if(name)try{localStorage.setItem('cmc-player-name',JSON.stringify({name:name,at:Date.now()}))}catch(_pe2){}}if(!name)name='Guest';
       var go=function(t){
-        if(!t)return;
         var classId=ls('cmc-student-classId');
         fetch(BASE+'/drill_attempts',{method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},
+          headers:Object.assign({'Content-Type':'application/json'},t?{'Authorization':'Bearer '+t}:{}),
           body:JSON.stringify({fields:{
             drillSlug:{stringValue:slug},drillTitle:{stringValue:title},
             drillSource:{stringValue:'learning-games'},

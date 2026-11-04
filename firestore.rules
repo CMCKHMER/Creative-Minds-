@@ -20,9 +20,12 @@ rules_version = '2';
 // WHAT THESE RULES DO (and why):
 //   - drill_attempts/{attemptId}: public read (the homepage ticker, game
 //     leaderboard and dashboards list it anonymously via the REST API);
-//     creates only for SIGNED-IN users submitting their OWN uid — a
-//     signed-in student cannot forge scores for classmates; scores are
-//     immutable (no update/delete by clients).
+//     creates for SIGNED-IN users submitting their OWN uid (a signed-in
+//     student cannot forge scores for classmates) PLUS a validated guest
+//     branch — empty studentUid, size/range-checked name & fields, no
+//     class attribution — so visitors who play the games appear on the
+//     ticker and leaderboards too (Nov 2026). Scores are immutable
+//     (no update/delete by clients).
 //   - teacher_chat/{msgId}: RETIRED (Nov 2026) — replaced by the blog-style
 //     `announcements` board. Kept publicly readable so old messages stay
 //     reachable, but every write is denied: the chat UI is gone.
@@ -104,20 +107,56 @@ service cloud.firestore {
     match /drill_attempts/{attemptId} {
       allow read: if true; // public scoreboard (ticker / leaderboard / dashboard)
 
-      allow create: if isVerifiedUser()
-        && request.resource.data.studentUid == request.auth.uid
-        && request.resource.data.studentUid is string
-        && request.resource.data.studentName is string
-        && request.resource.data.drillSlug is string
-        && request.resource.data.drillTitle is string
-        && request.resource.data.drillSource is string
-        && request.resource.data.scorePct is int
-        && request.resource.data.scorePct >= 0
-        && request.resource.data.scorePct <= 100
-        && request.resource.data.correctCount is int
-        && request.resource.data.correctCount >= 0
-        && request.resource.data.totalCount is int
-        && request.resource.data.totalCount >= 0;
+      // GUEST ATTEMPTS (Nov 2026): games used to record nothing for visitors
+      // who never signed up, so the homepage ticker never moved. Guests may
+      // now create attempts too — with an EMPTY studentUid (they have no
+      // account to claim) and every user-typed field size/range checked.
+      // Trade-off, accepted on purpose: a guest's displayed name and score
+      // are self-reported, so forged guest rows are possible. They can only
+      // pollute the motivational ticker/leaderboard — no class attribution
+      // (classId must be null), no account impact, append-only, and the
+      // signed-in path below still pins rows to the caller's own verified uid.
+      allow create: if (
+          isVerifiedUser()
+          && request.resource.data.studentUid == request.auth.uid
+          && request.resource.data.studentUid is string
+          && request.resource.data.studentName is string
+          && request.resource.data.drillSlug is string
+          && request.resource.data.drillTitle is string
+          && request.resource.data.drillSource is string
+          && request.resource.data.scorePct is int
+          && request.resource.data.scorePct >= 0
+          && request.resource.data.scorePct <= 100
+          && request.resource.data.correctCount is int
+          && request.resource.data.correctCount >= 0
+          && request.resource.data.totalCount is int
+          && request.resource.data.totalCount >= 0
+        ) || (
+          request.auth == null
+          && request.resource.data.studentUid == ''
+          && request.resource.data.studentName is string
+          && request.resource.data.studentName.size() >= 1
+          && request.resource.data.studentName.size() <= 40
+          && request.resource.data.drillSlug is string
+          && request.resource.data.drillSlug.size() >= 1
+          && request.resource.data.drillSlug.size() <= 80
+          && request.resource.data.drillTitle is string
+          && request.resource.data.drillTitle.size() >= 1
+          && request.resource.data.drillTitle.size() <= 120
+          && request.resource.data.drillSource is string
+          && request.resource.data.drillSource.size() >= 1
+          && request.resource.data.drillSource.size() <= 40
+          && request.resource.data.scorePct is int
+          && request.resource.data.scorePct >= 0
+          && request.resource.data.scorePct <= 100
+          && request.resource.data.correctCount is int
+          && request.resource.data.correctCount >= 0
+          && request.resource.data.correctCount <= 10000
+          && request.resource.data.totalCount is int
+          && request.resource.data.totalCount >= 0
+          && request.resource.data.totalCount <= 10000
+          && (!('classId' in request.resource.data) || request.resource.data.classId == null)
+        );
 
       // Score history is append-only — nobody rewrites results.
       allow update, delete: if false;
