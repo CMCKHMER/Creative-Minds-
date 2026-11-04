@@ -66,6 +66,11 @@ function gameNameFromSlug(slug: string): string {
     'writequest-home': 'WriteQuest · Home',
     'word-forge-quiz': 'Word Forge · Quiz',
     'word-forge-match': 'Word Forge · Match',
+    'voice-quest-l1': 'Voice Quest · Level 1',
+    'voice-quest-l2': 'Voice Quest · Level 2',
+    'voice-quest-l3': 'Voice Quest · Level 3',
+    'voice-quest-l4': 'Voice Quest · Level 4',
+    'voice-quest-l5': 'Voice Quest · Level 5',
   };
   if (KNOWN[slug]) return KNOWN[slug];
   // Fall back to title-case of the slug

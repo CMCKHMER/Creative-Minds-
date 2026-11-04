@@ -1,4 +1,4 @@
-export type LearningGameSkill = 'Vocabulary' | 'Reading' | 'Grammar' | 'Early literacy' | 'Listening';
+export type LearningGameSkill = 'Vocabulary' | 'Reading' | 'Grammar' | 'Early literacy' | 'Listening' | 'Speaking';
 
 export interface LearningGameQuestion {
   prompt: string;
@@ -38,6 +38,18 @@ const courtyardPassage = [
 const listeningGameScript = 'Teacher: The model wind turbine will be ready for the open house next month, but first we need to test the blade shapes. Student: Do we test them outside on the windy day? Teacher: No. Use the classroom fan on the same setting for every trial. Then the wind speed stays more consistent. Student: And should we measure how fast each blade turns? Teacher: Yes. Count the turns for thirty seconds, repeat three times, and write down the average. Student: We have four blade shapes and one afternoon. Teacher: Test two shapes today and two tomorrow, but keep the fan at the same distance. Our goal is to compare the designs fairly, not to finish in a single afternoon.';
 
 export const LEARNING_GAMES: LearningGame[] = [
+  {
+    id: 'voice-quest',
+    title: 'Voice Quest · Speak to Play',
+    skill: 'Speaking',
+    level: 'Grades 1–7',
+    duration: '5 levels · about 10 min',
+    description: 'Speak English commands to guide your buddy through mini-missions — directions, numbers, colors, animals, and full sentences. The character only moves when you say it right, so every step is real pronunciation practice with instant feedback and a "listen" button on every phrase. Microphone required (Chrome or Edge); typing fallback included.',
+    instructions: 'Open Voice Quest in a new tab, tap the microphone, allow mic access, and say the mission phrases out loud. Say "help" anytime for a hint.',
+    externalUrl: './voice-quest.html',
+    badge: 'New',
+    questions: [],
+  },
   {
     id: 'word-forge',
     title: 'Word Forge · Prefix & Suffix Workshop',

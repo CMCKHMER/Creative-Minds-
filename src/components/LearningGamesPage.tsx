@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, RotateCcw, Sparkles, XCircle, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, Mic, RotateCcw, Sparkles, XCircle, Volume2, VolumeX } from 'lucide-react';
 import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 import { GameLeaderboard, submitGameScore, useSignedInPlayerName } from './GameLeaderboard';
 import { playCorrectSound, playWrongSound, playCompleteSound, toggleGameSound, isGameSoundMuted, fireConfetti, ensureConfettiCSS } from '../lib/gameSound';
 
-const skillOptions: Array<'All games' | LearningGameSkill> = ['All games', 'Vocabulary', 'Reading', 'Grammar', 'Early literacy', 'Listening'];
+const skillOptions: Array<'All games' | LearningGameSkill> = ['All games', 'Vocabulary', 'Reading', 'Grammar', 'Early literacy', 'Listening', 'Speaking'];
 
 function gameIcon(skill: LearningGameSkill) {
   if (skill === 'Reading') return BookOpen;
   if (skill === 'Listening') return Headphones;
   if (skill === 'Vocabulary') return Lightbulb;
+  if (skill === 'Speaking') return Mic;
   return Sparkles;
 }
 
