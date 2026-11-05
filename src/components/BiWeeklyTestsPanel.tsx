@@ -56,7 +56,7 @@ const PRIVATE_TEST_CATALOG: PrivateTestEntry[] = [
   { testId: 'biweek-week6-listening', title: 'Week 6 · Listening: Student Athletes', slug: 'week6-listening', defaultMinutes: 15, group: 'Weekly drills (earlier cohort)' },
   { testId: 'biweek-week7-reading', title: 'Week 7 · Reading: How We Name the Stars', slug: 'week7-reading', defaultMinutes: 10, group: 'Weekly drills (earlier cohort)' },
   // Skills drills
-  { testId: 'biweek-grammar', title: 'Level 9b Grammar', slug: 'grammar', defaultMinutes: 10, group: 'Skills drills' },
+  { testId: 'biweek-grammar', title: 'Level 9b Parallel Structure', slug: 'grammar', defaultMinutes: 20, group: 'Skills drills' },
   { testId: 'biweek-structure', title: 'Level 11b Written Expressions', slug: 'structure', defaultMinutes: 20, group: 'Skills drills' },
   { testId: 'biweek-business-listening', title: 'B2 Business Listening Drill', slug: 'business-listening', defaultMinutes: 10, group: 'Skills drills' },
   { testId: 'biweek-inference-listening', title: 'Listening · Inference', slug: 'inference-listening', defaultMinutes: 8, group: 'Skills drills' },
