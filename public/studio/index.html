@@ -366,6 +366,34 @@
 .cell-bg-color{border:2px solid #4cc9f0}
 .num-fmt-currency::before{content:'$'}.num-fmt-percent::after{content:'%'}
 
+/* ═══════ CMC-OFFICE-GRADE — Word/Excel-class upgrades ═══════ */
+/* Spreadsheet: floating selection-range box (Excel-style blue ring) */
+#fxRangeBox{position:fixed;z-index:60;pointer-events:none;border:2px solid #0a84ff;background:rgba(10,132,255,.07);display:none}
+#fxFillBox{position:fixed;z-index:59;pointer-events:none;border:2px dashed #12b76a;background:rgba(18,183,106,.08);display:none}
+/* Spreadsheet: status strip (Excel-style selection stats) */
+.sheet-status{display:flex;align-items:center;gap:14px;padding:3px 10px;background:#f6f8fb;border-top:1px solid #d0d5dd;font:11px 'Instrument Sans',sans-serif;color:#45475a;white-space:nowrap;overflow:hidden}
+.sheet-status b{color:#111827;font-weight:700}
+.sheet-status .fx-pill{background:#eef2f7;border:1px solid #dbe2ec;border-radius:10px;padding:0 8px;line-height:16px}
+/* Spreadsheet: bordered cells (box borders via shadow so the grid border stays) */
+.sheet-grid td.cell.fx-bordered{box-shadow:inset 0 0 0 1px #8a94a6}
+/* Spreadsheet: fill handle */
+#fxFillHandle{position:fixed;width:8px;height:8px;background:#12b76a;border:1.5px solid #fff;box-shadow:0 0 0 1px #12b76a;cursor:crosshair;z-index:61;display:none}
+/* Spreadsheet quick bar: tiny inline color inputs */
+#quickSet-sheet input[type=color]{width:22px;height:22px;padding:0;border:1px solid var(--line);border-radius:4px;background:#fff;cursor:pointer}
+/* Document: images + floating image toolbar */
+.doc-layer img.doc-img{max-width:100%;height:auto;border-radius:2px;cursor:pointer}
+.doc-layer img.doc-img.fx-img-sel{outline:2px solid #06b6d4;outline-offset:2px}
+#fxImgChip{position:fixed;z-index:70;display:none;background:#fff;border:1px solid #d0d5dd;border-radius:8px;box-shadow:0 6px 18px rgba(15,23,42,.18);padding:4px 6px;gap:2px;align-items:center;font:11px 'Instrument Sans',sans-serif}
+#fxImgChip button{border:none;background:transparent;cursor:pointer;font-size:11px;padding:3px 6px;border-radius:5px;color:#111}
+#fxImgChip button:hover{background:#eef2f7}
+#fxImgChip .sep{width:1px;height:16px;background:#dbe2ec;margin:0 2px}
+/* Document: zoom via CSS zoom on the page layers */
+.doc-layer,.doc-header,.doc-footer{zoom:var(--doc-zoom,1)}
+/* Document: code block + quote styling inside the editor */
+.doc-layer pre{background:#0f172a;color:#e2e8f0;font-family:'Roboto Mono','Courier New',monospace;font-size:13px;padding:12px 14px;border-radius:8px;white-space:pre-wrap;margin:12px 0}
+.doc-layer blockquote{border-left:3px solid #06b6d4;background:#f5f8fc;margin:12px 0;padding:8px 16px;color:#334155}
+/* Quick bar word counter */
+.quick-stats{font:11px 'Instrument Sans',sans-serif;color:#45475a;white-space:nowrap;align-self:center}
 </style>
 </head>
 <body>
@@ -615,8 +643,8 @@
       <select onchange="docCmd('fontName', this.value); this.selectedIndex=0" title="Font">
         <option value="">Font…</option><option value="Inter">Inter</option><option value="Syne">Syne</option><option value="Roboto">Roboto</option><option value="Lato">Lato</option><option value="Montserrat">Montserrat</option><option value="Playfair Display">Playfair</option><option value="Merriweather">Merriweather</option><option value="Source Sans 3">Source Sans</option><option value="Oswald">Oswald</option><option value="Poppins">Poppins</option><option value="Raleway">Raleway</option><option value="Georgia">Georgia</option><option value="Arial">Arial</option><option value="Courier New">Courier</option>
       </select>
-      <select onchange="docCmd('fontSize', this.value); this.selectedIndex=0" title="Font Size">
-        <option value="">Size…</option><option value="1">8pt</option><option value="2">10pt</option><option value="3">12pt</option><option value="4">14pt</option><option value="5">18pt</option><option value="6">24pt</option><option value="7">36pt</option>
+      <select onchange="docFontSizePt(this.value); this.selectedIndex=0" title="Font Size (pt — Word-accurate)">
+        <option value="">Size…</option><option value="8">8pt</option><option value="9">9pt</option><option value="10">10pt</option><option value="11">11pt</option><option value="12">12pt</option><option value="14">14pt</option><option value="16">16pt</option><option value="18">18pt</option><option value="20">20pt</option><option value="24">24pt</option><option value="28">28pt</option><option value="32">32pt</option><option value="36">36pt</option><option value="48">48pt</option><option value="60">60pt</option><option value="72">72pt</option>
       </select>
       <input type="color" id="docColor" value="#000000" title="Text Color">
       <input type="color" id="docHighlight" value="#ffff00" title="Highlight Color">
@@ -649,8 +677,29 @@
       <button class="quick-btn" onclick="formatPainter()" title="Format Painter">🖌</button>
       <button class="quick-btn" onclick="findReplace()" title="Find &amp; Replace">🔍</button>
       <button class="quick-btn" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
+      <select id="docStyleSel" onchange="docStyle(this.value); this.selectedIndex=0" title="Paragraph style (Word-style gallery)">
+        <option value="">Style…</option><option value="p">Normal text</option><option value="title">Title</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option><option value="h3">Heading 3</option><option value="h4">Heading 4</option><option value="blockquote">Quote</option><option value="pre">Code block</option>
+      </select>
+      <select id="docSpacingSel" onchange="docLineSpacing(this.value); this.selectedIndex=0" title="Line spacing">
+        <option value="">Spacing…</option><option value="1">1.0</option><option value="1.15">1.15</option><option value="1.5">1.5</option><option value="2">2.0</option><option value="2.5">2.5</option>
+      </select>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)">↶</button>
+      <button class="quick-btn" onclick="document.execCommand('redo')" title="Redo (Ctrl+Y)">↷</button>
+      <button class="quick-btn" onclick="docInsertHR()" title="Insert horizontal rule">—</button>
+      <button class="quick-btn" onclick="docImgInput.click()" title="Insert image">🖼</button>
+      <button class="quick-btn" onclick="tableCmd('toggleHeader')" title="Toggle header row on the current table">▦H</button>
+      <button class="quick-btn" onclick="tableCmd('deleteTable')" title="Delete the current table">🗑▦</button>
+      <span class="quick-stats" id="docStats">0 words · 0 chars</span>
+      <div class="quick-sep"></div>
+      <select onchange="docZoom(this.value)" title="Document zoom" id="docZoomSel">
+        <option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option>
+      </select>
       <div class="quick-sep"></div>
       <button class="quick-btn" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
+      <button class="quick-btn" onclick="fxDocExportWord()" title="Download as .doc — opens in Microsoft Word">W ⬇doc</button>
+      <button class="quick-btn" onclick="fxDocExportHtml()" title="Download as .html">⬇html</button>
+      <button class="quick-btn" onclick="docHtmlInput.click()" title="Import a .html / .txt file into the document">⬆import</button>
     </div>
 
     <!-- ── Excel tool set (moved out of the old header sheetBar) ── -->
@@ -661,8 +710,9 @@
       <button class="quick-btn" onclick="sheetCmd('alignLeft')" title="Align Left">≡←</button>
       <button class="quick-btn" onclick="sheetCmd('alignCenter')" title="Align Center">≡</button>
       <button class="quick-btn" onclick="sheetCmd('alignRight')" title="Align Right">≡→</button>
-      <button class="quick-btn" onclick="sheetCmd('fillColor')" title="Fill Color">🎨</button>
-      <button class="quick-btn" onclick="sheetCmd('textColor')" title="Text Color" style="color:#f38ba8">A</button>
+      <button class="quick-btn" onclick="sheetCmd('fillColor')" title="Fill Color — paints the whole selection">🎨</button>
+      <input type="color" id="sheetFill" value="#eafaff" title="Cell Fill Color">
+      <button class="quick-btn" onclick="sheetCmd('textColor')" title="Text Color — paints the whole selection" style="color:#f38ba8">A</button>
       <input type="color" id="sheetColor" value="#000000" title="Cell Text Color">
       <div class="quick-sep"></div>
       <button class="quick-btn" onclick="sheetCmd('insertRowAbove')" title="Insert row above">+Row↑</button>
@@ -678,8 +728,20 @@
       <button class="quick-btn" onclick="sheetCmd('clearFormat')" title="Clear Format">⌫</button>
       <button class="quick-btn" onclick="sheetCmd('clearAll')" title="Clear All">🗑</button>
       <div class="quick-sep"></div>
+      <select id="sheetFmtSel" onchange="sheetCmd('fmt', this.value); this.selectedIndex=0" title="Number format (applies to the whole selection)">
+        <option value="">123 Format…</option><option value="gen">General</option><option value="int">1,234</option><option value="thou2">1,234.00</option><option value="cur">$1,234.00</option><option value="pct">12%</option><option value="pct2">12.34%</option><option value="text">Text (as typed)</option>
+      </select>
+      <button class="quick-btn" onclick="sheetCmd('border')" title="Toggle box borders on the selection">⊞</button>
+      <button class="quick-btn" onclick="sheetCmd('sortAsc')" title="Sort selection A → Z (by the active column)">A↓Z</button>
+      <button class="quick-btn" onclick="sheetCmd('sortDesc')" title="Sort selection Z → A (by the active column)">Z↓A</button>
+      <button class="quick-btn" onclick="sheetCmd('fillDown')" title="Fill down from the top row of the selection">⤓</button>
+      <button class="quick-btn" onclick="sheetCmd('fillRight')" title="Fill right from the left column of the selection">⤒</button>
+      <div class="quick-sep"></div>
       <button class="quick-btn" onclick="fileSavePng()" title="Export sheet as PNG">💾 PNG</button>
       <button class="quick-btn" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
+      <button class="quick-btn" onclick="fileSaveCsv()" title="Export current sheet as CSV">⬇CSV</button>
+      <button class="quick-btn" onclick="fxSheetExportXls()" title="Export current sheet as .xls — opens in Microsoft Excel">X ⬇xls</button>
+      <button class="quick-btn" onclick="sheetCsvInput.click()" title="Import a .csv file into the current sheet">⬆CSV</button>
     </div>
 
     <!-- ── Code tool set ── -->
@@ -712,6 +774,9 @@
       <button class="btn-ghost" id="importBtn">+ Image</button>
       <input type="file" id="fileInput" accept="image/*" hidden>
       <input type="file" id="openInput" accept="image/png,image/jpeg,application/json,.json" hidden>
+      <input type="file" id="sheetCsvInput" accept=".csv,.tsv,.txt,text/csv" hidden>
+      <input type="file" id="docImgInput" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+      <input type="file" id="docHtmlInput" accept=".html,.htm,.txt" hidden>
       <button class="icon-btn" id="undoBtn" title="Undo (Ctrl+Z)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 016 6v1"/></svg>
       </button>
@@ -811,6 +876,7 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
             </div>
             <div class="sheet-grid-wrap" id="sheetGridWrap"><table class="sheet-grid" id="sheetGrid"></table></div>
             <div class="sheet-tabs" id="sheetTabs"><span class="sheet-tab-add" onclick="sheetCmd('addSheet')">+</span></div>
+            <div class="sheet-status" id="sheetStatus"><b id="sheetStatusRef">A1</b><span id="sheetStatusStats"></span></div>
           </div>
           <canvas id="preview"></canvas>
           <!-- Transform handles are created dynamically by drawTransformHandles()
@@ -3756,6 +3822,1486 @@ renderSheetTabs();
 renderLayerList();
 renderHistoryList();
 applyDocRotation();
+
+/* ═══════════════ CMC-OFFICE-GRADE · layer 1: formula engine ═══════════════
+   Real tokenizer + recursive-descent parser (no eval, no regex chain).
+   • ~55 functions (SUM/AVERAGEIF/VLOOKUP/INDEX/MATCH/MEDIAN/IFERROR/…)
+   • Cross-sheet refs: Sheet2!A1, 'My Sheet'!A1:B3
+   • $-absolute refs, & concatenation, comparisons, unary minus with Excel
+     precedence (-2^2 = 4), percent postfix, real error values:
+     #DIV/0! #VALUE! #REF! #NAME? #N/A #NUM! #CIRC!
+   This function declaration shadows the legacy evalFormula (same name, later
+   in source wins) so every existing call site upgrades automatically. */
+const FX_ERRORS = ['#DIV/0!','#VALUE!','#REF!','#NAME?','#N/A','#NUM!','#CIRC!','#ERR'];
+function fxErr(code){ return { __fxerr: code }; }
+function fxIsErr(v){ return !!(v && typeof v === 'object' && typeof v.__fxerr === 'string'); }
+function fxParseRefAt(src, j){
+  const m = src.slice(j).match(/^(\$?)([A-Za-z]{1,3})(\$?)([0-9]+)/);
+  if (!m) return null;
+  return { absC: m[1] === '$', col: m[2].toUpperCase(), absR: m[3] === '$', row: m[4], end: j + m[0].length };
+}
+function fxTokenize(src){
+  const T = []; let i = 0; const n = src.length;
+  while (i < n) {
+    const ch = src[i];
+    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') { i++; continue; }
+    if (ch === '"') {
+      let j = i + 1, out = '';
+      while (j < n) { if (src[j] === '"') { if (src[j+1] === '"') { out += '"'; j += 2; continue; } break; } out += src[j++]; }
+      if (j >= n) return { err: '#VALUE!' };
+      T.push({ t: 'str', v: out }); i = j + 1; continue;
+    }
+    if (ch === '#') {
+      const rest = src.slice(i).toUpperCase();
+      const hit = FX_ERRORS.find(e => rest.startsWith(e)) || (rest.startsWith('#CIRC') ? '#CIRC!' : null);
+      if (hit) { T.push({ t: 'err', v: hit }); i += hit.length; continue; }
+      return { err: '#NAME?' };
+    }
+    if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(src[i+1] || ''))) {
+      let j = i; while (j < n && /[0-9.]/.test(src[j])) j++;
+      const num = parseFloat(src.slice(i, j));
+      if (isNaN(num)) return { err: '#VALUE!' };
+      T.push({ t: 'num', v: num }); i = j; continue;
+    }
+    if (/[A-Za-z_$']/.test(ch)) {
+      let sheet = null, j = i;
+      if (ch === "'") {
+        const end = src.indexOf("'", i + 1);
+        if (end === -1 || src[end+1] !== '!') return { err: '#NAME?' };
+        sheet = src.slice(i + 1, end); j = end + 2;
+      } else {
+        let k = j; while (k < n && /[A-Za-z0-9_]/.test(src[k])) k++;
+        if (src[k] === '!' && k > j && /[A-Za-z$]/.test(src[k+1] || '')) { sheet = src.slice(j, k); j = k + 1; }
+      }
+      if (sheet !== null) {
+        const ref = fxParseRefAt(src, j);
+        if (!ref) return { err: '#REF!' };
+        T.push({ t: 'ref', sheet, absC: ref.absC, col: ref.col, absR: ref.absR, row: ref.row });
+        i = ref.end; continue;
+      }
+      let k = j; while (k < n && /[A-Za-z0-9_$.]/.test(src[k])) k++;
+      const word = src.slice(i, k);
+      if (src[k] === '(') { T.push({ t: 'func', v: word.toUpperCase() }); i = k; continue; }
+      const up = word.toUpperCase();
+      if (up === 'TRUE' || up === 'FALSE') { T.push({ t: 'bool', v: up === 'TRUE' }); i = k; continue; }
+      const m = word.match(/^(\$?)([A-Za-z]{1,3})(\$?)([0-9]+)$/);
+      if (m) { T.push({ t: 'ref', sheet: null, absC: m[1] === '$', col: m[2].toUpperCase(), absR: m[3] === '$', row: m[4] }); i = k; continue; }
+      return { err: '#NAME?' };
+    }
+    if ('+-*/^&%(),:<>='.includes(ch)) {
+      let op = ch;
+      if ((ch === '<' || ch === '>') && src[i+1] === '=') op = ch + '=';
+      else if (ch === '<' && src[i+1] === '>') op = '<>';
+      T.push({ t: 'op', v: op }); i += op.length; continue;
+    }
+    return { err: '#NAME?' };
+  }
+  T.push({ t: 'eof' });
+  return { tokens: T };
+}
+function fxParse(tokens){
+  let p = 0;
+  const peek = () => tokens[p];
+  const next = () => tokens[p++];
+  const atOp = (...vs) => peek().t === 'op' && vs.includes(peek().v);
+  function parseExpr(){ return parseCompare(); }
+  function parseCompare(){
+    let l = parseConcat();
+    while (atOp('=','<>','<','>','<=','>=')) { const op = next().v; l = { t: 'cmp', op, l, r: parseConcat() }; }
+    return l;
+  }
+  function parseConcat(){
+    let l = parseAdd();
+    while (atOp('&')) { next(); l = { t: 'conc', l, r: parseAdd() }; }
+    return l;
+  }
+  function parseAdd(){
+    let l = parseMul();
+    while (atOp('+','-')) { const op = next().v; l = { t: op === '+' ? 'add' : 'sub', l, r: parseMul() }; }
+    return l;
+  }
+  function parseMul(){
+    let l = parsePower();
+    while (atOp('*','/')) { const op = next().v; l = { t: op === '*' ? 'mul' : 'div', l, r: parsePower() }; }
+    return l;
+  }
+  function parsePower(){
+    let l = parseUnaryBase();
+    while (atOp('^')) { next(); l = { t: 'pow', l, r: parseUnaryBase() }; }
+    return l;
+  }
+  function parseUnaryBase(){
+    if (atOp('-')) { next(); return { t: 'neg', a: parseUnaryBase() }; }
+    if (atOp('+')) { next(); return parseUnaryBase(); }
+    return parsePostfix();
+  }
+  function parsePostfix(){
+    let l = parsePrimary();
+    while (atOp('%')) { next(); l = { t: 'pct', a: l }; }
+    return l;
+  }
+  function parsePrimary(){
+    const tok = next();
+    if (tok.t === 'num' || tok.t === 'str' || tok.t === 'bool') return { t: tok.t, v: tok.v };
+    if (tok.t === 'err') return { t: 'err', v: tok.v };
+    if (tok.t === 'op' && tok.v === '(') { const e = parseExpr(); if (!(peek().t === 'op' && peek().v === ')')) throw fxErr('#VALUE!'); next(); return e; }
+    if (tok.t === 'ref') {
+      if (peek().t === 'op' && peek().v === ':') {
+        next(); const tok2 = next();
+        if (tok2.t !== 'ref') throw fxErr('#REF!');
+        const sheet = tok.sheet != null ? tok.sheet : tok2.sheet;
+        return { t: 'range', sheet, col1: tok.col, row1: tok.row, col2: tok2.col, row2: tok2.row };
+      }
+      return { t: 'ref', sheet: tok.sheet, col: tok.col, row: tok.row };
+    }
+    if (tok.t === 'func') {
+      if (!(peek().t === 'op' && peek().v === '(')) throw fxErr('#VALUE!');
+      next();
+      const args = [];
+      if (peek().t === 'op' && peek().v === ')') { next(); return { t: 'func', name: tok.v, args }; }
+      while (true) {
+        if (peek().t === 'op' && (peek().v === ',' || peek().v === ')')) args.push({ t: 'empty' });
+        else args.push(parseExpr());
+        if (peek().t === 'op' && peek().v === ',') { next(); continue; }
+        if (peek().t === 'op' && peek().v === ')') { next(); break; }
+        throw fxErr('#VALUE!');
+      }
+      return { t: 'func', name: tok.v, args };
+    }
+    throw fxErr('#VALUE!');
+  }
+  const ast = parseExpr();
+  if (peek().t !== 'eof') throw fxErr('#VALUE!');
+  return ast;
+}
+function fxResolveSheet(name){
+  const want = String(name).toLowerCase();
+  for (let i = 0; i < sheets.length; i++) if (String(sheets[i].name).toLowerCase() === want) return i;
+  return -1;
+}
+function fxCellValue(s, r, c, visited){
+  const key = s + '!' + r + ',' + c;
+  if (visited.has(key)) return fxErr('#CIRC!');
+  const sh = sheets[s]; if (!sh) return fxErr('#REF!');
+  visited.add(key);
+  const cell = sh.cells[r + ',' + c];
+  let raw = cell ? cell.v : '';
+  let out;
+  if (typeof raw === 'number') out = raw;
+  else if (typeof raw === 'string' && raw.startsWith('=')) out = fxEvalInner(raw.slice(1), s, visited);
+  else if (raw === '' || raw == null) out = '';
+  else if (typeof raw === 'string' && /^-?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(raw.trim()) && String(Number(raw.trim())) === raw.trim()) out = Number(raw.trim());
+  else out = raw;
+  visited.delete(key);
+  return out;
+}
+function fxEvalInner(exprSrc, sheetIdx, visited){
+  const tk = fxTokenize(exprSrc);
+  if (tk.err) return fxErr(tk.err);
+  let ast;
+  try { ast = fxParse(tk.tokens); } catch (e) { return fxIsErr(e) ? e : fxErr('#VALUE!'); }
+  return fxNode(ast, { sheet: sheetIdx, visited });
+}
+const FX_NUM_RE = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+function fxToNumSoft(v){
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  if (typeof v === 'boolean') return v ? 1 : 0;
+  if (v === '' || v == null) return null;
+  if (typeof v === 'string') { const t = v.trim(); if (FX_NUM_RE.test(t)) { const n = parseFloat(t); return isNaN(n) ? null : n; } return null; }
+  return null;
+}
+function fxToNum(v){
+  if (typeof v === 'number') return isFinite(v) ? v : fxErr('#NUM!');
+  if (typeof v === 'boolean') return v ? 1 : 0;
+  if (v === '' || v == null) return 0;
+  if (typeof v === 'string') { const t = v.trim(); if (FX_NUM_RE.test(t)) { const n = parseFloat(t); return isNaN(n) ? fxErr('#VALUE!') : n; } return fxErr('#VALUE!'); }
+  return fxErr('#VALUE!');
+}
+function fxToStr(v){
+  if (typeof v === 'number') return fxNumToDisp(v);
+  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+  return v == null ? '' : String(v);
+}
+function fxTruth(v){
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'number') return v !== 0;
+  if (typeof v === 'string') { const u = v.trim().toUpperCase(); if (u === 'TRUE') return true; if (u === 'FALSE' || u === '') return false; const n = fxToNumSoft(v); if (n !== null) return n !== 0; }
+  return fxErr('#VALUE!');
+}
+function fxCompare(a, b){
+  if (typeof a === 'number' && typeof b === 'number') return a === b ? 0 : (a < b ? -1 : 1);
+  const an = fxToNumSoft(a), bn = fxToNumSoft(b);
+  if (an !== null && bn !== null && a !== '' && b !== '') return an === bn ? 0 : (an < bn ? -1 : 1);
+  const as = fxToStr(a).toUpperCase(), bs = fxToStr(b).toUpperCase();
+  return as === bs ? 0 : (as < bs ? -1 : 1);
+}
+function fxApplyCmp(x, op){
+  switch (op) { case '=': return x === 0; case '<>': return x !== 0; case '<': return x < 0; case '>': return x > 0; case '<=': return x <= 0; case '>=': return x >= 0; }
+  return false;
+}
+function fxNode(nd, ctx){
+  switch (nd.t) {
+    case 'num': case 'str': case 'bool': return nd.v;
+    case 'empty': return '';
+    case 'err': return fxErr(nd.v);
+    case 'ref': {
+      const s = nd.sheet != null ? fxResolveSheet(nd.sheet) : ctx.sheet;
+      if (s < 0) return fxErr('#REF!');
+      return fxCellValue(s, parseInt(nd.row, 10) - 1, colIndex(nd.col), ctx.visited);
+    }
+    case 'range': {
+      const s = nd.sheet != null ? fxResolveSheet(nd.sheet) : ctx.sheet;
+      if (s < 0) return fxErr('#REF!');
+      const c1 = colIndex(nd.col1), c2 = colIndex(nd.col2);
+      const r1 = parseInt(nd.row1, 10) - 1, r2 = parseInt(nd.row2, 10) - 1;
+      if (c1 < 0 || c2 < 0 || r1 < 0 || r2 < 0) return fxErr('#REF!');
+      return { __fxrange: true, s, r1: Math.min(r1,r2), r2: Math.max(r1,r2), c1: Math.min(c1,c2), c2: Math.max(c1,c2) };
+    }
+    case 'neg': { const v = fxNode(nd.a, ctx); if (fxIsErr(v)) return v; const n = fxToNum(v); return fxIsErr(n) ? n : -n; }
+    case 'pct': { const v = fxNode(nd.a, ctx); if (fxIsErr(v)) return v; const n = fxToNum(v); return fxIsErr(n) ? n : n / 100; }
+    case 'pow': {
+      const l = fxNode(nd.l, ctx); if (fxIsErr(l)) return l; const ln = fxToNum(l); if (fxIsErr(ln)) return ln;
+      const r = fxNode(nd.r, ctx); if (fxIsErr(r)) return r; const rn = fxToNum(r); if (fxIsErr(rn)) return rn;
+      const out = Math.pow(ln, rn); return isFinite(out) ? out : fxErr('#NUM!');
+    }
+    case 'add': case 'sub': case 'mul': case 'div': {
+      const l = fxNode(nd.l, ctx); if (fxIsErr(l)) return l; const ln = fxToNum(l); if (fxIsErr(ln)) return ln;
+      const r = fxNode(nd.r, ctx); if (fxIsErr(r)) return r; const rn = fxToNum(r); if (fxIsErr(rn)) return rn;
+      if (nd.t === 'add') return ln + rn;
+      if (nd.t === 'sub') return ln - rn;
+      if (nd.t === 'mul') return ln * rn;
+      if (rn === 0) return fxErr('#DIV/0!');
+      return ln / rn;
+    }
+    case 'conc': { const l = fxNode(nd.l, ctx); if (fxIsErr(l)) return l; const r = fxNode(nd.r, ctx); if (fxIsErr(r)) return r; return fxToStr(l) + fxToStr(r); }
+    case 'cmp': {
+      const l = fxNode(nd.l, ctx); if (fxIsErr(l)) return l;
+      const r = fxNode(nd.r, ctx); if (fxIsErr(r)) return r;
+      return fxApplyCmp(fxCompare(l, r), nd.op);
+    }
+    case 'func': {
+      const f = FX_FUNCS[nd.name];
+      if (!f) return fxErr('#NAME?');
+      try { return f(nd.args, x => fxNode(x, ctx), ctx); }
+      catch (e) { return fxIsErr(e) ? e : fxErr('#VALUE!'); }
+    }
+  }
+  return fxErr('#VALUE!');
+}
+function fxRangeScan(rng, visited){
+  const out = [];
+  const cells = (rng.r2 - rng.r1 + 1) * (rng.c2 - rng.c1 + 1);
+  if (cells > 250000) return fxErr('#VALUE!');
+  for (let r = rng.r1; r <= rng.r2; r++) for (let c = rng.c1; c <= rng.c2; c++) {
+    const v = fxCellValue(rng.s, r, c, visited);
+    if (fxIsErr(v)) return v;
+    out.push(v);
+  }
+  return out;
+}
+function fxFlat(args, ev, visited){
+  const nums = [], vals = [];
+  for (const a of args) {
+    const v = ev(a);
+    if (fxIsErr(v)) return v;
+    if (v && v.__fxrange) {
+      const scan = fxRangeScan(v, visited);
+      if (fxIsErr(scan)) return scan;
+      for (const cv of scan) { vals.push(cv); const n = fxToNumSoft(cv); if (n !== null) nums.push(n); }
+    } else { vals.push(v); const n = fxToNumSoft(v); if (n !== null) nums.push(n); }
+  }
+  return { nums, vals };
+}
+function fxArg(args, i){ return i < args.length ? args[i] : { t: 'empty' }; }
+function fxMatchCrit(crit, v){
+  if (fxIsErr(v)) return false;
+  if (typeof crit === 'number' || typeof crit === 'boolean') return fxCompare(v, crit) === 0;
+  const c = String(crit);
+  const m = c.match(/^(<=|>=|<>|<|>|=)([\s\S]*)$/);
+  if (m) {
+    const op = m[1], rhsRaw = m[2].trim();
+    const rn = fxToNumSoft(rhsRaw), vn = fxToNumSoft(v);
+    if (rn !== null && vn !== null && rhsRaw !== '') return fxApplyCmp(fxCompare(vn, rn), op);
+    const lhs = fxToStr(v).toUpperCase(), rhs = rhsRaw.toUpperCase();
+    switch (op) { case '=': return lhs === rhs; case '<>': return lhs !== rhs; case '<': return lhs < rhs; case '>': return lhs > rhs; case '<=': return lhs <= rhs; case '>=': return lhs >= rhs; }
+    return false;
+  }
+  if (c.includes('*') || c.includes('?')) {
+    const re = new RegExp('^' + c.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[\\s\\S]*').replace(/\?/g, '[\\s\\S]') + '$', 'i');
+    return re.test(fxToStr(v));
+  }
+  return fxCompare(v, c) === 0;
+}
+function fxSampleVar(nums){
+  const n = nums.length; if (n < 2) return fxErr('#DIV/0!');
+  const avg = nums.reduce((s, x) => s + x, 0) / n;
+  return nums.reduce((s, x) => s + (x - avg) * (x - avg), 0) / (n - 1);
+}
+function fxLooseEq(a, b){
+  const an = fxToNumSoft(a), bn = fxToNumSoft(b);
+  if (an !== null && bn !== null && a !== '' && b !== '') return an === bn;
+  return fxToStr(a).toUpperCase() === fxToStr(b).toUpperCase();
+}
+const FX_FUNCS = {
+  SUM: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : f.nums.reduce((s, x) => s + x, 0); },
+  PRODUCT: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : (f.nums.length ? f.nums.reduce((s, x) => s * x, 1) : 0); },
+  AVERAGE: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : (f.nums.length ? f.nums.reduce((s, x) => s + x, 0) / f.nums.length : fxErr('#DIV/0!')); },
+  MIN: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : (f.nums.length ? Math.min(...f.nums) : 0); },
+  MAX: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : (f.nums.length ? Math.max(...f.nums) : 0); },
+  MEDIAN: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); if (fxIsErr(f)) return f; const s = f.nums.slice().sort((x, y) => x - y); if (!s.length) return fxErr('#NUM!'); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m-1] + s[m]) / 2; },
+  COUNT: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : f.nums.length; },
+  COUNTA: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : f.vals.filter(v => v !== '' && v != null).length; },
+  COUNTBLANK: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : f.vals.filter(v => v === '' || v == null).length; },
+  STDEV: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); if (fxIsErr(f)) return f; const v = fxSampleVar(f.nums); return fxIsErr(v) ? v : Math.sqrt(v); },
+  VAR: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : fxSampleVar(f.nums); },
+  ABS: (a, ev) => { const v = fxToNum(ev(fxArg(a, 0))); return fxIsErr(v) ? v : Math.abs(v); },
+  SQRT: (a, ev) => { const v = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(v)) return v; return v < 0 ? fxErr('#NUM!') : Math.sqrt(v); },
+  POWER: (a, ev) => { const x = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(x)) return x; const y = fxToNum(ev(fxArg(a, 1))); if (fxIsErr(y)) return y; const out = Math.pow(x, y); return isFinite(out) ? out : fxErr('#NUM!'); },
+  EXP: (a, ev) => { const v = fxToNum(ev(fxArg(a, 0))); return fxIsErr(v) ? v : Math.exp(v); },
+  LN: (a, ev) => { const v = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(v)) return v; return v <= 0 ? fxErr('#NUM!') : Math.log(v); },
+  INT: (a, ev) => { const v = fxToNum(ev(fxArg(a, 0))); return fxIsErr(v) ? v : Math.floor(v); },
+  MOD: (a, ev) => { const x = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(x)) return x; const y = fxToNum(ev(fxArg(a, 1))); if (fxIsErr(y)) return y; if (y === 0) return fxErr('#DIV/0!'); return x - y * Math.floor(x / y); },
+  ROUND: (a, ev) => { const x = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(x)) return x; const d = fxToNum(ev(fxArg(a, 1))); if (fxIsErr(d)) return d; const m = Math.pow(10, d); return Math.round(x * m) / m; },
+  ROUNDUP: (a, ev) => { const x = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(x)) return x; const d = fxToNum(ev(fxArg(a, 1))); if (fxIsErr(d)) return d; const m = Math.pow(10, d); return (x < 0 ? -Math.ceil(Math.abs(x) * m) : Math.ceil(x * m)) / m; },
+  ROUNDDOWN: (a, ev) => { const x = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(x)) return x; const d = fxToNum(ev(fxArg(a, 1))); if (fxIsErr(d)) return d; const m = Math.pow(10, d); return (x < 0 ? -Math.floor(Math.abs(x) * m) : Math.floor(x * m)) / m; },
+  CEILING: (a, ev) => { const x = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(x)) return x; const sig = a.length > 1 ? fxToNum(ev(fxArg(a, 1))) : 1; if (fxIsErr(sig)) return sig; if (sig === 0) return 0; return Math.ceil(x / sig) * sig; },
+  FLOOR: (a, ev) => { const x = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(x)) return x; const sig = a.length > 1 ? fxToNum(ev(fxArg(a, 1))) : 1; if (fxIsErr(sig)) return sig; if (sig === 0) return fxErr('#DIV/0!'); return Math.floor(x / sig) * sig; },
+  PI: () => Math.PI,
+  RAND: () => Math.random(),
+  RANDBETWEEN: (a, ev) => { const lo = fxToNum(ev(fxArg(a, 0))); if (fxIsErr(lo)) return lo; const hi = fxToNum(ev(fxArg(a, 1))); if (fxIsErr(hi)) return hi; return Math.floor(Math.random() * (Math.floor(hi) - Math.ceil(lo) + 1)) + Math.ceil(lo); },
+  IF: (a, ev) => { const c = ev(fxArg(a, 0)); if (fxIsErr(c)) return c; const t = fxTruth(c); if (fxIsErr(t)) return t; if (t) return a.length > 1 ? ev(a[1]) : true; return a.length > 2 ? ev(a[2]) : false; },
+  IFERROR: (a, ev) => { const v = ev(fxArg(a, 0)); if (fxIsErr(v)) return a.length > 1 ? ev(a[1]) : ''; return v; },
+  AND: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); if (fxIsErr(f)) return f; if (!f.vals.length) return fxErr('#VALUE!'); return f.vals.every(v => v === '' ? true : fxTruth(v) === true); },
+  OR: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); if (fxIsErr(f)) return f; if (!f.vals.length) return fxErr('#VALUE!'); return f.vals.some(v => v !== '' && fxTruth(v) === true); },
+  NOT: (a, ev) => { const v = ev(fxArg(a, 0)); if (fxIsErr(v)) return v; const t = fxTruth(v); return fxIsErr(t) ? t : !t; },
+  TRUE: () => true,
+  FALSE: () => false,
+  SUMIF: (a, ev, ctx) => {
+    const rng = ev(fxArg(a, 0)); if (fxIsErr(rng)) return rng;
+    if (!(rng && rng.__fxrange)) return fxErr('#VALUE!');
+    const crit = ev(fxArg(a, 1)); if (fxIsErr(crit)) return crit;
+    let sumRng = rng;
+    if (a.length > 2) { const sr = ev(a[2]); if (fxIsErr(sr)) return sr; if (sr && sr.__fxrange) sumRng = sr; }
+    const scan = fxRangeScan(rng, ctx.visited); if (fxIsErr(scan)) return scan;
+    let sum = 0, i = 0;
+    for (let r = rng.r1; r <= rng.r2; r++) for (let c = rng.c1; c <= rng.c2; c++, i++) {
+      if (!fxMatchCrit(crit, scan[i])) continue;
+      const dr = r - rng.r1, dc = c - rng.c1;
+      const tr = sumRng.r1 + Math.min(dr, sumRng.r2 - sumRng.r1), tc = sumRng.c1 + Math.min(dc, sumRng.c2 - sumRng.c1);
+      const v = fxCellValue(sumRng.s, tr, tc, ctx.visited);
+      if (fxIsErr(v)) return v;
+      const n = fxToNumSoft(v); if (n !== null) sum += n;
+    }
+    return sum;
+  },
+  COUNTIF: (a, ev, ctx) => {
+    const rng = ev(fxArg(a, 0)); if (fxIsErr(rng)) return rng;
+    if (!(rng && rng.__fxrange)) return fxErr('#VALUE!');
+    const crit = ev(fxArg(a, 1)); if (fxIsErr(crit)) return crit;
+    const scan = fxRangeScan(rng, ctx.visited); if (fxIsErr(scan)) return scan;
+    return scan.filter(v => fxMatchCrit(crit, v)).length;
+  },
+  AVERAGEIF: (a, ev, ctx) => {
+    const rng = ev(fxArg(a, 0)); if (fxIsErr(rng)) return rng;
+    if (!(rng && rng.__fxrange)) return fxErr('#VALUE!');
+    const crit = ev(fxArg(a, 1)); if (fxIsErr(crit)) return crit;
+    let sumRng = rng;
+    if (a.length > 2) { const sr = ev(a[2]); if (fxIsErr(sr)) return sr; if (sr && sr.__fxrange) sumRng = sr; }
+    const scan = fxRangeScan(rng, ctx.visited); if (fxIsErr(scan)) return scan;
+    let sum = 0, n = 0, i = 0;
+    for (let r = rng.r1; r <= rng.r2; r++) for (let c = rng.c1; c <= rng.c2; c++, i++) {
+      if (!fxMatchCrit(crit, scan[i])) continue;
+      const dr = r - rng.r1, dc = c - rng.c1;
+      const tr = sumRng.r1 + Math.min(dr, sumRng.r2 - sumRng.r1), tc = sumRng.c1 + Math.min(dc, sumRng.c2 - sumRng.c1);
+      const v = fxCellValue(sumRng.s, tr, tc, ctx.visited);
+      if (fxIsErr(v)) return v;
+      const num = fxToNumSoft(v); if (num !== null) { sum += num; n++; }
+    }
+    return n ? sum / n : fxErr('#DIV/0!');
+  },
+  VLOOKUP: (a, ev, ctx) => {
+    const lookup = ev(fxArg(a, 0)); if (fxIsErr(lookup)) return lookup;
+    const rng = ev(fxArg(a, 1)); if (fxIsErr(rng)) return rng;
+    if (!(rng && rng.__fxrange)) return fxErr('#REF!');
+    const colN = fxToNum(ev(fxArg(a, 2))); if (fxIsErr(colN)) return colN;
+    const approx = a.length > 3 ? ev(a[3]) : true;
+    const isApprox = !(approx === false || approx === 0 || String(approx).toUpperCase() === 'FALSE');
+    if (colN < 1 || rng.c1 + colN - 1 > rng.c2) return fxErr('#REF!');
+    let best = null;
+    for (let r = rng.r1; r <= rng.r2; r++) {
+      const key = fxCellValue(rng.s, r, rng.c1, ctx.visited);
+      if (fxIsErr(key)) continue;
+      if (isApprox) { if (fxCompare(key, lookup) <= 0) best = r; }
+      else if (fxLooseEq(key, lookup)) return fxCellValue(rng.s, r, rng.c1 + colN - 1, ctx.visited);
+    }
+    if (isApprox && best != null) return fxCellValue(rng.s, best, rng.c1 + colN - 1, ctx.visited);
+    return fxErr('#N/A');
+  },
+  HLOOKUP: (a, ev, ctx) => {
+    const lookup = ev(fxArg(a, 0)); if (fxIsErr(lookup)) return lookup;
+    const rng = ev(fxArg(a, 1)); if (fxIsErr(rng)) return rng;
+    if (!(rng && rng.__fxrange)) return fxErr('#REF!');
+    const rowN = fxToNum(ev(fxArg(a, 2))); if (fxIsErr(rowN)) return rowN;
+    const approx = a.length > 3 ? ev(a[3]) : true;
+    const isApprox = !(approx === false || approx === 0 || String(approx).toUpperCase() === 'FALSE');
+    if (rowN < 1 || rng.r1 + rowN - 1 > rng.r2) return fxErr('#REF!');
+    let best = null;
+    for (let c = rng.c1; c <= rng.c2; c++) {
+      const key = fxCellValue(rng.s, rng.r1, c, ctx.visited);
+      if (fxIsErr(key)) continue;
+      if (isApprox) { if (fxCompare(key, lookup) <= 0) best = c; }
+      else if (fxLooseEq(key, lookup)) return fxCellValue(rng.s, rng.r1 + rowN - 1, c, ctx.visited);
+    }
+    if (isApprox && best != null) return fxCellValue(rng.s, rng.r1 + rowN - 1, best, ctx.visited);
+    return fxErr('#N/A');
+  },
+  INDEX: (a, ev, ctx) => {
+    const rng = ev(fxArg(a, 0)); if (fxIsErr(rng)) return rng;
+    if (!(rng && rng.__fxrange)) return fxErr('#REF!');
+    let rowN = fxToNum(ev(fxArg(a, 1))); if (fxIsErr(rowN)) return rowN;
+    let colN = a.length > 2 ? fxToNum(ev(a[2])) : 1; if (fxIsErr(colN)) return colN;
+    if (rng.r1 === rng.r2 && a.length <= 2) { colN = rowN; rowN = 1; }
+    if (rowN < 1 || colN < 1 || rng.r1 + rowN - 1 > rng.r2 || rng.c1 + colN - 1 > rng.c2) return fxErr('#REF!');
+    return fxCellValue(rng.s, rng.r1 + rowN - 1, rng.c1 + colN - 1, ctx.visited);
+  },
+  MATCH: (a, ev, ctx) => {
+    const lookup = ev(fxArg(a, 0)); if (fxIsErr(lookup)) return lookup;
+    const rng = ev(fxArg(a, 1)); if (fxIsErr(rng)) return rng;
+    if (!(rng && rng.__fxrange)) return fxErr('#N/A');
+    const type = a.length > 2 ? fxToNum(ev(a[2])) : 1; if (fxIsErr(type)) return type;
+    if (rng.r1 !== rng.r2 && rng.c1 !== rng.c2) return fxErr('#N/A');
+    const horizontal = rng.r1 === rng.r2;
+    const len = horizontal ? rng.c2 - rng.c1 + 1 : rng.r2 - rng.r1 + 1;
+    const val = i => horizontal ? fxCellValue(rng.s, rng.r1, rng.c1 + i, ctx.visited) : fxCellValue(rng.s, rng.r1 + i, rng.c1, ctx.visited);
+    if (type === 0) { for (let i = 0; i < len; i++) if (fxLooseEq(val(i), lookup)) return i + 1; return fxErr('#N/A'); }
+    let best = null;
+    for (let i = 0; i < len; i++) { const x = fxCompare(val(i), lookup); if (type > 0 ? x <= 0 : x >= 0) best = i; }
+    return best == null ? fxErr('#N/A') : best + 1;
+  },
+  LEN: (a, ev) => fxToStr(ev(fxArg(a, 0))).length,
+  LEFT: (a, ev) => { const s = fxToStr(ev(fxArg(a, 0))); const n = a.length > 1 ? fxToNum(ev(a[1])) : 1; if (fxIsErr(n)) return n; if (n < 0) return fxErr('#VALUE!'); return s.slice(0, n); },
+  RIGHT: (a, ev) => { const s = fxToStr(ev(fxArg(a, 0))); const n = a.length > 1 ? fxToNum(ev(a[1])) : 1; if (fxIsErr(n)) return n; if (n < 0) return fxErr('#VALUE!'); return n === 0 ? '' : s.slice(-n); },
+  MID: (a, ev) => { const s = fxToStr(ev(fxArg(a, 0))); const st = fxToNum(ev(fxArg(a, 1))); if (fxIsErr(st)) return st; const ln = fxToNum(ev(fxArg(a, 2))); if (fxIsErr(ln)) return ln; if (st < 1 || ln < 0) return fxErr('#VALUE!'); return s.substr(st - 1, ln); },
+  UPPER: (a, ev) => fxToStr(ev(fxArg(a, 0))).toUpperCase(),
+  LOWER: (a, ev) => fxToStr(ev(fxArg(a, 0))).toLowerCase(),
+  TRIM: (a, ev) => fxToStr(ev(fxArg(a, 0))).trim(),
+  CONCATENATE: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : f.vals.map(fxToStr).join(''); },
+  CONCAT: (a, ev, ctx) => { const f = fxFlat(a, ev, ctx.visited); return fxIsErr(f) ? f : f.vals.map(fxToStr).join(''); },
+  EXACT: (a, ev) => fxToStr(ev(fxArg(a, 0))) === fxToStr(ev(fxArg(a, 1))),
+  ISNUMBER: (a, ev) => { const v = ev(fxArg(a, 0)); return typeof v === 'number'; },
+  ISBLANK: (a, ev) => { const v = ev(fxArg(a, 0)); return v === '' || v == null; },
+  ISTEXT: (a, ev) => { const v = ev(fxArg(a, 0)); return typeof v === 'string' && v !== ''; },
+  TODAY: () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); },
+  NOW: () => { const d = new Date(); return d.toLocaleString('en-GB', { hour12: false }); }
+};
+function evalFormula(formula, visited){ /* CMC-OFFICE-GRADE — shadows the legacy regex-chain engine */
+  if (typeof formula !== 'string' || !formula.startsWith('=')) return formula;
+  try {
+    const v = fxEvalInner(formula.slice(1), currentSheet, new Set());
+    if (fxIsErr(v)) return v.__fxerr;
+    if (v && v.__fxrange) {
+      const first = fxCellValue(v.s, v.r1, v.c1, new Set());
+      return fxIsErr(first) ? first.__fxerr : fxDispVal(first);
+    }
+    return fxDispVal(v);
+  } catch (e) { return '#ERR'; }
+}
+function fxDispVal(v){
+  if (fxIsErr(v)) return v.__fxerr;
+  if (typeof v === 'number') return fxNumToDisp(v);
+  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+  return v == null ? '' : String(v);
+}
+function fxNumToDisp(n){ if (!isFinite(n)) return '#NUM!'; const r = Math.round(n * 1e10) / 1e10; return String(r === 0 ? 0 : r); }
+function fxFormatNum(n, fmt){
+  switch (fmt) {
+    case 'int': case 'thou': return Math.round(n).toLocaleString('en-US');
+    case 'thou2': return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    case 'cur': return (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    case 'pct': return (n * 100).toLocaleString('en-US', { maximumFractionDigits: 0 }) + '%';
+    case 'pct2': return (n * 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+    case 'text': return String(n);
+    default: return fxNumToDisp(n);
+  }
+}
+function fxShiftFormula(formula, dr, dc){
+  if (typeof formula !== 'string' || !formula.startsWith('=')) return formula;
+  const tk = fxTokenize(formula.slice(1));
+  if (tk.err || !tk.tokens) return formula;
+  let out = '';
+  for (const tok of tk.tokens) {
+    if (tok.t === 'ref') {
+      const c0 = colIndex(tok.col), r0 = parseInt(tok.row, 10) - 1;
+      const nc = tok.absC ? c0 : c0 + dc, nr = tok.absR ? r0 : r0 + dr;
+      if (nc < 0 || nr < 0) { out += '#REF!'; continue; }
+      out += (tok.sheet ? (tok.sheet.includes(' ') ? "'" + tok.sheet + "'" : tok.sheet) + '!' : '') + (tok.absC ? '$' : '') + colName(nc) + (tok.absR ? '$' : '') + (nr + 1);
+    } else if (tok.t === 'str') out += '"' + tok.v.replace(/"/g, '""') + '"';
+    else if (tok.t === 'num') out += String(tok.v);
+    else if (tok.t === 'bool') out += tok.v ? 'TRUE' : 'FALSE';
+    else if (tok.t === 'err' || tok.t === 'func') out += tok.v;
+    else if (tok.t === 'eof') { /* done */ }
+    else out += tok.v;
+  }
+  return '=' + out;
+}
+/* ═══ end layer 1 ═══ */
+
+/* ═══════════════ CMC-OFFICE-GRADE · layer 2: spreadsheet UI ═══════════════
+   Excel-grade interaction: range selection (click / shift+click / drag /
+   shift+arrows / header click), floating range ring + Excel-style status bar
+   (Count · Numeric · Sum · Average), fill handle with linear series, rich
+   copy/cut/paste (internal w/ styles + shifted formulas, external TSV),
+   sorting, number formats, borders, real fill/font colors, range-aware
+   sheetCmd, duplicate sheet, CSV import and .xls export. */
+let fxRange = null;      // normalized {r1,c1,r2,c2} multi-cell selection
+let fxAnchor = null;     // anchor cell of the selection
+let fxShiftBase = null;  // base for shift+click / shift+arrows
+let fxExtCorner = null;  // moving corner for shift+arrows
+let fxSelecting = null;  // active drag-select state
+let fxClip = null;       // internal clipboard {rows, w, h, tsv, cut}
+let fxLastClick = null;  // double-click detector
+let fxHandleDrag = null; // active fill-handle drag
+let fxRangeBox = null, fxFillBox = null, fxHandleEl = null, fxImgChip = null;
+let fxImgSel = null;     // selected doc image element
+function fxSelRange(){
+  if (fxRange) return { ...fxRange };
+  const r = selectedCell ? selectedCell.row : 0, c = selectedCell ? selectedCell.col : 0;
+  return { r1: r, c1: c, r2: r, c2: c };
+}
+function fxRangeSize(rng){ return (rng.r2 - rng.r1 + 1) * (rng.c2 - rng.c1 + 1); }
+function fxNormRange(r1, c1, r2, c2){ return { r1: Math.min(r1, r2), c1: Math.min(c1, c2), r2: Math.max(r1, r2), c2: Math.max(c1, c2) }; }
+function fxEditing(){ return !!(sheetGrid.querySelector('td.editing input') || document.activeElement === sheetFormula); }
+function fxCellTd(r, c){ return sheetGrid.querySelector(`td.cell[data-r="${r}"][data-c="${c}"]`); }
+function fxEnsureCell(r, c){ const sh = sheets[currentSheet]; const k = cellKey(r, c); if (!sh.cells[k]) sh.cells[k] = { v: '' }; if (!sh.cells[k].style) sh.cells[k].style = {}; return sh.cells[k]; }
+function fxCellDisplay(cell){
+  let v = cell.v;
+  if (typeof v === 'string' && v.startsWith('=')) { try { v = evalFormula(v); } catch (e) { v = '#ERR'; } }
+  let s = v === undefined || v === null ? '' : String(v);
+  const st = cell.style || {};
+  if (st.fmt && s !== '' && !s.startsWith('#')) { const n = parseFloat(s); if (!isNaN(n)) s = fxFormatNum(n, st.fmt); }
+  return s;
+}
+/* ── renderSheet → fxRenderSheet (assigned over the excel-pro wrapper in
+   fxOfficeInit below, because that wrapper is a runtime assignment and would
+   otherwise override a hoisted declaration): number formats, borders, correct
+   freeze classes, anchor-only .selected, range ring, fill handle, status bar ── */
+function fxRenderSheet(){
+  const sheet = sheets[currentSheet]; if (!sheet) return;
+  if (!sheetGrid) return;
+  const html = ['<thead><tr><th class="corner-h"></th>'];
+  for (let c = 0; c < sheet.cols; c++) { const w = colWidths[c] || 80; html.push(`<th class="col-h" style="min-width:${w}px;width:${w}px">${colName(c)}</th>`); }
+  html.push('</tr></thead><tbody>');
+  const selR = fxSelRange();
+  for (let r = 0; r < sheet.rows; r++) {
+    const rh = rowHeights[r] || 24;
+    html.push(`<tr style="height:${rh}px"><th class="row-h" style="min-height:${rh}px;height:${rh}px">${r + 1}</th>`);
+    for (let c = 0; c < sheet.cols; c++) {
+      const cell = getCell(r, c);
+      const display = fxCellDisplay(cell);
+      const st = cell.style || {};
+      const cw = colWidths[c] || 80;
+      const customStyle = (st.bold ? 'font-weight:bold;' : '') + (st.italic ? 'font-style:italic;' : '') + (st.underline ? 'text-decoration:underline;' : '') + (st.color ? 'color:' + st.color + ';' : '') + (st.align ? 'text-align:' + st.align + ';' : '') + (st.bg ? 'background:' + st.bg + ';' : '');
+      const inSel = r >= selR.r1 && r <= selR.r2 && c >= selR.c1 && c <= selR.c2;
+      const isAnchor = r === selectedCell.row && c === selectedCell.col;
+      const cls = 'cell' + (isAnchor ? ' selected' : '') + (st.border ? ' fx-bordered' : '');
+      html.push(`<td class="${cls}" data-r="${r}" data-c="${c}" style="min-width:${cw}px;height:${rh}px;${customStyle}"><span class="cell-display">${escapeHtml(display)}</span></td>`);
+    }
+    html.push('</tr>');
+  }
+  html.push('</tbody>');
+  try { sheetGrid.innerHTML = html.join(''); }
+  catch (e) {
+    const temp = document.createElement('div');
+    temp.innerHTML = '<table>' + html.join('') + '</table>';
+    const newTable = temp.firstElementChild;
+    if (newTable) { sheetGrid.innerHTML = ''; while (newTable.firstChild) sheetGrid.appendChild(newTable.firstChild); }
+  }
+  // Freeze panes: mark exactly the frozen rows/cols (sticky CSS in the base stylesheet)
+  if (freezeRows > 0) {
+    const rows = sheetGrid.querySelectorAll('tbody tr');
+    for (let r = 0; r < freezeRows && r < rows.length; r++) rows[r].querySelectorAll('td.cell').forEach(td => td.classList.add('frozen-row'));
+  }
+  if (freezeCols > 0) {
+    sheetGrid.querySelectorAll('tbody tr').forEach(row => {
+      const cells = row.querySelectorAll('td.cell');
+      for (let c = 0; c < freezeCols && c < cells.length; c++) cells[c].classList.add('frozen-col');
+    });
+  }
+  fxUpdateOverlays();
+  fxUpdateStatus();
+}
+/* ── startCellEdit (shadows legacy): commits to the edited cell even if the
+   selection moved while the editor was open ── */
+function startCellEdit(){
+  const r0 = selectedCell.row, c0 = selectedCell.col;
+  const td = fxCellTd(r0, c0); if (!td) return;
+  fxRange = null;
+  const cell = getCell(r0, c0);
+  td.innerHTML = `<input type="text" value="${escapeHtml(cell.v || '')}" />`;
+  td.classList.add('editing');
+  const input = td.querySelector('input'); input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  const commit = () => { setCell(r0, c0, input.value); };
+  input.addEventListener('blur', () => { commit(); renderSheet(); });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { commit(); renderSheet(); e.preventDefault(); moveSelection(1, 0); }
+    if (e.key === 'Tab') { commit(); renderSheet(); e.preventDefault(); moveSelection(0, 1); }
+    if (e.key === 'Escape') { renderSheet(); }
+    e.stopPropagation();
+  });
+  fxUpdateOverlays();
+}
+/* ── moveSelection (shadows legacy): collapses any range, syncs overlays ── */
+function moveSelection(dr, dc){
+  const sh = sheets[currentSheet]; if (!sh) return;
+  selectedCell.row = Math.max(0, Math.min(sh.rows - 1, selectedCell.row + dr));
+  selectedCell.col = Math.max(0, Math.min(sh.cols - 1, selectedCell.col + dc));
+  fxRange = null; fxAnchor = { row: selectedCell.row, col: selectedCell.col }; fxShiftBase = { ...fxAnchor }; fxExtCorner = { ...fxAnchor };
+  const cell = getCell(selectedCell.row, selectedCell.col);
+  sheetFormula.value = cell.v || '';
+  renderSheet();
+  const td = fxCellTd(selectedCell.row, selectedCell.col);
+  if (td) td.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+/* ── selection painting (overlay box + fill handle + status; no DOM churn) ── */
+function fxPaintSelection(){
+  if (currentMode() !== 'sheet') { fxHideOverlays(); return; }
+  const rng = fxSelRange();
+  if (fxRange && fxRangeSize(fxRange) > 1 && fxRangeBox) {
+    const a = fxCellTd(rng.r1, rng.c1), b = fxCellTd(rng.r2, rng.c2);
+    if (a && b) {
+      const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+      fxRangeBox.style.display = 'block';
+      fxRangeBox.style.left = Math.min(ra.left, rb.left) - 1 + 'px';
+      fxRangeBox.style.top = Math.min(ra.top, rb.top) - 1 + 'px';
+      fxRangeBox.style.width = (Math.max(ra.right, rb.right) - Math.min(ra.left, rb.left)) + 'px';
+      fxRangeBox.style.height = (Math.max(ra.bottom, rb.bottom) - Math.min(ra.top, rb.top)) + 'px';
+    } else fxRangeBox.style.display = 'none';
+  } else if (fxRangeBox) fxRangeBox.style.display = 'none';
+  if (fxHandleEl) {
+    const corner = fxCellTd(rng.r2, rng.c2);
+    if (corner && !fxEditing()) {
+      const rc = corner.getBoundingClientRect();
+      fxHandleEl.style.display = 'block';
+      fxHandleEl.style.left = rc.right - 4 + 'px';
+      fxHandleEl.style.top = rc.bottom - 4 + 'px';
+    } else fxHandleEl.style.display = 'none';
+  }
+  if (fxFillBox) fxFillBox.style.display = 'none';
+  fxUpdateStatus();
+}
+function fxHideOverlays(){
+  if (fxRangeBox) fxRangeBox.style.display = 'none';
+  if (fxFillBox) fxFillBox.style.display = 'none';
+  if (fxHandleEl) fxHandleEl.style.display = 'none';
+}
+function showFillHandle(){ fxPaintSelection(); }
+function fxUpdateOverlays(){ fxPaintSelection(); }
+/* ── status bar: Excel-style selection stats ── */
+function fxUpdateStatus(){
+  const refEl = document.getElementById('sheetStatusRef'), statsEl = document.getElementById('sheetStatusStats');
+  if (!refEl || !statsEl) return;
+  const rng = fxSelRange();
+  const aTxt = colName(rng.c1) + (rng.r1 + 1), bTxt = colName(rng.c2) + (rng.r2 + 1);
+  refEl.textContent = aTxt === bTxt ? aTxt : aTxt + ':' + bTxt;
+  if (fxRangeSize(rng) <= 1) { statsEl.innerHTML = ''; return; }
+  let count = 0, numCount = 0, sum = 0;
+  const sh = sheets[currentSheet];
+  const capped = fxRangeSize(rng) > 20000;
+  if (!capped) {
+    for (let r = rng.r1; r <= rng.r2; r++) for (let c = rng.c1; c <= rng.c2; c++) {
+      const cell = sh.cells[cellKey(r, c)];
+      if (!cell || cell.v === '' || cell.v == null) continue;
+      count++;
+      const disp = fxCellDisplay(cell);
+      const n = parseFloat(String(disp).replace(/[$,%\s,]/g, ''));
+      if (!isNaN(n) && isFinite(n)) { numCount++; sum += n; }
+    }
+  }
+  const parts = [];
+  parts.push(capped ? 'Large range' : 'Count ' + count);
+  if (!capped && numCount > 0) {
+    parts.push('Num ' + numCount);
+    parts.push('Sum ' + (Math.round(sum * 100) / 100).toLocaleString('en-US'));
+    parts.push('Avg ' + (Math.round((sum / numCount) * 100) / 100).toLocaleString('en-US'));
+  }
+  statsEl.innerHTML = parts.map(p => `<span class="fx-pill">${p}</span>`).join(' ');
+}
+/* ── selection interactions: mousedown/drag/shift+click/header click ── */
+function fxGridMouseDown(e){
+  if (currentMode() !== 'sheet' || e.button !== 0) return;
+  const td = e.target.closest ? e.target.closest('td.cell') : null;
+  if (!td || fxEditing()) return;
+  const r = +td.dataset.r, c = +td.dataset.c;
+  const now = performance.now();
+  const dbl = fxLastClick && fxLastClick.r === r && fxLastClick.c === c && (now - fxLastClick.t) < 400;
+  fxLastClick = { r, c, t: now };
+  e.preventDefault();
+  sheetGrid.focus();
+  if (e.shiftKey && fxShiftBase) {
+    fxRange = fxNormRange(fxShiftBase.row, fxShiftBase.col, r, c);
+    fxExtCorner = { row: r, col: c };
+    fxAnchor = { ...fxShiftBase };
+    selectedCell = { row: fxShiftBase.row, col: fxShiftBase.col };
+    sheetFormula.value = getCell(fxAnchor.row, fxAnchor.col).v || '';
+    fxPaintSelection();
+    return;
+  }
+  if (dbl) { fxLastClick = null; selectedCell = { row: r, col: c }; startCellEdit(); return; }
+  fxAnchor = { row: r, col: c };
+  fxShiftBase = { ...fxAnchor };
+  fxExtCorner = { ...fxAnchor };
+  fxRange = null;
+  selectedCell = { row: r, col: c };
+  sheetFormula.value = getCell(r, c).v || '';
+  fxSelecting = { base: { ...fxAnchor }, last: { r, c } };
+  renderSheet();
+}
+function fxGridMouseMove(e){
+  if (fxHandleDrag) { fxFillDragMove(e); return; }
+  if (!fxSelecting || currentMode() !== 'sheet') return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const td = el && el.closest ? el.closest('td.cell') : null;
+  if (!td) return;
+  const r = +td.dataset.r, c = +td.dataset.c;
+  if (fxSelecting.last.r === r && fxSelecting.last.c === c) return;
+  fxSelecting.last = { r, c };
+  fxRange = fxNormRange(fxSelecting.base.row, fxSelecting.base.col, r, c);
+  fxExtCorner = { row: r, col: c };
+  fxPaintSelection();
+}
+function fxGridMouseUp(){
+  if (fxHandleDrag) { fxFillDragEnd(); return; }
+  if (fxSelecting) { fxSelecting = null; fxPaintSelection(); }
+}
+function fxGridHeaderClick(e){
+  if (currentMode() !== 'sheet' || fxEditing()) return;
+  const colH = e.target.closest('th.col-h');
+  const rowH = e.target.closest('th.row-h');
+  if (!colH && !rowH) return;
+  const sh = sheets[currentSheet];
+  if (colH) {
+    const c = [...sheetGrid.querySelectorAll('thead th.col-h')].indexOf(colH);
+    if (c < 0) return;
+    fxAnchor = { row: 0, col: c }; fxShiftBase = { ...fxAnchor }; fxExtCorner = { row: sh.rows - 1, col: c };
+    fxRange = { r1: 0, r2: sh.rows - 1, c1: c, c2: c };
+    selectedCell = { row: 0, col: c };
+  } else {
+    const r = [...sheetGrid.querySelectorAll('tbody th.row-h')].indexOf(rowH);
+    if (r < 0) return;
+    fxAnchor = { row: r, col: 0 }; fxShiftBase = { ...fxAnchor }; fxExtCorner = { row: r, col: sh.cols - 1 };
+    fxRange = { r1: r, r2: r, c1: 0, c2: sh.cols - 1 };
+    selectedCell = { row: r, col: 0 };
+  }
+  sheetFormula.value = getCell(selectedCell.row, selectedCell.col).v || '';
+  renderSheet();
+}
+/* ── keyboard: shift+arrows extend, range delete, Ctrl+D fill down ── */
+function fxKeyCapture(e){
+  if (currentMode() !== 'sheet' || fxEditing()) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+  const sh = sheets[currentSheet]; if (!sh) return;
+  if (e.shiftKey && e.key.startsWith('Arrow')) {
+    e.preventDefault(); e.stopPropagation();
+    if (!fxAnchor) fxAnchor = { row: selectedCell.row, col: selectedCell.col };
+    if (!fxExtCorner) fxExtCorner = { ...fxAnchor };
+    if (e.key === 'ArrowDown') fxExtCorner.row = Math.min(sh.rows - 1, fxExtCorner.row + 1);
+    if (e.key === 'ArrowUp') fxExtCorner.row = Math.max(0, fxExtCorner.row - 1);
+    if (e.key === 'ArrowRight') fxExtCorner.col = Math.min(sh.cols - 1, fxExtCorner.col + 1);
+    if (e.key === 'ArrowLeft') fxExtCorner.col = Math.max(0, fxExtCorner.col - 1);
+    fxRange = fxNormRange(fxAnchor.row, fxAnchor.col, fxExtCorner.row, fxExtCorner.col);
+    fxPaintSelection();
+    return;
+  }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && fxRange && fxRangeSize(fxRange) > 1) {
+    e.preventDefault(); e.stopPropagation();
+    sheetSnapshotPush();
+    fxIterRange(fxRange, (r, c) => { const cell = sheets[currentSheet].cells[cellKey(r, c)]; if (cell) cell.v = ''; });
+    renderSheet(); scheduleAutoSave();
+    return;
+  }
+  if (e.ctrlKey && !e.shiftKey && (e.key === 'd' || e.key === 'D')) { e.preventDefault(); e.stopPropagation(); sheetCmd('fillDown'); return; }
+}
+/* ── clipboard: rich internal clip + external TSV ── */
+function fxClipCopy(e){
+  if (currentMode() !== 'sheet' || fxEditing()) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  const rng = fxSelRange();
+  const sh = sheets[currentSheet];
+  const rows = [];
+  const tsvRows = [];
+  for (let r = rng.r1; r <= rng.r2; r++) {
+    const row = [], trow = [];
+    for (let c = rng.c1; c <= rng.c2; c++) {
+      const cell = sh.cells[cellKey(r, c)];
+      const entry = cell ? { v: cell.v, style: cell.style ? JSON.parse(JSON.stringify(cell.style)) : undefined } : null;
+      row.push(entry);
+      trow.push(fxCellDisplay(cell || { v: '' }));
+    }
+    rows.push(row); tsvRows.push(trow.join('\t'));
+  }
+  fxClip = { rows, w: rng.c2 - rng.c1 + 1, h: rng.r2 - rng.r1 + 1, tsv: tsvRows.join('\n'), cut: false, src: { ...rng } };
+  if (e.clipboardData) { e.clipboardData.setData('text/plain', fxClip.tsv); e.preventDefault(); }
+  statusFlash('Copied ' + fxClip.w + '×' + fxClip.h + ' cells');
+}
+function fxClipCut(e){
+  if (currentMode() !== 'sheet' || fxEditing()) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  fxClipCopy(e);
+  if (!fxClip) return;
+  fxClip.cut = true;
+  sheetSnapshotPush();
+  const rng = fxSelRange();
+  fxIterRange(rng, (r, c) => { const cell = sheets[currentSheet].cells[cellKey(r, c)]; if (cell) cell.v = ''; });
+  renderSheet(); scheduleAutoSave();
+  statusFlash('Cut ' + fxClip.w + '×' + fxClip.h + ' cells');
+}
+function fxClipPaste(e){
+  if (currentMode() !== 'sheet' || fxEditing()) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  const tsv = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+  e.preventDefault();
+  const sh = sheets[currentSheet];
+  sheetSnapshotPush();
+  if (fxClip && fxClip.tsv && tsv === fxClip.tsv) {
+    const tr0 = selectedCell.row, tc0 = selectedCell.col;
+    const needR = tr0 + fxClip.h, needC = tc0 + fxClip.w;
+    if (needR > sh.rows) sh.rows = needR;
+    if (needC > sh.cols) sh.cols = needC;
+    for (let i = 0; i < fxClip.h; i++) for (let j = 0; j < fxClip.w; j++) {
+      const src = fxClip.rows[i][j];
+      const r = tr0 + i, c = tc0 + j;
+      if (!src) { delete sh.cells[cellKey(r, c)]; continue; }
+      const cell = fxEnsureCell(r, c);
+      let v = src.v;
+      if (typeof v === 'string' && v.startsWith('=') && !(src.style && src.style.abs)) v = fxShiftFormula(v, tr0 - fxClip.src.r1, tc0 - fxClip.src.c1);
+      cell.v = v;
+      cell.style = src.style ? JSON.parse(JSON.stringify(src.style)) : undefined;
+      if (!cell.style) delete cell.style;
+    }
+    fxRange = { r1: tr0, c1: tc0, r2: tr0 + fxClip.h - 1, c2: tc0 + fxClip.w - 1 };
+    fxAnchor = { row: tr0, col: tc0 }; fxShiftBase = { ...fxAnchor };
+    selectedCell = { row: tr0, col: tc0 };
+    renderSheet(); renderSheetTabs(); scheduleAutoSave();
+    statusFlash('Pasted ' + fxClip.w + '×' + fxClip.h + ' cells' + (fxClip.cut ? ' (moved)' : ''));
+    if (fxClip.cut) fxClip = null;
+    return;
+  }
+  if (tsv) {
+    let lines = tsv.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    if (lines.length && lines[lines.length - 1] === '') lines.pop();
+    const tr0 = selectedCell.row, tc0 = selectedCell.col;
+    const h = lines.length, w = Math.max(...lines.map(l => l.split('\t').length));
+    if (tr0 + h > sh.rows) sh.rows = tr0 + h;
+    if (tc0 + w > sh.cols) sh.cols = tc0 + w;
+    for (let i = 0; i < h; i++) {
+      const cols = lines[i].split('\t');
+      for (let j = 0; j < cols.length; j++) {
+        const cell = fxEnsureCell(tr0 + i, tc0 + j);
+        cell.v = cols[j];
+        delete cell.style;
+      }
+    }
+    fxRange = { r1: tr0, c1: tc0, r2: tr0 + h - 1, c2: tc0 + w - 1 };
+    fxAnchor = { row: tr0, col: tc0 }; fxShiftBase = { ...fxAnchor };
+    selectedCell = { row: tr0, col: tc0 };
+    renderSheet(); renderSheetTabs(); scheduleAutoSave();
+    statusFlash('Pasted ' + w + '×' + h + ' values from clipboard');
+  }
+}
+function fxIterRange(rng, fn){
+  for (let r = rng.r1; r <= rng.r2; r++) for (let c = rng.c1; c <= rng.c2; c++) fn(r, c);
+}
+/* ── fill handle: drag to fill with linear series + shifted formulas ── */
+function fxHandleMouseDown(e){
+  if (currentMode() !== 'sheet' || fxEditing() || e.button !== 0) return;
+  e.preventDefault(); e.stopPropagation();
+  fxHandleDrag = { src: fxSelRange(), target: null };
+}
+function fxFillDragMove(e){
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const td = el && el.closest ? el.closest('td.cell') : null;
+  if (!td || !fxHandleDrag) return;
+  const src = fxHandleDrag.src;
+  const r = +td.dataset.r, c = +td.dataset.c;
+  let r2 = Math.max(src.r2, r), r1 = Math.min(src.r1, r), c2 = Math.max(src.c2, c), c1 = Math.min(src.c1, c);
+  // Excel fills along ONE axis: pick the dominant direction from the source rect
+  const dDown = Math.max(0, r - src.r2), dUp = Math.max(0, src.r1 - r);
+  const dRight = Math.max(0, c - src.c2), dLeft = Math.max(0, src.c1 - c);
+  if (dDown || dUp) { c1 = src.c1; c2 = src.c2; }
+  else if (dRight || dLeft) { r1 = src.r1; r2 = src.r2; }
+  fxHandleDrag.target = { r1, c1, r2, c2 };
+  const a = fxCellTd(r1, c1), b = fxCellTd(r2, c2);
+  if (a && b && fxFillBox) {
+    const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+    fxFillBox.style.display = 'block';
+    fxFillBox.style.left = Math.min(ra.left, rb.left) - 1 + 'px';
+    fxFillBox.style.top = Math.min(ra.top, rb.top) - 1 + 'px';
+    fxFillBox.style.width = (Math.max(ra.right, rb.right) - Math.min(ra.left, rb.left)) + 'px';
+    fxFillBox.style.height = (Math.max(ra.bottom, rb.bottom) - Math.min(ra.top, rb.top)) + 'px';
+  }
+}
+function fxFillDragEnd(){
+  const drag = fxHandleDrag; fxHandleDrag = null;
+  if (fxFillBox) fxFillBox.style.display = 'none';
+  if (!drag || !drag.target) return;
+  const src = drag.src, tgt = drag.target;
+  const srcH = src.r2 - src.r1 + 1, srcW = src.c2 - src.c1 + 1;
+  const vertical = tgt.r2 > src.r2 || tgt.r1 < src.r1;
+  sheetSnapshotPush();
+  const sh = sheets[currentSheet];
+  sh.rows = Math.max(sh.rows, tgt.r2 + 1); sh.cols = Math.max(sh.cols, tgt.c2 + 1);
+  for (let r = tgt.r1; r <= tgt.r2; r++) for (let c = tgt.c1; c <= tgt.c2; c++) {
+    if (r >= src.r1 && r <= src.r2 && c >= src.c1 && c <= src.c2) continue;
+    const sr = vertical ? src.r1 + (((r - src.r1) % srcH) + srcH) % srcH : r;
+    const sc = !vertical ? src.c1 + (((c - src.c1) % srcW) + srcW) % srcW : c;
+    const srcCell = sh.cells[cellKey(sr, sc)];
+    const cell = fxEnsureCell(r, c);
+    let v = srcCell ? srcCell.v : '';
+    // Linear series: 1-D numeric source fills 2,4,6… style continuations
+    if (typeof v === 'string' && v !== '' && !v.startsWith('=')) {
+      const n = fxToNumSoft(v);
+      if (n !== null && ((vertical && srcH >= 2 && srcW === 1) || (!vertical && srcW >= 2 && srcH === 1))) {
+        const line = [];
+        for (let k = 0; k < Math.max(srcH, srcW); k++) {
+          const kv = sh.cells[cellKey(vertical ? src.r1 + k : sr, vertical ? sc : src.c1 + k)];
+          const kn = kv ? fxToNumSoft(kv.v) : null;
+          line.push(kn);
+        }
+        if (line.every(x => x !== null)) {
+          const idx = vertical ? (r - src.r1) : (c - src.c1);
+          const step = line.length >= 2 ? line[1] - line[0] : 0;
+          v = String(Math.round((line[0] + step * idx) * 1e10) / 1e10);
+        }
+      }
+    } else if (typeof v === 'string' && v.startsWith('=')) {
+      v = fxShiftFormula(v, r - sr, c - sc);
+    }
+    cell.v = v;
+    cell.style = srcCell && srcCell.style ? JSON.parse(JSON.stringify(srcCell.style)) : undefined;
+    if (!cell.style) delete cell.style;
+  }
+  renderSheet(); renderSheetTabs(); scheduleAutoSave();
+  statusFlash('Filled ' + fxRangeSize(tgt) + ' cells');
+}
+/* ── sheetCmd (shadows legacy): range-aware styling + new commands ── */
+function sheetCmd(cmd, val){
+  const sh = sheets[currentSheet]; if (!sh) return;
+  const structural = ['addSheet','insertRowAbove','insertRowBelow','insertColLeft','insertColRight','deleteRow','deleteCol','dupSheet','sortAsc','sortDesc','fillDown','fillRight','clearAll'].includes(cmd);
+  if (structural) sheetSnapshotPush();
+  function shiftSizeMap(map, at, delta, removeAt){
+    const out = {};
+    Object.keys(map).forEach(k => {
+      const i = +k;
+      if (removeAt !== undefined && i === removeAt) return;
+      out[i >= at ? i + delta : i] = map[k];
+    });
+    return out;
+  }
+  const styleRange = () => {
+    const rng = fxSelRange();
+    fxIterRange(rng, (r, c) => {
+      const cell = fxEnsureCell(r, c);
+      if (!cell.style) cell.style = {};
+      fxStyleOne(cmd, val, cell.style);
+      if (cmd === 'clearFormat') delete cell.style;
+    });
+    renderSheet(); scheduleAutoSave();
+  };
+  if (cmd === 'addSheet') { let n = sheets.length + 1; const used = new Set(sheets.map(s => s.name)); while (used.has('Sheet' + n)) n++; sheets.push({ name: 'Sheet' + n, rows: 30, cols: 12, cells: {} }); currentSheet = sheets.length - 1; fxRange = null; renderSheet(); renderSheetTabs(); }
+  else if (cmd === 'dupSheet') { const src = sheets[currentSheet]; const clone = JSON.parse(JSON.stringify(src)); let n = 2; const base = src.name.replace(/ \(\d+\)$/, ''); while (sheets.some(s => s.name === base + ' (' + n + ')')) n++; clone.name = base + ' (' + n + ')'; sheets.splice(currentSheet + 1, 0, clone); currentSheet++; fxRange = null; renderSheet(); renderSheetTabs(); statusFlash('Duplicated "' + src.name + '"'); }
+  else if (cmd === 'insertRowAbove') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (r >= selectedCell.row) newCells[(r + 1) + ',' + c] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.rows++; rowHeights = shiftSizeMap(rowHeights, selectedCell.row, 1); if (freezeRows >= selectedCell.row) freezeRows++; fxRange = null; renderSheet(); }
+  else if (cmd === 'insertColLeft') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (c >= selectedCell.col) newCells[r + ',' + (c + 1)] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.cols++; colWidths = shiftSizeMap(colWidths, selectedCell.col, 1); if (freezeCols >= selectedCell.col) freezeCols++; fxRange = null; renderSheet(); }
+  else if (cmd === 'insertRowBelow') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (r > selectedCell.row) newCells[(r + 1) + ',' + c] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.rows++; rowHeights = shiftSizeMap(rowHeights, selectedCell.row + 1, 1); if (freezeRows > selectedCell.row) freezeRows++; fxRange = null; renderSheet(); }
+  else if (cmd === 'insertColRight') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (c > selectedCell.col) newCells[r + ',' + (c + 1)] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.cols++; colWidths = shiftSizeMap(colWidths, selectedCell.col + 1, 1); if (freezeCols > selectedCell.col) freezeCols++; fxRange = null; renderSheet(); }
+  else if (cmd === 'deleteRow') { if (sh.rows <= 1) return; const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (r === selectedCell.row) return; newCells[(r > selectedCell.row ? r - 1 : r) + ',' + c] = sh.cells[k]; }); sh.cells = newCells; sh.rows--; rowHeights = shiftSizeMap(rowHeights, selectedCell.row, -1, selectedCell.row); if (freezeRows > selectedCell.row) freezeRows--; else if (freezeRows === selectedCell.row) freezeRows = 0; fxRange = null; renderSheet(); }
+  else if (cmd === 'deleteCol') { if (sh.cols <= 1) return; const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (c === selectedCell.col) return; newCells[r + ',' + (c > selectedCell.col ? c - 1 : c)] = sh.cells[k]; }); sh.cells = newCells; sh.cols--; colWidths = shiftSizeMap(colWidths, selectedCell.col, -1, selectedCell.col); if (freezeCols > selectedCell.col) freezeCols--; else if (freezeCols === selectedCell.col) freezeCols = 0; fxRange = null; renderSheet(); }
+  else if (cmd === 'freezeToggle') { if (freezeRows === selectedCell.row && freezeCols === selectedCell.col) { freezeRows = 0; freezeCols = 0; statusFlash('Frozen panes cleared'); } else { freezeRows = selectedCell.row; freezeCols = selectedCell.col; statusFlash('Frozen above row ' + (selectedCell.row + 1) + ' and left of column ' + colName(selectedCell.col)); } renderSheet(); }
+  else if (cmd === 'clearAll') { sh.cells = {}; fxRange = null; renderSheet(); }
+  else if (cmd === 'bold' || cmd === 'italic' || cmd === 'underline' || cmd === 'alignLeft' || cmd === 'alignCenter' || cmd === 'alignRight' || cmd === 'fillColor' || cmd === 'textColor' || cmd === 'border' || cmd === 'fmt' || cmd === 'clearFormat') styleRange();
+  else if (cmd === 'sortAsc') fxSortSheet(1);
+  else if (cmd === 'sortDesc') fxSortSheet(-1);
+  else if (cmd === 'fillDown') fxFillDir('down');
+  else if (cmd === 'fillRight') fxFillDir('right');
+  else if (cmd === 'clearColors') styleRange();
+  scheduleAutoSave();
+}
+function fxStyleOne(cmd, val, style){
+  switch (cmd) {
+    case 'bold': style.bold = !style.bold; break;
+    case 'italic': style.italic = !style.italic; break;
+    case 'underline': style.underline = !style.underline; break;
+    case 'alignLeft': style.align = 'left'; break;
+    case 'alignCenter': style.align = 'center'; break;
+    case 'alignRight': style.align = 'right'; break;
+    case 'fillColor': style.bg = (document.getElementById('sheetFill') || {}).value || '#eafaff'; break;
+    case 'textColor': style.color = (document.getElementById('sheetColor') || {}).value || '#111111'; break;
+    case 'border': style.border = !style.border; break;
+    case 'fmt': if (val && val !== 'gen') style.fmt = val; else delete style.fmt; break;
+  }
+}
+/* ── sort: rows of the selection (or the used range) by the active column ── */
+function fxSortSheet(dir){
+  const sh = sheets[currentSheet]; if (!sh) return;
+  let rng = fxRange;
+  if (!rng || rng.r1 === rng.r2) {
+    const { maxR, maxC } = sheetUsedRange(sh);
+    if (maxR < 1) { statusFlash('Nothing to sort — only one used row'); return; }
+    rng = { r1: 0, r2: maxR - 1, c1: 0, c2: maxC - 1 };
+    if (rng.r2 - rng.r1 < 1) { statusFlash('Nothing to sort — only one used row'); return; }
+  }
+  const keyCol = Math.min(Math.max(selectedCell.col, rng.c1), rng.c2);
+  sheetSnapshotPush();
+  const rows = [];
+  for (let r = rng.r1; r <= rng.r2; r++) {
+    const row = [];
+    for (let c = rng.c1; c <= rng.c2; c++) {
+      const cell = sh.cells[cellKey(r, c)];
+      row.push(cell ? { v: cell.v, style: cell.style ? JSON.parse(JSON.stringify(cell.style)) : undefined } : null);
+    }
+    rows.push(row);
+  }
+  const keyOf = row => {
+    const cell = row[keyCol - rng.c1];
+    const disp = cell ? fxCellDisplay(cell) : '';
+    const n = fxToNumSoft(disp);
+    return { n, s: String(disp).toUpperCase() };
+  };
+  rows.sort((a, b) => {
+    const ka = keyOf(a), kb = keyOf(b);
+    let cmp;
+    if (ka.n !== null && kb.n !== null) cmp = ka.n - kb.n;
+    else if (ka.n !== null) cmp = -1;
+    else if (kb.n !== null) cmp = 1;
+    else cmp = ka.s < kb.s ? -1 : (ka.s > kb.s ? 1 : 0);
+    return cmp * dir;
+  });
+  for (let i = 0; i < rows.length; i++) {
+    for (let j = 0; j < rows[i].length; j++) {
+      const r = rng.r1 + i, c = rng.c1 + j;
+      const cell = rows[i][j];
+      const k = cellKey(r, c);
+      if (cell) { sh.cells[k] = cell; }
+      else delete sh.cells[k];
+    }
+  }
+  fxRange = rng;
+  renderSheet(); scheduleAutoSave();
+  statusFlash('Sorted ' + (dir > 0 ? 'A→Z' : 'Z→A') + ' by column ' + colName(keyCol));
+}
+/* ── fill down / right from the first row/column of the selection ── */
+function fxFillDir(direction){
+  const rng = fxSelRange(); const sh = sheets[currentSheet]; if (!sh) return;
+  sheetSnapshotPush();
+  for (let r = rng.r1; r <= rng.r2; r++) for (let c = rng.c1; c <= rng.c2; c++) {
+    const isSrc = direction === 'down' ? r === rng.r1 : c === rng.c1;
+    if (isSrc) continue;
+    const sr = direction === 'down' ? rng.r1 : r;
+    const sc = direction === 'down' ? c : rng.c1;
+    const srcCell = sh.cells[cellKey(sr, sc)];
+    const cell = fxEnsureCell(r, c);
+    let v = srcCell ? srcCell.v : '';
+    if (typeof v === 'string' && v.startsWith('=')) v = fxShiftFormula(v, r - sr, c - sc);
+    cell.v = v;
+    cell.style = srcCell && srcCell.style ? JSON.parse(JSON.stringify(srcCell.style)) : undefined;
+    if (!cell.style) delete cell.style;
+  }
+  renderSheet(); scheduleAutoSave();
+  statusFlash('Filled ' + direction);
+}
+/* ── sheet tabs (shadows legacy): adds Duplicate to the tab context menu ── */
+function renderSheetTabs(){
+  sheetTabs.innerHTML = '<span class="sheet-tab-add" onclick="sheetCmd(\'addSheet\')">+</span>';
+  sheets.forEach((s, i) => {
+    const tab = document.createElement('span');
+    tab.className = 'sheet-tab' + (i === currentSheet ? ' active' : '');
+    tab.textContent = s.name;
+    tab.title = 'Click to switch — right-click for rename/duplicate/delete';
+    tab.onclick = () => { currentSheet = i; fxRange = null; renderSheet(); renderSheetTabs(); };
+    tab.oncontextmenu = (e) => {
+      e.preventDefault();
+      openSheetCtxMenu(e, [
+        { label: 'Duplicate', fn: () => sheetCmd('dupSheet') },
+        { label: 'Rename', fn: () => renameSheetAt(i) },
+        { label: 'Delete', danger: true, disabled: sheets.length <= 1, title: 'A workbook needs at least one sheet', fn: () => deleteSheetAt(i) }
+      ]);
+    };
+    sheetTabs.insertBefore(tab, sheetTabs.querySelector('.sheet-tab-add'));
+  });
+}
+/* ── CSV import (current sheet) ── */
+function fxParseDelimited(text){
+  const first = text.split(/\r?\n/, 1)[0] || '';
+  const counts = { ',': (first.match(/,/g) || []).length, ';': (first.match(/;/g) || []).length, '\t': (first.match(/\t/g) || []).length };
+  const delim = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += ch;
+    } else if (ch === '"') inQ = true;
+    else if (ch === delim) { row.push(field); field = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(field); field = '';
+      if (row.length > 1 || row[0] !== '') rows.push(row);
+      row = [];
+    } else field += ch;
+  }
+  row.push(field);
+  if (row.length > 1 || row[0] !== '') rows.push(row);
+  return rows;
+}
+function fxImportCsvFile(file){
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const rows = fxParseDelimited(String(ev.target.result));
+      if (!rows.length) { statusFlash('That file looks empty'); return; }
+      if (!confirm('Import ' + rows.length + ' rows into "' + sheets[currentSheet].name + '"? The current sheet contents will be replaced.')) return;
+      sheetSnapshotPush();
+      const sh = sheets[currentSheet];
+      sh.cells = {};
+      sh.rows = Math.max(30, rows.length);
+      sh.cols = Math.max(12, Math.max(...rows.map(r => r.length)));
+      rows.forEach((cols, r) => cols.forEach((val, c) => {
+        if (val === '') return;
+        const cell = fxEnsureCell(r, c);
+        cell.v = val;
+        delete cell.style;
+      }));
+      fxRange = null;
+      selectedCell = { row: 0, col: 0 };
+      renderSheet(); renderSheetTabs(); scheduleAutoSave();
+      statusFlash('Imported ' + rows.length + ' rows into ' + sh.name);
+    } catch (err) { alert('Could not import that file: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+/* ── .xls export (opens directly in Microsoft Excel, styles included) ── */
+function fxSheetExportXls(){
+  const sheet = sheets[currentSheet]; if (!sheet) return;
+  const tbl = buildSheetTableNode(); if (!tbl) return;
+  const name = (filename.textContent || 'untitled').replace(/\.project$/, '');
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>' + esc(sheet.name || 'Sheet1') + '</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>' + tbl.outerHTML + '</body></html>';
+  downloadBlob(new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' }), name + '-' + (sheet.name || 'Sheet1') + '.xls');
+  statusFlash('.xls exported — ' + (sheet.name || 'Sheet1'));
+}
+/* ═══ end layer 2 ═══ */
+
+/* ═══════════════ CMC-OFFICE-GRADE · layer 3: Word-grade Docs + wiring ═══════════════
+   Docs: paragraph style gallery, Word-accurate pt sizes, line spacing, image
+   insert with floating image toolbar, word/char count, zoom, horizontal rule,
+   undo/redo buttons, table header-row toggle + delete-table, real .doc export
+   (opens in Microsoft Word), .html export, .html/.txt import. */
+
+/* ── paragraph styles (Word style gallery) ── */
+function docStyle(v){
+  const map = { p: 'P', title: 'H1', h1: 'H1', h2: 'H2', h3: 'H3', h4: 'H4', blockquote: 'BLOCKQUOTE', pre: 'PRE' };
+  const tag = map[v]; if (!tag) return;
+  docLayer.focus();
+  document.execCommand('formatBlock', false, '<' + tag + '>');
+  pushUndo('Style: ' + v);
+}
+/* ── Word-accurate point sizes: execCommand fontSize 7 then swap <font size=7> for a pt-sized span ── */
+function docFontSizePt(pt){
+  if (!pt) return;
+  docLayer.focus();
+  try { document.execCommand('styleWithCSS', false, false); } catch (e) {}
+  document.execCommand('fontSize', false, '7');
+  docLayer.querySelectorAll('font[size="7"]').forEach(f => {
+    const span = document.createElement('span');
+    span.style.fontSize = pt + 'pt';
+    span.innerHTML = f.innerHTML;
+    f.replaceWith(span);
+  });
+  pushUndo('Font size ' + pt + 'pt');
+  fxDocStats();
+}
+/* ── line spacing applied to the blocks in the selection ── */
+function fxSelectedBlocks(){
+  const sel = window.getSelection();
+  const tags = 'h1,h2,h3,h4,h5,p,li,blockquote,pre,div';
+  if (!sel.rangeCount) return [];
+  const range = sel.getRangeAt(0);
+  if (range.collapsed) {
+    let node = range.startContainer;
+    if (node.nodeType === 3) node = node.parentElement;
+    const block = node && node.closest ? node.closest(tags) : null;
+    return block && docLayer.contains(block) ? [block] : [];
+  }
+  return [...docLayer.querySelectorAll(tags)].filter(b => range.intersectsNode(b));
+}
+function docLineSpacing(v){
+  if (!v) return;
+  const blocks = fxSelectedBlocks();
+  if (!blocks.length) { statusFlash('Click inside a paragraph first'); return; }
+  docLayer.focus();
+  blocks.forEach(b => { b.style.lineHeight = v; });
+  pushUndo('Line spacing ' + v);
+  fxDocStats();
+}
+/* ── horizontal rule ── */
+function docInsertHR(){
+  docLayer.focus();
+  document.execCommand('insertHorizontalRule');
+  pushUndo('Horizontal rule');
+  fxDocStats();
+}
+/* ── images: insert + click-to-select + floating toolbar ── */
+function fxDocInsertImageFile(file){
+  const reader = new FileReader();
+  reader.onload = ev => {
+    docLayer.focus();
+    document.execCommand('insertHTML', false, '<img src="' + ev.target.result + '" class="doc-img" alt="">');
+    pushUndo('Insert image');
+    fxDocStats();
+    statusFlash('Image inserted — click it to resize or align');
+  };
+  reader.readAsDataURL(file);
+}
+function fxDocSelectImg(img){
+  docLayer.querySelectorAll('img.doc-img.fx-img-sel').forEach(i => i.classList.remove('fx-img-sel'));
+  img.classList.add('fx-img-sel');
+  fxImgSel = img;
+  if (!fxImgChip) return;
+  fxImgChip.style.display = 'flex';
+  const r = img.getBoundingClientRect();
+  const top = Math.max(6, Math.min(r.top - 40, window.innerHeight - 60));
+  const left = Math.max(6, Math.min(r.left, window.innerWidth - fxImgChip.offsetWidth - 12));
+  fxImgChip.style.top = top + 'px';
+  fxImgChip.style.left = left + 'px';
+}
+function fxDocImgAct(act){
+  const img = fxImgSel; if (!img) return;
+  if (act === 'del') { img.remove(); fxDocDeselectImg(); pushUndo('Remove image'); fxDocStats(); statusFlash('Image removed'); return; }
+  if (['25','50','75','100'].includes(act)) { img.style.width = act + '%'; img.style.height = 'auto'; img.style.float = 'none'; img.style.display = ''; img.style.margin = ''; }
+  else if (act === 'left') { img.style.float = 'left'; img.style.margin = '0 14px 8px 0'; img.style.display = ''; }
+  else if (act === 'center') { img.style.float = 'none'; img.style.display = 'block'; img.style.margin = '12px auto'; }
+  else if (act === 'right') { img.style.float = 'right'; img.style.margin = '0 0 8px 14px'; img.style.display = ''; }
+  pushUndo('Image ' + act);
+  fxDocSelectImg(img);
+  fxDocStats();
+}
+function fxDocDeselectImg(){
+  docLayer.querySelectorAll('img.doc-img.fx-img-sel').forEach(i => i.classList.remove('fx-img-sel'));
+  fxImgSel = null;
+  if (fxImgChip) fxImgChip.style.display = 'none';
+}
+function fxDocClick(e){
+  const img = e.target.closest ? e.target.closest('img.doc-img') : null;
+  if (img) { fxDocSelectImg(img); return; }
+  fxDocDeselectImg();
+}
+/* ── word / character count ── */
+function fxDocStats(){
+  const el = document.getElementById('docStats'); if (!el) return;
+  const text = (docLayer.innerText || '').trim();
+  const words = text ? (text.match(/\S+/g) || []).length : 0;
+  const chars = text.replace(/\s/g, '').length;
+  el.textContent = words + ' words · ' + chars + ' chars';
+}
+/* ── zoom ── */
+function docZoom(v){
+  wrap.style.setProperty('--doc-zoom', v);
+  statusFlash('Document zoom ' + Math.round(v * 100) + '%');
+}
+/* ── export: real .doc (Word) + .html ── */
+function fxDocEnvelopeTitle(){
+  return (filename.textContent || 'Document').replace(/\.project$/, '').replace(/\.json$/, '') || 'Document';
+}
+function fxDocExportWord(){
+  const { node } = buildDocExportNode();
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + escapeHtml(fxDocEnvelopeTitle()) + '</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>@page{size:21cm 29.7cm;margin:2cm}</style></head><body>' + node.innerHTML + '</body></html>';
+  downloadBlob(new Blob(['\ufeff' + html], { type: 'application/msword' }), fxDocEnvelopeTitle() + '.doc');
+  statusFlash('.doc exported — opens in Microsoft Word');
+}
+function fxDocExportHtml(){
+  const { node } = buildDocExportNode();
+  const html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<title>' + escapeHtml(fxDocEnvelopeTitle()) + '</title>\n</head>\n<body>\n' + node.innerHTML + '\n</body>\n</html>';
+  downloadBlob(new Blob([html], { type: 'text/html;charset=utf-8' }), fxDocEnvelopeTitle() + '.html');
+  statusFlash('.html exported');
+}
+/* ── import .html / .txt into the document ── */
+function fxDocImportFile(file){
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const text = String(ev.target.result);
+    if (!confirm('Replace the current document with "' + file.name + '"?')) return;
+    if (/\.txt$/i.test(file.name) || file.type === 'text/plain') {
+      const lines = text.split(/\r?\n/);
+      docLayer.innerHTML = lines.map(l => '<p>' + (l ? escapeHtml(l) : '<br>') + '</p>').join('');
+    } else {
+      const doc = new DOMParser().parseFromString(text, 'text/html');
+      doc.querySelectorAll('script').forEach(s => s.remove());
+      docLayer.innerHTML = doc.body ? doc.body.innerHTML : '<p>' + escapeHtml(text) + '</p>';
+    }
+    fxDocDeselectImg();
+    fxDocStats();
+    statusFlash('Imported ' + file.name + ' into the document');
+  };
+  reader.readAsText(file);
+}
+/* ── tableCmd (shadows legacy): adds header-row toggle + delete table ── */
+function tableCmd(cmd){
+  if (cmd === 'toggleHeader' || cmd === 'deleteTable') {
+    docLayer.focus();
+    const sel = window.getSelection();
+    if (!sel.rangeCount) { alert('Click inside a table cell first.'); return; }
+    let node = sel.getRangeAt(0).startContainer;
+    if (node.nodeType === 3) node = node.parentElement;
+    const table = node && node.closest ? node.closest('table') : null;
+    if (!table || !docLayer.contains(table)) { alert('Click inside a table cell first.'); return; }
+    if (cmd === 'deleteTable') { table.remove(); pushUndo('Delete table'); fxDocStats(); statusFlash('Table deleted'); return; }
+    const row0 = table.rows[0]; if (!row0) return;
+    const toHeader = row0.cells[0] && row0.cells[0].tagName !== 'TH';
+    Array.from(row0.cells).forEach(cell => {
+      const nc = document.createElement(toHeader ? 'th' : 'td');
+      nc.innerHTML = cell.innerHTML;
+      nc.style.border = '1px solid #ccc'; nc.style.padding = '6px 10px';
+      if (toHeader) { nc.style.background = '#f0f0f0'; nc.style.fontWeight = '600'; nc.style.textAlign = 'left'; }
+      cell.replaceWith(nc);
+    });
+    pushUndo(toHeader ? 'Table header on' : 'Table header off');
+    statusFlash(toHeader ? 'Header row on' : 'Header row off');
+    return;
+  }
+  docLayer.focus();
+  const sel = window.getSelection();
+  if (!sel.rangeCount) { alert('Click inside a table cell first.'); return; }
+  let node = sel.getRangeAt(0).startContainer;
+  if (node.nodeType === 3) node = node.parentElement;
+  const td = node ? node.closest('td,th') : null;
+  const tr = node ? node.closest('tr') : null;
+  const table = node ? node.closest('table') : null;
+  if (!td || !tr || !table) { alert('Click inside a table cell first.'); return; }
+  const cellIdx = Array.from(tr.children).indexOf(td);
+  const rowIdx = Array.from(table.rows).indexOf(tr);
+  const makeCell = (isHeader) => { const c = document.createElement(isHeader ? 'th' : 'td'); c.innerHTML = '&nbsp;'; c.style.border = '1px solid #ccc'; c.style.padding = '6px 10px'; if (isHeader) { c.style.background = '#f0f0f0'; c.style.fontWeight = '600'; c.style.textAlign = 'left'; } return c; };
+  if (cmd === 'insertRowAbove' || cmd === 'insertRowBelow') {
+    const newRow = table.insertRow(rowIdx + (cmd === 'insertRowBelow' ? 1 : 0));
+    for (let i = 0; i < tr.children.length; i++) newRow.appendChild(makeCell(tr.children[i].tagName === 'TH'));
+  } else if (cmd === 'insertColLeft' || cmd === 'insertColRight') {
+    const at = cellIdx + (cmd === 'insertColRight' ? 1 : 0);
+    Array.from(table.rows).forEach(r => r.insertBefore(makeCell(r.children[cellIdx] && r.children[cellIdx].tagName === 'TH'), r.children[at] || null));
+  } else if (cmd === 'deleteRow') {
+    if (table.rows.length <= 1) return;
+    tr.remove();
+  } else if (cmd === 'deleteCol') {
+    if (tr.children.length <= 1) return;
+    Array.from(table.rows).forEach(r => { if (r.children[cellIdx]) r.children[cellIdx].remove(); });
+  }
+  pushUndo('Table: ' + cmd);
+  fxDocStats();
+}
+/* ── buildSheetTableNode (shadows legacy): number formats + borders in exports ── */
+function buildSheetTableNode(){
+  const sheet = sheets[currentSheet]; if (!sheet) return null;
+  const { maxR, maxC } = sheetUsedRange(sheet);
+  const rows = Math.max(maxR, 8), cols = Math.max(maxC, 4);
+  const tbl = document.createElement('table');
+  tbl.style.cssText = 'border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;font-size:12px;background:#ffffff;';
+  const thead = document.createElement('thead'); const trh = document.createElement('tr');
+  const corner = document.createElement('th');
+  corner.style.cssText = 'border:1px solid #bbb;background:#e8e8e8;padding:4px 8px;min-width:34px;';
+  trh.appendChild(corner);
+  for (let c = 0; c < cols; c++) { const th = document.createElement('th'); th.textContent = colName(c); th.style.cssText = 'border:1px solid #bbb;background:#e8e8e8;padding:4px 8px;text-align:center;min-width:64px;'; trh.appendChild(th); }
+  thead.appendChild(trh); tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  for (let r = 0; r < rows; r++) {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th'); th.textContent = String(r + 1); th.style.cssText = 'border:1px solid #bbb;background:#e8e8e8;padding:4px 8px;text-align:center;';
+    tr.appendChild(th);
+    for (let c = 0; c < cols; c++) {
+      const td = document.createElement('td');
+      const cell = getCell(r, c);
+      td.textContent = fxCellDisplay(cell);
+      const st = cell.style || {};
+      td.style.cssText = 'border:1px solid #bbb;padding:4px 8px;' + (st.bold ? 'font-weight:bold;' : '') + (st.italic ? 'font-style:italic;' : '') + (st.underline ? 'text-decoration:underline;' : '') + (st.color ? 'color:' + st.color + ';' : '') + (st.bg ? 'background:' + st.bg + ';' : '') + (st.align ? 'text-align:' + st.align + ';' : '') + (st.border ? 'box-shadow:inset 0 0 0 1px #8a94a6;' : '');
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  return tbl;
+}
+/* ── openInput (re-wired): adds .html/.txt import alongside JSON/images ── */
+openInput.onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  if (f.type === 'application/json' || f.name.endsWith('.json')) {
+    const reader = new FileReader();
+    reader.onload = ev => { try { loadProject(JSON.parse(ev.target.result)); filename.textContent = f.name.replace(/\.json$/, ''); } catch (err) { alert('Could not open project: ' + err.message); } };
+    reader.readAsText(f);
+  } else if (/\.(html?|txt)$/i.test(f.name) || f.type === 'text/plain' || f.type === 'text/html') {
+    fxDocImportFile(f);
+  } else {
+    const img = new Image();
+    img.onload = () => { initLayers(); setCanvasSize(img.width, img.height); activeCtx().drawImage(img, 0, 0); composite(); renderLayerList(); texts = []; selected = -1; renderTexts(); undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList(); filename.textContent = f.name.replace(/\.[^.]+$/, ''); };
+    img.src = URL.createObjectURL(f);
+  }
+  e.target.value = '';
+};
+
+/* ── CMC-OFFICE-GRADE wiring: overlays, listeners, inputs, init refresh ── */
+(function fxOfficeInit(){
+  // Overlay elements (fixed-position, viewport coordinates)
+  fxRangeBox = document.createElement('div'); fxRangeBox.id = 'fxRangeBox'; document.body.appendChild(fxRangeBox);
+  fxFillBox = document.createElement('div'); fxFillBox.id = 'fxFillBox'; document.body.appendChild(fxFillBox);
+  fxHandleEl = document.createElement('div'); fxHandleEl.id = 'fxFillHandle'; document.body.appendChild(fxHandleEl);
+  fxImgChip = document.createElement('div'); fxImgChip.id = 'fxImgChip';
+  [['25','25%'],['50','50%'],['75','75%'],['100','100%'],['left','⬅ Left'],['center','⬛ Center'],['right','Right ➡'],['del','🗑']].forEach(([act, label], idx) => {
+    if (idx === 4) { const sep = document.createElement('span'); sep.className = 'sep'; fxImgChip.appendChild(sep); }
+    const b = document.createElement('button');
+    b.textContent = label; b.title = 'Image: ' + label;
+    b.onclick = () => fxDocImgAct(act);
+    fxImgChip.appendChild(b);
+  });
+  document.body.appendChild(fxImgChip);
+  fxHandleEl.addEventListener('mousedown', fxHandleMouseDown);
+  // Selection + fill + clipboard + keyboard
+  sheetGrid.addEventListener('mousedown', fxGridMouseDown);
+  sheetGrid.addEventListener('click', fxGridHeaderClick);
+  document.addEventListener('mousemove', fxGridMouseMove);
+  document.addEventListener('mouseup', fxGridMouseUp);
+  document.addEventListener('keydown', fxKeyCapture, true);
+  document.addEventListener('copy', fxClipCopy, true);
+  document.addEventListener('cut', fxClipCut, true);
+  document.addEventListener('paste', fxClipPaste, true);
+  sheetGridWrap.addEventListener('scroll', () => { fxPaintSelection(); if (fxImgSel) fxDocSelectImg(fxImgSel); });
+  window.addEventListener('resize', () => { fxPaintSelection(); if (fxImgSel) fxDocSelectImg(fxImgSel); });
+  // Hide range ring when leaving the sheet mode
+  document.addEventListener('click', e => { if (currentMode() !== 'sheet') fxHideOverlays(); }, true);
+  // Sheet inputs
+  const sheetFillInput = document.getElementById('sheetFill');
+  if (sheetFillInput) sheetFillInput.addEventListener('input', () => sheetCmd('fillColor'));
+  const sheetColorInput = document.getElementById('sheetColor');
+  if (sheetColorInput) sheetColorInput.addEventListener('input', () => { /* legacy single-cell listener also fires; this paints the whole selection */ sheetCmd('textColor'); });
+  const sheetCsvInput = document.getElementById('sheetCsvInput');
+  if (sheetCsvInput) sheetCsvInput.onchange = e => { const f = e.target.files[0]; if (f) fxImportCsvFile(f); e.target.value = ''; };
+  // Doc inputs + listeners
+  const docImgInput = document.getElementById('docImgInput');
+  if (docImgInput) docImgInput.onchange = e => { const f = e.target.files[0]; if (f) fxDocInsertImageFile(f); e.target.value = ''; };
+  const docHtmlInput = document.getElementById('docHtmlInput');
+  if (docHtmlInput) docHtmlInput.onchange = e => { const f = e.target.files[0]; if (f) fxDocImportFile(f); e.target.value = ''; };
+  docLayer.addEventListener('click', fxDocClick);
+  docLayer.addEventListener('input', fxDocStats);
+  docLayer.addEventListener('keyup', fxDocStats);
+  // Render binding: the excel-pro patch layer assigns renderSheet at runtime,
+  // so a hoisted declaration would lose — assign our implementation LAST.
+  renderSheet = fxRenderSheet;
+  // Refresh the grid + tabs with the new engine, then paint overlays
+  renderSheet();
+  renderSheetTabs();
+  fxDocStats();
+})();
+/* ═══ end CMC-OFFICE-GRADE ═══ */
 </script>
 </body>
 </html>
