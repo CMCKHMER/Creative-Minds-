@@ -700,6 +700,8 @@
       <button class="quick-btn" onclick="fxDocExportWord()" title="Download as .doc — opens in Microsoft Word">W ⬇doc</button>
       <button class="quick-btn" onclick="fxDocExportHtml()" title="Download as .html">⬇html</button>
       <button class="quick-btn" onclick="docHtmlInput.click()" title="Import a .html / .txt file into the document">⬆import</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
     </div>
 
     <!-- ── Excel tool set (moved out of the old header sheetBar) ── -->
@@ -742,6 +744,9 @@
       <button class="quick-btn" onclick="fileSaveCsv()" title="Export current sheet as CSV">⬇CSV</button>
       <button class="quick-btn" onclick="fxSheetExportXls()" title="Export current sheet as .xls — opens in Microsoft Excel">X ⬇xls</button>
       <button class="quick-btn" onclick="sheetCsvInput.click()" title="Import a .csv file into the current sheet">⬆CSV</button>
+      <div class="quick-sep"></div>
+      <button class="quick-btn" onclick="studioToggleInputCell()" title="Mark / unmark the selected cells as student-input cells (shaded — students can only fill these in a shared worksheet)">✎ Input</button>
+      <button class="quick-btn" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
     </div>
 
     <!-- ── Code tool set ── -->
@@ -3810,9 +3815,12 @@ function showFillHandle() {
 }
 
 
-/* Auto-save is live again: flush pending work on close, offer recovery on load. */
+/* Auto-save is live again: flush pending work on close, offer recovery on load.
+   Skipped when a shared doc/worksheet link (?doc=…) is open — the recovery
+   prompt would otherwise offer to replace the teacher's shared document with
+   the visitor's old local work. */
 window.addEventListener('beforeunload', doAutoSave);
-offerRecovery();
+if (!(new URLSearchParams(location.search)).get('doc')) offerRecovery();
 
 /* ── Init (moved here from earlier to avoid TDZ errors) ─── */
 selectTool('select');
@@ -5302,6 +5310,638 @@ openInput.onchange = e => {
   fxDocStats();
 })();
 /* ═══ end CMC-OFFICE-GRADE ═══ */
+
+
+/* ═══════════════════ CMC-STUDIO-SHARE · publish & collect ═══════════════════
+   Teachers publish their Docs / Excel work to a live share link:
+     ?doc=<id>            — opens the shared copy (read-only, or a worksheet)
+     ?doc=<id>&results=1  — teacher's response dashboard
+   Backed by Firestore REST (studio_docs / studio_submissions), same auth
+   conventions as the biweek test pages: cmc-student-token (+ silent refresh),
+   guests post validated writes with no Authorization header.
+   Modes:
+     view    — read-only for everyone
+     collect — students fill only the shaded ✎ Input cells (sheets) or type
+               into their own copy of the document (docs), then Submit. */
+(function(){
+'use strict';
+if (window.__cmcShareLoaded) return; window.__cmcShareLoaded = true;
+
+/* ── Firebase REST (same conventions as the biweek test pages) ── */
+var FB_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+var PROJECT = 'creative-minds-cambodia';
+var BASE = 'https://firestore.googleapis.com/v1/projects/' + PROJECT + '/databases/(default)/documents';
+var ALPH = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+function ls(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }
+function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e) {} }
+var token = ls('cmc-student-token'), uid = ls('cmc-student-uid'), sname = ls('cmc-student-name');
+var tokenExp = Number(ls('cmc-student-token-expires') || '0');
+function refresh(cb){
+  var rt = ls('cmc-student-refresh-token');
+  if (!rt) { cb(null); return; }
+  fetch('https://securetoken.googleapis.com/v1/token?key=' + FB_API_KEY, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+  }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+    if (!d || !d.id_token) { cb(null); return; }
+    lsSet('cmc-student-token', d.id_token);
+    lsSet('cmc-student-token-expires', String(Date.now() + (Number(d.expires_in) || 3600) * 1000 - 60000));
+    if (d.refresh_token) lsSet('cmc-student-refresh-token', d.refresh_token);
+    cb(d.id_token);
+  }).catch(function(){ cb(null); });
+}
+function ensureToken(cb){
+  if (tokenExp && tokenExp <= Date.now()) { refresh(function(t){ if (t) token = t; cb(token); }); }
+  else cb(token);
+}
+/* opts.noAuth → never send Authorization (anonymous reads / guest writes)
+   opts.anon  → allowed to run without a token (still sends one if present) */
+function rest(path, opts, cb){
+  var go = function(tok){
+    var headers = { 'Content-Type': 'application/json' };
+    if (!opts.noAuth && tok) headers['Authorization'] = 'Bearer ' + tok;
+    fetch(BASE + path, Object.assign({}, opts, { headers: headers }))
+      .then(function(r){ r.json().then(function(b){ cb({ status: r.status, body: b, ok: r.ok }); }, function(){ cb({ status: r.status, ok: r.ok, body: {} }); }); })
+      .catch(function(){ cb({ status: 0, error: 'Network unreachable' }); });
+  };
+  if (opts.noAuth) { go(null); return; }
+  ensureToken(function(tok){
+    if (!tok && !opts.anon) { cb({ status: 0, error: 'Not signed in' }); return; }
+    go(tok);
+  });
+}
+function restErrMsg(status){
+  if (status === 403) return 'Blocked by permissions — sign in with a verified teacher account (an “edu” email) on the main Creative Minds site first, and make sure the new Studio rules are published in the Firebase Console.';
+  if (status === 409) return 'Already submitted.';
+  if (status === 429) return 'Too many requests — try again in a minute.';
+  if (status === 413) return 'Too large to publish.';
+  if (status === 0) return 'Network unreachable — check your connection.';
+  return 'Something went wrong (' + status + '). Try again.';
+}
+
+/* ── Firestore value conversion ── */
+function toFs(v){
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number') return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (typeof v === 'string') return { stringValue: v };
+  if (Array.isArray(v)) { var a = { values: [] }; v.forEach(function(x){ a.values.push(toFs(x)); }); if (!a.values.length) a.values.push({ nullValue: null }); return { arrayValue: a }; }
+  var m = { fields: {} };
+  Object.keys(v).forEach(function(k){ if (typeof v[k] !== 'function' && typeof v[k] !== 'undefined') m.fields[k] = toFs(v[k]); });
+  return { mapValue: m };
+}
+function fromFs(f){
+  if (!f) return null;
+  if ('stringValue' in f) return f.stringValue;
+  if ('integerValue' in f) return Number(f.integerValue);
+  if ('doubleValue' in f) return Number(f.doubleValue);
+  if ('booleanValue' in f) return f.booleanValue;
+  if ('nullValue' in f) return null;
+  if ('arrayValue' in f) return (f.arrayValue.values || []).map(fromFs);
+  if ('mapValue' in f) { var o = {}; var fl = f.mapValue.fields || {}; Object.keys(fl).forEach(function(k){ o[k] = fromFs(fl[k]); }); return o; }
+  return null;
+}
+function fsId(name){ var p = String(name || '').split('/'); return p[p.length - 1]; }
+function nowIso(){ return new Date().toISOString(); }
+function randId(n){ var s = ''; for (var i = 0; i < n; i++) s += ALPH[Math.floor(Math.random() * ALPH.length)]; return s; }
+function shareUrl(id){ return location.origin + location.pathname + '?doc=' + id; }
+function refToA1(ref){ var p = ref.split(','); return colName(+p[1]) + (+p[0] + 1); }
+function sortRef(a, b){ var p = a.split(','), q = b.split(','); return (+p[0] - +q[0]) || (+p[1] - +q[1]); }
+
+/* ── Shared state ── */
+var shareMode = null;          // null | 'view' | 'collect'
+var shareDocId = null, shareMeta = null;
+var studioInputCells = new Set();   // teacher authoring marks; loaded from payload in collect mode
+var sharePreview = false;      // teacher viewing one submission inside results
+var previewBackup = null;      // editor snapshot to restore after preview
+var submittedLocal = ls('studio-submitted-' + (new URLSearchParams(location.search).get('doc') || '')) === '1';
+var flashThrottle = 0;
+
+/* ── CSS ── */
+function ensureCss(){
+  if (document.getElementById('cmcShareCss')) return;
+  var s = document.createElement('style'); s.id = 'cmcShareCss';
+  s.textContent =
+    '.cmc-share-bar{position:fixed;top:0;left:0;right:0;z-index:1200;display:flex;align-items:center;gap:10px;padding:8px 14px;' +
+    'background:linear-gradient(135deg,rgba(20,26,40,.97),rgba(28,22,48,.97));border-bottom:1px solid rgba(124,140,190,.35);backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.35);flex-wrap:wrap}' +
+    '.cmc-share-bar .cmc-title{font-weight:800;font-size:13px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}' +
+    '.cmc-share-bar .cmc-by{font-size:11px;color:#aab4d4;white-space:nowrap}' +
+    '.cmc-badge{font-size:10px;font-weight:800;letter-spacing:.4px;padding:3px 9px;border-radius:99px;white-space:nowrap}' +
+    '.cmc-badge.view{background:rgba(148,163,184,.16);color:#cbd5e1;border:1px solid rgba(148,163,184,.3)}' +
+    '.cmc-badge.collect{background:rgba(52,211,153,.14);color:#6ee7b7;border:1px solid rgba(52,211,153,.35)}' +
+    '.cmc-badge.warn{background:rgba(248,113,113,.14);color:#fca5a5;border:1px solid rgba(248,113,113,.35)}' +
+    '.cmc-badge.err{background:rgba(248,113,113,.14);color:#fca5a5;border:1px solid rgba(248,113,113,.35)}' +
+    '.cmc-btn{font-family:inherit;font-size:11px;font-weight:800;padding:6px 13px;border-radius:8px;border:1px solid rgba(124,140,190,.4);' +
+    'background:rgba(255,255,255,.06);color:#e6ebff;cursor:pointer;transition:all .15s;white-space:nowrap}' +
+    '.cmc-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}' +
+    '.cmc-btn.primary{background:linear-gradient(135deg,#38bdf8,#8b5cf6);border-color:transparent;color:#fff}' +
+    '.cmc-btn.green{background:linear-gradient(135deg,#10b981,#059669);border-color:transparent;color:#fff}' +
+    '.cmc-btn:disabled{opacity:.55;cursor:default;transform:none}' +
+    '.cmc-spacer{flex:1}' +
+    '.cmc-modal-overlay{position:fixed;inset:0;z-index:1300;background:rgba(8,10,18,.66);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:18px}' +
+    '.cmc-modal{width:min(640px,94vw);max-height:86vh;overflow:auto;border-radius:14px;border:1px solid rgba(124,140,190,.4);' +
+    'background:linear-gradient(160deg,#171c2c,#1b1730);box-shadow:0 18px 60px rgba(0,0,0,.5);padding:18px}' +
+    '.cmc-modal h3{margin:0 0 4px;font-size:16px;font-weight:800;color:#fff}' +
+    '.cmc-modal .cmc-sub{font-size:11px;color:#aab4d4;margin:0 0 12px}' +
+    '.cmc-label{font-size:11px;font-weight:700;color:#aab4d4;display:block;margin:10px 0 4px}' +
+    '.cmc-input{width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid rgba(124,140,190,.4);' +
+    'background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-size:13px}' +
+    '.cmc-input:focus{outline:none;border-color:#38bdf8}' +
+    '.cmc-radio-row{display:flex;gap:8px;flex-wrap:wrap}' +
+    '.cmc-radio-card{flex:1;min-width:170px;border:1px solid rgba(124,140,190,.35);border-radius:10px;padding:10px;cursor:pointer;transition:all .15s}' +
+    '.cmc-radio-card:hover{border-color:#38bdf8}' +
+    '.cmc-radio-card.on{border-color:#38bdf8;background:rgba(56,189,248,.08)}' +
+    '.cmc-radio-card b{display:block;font-size:12px;color:#fff;margin-bottom:2px}' +
+    '.cmc-radio-card span{font-size:11px;color:#aab4d4;line-height:1.45}' +
+    '.cmc-row-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center}' +
+    '.cmc-doc-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border:1px solid rgba(124,140,190,.25);border-radius:8px;margin-top:6px}' +
+    '.cmc-doc-row .t{flex:1;font-size:12px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+    '.cmc-doc-row .d{font-size:10px;color:#8891ad;white-space:nowrap}' +
+    '.cmc-link{color:#7dd3fc;font-size:11px;word-break:break-all;user-select:all}' +
+    '.cmc-hint{font-size:11px;color:#8891ad;line-height:1.55;margin-top:10px}' +
+    '.cmc-tbl{width:100%;border-collapse:collapse;font-size:11px;color:#dbe3ff}' +
+    '.cmc-tbl th{text-align:left;padding:6px 8px;color:#8891ad;border-bottom:1px solid rgba(124,140,190,.3);white-space:nowrap}' +
+    '.cmc-tbl td{padding:6px 8px;border-bottom:1px solid rgba(124,140,190,.14)}' +
+    '.cmc-tbl tr.clickable{cursor:pointer}.cmc-tbl tr.clickable:hover td{background:rgba(56,189,248,.07)}' +
+    'td.cell.cmc-input-cell{box-shadow:inset 0 0 0 2px rgba(245,185,66,.55);background:rgba(245,185,66,.10) !important}' +
+    '.cmc-note{font-size:11px;color:#fca5a5;background:rgba(248,113,113,.09);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5}';
+  document.head.appendChild(s);
+}
+function flashOnce(msg){
+  var now = Date.now();
+  if (now - flashThrottle < 1200) return;
+  flashThrottle = now;
+  statusFlash(msg);
+}
+
+/* ── Modal helper ── */
+function mkBtn(label, cls, fn){ var b = document.createElement('button'); b.className = cls; b.textContent = label; b.addEventListener('click', fn); return b; }
+function openModal(title, subtitle, bodyEl){
+  ensureCss();
+  var ov = document.createElement('div'); ov.className = 'cmc-modal-overlay';
+  var card = document.createElement('div'); card.className = 'cmc-modal';
+  var h = document.createElement('h3'); h.textContent = title;
+  var sub = document.createElement('p'); sub.className = 'cmc-sub'; sub.textContent = subtitle || '';
+  card.appendChild(h); if (subtitle) card.appendChild(sub); card.appendChild(bodyEl);
+  ov.appendChild(card);
+  ov.addEventListener('mousedown', function(e){ if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+  return { ov: ov, card: card, close: function(){ ov.remove(); } };
+}
+
+/* ── Input-cell marking (teacher authoring, Excel mode) ── */
+function studioToggleInputCell(){
+  if (shareMode) { statusFlash('Not available while viewing a shared copy'); return; }
+  if (currentMode() !== 'sheet') { statusFlash('Select cells in the Excel tool first'); return; }
+  var refs = [];
+  if (fxRange) {
+    for (var r = Math.min(fxRange.r1, fxRange.r2); r <= Math.max(fxRange.r1, fxRange.r2); r++)
+      for (var c = Math.min(fxRange.c1, fxRange.c2); c <= Math.max(fxRange.c1, fxRange.c2); c++) refs.push(r + ',' + c);
+  } else refs.push(selectedCell.row + ',' + selectedCell.col);
+  if (refs.length > 400) { statusFlash('Too many cells selected (max 400)'); return; }
+  var allIn = refs.every(function(k){ return studioInputCells.has(k); });
+  refs.forEach(function(k){ if (allIn) studioInputCells.delete(k); else studioInputCells.add(k); });
+  statusFlash(allIn ? ('Unmarked ' + refs.length + ' input cell' + (refs.length === 1 ? '' : 's')) : ('Marked ' + refs.length + ' input cell' + (refs.length === 1 ? '' : 's') + ' — shaded for students'));
+  renderSheet();
+}
+window.studioToggleInputCell = studioToggleInputCell;
+
+/* ── Serialization ── */
+function serializePayload(kind){
+  if (kind === 'doc') {
+    return { doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML,
+      docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show'),
+      docRotation: docRotation };
+  }
+  return { sheets: JSON.parse(JSON.stringify(sheets)), currentSheet: currentSheet,
+    colWidths: JSON.parse(JSON.stringify(colWidths)), rowHeights: JSON.parse(JSON.stringify(rowHeights)),
+    freezeRows: freezeRows, freezeCols: freezeCols, inputCells: Array.from(studioInputCells) };
+}
+
+/* ── Publish dialog ── */
+function studioShare(){
+  var mode = currentMode();
+  if (mode !== 'doc' && mode !== 'sheet') { statusFlash('Open the Docs or Excel tool first, then share it'); return; }
+  ensureCss();
+  var kind = mode === 'doc' ? 'doc' : 'sheet';
+  var body = document.createElement('div');
+  body.innerHTML =
+    '<label class="cmc-label">Title</label>' +
+    '<input class="cmc-input" id="cmcShareTitle" maxlength="200" value="' + escapeHtml((filename.textContent || 'Untitled').trim()) + '">' +
+    '<label class="cmc-label">Who can do what with the link?</label>' +
+    '<div class="cmc-radio-row">' +
+    '<div class="cmc-radio-card" data-m="view"><b>👁 View only</b><span>Everyone with the link sees this ' + (kind === 'doc' ? 'document' : 'spreadsheet') + ' read-only. Nothing is collected.</span></div>' +
+    '<div class="cmc-radio-card" data-m="collect"><b>✍ Collect answers</b><span>Students open the link, fill the ' + (kind === 'doc' ? 'document copy' : 'shaded ✎ Input cells') + ', and submit — answers land in your Results dashboard.</span></div>' +
+    '</div>' +
+    (kind === 'sheet' ? '<p class="cmc-hint" id="cmcInputHint"></p>' : '') +
+    '<div class="cmc-note" id="cmcShareNote" style="display:none"></div>' +
+    '<div class="cmc-row-actions">' +
+    '<button class="cmc-btn primary" id="cmcPublishBtn">☁ Publish</button>' +
+    '<span class="cmc-spacer"></span><span class="cmc-hint" id="cmcShareStatus" style="margin:0"></span>' +
+    '</div>' +
+    '<div id="cmcShareResult"></div>' +
+    '<label class="cmc-label">My published docs &amp; worksheets</label>' +
+    '<div id="cmcMyDocs" class="cmc-hint">Loading…</div>';
+  var dlg = openModal('Share ' + (kind === 'doc' ? 'document' : 'spreadsheet'), 'Publishes a live copy to a shareable link. Your local work stays on this device — publish again after edits to update the live copy.', body);
+  var chosen = 'view';
+  var cards = body.querySelectorAll('.cmc-radio-card');
+  function syncCards(){ cards.forEach(function(c){ c.classList.toggle('on', c.dataset.m === chosen); }); if (kind === 'sheet') body.querySelector('#cmcInputHint').textContent = chosen === 'collect' ? ('Currently marked input cells: ' + studioInputCells.size + ' — select cells in the editor and press ✎ Input to mark or unmark them. Students can type only in shaded cells.') : 'Students will see a read-only copy. Mark ✎ Input cells only if you switch to Collect answers.'; }
+  cards.forEach(function(c){ c.addEventListener('click', function(){ chosen = c.dataset.m; syncCards(); }); });
+  syncCards();
+  var statusEl = body.querySelector('#cmcShareStatus'), noteEl = body.querySelector('#cmcShareNote'), resultEl = body.querySelector('#cmcShareResult');
+  function showResult(id, m){
+    resultEl.innerHTML = '';
+    var wrapr = document.createElement('div');
+    wrapr.innerHTML = '<label class="cmc-label">Live link — share it with your class</label>' +
+      '<div class="cmc-link">' + escapeHtml(shareUrl(id)) + '</div>';
+    var acts = document.createElement('div'); acts.className = 'cmc-row-actions';
+    var bCopy = mkBtn('⧉ Copy link', 'cmc-btn', function(){ copyText(shareUrl(id)); });
+    var bOpen = mkBtn('↗ Open student view', 'cmc-btn', function(){ location.href = shareUrl(id); });
+    var bRes = mkBtn('📊 Results', 'cmc-btn', function(){ location.href = shareUrl(id) + '&results=1'; });
+    acts.appendChild(bCopy); acts.appendChild(bOpen); if (m === 'collect') acts.appendChild(bRes);
+    wrapr.appendChild(acts); resultEl.appendChild(wrapr);
+  }
+  body.querySelector('#cmcPublishBtn').addEventListener('click', function(){
+    var title = (body.querySelector('#cmcShareTitle').value || '').trim() || 'Untitled';
+    var btn = this; btn.disabled = true; statusEl.textContent = 'Publishing…'; noteEl.style.display = 'none';
+    publishDoc(kind, chosen, title, function(res){
+      btn.disabled = false;
+      if (!res.ok) { statusEl.textContent = ''; noteEl.textContent = res.msg; noteEl.style.display = 'block'; return; }
+      statusEl.textContent = 'Published ✓';
+      shareDocId = res.id; shareMeta = { title: title, kind: kind, mode: chosen, ownerUid: uid, ownerName: res.ownerName };
+      showResult(res.id, chosen);
+      loadMyDocs(body.querySelector('#cmcMyDocs'));
+    });
+  });
+  loadMyDocs(body.querySelector('#cmcMyDocs'));
+}
+window.studioShare = studioShare;
+
+function publishDoc(kind, mode, title, cb){
+  ensureToken(function(tok){
+    if (!tok) { cb({ ok: false, msg: "You're not signed in. Open the Creative Minds site, sign in with your teacher account (an “edu” email), then come back to Studio." }); return; }
+    if (!uid) { cb({ ok: false, msg: 'Signed-in session is missing its user id — sign in again on the main site.' }); return; }
+    var payload = serializePayload(kind);
+    var size = JSON.stringify(payload).length;
+    if (size > 700000) { cb({ ok: false, msg: 'Too large to publish (' + Math.round(size / 1024) + ' KB). Large embedded images push documents over the database limit — remove or shrink images and try again.' }); return; }
+    var ownerName = String(sname || ls('cmc-student-email') || 'Teacher').slice(0, 60);
+    var doc = { title: title.slice(0, 200), kind: kind, mode: mode, ownerUid: uid, ownerName: ownerName,
+      createdAt: nowIso(), updatedAt: nowIso(), revision: 1, data: payload };
+    rest('/studio_docs', { method: 'POST', body: JSON.stringify({ fields: toFs(doc).mapValue.fields }) }, function(r){
+      if (r.ok && r.body && r.body.name) cb({ ok: true, id: fsId(r.body.name), ownerName: ownerName });
+      else cb({ ok: false, msg: restErrMsg(r.status) });
+    });
+  });
+}
+
+function copyText(txt){
+  function fallback(){ try { window.prompt('Copy this link (Ctrl+C, then Enter):', txt); } catch(e) {} }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ statusFlash('Link copied ✓'); }, fallback);
+  else fallback();
+}
+
+/* ── My published docs ── */
+function loadMyDocs(container){
+  if (!token) { container.textContent = 'Sign in on the main Creative Minds site to see your published docs here.'; return; }
+  var q = { structuredQuery: { from: [{ collectionId: 'studio_docs' }],
+    where: { fieldFilter: { field: { fieldPath: 'ownerUid' }, op: 'EQUAL', value: { stringValue: uid } } },
+    limit: 20 } };
+  rest(':runQuery', { method: 'POST', body: JSON.stringify(q) }, function(r){
+    container.innerHTML = '';
+    var docs = Array.isArray(r.body) ? r.body.filter(function(d){ return d && d.document; }) : [];
+    if (!docs.length) { container.textContent = 'Nothing published yet — publish your first doc above.'; return; }
+    if (r.status === 403) { container.textContent = 'Sign in with a teacher account to see your published docs.'; return; }
+    // newest first (client-side — an orderBy here would need a composite index)
+    docs.sort(function(a, b){ return String((b.document.fields && b.document.fields.updatedAt && b.document.fields.updatedAt.stringValue) || '')
+      .localeCompare(String((a.document.fields && a.document.fields.updatedAt && a.document.fields.updatedAt.stringValue) || '')); });
+    docs.forEach(function(d){
+      var f = d.document.fields || {};
+      var id = fsId(d.document.name);
+      var t = fromFs(f.title) || 'Untitled', kind = fromFs(f.kind) || 'doc', m = fromFs(f.mode) || 'view', up = String(fromFs(f.updatedAt) || '').slice(0, 10);
+      var row = document.createElement('div'); row.className = 'cmc-doc-row';
+      row.innerHTML = '<span class="t">' + escapeHtml(t) + '</span>' +
+        '<span class="cmc-badge ' + (m === 'collect' ? 'collect' : 'view') + '">' + (m === 'collect' ? 'COLLECT' : 'VIEW') + '</span>' +
+        '<span class="d">' + escapeHtml(kind === 'doc' ? 'Doc' : 'Excel') + ' · ' + escapeHtml(up) + '</span>';
+      var acts = document.createElement('div'); acts.style.display = 'flex'; acts.style.gap = '6px';
+      acts.appendChild(mkBtn('Open', 'cmc-btn', function(){ location.href = shareUrl(id); }));
+      if (m === 'collect') acts.appendChild(mkBtn('Results', 'cmc-btn', function(){ location.href = shareUrl(id) + '&results=1'; }));
+      acts.appendChild(mkBtn('⧉', 'cmc-btn', function(){ copyText(shareUrl(id)); }));
+      row.appendChild(acts); container.appendChild(row);
+    });
+  });
+}
+
+/* ── Shared-mode editor guards ── */
+function cellBlocked(r, c){
+  if (!shareMode) return false;
+  if (sharePreview) return true;
+  if (shareMode === 'view') return true;
+  return !studioInputCells.has(r + ',' + c);
+}
+var _setCell = setCell;
+setCell = function(r, c, v){
+  if (cellBlocked(r, c)) { flashOnce('That cell is locked — fill the shaded ✎ input cells'); return; }
+  return _setCell(r, c, v);
+};
+var _startCellEdit = startCellEdit;
+startCellEdit = function(){
+  if (cellBlocked(selectedCell.row, selectedCell.col)) { flashOnce('That cell is locked — fill the shaded ✎ input cells'); return; }
+  return _startCellEdit();
+};
+var _renderSheet = renderSheet;
+renderSheet = function(){
+  _renderSheet();
+  if (!studioInputCells.size) return;
+  sheetGrid.querySelectorAll('td.cell').forEach(function(td){
+    if (studioInputCells.has(td.dataset.r + ',' + td.dataset.c)) td.classList.add('cmc-input-cell');
+  });
+};
+var _doAutoSave = doAutoSave;
+doAutoSave = function(){ if (shareMode) return; return _doAutoSave(); };
+
+/* ── Share banner ── */
+function buildBanner(msg, msgClass){
+  ensureCss();
+  var old = document.getElementById('cmcShareBar'); if (old) old.remove();
+  var bar = document.createElement('div'); bar.id = 'cmcShareBar'; bar.className = 'cmc-share-bar';
+  if (msg) {
+    bar.innerHTML = '<span class="cmc-title">☁ Creative Minds Studio — shared item</span>' +
+      '<span class="cmc-badge ' + (msgClass || 'err') + '">' + escapeHtml(msg) + '</span>';
+    document.body.appendChild(bar); return;
+  }
+  var m = shareMeta || {};
+  var badge = shareMode === 'collect' ? '<span class="cmc-badge collect">✍ COLLECTING ANSWERS</span>' : '<span class="cmc-badge view">👁 VIEW ONLY</span>';
+  bar.innerHTML = '<span class="cmc-title">' + escapeHtml(m.title || 'Shared document') + '</span>' +
+    '<span class="cmc-by">Shared by ' + escapeHtml(m.ownerName || 'your teacher') + '</span>' + badge +
+    '<span class="cmc-spacer"></span>';
+  var right = document.createElement('div'); right.style.display = 'flex'; right.style.gap = '8px'; right.style.alignItems = 'center';
+  if (shareMode === 'collect') {
+    var bSub = document.createElement('button'); bSub.className = 'cmc-btn green'; bSub.id = 'cmcSubmitBtn';
+    if (submittedLocal) { bSub.textContent = '✓ Submitted'; bSub.disabled = true; }
+    else { bSub.textContent = 'Submit my answers'; bSub.addEventListener('click', studioSubmit); }
+    right.appendChild(bSub);
+    var bRes = document.createElement('button'); bRes.className = 'cmc-btn'; bRes.textContent = '📊 Results';
+    bRes.addEventListener('click', openResults);
+    right.appendChild(bRes);
+  }
+  var bCopy = document.createElement('button'); bCopy.className = 'cmc-btn'; bCopy.textContent = '⧉ Copy link';
+  bCopy.addEventListener('click', function(){ copyText(shareUrl(shareDocId)); });
+  right.appendChild(bCopy);
+  var bExit = document.createElement('button'); bExit.className = 'cmc-btn'; bExit.textContent = 'Exit';
+  bExit.title = 'Leave the shared view and go back to your own blank Studio';
+  bExit.addEventListener('click', function(){ location.href = location.pathname; });
+  right.appendChild(bExit);
+  bar.appendChild(right);
+  document.body.appendChild(bar);
+}
+
+/* ── Open a shared doc (?doc=…) ── */
+function initFromUrl(){
+  var q = new URLSearchParams(location.search);
+  var id = (q.get('doc') || '').replace(/[^A-Za-z0-9_-]/g, '');
+  if (!id) return;
+  ensureCss();
+  rest('/studio_docs/' + id, { method: 'GET', noAuth: true }, function(r){
+    if (!r.ok || !r.body || !r.body.fields) {
+      shareDocId = id;
+      buildBanner(r.status === 403
+        ? 'Link blocked — the shared item is not readable yet. (Teacher: publish the new Studio rules in the Firebase Console.)'
+        : 'Link not found — it may have been unpublished or mistyped', 'err');
+      return;
+    }
+    var f = r.body.fields;
+    var meta = {
+      title: fromFs(f.title) || 'Untitled', kind: fromFs(f.kind) || 'doc',
+      mode: fromFs(f.mode) || 'view', ownerUid: fromFs(f.ownerUid) || '',
+      ownerName: fromFs(f.ownerName) || 'your teacher'
+    };
+    var data = fromFs(f.data) || {};
+    shareDocId = id; shareMeta = meta; shareMode = meta.mode;
+    submittedLocal = ls('studio-submitted-' + id) === '1';
+    document.getElementById('welcomeScreen').classList.add('hidden');
+    if (meta.kind === 'doc') {
+      docLayer.innerHTML = data.doc || '<p></p>';
+      docHeader.innerHTML = data.docHeader || '';
+      docFooter.innerHTML = data.docFooter || '';
+      docHeader.classList.toggle('show', !!data.docHeaderShow);
+      docFooter.classList.toggle('show', !!data.docFooterShow);
+      docRotation = data.docRotation || 0; applyDocRotation();
+      selectTool('doc');
+      docLayer.contentEditable = meta.mode === 'collect' ? 'true' : 'false';
+    } else {
+      sheets = Array.isArray(data.sheets) && data.sheets.length ? data.sheets : [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }];
+      currentSheet = data.currentSheet || 0;
+      colWidths = data.colWidths || {}; rowHeights = data.rowHeights || {};
+      freezeRows = data.freezeRows || 0; freezeCols = data.freezeCols || 0;
+      studioInputCells = new Set(Array.isArray(data.inputCells) ? data.inputCells : []);
+      selectTool('sheet');
+      renderSheet(); renderSheetTabs();
+    }
+    filename.textContent = meta.title;
+    buildBanner();
+    if (q.get('results') === '1') openResults();
+  });
+}
+
+/* ── Submit (collect mode) ── */
+function askName(prefill, cb){
+  var body = document.createElement('div');
+  body.innerHTML = '<label class="cmc-label">Your name</label>' +
+    '<input class="cmc-input" id="cmcNameInput" maxlength="40" value="' + escapeHtml(prefill || '') + '" placeholder="e.g. Dara 7A">' +
+    '<div class="cmc-row-actions"><button class="cmc-btn green" id="cmcNameOk">Submit</button></div>';
+  var dlg = openModal('Who is submitting?', 'Your teacher will see this name next to your answers.', body);
+  var inp = body.querySelector('#cmcNameInput'); inp.focus();
+  function go(){ var v = inp.value.trim(); if (!v) { inp.focus(); return; } dlg.close(); cb(v.slice(0, 40)); }
+  body.querySelector('#cmcNameOk').addEventListener('click', go);
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') go(); });
+}
+function studioSubmit(){
+  if (shareMode !== 'collect' || !shareDocId || sharePreview) return;
+  if (submittedLocal) { statusFlash('Already submitted ✓'); return; }
+  var kind = shareMeta.kind, answers = {};
+  if (kind === 'doc') {
+    var html = docLayer.innerHTML;
+    if (html.length > 600000) { statusFlash('Document too large to submit — remove big images'); return; }
+    answers.content = html;
+  } else {
+    studioInputCells.forEach(function(k){
+      var p = k.split(','); var cell = getCell(+p[0], +p[1]);
+      if (cell && cell.v !== '' && cell.v !== undefined && cell.v !== null) answers[k] = String(cell.v);
+    });
+    if (!Object.keys(answers).length) { statusFlash('Fill in at least one shaded cell first'); return; }
+  }
+  var name = sname || ls('cmc-player-name') || '';
+  var proceed = function(finalName){
+    var send = function(studentUid, subId){
+      var sub = { docId: shareDocId, docTitle: String(shareMeta.title || '').slice(0, 200), ownerUid: String(shareMeta.ownerUid || '').slice(0, 100),
+        kind: kind, studentUid: studentUid, studentName: finalName, submittedAt: nowIso(), answers: answers };
+      rest('/studio_submissions?documentId=' + encodeURIComponent(subId), { method: 'POST', body: JSON.stringify({ fields: toFs(sub).mapValue.fields }), anon: true }, function(r){
+        if (r.ok) {
+          submittedLocal = true;
+          lsSet('studio-submitted-' + shareDocId, '1');
+          lsSet('cmc-player-name', finalName);
+          var b = document.getElementById('cmcSubmitBtn');
+          if (b) { b.textContent = '✓ Submitted'; b.disabled = true; }
+          statusFlash('Sent to your teacher ✓ Thank you!');
+        } else if (r.status === 409) { submittedLocal = true; lsSet('studio-submitted-' + shareDocId, '1'); statusFlash('You already submitted this worksheet.'); var b2 = document.getElementById('cmcSubmitBtn'); if (b2) { b2.textContent = '✓ Submitted'; b2.disabled = true; } }
+        else statusFlash(restErrMsg(r.status));
+      });
+    };
+    ensureToken(function(tok){
+      if (tok && uid) send(uid, shareDocId + '__' + uid);
+      else send('', shareDocId + '__guest_' + randId(16));
+    });
+  };
+  if (sname && uid) proceed(sname.slice(0, 40));
+  else askName(name, proceed);
+}
+
+/* ── Results dashboard (teacher) ── */
+function openResults(){
+  if (!shareDocId || !shareMeta || shareMeta.mode !== 'collect') return;
+  ensureToken(function(tok){
+    if (!tok) { statusFlash('Sign in with a teacher account to see results'); return; }
+    var q = { structuredQuery: { from: [{ collectionId: 'studio_submissions' }],
+      where: { fieldFilter: { field: { fieldPath: 'docId' }, op: 'EQUAL', value: { stringValue: shareDocId } } },
+      limit: 500 } };
+    rest(':runQuery', { method: 'POST', body: JSON.stringify(q) }, function(r){
+      if (!r.ok) { statusFlash(restErrMsg(r.status)); return; }
+      var docs = Array.isArray(r.body) ? r.body.filter(function(d){ return d && d.document; }) : [];
+      // newest first (client-side — an orderBy here would need a composite index)
+      docs.sort(function(a, b){ return String((b.document.fields && b.document.fields.submittedAt && b.document.fields.submittedAt.stringValue) || '')
+        .localeCompare(String((a.document.fields && a.document.fields.submittedAt && a.document.fields.submittedAt.stringValue) || '')); });
+      var subs = docs.map(function(d){
+        var f = d.document.fields || {};
+        return { id: fsId(d.document.name), studentName: fromFs(f.studentName) || '(no name)',
+          studentUid: fromFs(f.studentUid) || '', submittedAt: fromFs(f.submittedAt) || '',
+          kind: fromFs(f.kind) || shareMeta.kind, answers: fromFs(f.answers) || {} };
+      });
+      renderResults(subs);
+    });
+  });
+}
+function renderResults(subs){
+  var body = document.createElement('div');
+  var head = document.createElement('div'); head.className = 'cmc-row-actions';
+  var bCsv = document.createElement('button'); bCsv.className = 'cmc-btn primary'; bCsv.textContent = '⬇ Export CSV';
+  bCsv.addEventListener('click', function(){ resultsCsv(subs); });
+  var bRefresh = document.createElement('button'); bRefresh.className = 'cmc-btn'; bRefresh.textContent = '↻ Refresh';
+  bRefresh.addEventListener('click', function(){ dlg.close(); openResults(); });
+  head.appendChild(bCsv); head.appendChild(bRefresh);
+  body.appendChild(head);
+  var info = document.createElement('p'); info.className = 'cmc-sub';
+  info.textContent = subs.length + ' response' + (subs.length === 1 ? '' : 's') + ' · ' + (shareMeta.title || '');
+  body.appendChild(info);
+  if (!subs.length) {
+    var empty = document.createElement('p'); empty.className = 'cmc-hint';
+    empty.textContent = 'No responses yet. Share the link with your class — submissions appear here the moment students press Submit.';
+    body.appendChild(empty);
+  } else {
+    var tbl = document.createElement('table'); tbl.className = 'cmc-tbl';
+    var isSheet = shareMeta.kind === 'sheet';
+    tbl.innerHTML = '<thead><tr><th>Student</th><th>Submitted</th>' + (isSheet ? '<th>Answers</th>' : '<th>Size</th>') + '<th></th></tr></thead>';
+    var tb = document.createElement('tbody');
+    subs.forEach(function(s){
+      var tr = document.createElement('tr'); tr.className = 'clickable';
+      var when = String(s.submittedAt || '').replace('T', ' ').slice(0, 16);
+      var extra = isSheet ? Object.keys(s.answers).length + ' cells' : Math.round((s.answers.content || '').length / 102.4) / 10 + ' KB';
+      tr.innerHTML = '<td><b>' + escapeHtml(s.studentName) + '</b></td><td>' + escapeHtml(when) + '</td><td>' + escapeHtml(extra) + '</td>';
+      var tdOpen = document.createElement('td');
+      var bOpen = document.createElement('button'); bOpen.className = 'cmc-btn'; bOpen.textContent = isSheet ? 'Open' : 'Read';
+      bOpen.addEventListener('click', function(){ previewSubmission(s); });
+      tdOpen.appendChild(bOpen); tr.appendChild(tdOpen);
+      tr.addEventListener('click', function(e){ if (e.target !== bOpen) previewSubmission(s); });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb); body.appendChild(tbl);
+    if (shareMeta.kind !== 'sheet') {
+      var note = document.createElement('p'); note.className = 'cmc-hint';
+      note.textContent = 'Documents are collected as each student\'s own filled copy — press Read to view it. Use Export CSV for the class list.';
+      body.appendChild(note);
+    }
+  }
+  var dlg = openModal('Results — ' + (shareMeta.title || ''), 'Every submission is read-only and can never be edited or deleted (append-only by design).', body);
+}
+function displayOf(v){
+  if (typeof v === 'string' && v.startsWith('=')) { try { return String(evalFormula(v)); } catch(e) { return v; } }
+  return String(v == null ? '' : v);
+}
+function resultsCsv(subs){
+  var rows = [];
+  if (shareMeta.kind === 'sheet') {
+    var refs = Array.from(studioInputCells).sort(sortRef);
+    rows.push(['Student', 'Submitted'].concat(refs.map(refToA1)));
+    subs.forEach(function(s){ rows.push([s.studentName, s.submittedAt].concat(refs.map(function(ref){ return displayOf(s.answers[ref]); }))); });
+  } else {
+    rows.push(['Student', 'Submitted', 'Characters']);
+    subs.forEach(function(s){ rows.push([s.studentName, s.submittedAt, String((s.answers.content || '').length)]); });
+  }
+  var csv = rows.map(function(row){ return row.map(function(v){ v = String(v == null ? '' : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\r\n');
+  var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = ((shareMeta.title || 'studio').replace(/[^a-z0-9-_ ]/gi, '').trim() || 'studio') + '-responses.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 3000);
+  statusFlash('CSV downloaded ✓');
+}
+function previewSubmission(s){
+  var kind = shareMeta.kind;
+  // Close any open dialog (results modal) — the editor view takes over.
+  document.querySelectorAll('.cmc-modal-overlay').forEach(function(o){ o.remove(); });
+  if (!previewBackup) {
+    previewBackup = kind === 'doc'
+      ? { kind: 'doc', doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML,
+          docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show') }
+      : { kind: 'sheet', sheets: JSON.parse(JSON.stringify(sheets)), currentSheet: currentSheet,
+          colWidths: JSON.parse(JSON.stringify(colWidths)), rowHeights: JSON.parse(JSON.stringify(rowHeights)),
+          freezeRows: freezeRows, freezeCols: freezeCols };
+  }
+  sharePreview = true;
+  if (kind === 'doc') {
+    docLayer.innerHTML = s.answers.content || '<p>(empty submission)</p>';
+    docLayer.contentEditable = 'false';
+  } else {
+    var sh = sheets[currentSheet] || sheets[0];
+    Object.keys(s.answers).forEach(function(k){
+      var p = k.split(','), r = +p[0], c = +p[1];
+      if (r + 1 > sh.rows) sh.rows = r + 1;
+      if (c + 1 > sh.cols) sh.cols = c + 1;
+      sh.cells[k] = { v: String(s.answers[k]) };
+    });
+    renderSheet();
+  }
+  filename.textContent = shareMeta.title + ' — ' + s.studentName;
+  buildBanner('Viewing ' + s.studentName + "'s submission", 'warn');
+  var bar = document.getElementById('cmcShareBar');
+  if (bar) {
+    var bBack = document.createElement('button'); bBack.className = 'cmc-btn'; bBack.textContent = '← Back to results';
+    bBack.addEventListener('click', exitPreview);
+    bar.appendChild(bBack);
+  }
+  if (kind === 'doc') window.scrollTo(0, 0);
+}
+function exitPreview(){
+  sharePreview = false;
+  var b = previewBackup; previewBackup = null;
+  if (b.kind === 'doc') {
+    docLayer.innerHTML = b.doc; docHeader.innerHTML = b.docHeader; docFooter.innerHTML = b.docFooter;
+    docHeader.classList.toggle('show', b.docHeaderShow); docFooter.classList.toggle('show', b.docFooterShow);
+    docLayer.contentEditable = shareMode === 'collect' ? 'true' : 'false';
+  } else {
+    sheets = b.sheets; currentSheet = b.currentSheet;
+    colWidths = b.colWidths; rowHeights = b.rowHeights; freezeRows = b.freezeRows; freezeCols = b.freezeCols;
+    renderSheet(); renderSheetTabs();
+  }
+  filename.textContent = shareMeta.title;
+  buildBanner();
+  openResults();
+}
+
+/* ── Boot ── */
+initFromUrl();
+})();
+/* ═══ end CMC-STUDIO-SHARE ═══ */
 </script>
 </body>
 </html>

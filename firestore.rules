@@ -413,6 +413,128 @@ service cloud.firestore {
       allow delete: if isVerifiedUser() && resource.data.hostUid == request.auth.uid;
     }
 
+    // ── STUDIO SHARED DOCS & WORKSHEETS (Nov 2026) ──
+    //
+    // The Studio page (studio/) can publish a Docs or Excel document to a
+    // live share link (?doc=<id>). Two modes:
+    //   view    — everyone with the link sees a read-only copy
+    //   collect — students open the link, fill the teacher-marked input
+    //             cells (sheets) or their own copy of the document (docs),
+    //             and press Submit; answers land in studio_submissions.
+    //
+    // studio_docs/{docId}: document id is an unguessable Firestore auto-ID,
+    // so share links work exactly by knowing the link. Content is classroom
+    // material, not secrets → public read, like biweekly_tests.
+    // Create/update: teachers only (the same edu-email heuristic the app
+    // uses site-wide, hardened with email verification). Update is
+    // owner-only (republishing your own doc; kind can never change so a
+    // doc can't be morphed into a different shape after the fact).
+    // Delete: owner-only, so a teacher can remove a mis-shared link.
+    // Size: the doc field is capped (600 KB) and sheets list capped (12);
+    // Firestore's own 1 MiB per-document limit is the hard backstop.
+    function studioDocFieldsOk(d) {
+      return d.title is string
+        && d.title.size() >= 1
+        && d.title.size() <= 200
+        && d.kind in ['doc', 'sheet']
+        && d.mode in ['view', 'collect']
+        && d.ownerUid == request.auth.uid
+        && d.ownerName is string
+        && d.ownerName.size() >= 1
+        && d.ownerName.size() <= 60
+        && d.createdAt is string
+        && d.createdAt.size() <= 40
+        && d.updatedAt is string
+        && d.updatedAt.size() <= 40
+        && d.revision is number
+        && d.revision >= 1
+        && d.revision <= 10000
+        && d.data is map
+        && ((d.kind == 'doc'
+             && d.data.doc is string
+             && d.data.doc.size() <= 600000
+             && d.data.docHeader is string
+             && d.data.docHeader.size() <= 60000
+             && d.data.docFooter is string
+             && d.data.docFooter.size() <= 60000)
+           || (d.kind == 'sheet'
+             && d.data.sheets is list
+             && d.data.sheets.size() >= 1
+             && d.data.sheets.size() <= 12));
+    }
+
+    match /studio_docs/{docId} {
+      allow read: if true; // share links; content is classroom material
+
+      allow create: if isCmcTeacher() && studioDocFieldsOk(request.resource.data);
+
+      // Republish after edits: owner-only, shape-preserving (kind stays).
+      allow update: if isCmcTeacher()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.kind == resource.data.kind
+        && studioDocFieldsOk(request.resource.data);
+
+      allow delete: if isCmcTeacher() && resource.data.ownerUid == request.auth.uid;
+
+      // "My published docs" dashboard in the Share dialog. The list itself
+      // is teacher-only; the where('ownerUid') equality is enforced by the
+      // client and the collection is publicly readable anyway.
+      allow list: if isCmcTeacher();
+    }
+
+    // studio_submissions/{subId}: student answers for a collect worksheet.
+    // Append-only (no update/delete for anyone — like test_submissions).
+    //   Signed-in students: doc id pins ONE attempt per student per
+    //   worksheet — "{docId}__{studentUid}", create-once, second submit
+    //   fails at the database level (the client surfaces it as 409).
+    //   Guests: "{docId}__guest_<random>" with a validated self-reported
+    //   name — same accepted trade-off as the guest drill_attempts branch:
+    //   a forged guest row only adds a fake row to one worksheet's results;
+    //   it can never touch another submission or the published document.
+    // Reading results: teachers only. Students may GET their own doc.
+    // Every create costs one extra read (the get() of the referenced
+    // studio_doc) so submissions can only ever land on live collect docs.
+    function studioSubFieldsOk(d) {
+      return d.docId is string
+        && d.docId.size() >= 10
+        && d.docId.size() <= 100
+        && d.docTitle is string
+        && d.docTitle.size() <= 200
+        && d.ownerUid is string
+        && d.ownerUid.size() <= 100
+        && d.kind in ['doc', 'sheet']
+        && d.studentName is string
+        && d.studentName.size() >= 1
+        && d.studentName.size() <= 40
+        && d.answers is map
+        && d.answers.size() >= 1
+        && d.answers.size() <= 400
+        && d.submittedAt is string
+        && d.submittedAt.size() <= 40
+        && get(/databases/$(database)/documents/studio_docs/$(d.docId)).data.mode == 'collect';
+    }
+
+    match /studio_submissions/{subId} {
+      allow get: if isCmcTeacher()
+        || (isVerifiedUser() && resource.data.studentUid == request.auth.uid);
+      allow list: if isCmcTeacher();
+
+      allow create: if (
+          isVerifiedUser()
+          && request.resource.data.studentUid == request.auth.uid
+          && subId == (request.resource.data.docId + '__' + request.auth.uid)
+          && studioSubFieldsOk(request.resource.data)
+        ) || (
+          request.auth == null
+          && request.resource.data.studentUid == ''
+          && subId.matches(request.resource.data.docId + '__guest_[a-zA-Z0-9]{8,20}')
+          && studioSubFieldsOk(request.resource.data)
+        );
+
+      // Append-only: submissions are immutable once written.
+      allow update, delete: if false;
+    }
+
     // Default-deny everything not explicitly allowed above.
     match /{document=**} {
       allow read, write: if false;
