@@ -82,21 +82,35 @@ html[data-theme="light"] .acc-violet {--chip:#6d28d9;--chip-br:rgba(109,40,217,.
 html[data-theme="light"] .acc-amber  {--chip:#b45309;--chip-br:rgba(180,83,9,.3);--chip-bg:rgba(251,191,36,.12);--glow:rgba(180,83,9,.28)}
 html[data-theme="light"] .acc-emerald{--chip:#047857;--chip-br:rgba(4,120,87,.3);--chip-bg:rgba(16,185,129,.1);--glow:rgba(5,150,105,.3)}
 
-/* ===== 3D GLASS-GRADIENT BUTTONS — hero .cmc-btn-3d (same in both themes) ===== */
-.btn3d{position:relative;isolation:isolate;display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:12px;font-size:13px;font-weight:700;color:#04141f;text-decoration:none;cursor:pointer;border:0;
-  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),linear-gradient(135deg,var(--b1),var(--b2));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(255,255,255,.25),0 4px 0 var(--edge),0 14px 28px -12px var(--eglow);
-  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  transition:transform .16s cubic-bezier(.34,1.56,.64,1),box-shadow .16s ease,filter .2s ease}
-.btn3d:hover{transform:translateY(-2px);filter:saturate(1.08) brightness(1.04);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(255,255,255,.25),0 6px 0 var(--edge),0 20px 40px -14px var(--eglow)}
-.btn3d:active{transform:translateY(2px);filter:brightness(.98);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 1px 0 var(--edge),0 6px 16px -8px var(--eglow)}
-.btn3d.disabled,.btn3d[aria-disabled="true"]{cursor:not-allowed;filter:grayscale(.4) opacity(.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 0 rgba(15,23,42,.3)}
-.btn3d.disabled:hover,.btn3d.disabled:active{transform:none;filter:grayscale(.4) opacity(.5)}
+/* ===== DRILL BUTTONS — calm, professional row-cards in a responsive grid =====
+   Each drill is a full-width row: accent icon tile · label · chevron.
+   The accent system (acc-*) still drives color via --chip/--chip-bg/--chip-br. */
+.drill-btn{display:flex;align-items:center;gap:11px;padding:10px 13px 10px 11px;border-radius:13px;font-size:13px;font-weight:600;line-height:1.3;color:var(--text);text-decoration:none;cursor:pointer;
+  background:rgba(255,255,255,.045);border:1px solid var(--border);
+  transition:transform .18s cubic-bezier(.16,1,.3,1),border-color .18s ease,background .18s ease,box-shadow .18s ease}
+.drill-btn .btn-ic{flex:0 0 34px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;font-size:13px;color:var(--chip);background:var(--chip-bg);border:1px solid var(--chip-br);transition:transform .18s ease}
+.drill-btn .btn-label{min-width:0}
+.drill-btn .btn-go{margin-left:auto;flex:0 0 auto;font-size:11px;color:var(--muted);opacity:.5;transition:opacity .18s ease,transform .18s ease,color .18s ease}
+.drill-btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.07);border-color:var(--chip-br);box-shadow:0 16px 32px -20px var(--hglow,rgba(34,211,238,.5))}
+.drill-btn:hover .btn-ic{transform:scale(1.06)}
+.drill-btn:hover .btn-go{opacity:1;color:var(--chip);transform:translateX(2px)}
+.drill-btn:active{transform:translateY(0)}
+.drill-btn.disabled{cursor:not-allowed;opacity:.5;filter:grayscale(.35)}
+.drill-btn.disabled:hover{transform:none;background:rgba(255,255,255,.045);border-color:var(--border);box-shadow:none}
+.drill-btn.disabled:hover .btn-ic{transform:none}
+.drill-btn.disabled .btn-go{display:none}
+.drill-grid{display:grid;gap:9px;grid-template-columns:1fr}
+@media(min-width:520px){.drill-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1150px){.drill-grid-3{grid-template-columns:repeat(3,1fr)}}
+.drill-count{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);opacity:.75}
+html[data-theme="light"] .drill-btn{background:rgba(255,255,255,.75);border-color:rgba(15,23,42,.10)}
+html[data-theme="light"] .drill-btn:hover{background:#fff;box-shadow:0 16px 32px -20px var(--hglow-l,rgba(8,145,178,.32))}
+html[data-theme="light"] .drill-btn .btn-go{color:#5c6b7d}
 
 /* ===== CARDS — hero .cmc-card (radius 1.25rem, hover lift + accent glow) ===== */
 .glass{border-radius:1.25rem;border:1px solid var(--border);background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.015));backdrop-filter:blur(12px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s ease,box-shadow .3s ease,background .3s}
 .glass:hover{transform:translateY(-4px);border-color:rgba(103,232,249,.32);box-shadow:0 24px 60px -28px rgba(34,211,238,.45)}
-.week-card{overflow:hidden;position:relative;cursor:pointer;border-left:4px solid var(--line,transparent)}
+.week-card{overflow:hidden;position:relative;cursor:default;border-left:4px solid var(--line,transparent)}
 .week-card:hover{transform:translateY(-4px);border-color:rgba(103,232,249,.32);border-left-color:var(--line);box-shadow:0 24px 60px -28px var(--hglow,rgba(34,211,238,.45))}
 .week-card::after{content:'';position:absolute;inset:0;background-image:var(--bg-img,none);background-size:cover;opacity:.12;mix-blend-mode:screen;pointer-events:none;z-index:0}
 .week-card>*{position:relative;z-index:1}
@@ -356,10 +370,11 @@ WEEKS.forEach((w,idx)=>{
   card.style.setProperty('--bg-img',`url('${svgPreview(w.cat,a.chip)}')`);
 
   const testButtons=w.tests.map(t=>{
+    const ic=`<span class="btn-ic"><i class="fas ${t.icon}"></i></span>`;
     if(t.file==='#'){
-      return `<span class="btn3d acc-${a.k} disabled" aria-disabled="true"><i class="fas ${t.icon} text-xs"></i> ${t.text}</span>`;
+      return `<span class="drill-btn disabled" aria-disabled="true">${ic}<span class="btn-label">${t.text}</span><i class="fas fa-lock btn-go"></i></span>`;
     }
-    return `<a href="tests/${t.file}" class="btn3d acc-${a.k}"><i class="fas ${t.icon} text-xs"></i> ${t.text}</a>`;
+    return `<a href="tests/${t.file}" class="drill-btn" target="_blank" rel="noopener">${ic}<span class="btn-label">${t.text}</span><i class="fas fa-arrow-right btn-go"></i></a>`;
   }).join('');
 
   // Featured card (Week 1 — Orientation & Diagnostic) gets a bigger,
@@ -376,18 +391,19 @@ WEEKS.forEach((w,idx)=>{
       <h3 class="font-display text-xl font-bold text-white mt-1 leading-tight">${w.title}</h3>
       <p class="text-sm text-slate-400 mt-1">${w.skill}</p>
       <p class="text-sm text-slate-500 mt-2 border-t border-white/8 pt-2 leading-relaxed">${w.activity}</p>
-      <div class="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">${testButtons}</div>
+      <div class="mt-5 drill-grid drill-grid-3">${testButtons}</div>
     `;
     featured.appendChild(card);
   } else {
     card.innerHTML=`
       <div class="flex items-center justify-between mb-2">
         <span class="week-chip"><i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}</span>
+        <span class="drill-count">${w.tests.length} drill${w.tests.length===1?'':'s'}</span>
       </div>
       <h3 class="font-display text-base font-bold text-white mt-1 leading-tight">${w.title}</h3>
       <p class="text-[11px] text-slate-400 mt-0.5">${w.skill}</p>
       <p class="text-xs text-slate-500 mt-2 border-t border-white/8 pt-2 leading-relaxed">${w.activity}</p>
-      <div class="mt-3 flex flex-wrap gap-2">${testButtons}</div>
+      <div class="mt-3.5 drill-grid">${testButtons}</div>
     `;
     grid.appendChild(card);
   }
