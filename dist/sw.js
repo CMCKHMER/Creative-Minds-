@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v5'; // v5: even lighter CMC logo recolor, 3D spin removed, Aii sponsor banner on Kid worksheets
+const CACHE_VERSION = 'cmc-v6'; // v6: private-tests panel retired → Bi-Weekly Test Scores spreadsheet export (.xls/CSV)
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

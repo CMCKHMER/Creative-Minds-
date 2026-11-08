@@ -8,7 +8,7 @@ import { listTeacherClasses, listTeacherAttempts, createClass, getClassByCode, e
 import { useStudentAttempts } from '../hooks/useDrillAttempts';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import { StudentAuthModal } from './StudentAuthModal';
-import { BiWeeklyTestsPanel } from './BiWeeklyTestsPanel';
+import { BiWeeklyScoresCard } from './BiWeeklyScoresCard';
 
 export function FirebaseDashboard() {
   const memberAuth = useMemberAuth();
@@ -378,10 +378,11 @@ export function FirebaseDashboard() {
           </div>
         )}
 
-        {/* Bi-Weekly Private Tests — teacher-only panel (assign, live
-            scoreboard, teacher-side grading; students never see scores). */}
-        {isTeacher && teacherUid && (
-          <BiWeeklyTestsPanel teacherUid={teacherUid} classes={classes} />
+        {/* Bi-Weekly Test Scores — simple spreadsheet export. The old private
+            panel (key installs + assignments + live scoreboard) was retired:
+            open drills already record every score to drill_attempts. */}
+        {isTeacher && (
+          <BiWeeklyScoresCard />
         )}
 
         {/* Student view: class join + own attempts */}
