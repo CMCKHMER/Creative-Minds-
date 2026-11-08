@@ -8,7 +8,6 @@ import {
 import { useSignedInSession } from '../hooks/useSignedInSession';
 import { clearPersistedSession } from '../lib/firebaseAuth';
 import { ThemeToggle } from './ThemeToggle';
-import { CmcLogo3D } from './CmcLogo3D';
 
 interface NavbarProps {
   onOpenQuickLinks: () => void;
@@ -125,9 +124,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-xs font-semibold tracking-wide uppercase text-slate-300 group-hover:text-cyan-300 hidden lg:inline">Menu</span>
               </button>
 
-              {/* Official CMC logo — 3D spinning monogram */}
+              {/* Official CMC logo — flat monogram */}
               <a href="#top" aria-label="CMC Network home" className="flex items-center gap-2.5 group">
-                <CmcLogo3D size={46} layers={9} dur={7} mode="sway" />
+                <img
+                  src="./images/cmc-m-logo.png"
+                  alt="CMC logo"
+                  width={46}
+                  height={46}
+                  data-keep-dark
+                  draggable={false}
+                  className="w-[46px] h-[46px] object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] transition-transform group-hover:scale-105"
+                />
                 <div className="flex flex-col leading-none">
                   <span className="cmc-nav-wordmark hidden whitespace-nowrap font-bold text-base sm:inline sm:text-lg tracking-tight text-white group-hover:text-cyan-200 transition">
                     CMC Network Hub

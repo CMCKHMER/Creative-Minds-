@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v4'; // v4: lighter CMC logo recolor + Week 2 Level 10 test replaced with TOEFL Drill (Unit 9-10)
+const CACHE_VERSION = 'cmc-v5'; // v5: even lighter CMC logo recolor, 3D spin removed, Aii sponsor banner on Kid worksheets
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

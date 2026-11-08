@@ -168,6 +168,11 @@ body{
   display:flex; justify-content:space-between;
 }
 @media (max-width:768px){ .info,.stats{grid-template-columns:1fr} .hero,.info,.content{padding-left:22px;padding-right:22px} }
+/* Aii Language Center sponsor banner ( Kid 5-12 worksheets, screen + print ) */
+.aii-banner{display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 28px;background:linear-gradient(90deg,rgba(34,211,238,.07),rgba(139,92,246,.10),rgba(34,211,238,.07));border-bottom:1px solid rgba(148,163,184,.16)}
+.aii-banner img{height:42px;width:auto;max-width:82%;object-fit:contain;background:#fff;border:1px solid rgba(148,163,184,.25);border-radius:9px;padding:6px 18px;box-shadow:0 2px 14px rgba(0,0,0,.22)}
+@media print{.aii-banner{padding:2px 0 8px;background:none!important;border-bottom:1px solid #ddd;box-shadow:none}.aii-banner img{height:54px;box-shadow:none;border-color:#ddd}}
+
 @media print{
   body{background:#fff;padding:0}
   .bg-grid,.topbar,.print-btn,.footer{display:none!important}
@@ -335,6 +340,8 @@ body.light .score-display{color:#0e7490}
 
 <div class="bg-grid"></div>
 <div class="container">
+  <!-- Aii Language Center sponsor banner (screen + print) -->
+  <div class="aii-banner"><img src="../images/aii-language-center-logo-print.png" alt="Aii Language Center · A Mengly J. Quach Education School" title="Aii Language Center — A Mengly J. Quach Education School"></div>
 
   <div class="topbar">
     <div class="brand"><span class="dot"></span>Creative Minds · Worksuite</div>

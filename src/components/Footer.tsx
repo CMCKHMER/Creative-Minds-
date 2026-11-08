@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Sparkles, Shield, Heart, Send, Check } from 'lucide-react';
 import { captureLead } from '../lib/leads';
-import { CmcLogo3D } from './CmcLogo3D';
 
 interface FooterProps {
   onOpenQuickLinks: () => void;
@@ -41,7 +40,15 @@ export const Footer: React.FC<FooterProps> = ({ onOpenQuickLinks, onOpenTeacherP
           
           <div className="lg:col-span-6 space-y-3">
             <div className="flex items-center gap-2.5">
-              <CmcLogo3D size={42} layers={9} dur={7} mode="sway" />
+              <img
+                src="./images/cmc-m-logo.png"
+                alt="CMC logo"
+                width={42}
+                height={42}
+                data-keep-dark
+                draggable={false}
+                className="w-[42px] h-[42px] object-contain"
+              />
               <span className="font-extrabold text-lg text-white tracking-tight">
                 Creative Minds Network
               </span>
