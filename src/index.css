@@ -306,8 +306,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 58% center;
-  filter: saturate(0.85) contrast(1.10) brightness(0.78);
+  object-position: 62% center;
+  /* The artwork is already a deep-navy scene — only a gentle grade, so the
+     orange accent circle and cyan data-globe keep their color. */
+  filter: saturate(1) contrast(1.06) brightness(0.88);
   animation: cmc-photo-breathe 22s ease-in-out infinite alternate;
 }
 
@@ -315,9 +317,11 @@
   position: absolute;
   inset: 0;
   z-index: -2;
+  /* Lighter than before: the new artwork ships dark, so the veil only needs
+     to guarantee text contrast on the left and calm the top/bottom edges. */
   background:
-    linear-gradient(90deg, rgba(4, 18, 30, 0.98) 0%, rgba(4, 18, 30, 0.93) 25%, rgba(4, 18, 30, 0.74) 48%, rgba(4, 18, 30, 0.18) 100%),
-    linear-gradient(0deg, rgba(4, 18, 30, 0.75) 0%, transparent 31%, transparent 74%, rgba(4, 18, 30, 0.3) 100%);
+    linear-gradient(90deg, rgba(4, 18, 30, 0.97) 0%, rgba(4, 18, 30, 0.9) 25%, rgba(4, 18, 30, 0.6) 48%, rgba(4, 18, 30, 0.1) 100%),
+    linear-gradient(0deg, rgba(4, 18, 30, 0.68) 0%, transparent 30%, transparent 76%, rgba(4, 18, 30, 0.26) 100%);
 }
 
 .cmc-hero-light {
@@ -882,7 +886,7 @@ html.light ::-webkit-scrollbar-track { background: #ccd4df; }
 html.light ::-webkit-scrollbar-thumb { background: #94a3b8; }
 html.light ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
-/* ---- hero: light-washed classroom photo under a white veil ---- */
+/* ---- hero: deep-blue TOEFL artwork under a light veil ---- */
 html.light .cmc-hero {
   background: linear-gradient(180deg, #e3e9f1 0%, #e0e7ef 55%, #e8edf4 100%);
 }
@@ -890,12 +894,12 @@ html.light .cmc-hero::after {
   background: linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.28), transparent);
 }
 html.light .cmc-hero-photo {
-  filter: saturate(0.9) contrast(0.98) brightness(1.05);
+  filter: saturate(0.95) contrast(0.96) brightness(1.14);
 }
 html.light .cmc-hero-veil {
   background:
-    linear-gradient(90deg, rgba(228, 234, 242, 0.95) 0%, rgba(228, 234, 242, 0.82) 24%, rgba(228, 234, 242, 0.3) 50%, rgba(228, 234, 242, 0.04) 100%),
-    linear-gradient(0deg, rgba(223, 230, 239, 0.6) 0%, transparent 30%, transparent 76%, rgba(228, 234, 242, 0.32) 100%);
+    linear-gradient(90deg, rgba(228, 234, 242, 0.96) 0%, rgba(228, 234, 242, 0.86) 26%, rgba(228, 234, 242, 0.42) 52%, rgba(228, 234, 242, 0.06) 100%),
+    linear-gradient(0deg, rgba(223, 230, 239, 0.55) 0%, transparent 30%, transparent 76%, rgba(228, 234, 242, 0.3) 100%);
 }
 html.light .cmc-hero-light {
   background:
