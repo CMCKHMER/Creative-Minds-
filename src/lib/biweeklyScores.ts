@@ -103,11 +103,19 @@ export function groupByTest(
 
 /* ── SpreadsheetML workbook ─────────────────────────────────────────── */
 
-const xmlEsc = (s: string): string =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&apos;')
-    // strip control chars XML 1.0 forbids
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+const xmlEsc = (s: string): string => {
+  // strip control chars XML 1.0 forbids (keeps \t \n \r) — charCode filter
+  // instead of a control-character regex (no-control-regex lint rule)
+  let clean = '';
+  for (const ch of s) {
+    const c = ch.charCodeAt(0);
+    if (c < 32 && c !== 9 && c !== 10 && c !== 13) continue;
+    clean += ch;
+  }
+  return clean
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+};
 
 const fmtWhen = (iso: string): string => {
   if (!iso) return '';
