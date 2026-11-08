@@ -10,9 +10,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Download, FileSpreadsheet, RefreshCw } from 'lucide-react';
 import {
   fetchBiweeklyAttempts, groupByTest, toCsv, toSpreadsheetXml,
-  downloadBlob, scoresFileName, TAB_COLOR_CSS,
+  downloadBlob, scoresFileName,
   type BiweeklyAttempt,
 } from '../lib/biweeklyScores';
+import { LiveScoresSheet } from './LiveScoresSheet';
 
 export const BiWeeklyScoresCard: React.FC = () => {
   const [attempts, setAttempts] = useState<BiweeklyAttempt[] | null>(null);
@@ -58,7 +59,7 @@ export const BiWeeklyScoresCard: React.FC = () => {
           <div>
             <h3 className="font-[var(--font-display)] text-lg font-bold text-white">Bi-Weekly Test Scores</h3>
             <p className="text-[11px] text-slate-400">
-              Every open drill records its scores automatically — download the workbook and keep grading in your own spreadsheet.
+              Every open drill records its scores automatically — grade them in the live sheet below, or download the workbook for Excel / Google Sheets.
             </p>
           </div>
         </div>
@@ -100,21 +101,11 @@ export const BiWeeklyScoresCard: React.FC = () => {
           </div>
 
           <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
-            The .xls workbook opens in Excel and Google Sheets with one landscape tab per test —
-            add your own columns, keep your own records, print it. Re-download any time for the latest rows.
+            One live tab per test — right-click any cell for the tool menu, add your own grading columns, and
+            download the workbook whenever you want a copy for Excel, Google Sheets or printing.
           </p>
 
-          {groups.length > 0 && (
-            <div className="mt-3 grid max-h-44 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2">
-              {groups.map((g, i) => (
-                <div key={g.title} className="flex items-center gap-2 rounded-lg border border-white/8 bg-slate-950/40 px-3 py-1.5">
-                  <span className="h-2 w-2 flex-none rounded-full" style={{ background: TAB_COLOR_CSS[i % TAB_COLOR_CSS.length] }} />
-                  <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-slate-200" title={g.title}>{g.title}</span>
-                  <span className="text-[10px] font-bold text-slate-500">{g.rows.length}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <LiveScoresSheet attempts={attempts} />
 
           {groups.length === 0 && (
             <p className="mt-4 rounded-lg border border-white/10 bg-slate-950/40 px-3 py-3 text-[11px] leading-relaxed text-slate-400">

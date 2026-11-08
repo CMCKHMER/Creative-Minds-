@@ -103,7 +103,7 @@ export function groupByTest(
 
 /* ── SpreadsheetML workbook ─────────────────────────────────────────── */
 
-const xmlEsc = (s: string): string => {
+export const xmlEsc = (s: string): string => {
   // strip control chars XML 1.0 forbids (keeps \t \n \r) — charCode filter
   // instead of a control-character regex (no-control-regex lint rule)
   let clean = '';
@@ -117,7 +117,7 @@ const xmlEsc = (s: string): string => {
     .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 };
 
-const fmtWhen = (iso: string): string => {
+export const fmtWhen = (iso: string): string => {
   if (!iso) return '';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return xmlEsc(iso);
@@ -127,7 +127,7 @@ const fmtWhen = (iso: string): string => {
 };
 
 /** Excel sheet names: ≤31 chars, no : \ / ? * [ ] (<> also stripped for tidiness) */
-const sheetName = (title: string): string => {
+export const sheetName = (title: string): string => {
   const clean = title.replace(/[:\\/?*[\]<>]/g, ' ').replace(/\s+/g, ' ').trim();
   return (clean || 'Sheet').slice(0, 31);
 };
