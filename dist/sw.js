@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v3'; // v3: official CMC "M" logo — favicons, app icons, navbar/footer mark
+const CACHE_VERSION = 'cmc-v4'; // v4: lighter CMC logo recolor + Week 2 Level 10 test replaced with TOEFL Drill (Unit 9-10)
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

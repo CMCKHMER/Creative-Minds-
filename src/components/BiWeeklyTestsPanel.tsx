@@ -49,7 +49,7 @@ const PRIVATE_TEST_CATALOG: PrivateTestEntry[] = [
   { testId: 'biweek-week8-recap-listening', title: 'Listening Drill — Recap', slug: 'week8-recap-listening', defaultMinutes: 12, group: 'Week 8 recaps' },
   { testId: 'biweek-week8-recap-reading', title: 'Reading Drill — Recap', slug: 'week8-recap-reading', defaultMinutes: 8, group: 'Week 8 recaps' },
   // Earlier weekly drill series
-  { testId: 'biweek-week2-grammar', title: 'Week 2 · Grammar: Conditionals & Agreement', slug: 'week2-grammar', defaultMinutes: 12, group: 'Weekly drills (earlier cohort)' },
+  { testId: 'biweek-week2-grammar', title: 'Week 2 · TOEFL Drill (Unit 9-10)', slug: 'week2-grammar', defaultMinutes: 15, group: 'Weekly drills (earlier cohort)' },
   { testId: 'biweek-week3-listening', title: 'Week 3 · Listening: Chance Discoveries', slug: 'week3-listening', defaultMinutes: 15, group: 'Weekly drills (earlier cohort)' },
   { testId: 'biweek-week4-reading', title: 'Week 4 · Reading: Genes, Health & Longevity', slug: 'week4-reading', defaultMinutes: 12, group: 'Weekly drills (earlier cohort)' },
   { testId: 'biweek-week5-grammar', title: 'Week 5 · Grammar: Conditionals & Agreement', slug: 'week5-grammar', defaultMinutes: 12, group: 'Weekly drills (earlier cohort)' },
