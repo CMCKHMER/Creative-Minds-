@@ -1,6 +1,6 @@
 # Creative Minds Network
 
-Creative Minds Network is a modern learning and assessment hub built for students, teachers, and program administrators. The project combines classroom resources, assessments, interactive practice, and member access tools into one polished web experience.
+Creative Minds Network is a modern learning and assessment hub built for students, teachers, and program administrators. The project combines classroom resources, assessments, interactive practice, and member workflows into a single public-facing experience.
 
 This repository includes the public-facing platform, learning resources, and supporting configuration for deployment and member-only features.
 
@@ -81,7 +81,8 @@ Creative Minds Network supports a wide range of educational experiences:
 ├── vitest.config.ts
 ├── README.md
 ├── .env.example
-└── .gitignore
+├── .gitignore
+└── LICENSE
 ```
 
 ## Local development
@@ -139,10 +140,13 @@ This project includes educational and member-access features, which means privac
 
 ## License
 
-This project is licensed under the Apache License 2.0.
+This repository is protected by copyright and is not distributed under an open-source license.
+All rights are reserved by CMCKHMER.
 
 ## Contributing
 
 Contributions are welcome for improvements to learning content, UI experience, security hardening, deployment configuration, and classroom functionality.
 
 If you are working on a feature or fix, keep changes scoped, document new functionality, and validate the build where possible.
+
+For reuse or commercial use beyond the scope of any separate written agreement, contact the copyright owner for permission.
