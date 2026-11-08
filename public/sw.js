@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v9'; // v9: live teacher scores sheet (editable grid, right-click tool menu) on the dashboard; v8 added 3D drill buttons + fullscreen proctoring on invite tests
+const CACHE_VERSION = 'cmc-v10'; // v10: new TOEFL iBT header art + studio sheet right-click tool menu with customizable tool layout; v9 added the live teacher scores sheet
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

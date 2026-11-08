@@ -145,12 +145,26 @@
   .sheet-tab.active{background:#fff; color:#111; border-top-color:#4cc9f0}
   .sheet-tab-add{padding:5px 10px; background:#f5f5f5; border:none; cursor:pointer; font-size:14px; color:#555}
   /* Right-click menu on sheet tabs (rename / delete) */
-  .sheet-tab-menu{position:fixed; z-index:2000; background:#fff; border:1px solid #c0c0c0; border-radius:6px; box-shadow:0 10px 28px rgba(0,0,0,.22); min-width:150px; padding:4px 0; display:none}
-  .sheet-tab-menu button{display:block; width:100%; text-align:left; padding:7px 16px; border:none; background:none; font-size:12.5px; font-weight:600; color:#333; cursor:pointer; font-family:inherit}
-  .sheet-tab-menu button:hover{background:#eef6ff}
-  .sheet-tab-menu button.danger{color:#d63031}
-  .sheet-tab-menu button.danger:hover{background:#fdecec}
-  .sheet-tab-menu button:disabled{color:#aaa; cursor:not-allowed; background:none}
+  .sheet-tab-menu{position:fixed; z-index:2000; background:rgba(15,17,25,.97); border:1px solid rgba(255,255,255,.12); border-radius:12px; box-shadow:0 18px 48px rgba(0,0,0,.55); min-width:230px; padding:6px; display:none; backdrop-filter:blur(10px); font-family:inherit}
+  .sheet-tab-menu button{display:flex; align-items:center; gap:9px; width:100%; text-align:left; padding:7px 10px; border:none; background:none; border-radius:8px; font-size:12px; font-weight:600; color:#e2e8f0; cursor:pointer; font-family:inherit}
+  .sheet-tab-menu button:hover{background:rgba(255,255,255,.09)}
+  .sheet-tab-menu button.danger{color:#fda4af}
+  .sheet-tab-menu button:disabled{opacity:.35; cursor:default}
+  .sheet-tab-menu button:disabled:hover{background:none}
+  .stm-ic{width:18px; flex:none; text-align:center; opacity:.8; font-size:12px}
+  .stm-lb{flex:1}
+  .stm-sc{flex:none; font-size:9.5px; font-weight:700; color:#64748b; letter-spacing:.4px}
+  .stm-sep{height:1px; margin:5px 8px; background:rgba(255,255,255,.1)}
+  .tool-off{display:none!important}
+  .stm-row{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); margin-bottom:6px}
+  .stm-row label{display:flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; color:#94a3b8; cursor:pointer; white-space:nowrap}
+  .stm-row label:hover{color:#e2e8f0}
+  .stm-row input[type=checkbox]{accent-color:#22d3ee; cursor:pointer}
+  .stm-dim{color:#64748b; font-size:11px}
+  .stm-mv{border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:#cbd5e1; border-radius:6px; width:24px; height:24px; cursor:pointer; font-size:12px; line-height:1; flex:none}
+  .stm-mv:hover{background:rgba(255,255,255,.12)}
+  .sheet-tab-menu button.danger:hover{background:rgba(253,164,175,.12)}
+  .sheet-tab-menu button:disabled{color:#64748b; cursor:not-allowed; background:none}
   /* Tab color palette (rendered inside the sheet-tab context menu) */
   .tc-head{padding:7px 10px 3px; font-size:9.5px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:#8a94a6}
   .tc-grid{display:grid; grid-template-columns:repeat(6, 18px); gap:5px; padding:4px 10px 6px}
@@ -750,50 +764,55 @@
       <button class="quick-btn cmc-teacher-only" onclick="studioLive()" title="Live session — everyone with the invite link edits this spreadsheet together, like Google Sheets">⚡ Live</button>
     </div>
 
-    <!-- ── Excel tool set (moved out of the old header sheetBar) ── -->
+    <!-- ── Excel tool set — layout driven by the SHEET_TOOL_CATALOG (⚙ Tools customizes it) ── -->
     <div class="quick-set hidden" data-set="sheet" id="quickSet-sheet">
-      <button class="quick-btn" onclick="sheetCmd('bold')" title="Bold"><b>B</b></button>
-      <button class="quick-btn" onclick="sheetCmd('italic')" title="Italic"><i>I</i></button>
-      <button class="quick-btn" onclick="sheetCmd('underline')" title="Underline"><u>U</u></button>
-      <button class="quick-btn" onclick="sheetCmd('alignLeft')" title="Align Left">≡←</button>
-      <button class="quick-btn" onclick="sheetCmd('alignCenter')" title="Align Center">≡</button>
-      <button class="quick-btn" onclick="sheetCmd('alignRight')" title="Align Right">≡→</button>
-      <button class="quick-btn" onclick="sheetCmd('fillColor')" title="Fill Color — paints the whole selection">🎨</button>
-      <input type="color" id="sheetFill" value="#eafaff" title="Cell Fill Color">
-      <button class="quick-btn" onclick="sheetCmd('textColor')" title="Text Color — paints the whole selection" style="color:#f38ba8">A</button>
-      <input type="color" id="sheetColor" value="#000000" title="Cell Text Color">
-      <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="sheetCmd('insertRowAbove')" title="Insert row above">+Row↑</button>
-      <button class="quick-btn" onclick="sheetCmd('insertRowBelow')" title="Insert row below">+Row↓</button>
-      <button class="quick-btn" onclick="sheetCmd('insertColLeft')" title="Insert column left">+Col←</button>
-      <button class="quick-btn" onclick="sheetCmd('insertColRight')" title="Insert column right">+Col→</button>
-      <button class="quick-btn" onclick="sheetCmd('deleteRow')" title="Delete row">−Row</button>
-      <button class="quick-btn" onclick="sheetCmd('deleteCol')" title="Delete column">−Col</button>
-      <button class="quick-btn" onclick="sheetCmd('addSheet')" title="Add sheet">+Sheet</button>
-      <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="sheetCmd('freezeToggle')" title="Freeze Panes">⏸</button>
-      <button class="quick-btn" onclick="sheetRecalc()" title="Recalculate formulas">↻ Recalc</button>
-      <button class="quick-btn" onclick="sheetCmd('clearFormat')" title="Clear Format">⌫</button>
-      <button class="quick-btn" onclick="sheetCmd('clearAll')" title="Clear All">🗑</button>
-      <div class="quick-sep"></div>
-      <select id="sheetFmtSel" onchange="sheetCmd('fmt', this.value); this.selectedIndex=0" title="Number format (applies to the whole selection)">
+      <button class="quick-btn" data-tool="bold" onclick="sheetCmd('bold')" title="Bold"><b>B</b></button>
+      <button class="quick-btn" data-tool="italic" onclick="sheetCmd('italic')" title="Italic"><i>I</i></button>
+      <button class="quick-btn" data-tool="underline" onclick="sheetCmd('underline')" title="Underline"><u>U</u></button>
+      <button class="quick-btn" data-tool="alignLeft" onclick="sheetCmd('alignLeft')" title="Align Left">≡←</button>
+      <button class="quick-btn" data-tool="alignCenter" onclick="sheetCmd('alignCenter')" title="Align Center">≡</button>
+      <button class="quick-btn" data-tool="alignRight" onclick="sheetCmd('alignRight')" title="Align Right">≡→</button>
+      <span data-tool="fillColor" style="display:inline-flex;align-items:center;gap:4px"><button class="quick-btn" onclick="sheetCmd('fillColor')" title="Fill Color — paints the whole selection">🎨</button><input type="color" id="sheetFill" value="#eafaff" title="Cell Fill Color"></span>
+      <span data-tool="textColor" style="display:inline-flex;align-items:center;gap:4px"><button class="quick-btn" onclick="sheetCmd('textColor')" title="Text Color — paints the whole selection" style="color:#f38ba8">A</button><input type="color" id="sheetColor" value="#000000" title="Cell Text Color"></span>
+      <div class="quick-sep" data-tool="sep1"></div>
+      <button class="quick-btn" data-tool="copy" onclick="sheetCopySelection()" title="Copy the selection — Ctrl+C (TSV, pastes into Excel & Google Sheets)">⧉</button>
+      <button class="quick-btn" data-tool="paste" onclick="sheetPasteShortcut()" title="Paste — Ctrl+V (accepts TSV from Excel & Google Sheets)">⎘</button>
+      <button class="quick-btn" data-tool="clearSel" onclick="sheetClearSel()" title="Clear contents of the selection — Del">⌫</button>
+      <div class="quick-sep" data-tool="sep2"></div>
+      <button class="quick-btn" data-tool="insertRowAbove" onclick="sheetCmd('insertRowAbove')" title="Insert row above">+Row↑</button>
+      <button class="quick-btn" data-tool="insertRowBelow" onclick="sheetCmd('insertRowBelow')" title="Insert row below">+Row↓</button>
+      <button class="quick-btn" data-tool="insertColLeft" onclick="sheetCmd('insertColLeft')" title="Insert column left">+Col←</button>
+      <button class="quick-btn" data-tool="insertColRight" onclick="sheetCmd('insertColRight')" title="Insert column right">+Col→</button>
+      <button class="quick-btn" data-tool="deleteRow" onclick="sheetCmd('deleteRow')" title="Delete row">−Row</button>
+      <button class="quick-btn" data-tool="deleteCol" onclick="sheetCmd('deleteCol')" title="Delete column">−Col</button>
+      <button class="quick-btn" data-tool="addSheet" onclick="sheetCmd('addSheet')" title="Add sheet">+Sheet</button>
+      <div class="quick-sep" data-tool="sep3"></div>
+      <button class="quick-btn" data-tool="freezeToggle" onclick="sheetCmd('freezeToggle')" title="Freeze Panes">⏸</button>
+      <button class="quick-btn" data-tool="recalc" onclick="sheetRecalc()" title="Recalculate formulas">↻ Recalc</button>
+      <span data-tool="fmtSel"><select id="sheetFmtSel" onchange="sheetCmd('fmt', this.value); this.selectedIndex=0" title="Number format (applies to the whole selection)">
         <option value="">123 Format…</option><option value="gen">General</option><option value="int">1,234</option><option value="thou2">1,234.00</option><option value="cur">$1,234.00</option><option value="pct">12%</option><option value="pct2">12.34%</option><option value="text">Text (as typed)</option>
-      </select>
-      <button class="quick-btn" onclick="sheetCmd('border')" title="Toggle box borders on the selection">⊞</button>
-      <button class="quick-btn" onclick="sheetCmd('sortAsc')" title="Sort selection A → Z (by the active column)">A↓Z</button>
-      <button class="quick-btn" onclick="sheetCmd('sortDesc')" title="Sort selection Z → A (by the active column)">Z↓A</button>
-      <button class="quick-btn" onclick="sheetCmd('fillDown')" title="Fill down from the top row of the selection">⤓</button>
-      <button class="quick-btn" onclick="sheetCmd('fillRight')" title="Fill right from the left column of the selection">⤒</button>
-      <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="fileSavePng()" title="Export sheet as PNG">💾 PNG</button>
-      <button class="quick-btn" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
-      <button class="quick-btn" onclick="fileSaveCsv()" title="Export current sheet as CSV">⬇CSV</button>
-      <button class="quick-btn" onclick="fxSheetExportXls()" title="Export current sheet as .xls — opens in Microsoft Excel">X ⬇xls</button>
-      <button class="quick-btn" onclick="sheetCsvInput.click()" title="Import a .csv file into the current sheet">⬆CSV</button>
-      <div class="quick-sep"></div>
-      <button class="quick-btn cmc-teacher-only" onclick="studioToggleInputCell()" title="Mark / unmark the selected cells as student-input cells (shaded — students can only fill these in a shared worksheet)">✎ Input</button>
-      <button class="quick-btn cmc-teacher-only" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
-      <button class="quick-btn cmc-teacher-only" onclick="studioLive()" title="Live session — everyone with the invite link edits this spreadsheet together, like Google Sheets">⚡ Live</button>
+      </select></span>
+      <button class="quick-btn" data-tool="border" onclick="sheetCmd('border')" title="Toggle box borders on the selection">⊞</button>
+      <div class="quick-sep" data-tool="sep4"></div>
+      <button class="quick-btn" data-tool="sortAsc" onclick="sheetCmd('sortAsc')" title="Sort selection A → Z (by the active column)">A↓Z</button>
+      <button class="quick-btn" data-tool="sortDesc" onclick="sheetCmd('sortDesc')" title="Sort selection Z → A (by the active column)">Z↓A</button>
+      <button class="quick-btn" data-tool="fillDown" onclick="sheetCmd('fillDown')" title="Fill down from the top row of the selection">⤓</button>
+      <button class="quick-btn" data-tool="fillRight" onclick="sheetCmd('fillRight')" title="Fill right from the left column of the selection">⤒</button>
+      <div class="quick-sep" data-tool="sep5"></div>
+      <button class="quick-btn" data-tool="clearFormat" onclick="sheetCmd('clearFormat')" title="Clear Format">⌫F</button>
+      <button class="quick-btn" data-tool="clearAll" onclick="sheetCmd('clearAll')" title="Clear All">🗑</button>
+      <div class="quick-sep" data-tool="sep6"></div>
+      <button class="quick-btn" data-tool="exportPng" onclick="fileSavePng()" title="Export sheet as PNG">💾 PNG</button>
+      <button class="quick-btn" data-tool="exportPdf" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
+      <button class="quick-btn" data-tool="exportCsv" onclick="fileSaveCsv()" title="Export current sheet as CSV">⬇CSV</button>
+      <button class="quick-btn" data-tool="exportXls" onclick="fxSheetExportXls()" title="Export current sheet as .xls — opens in Microsoft Excel">X ⬇xls</button>
+      <button class="quick-btn" data-tool="importCsv" onclick="sheetCsvInput.click()" title="Import a .csv file into the current sheet">⬆CSV</button>
+      <div class="quick-sep" data-tool="sep7"></div>
+      <button class="quick-btn cmc-teacher-only" data-tool="inputCells" onclick="studioToggleInputCell()" title="Mark / unmark the selected cells as student-input cells (shaded — students can only fill these in a shared worksheet)">✎ Input</button>
+      <button class="quick-btn cmc-teacher-only" data-tool="share" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
+      <button class="quick-btn cmc-teacher-only" data-tool="live" onclick="studioLive()" title="Live session — everyone with the invite link edits this spreadsheet together, like Google Sheets">⚡ Live</button>
+      <div class="quick-sep" data-tool="sep8"></div>
+      <button class="quick-btn" data-tool="customize" onclick="openSheetToolsCustomize()" title="Customize which tools appear in the toolbar and the right-click menu">⚙ Tools</button>
     </div>
 
     <!-- ── Code tool set ── -->
@@ -1121,6 +1140,15 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
 </div></div>
 
 <!-- Page size dialog -->
+<!-- Sheet tools customize dialog -->
+<div class="modal-overlay" id="sheetToolsModal"><div class="modal" style="max-width:440px">
+  <span class="modal-close" onclick="closeModal('sheetToolsModal')">Close ×</span>
+  <h2>Customize sheet tools</h2>
+  <p style="font-size:11px;color:#94a3b8;margin:6px 0 10px">Tick <b>Bar</b> to show a tool in the toolbar and <b>Menu</b> to show it in the right-click menu. Use ↑ ↓ to reorder — the order applies to both. Saved on this device.</p>
+  <div id="sheetToolsList" style="max-height:46vh;overflow:auto;padding-right:2px"></div>
+  <div class="dialog-buttons"><button class="cancel" onclick="sheetToolsReset()">Reset to default</button><button class="primary" onclick="closeModal('sheetToolsModal')">Done</button></div>
+</div></div>
+
 <div class="modal-overlay" id="pageSizeModal"><div class="modal">
   <span class="modal-close" onclick="closeModal('pageSizeModal')">Close ×</span>
   <h2>Page Size</h2>
@@ -2142,33 +2170,32 @@ sheetGrid.addEventListener('keypress', e => {
   if (e.target.matches('input')) return;
   if (e.key.length === 1) { setCell(selectedCell.row, selectedCell.col, e.key); startCellEdit(); const td = sheetGrid.querySelector(`td.cell[data-r="${selectedCell.row}"][data-c="${selectedCell.col}"]`); const input = td && td.querySelector('input'); if (input) { input.value = e.key; input.setSelectionRange(1, 1); } }
 });
-// Right-click a row/column header: insert above/below or left/right, or delete —
-// the right-clicked row/col is selected first so the commands target it.
+// Right-click a cell, row/column header or anywhere on the grid: opens the
+// full Canva-style tool menu (customizable via ⚙ Tools). The right-clicked
+// row/col/cell is selected first so the commands target it.
 sheetGrid.addEventListener('contextmenu', e => {
   const rowHead = e.target.closest('th.row-h');
   const colHead = e.target.closest('th.col-h');
-  if (!rowHead && !colHead) return;
+  const cellTd = e.target.closest('td.cell');
+  if (!rowHead && !colHead && !cellTd) return;
   e.preventDefault();
   const sheet = sheets[currentSheet];
   if (rowHead) {
     const r = [...sheetGrid.querySelectorAll('tbody th.row-h')].indexOf(rowHead);
     selectedCell = { row: r, col: Math.min(selectedCell.col, sheet.cols - 1) };
+    fxRange = null;
     renderSheet();
-    openSheetCtxMenu(e, [
-      {label:'Insert row above', fn:()=>sheetCmd('insertRowAbove')},
-      {label:'Insert row below', fn:()=>sheetCmd('insertRowBelow')},
-      {label:'Delete row', danger:true, disabled: sheet.rows<=1, title:'A sheet needs at least one row', fn:()=>sheetCmd('deleteRow')}
-    ]);
-  } else {
+  } else if (colHead) {
     const c = [...sheetGrid.querySelectorAll('thead th.col-h')].indexOf(colHead);
     selectedCell = { row: Math.min(selectedCell.row, sheet.rows - 1), col: c };
+    fxRange = null;
     renderSheet();
-    openSheetCtxMenu(e, [
-      {label:'Insert column left', fn:()=>sheetCmd('insertColLeft')},
-      {label:'Insert column right', fn:()=>sheetCmd('insertColRight')},
-      {label:'Delete column', danger:true, disabled: sheet.cols<=1, title:'A sheet needs at least one column', fn:()=>sheetCmd('deleteCol')}
-    ]);
+  } else {
+    const r = +cellTd.dataset.r, c = +cellTd.dataset.c;
+    const inSel = fxRange && r >= fxRange.r1 && r <= fxRange.r2 && c >= fxRange.c1 && c <= fxRange.c2;
+    if (!inSel) { selectedCell = { row: r, col: c }; fxRange = null; renderSheet(); }
   }
+  openSheetCtxMenu(e, sheetCellMenuEntries());
 });
 function renderSheetTabs(){
   sheetTabs.innerHTML = '<span class="sheet-tab-add" onclick="sheetCmd(\'addSheet\')">+</span>';
@@ -2183,8 +2210,11 @@ function openSheetCtxMenu(e, entries){
   sheetCtxMenu.innerHTML = '';
   entries.forEach(en=>{
     if (en.custom) { sheetCtxMenu.appendChild(en.custom); return; }
+    if (en.divider) { const d = document.createElement('div'); d.className = 'stm-sep'; sheetCtxMenu.appendChild(d); return; }
     const b=document.createElement('button');
-    b.textContent=en.label;
+    b.innerHTML = '<span class="stm-ic">' + (en.icon ? escapeHtml(en.icon) : '') + '</span>' +
+                  '<span class="stm-lb">' + escapeHtml(en.label) + '</span>' +
+                  (en.shortcut ? '<span class="stm-sc">' + escapeHtml(en.shortcut) + '</span>' : '');
     if(en.danger) b.className='danger';
     if(en.disabled){ b.disabled=true; if(en.title) b.title=en.title; }
     b.onclick=()=>{ closeSheetCtxMenu(); en.fn(); };
@@ -2196,7 +2226,7 @@ function openSheetCtxMenu(e, entries){
 }
 function closeSheetCtxMenu(){ sheetCtxMenu.style.display = 'none'; }
 document.addEventListener('click', e => { if (!sheetCtxMenu.contains(e.target)) closeSheetCtxMenu(); });
-document.addEventListener('contextmenu', e => { if (!e.target.closest('.sheet-tab, .row-h, .col-h') && sheetCtxMenu.style.display === 'block') closeSheetCtxMenu(); });
+document.addEventListener('contextmenu', e => { if (!e.target.closest('.sheet-tab, .row-h, .col-h, td.cell') && sheetCtxMenu.style.display === 'block') closeSheetCtxMenu(); });
 window.addEventListener('blur', closeSheetCtxMenu);
 function renameSheetAt(i){
   closeSheetCtxMenu();
@@ -3315,9 +3345,9 @@ window.addEventListener('keydown',e=>{
   if (inSheet) {
     if (ctrl && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
     if (ctrl && e.key.toLowerCase()==='y'){ e.preventDefault(); redo(); return; }
-    if (ctrl && e.key.toLowerCase()==='c'){ e.preventDefault(); const cv=cellDisplayValue(getCell(selectedCell.row,selectedCell.col)); sheetClipboard=cv; try{navigator.clipboard.writeText(cv);}catch(err){} statusFlash('Cell copied'); return; }
-    if (ctrl && e.key.toLowerCase()==='x'){ e.preventDefault(); const cv=cellDisplayValue(getCell(selectedCell.row,selectedCell.col)); sheetClipboard=cv; try{navigator.clipboard.writeText(cv);}catch(err){} setCell(selectedCell.row,selectedCell.col,''); renderSheet(); statusFlash('Cell cut'); return; }
-    if (ctrl && e.key.toLowerCase()==='v'){ e.preventDefault(); if(sheetClipboard!=null){ setCell(selectedCell.row,selectedCell.col,sheetClipboard); renderSheet(); statusFlash('Cell pasted'); } return; }
+    if (ctrl && e.key.toLowerCase()==='c'){ e.preventDefault(); sheetCopySelection(); return; }
+    if (ctrl && e.key.toLowerCase()==='x'){ e.preventDefault(); sheetCutSelection(); return; }
+    if (ctrl && e.key.toLowerCase()==='v'){ e.preventDefault(); sheetPasteShortcut(); return; }
     if (e.key==='Escape'){ cancelCrop(); selected=-1; drawSelection(); closeAllMenus(); document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('show')); return; }
     return;
   }
@@ -6491,6 +6521,293 @@ initFromUrl();
 })();
 /* ═══ end CMC-STUDIO-SHARE ═══ */
 
+
+/* ══ CMC-SHEET-TOOLS: catalog + customizable layout + rich cell menu + TSV
+   clipboard (Excel interop). The ⚙ Tools button customizes which tools show
+   in the toolbar and the right-click menu, and in what order. Kept at script
+   top level: inline onclick handlers and the grid menu need globals. ══ */
+const SHEET_TOOLS_LS = 'cmc-studio-sheet-tools-v1';
+const SHEET_TOOL_CATALOG = {
+  bold:           { label:'Bold', glyph:'B', group:'style', toolbar:true, menu:false },
+  italic:         { label:'Italic', glyph:'I', group:'style', toolbar:true, menu:false },
+  underline:      { label:'Underline', glyph:'U', group:'style', toolbar:true, menu:false },
+  alignLeft:      { label:'Align left', glyph:'≡←', group:'style', toolbar:true, menu:false },
+  alignCenter:    { label:'Align center', glyph:'≡', group:'style', toolbar:true, menu:false },
+  alignRight:     { label:'Align right', glyph:'≡→', group:'style', toolbar:true, menu:false },
+  fillColor:      { label:'Fill color', glyph:'🎨', group:'style', toolbar:true, menu:false },
+  textColor:      { label:'Text color', glyph:'A', group:'style', toolbar:true, menu:false },
+  sep1:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  copy:           { label:'Copy', glyph:'⧉', shortcut:'Ctrl+C', group:'edit', toolbar:true, menu:true, fn:function(){ sheetCopySelection(); } },
+  paste:          { label:'Paste', glyph:'⎘', shortcut:'Ctrl+V', group:'edit', toolbar:true, menu:true, fn:function(){ sheetPasteShortcut(); } },
+  clearSel:       { label:'Clear contents', glyph:'⌫', shortcut:'Del', group:'edit', toolbar:true, menu:true, fn:function(){ sheetClearSel(); } },
+  sep2:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  insertRowAbove: { label:'Insert row above', glyph:'＋↑', group:'rows', toolbar:true, menu:true, fn:function(){ sheetCmd('insertRowAbove'); } },
+  insertRowBelow: { label:'Insert row below', glyph:'＋↓', group:'rows', toolbar:true, menu:true, fn:function(){ sheetCmd('insertRowBelow'); } },
+  deleteRow:      { label:'Delete row', glyph:'－', group:'rows', toolbar:true, menu:true, danger:true, fn:function(){ sheetCmd('deleteRow'); } },
+  sep3:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  insertColLeft:  { label:'Insert column left', glyph:'＋←', group:'cols', toolbar:true, menu:true, fn:function(){ sheetCmd('insertColLeft'); } },
+  insertColRight: { label:'Insert column right', glyph:'＋→', group:'cols', toolbar:true, menu:true, fn:function(){ sheetCmd('insertColRight'); } },
+  deleteCol:      { label:'Delete column', glyph:'－', group:'cols', toolbar:true, menu:true, danger:true, fn:function(){ sheetCmd('deleteCol'); } },
+  addSheet:       { label:'Add sheet', glyph:'+Sheet', group:'cols', toolbar:true, menu:false, fn:function(){ sheetCmd('addSheet'); } },
+  sep4:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  freezeToggle:   { label:'Freeze panes', glyph:'⏸', group:'view', toolbar:true, menu:true, fn:function(){ sheetCmd('freezeToggle'); } },
+  recalc:         { label:'Recalculate', glyph:'↻', group:'view', toolbar:true, menu:false, fn:function(){ sheetRecalc(); } },
+  fmtSel:         { label:'Number format', glyph:'123', group:'view', toolbar:true, menu:false },
+  border:         { label:'Borders', glyph:'⊞', group:'view', toolbar:true, menu:false, fn:function(){ sheetCmd('border'); } },
+  sep5:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  sortAsc:        { label:'Sort A → Z', glyph:'A↓', group:'data', toolbar:true, menu:true, fn:function(){ sheetCmd('sortAsc'); } },
+  sortDesc:       { label:'Sort Z → A', glyph:'Z↑', group:'data', toolbar:true, menu:true, fn:function(){ sheetCmd('sortDesc'); } },
+  fillDown:       { label:'Fill down', glyph:'⤓', shortcut:'Ctrl+D', group:'data', toolbar:true, menu:true, fn:function(){ sheetCmd('fillDown'); } },
+  fillRight:      { label:'Fill right', glyph:'⤒', group:'data', toolbar:true, menu:true, fn:function(){ sheetCmd('fillRight'); } },
+  sep6:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  clearFormat:    { label:'Clear format', glyph:'⌫F', group:'edit', toolbar:true, menu:false, fn:function(){ sheetCmd('clearFormat'); } },
+  clearAll:       { label:'Clear the whole sheet', glyph:'🗑', group:'edit', toolbar:true, menu:true, danger:true, fn:function(){ sheetCmd('clearAll'); } },
+  sep7:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  exportPng:      { label:'Export PNG', glyph:'💾', group:'export', toolbar:true, menu:false, fn:function(){ fileSavePng(); } },
+  exportPdf:      { label:'Print / PDF', glyph:'🖨', group:'export', toolbar:true, menu:false, fn:function(){ fileSavePdf(); } },
+  exportCsv:      { label:'Export CSV', glyph:'⬇', group:'export', toolbar:true, menu:false, fn:function(){ fileSaveCsv(); } },
+  exportXls:      { label:'Export .xls (Excel)', glyph:'X⬇', group:'export', toolbar:true, menu:false, fn:function(){ fxSheetExportXls(); } },
+  importCsv:      { label:'Import CSV', glyph:'⬆', group:'export', toolbar:true, menu:false, fn:function(){ var el = document.getElementById('sheetCsvInput'); if (el) el.click(); } },
+  sep8:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  inputCells:     { label:'Mark input cells', glyph:'✎', group:'share', toolbar:true, menu:false, fn:function(){ studioToggleInputCell(); } },
+  share:          { label:'Share', glyph:'☁', group:'share', toolbar:true, menu:false, fn:function(){ studioShare(); } },
+  live:           { label:'Live session', glyph:'⚡', group:'share', toolbar:true, menu:false, fn:function(){ studioLive(); } },
+  customize:      { label:'Customize tools…', glyph:'⚙', group:'sep', toolbar:true, menu:true, fixed:true, fn:function(){ openSheetToolsCustomize(); } }
+};
+
+function sheetToolsCfg(){
+  const ids = Object.keys(SHEET_TOOL_CATALOG);
+  const order = ids.slice();
+  const toolbar = {}, menu = {};
+  ids.forEach(function(id){ toolbar[id] = !!SHEET_TOOL_CATALOG[id].toolbar; menu[id] = !!SHEET_TOOL_CATALOG[id].menu; });
+  let stored = null;
+  try { stored = JSON.parse(localStorage.getItem(SHEET_TOOLS_LS) || 'null'); } catch (e) { stored = null; }
+  if (stored && Array.isArray(stored.order)) {
+    const valid = stored.order.filter(function(id){ return !!SHEET_TOOL_CATALOG[id]; });
+    for (let i = valid.length - 1; i >= 0; i--) {
+      const id = valid[i];
+      order.splice(order.indexOf(id), 1);
+      order.unshift(id);
+    }
+  }
+  if (stored && stored.toolbar) ids.forEach(function(id){ if (typeof stored.toolbar[id] === 'boolean') toolbar[id] = stored.toolbar[id]; });
+  if (stored && stored.menu) ids.forEach(function(id){ if (typeof stored.menu[id] === 'boolean') menu[id] = stored.menu[id]; });
+  return { order: order, toolbar: toolbar, menu: menu };
+}
+function sheetToolsSave(cfg){
+  try { localStorage.setItem(SHEET_TOOLS_LS, JSON.stringify({ order: cfg.order, toolbar: cfg.toolbar, menu: cfg.menu })); } catch (e) {}
+}
+function applySheetToolLayout(){
+  const setEl = document.getElementById('quickSet-sheet');
+  if (!setEl) return;
+  const cfg = sheetToolsCfg();
+  const byId = {};
+  Array.prototype.forEach.call(setEl.children, function(el){ if (el.dataset && el.dataset.tool) byId[el.dataset.tool] = el; });
+  cfg.order.forEach(function(id){
+    const el = byId[id]; if (!el) return;
+    setEl.appendChild(el);
+    if (id !== 'customize') el.classList.toggle('tool-off', cfg.toolbar[id] === false);
+  });
+  if (byId.customize) { setEl.appendChild(byId.customize); byId.customize.classList.remove('tool-off'); }
+}
+
+/* ── the right-click menu on cells / headers, built from the user's layout ── */
+function sheetCellMenuEntries(){
+  const cfg = sheetToolsCfg();
+  const sh = sheets[currentSheet];
+  const out = [];
+  let lastGroup = null;
+  cfg.order.forEach(function(id){
+    const t = SHEET_TOOL_CATALOG[id];
+    if (!t || !t.menu || id === 'customize') return;
+    if (cfg.menu[id] === false) return;
+    if (lastGroup !== null && t.group !== lastGroup) out.push({ divider: true });
+    lastGroup = t.group;
+    const en = { label: t.label, icon: t.glyph, shortcut: t.shortcut, fn: t.fn, danger: !!t.danger };
+    if (id === 'deleteRow') { en.disabled = sh.rows <= 1; en.title = 'A sheet needs at least one row'; }
+    if (id === 'deleteCol') { en.disabled = sh.cols <= 1; en.title = 'A sheet needs at least one column'; }
+    out.push(en);
+  });
+  out.push({ divider: true });
+  out.push({ label: 'Customize tools…', icon: '⚙', fn: function(){ openSheetToolsCustomize(); } });
+  return out;
+}
+
+/* ── range clipboard: TSV in and out, Excel & Google Sheets compatible ── */
+function sheetCopyTsvString(){
+  const sh = sheets[currentSheet]; if (!sh) return '';
+  const rng = fxSelRange();
+  const lines = [];
+  for (let r = rng.r1; r <= rng.r2; r++) {
+    const line = [];
+    for (let c = rng.c1; c <= rng.c2; c++) {
+      const cell = sh.cells[cellKey(r, c)];
+      line.push(cell ? String(fxCellDisplay(cell)) : '');
+    }
+    lines.push(line.join('\t'));
+  }
+  return lines.join('\n');
+}
+function sheetCopySelection(){
+  const rng = fxSelRange();
+  const tsv = sheetCopyTsvString();
+  sheetClipboard = tsv;
+  try { navigator.clipboard.writeText(tsv); } catch (err) {}
+  const n = fxRangeSize(rng);
+  statusFlash(n === 1 ? 'Cell copied' : n + ' cells copied — pastes into Excel');
+}
+function sheetCutSelection(){
+  const sh = sheets[currentSheet]; if (!sh) return;
+  const rng = fxSelRange();
+  const tsv = sheetCopyTsvString();
+  sheetClipboard = tsv;
+  try { navigator.clipboard.writeText(tsv); } catch (err) {}
+  sheetSnapshotPush();
+  fxIterRange(rng, function(r, c){ const cell = sh.cells[cellKey(r, c)]; if (cell) cell.v = ''; });
+  renderSheet(); scheduleAutoSave();
+  const n = fxRangeSize(rng);
+  statusFlash(n === 1 ? 'Cell cut' : 'Cut ' + n + ' cells');
+}
+function sheetClearSel(){
+  const sh = sheets[currentSheet]; if (!sh) return;
+  const rng = fxSelRange();
+  sheetSnapshotPush();
+  fxIterRange(rng, function(r, c){ const cell = sh.cells[cellKey(r, c)]; if (cell) cell.v = ''; });
+  renderSheet(); scheduleAutoSave();
+  const n = fxRangeSize(rng);
+  statusFlash('Cleared ' + n + ' cell' + (n === 1 ? '' : 's'));
+}
+/* Excel's TSV dialect: "a""b" → a"b, quoted fields may hold tabs/newlines. */
+function sheetParseTsv(text){
+  let src = String(text);
+  if (src.charCodeAt(0) === 0xFEFF) src = src.slice(1);
+  src = src.replace(/\r\n?/g, '\n');
+  if (src === '') return [];
+  const rows = []; let row = []; let field = ''; let quoted = false; let pending = false;
+  const pushF = function(){ row.push(field); field = ''; quoted = false; };
+  const pushR = function(){ pushF(); rows.push(row); row = []; pending = false; };
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (quoted) {
+      if (ch === '"') { if (src[i + 1] === '"') { field += '"'; i++; } else { quoted = false; } }
+      else field += ch;
+      continue;
+    }
+    if (ch === '"' && field === '') { quoted = true; pending = true; continue; }
+    if (ch === '\t') { pushF(); pending = true; continue; }
+    if (ch === '\n') { pushR(); continue; }
+    field += ch; pending = true;
+  }
+  if (pending) pushR();
+  return rows.length ? rows : [['']];
+}
+function sheetPasteBlockAt(block){
+  const sh = sheets[currentSheet]; if (!sh || !block.length) return;
+  const w = Math.max.apply(null, block.map(function(r){ return r.length; }).concat([1]));
+  const needR = selectedCell.row + block.length - sh.rows;
+  const needC = selectedCell.col + w - sh.cols;
+  if (needR > 0) sh.rows += needR;
+  if (needC > 0) sh.cols += needC;
+  sheetSnapshotPush();
+  for (let i = 0; i < block.length; i++) {
+    for (let j = 0; j < w; j++) {
+      const v = block[i][j] != null ? block[i][j] : '';
+      const k = cellKey(selectedCell.row + i, selectedCell.col + j);
+      if (v === '') { const cell = sh.cells[k]; if (cell) cell.v = ''; }
+      else { const cell = fxEnsureCell(selectedCell.row + i, selectedCell.col + j); cell.v = v; }
+    }
+  }
+  fxRange = { r1: selectedCell.row, r2: selectedCell.row + block.length - 1, c1: selectedCell.col, c2: selectedCell.col + w - 1 };
+  renderSheet(); renderSheetTabs(); scheduleAutoSave();
+  statusFlash('Pasted ' + block.length + ' row' + (block.length === 1 ? '' : 's'));
+}
+function sheetPasteShortcut(){
+  if (sheetClipboard != null) { sheetPasteBlockAt(sheetParseTsv(sheetClipboard)); return; }
+  try {
+    navigator.clipboard.readText().then(function(txt){
+      if (txt) sheetPasteBlockAt(sheetParseTsv(txt));
+      else statusFlash('The clipboard is empty');
+    }).catch(function(){ statusFlash('Paste blocked by the browser — press Ctrl+V'); });
+  } catch (err) { statusFlash('Paste blocked by the browser — press Ctrl+V'); }
+}
+
+/* ── touch: long-press a cell opens the tool menu ── */
+let sheetToolsTouchTimer = null;
+sheetGrid.addEventListener('touchstart', function(e){
+  if (currentMode() !== 'sheet') return;
+  const td = e.target.closest ? e.target.closest('td.cell') : null;
+  if (!td) return;
+  const t = e.touches[0]; if (!t) return;
+  const x0 = t.clientX, y0 = t.clientY, r = +td.dataset.r, c = +td.dataset.c;
+  if (sheetToolsTouchTimer) clearTimeout(sheetToolsTouchTimer);
+  sheetToolsTouchTimer = setTimeout(function(){
+    sheetToolsTouchTimer = null;
+    selectedCell = { row: r, col: c }; fxRange = null;
+    renderSheet();
+    openSheetCtxMenu({ clientX: x0, clientY: y0 }, sheetCellMenuEntries());
+  }, 550);
+}, { passive: true });
+['touchend', 'touchmove', 'touchcancel'].forEach(function(ev){
+  sheetGrid.addEventListener(ev, function(){
+    if (sheetToolsTouchTimer) { clearTimeout(sheetToolsTouchTimer); sheetToolsTouchTimer = null; }
+  }, { passive: true });
+});
+
+/* ── the ⚙ customize dialog: show/hide + reorder every tool ── */
+function openSheetToolsCustomize(){
+  closeSheetCtxMenu();
+  const cfg = sheetToolsCfg();
+  const list = document.getElementById('sheetToolsList');
+  if (list) {
+    list.innerHTML = '';
+    cfg.order.forEach(function(id){
+      const t = SHEET_TOOL_CATALOG[id]; if (!t) return;
+      const row = document.createElement('div'); row.className = 'stm-row';
+      row.innerHTML = '<span class="stm-ic">' + escapeHtml(t.glyph || '') + '</span>' +
+        '<span class="stm-lb' + (t.isSep ? ' stm-dim' : '') + '">' + escapeHtml(t.isSep ? '— divider —' : t.label) + '</span>';
+      if (!t.isSep && !t.fixed) {
+        const lb = document.createElement('label');
+        lb.innerHTML = '<input type="checkbox"' + (cfg.toolbar[id] !== false ? ' checked' : '') + '> Bar';
+        lb.querySelector('input').addEventListener('change', function(ev){
+          const c = sheetToolsCfg(); c.toolbar[id] = ev.target.checked; sheetToolsSave(c); applySheetToolLayout();
+        });
+        const lm = document.createElement('label');
+        lm.innerHTML = '<input type="checkbox"' + (cfg.menu[id] !== false ? ' checked' : '') + '> Menu';
+        lm.querySelector('input').addEventListener('change', function(ev){
+          const c = sheetToolsCfg(); c.menu[id] = ev.target.checked; sheetToolsSave(c); applySheetToolLayout();
+        });
+        row.appendChild(lb); row.appendChild(lm);
+      } else {
+        const sp = document.createElement('span'); sp.className = 'stm-dim'; sp.style.fontSize = '10px';
+        sp.textContent = t.fixed ? 'always on' : '';
+        row.appendChild(sp);
+      }
+      const up = document.createElement('button'); up.className = 'stm-mv'; up.type = 'button'; up.textContent = '↑'; up.title = 'Move up';
+      up.addEventListener('click', function(){ sheetToolsMove(id, -1); });
+      const dn = document.createElement('button'); dn.className = 'stm-mv'; dn.type = 'button'; dn.textContent = '↓'; dn.title = 'Move down';
+      dn.addEventListener('click', function(){ sheetToolsMove(id, 1); });
+      row.appendChild(up); row.appendChild(dn);
+      list.appendChild(row);
+    });
+  }
+  openModal('sheetToolsModal');
+}
+function sheetToolsMove(id, dir){
+  const cfg = sheetToolsCfg();
+  const i = cfg.order.indexOf(id), j = i + dir;
+  if (i < 0 || j < 0 || j >= cfg.order.length) return;
+  const tmp = cfg.order[i]; cfg.order[i] = cfg.order[j]; cfg.order[j] = tmp;
+  sheetToolsSave(cfg);
+  applySheetToolLayout();
+  openSheetToolsCustomize();
+}
+function sheetToolsReset(){
+  try { localStorage.removeItem(SHEET_TOOLS_LS); } catch (e) {}
+  applySheetToolLayout();
+  openSheetToolsCustomize();
+  statusFlash('Sheet tools reset to the default layout');
+}
+applySheetToolLayout();
 
 /* ═══════════════════ CMC-STUDIO-LIVE · real-time co-editing ═══════════════════
    Google-Sheets-style live sessions over WebRTC (PeerJS) — deliberately NOT
