@@ -6184,6 +6184,14 @@ function studioSubmit(){
       answers: (testDraft || loadTestDraft(shareMeta.linkedTest.total)).slice() };
   }
   var name = sname || ls('cmc-player-name') || '';
+  // CMC-LIVE-RULES COMPAT (Nov 2026): the Firestore rules currently published
+  // on the live database pre-date test-only submissions — they require
+  // answers.size() >= 1 but carry NO field whitelist (so the extra `test`
+  // field is accepted). Mirroring the test's raw indices into
+  // answers.__test makes test-only submissions pass BOTH the live rules and
+  // the newer draft (which allows either shape). Grading keeps reading
+  // sub.test.answers; the Results views skip the __test key.
+  if (testOut && !Object.keys(answers).length) answers.__test = testOut.answers;
   var proceed = function(finalName){
     var send = function(studentUid, subId){
       var sub = { docId: shareDocId, docTitle: String(shareMeta.title || '').slice(0, 200), ownerUid: String(shareMeta.ownerUid || '').slice(0, 100),
@@ -6297,7 +6305,7 @@ function renderResults(subs){
     subs.forEach(function(s){
       var tr = document.createElement('tr'); tr.className = 'clickable';
       var when = String(s.submittedAt || '').replace('T', ' ').slice(0, 16);
-      var extra = isSheet ? Object.keys(s.answers).length + ' cells' : Math.round((s.answers.content || '').length / 102.4) / 10 + ' KB';
+      var extra = isSheet ? Object.keys(s.answers).filter(function(k){ return k !== '__test'; }).length + ' cells' : Math.round((s.answers.content || '').length / 102.4) / 10 + ' KB';
       tr.innerHTML = '<td><b>' + escapeHtml(s.studentName) + '</b></td><td>' + escapeHtml(when) + '</td><td>' + escapeHtml(extra) + '</td>' + (hasTest ? testScoreCellHtml(s) : '');
       var tdOpen = document.createElement('td');
       var bOpen = document.createElement('button'); bOpen.className = 'cmc-btn'; bOpen.textContent = isSheet ? 'Open' : 'Read';
@@ -6365,6 +6373,7 @@ function previewSubmission(s){
   } else {
     var sh = sheets[currentSheet] || sheets[0];
     Object.keys(s.answers).forEach(function(k){
+      if (k === '__test') return; // linked-test mirror, not a worksheet cell
       var p = k.split(','), r = +p[0], c = +p[1];
       if (r + 1 > sh.rows) sh.rows = r + 1;
       if (c + 1 > sh.cols) sh.cols = c + 1;
