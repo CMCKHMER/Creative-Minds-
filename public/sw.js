@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v2'; // v2: all listening audio re-recorded (multi-voice narration)
+const CACHE_VERSION = 'cmc-v3'; // v3: official CMC "M" logo — favicons, app icons, navbar/footer mark
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

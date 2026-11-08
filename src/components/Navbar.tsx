@@ -124,13 +124,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-xs font-semibold tracking-wide uppercase text-slate-300 group-hover:text-cyan-300 hidden lg:inline">Menu</span>
               </button>
 
-              {/* Brand Logo matching the original screenshot */}
+              {/* Official CMC logo — the "M" monogram (transparent PNG) */}
               <a href="#top" aria-label="CMC Network home" className="flex items-center gap-2.5 group">
-                <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-sky-400 p-[2px] shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-400/30 transition-all">
-                  <div data-keep-dark className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 to-indigo-200 text-sm">
-                    CMC
-                  </div>
-                </div>
+                <img
+                  src="./images/cmc-m-logo.png"
+                  alt="CMC logo"
+                  data-keep-dark
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] transition-all group-hover:scale-105 group-hover:drop-shadow-[0_0_16px_rgba(129,140,248,0.55)]"
+                />
                 <div className="flex flex-col leading-none">
                   <span className="cmc-nav-wordmark hidden whitespace-nowrap font-bold text-base sm:inline sm:text-lg tracking-tight text-white group-hover:text-cyan-200 transition">
                     CMC Network Hub
