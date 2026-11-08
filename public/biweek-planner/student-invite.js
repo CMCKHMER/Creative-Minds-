@@ -12,10 +12,19 @@
  *      through for students.
  *   3. The test stays fully locked behind an entry card until the student
  *      enters their name + student ID and ticks the honour code — answers
- *      cannot be selected and the timer cannot start before that.
+ *      cannot be selected and the timer cannot start before that. The lock
+ *      is three layers deep: disabled inputs, a MutationObserver that
+ *      re-disables anything injected later, and capture-phase pointer/key
+ *      blockers (v2, after students managed to tick answers pre-entry).
  *   4. The Start button starts the timer (V2 engine) / the enforced exam
- *      timer (week8-recap engine) and begins recording every answer with
- *      its elapsed time.
+ *      timer (week8-recap engine), begins recording every answer with its
+ *      elapsed time, puts the page into full-screen and arms proctoring
+ *      (v2): leaving the tab/window, leaving full-screen, copy/paste,
+ *      right-click, text selection, copy shortcuts and window.open are all
+ *      counted as warnings, shown as an on-page alert, and recorded with
+ *      the attempt. Invite links ALWAYS run this student flow — even for a
+ *      signed-in teacher who clicks their own share link. Teachers preview
+ *      a test by opening it WITHOUT ?invite= (answers + grading visible).
  *   5. Submit records the full attempt (score + per-question answers +
  *      duration + integrity flags + teacher code) into Firestore
  *      drill_attempts, then auto-redirects to the homepage hero which
@@ -42,15 +51,6 @@
   /* ── 0. Session helpers (mirrors teacher-gate.js) ─────────────────── */
   function ls(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
   function setLs(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
-  function detectRoleFromEmail(email) {
-    var domain = (String(email || '').split('@')[1] || '').toLowerCase();
-    return domain && domain.indexOf('edu') !== -1 ? 'teacher' : 'student';
-  }
-  function isTeacher() {
-    if (!ls('cmc-student-token')) return false;
-    var role = ls('cmc-student-role') || detectRoleFromEmail(ls('cmc-student-email'));
-    return role === 'teacher';
-  }
   function ss(key, val) {
     try {
       if (arguments.length === 2) { sessionStorage.setItem(key, val); return null; }
@@ -65,10 +65,11 @@
   var rawInvite = '';
   try { rawInvite = new URLSearchParams(window.location.search).get('invite') || ''; } catch (e) {}
   var inviteCode = String(rawInvite).trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 24);
-  var INVITE_MODE = false;
-  if (inviteCode.length >= 3 && !isTeacher()) INVITE_MODE = true;
-  // Teacher preview (signed-in teacher, with or without ?invite=) → the
-  // page keeps today's behaviour exactly: instant scoring + answers shown.
+  // v2: an invite link is ALWAYS the student experience — even on a device
+  // where a teacher is signed in (that loophole let answers be ticked before
+  // name/ID entry). Teachers who want to preview/grade a test simply open
+  // it without ?invite= (planner buttons they click themselves).
+  var INVITE_MODE = inviteCode.length >= 3;
   window.CMC_INVITE_OK = INVITE_MODE;
   if (!INVITE_MODE) { flushPendingQueue(); return; }
 
@@ -97,14 +98,18 @@
   var startedAt = 0;
   var studentName = '', studentCode = '';
   var answerLog = {}; // qnum → { letters:'B', value:'1', sec:124 }
-  var integrity = { blurs: 0, fsExits: 0 };
+  var integrity = { blurs: 0, fsExits: 0, copies: 0 };
   var submitted = false;
+  var lockObserver = null, proctorArmed = false, lastFlagAt = 0;
+  function running() { return startedAt > 0 && !submitted; }
 
   function ensureOverlayStyle() {
     if (document.getElementById('cmc-invite-style')) return;
     var st = document.createElement('style');
     st.id = 'cmc-invite-style';
     st.textContent =
+      // Hard pre-start lock: nothing in the quiz form is clickable/selectable
+      'html.cmc-invite-locked #test-form{pointer-events:none!important;user-select:none!important;-webkit-user-select:none!important}' +
       '#' + OVERLAY_ID + ' *{box-sizing:border-box}' +
       '#' + OVERLAY_ID + ' input{font-family:inherit}' +
       '#' + OVERLAY_ID + ' .ci-input{width:100%;padding:11px 13px;border-radius:11px;font-size:14px;' +
@@ -238,6 +243,8 @@
     unlockFormInputs();
     startEngineTimer();
     startRecording();
+    enterExamFullscreen();
+    armProctor();
     track('invite_start', { invite_code: inviteCode });
   }
 
@@ -279,20 +286,194 @@
       minutes.value = String(Math.min(180, Math.max(1, mins)));
     }
     if (startBtn) setTimeout(function () { startBtn.click(); }, 120);
+    // Lock the minutes field so the exam length can't be changed mid-test.
+    setTimeout(function () {
+      var minsInput = document.querySelector('.timer-minutes');
+      if (minsInput) minsInput.disabled = true;
+    }, 400);
   }
 
-  /** Lock every quiz input while the entry overlay is up — students cannot
-   *  select answers or progress before name + ID + Start. */
-  function lockQuizInputs() {
+  /* ── 4b. Hard lock — nothing selectable before Start (v2) ─────────── */
+  /* Three layers: (1) every form control disabled, (2) a MutationObserver
+   * that re-disables controls injected later by the page's own engine,
+   * (3) capture-phase pointer/key blockers on #test-form. Plus a CSS class
+   * that kills pointer-events + selection on the whole form. */
+  function lockNow() {
     var form = document.getElementById('test-form');
     if (!form) return;
-    form.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(function (i) { i.disabled = true; });
+    form.querySelectorAll('input:not([type=hidden]),select,textarea').forEach(function (i) {
+      if (!i.disabled) i.disabled = true;
+    });
+  }
+  function lockQuizInputs() {
+    document.documentElement.classList.add('cmc-invite-locked');
+    lockNow();
+    if (lockObserver) lockObserver.disconnect();
+    try {
+      lockObserver = new MutationObserver(function () { if (!running()) lockNow(); });
+      lockObserver.observe(document.documentElement, { childList: true, subtree: true });
+    } catch (e) { /* ancient browser — disabled attrs + overlay still apply */ }
+    function inForm(t) { return !!(t && t.closest && t.closest('#test-form')); }
+    function block(e) {
+      if (!running() && inForm(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); }
+    }
+    document.addEventListener('pointerdown', block, true);
+    document.addEventListener('click', block, true);
+    document.addEventListener('keydown', block, true);
   }
 
   function unlockFormInputs() {
+    document.documentElement.classList.remove('cmc-invite-locked');
+    if (lockObserver) { try { lockObserver.disconnect(); } catch (e) {} lockObserver = null; }
     var form = document.getElementById('test-form');
     if (!form) return;
-    form.querySelectorAll('input[type="radio"],input[type="checkbox"]').forEach(function (i) { i.disabled = false; });
+    form.querySelectorAll('input:not([type=hidden]),select,textarea').forEach(function (i) { i.disabled = false; });
+  }
+
+  /* ── 4c. Full-screen + proctoring (v2) ──────────────────────────── */
+  function enterExamFullscreen() {
+    var el = document.documentElement;
+    var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (!fn) return;
+    try { var p = fn.call(el); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+  }
+  function exitExamFullscreen() {
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        var fn = document.exitFullscreen || document.webkitExitFullscreen;
+        if (fn) fn.call(document);
+      }
+    } catch (e) {}
+  }
+  function totalWarnings() { return integrity.blurs + integrity.fsExits; }
+
+  var warnEl = null;
+  function showWarn(msgHtml) {
+    hideWarn();
+    ensureOverlayStyle();
+    var p = palette();
+    warnEl = document.createElement('div');
+    warnEl.id = 'cmc-invite-warn';
+    warnEl.setAttribute('role', 'alert');
+    warnEl.style.cssText = 'position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:18px;' +
+      'background:rgba(2,6,23,.92);backdrop-filter:blur(6px);' +
+      "font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;color:" + p.text + ';';
+    warnEl.innerHTML = '<div style="max-width:380px;width:100%;text-align:center;padding:30px 24px;border-radius:18px;' +
+      'background:' + p.cardBg + ';border:1px solid rgba(251,191,36,.45);box-shadow:0 30px 80px -42px rgba(0,0,0,.75)">' +
+      '<div style="width:56px;height:56px;margin:0 auto;border-radius:16px;display:flex;align-items:center;justify-content:center;' +
+      'background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4);color:#fbbf24;font-size:24px">' +
+      '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i></div>' +
+      '<h2 style="margin:16px 0 0;font-family:Syne,Plus Jakarta Sans,sans-serif;font-size:19px;font-weight:800">Stay on your test</h2>' +
+      '<p style="margin:10px 0 0;font-size:12.5px;line-height:1.65;color:' + p.muted + '">' + msgHtml + '</p>' +
+      '<p style="margin:10px 0 0;font-size:11px;font-weight:800;letter-spacing:.04em;color:#fbbf24">WARNING ' + totalWarnings() +
+      ' RECORDED FOR YOUR TEACHER</p>' +
+      '<button id="ci-warn-back" type="button" style="margin-top:18px;width:100%;padding:12px 18px;border:0;border-radius:12px;cursor:pointer;' +
+      'background:linear-gradient(100deg,#c4b5fd,#67e8f9);color:#0f172a;font-size:13px;font-weight:800">' +
+      '<i class="fas fa-rotate-left" aria-hidden="true"></i>&nbsp; Return to test</button>' +
+      '</div>';
+    document.body.appendChild(warnEl);
+    document.getElementById('ci-warn-back').addEventListener('click', function () {
+      hideWarn();
+      enterExamFullscreen();
+    });
+  }
+  function hideWarn() { if (warnEl) { try { warnEl.remove(); } catch (e) {} warnEl = null; } }
+
+  var toastEl = null, lastToastAt = 0;
+  function showToast(msg) {
+    var now = Date.now();
+    if (now - lastToastAt < 1200) return;
+    lastToastAt = now;
+    if (toastEl) { try { toastEl.remove(); } catch (e) {} }
+    toastEl = document.createElement('div');
+    toastEl.setAttribute('role', 'status');
+    toastEl.style.cssText = 'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:100002;padding:10px 16px;' +
+      'border-radius:12px;background:rgba(251,191,36,.96);color:#3b2f04;font-size:12px;font-weight:700;white-space:nowrap;' +
+      "box-shadow:0 12px 32px -12px rgba(0,0,0,.6);font-family:'Plus Jakarta Sans',sans-serif";
+    toastEl.innerHTML = '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i>&nbsp; ' + msg;
+    document.body.appendChild(toastEl);
+    setTimeout(function () { if (toastEl) { try { toastEl.remove(); } catch (e) {} toastEl = null; } }, 2400);
+  }
+
+  /** Count a switching/fullscreen violation (deduped: blur+visibilitychange
+   *  both fire for one tab switch) and show the alert overlay. */
+  function flagSwitch(kind, msg) {
+    if (!running()) return;
+    var now = Date.now();
+    if (now - lastFlagAt < 900) return;
+    lastFlagAt = now;
+    integrity[kind] = (integrity[kind] || 0) + 1;
+    showWarn(msg);
+  }
+
+  function armProctor() {
+    if (proctorArmed) return;
+    proctorArmed = true;
+
+    // Window switching: leaving the tab/app counts; coming back shows the alert.
+    document.addEventListener('visibilitychange', function () {
+      if (!running()) return;
+      if (document.hidden) { integrity.blurs++; lastFlagAt = Date.now(); }
+      else showWarn('You left the test window. The timer kept running and this was recorded.');
+    });
+    window.addEventListener('blur', function () {
+      flagSwitch('blurs', 'You clicked outside the test. Stay on the exam until you submit.');
+    });
+
+    // Full-screen is mandatory while the exam runs; exiting warns.
+    document.addEventListener('fullscreenchange', function () {
+      if (!running()) return;
+      if (!document.fullscreenElement) {
+        flagSwitch('fsExits', 'You left full-screen mode. Return to full-screen to keep taking the test.');
+      }
+    });
+
+    // No copy, cut, paste, right-click, selection or dragging.
+    ['copy', 'cut', 'paste', 'contextmenu', 'selectstart', 'dragstart'].forEach(function (evt) {
+      document.addEventListener(evt, function (e) {
+        if (!running()) return;
+        e.preventDefault(); e.stopImmediatePropagation();
+        integrity.copies++;
+        showToast('Copying is disabled during the test — recorded.');
+      }, true);
+    });
+
+    // Copy/print/dev shortcut blocking + PrintScreen heads-up.
+    document.addEventListener('keydown', function (e) {
+      if (!running()) return;
+      var k = (e.key || '').toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && ['c', 'x', 'v', 'p', 's', 'u'].indexOf(k) !== -1) {
+        e.preventDefault(); e.stopImmediatePropagation();
+        integrity.copies++;
+        showToast('That shortcut is disabled during the test.');
+      } else if (e.key === 'PrintScreen') {
+        integrity.copies++;
+        showToast('Screenshots are recorded for your teacher.');
+      }
+    }, true);
+
+    // No floating/popup windows while the exam runs.
+    try {
+      var origOpen = window.open;
+      window.open = function () {
+        if (running()) {
+          integrity.fsExits++;
+          showToast('Opening other windows is disabled during the test.');
+          return null;
+        }
+        return origOpen.apply(window, arguments);
+      };
+    } catch (e) {}
+
+    // Middle-click new tabs count as leaving too.
+    document.addEventListener('auxclick', function (e) {
+      if (running() && e.button === 1) { e.preventDefault(); e.stopImmediatePropagation(); }
+    }, true);
+
+    // Confirm before closing/navigating away mid-exam.
+    window.addEventListener('beforeunload', function (e) {
+      if (running()) { e.preventDefault(); e.returnValue = ''; }
+    });
   }
 
   /* ── 5. Answer recording (per question, with elapsed seconds) ─────── */
@@ -313,12 +494,7 @@
         try { ss('cmc-invite-answers:' + slug, JSON.stringify(answerLog)); } catch (e) {}
       });
     }
-    window.addEventListener('blur', function () {
-      if (startedAt && !submitted && !document.hidden) integrity.blurs++;
-    });
-    document.addEventListener('fullscreenchange', function () {
-      if (startedAt && !submitted && !document.fullscreenElement) integrity.fsExits++;
-    });
+    // (blur / fullscreenchange integrity counting moved into armProctor, v2)
     try {
       var prev = ss('cmc-invite-answers:' + slug);
       if (prev) answerLog = JSON.parse(prev) || {};
@@ -326,15 +502,21 @@
   }
 
   /* ── 6. Submit → record → hero thank-you redirect ─────────────────── */
-  // Both engines expose a global doSubmit() (function declaration in a
-  // classic script → writable window property). In invite mode we replace
-  // it entirely: score is computed from the DOM, the attempt is recorded,
-  // and the student is redirected — no answer reveal, no score screen.
-  window.doSubmit = function () {
-    if (submitted) return;
-    submitted = true;
-    recordAndRedirect();
-  };
+  // Both engines call a global doSubmit(). The pages declare their own
+  // `function doSubmit()` in bottom inline scripts, which would overwrite
+  // the invite version assigned from <head> — so we re-claim it on
+  // DOMContentLoaded (after every page script has parsed). In invite mode
+  // we own submit entirely: score from the DOM, attempt recorded, student
+  // redirected — no answer reveal, no score screen.
+  function claimSubmit() {
+    window.doSubmit = function () {
+      if (submitted) return;
+      submitted = true;
+      recordAndRedirect();
+    };
+  }
+  claimSubmit();
+  document.addEventListener('DOMContentLoaded', claimSubmit);
   // Belt-and-braces for engines wired directly to #rv-submit.
   document.addEventListener('click', function (e) {
     if (!e.target || !e.target.closest) return;
@@ -365,6 +547,8 @@
   }
 
   function recordAndRedirect() {
+    hideWarn();
+    exitExamFullscreen();
     var sc = computeScore();
     var total = sc.cards.length || 1;
     var pct = Math.max(0, Math.min(100, Math.round(sc.correct / total * 100)));
@@ -400,7 +584,8 @@
       startedAt: { timestampValue: new Date(startedAt || Date.now()).toISOString() },
       integrity: { mapValue: { fields: {
         blurs: { integerValue: String(integrity.blurs) },
-        fsExits: { integerValue: String(integrity.fsExits) }
+        fsExits: { integerValue: String(integrity.fsExits) },
+        copies: { integerValue: String(integrity.copies) }
       } } }
     };
 
@@ -443,6 +628,8 @@
   }
 
   function goHome(cloudState) {
+    hideWarn();
+    exitExamFullscreen();
     try {
       sessionStorage.setItem('cmc-invite-thanks', JSON.stringify({
         name: studentName, title: getTestTitle(), invite: inviteCode,
