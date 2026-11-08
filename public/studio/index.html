@@ -6184,19 +6184,17 @@ function studioSubmit(){
       answers: (testDraft || loadTestDraft(shareMeta.linkedTest.total)).slice() };
   }
   var name = sname || ls('cmc-player-name') || '';
-  // CMC-LIVE-RULES COMPAT (Nov 2026): the Firestore rules currently published
-  // on the live database pre-date test-only submissions — they require
-  // answers.size() >= 1 but carry NO field whitelist (so the extra `test`
-  // field is accepted). Mirroring the test's raw indices into
-  // answers.__test makes test-only submissions pass BOTH the live rules and
-  // the newer draft (which allows either shape). Grading keeps reading
-  // sub.test.answers; the Results views skip the __test key.
-  if (testOut && !Object.keys(answers).length) answers.__test = testOut.answers;
+  // CMC-LIVE-RULES COMPAT (Nov 2026): the rules live on the database whitelist
+  // submission fields and have NO `test` key — any top-level `test` field is
+  // rejected with 403 (verified live). The linked-test indices therefore
+  // travel ONLY inside answers.__test; the teacher's Results view resolves
+  // them from there. This shape also passes the newer draft rules, which
+  // accept any submission with at least one answers entry.
+  if (testOut) answers.__test = testOut.answers;
   var proceed = function(finalName){
     var send = function(studentUid, subId){
       var sub = { docId: shareDocId, docTitle: String(shareMeta.title || '').slice(0, 200), ownerUid: String(shareMeta.ownerUid || '').slice(0, 100),
         kind: kind, studentUid: studentUid, studentName: finalName, submittedAt: nowIso(), answers: answers };
-      if (testOut) sub.test = testOut;
       rest('/studio_submissions?documentId=' + encodeURIComponent(subId), { method: 'POST', body: JSON.stringify({ fields: toFs(sub).mapValue.fields }), anon: true }, function(r){
         if (r.ok) {
           submittedLocal = true;
@@ -6239,9 +6237,20 @@ function openResults(){
         .localeCompare(String((a.document.fields && a.document.fields.submittedAt && a.document.fields.submittedAt.stringValue) || '')); });
       var subs = docs.map(function(d){
         var f = d.document.fields || {};
-        return { id: fsId(d.document.name), studentName: fromFs(f.studentName) || '(no name)',
+        var s = { id: fsId(d.document.name), studentName: fromFs(f.studentName) || '(no name)',
           studentUid: fromFs(f.studentUid) || '', submittedAt: fromFs(f.submittedAt) || '',
           kind: fromFs(f.kind) || shareMeta.kind, answers: fromFs(f.answers) || {}, test: fromFs(f.test) || null };
+        // Resolve the linked-test indices: current submissions carry them in
+        // answers.__test (the live rules reject a top-level `test` field);
+        // normalize legacy rows that did carry `test` into the same shape so
+        // grading, the score cell and the CSV all read one format.
+        var tAns = (s.answers && Array.isArray(s.answers.__test)) ? s.answers.__test
+          : (s.test && Array.isArray(s.test.answers) ? s.test.answers : null);
+        if (tAns) s.test = { slug: (s.test && s.test.slug) || '', title: (s.test && s.test.title) || '',
+          total: (shareMeta.linkedTest && shareMeta.linkedTest.total) || tAns.length,
+          answered: tAns.filter(function(a){ return a != null && (!Array.isArray(a) || a.length); }).length,
+          answers: tAns };
+        return s;
       });
       gradeResults(subs, function(){ renderResults(subs); });
     });
