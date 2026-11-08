@@ -81,6 +81,7 @@ export const Hero = ({
 }: HeroProps) => {
   const shortcutsRef = useRef<HTMLElement>(null);
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const target = shortcutsRef.current;
@@ -100,6 +101,29 @@ export const Hero = ({
 
     observer.observe(target);
     return () => observer.disconnect();
+  }, []);
+
+  // Hero backdrop is a looping video. Honour prefers-reduced-motion by
+  // pausing playback (the poster frame stays as a still image); other
+  // visitors get the animated header art. Autoplay is muted + playsInline
+  // so mobile browsers allow it; .play() failures are swallowed because the
+  // poster frame is already showing.
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => {
+      if (reduced.matches) {
+        video.pause();
+      } else {
+        video.play().catch(() => {});
+      }
+    };
+    apply();
+    if (typeof reduced.addEventListener === 'function') {
+      reduced.addEventListener('change', apply);
+      return () => reduced.removeEventListener('change', apply);
+    }
   }, []);
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
@@ -129,13 +153,18 @@ export const Hero = ({
         onPointerLeave={resetPointer}
       >
         <div className="cmc-hero-photo-plane" aria-hidden="true">
-          <img
-            src="./images/classroom-hero-renaissance.webp"
-            alt=""
-            className="cmc-hero-photo"
-            fetchPriority="high"
-            decoding="async"
-            loading="eager"
+          <video
+            ref={heroVideoRef}
+            className="cmc-hero-photo cmc-hero-video"
+            src="./images/hero-book-world.mp4"
+            poster="./images/hero-book-world-poster.jpg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            disablePictureInPicture
+            preload="auto"
+            tabIndex={-1}
           />
         </div>
         <div className="cmc-hero-veil" aria-hidden="true" />

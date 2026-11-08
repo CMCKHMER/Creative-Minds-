@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v10'; // v10: new TOEFL iBT header art + studio sheet right-click tool menu with customizable tool layout; v9 added the live teacher scores sheet
+const CACHE_VERSION = 'cmc-v11'; // v11: animated TOEFL book-and-world-map hero video + studio Docs right-click tool menu, customizable doc tools and drag-to-resize image handles; v10 TOEFL header art + sheet tool menu; v9 live teacher scores sheet
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

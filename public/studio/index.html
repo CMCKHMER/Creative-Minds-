@@ -421,6 +421,18 @@
 #fxImgChip button{border:none;background:transparent;cursor:pointer;font-size:11px;padding:3px 6px;border-radius:5px;color:#111}
 #fxImgChip button:hover{background:#eef2f7}
 #fxImgChip .sep{width:1px;height:16px;background:#dbe2ec;margin:0 2px}
+/* Document: Canva/Word-style drag handles around a selected image.
+   The container tracks the image's screen rect; the 8 handles sit on it. */
+#fxImgHandles{position:fixed;z-index:69;display:none;pointer-events:none}
+.fx-img-handle{position:absolute;width:11px;height:11px;background:#fff;border:2px solid #06b6d4;border-radius:2px;box-shadow:0 1px 5px rgba(15,23,42,.4);pointer-events:auto;touch-action:none}
+.fx-img-handle-nw{left:-6px;top:-6px;cursor:nwse-resize}
+.fx-img-handle-n{left:calc(50% - 5.5px);top:-6px;cursor:ns-resize}
+.fx-img-handle-ne{right:-6px;top:-6px;cursor:nesw-resize}
+.fx-img-handle-e{right:-6px;top:calc(50% - 5.5px);cursor:ew-resize}
+.fx-img-handle-se{right:-6px;bottom:-6px;cursor:nwse-resize}
+.fx-img-handle-s{left:calc(50% - 5.5px);bottom:-6px;cursor:ns-resize}
+.fx-img-handle-sw{left:-6px;bottom:-6px;cursor:nesw-resize}
+.fx-img-handle-w{left:-6px;top:calc(50% - 5.5px);cursor:ew-resize}
 /* Document: zoom via CSS zoom on the page layers */
 .doc-layer,.doc-header,.doc-footer{zoom:var(--doc-zoom,1)}
 /* Document: code block + quote styling inside the editor */
@@ -691,77 +703,79 @@
 
     <!-- ── Docs tool set (moved out of the old header wordBar) ── -->
     <div class="quick-set hidden" data-set="doc" id="quickSet-doc">
-      <select id="docBlock" title="Paragraph style">
+      <select id="docBlock" data-tool="dBlock" title="Paragraph style">
         <option value="p">Paragraph</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option>
       </select>
-      <select id="docFont" title="Document font">
+      <select id="docFont" data-tool="dFont" title="Document font">
         <option value="Instrument Sans">Sans</option><option value="Georgia">Serif</option><option value="Courier New">Mono</option>
         <option value="Inter">Inter</option><option value="Roboto">Roboto</option><option value="Lato">Lato</option>
         <option value="Montserrat">Montserrat</option><option value="Playfair Display">Playfair</option><option value="Merriweather">Merriweather</option>
       </select>
-      <select onchange="docCmd('fontName', this.value); this.selectedIndex=0" title="Font">
+      <select data-tool="dFontApply" onchange="docCmd('fontName', this.value); this.selectedIndex=0" title="Font">
         <option value="">Font…</option><option value="Inter">Inter</option><option value="Syne">Syne</option><option value="Roboto">Roboto</option><option value="Lato">Lato</option><option value="Montserrat">Montserrat</option><option value="Playfair Display">Playfair</option><option value="Merriweather">Merriweather</option><option value="Source Sans 3">Source Sans</option><option value="Oswald">Oswald</option><option value="Poppins">Poppins</option><option value="Raleway">Raleway</option><option value="Georgia">Georgia</option><option value="Arial">Arial</option><option value="Courier New">Courier</option>
       </select>
-      <select onchange="docFontSizePt(this.value); this.selectedIndex=0" title="Font Size (pt — Word-accurate)">
+      <select data-tool="dSize" onchange="docFontSizePt(this.value); this.selectedIndex=0" title="Font Size (pt — Word-accurate)">
         <option value="">Size…</option><option value="8">8pt</option><option value="9">9pt</option><option value="10">10pt</option><option value="11">11pt</option><option value="12">12pt</option><option value="14">14pt</option><option value="16">16pt</option><option value="18">18pt</option><option value="20">20pt</option><option value="24">24pt</option><option value="28">28pt</option><option value="32">32pt</option><option value="36">36pt</option><option value="48">48pt</option><option value="60">60pt</option><option value="72">72pt</option>
       </select>
-      <input type="color" id="docColor" value="#000000" title="Text Color">
-      <input type="color" id="docHighlight" value="#ffff00" title="Highlight Color">
-      <button class="quick-btn" onclick="docCmd('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
-      <button class="quick-btn" onclick="docCmd('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
-      <button class="quick-btn" onclick="docCmd('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
-      <button class="quick-btn" onclick="docCmd('strikeThrough')" title="Strikethrough"><s>S</s></button>
-      <button class="quick-btn" onclick="docCmd('superscript')" title="Superscript">x²</button>
-      <button class="quick-btn" onclick="docCmd('subscript')" title="Subscript">x₂</button>
-      <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="docCmd('insertUnorderedList')" title="Bullets">•</button>
-      <button class="quick-btn" onclick="docCmd('insertOrderedList')" title="Numbers">1.</button>
-      <button class="quick-btn" onclick="docCmd('justifyLeft')" title="Align Left">≡←</button>
-      <button class="quick-btn" onclick="docCmd('justifyCenter')" title="Align Center">≡</button>
-      <button class="quick-btn" onclick="docCmd('justifyRight')" title="Align Right">≡→</button>
-      <button class="quick-btn" onclick="docCmd('justifyFull')" title="Justify">≡≡</button>
-      <button class="quick-btn" onclick="docCmd('indent')" title="Increase Indent">→|</button>
-      <button class="quick-btn" onclick="docCmd('outdent')" title="Decrease Indent">|←</button>
-      <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="insertTable()" title="Insert Table">▦</button>
-      <button class="quick-btn" onclick="tableCmd('insertRowAbove')" title="Insert Row Above">+Row↑</button>
-      <button class="quick-btn" onclick="tableCmd('insertRowBelow')" title="Insert Row Below">+Row↓</button>
-      <button class="quick-btn" onclick="tableCmd('insertColLeft')" title="Insert Column Left">+Col←</button>
-      <button class="quick-btn" onclick="tableCmd('insertColRight')" title="Insert Column Right">+Col→</button>
-      <button class="quick-btn" onclick="tableCmd('deleteRow')" title="Delete Row">−Row</button>
-      <button class="quick-btn" onclick="tableCmd('deleteCol')" title="Delete Column">−Col</button>
-      <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="insertLink()" title="Insert Link">🔗</button>
-      <button class="quick-btn" onclick="insertSpecialChar()" title="Special Characters">Ω</button>
-      <button class="quick-btn" onclick="formatPainter()" title="Format Painter">🖌</button>
-      <button class="quick-btn" onclick="findReplace()" title="Find &amp; Replace">🔍</button>
-      <button class="quick-btn" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
-      <select id="docStyleSel" onchange="docStyle(this.value); this.selectedIndex=0" title="Paragraph style (Word-style gallery)">
+      <input type="color" id="docColor" data-tool="dColor" value="#000000" title="Text Color">
+      <input type="color" id="docHighlight" data-tool="dHighlight" value="#ffff00" title="Highlight Color">
+      <button class="quick-btn" data-tool="bold" onclick="docCmd('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
+      <button class="quick-btn" data-tool="italic" onclick="docCmd('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
+      <button class="quick-btn" data-tool="underline" onclick="docCmd('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
+      <button class="quick-btn" data-tool="strike" onclick="docCmd('strikeThrough')" title="Strikethrough"><s>S</s></button>
+      <button class="quick-btn" data-tool="sup" onclick="docCmd('superscript')" title="Superscript">x²</button>
+      <button class="quick-btn" data-tool="sub" onclick="docCmd('subscript')" title="Subscript">x₂</button>
+      <div class="quick-sep" data-tool="dSep1"></div>
+      <button class="quick-btn" data-tool="bullets" onclick="docCmd('insertUnorderedList')" title="Bullets">•</button>
+      <button class="quick-btn" data-tool="numbers" onclick="docCmd('insertOrderedList')" title="Numbers">1.</button>
+      <button class="quick-btn" data-tool="alignLeft" onclick="docCmd('justifyLeft')" title="Align Left">≡←</button>
+      <button class="quick-btn" data-tool="alignCenter" onclick="docCmd('justifyCenter')" title="Align Center">≡</button>
+      <button class="quick-btn" data-tool="alignRight" onclick="docCmd('justifyRight')" title="Align Right">≡→</button>
+      <button class="quick-btn" data-tool="justify" onclick="docCmd('justifyFull')" title="Justify">≡≡</button>
+      <button class="quick-btn" data-tool="indent" onclick="docCmd('indent')" title="Increase Indent">→|</button>
+      <button class="quick-btn" data-tool="outdent" onclick="docCmd('outdent')" title="Decrease Indent">|←</button>
+      <div class="quick-sep" data-tool="dSep2"></div>
+      <button class="quick-btn" data-tool="tblInsert" onclick="insertTable()" title="Insert Table">▦</button>
+      <button class="quick-btn" data-tool="tblRowAbove" onclick="tableCmd('insertRowAbove')" title="Insert Row Above">+Row↑</button>
+      <button class="quick-btn" data-tool="tblRowBelow" onclick="tableCmd('insertRowBelow')" title="Insert Row Below">+Row↓</button>
+      <button class="quick-btn" data-tool="tblColLeft" onclick="tableCmd('insertColLeft')" title="Insert Column Left">+Col←</button>
+      <button class="quick-btn" data-tool="tblColRight" onclick="tableCmd('insertColRight')" title="Insert Column Right">+Col→</button>
+      <button class="quick-btn" data-tool="tblRowDel" onclick="tableCmd('deleteRow')" title="Delete Row">−Row</button>
+      <button class="quick-btn" data-tool="tblColDel" onclick="tableCmd('deleteCol')" title="Delete Column">−Col</button>
+      <div class="quick-sep" data-tool="dSep3"></div>
+      <button class="quick-btn" data-tool="link" onclick="insertLink()" title="Insert Link">🔗</button>
+      <button class="quick-btn" data-tool="symbol" onclick="insertSpecialChar()" title="Special Characters">Ω</button>
+      <button class="quick-btn" data-tool="painter" onclick="formatPainter()" title="Format Painter">🖌</button>
+      <button class="quick-btn" data-tool="find" onclick="findReplace()" title="Find &amp; Replace">🔍</button>
+      <button class="quick-btn" data-tool="clearFmt" onclick="docCmd('removeFormat')" title="Clear Formatting">⌫</button>
+      <select id="docStyleSel" data-tool="dStyle" onchange="docStyle(this.value); this.selectedIndex=0" title="Paragraph style (Word-style gallery)">
         <option value="">Style…</option><option value="p">Normal text</option><option value="title">Title</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option><option value="h3">Heading 3</option><option value="h4">Heading 4</option><option value="blockquote">Quote</option><option value="pre">Code block</option>
       </select>
-      <select id="docSpacingSel" onchange="docLineSpacing(this.value); this.selectedIndex=0" title="Line spacing">
+      <select id="docSpacingSel" data-tool="dSpacing" onchange="docLineSpacing(this.value); this.selectedIndex=0" title="Line spacing">
         <option value="">Spacing…</option><option value="1">1.0</option><option value="1.15">1.15</option><option value="1.5">1.5</option><option value="2">2.0</option><option value="2.5">2.5</option>
       </select>
-      <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)">↶</button>
-      <button class="quick-btn" onclick="document.execCommand('redo')" title="Redo (Ctrl+Y)">↷</button>
-      <button class="quick-btn" onclick="docInsertHR()" title="Insert horizontal rule">—</button>
-      <button class="quick-btn" onclick="docImgInput.click()" title="Insert image">🖼</button>
-      <button class="quick-btn" onclick="tableCmd('toggleHeader')" title="Toggle header row on the current table">▦H</button>
-      <button class="quick-btn" onclick="tableCmd('deleteTable')" title="Delete the current table">🗑▦</button>
-      <span class="quick-stats" id="docStats">0 words · 0 chars</span>
-      <div class="quick-sep"></div>
-      <select onchange="docZoom(this.value)" title="Document zoom" id="docZoomSel">
+      <div class="quick-sep" data-tool="dSep4"></div>
+      <button class="quick-btn" data-tool="undo" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)">↶</button>
+      <button class="quick-btn" data-tool="redo" onclick="document.execCommand('redo')" title="Redo (Ctrl+Y)">↷</button>
+      <button class="quick-btn" data-tool="hr" onclick="docInsertHR()" title="Insert horizontal rule">—</button>
+      <button class="quick-btn" data-tool="image" onclick="docImgInput.click()" title="Insert image">🖼</button>
+      <button class="quick-btn" data-tool="tblHeader" onclick="tableCmd('toggleHeader')" title="Toggle header row on the current table">▦H</button>
+      <button class="quick-btn" data-tool="tblDelete" onclick="tableCmd('deleteTable')" title="Delete the current table">🗑▦</button>
+      <span class="quick-stats" data-tool="dStats" id="docStats">0 words · 0 chars</span>
+      <div class="quick-sep" data-tool="dSep5"></div>
+      <select onchange="docZoom(this.value)" title="Document zoom" id="docZoomSel" data-tool="dZoom">
         <option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option>
       </select>
-      <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
-      <button class="quick-btn" onclick="fxDocExportWord()" title="Download as .doc — opens in Microsoft Word">W ⬇doc</button>
-      <button class="quick-btn" onclick="fxDocExportHtml()" title="Download as .html">⬇html</button>
-      <button class="quick-btn" onclick="docHtmlInput.click()" title="Import a .html / .txt file into the document">⬆import</button>
-      <div class="quick-sep"></div>
-      <button class="quick-btn cmc-teacher-only" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
-      <button class="quick-btn cmc-teacher-only" onclick="studioLive()" title="Live session — everyone with the invite link edits this spreadsheet together, like Google Sheets">⚡ Live</button>
+      <div class="quick-sep" data-tool="dSep6"></div>
+      <button class="quick-btn" data-tool="pdf" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
+      <button class="quick-btn" data-tool="docx" onclick="fxDocExportWord()" title="Download as .doc — opens in Microsoft Word">W ⬇doc</button>
+      <button class="quick-btn" data-tool="html" onclick="fxDocExportHtml()" title="Download as .html">⬇html</button>
+      <button class="quick-btn" data-tool="import" onclick="docHtmlInput.click()" title="Import a .html / .txt file into the document">⬆import</button>
+      <div class="quick-sep" data-tool="dSep7"></div>
+      <button class="quick-btn cmc-teacher-only" data-tool="share" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
+      <button class="quick-btn cmc-teacher-only" data-tool="live" onclick="studioLive()" title="Live session — everyone with the invite link edits this spreadsheet together, like Google Sheets">⚡ Live</button>
+      <div class="quick-sep" data-tool="dSep8"></div>
+      <button class="quick-btn" data-tool="customize" onclick="openDocToolsCustomize()" title="Customize which tools appear in the Docs toolbar and the right-click menu">⚙ Tools</button>
     </div>
 
     <!-- ── Excel tool set — layout driven by the SHEET_TOOL_CATALOG (⚙ Tools customizes it) ── -->
@@ -1147,6 +1161,15 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
   <p style="font-size:11px;color:#94a3b8;margin:6px 0 10px">Tick <b>Bar</b> to show a tool in the toolbar and <b>Menu</b> to show it in the right-click menu. Use ↑ ↓ to reorder — the order applies to both. Saved on this device.</p>
   <div id="sheetToolsList" style="max-height:46vh;overflow:auto;padding-right:2px"></div>
   <div class="dialog-buttons"><button class="cancel" onclick="sheetToolsReset()">Reset to default</button><button class="primary" onclick="closeModal('sheetToolsModal')">Done</button></div>
+</div></div>
+
+<!-- Doc tools customize dialog -->
+<div class="modal-overlay" id="docToolsModal"><div class="modal" style="max-width:440px">
+  <span class="modal-close" onclick="closeModal('docToolsModal')">Close ×</span>
+  <h2>Customize document tools</h2>
+  <p style="font-size:11px;color:#94a3b8;margin:6px 0 10px">Tick <b>Bar</b> to show a tool in the Docs toolbar and <b>Menu</b> to show it in the right-click menu (image-only tools appear when you right-click a picture, table tools when the cursor is inside a table). Use ↑ ↓ to reorder — the order applies to both. Saved on this device. Tip: hold <b>Shift</b> while right-clicking for the browser's own menu.</p>
+  <div id="docToolsList" style="max-height:46vh;overflow:auto;padding-right:2px"></div>
+  <div class="dialog-buttons"><button class="cancel" onclick="docToolsReset()">Reset to default</button><button class="primary" onclick="closeModal('docToolsModal')">Done</button></div>
 </div></div>
 
 <div class="modal-overlay" id="pageSizeModal"><div class="modal">
@@ -2473,7 +2496,7 @@ fileInput.onchange=e=>{
     const reader = new FileReader();
     reader.onload = ev => {
       docLayer.focus();
-      document.execCommand('insertHTML', false, '<img src="' + ev.target.result + '" style="max-width:100%;height:auto;border-radius:4px;margin:6px 0" alt="Inserted image"><p><br></p>');
+      document.execCommand('insertHTML', false, '<img src="' + ev.target.result + '" class="doc-img" style="max-width:100%;height:auto;border-radius:4px;margin:6px 0" alt="Inserted image"><p><br></p>');
       pushUndo('Insert image in document');
       statusFlash('Image inserted into the document');
     };
@@ -5227,8 +5250,13 @@ function fxDocInsertImageFile(file){
 }
 function fxDocSelectImg(img){
   docLayer.querySelectorAll('img.doc-img.fx-img-sel').forEach(i => i.classList.remove('fx-img-sel'));
+  // Heal legacy / pasted images that never got the doc-img class — without it
+  // the image could not be selected, so it could not be resized either.
+  img.classList.add('doc-img');
+  img.draggable = false;
   img.classList.add('fx-img-sel');
   fxImgSel = img;
+  if (typeof fxPaintImgHandles === 'function') fxPaintImgHandles();
   if (!fxImgChip) return;
   fxImgChip.style.display = 'flex';
   const r = img.getBoundingClientRect();
@@ -5251,11 +5279,14 @@ function fxDocImgAct(act){
 function fxDocDeselectImg(){
   docLayer.querySelectorAll('img.doc-img.fx-img-sel').forEach(i => i.classList.remove('fx-img-sel'));
   fxImgSel = null;
+  if (typeof fxHideImgHandles === 'function') fxHideImgHandles();
   if (fxImgChip) fxImgChip.style.display = 'none';
 }
 function fxDocClick(e){
-  const img = e.target.closest ? e.target.closest('img.doc-img') : null;
-  if (img) { fxDocSelectImg(img); return; }
+  // Any <img> inside the document page is selectable (class is healed in
+  // fxDocSelectImg) — covers pasted images and older documents too.
+  const img = e.target.closest ? e.target.closest('img') : null;
+  if (img && docLayer.contains(img)) { fxDocSelectImg(img); return; }
   fxDocDeselectImg();
 }
 /* ── word / character count ── */
@@ -6808,6 +6839,385 @@ function sheetToolsReset(){
   statusFlash('Sheet tools reset to the default layout');
 }
 applySheetToolLayout();
+
+/* ══ CMC-DOC-TOOLS: right-click tool menu for the Docs page + ⚙ customizable
+   toolbar/menu layout + real drag-to-resize image handles. Mirrors
+   CMC-SHEET-TOOLS so both office modes behave the same: the menu is built
+   from the user's saved layout (cmc-studio-doc-tools-v1), long-press opens
+   it on touch, and Shift+right-click always gives the native browser menu. ══ */
+const DOC_TOOLS_LS = 'cmc-studio-doc-tools-v1';
+const DOC_TOOL_CATALOG = {
+  /* clipboard first — the menu reads in catalog order */
+  cut:        { label:'Cut', glyph:'✂', shortcut:'Ctrl+X', group:'clip', toolbar:false, noBar:true, menu:true, fn:function(){ docMenuCut(); } },
+  copy:       { label:'Copy', glyph:'⧉', shortcut:'Ctrl+C', group:'clip', toolbar:false, noBar:true, menu:true, fn:function(){ docMenuCopy(); } },
+  paste:      { label:'Paste', glyph:'⎘', shortcut:'Ctrl+V', group:'clip', toolbar:false, noBar:true, menu:true, fn:function(){ docMenuPaste(); } },
+  selectAll:  { label:'Select all', glyph:'☑', shortcut:'Ctrl+A', group:'clip', toolbar:false, noBar:true, menu:true, fn:function(){ docMenuSelectAll(); } },
+  /* toolbar set — DOM order of quickSet-doc */
+  dBlock:     { label:'Paragraph style', glyph:'¶', group:'text', toolbar:true, menu:false },
+  dFont:      { label:'Document font', glyph:'F', group:'text', toolbar:true, menu:false },
+  dFontApply: { label:'Font', glyph:'F', group:'text', toolbar:true, menu:false },
+  dSize:      { label:'Font size', glyph:'pt', group:'text', toolbar:true, menu:false },
+  dColor:     { label:'Text color', glyph:'A', group:'text', toolbar:true, menu:false },
+  dHighlight: { label:'Highlight', glyph:'🖍', group:'text', toolbar:true, menu:false },
+  bold:       { label:'Bold', glyph:'B', shortcut:'Ctrl+B', group:'text', toolbar:true, menu:true, fn:function(){ docCmd('bold'); fxDocStats(); } },
+  italic:     { label:'Italic', glyph:'I', shortcut:'Ctrl+I', group:'text', toolbar:true, menu:true, fn:function(){ docCmd('italic'); fxDocStats(); } },
+  underline:  { label:'Underline', glyph:'U', shortcut:'Ctrl+U', group:'text', toolbar:true, menu:true, fn:function(){ docCmd('underline'); fxDocStats(); } },
+  strike:     { label:'Strikethrough', glyph:'S', group:'text', toolbar:true, menu:true, fn:function(){ docCmd('strikeThrough'); fxDocStats(); } },
+  sup:        { label:'Superscript', glyph:'x²', group:'text', toolbar:true, menu:false, fn:function(){ docCmd('superscript'); } },
+  sub:        { label:'Subscript', glyph:'x₂', group:'text', toolbar:true, menu:false, fn:function(){ docCmd('subscript'); } },
+  dSep1:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  bullets:    { label:'Bulleted list', glyph:'•', group:'para', toolbar:true, menu:true, fn:function(){ docCmd('insertUnorderedList'); fxDocStats(); } },
+  numbers:    { label:'Numbered list', glyph:'1.', group:'para', toolbar:true, menu:true, fn:function(){ docCmd('insertOrderedList'); fxDocStats(); } },
+  alignLeft:  { label:'Align left', glyph:'≡←', group:'para', toolbar:true, menu:true, fn:function(){ docCmd('justifyLeft'); } },
+  alignCenter:{ label:'Align center', glyph:'≡', group:'para', toolbar:true, menu:true, fn:function(){ docCmd('justifyCenter'); } },
+  alignRight: { label:'Align right', glyph:'≡→', group:'para', toolbar:true, menu:true, fn:function(){ docCmd('justifyRight'); } },
+  justify:    { label:'Justify', glyph:'≡≡', group:'para', toolbar:true, menu:false, fn:function(){ docCmd('justifyFull'); } },
+  indent:     { label:'Increase indent', glyph:'→|', group:'para', toolbar:true, menu:false, fn:function(){ docCmd('indent'); } },
+  outdent:    { label:'Decrease indent', glyph:'|←', group:'para', toolbar:true, menu:false, fn:function(){ docCmd('outdent'); } },
+  dSep2:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  tblInsert:  { label:'Insert table', glyph:'▦', group:'table', toolbar:true, menu:true, fn:function(){ insertTable(); } },
+  tblRowAbove:{ label:'Insert row above', glyph:'+↑', group:'table', toolbar:true, menu:'table', fn:function(){ tableCmd('insertRowAbove'); } },
+  tblRowBelow:{ label:'Insert row below', glyph:'+↓', group:'table', toolbar:true, menu:'table', fn:function(){ tableCmd('insertRowBelow'); } },
+  tblColLeft: { label:'Insert column left', glyph:'+←', group:'table', toolbar:true, menu:'table', fn:function(){ tableCmd('insertColLeft'); } },
+  tblColRight:{ label:'Insert column right', glyph:'+→', group:'table', toolbar:true, menu:'table', fn:function(){ tableCmd('insertColRight'); } },
+  tblRowDel:  { label:'Delete row', glyph:'−', group:'table', toolbar:true, menu:'table', danger:true, fn:function(){ tableCmd('deleteRow'); } },
+  tblColDel:  { label:'Delete column', glyph:'－', group:'table', toolbar:true, menu:'table', danger:true, fn:function(){ tableCmd('deleteCol'); } },
+  dSep3:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  link:       { label:'Insert link', glyph:'🔗', group:'insert', toolbar:true, menu:true, fn:function(){ insertLink(); } },
+  symbol:     { label:'Special characters', glyph:'Ω', group:'insert', toolbar:true, menu:true, fn:function(){ insertSpecialChar(); } },
+  painter:    { label:'Format painter', glyph:'🖌', group:'insert', toolbar:true, menu:false, fn:function(){ formatPainter(); } },
+  find:       { label:'Find & replace', glyph:'🔍', group:'insert', toolbar:true, menu:false, fn:function(){ findReplace(); } },
+  clearFmt:   { label:'Clear formatting', glyph:'⌫', group:'edit', toolbar:true, menu:true, fn:function(){ docCmd('removeFormat'); fxDocStats(); } },
+  dStyle:     { label:'Style gallery', glyph:'¶', group:'text', toolbar:true, menu:false },
+  dSpacing:   { label:'Line spacing', glyph:'↕', group:'text', toolbar:true, menu:false },
+  dSep4:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  undo:       { label:'Undo', glyph:'↶', shortcut:'Ctrl+Z', group:'edit', toolbar:true, menu:true, fn:function(){ undo(); } },
+  redo:       { label:'Redo', glyph:'↷', shortcut:'Ctrl+Y', group:'edit', toolbar:true, menu:true, fn:function(){ redo(); } },
+  hr:         { label:'Horizontal rule', glyph:'—', group:'insert', toolbar:true, menu:true, fn:function(){ docInsertHR(); } },
+  image:      { label:'Insert image', glyph:'🖼', group:'insert', toolbar:true, menu:true, fn:function(){ var el = document.getElementById('docImgInput'); if (el) el.click(); } },
+  /* menu-only image tools (listed here so ⚙ can reorder/toggle them too) */
+  img25:      { label:'Size — 25% of page', glyph:'¼', group:'image', toolbar:false, noBar:true, menu:'image', fn:function(){ fxDocImgAct('25'); } },
+  img50:      { label:'Size — 50% of page', glyph:'½', group:'image', toolbar:false, noBar:true, menu:'image', fn:function(){ fxDocImgAct('50'); } },
+  img75:      { label:'Size — 75% of page', glyph:'¾', group:'image', toolbar:false, noBar:true, menu:'image', fn:function(){ fxDocImgAct('75'); } },
+  img100:     { label:'Size — full page width', glyph:'▮', group:'image', toolbar:false, noBar:true, menu:'image', fn:function(){ fxDocImgAct('100'); } },
+  imgLeft:    { label:'Float left — text wraps', glyph:'⬅', group:'image', toolbar:false, noBar:true, menu:'image', fn:function(){ fxDocImgAct('left'); } },
+  imgCenter:  { label:'Center on its own line', glyph:'⬛', group:'image', toolbar:false, noBar:true, menu:'image', fn:function(){ fxDocImgAct('center'); } },
+  imgRight:   { label:'Float right — text wraps', glyph:'➡', group:'image', toolbar:false, noBar:true, menu:'image', fn:function(){ fxDocImgAct('right'); } },
+  imgDelete:  { label:'Delete image', glyph:'🗑', group:'image', toolbar:false, noBar:true, menu:'image', danger:true, fn:function(){ fxDocImgAct('del'); } },
+  tblHeader:  { label:'Toggle header row', glyph:'▦H', group:'table', toolbar:true, menu:'table', fn:function(){ tableCmd('toggleHeader'); } },
+  tblDelete:  { label:'Delete table', glyph:'🗑▦', group:'table', toolbar:true, menu:'table', danger:true, fn:function(){ tableCmd('deleteTable'); } },
+  dStats:     { label:'Word count', glyph:'123', group:'view', toolbar:true, menu:false },
+  dSep5:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  dZoom:      { label:'Zoom', glyph:'%', group:'view', toolbar:true, menu:false },
+  dSep6:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  pdf:        { label:'Print / PDF', glyph:'🖨', group:'export', toolbar:true, menu:false, fn:function(){ fileSavePdf(); } },
+  docx:       { label:'Download .doc', glyph:'W⬇', group:'export', toolbar:true, menu:false, fn:function(){ fxDocExportWord(); } },
+  html:       { label:'Download .html', glyph:'⬇', group:'export', toolbar:true, menu:false, fn:function(){ fxDocExportHtml(); } },
+  import:     { label:'Import .html / .txt', glyph:'⬆', group:'export', toolbar:true, menu:false, fn:function(){ var el = document.getElementById('docHtmlInput'); if (el) el.click(); } },
+  dSep7:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  share:      { label:'Share', glyph:'☁', group:'share', toolbar:true, menu:false, fn:function(){ studioShare(); } },
+  live:       { label:'Live session', glyph:'⚡', group:'share', toolbar:true, menu:false, fn:function(){ studioLive(); } },
+  dSep8:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  customize:  { label:'Customize tools…', glyph:'⚙', group:'sep', toolbar:true, menu:true, fixed:true, fn:function(){ openDocToolsCustomize(); } }
+};
+
+function docToolsCfg(){
+  const ids = Object.keys(DOC_TOOL_CATALOG);
+  const order = ids.slice();
+  const toolbar = {}, menu = {};
+  ids.forEach(function(id){ toolbar[id] = !!DOC_TOOL_CATALOG[id].toolbar; menu[id] = !!DOC_TOOL_CATALOG[id].menu; });
+  let stored = null;
+  try { stored = JSON.parse(localStorage.getItem(DOC_TOOLS_LS) || 'null'); } catch (e) { stored = null; }
+  if (stored && Array.isArray(stored.order)) {
+    const valid = stored.order.filter(function(id){ return !!DOC_TOOL_CATALOG[id]; });
+    for (let i = valid.length - 1; i >= 0; i--) {
+      const id = valid[i];
+      order.splice(order.indexOf(id), 1);
+      order.unshift(id);
+    }
+  }
+  if (stored && stored.toolbar) ids.forEach(function(id){ if (typeof stored.toolbar[id] === 'boolean') toolbar[id] = stored.toolbar[id]; });
+  if (stored && stored.menu) ids.forEach(function(id){ if (typeof stored.menu[id] === 'boolean') menu[id] = stored.menu[id]; });
+  return { order: order, toolbar: toolbar, menu: menu };
+}
+function docToolsSave(cfg){
+  try { localStorage.setItem(DOC_TOOLS_LS, JSON.stringify({ order: cfg.order, toolbar: cfg.toolbar, menu: cfg.menu })); } catch (e) {}
+}
+function applyDocToolLayout(){
+  const setEl = document.getElementById('quickSet-doc');
+  if (!setEl) return;
+  const cfg = docToolsCfg();
+  const byId = {};
+  Array.prototype.forEach.call(setEl.children, function(el){ if (el.dataset && el.dataset.tool) byId[el.dataset.tool] = el; });
+  cfg.order.forEach(function(id){
+    const el = byId[id]; if (!el) return;
+    setEl.appendChild(el);
+    if (id !== 'customize') el.classList.toggle('tool-off', cfg.toolbar[id] === false);
+  });
+  if (byId.customize) { setEl.appendChild(byId.customize); byId.customize.classList.remove('tool-off'); }
+}
+
+/* ── clipboard helpers for the doc menu ── */
+function docSelectImgRange(img){
+  const rg = document.createRange();
+  rg.selectNode(img);
+  const sel = window.getSelection();
+  if (sel) { sel.removeAllRanges(); sel.addRange(rg); }
+}
+function docMenuCut(){
+  if (fxImgSel && docLayer.contains(fxImgSel)) docSelectImgRange(fxImgSel);
+  document.execCommand('cut');
+  if (fxImgSel) { const gone = fxImgSel; fxDocDeselectImg(); gone.remove(); pushUndo('Cut image'); fxDocStats(); }
+  statusFlash('Cut');
+}
+function docMenuCopy(){
+  if (fxImgSel && docLayer.contains(fxImgSel)) docSelectImgRange(fxImgSel);
+  document.execCommand('copy');
+  statusFlash('Copied');
+}
+function docMenuPaste(){
+  docLayer.focus();
+  const read = (navigator.clipboard && navigator.clipboard.readText) ? navigator.clipboard.readText() : Promise.reject(new Error('no api'));
+  read.then(function(txt){
+    if (!txt) { statusFlash('The clipboard is empty'); return; }
+    document.execCommand('insertText', false, txt);
+    pushUndo('Paste text');
+    fxDocStats();
+  }).catch(function(){ statusFlash('Paste blocked by the browser — press Ctrl+V'); });
+}
+function docMenuSelectAll(){
+  docLayer.focus();
+  document.execCommand('selectAll');
+}
+
+/* ── menu entries for a context: 'text' | 'table' | 'image' ── */
+function docMenuEntries(kind){
+  const cfg = docToolsCfg();
+  const generic = [], contextual = [];
+  let lastGroup = null;
+  cfg.order.forEach(function(id){
+    const t = DOC_TOOL_CATALOG[id];
+    if (!t || t.isSep || id === 'customize') return;
+    const where = t.menu;
+    const show = where === true || (where === 'image' && kind === 'image') || (where === 'table' && kind === 'table');
+    if (!show) return;
+    if (cfg.menu[id] === false) return;
+    if (kind === 'image' && (id === 'paste' || id === 'selectAll')) return;
+    const en = { label: t.label, icon: t.glyph, shortcut: t.shortcut, fn: t.fn, danger: !!t.danger };
+    if (kind === 'image' && t.group === 'image') { contextual.push(en); return; }
+    if (lastGroup !== null && t.group !== lastGroup) generic.push({ divider: true });
+    lastGroup = t.group;
+    generic.push(en);
+  });
+  let out = contextual.length ? contextual.concat([{ divider: true }]) : [];
+  out = out.concat(generic);
+  out.push({ divider: true });
+  out.push({ label: 'Customize tools…', icon: '⚙', fn: function(){ openDocToolsCustomize(); } });
+  return out;
+}
+function docMenuKindAt(target){
+  const tbl = target && target.closest ? target.closest('table') : null;
+  return (tbl && docLayer.contains(tbl)) ? 'table' : 'text';
+}
+/* Word behaviour: right-clicking text places the caret there (unless the
+   user already has a selection), so formatting acts on the clicked block. */
+function docCaretFromPoint(x, y){
+  const sel = window.getSelection();
+  if (sel && !sel.isCollapsed) return;
+  let range = null;
+  try {
+    if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(x, y);
+    else if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(x, y);
+      if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); }
+    }
+  } catch (err) { range = null; }
+  if (range && docLayer.contains(range.startContainer) && sel) {
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
+/* ── right-click on the document page ── */
+docLayer.addEventListener('contextmenu', function(e){
+  if (e.shiftKey) return;              // escape hatch: native browser menu
+  e.preventDefault();
+  e.stopPropagation();                 // keep the sheet menu-closer out of the way
+  closeSheetCtxMenu();
+  const img = e.target.closest ? e.target.closest('img') : null;
+  let kind;
+  if (img && docLayer.contains(img)) { fxDocSelectImg(img); kind = 'image'; }
+  else { kind = docMenuKindAt(e.target); docCaretFromPoint(e.clientX, e.clientY); }
+  openSheetCtxMenu(e, docMenuEntries(kind));
+});
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeSheetCtxMenu(); });
+
+/* ── touch: long-press the page opens the tool menu ── */
+let docToolsTouchTimer = null;
+docLayer.addEventListener('touchstart', function(e){
+  if (currentMode() !== 'doc') return;
+  if (e.target.closest && e.target.closest('img')) return;   // images drag/resize instead
+  const t = e.touches[0]; if (!t) return;
+  const x0 = t.clientX, y0 = t.clientY;
+  if (docToolsTouchTimer) clearTimeout(docToolsTouchTimer);
+  docToolsTouchTimer = setTimeout(function(){
+    docToolsTouchTimer = null;
+    openSheetCtxMenu({ clientX: x0, clientY: y0 }, docMenuEntries('text'));
+  }, 550);
+}, { passive: true });
+['touchend', 'touchmove', 'touchcancel'].forEach(function(ev){
+  docLayer.addEventListener(ev, function(){
+    if (docToolsTouchTimer) { clearTimeout(docToolsTouchTimer); docToolsTouchTimer = null; }
+  }, { passive: true });
+});
+
+/* ── ⚙ customize dialog: show/hide + reorder every doc tool ── */
+function openDocToolsCustomize(){
+  closeSheetCtxMenu();
+  const cfg = docToolsCfg();
+  const list = document.getElementById('docToolsList');
+  if (list) {
+    list.innerHTML = '';
+    cfg.order.forEach(function(id){
+      const t = DOC_TOOL_CATALOG[id]; if (!t) return;
+      const row = document.createElement('div'); row.className = 'stm-row';
+      row.innerHTML = '<span class="stm-ic">' + escapeHtml(t.glyph || '') + '</span>' +
+        '<span class="stm-lb' + (t.isSep ? ' stm-dim' : '') + '">' + escapeHtml(t.isSep ? '— divider —' : t.label) + '</span>';
+      if (!t.isSep && !t.fixed && !t.noBar) {
+        const lb = document.createElement('label');
+        lb.innerHTML = '<input type="checkbox"' + (cfg.toolbar[id] !== false ? ' checked' : '') + '> Bar';
+        lb.querySelector('input').addEventListener('change', function(ev){
+          const c = docToolsCfg(); c.toolbar[id] = ev.target.checked; docToolsSave(c); applyDocToolLayout();
+        });
+        const lm = document.createElement('label');
+        lm.innerHTML = '<input type="checkbox"' + (cfg.menu[id] !== false ? ' checked' : '') + '> Menu';
+        lm.querySelector('input').addEventListener('change', function(ev){
+          const c = docToolsCfg(); c.menu[id] = ev.target.checked; docToolsSave(c); applyDocToolLayout();
+        });
+        row.appendChild(lb); row.appendChild(lm);
+      } else {
+        const sp = document.createElement('span'); sp.className = 'stm-dim'; sp.style.fontSize = '10px';
+        sp.textContent = t.fixed ? 'always on' : (t.noBar ? 'menu only' : '');
+        row.appendChild(sp);
+      }
+      const up = document.createElement('button'); up.className = 'stm-mv'; up.type = 'button'; up.textContent = '↑'; up.title = 'Move up';
+      up.addEventListener('click', function(){ docToolsMove(id, -1); });
+      const dn = document.createElement('button'); dn.className = 'stm-mv'; dn.type = 'button'; dn.textContent = '↓'; dn.title = 'Move down';
+      dn.addEventListener('click', function(){ docToolsMove(id, 1); });
+      row.appendChild(up); row.appendChild(dn);
+      list.appendChild(row);
+    });
+  }
+  openModal('docToolsModal');
+}
+function docToolsMove(id, dir){
+  const cfg = docToolsCfg();
+  const i = cfg.order.indexOf(id), j = i + dir;
+  if (i < 0 || j < 0 || j >= cfg.order.length) return;
+  const tmp = cfg.order[i]; cfg.order[i] = cfg.order[j]; cfg.order[j] = tmp;
+  docToolsSave(cfg);
+  applyDocToolLayout();
+  openDocToolsCustomize();
+}
+function docToolsReset(){
+  try { localStorage.removeItem(DOC_TOOLS_LS); } catch (e) {}
+  applyDocToolLayout();
+  openDocToolsCustomize();
+  statusFlash('Document tools reset to the default layout');
+}
+window.openDocToolsCustomize = openDocToolsCustomize;
+
+/* ── drag-to-resize handles around the selected image (Canva/Word-style).
+   Corner handles keep the aspect ratio; edge handles stretch one side.
+   All maths runs in layout px — CSS zoom on the doc layer is factored out. ── */
+let fxImgHandleBox = null, fxImgDrag = null;
+const fxImgHandleEls = {};
+function fxEnsureImgHandles(){
+  if (fxImgHandleBox) return;
+  fxImgHandleBox = document.createElement('div');
+  fxImgHandleBox.id = 'fxImgHandles';
+  ['nw','n','ne','e','se','s','sw','w'].forEach(function(dir){
+    const h = document.createElement('div');
+    h.className = 'fx-img-handle fx-img-handle-' + dir;
+    h.dataset.dir = dir;
+    h.addEventListener('pointerdown', function(e){ fxImgHandleStart(e, dir); });
+    fxImgHandleBox.appendChild(h);
+    fxImgHandleEls[dir] = h;
+  });
+  document.body.appendChild(fxImgHandleBox);
+}
+function fxPaintImgHandles(){
+  const img = fxImgSel;
+  if (!img || !docLayer.contains(img)) { fxHideImgHandles(); return; }
+  fxEnsureImgHandles();
+  const r = img.getBoundingClientRect();
+  fxImgHandleBox.style.display = 'block';
+  fxImgHandleBox.style.left = r.left + 'px';
+  fxImgHandleBox.style.top = r.top + 'px';
+  fxImgHandleBox.style.width = r.width + 'px';
+  fxImgHandleBox.style.height = r.height + 'px';
+}
+function fxHideImgHandles(){
+  if (fxImgHandleBox) fxImgHandleBox.style.display = 'none';
+  fxImgDrag = null;
+}
+function fxImgHandleStart(e, dir){
+  const img = fxImgSel;
+  if (!img) return;
+  e.preventDefault();
+  e.stopPropagation();
+  closeSheetCtxMenu();
+  const r = img.getBoundingClientRect();
+  fxImgDrag = {
+    img: img, dir: dir,
+    x0: e.clientX, y0: e.clientY,
+    w0: img.offsetWidth || r.width, h0: img.offsetHeight || r.height,
+    ratio: (img.offsetWidth || 1) / (img.offsetHeight || 1),
+    zoom: (img.offsetWidth ? r.width / img.offsetWidth : 1) || 1
+  };
+  document.addEventListener('pointermove', fxImgHandleMove, true);
+  document.addEventListener('pointerup', fxImgHandleEnd, true);
+  document.addEventListener('pointercancel', fxImgHandleEnd, true);
+}
+function fxImgHandleMove(e){
+  const d = fxImgDrag;
+  if (!d) return;
+  const img = d.img;
+  const dx = (e.clientX - d.x0) / d.zoom;
+  const dy = (e.clientY - d.y0) / d.zoom;
+  const east = d.dir.indexOf('e') !== -1, west = d.dir.indexOf('w') !== -1;
+  const north = d.dir.indexOf('n') !== -1, south = d.dir.indexOf('s') !== -1;
+  const corner = (east || west) && (north || south);
+  let w = d.w0, h = d.h0;
+  if (east) w = d.w0 + dx;
+  if (west) w = d.w0 - dx;
+  if (south) h = d.h0 + dy;
+  if (north) h = d.h0 - dy;
+  if (corner) {
+    if (Math.abs(dx) >= Math.abs(dy)) h = w / d.ratio; else w = h * d.ratio;   // keep aspect
+  }
+  w = Math.max(24, w); h = Math.max(24, h);
+  if (!corner && (east || west)) { img.style.width = Math.round(w) + 'px'; img.style.height = 'auto'; }
+  else if (!corner && (north || south)) { img.style.height = Math.round(h) + 'px'; }
+  else { img.style.width = Math.round(w) + 'px'; img.style.height = Math.round(h) + 'px'; }
+  img.style.maxWidth = '100%';
+  fxPaintImgHandles();
+}
+function fxImgHandleEnd(){
+  if (!fxImgDrag) return;
+  const img = fxImgDrag.img;
+  fxImgDrag = null;
+  document.removeEventListener('pointermove', fxImgHandleMove, true);
+  document.removeEventListener('pointerup', fxImgHandleEnd, true);
+  document.removeEventListener('pointercancel', fxImgHandleEnd, true);
+  pushUndo('Resize image');
+  fxDocSelectImg(img);
+  fxDocStats();
+  statusFlash('Image sized to ' + img.offsetWidth + ' × ' + img.offsetHeight + ' px — drag the blue handles any time');
+}
+/* keep chip + handles glued to the image through any scroll */
+window.addEventListener('scroll', function(){ if (fxImgSel && docLayer.contains(fxImgSel)) fxDocSelectImg(fxImgSel); }, true);
+applyDocToolLayout();
 
 /* ═══════════════════ CMC-STUDIO-LIVE · real-time co-editing ═══════════════════
    Google-Sheets-style live sessions over WebRTC (PeerJS) — deliberately NOT
