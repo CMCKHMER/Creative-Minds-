@@ -146,6 +146,18 @@
   .sheet-tab-menu button.danger{color:#d63031}
   .sheet-tab-menu button.danger:hover{background:#fdecec}
   .sheet-tab-menu button:disabled{color:#aaa; cursor:not-allowed; background:none}
+  /* Tab color palette (rendered inside the sheet-tab context menu) */
+  .tc-head{padding:7px 10px 3px; font-size:9.5px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:#8a94a6}
+  .tc-grid{display:grid; grid-template-columns:repeat(6, 18px); gap:5px; padding:4px 10px 6px}
+  .tc-sw{width:18px; height:18px; border-radius:4px; border:1px solid rgba(0,0,0,.18); cursor:pointer; padding:0}
+  .tc-sw:hover{transform:scale(1.18)}
+  .tc-foot{display:flex; align-items:center; gap:6px; padding:6px 10px; border-top:1px solid #e4e7ee}
+  .tc-foot input[type=color]{width:26px; height:22px; padding:0; border:1px solid #c8cdd8; border-radius:4px; background:#fff; cursor:pointer}
+  .tc-foot button{flex:1; text-align:left; padding:5px 8px; border:none; background:none; font-size:11.5px; font-weight:700; color:#333; cursor:pointer; font-family:inherit; border-radius:4px; white-space:nowrap}
+  .tc-foot button:hover{background:#eef6ff}
+  /* Remote live-session cursors over the sheet grid */
+  .live-cur-box{position:absolute; pointer-events:none; border-radius:3px; box-sizing:border-box; z-index:29}
+  .live-cur-chip{position:absolute; pointer-events:none; font:10px 'Instrument Sans',sans-serif; font-weight:700; color:#fff; padding:1px 6px; border-radius:4px 4px 4px 0; white-space:nowrap; z-index:30; box-shadow:0 2px 6px rgba(0,0,0,.25)}
 
   .crop-bar{position:absolute; top:14px; left:50%; transform:translateX(-50%) translateY(-8px); display:flex; align-items:center; gap:10px; background:#0c0e14; border:1px solid var(--line); border-radius:999px; padding:7px 8px 7px 16px; opacity:0; pointer-events:none; transition:all .2s; z-index:30}
   .crop-bar.show{opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto}
@@ -728,6 +740,7 @@
       <button class="quick-btn" onclick="docHtmlInput.click()" title="Import a .html / .txt file into the document">⬆import</button>
       <div class="quick-sep"></div>
       <button class="quick-btn cmc-teacher-only" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
+      <button class="quick-btn cmc-teacher-only" onclick="studioLive()" title="Live session — everyone with the invite link edits this spreadsheet together, like Google Sheets">⚡ Live</button>
     </div>
 
     <!-- ── Excel tool set (moved out of the old header sheetBar) ── -->
@@ -773,6 +786,7 @@
       <div class="quick-sep"></div>
       <button class="quick-btn cmc-teacher-only" onclick="studioToggleInputCell()" title="Mark / unmark the selected cells as student-input cells (shaded — students can only fill these in a shared worksheet)">✎ Input</button>
       <button class="quick-btn cmc-teacher-only" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
+      <button class="quick-btn cmc-teacher-only" onclick="studioLive()" title="Live session — everyone with the invite link edits this spreadsheet together, like Google Sheets">⚡ Live</button>
     </div>
 
     <!-- ── Code tool set ── -->
@@ -1359,7 +1373,12 @@ function setCanvasSize(w,h, scaleContent=false){
 }
 function fitCanvas(){
   const availW=Math.max(120, stage.clientWidth-60), availH=Math.max(120, stage.clientHeight-60);
-  const fitW = Math.max(280, Math.min(availW, availH*(W/H)));
+  /* CMC-SHEET-LANDSCAPE: the Excel tool always presents its page box in
+     landscape (wide) orientation, whatever the canvas page size is. */
+  const inSheet = (tool === 'sheet');
+  const vw = inSheet ? Math.max(W, H) : W, vh = inSheet ? Math.min(W, H) : H;
+  wrap.style.aspectRatio = `${vw} / ${vh}`;
+  const fitW = Math.max(280, Math.min(availW, availH*(vw/vh)));
   wrap.style.width = (fitW * (zoomPct/100))+'px';
   setTimeout(drawRulers, 50);
 }
@@ -1579,6 +1598,7 @@ const toolNames={select:'Select/Move',brush:'Brush',eraser:'Eraser',line:'Line',
 const railEl=document.getElementById('rail');
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>{ if(railEl.classList.contains('off') && railEl.contains(b)) return; selectTool(b.dataset.tool); });
 function selectTool(t){
+  const prevTool = tool;
   if (!toolNames[t]) t = 'brush';
   // Commit any text being typed BEFORE tearing down the editing state,
   // otherwise switching tools silently discards the edit.
@@ -1629,6 +1649,8 @@ function selectTool(t){
   vectorTextPanel.classList.toggle('hidden', isDoc || isSheet || isCode); // vector text is canvas-only — the one tool that genuinely does not apply in doc/sheet/code
   preview.style.pointerEvents = (isDoc || isSheet) ? 'none' : 'auto';
   if (isSheet) { renderSheet(); renderSheetTabs(); }
+  /* CMC-SHEET-LANDSCAPE: entering or leaving the Excel tool re-presents the page box */
+  if (isSheet || prevTool === 'sheet') fitCanvas();
 }
 
 /* ── Rulers ─────────────────────────────────────── */
@@ -2153,6 +2175,7 @@ const sheetCtxMenu=document.createElement('div'); sheetCtxMenu.className='sheet-
 function openSheetCtxMenu(e, entries){
   sheetCtxMenu.innerHTML = '';
   entries.forEach(en=>{
+    if (en.custom) { sheetCtxMenu.appendChild(en.custom); return; }
     const b=document.createElement('button');
     b.textContent=en.label;
     if(en.danger) b.className='danger';
@@ -4972,25 +4995,64 @@ function fxFillDir(direction){
   renderSheet(); scheduleAutoSave();
   statusFlash('Filled ' + direction);
 }
-/* ── sheet tabs (shadows legacy): adds Duplicate to the tab context menu ── */
+/* ── sheet tabs (shadows legacy): Duplicate + per-tab color in the menu ── */
 function renderSheetTabs(){
   sheetTabs.innerHTML = '<span class="sheet-tab-add" onclick="sheetCmd(\'addSheet\')">+</span>';
   sheets.forEach((s, i) => {
     const tab = document.createElement('span');
     tab.className = 'sheet-tab' + (i === currentSheet ? ' active' : '');
     tab.textContent = s.name;
-    tab.title = 'Click to switch — right-click for rename/duplicate/delete';
+    /* CMC-TAB-COLOR: Google-Sheets-style per-tab color bar + tint */
+    if (s.tabColor) {
+      tab.style.borderBottom = '3px solid ' + s.tabColor;
+      tab.style.backgroundColor = 'color-mix(in srgb, ' + s.tabColor + ' 16%, #f5f5f5)';
+    }
+    tab.title = 'Click to switch — right-click for duplicate/rename/color/delete';
     tab.onclick = () => { currentSheet = i; fxRange = null; renderSheet(); renderSheetTabs(); };
     tab.oncontextmenu = (e) => {
       e.preventDefault();
       openSheetCtxMenu(e, [
         { label: 'Duplicate', fn: () => sheetCmd('dupSheet') },
         { label: 'Rename', fn: () => renameSheetAt(i) },
+        { custom: buildTabColorGrid(i) },
         { label: 'Delete', danger: true, disabled: sheets.length <= 1, title: 'A workbook needs at least one sheet', fn: () => deleteSheetAt(i) }
       ]);
     };
     sheetTabs.insertBefore(tab, sheetTabs.querySelector('.sheet-tab-add'));
   });
+}
+/* CMC-TAB-COLOR: swatch grid inside the tab context menu */
+const TAB_COLORS = ['#d63031','#e67e22','#f1c40f','#2ecc71','#00b894','#3498db','#5b6ee1','#9b59b6','#fd79a8','#ff7675','#636e72','#2d3436'];
+function setTabColor(i, c){
+  sheetSnapshotPush();
+  sheets[i].tabColor = c;
+  renderSheetTabs(); scheduleAutoSave();
+  if (window.fxLiveNudgeSnap) window.fxLiveNudgeSnap();
+}
+function buildTabColorGrid(i){
+  const wrapd = document.createElement('div');
+  wrapd.innerHTML = '<div class="tc-head">Tab color</div>';
+  const grid = document.createElement('div'); grid.className = 'tc-grid';
+  TAB_COLORS.forEach(c => {
+    const b = document.createElement('button'); b.className = 'tc-sw'; b.style.background = c; b.title = c;
+    b.onclick = () => setTabColor(i, c);
+    grid.appendChild(b);
+  });
+  wrapd.appendChild(grid);
+  const foot = document.createElement('div'); foot.className = 'tc-foot';
+  const custom = document.createElement('input'); custom.type = 'color';
+  custom.value = /^#[0-9a-f]{6}$/i.test(sheets[i].tabColor || '') ? sheets[i].tabColor : '#3498db';
+  custom.title = 'Custom color'; custom.oninput = () => setTabColor(i, custom.value);
+  foot.appendChild(custom);
+  const all = document.createElement('button'); all.textContent = 'All tabs';
+  all.title = 'Apply this sheet\u2019s color to every tab';
+  all.onclick = () => { const c = sheets[i].tabColor; if (!c) { statusFlash('Pick a color first, then apply it to all tabs'); return; } sheetSnapshotPush(); sheets.forEach(s2 => { s2.tabColor = c; }); renderSheetTabs(); scheduleAutoSave(); if (window.fxLiveNudgeSnap) window.fxLiveNudgeSnap(); statusFlash('Tab color applied to all ' + sheets.length + ' tabs'); };
+  foot.appendChild(all);
+  const none = document.createElement('button'); none.textContent = 'No color';
+  none.onclick = () => { sheetSnapshotPush(); delete sheets[i].tabColor; renderSheetTabs(); scheduleAutoSave(); if (window.fxLiveNudgeSnap) window.fxLiveNudgeSnap(); };
+  foot.appendChild(none);
+  wrapd.appendChild(foot);
+  return wrapd;
 }
 /* ── CSV import (current sheet) ── */
 function fxParseDelimited(text){
@@ -5049,7 +5111,7 @@ function fxSheetExportXls(){
   const tbl = buildSheetTableNode(); if (!tbl) return;
   const name = (filename.textContent || 'untitled').replace(/\.project$/, '');
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>' + esc(sheet.name || 'Sheet1') + '</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>' + tbl.outerHTML + '</body></html>';
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>' + esc(sheet.name || 'Sheet1') + '</x:Name><x:WorksheetOptions><x:PageSetup><x:Landscape/></x:PageSetup><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>' + tbl.outerHTML + '</body></html>';
   downloadBlob(new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' }), name + '-' + (sheet.name || 'Sheet1') + '.xls');
   statusFlash('.xls exported — ' + (sheet.name || 'Sheet1'));
 }
@@ -6421,6 +6483,492 @@ function exitPreview(){
 initFromUrl();
 })();
 /* ═══ end CMC-STUDIO-SHARE ═══ */
+
+
+/* ═══════════════════ CMC-STUDIO-LIVE · real-time co-editing ═══════════════════
+   Google-Sheets-style live sessions over WebRTC (PeerJS) — deliberately NOT
+   Firestore, so it works today regardless of what the database rules allow.
+   Host (teacher): ⚡ Live in the Excel toolbar → a room opens, invite link is
+   ?live=<room>. Joiners (students) open the link and land straight in the
+   spreadsheet; everyone's cells, structural edits, tab colors and cursors
+   sync in real time. The host can switch the room between "students can
+   edit" and view-only. Host leaving ends the session (everyone keeps their
+   local copy). */
+(function(){
+'use strict';
+if (window.__cmcLiveLoaded) return; window.__cmcLiveLoaded = true;
+
+var live = { active:false, host:false, guest:false, room:null, peer:null, conns:[], hostConn:null,
+  locked:false, name:'', color:'#3498db', roster:[], lastSnapStr:'', pendingSnap:null, applying:false };
+var COLORS = ['#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#fd79a8'];
+var remoteCursors = {};   // peerKey -> {s,r,c,name,color,el,lbl}
+var STRUCTURAL = { addSheet:1, insertRowAbove:1, insertRowBelow:1, insertColLeft:1, insertColRight:1,
+  deleteRow:1, deleteCol:1, dupSheet:1, sortAsc:1, sortDesc:1, fillDown:1, fillRight:1, clearAll:1,
+  clearFormat:1, freezeToggle:1, fillColor:1, textColor:1, fmt:1, border:1, alignLeft:1, alignCenter:1, alignRight:1 };
+
+function qsGet(k){ return new URLSearchParams(location.search).get(k); }
+function liveFlash(m){ try { statusFlash(m); } catch(e) { console.log('[live]', m); } }
+function randCode(n){ var s = '', A = 'abcdefghjkmnpqrstuvwxyz23456789'; for (var i = 0; i < n; i++) s += A[Math.floor(Math.random() * A.length)]; return s; }
+function localName(){
+  try {
+    var n = localStorage.getItem('cmc-student-name') || localStorage.getItem('cmc-student-email') || '';
+    n = String(n).split('@')[0].trim();
+    return n ? n.slice(0, 22) : 'Guest-' + randCode(3);
+  } catch(e) { return 'Guest-' + randCode(3); }
+}
+
+/* ── PeerJS loader (CDN with fallback) ── */
+var peerWaiters = null;
+function loadPeer(cb){
+  if (window.Peer) { cb(true); return; }
+  if (peerWaiters) { peerWaiters.push(cb); return; }
+  peerWaiters = [cb];
+  var urls = ['https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
+              'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'];
+  (function next(i){
+    if (i >= urls.length) { var w = peerWaiters; peerWaiters = null; (w || []).forEach(function(f){ f(false); }); return; }
+    var s = document.createElement('script'); s.src = urls[i];
+    s.onload = function(){
+      if (window.Peer) { var w2 = peerWaiters; peerWaiters = null; (w2 || []).forEach(function(f){ f(true); }); }
+      else next(i + 1);
+    };
+    s.onerror = function(){ next(i + 1); };
+    document.head.appendChild(s);
+  })(0);
+}
+
+/* ── Top bar ── */
+var bar = null, rosterEl = null;
+function ensureBar(){
+  if (bar) return bar;
+  bar = document.createElement('div'); bar.id = 'cmcLiveBar';
+  bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:1250;display:none;align-items:center;gap:8px;padding:6px 170px 6px 12px;' +
+    'background:linear-gradient(135deg,rgba(6,60,42,.97),rgba(10,80,60,.97));border-bottom:1px solid rgba(52,211,153,.4);' +
+    'box-shadow:0 4px 18px rgba(0,0,0,.35);font:12px Instrument Sans,sans-serif;color:#eafff5;flex-wrap:wrap';
+  document.body.appendChild(bar);
+  return bar;
+}
+function liveBtn(label, fn, danger){
+  var b = document.createElement('button'); b.textContent = label;
+  b.style.cssText = 'font:700 11px Instrument Sans,sans-serif;padding:4px 10px;border-radius:7px;cursor:pointer;line-height:1;' +
+    (danger ? 'background:rgba(248,113,113,.16);color:#fecaca;border:1px solid rgba(248,113,113,.45)'
+            : 'background:rgba(255,255,255,.08);color:#d9ffee;border:1px solid rgba(110,231,183,.4)');
+  b.addEventListener('click', fn);
+  return b;
+}
+function copyLive(){
+  var txt = location.origin + location.pathname + '?live=' + live.room;
+  function fallback(){ try { window.prompt('Copy this invite link (Ctrl+C, then Enter):', txt); } catch(e) {} }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ liveFlash('Invite link copied ✓'); }, fallback);
+  else fallback();
+}
+function chip(name, color, star){
+  var c = document.createElement('span');
+  c.style.cssText = 'background:' + color + ';color:#fff;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:700;white-space:nowrap';
+  c.textContent = (star ? '★ ' : '') + name;
+  return c;
+}
+function hostRoster(){
+  var r = [{ name: live.name, color: live.color, host: true }];
+  live.conns.forEach(function(c){ if (c.__liveMeta) r.push({ name: c.__liveMeta.name, color: c.__liveMeta.color }); });
+  return r;
+}
+function showBar(msg){
+  var b = ensureBar(); b.style.display = 'flex';
+  b.innerHTML = '';
+  var t = document.createElement('span'); t.style.cssText = 'font-weight:800;color:#6ee7b7;letter-spacing:.4px'; t.textContent = '⚡ LIVE'; b.appendChild(t);
+  if (live.room) { var r = document.createElement('span'); r.style.cssText = 'opacity:.8'; r.textContent = 'room ' + live.room; b.appendChild(r); }
+  if (msg) { var m = document.createElement('span'); m.textContent = msg; b.appendChild(m); }
+  rosterEl = document.createElement('span'); rosterEl.style.cssText = 'display:flex;gap:4px;flex-wrap:wrap;align-items:center'; b.appendChild(rosterEl);
+  paintRoster();
+  var sp = document.createElement('span'); sp.style.cssText = 'flex:1'; b.appendChild(sp);
+  if (live.guest) {
+    if (live.locked) b.appendChild(chip('🔒 view-only', 'rgba(148,163,184,.35)'));
+    b.appendChild(liveBtn('Leave', function(){ endLocal('You left the live session.'); }, true));
+  } else {
+    b.appendChild(liveBtn('⧉ Invite link', copyLive));
+    b.appendChild(liveBtn(live.locked ? '🔒 View-only' : '✏ Editing on', function(){
+      live.locked = !live.locked;
+      broadcast({ t: 'lock', edit: !live.locked });
+      showBar();
+      liveFlash(live.locked ? 'Students are now view-only' : 'Students can edit again');
+    }));
+    b.appendChild(liveBtn('End', function(){ endSession(); }, true));
+  }
+}
+function paintRoster(){
+  if (!rosterEl) return;
+  rosterEl.innerHTML = '';
+  var list = live.guest ? (live.roster || []) : hostRoster();
+  list.forEach(function(p){ rosterEl.appendChild(chip(p.name, p.color, p.host)); });
+}
+function showBarEnded(msg){
+  var b = ensureBar(); b.style.display = 'flex';
+  b.style.background = 'linear-gradient(135deg,rgba(70,20,20,.97),rgba(96,26,26,.97))';
+  b.style.borderBottom = '1px solid rgba(248,113,113,.4)';
+  b.innerHTML = '';
+  var t = document.createElement('span'); t.style.cssText = 'font-weight:800;color:#fca5a5'; t.textContent = '⚡ LIVE — ended'; b.appendChild(t);
+  var m = document.createElement('span'); m.textContent = msg + ' Your copy stays on this device.'; b.appendChild(m);
+  var sp = document.createElement('span'); sp.style.cssText = 'flex:1'; b.appendChild(sp);
+  b.appendChild(liveBtn('✕ Dismiss', function(){ b.style.display = 'none'; }));
+}
+
+/* ── Messaging primitives ── */
+function broadcast(m){ live.conns.forEach(function(c){ if (c.open) { try { c.send(m); } catch(e) {} } }); }
+function sendMsg(m){
+  if (!live.active) return;
+  if (live.host) broadcast(m);
+  else if (live.hostConn && live.hostConn.open) { try { live.hostConn.send(m); } catch(e) {} }
+}
+
+/* ── State snapshots (whole-workbook, string-compared to avoid echoes) ── */
+function liveState(){
+  return { sheets: JSON.parse(JSON.stringify(sheets)), currentSheet: currentSheet,
+    colWidths: JSON.parse(JSON.stringify(colWidths)), rowHeights: JSON.parse(JSON.stringify(rowHeights)),
+    freezeRows: freezeRows, freezeCols: freezeCols };
+}
+function stateStr(){ try { return JSON.stringify(liveState()); } catch(e) { return ''; } }
+var snapTimer = null;
+function sendSnapSoon(){ if (snapTimer) return; snapTimer = setTimeout(function(){ snapTimer = null; sendSnap(); }, 250); }
+function sendSnap(){
+  if (!live.active || guestEditingBlocked()) return;
+  var m = liveState(); m.t = 'snap';
+  var str = JSON.stringify(m);
+  if (str === live.lastSnapStr) return;
+  live.lastSnapStr = str;
+  sendMsg(m);
+}
+live.lastSnapStr = stateStr();
+window.fxLiveNudgeSnap = sendSnapSoon;
+
+/* ── Applying remote changes ── */
+function editingRef(){
+  try {
+    var a = document.activeElement;
+    if (a && a.tagName === 'INPUT' && a.closest && a.closest('#sheetGrid')) {
+      var td = a.closest('td.cell');
+      if (td && td.dataset && td.dataset.r !== undefined) return currentSheet + ':' + td.dataset.r + ',' + td.dataset.c;
+    }
+  } catch(e) {}
+  return null;
+}
+var renderQueued = false, rafPending = false;
+function scheduleLiveRender(){
+  if (editingRef()) { renderQueued = true; return; }
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(function(){ rafPending = false; doLiveRender(); });
+}
+function doLiveRender(){
+  renderQueued = false;
+  if (tool !== 'sheet' || !live.active) return;
+  renderSheet();
+  paintCursors();
+}
+document.addEventListener('focusout', function(e){
+  if (renderQueued && live.active && e.target && e.target.tagName === 'INPUT' && e.target.closest && e.target.closest('#sheetGrid')) setTimeout(doLiveRender, 60);
+});
+function applyCellMsg(m){
+  if (typeof m.s !== 'number' || typeof m.r !== 'number' || typeof m.c !== 'number') return;
+  var sh = sheets[m.s]; if (!sh) return;
+  if (m.r >= sh.rows) sh.rows = m.r + 1;
+  if (m.c >= sh.cols) sh.cols = m.c + 1;
+  var k = m.r + ',' + m.c;
+  if (editingRef() === m.s + ':' + k) { scheduleLiveRender(); return; }  // don't stomp what's being typed
+  live.applying = true;
+  try {
+    if (!sh.cells[k]) sh.cells[k] = {};
+    if (m.v === '' || m.v === null || m.v === undefined) delete sh.cells[k].v;
+    else sh.cells[k].v = m.v;
+    if (sh.cells[k].v === undefined && !sh.cells[k].style) delete sh.cells[k];
+  } catch(e) {}
+  live.applying = false;
+  scheduleLiveRender();
+}
+function applySnap(m, force){
+  if (!m || !Array.isArray(m.sheets) || !m.sheets.length) return;
+  var str;
+  try { str = JSON.stringify({ sheets: m.sheets, currentSheet: m.currentSheet, colWidths: m.colWidths, rowHeights: m.rowHeights, freezeRows: m.freezeRows, freezeCols: m.freezeCols }); } catch(e) { return; }
+  if (!force && str === live.lastSnapStr) return;
+  if (editingRef()) { live.pendingSnap = m; return; }
+  live.applying = true;
+  try {
+    sheets = m.sheets;
+    if (m.colWidths) colWidths = m.colWidths;
+    if (m.rowHeights) rowHeights = m.rowHeights;
+    if (typeof m.freezeRows === 'number') freezeRows = m.freezeRows;
+    if (typeof m.freezeCols === 'number') freezeCols = m.freezeCols;
+    if (typeof m.currentSheet === 'number' && sheets[m.currentSheet]) currentSheet = m.currentSheet;
+    live.lastSnapStr = str;
+    live.pendingSnap = null;
+    if (tool === 'sheet') { renderSheet(); renderSheetTabs(); paintCursors(); }
+  } catch(e) {}
+  live.applying = false;
+}
+function guestEditingBlocked(){ return live.guest && live.locked; }
+
+/* ── Remote cursors ── */
+function sendCursor(){
+  if (!live.active || tool !== 'sheet') return;
+  sendMsg({ t: 'cur', s: currentSheet, r: selectedCell.row, c: selectedCell.col, name: live.name, color: live.color });
+}
+var lastCur = '';
+setInterval(function(){
+  if (!live.active || tool !== 'sheet') return;
+  var ref = currentSheet + ':' + selectedCell.row + ',' + selectedCell.col;
+  if (ref !== lastCur) { lastCur = ref; sendCursor(); }
+}, 300);
+function positionOver(el, td, chipMode){
+  var wr = sheetGridWrap.getBoundingClientRect(), tr = td.getBoundingClientRect();
+  el.style.left = Math.round(tr.left - wr.left + sheetGridWrap.scrollLeft) + 'px';
+  el.style.top = Math.round(tr.top - wr.top + sheetGridWrap.scrollTop + (chipMode ? -14 : 0)) + 'px';
+  el.style.width = Math.round(tr.width) + 'px';
+  el.style.height = Math.round(tr.height) + 'px';
+}
+function applyCursor(m){
+  var key = m.id || m.from || 'h';
+  var cur = remoteCursors[key] || (remoteCursors[key] = {});
+  cur.s = m.s; cur.r = m.r; cur.c = m.c; cur.name = m.name; cur.color = m.color;
+  paintCursors();
+}
+function paintCursors(){
+  if (tool !== 'sheet') return;
+  Object.keys(remoteCursors).forEach(function(k){
+    var cur = remoteCursors[k];
+    if (cur.el && cur.el.parentNode) cur.el.parentNode.removeChild(cur.el);
+    if (cur.lbl && cur.lbl.parentNode) cur.lbl.parentNode.removeChild(cur.lbl);
+    cur.el = cur.lbl = null;
+  });
+  Object.keys(remoteCursors).forEach(function(k){
+    var cur = remoteCursors[k];
+    if (cur.s !== currentSheet) return;
+    var td = sheetGrid.querySelector('td.cell[data-r="' + cur.r + '"][data-c="' + cur.c + '"]');
+    if (!td) return;
+    var box = document.createElement('div'); box.className = 'live-cur-box';
+    box.style.border = '2px solid ' + cur.color;
+    positionOver(box, td);
+    var lbl = document.createElement('div'); lbl.className = 'live-cur-chip';
+    lbl.style.background = cur.color; lbl.textContent = cur.name;
+    positionOver(lbl, td, true);
+    sheetGridWrap.appendChild(box); sheetGridWrap.appendChild(lbl);
+    cur.el = box; cur.lbl = lbl;
+  });
+}
+sheetGridWrap.addEventListener('scroll', function(){
+  if (!rafPending) { rafPending = true; requestAnimationFrame(function(){ rafPending = false; paintCursors(); }); }
+});
+window.addEventListener('resize', function(){ if (live.active) paintCursors(); });
+
+/* ── HOST ── */
+var startAttempts = 0;
+function connectHost(){
+  loadPeer(function(ok){
+    if (!ok) { liveFlash('Could not load the live-share library — check your internet connection'); live.active = false; ensureBar().style.display = 'none'; return; }
+    var room = randCode(7);
+    live.host = true; live.active = true; live.guest = false; live.room = room;
+    live.name = localName(); live.color = COLORS[0];
+    window.__cmcLiveRoom = room;
+    showBar('Starting…');
+    var peer = new Peer('cmc-live-' + room, { debug: 0 });
+    live.peer = peer;
+    peer.on('open', function(){ live.lastSnapStr = stateStr(); showBar(); liveFlash('Live session started — copy the invite link from the green bar'); });
+    peer.on('connection', function(conn){ setupHostConn(conn); });
+    peer.on('disconnected', function(){ try { peer.reconnect(); } catch(e) {} });
+    peer.on('error', function(err){
+      if (err && err.type === 'unavailable-id' && startAttempts < 3) { startAttempts++; live.peer = null; connectHost(); return; }
+      liveFlash('Live error: ' + ((err && err.type) || 'unknown') );
+    });
+  });
+}
+function setupHostConn(conn){
+  live.conns.push(conn);
+  conn.__lastSeen = Date.now();
+  conn.on('data', function(m){ conn.__lastSeen = Date.now(); onHostData(conn, m); });
+  conn.on('close', function(){ dropConn(conn); });
+  conn.on('error', function(){ dropConn(conn); });
+  try {
+    conn.peerConnection.addEventListener('iceconnectionstatechange', function(){
+      var st = conn.peerConnection.iceConnectionState;
+      if (st === 'failed' || st === 'closed') dropConn(conn);
+    });
+  } catch(e) {}
+}
+/* Watchdog: a student who closes the tab never says goodbye — if a peer has
+   been silent (no pings) for 12s, drop them from the roster. */
+setInterval(function(){
+  if (!live.active || !live.host) return;
+  var now = Date.now();
+  live.conns.slice().forEach(function(c){
+    if (c.__liveMeta && now - (c.__lastSeen || now) > 12000) { try { c.close(); } catch(e) {} dropConn(c); }
+  });
+}, 4000);
+function dropConn(conn){
+  live.conns = live.conns.filter(function(c){ return c !== conn; });
+  if (conn.__liveMeta) { delete remoteCursors[conn.peer]; broadcast({ t: 'roster', roster: hostRoster() }); paintRoster(); paintCursors(); showBar(); }
+}
+function relay(m, except){ live.conns.forEach(function(c){ if (c !== except && c.open) { try { c.send(m); } catch(e) {} } }); }
+function onHostData(conn, m){
+  if (!m || typeof m !== 'object') return;
+  if (m.t === 'ping') return;
+  if (m.t === 'hello') {
+    conn.__liveMeta = { name: String(m.name || 'Guest').slice(0, 22), color: /^#[0-9a-f]{6}$/i.test(m.color || '') ? m.color : COLORS[live.conns.length % COLORS.length] };
+    var snap = liveState(); snap.t = 'snap';
+    conn.send({ t: 'welcome', you: conn.__liveMeta, locked: live.locked, roster: hostRoster(), snap: snap });
+    broadcast({ t: 'roster', roster: hostRoster() });
+    paintRoster(); showBar();
+    liveFlash(conn.__liveMeta.name + ' joined the live session');
+    return;
+  }
+  if (m.t === 'cell') { applyCellMsg(m); relay(m, conn); return; }
+  if (m.t === 'snap') { applySnap(m); relay(m, conn); return; }
+  if (m.t === 'cur') { m.id = conn.peer; applyCursor(m); relay(m, conn); return; }
+}
+function endSession(){
+  broadcast({ t: 'end' });
+  setTimeout(function(){
+    live.conns.forEach(function(c){ try { c.close(); } catch(e) {} });
+    live.conns = [];
+    try { live.peer.destroy(); } catch(e) {}
+    live.peer = null; live.active = false; live.host = false; live.room = null;
+    remoteCursors = {};
+    ensureBar().style.display = 'none';
+    liveFlash('Live session ended — everyone keeps their own copy');
+  }, 250);
+}
+
+/* ── GUEST ── */
+function connectGuest(room){
+  loadPeer(function(ok){
+    if (!ok) { showBarEnded('Could not load the live-share library — check your internet connection and reload.'); return; }
+    live.guest = true; live.active = true; live.host = false;
+    live.name = localName();
+    live.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    var peer = new Peer({ debug: 0 });
+    live.peer = peer;
+    peer.on('open', function(){
+      var conn = peer.connect('cmc-live-' + room, { reliable: true });
+      live.hostConn = conn;
+      conn.on('open', function(){ conn.send({ t: 'hello', name: live.name, color: live.color }); });
+      conn.on('data', onGuestData);
+      conn.on('close', function(){ if (live.active) { live.active = false; showBarEnded('The host closed the live session.'); } });
+      conn.on('error', function(){ if (live.active) { live.active = false; showBarEnded('Live connection error.'); } });
+    });
+    peer.on('disconnected', function(){ try { peer.reconnect(); } catch(e) {} });
+    /* keep-alive so the host notices when a student closes their tab */
+    setInterval(function(){ if (live.active && live.hostConn && live.hostConn.open) { try { live.hostConn.send({ t: 'ping' }); } catch(e) {} } }, 4000);
+    peer.on('error', function(err){
+      if (err && err.type === 'peer-unavailable') showBarEnded('Live session not found — ask the teacher to start it again, then reload this link.');
+      else liveFlash('Live error: ' + ((err && err.type) || 'unknown'));
+    });
+  });
+}
+function onGuestData(m){
+  if (!m || typeof m !== 'object') return;
+  if (m.t === 'welcome') {
+    live.locked = !!m.locked;
+    live.roster = m.roster || [];
+    if (m.snap) applySnap(m.snap, true);
+    showBar();
+    liveFlash('Live — connected as ' + live.name);
+    return;
+  }
+  if (m.t === 'cell') { applyCellMsg(m); return; }
+  if (m.t === 'snap') { applySnap(m); return; }
+  if (m.t === 'cur') { applyCursor(m); return; }
+  if (m.t === 'roster') { live.roster = m.roster || []; paintRoster(); return; }
+  if (m.t === 'lock') { live.locked = !m.edit; showBar(); liveFlash(live.locked ? 'The host set everyone to view-only' : 'You can edit again'); return; }
+  if (m.t === 'end') { live.active = false; showBarEnded('The host ended the live session.'); return; }
+}
+function endLocal(msg){
+  live.active = false;
+  try { if (live.hostConn) live.hostConn.close(); } catch(e) {}
+  try { if (live.peer) live.peer.destroy(); } catch(e) {}
+  live.hostConn = null; live.peer = null;
+  remoteCursors = {};
+  paintCursors();
+  showBarEnded(msg);
+}
+
+/* ── Wrappers: broadcast local edits ── */
+var _setCellLive = setCell;
+setCell = function(r, c, v){
+  if (guestEditingBlocked()) { liveFlash('The host set the room to view-only'); return; }
+  var res = _setCellLive(r, c, v);
+  if (live.active && !live.applying) {
+    var m = { t: 'cell', s: currentSheet, r: r, c: c, v: (v === undefined ? '' : v) };
+    if (live.host) broadcast(m);
+    else sendMsg(m);
+    if (live.host) { live.lastSnapStr = ''; sendSnapSoon(); }  // host heals structural drift fast
+  }
+  return res;
+};
+var _sheetCmdLive = sheetCmd;
+sheetCmd = function(cmd){
+  if (guestEditingBlocked() && STRUCTURAL[cmd]) { liveFlash('The host set the room to view-only'); return; }
+  var res = _sheetCmdLive.apply(null, arguments);
+  if (live.active && STRUCTURAL[cmd]) sendSnapSoon();
+  return res;
+};
+var _renameLive = renameSheetAt, _deleteLive = deleteSheetAt;
+renameSheetAt = function(i){ var res = _renameLive(i); if (live.active) sendSnapSoon(); return res; };
+deleteSheetAt = function(i){ var res = _deleteLive(i); if (live.active) sendSnapSoon(); return res; };
+if (typeof fxImportCsvFile === 'function') {
+  var _importLive = fxImportCsvFile;
+  fxImportCsvFile = function(f){ var res = _importLive(f); if (live.active) setTimeout(sendSnapSoon, 900); return res; };
+}
+/* Guests must not autosave the live workbook over their own saved project */
+var _doAutoSaveLive = doAutoSave;
+doAutoSave = function(){ if (live.guest && live.active) return; return _doAutoSaveLive.apply(this, arguments); };
+/* Universal drift-catcher: after any pointer burst, push a snapshot if state changed */
+document.addEventListener('pointerup', function(){
+  if (!live.active || tool !== 'sheet') return;
+  setTimeout(function(){
+    if (!live.active || tool !== 'sheet') return;
+    if (stateStr() !== live.lastSnapStr) sendSnap();
+  }, 180);
+});
+/* Host heartbeat: heal any drift (undo, direct writes, imports) within a few seconds */
+setInterval(function(){
+  if (!live.active || !live.host) return;
+  if (stateStr() !== live.lastSnapStr) sendSnap();
+}, 4000);
+
+/* ── Start dialog (teacher) ── */
+function studioLive(){
+  if (window.__cmcIsTeacher && !window.__cmcIsTeacher()) { liveFlash('Teacher account required — sign in on the main site with your school (edu) email'); return; }
+  if (typeof currentMode === 'function' && currentMode() !== 'sheet') { liveFlash('Open the Excel tool first, then start a live session'); return; }
+  if (live.active) { ensureBar().style.display = 'flex'; showBar(); liveFlash('The live session is already running — the green bar has the invite link'); return; }
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:1300;background:rgba(10,12,20,.62);display:flex;align-items:center;justify-content:center';
+  ov.innerHTML =
+    '<div style="width:min(440px,92vw);background:#171c2c;border:1px solid rgba(124,140,190,.4);border-radius:14px;padding:18px 20px;color:#e6ebff;font:13px Instrument Sans,sans-serif;box-shadow:0 24px 60px rgba(0,0,0,.55)">' +
+    '<h3 style="margin:0 0 6px;font-size:16px;color:#fff">⚡ Live session</h3>' +
+    '<p style="margin:0 0 12px;color:#aab4d4;font-size:12px;line-height:1.55">Share this spreadsheet live, like Google Sheets: everyone who opens the invite link lands in the same sheet and can type in it in real time — cells, formulas, rows, tabs and tab colors all sync instantly. Nothing is uploaded to the database, so it works even while publishing is blocked.</p>' +
+    '<p style="margin:0 0 14px;color:#8fa0c6;font-size:11.5px">You stay in control: a green bar appears with the invite link and an <b>Editing on / View-only</b> switch. Ending the session leaves everyone with their own copy.</p>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+    '<button data-x style="font:700 12px Instrument Sans,sans-serif;padding:8px 14px;border-radius:8px;border:1px solid rgba(124,140,190,.4);background:rgba(255,255,255,.06);color:#e6ebff;cursor:pointer">Cancel</button>' +
+    '<button data-go style="font:700 12px Instrument Sans,sans-serif;padding:8px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;cursor:pointer">⚡ Start live session</button>' +
+    '</div></div>';
+  ov.addEventListener('mousedown', function(e){ if (e.target === ov || e.target.hasAttribute('data-x')) ov.remove(); });
+  ov.querySelector('[data-go]').addEventListener('click', function(){ ov.remove(); connectHost(); });
+  document.body.appendChild(ov);
+}
+window.studioLive = studioLive;
+window.__cmcLiveState = live;
+
+/* ── Boot: ?live=<room> joins a session (students) ── */
+(function bootLive(){
+  var room = (qsGet('live') || '').replace(/[^A-Za-z0-9_-]/g, '');
+  if (!room || qsGet('doc')) return;
+  try { document.getElementById('welcomeScreen').classList.add('hidden'); } catch(e) {}
+  live.room = room;
+  try { filename.textContent = '⚡ Live — ' + room; } catch(e) {}
+  selectTool('sheet');
+  showBar('Connecting…');
+  connectGuest(room);
+})();
+})();
+/* ═══ end CMC-STUDIO-LIVE ═══ */
 </script>
 </body>
 </html>
