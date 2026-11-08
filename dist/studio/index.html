@@ -8,6 +8,19 @@
 <title>Creative Minds — Studio</title>
 <link rel="icon" type="image/png" sizes="64x64" href="../icons/favicon-64.png">
 <link rel="apple-touch-icon" href="../icons/icon-192.png">
+<style>
+  /* Official CMC logo — 3D spinning monogram (mirror of the block in src/index.css).
+     The transparent M PNG is stacked along Z inside a preserve-3d wrapper; deeper
+     layers darken so rotation shows real extruded depth. */
+  .cmc-logo3d{width:var(--s,48px);height:var(--s,48px);perspective:calc(var(--s,48px)*3.4);flex:none}
+  .cmc-logo3d-tilt{width:100%;height:100%;transform-style:preserve-3d;transform:rotateX(-10deg)}
+  .cmc-logo3d-spin{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:cmc-logo-spin var(--dur,18s) linear infinite;will-change:transform}
+  .cmc-logo3d-layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:brightness(calc(1 - var(--i,0)*var(--dim,0.06)));transform:translateZ(calc((var(--i,0) - var(--n,9) + 1)*var(--step,2px)))}
+  @keyframes cmc-logo-spin{from{transform:rotateY(0deg)}to{transform:rotateY(360deg)}}
+  .cmc-logo3d-spin--sway{animation:cmc-logo-sway var(--dur,18s) ease-in-out infinite alternate}
+  @keyframes cmc-logo-sway{from{transform:rotateY(-24deg)}to{transform:rotateY(24deg)}}
+  @media (prefers-reduced-motion:reduce){.cmc-logo3d-spin{animation:none}}
+</style>
   <meta name="description" content="Creative Minds Studio — free browser canvas, document, spreadsheet and code workspace for classrooms.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -444,7 +457,27 @@
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Back to CMC
 </a>
 <div class="welcome-screen" id="welcomeScreen">
-  <img src="../images/cmc-m-logo.png" alt="Creative Minds logo" style="width:88px;height:88px;object-fit:contain;display:block;margin:0 auto 14px;filter:drop-shadow(0 6px 24px rgba(99,102,241,.45))">
+  <div class="cmc-logo3d" role="img" aria-label="Creative Minds logo" style="--s:150px;--n:15;--dur:16s;--step:3.3px;--dim:.036;margin:0 auto 18px">
+    <div class="cmc-logo3d-tilt">
+      <div class="cmc-logo3d-spin">
+        <img class="cmc-logo3d-layer" style="--i:0" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:1" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:2" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:3" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:4" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:5" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:6" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:7" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:8" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:9" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:10" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:11" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:12" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:13" src="../images/cmc-m-logo-420.png" alt="">
+        <img class="cmc-logo3d-layer" style="--i:14" src="../images/cmc-m-logo-420.png" alt="">
+      </div>
+    </div>
+  </div>
   <div class="welcome-logo">CREATIVE MINDS</div>
   <p class="welcome-tagline">Choose what to create</p>
   <div class="welcome-grid">
