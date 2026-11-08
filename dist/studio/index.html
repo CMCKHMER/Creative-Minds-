@@ -395,6 +395,29 @@
 /* Quick bar word counter */
 .quick-stats{font:11px 'Instrument Sans',sans-serif;color:#45475a;white-space:nowrap;align-self:center}
 </style>
+<script>
+/* ── CMC-TEACHER-ONLY chrome ───────────────────────────────────────────
+   Publishing / collecting is a teacher capability. The ☁ Share and
+   ✎ Input toolbar buttons are hidden from students (same role heuristic
+   as the bi-weekly planner's teacher-gate.js: cmc-student-role, or an
+   "edu" email domain, plus a Firebase session). Runs in <head> so the
+   buttons never flash for students. JS guards re-check on click. */
+(function(){
+  function ls(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+  function emailIsTeacher(e){ var d=(String(e||'').split('@')[1]||'').toLowerCase(); return !!d && d.indexOf('edu')!==-1; }
+  var tok = ls('cmc-student-token');
+  var role = ls('cmc-student-role') || (emailIsTeacher(ls('cmc-student-email')) ? 'teacher' : 'student');
+  var isT = !!tok && role === 'teacher';
+  window.__cmcIsTeacher = function(){ return isT; };
+  if (isT && document.documentElement) document.documentElement.classList.add('cmc-is-teacher');
+  try {
+    var s = document.createElement('style');
+    s.textContent = '.quick-btn.cmc-teacher-only{display:none!important}' +
+      'html.cmc-is-teacher .quick-btn.cmc-teacher-only{display:flex!important}';
+    document.head.appendChild(s);
+  } catch(e){}
+})();
+</script>
 </head>
 <body>
   <h1 style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Creative Minds Studio</h1>
@@ -701,7 +724,7 @@
       <button class="quick-btn" onclick="fxDocExportHtml()" title="Download as .html">⬇html</button>
       <button class="quick-btn" onclick="docHtmlInput.click()" title="Import a .html / .txt file into the document">⬆import</button>
       <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
+      <button class="quick-btn cmc-teacher-only" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
     </div>
 
     <!-- ── Excel tool set (moved out of the old header sheetBar) ── -->
@@ -745,8 +768,8 @@
       <button class="quick-btn" onclick="fxSheetExportXls()" title="Export current sheet as .xls — opens in Microsoft Excel">X ⬇xls</button>
       <button class="quick-btn" onclick="sheetCsvInput.click()" title="Import a .csv file into the current sheet">⬆CSV</button>
       <div class="quick-sep"></div>
-      <button class="quick-btn" onclick="studioToggleInputCell()" title="Mark / unmark the selected cells as student-input cells (shaded — students can only fill these in a shared worksheet)">✎ Input</button>
-      <button class="quick-btn" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
+      <button class="quick-btn cmc-teacher-only" onclick="studioToggleInputCell()" title="Mark / unmark the selected cells as student-input cells (shaded — students can only fill these in a shared worksheet)">✎ Input</button>
+      <button class="quick-btn cmc-teacher-only" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
     </div>
 
     <!-- ── Code tool set ── -->
@@ -5414,6 +5437,9 @@ var shareDocId = null, shareMeta = null;
 var studioInputCells = new Set();   // teacher authoring marks; loaded from payload in collect mode
 var sharePreview = false;      // teacher viewing one submission inside results
 var previewBackup = null;      // editor snapshot to restore after preview
+var testDraft = null;          // student's in-progress linked-test answers (array, null = untouched)
+var testDraftKey = null;       // localStorage key for the draft ('studio-test-draft-<docId>')
+var testOverlayEl = null;      // open test runner overlay root
 var submittedLocal = ls('studio-submitted-' + (new URLSearchParams(location.search).get('doc') || '')) === '1';
 var flashThrottle = 0;
 
@@ -5464,7 +5490,35 @@ function ensureCss(){
     '.cmc-tbl td{padding:6px 8px;border-bottom:1px solid rgba(124,140,190,.14)}' +
     '.cmc-tbl tr.clickable{cursor:pointer}.cmc-tbl tr.clickable:hover td{background:rgba(56,189,248,.07)}' +
     'td.cell.cmc-input-cell{box-shadow:inset 0 0 0 2px rgba(245,185,66,.55);background:rgba(245,185,66,.10) !important}' +
-    '.cmc-note{font-size:11px;color:#fca5a5;background:rgba(248,113,113,.09);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5}';
+    '.cmc-note{font-size:11px;color:#fca5a5;background:rgba(248,113,113,.09);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5}' +
+    '.cmc-test-overlay{position:fixed;inset:0;z-index:1250;background:rgba(6,8,15,.82);backdrop-filter:blur(6px);display:flex;align-items:stretch;justify-content:center;padding:16px}' +
+    '.cmc-test-wrap{width:min(880px,96vw);display:flex;flex-direction:column;border-radius:14px;border:1px solid rgba(124,140,190,.4);overflow:hidden;' +
+    'background:linear-gradient(160deg,#141928,#191530);box-shadow:0 18px 60px rgba(0,0,0,.5)}' +
+    '.cmc-test-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(124,140,190,.3);flex-wrap:wrap}' +
+    '.cmc-test-head .t{font-weight:800;font-size:13px;color:#fff;flex:1;min-width:220px}' +
+    '.cmc-test-head .k{font-weight:600;font-size:10px;color:#8891ad;margin-left:6px}' +
+    '.cmc-test-head .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}' +
+    '.cmc-test-timer{font-size:12px;font-weight:800;color:#e6ebff;background:rgba(255,255,255,.06);border:1px solid rgba(124,140,190,.4);border-radius:8px;padding:5px 10px}' +
+    '.cmc-test-timer.warn{color:#fca5a5;border-color:rgba(248,113,113,.5)}' +
+    '.cmc-test-scroll{flex:1;overflow-y:auto;padding:16px}' +
+    '.cmc-test-inst{font-size:12px;color:#cbd5e1;line-height:1.6;margin:0 0 10px}' +
+    '.cmc-test-transcript{font-size:11px;color:#cbd5e1;background:rgba(94,234,212,.07);border:1px solid rgba(94,234,212,.25);border-left:3px solid #5eead4;border-radius:8px;padding:10px 12px;margin:0 0 10px;line-height:1.6;white-space:pre-line}' +
+    '.cmc-test-transcript b{display:block;color:#5eead4;font-size:10px;letter-spacing:.5px;margin-bottom:4px;text-transform:uppercase}' +
+    '.cmc-test-audio{background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:10px 12px;margin:0 0 10px}' +
+    '.cmc-test-audio b{display:block;font-size:11px;color:#7dd3fc;margin-bottom:6px}' +
+    '.cmc-test-audio audio{width:100%;height:36px}' +
+    '.cmc-test-group{margin:0 0 16px}' +
+    '.cmc-test-group h4{margin:0 0 2px;font-size:12px;font-weight:800;color:#fff}' +
+    '.cmc-test-group .d{margin:0 0 8px;font-size:11px;color:#8891ad}' +
+    '.cmc-test-q{background:rgba(255,255,255,.03);border:1px solid rgba(124,140,190,.22);border-radius:10px;padding:12px 14px;margin:0 0 8px}' +
+    '.cmc-test-q .p{margin:0 0 8px;font-size:12px;color:#e6ebff;line-height:1.55}' +
+    '.cmc-test-q .p .n{color:#7dd3fc;font-weight:800;margin-right:4px}' +
+    '.cmc-test-q .os{display:grid;gap:4px}' +
+    '.cmc-test-q label.o{display:flex;gap:8px;align-items:flex-start;padding:6px 8px;border:1px solid rgba(124,140,190,.18);border-radius:8px;cursor:pointer;transition:all .12s}' +
+    '.cmc-test-q label.o:hover{border-color:#38bdf8;background:rgba(56,189,248,.06)}' +
+    '.cmc-test-q label.o .l{font-weight:800;font-size:11px;color:#7dd3fc;flex:none;padding-top:1px}' +
+    '.cmc-test-q label.o .c{font-size:11.5px;color:#cbd5e1;line-height:1.5}' +
+    '.cmc-test-foot{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid rgba(124,140,190,.3);flex-wrap:wrap}';
   document.head.appendChild(s);
 }
 function flashOnce(msg){
@@ -5489,8 +5543,125 @@ function openModal(title, subtitle, bodyEl){
   return { ov: ov, card: card, close: function(){ ov.remove(); } };
 }
 
+/* ── Teacher guard ──
+   Publishing and collecting are teacher capabilities. The toolbar buttons
+   are already hidden for students (CMC-TEACHER-ONLY chrome in <head>);
+   these guards are the second line of defence for direct console calls. */
+function requireTeacher(){
+  if (window.__cmcIsTeacher && window.__cmcIsTeacher()) return true;
+  statusFlash('Teacher account required — sign in on the main site with your school (edu) email');
+  return false;
+}
+
+/* ── Linkable test catalog (kept in sync with the Bi-Weekly Tests panel) ──
+   Only tests that actually exist under /biweek-planner/tests/<slug>.html —
+   the catalog entries 'isec2-w5-grammar' and 'isec2-w4-inference' have no
+   public page file and are deliberately excluded. */
+var STUDIO_TESTS = [
+  { group: 'Orientation', items: [
+    { slug: 'diagnostic', title: 'Orientation Diagnostic (Week 2 · All Sections)' } ]},
+  { group: 'ISEC II weekly tests', items: [
+    { slug: 'isec2-w2-listening', title: 'W2 · Business Listening (B2 + C2)' },
+    { slug: 'isec2-w3-grammar', title: 'W3 · C1 Grammar: Conciseness & Precision' },
+    { slug: 'isec2-w4-reading', title: 'W4 · C2 Reading: Corporate Epistemology' },
+    { slug: 'isec2-w5-listening', title: 'W5 · C1 Listening: Innovation in Business' },
+    { slug: 'isec2-w6-grammar', title: 'W6 · C2 Grammar: Modals & Conditionals' },
+    { slug: 'isec2-w7-reading', title: 'W7 · C2 Reading: The Algorithmic Enterprise' },
+    { slug: 'week8-mock', title: 'Level 10 TOEFL Mock Test (30 questions)' } ]},
+  { group: 'Week 8 recaps', items: [
+    { slug: 'week8-recap-grammar', title: 'Grammar Drill — Recap' },
+    { slug: 'week8-recap-listening', title: 'Listening Drill — Recap' },
+    { slug: 'week8-recap-reading', title: 'Reading Drill — Recap' } ]},
+  { group: 'Weekly drills (earlier cohort)', items: [
+    { slug: 'week2-grammar', title: 'Week 2 · Grammar: Conditionals & Agreement' },
+    { slug: 'week3-listening', title: 'Week 3 · Listening: Chance Discoveries' },
+    { slug: 'week4-reading', title: 'Week 4 · Reading: Genes, Health & Longevity' },
+    { slug: 'week5-grammar', title: 'Week 5 · Grammar: Conditionals & Agreement' },
+    { slug: 'week6-listening', title: 'Week 6 · Listening: Student Athletes' },
+    { slug: 'week7-reading', title: 'Week 7 · Reading: How We Name the Stars' } ]},
+  { group: 'Skills drills', items: [
+    { slug: 'grammar', title: 'Level 9b Parallel Structure' },
+    { slug: 'structure', title: 'Level 11b Written Expressions' },
+    { slug: 'business-listening', title: 'B2 Business Listening Drill' },
+    { slug: 'inference-listening', title: 'Listening · Inference' },
+    { slug: 'prediction-listening', title: 'Listening · Prediction' },
+    { slug: 'short-conversations', title: 'Listening · Short Conversations' } ]}
+];
+function testTitleOf(slug){
+  for (var g = 0; g < STUDIO_TESTS.length; g++)
+    for (var i = 0; i < STUDIO_TESTS[g].items.length; i++)
+      if (STUDIO_TESTS[g].items[i].slug === slug) return STUDIO_TESTS[g].items[i].title;
+  return slug;
+}
+function testPageUrl(slug){ return '../biweek-planner/tests/' + slug + '.html'; }
+
+/* ── Test page extraction ──
+   Reads a bi-week test page (static file, same origin) and pulls out
+   TEST_CONFIG + TEST_BANKS. Runs ONLY in teacher flows (publish + results
+   grading). Two bank generations exist:
+     classic  — rows [prompt, choices, answerIndex]
+     recap    — rows [prompt, choices, "L"-ciphered index] + window.AMAP_OFF
+   decodeAnswer maps both to a plain 0-based option index (arrays for
+   multi-answer questions). The STUDENT payload built from this NEVER
+   carries the answer field — grading happens on the teacher side. */
+function extractTestPage(html){
+  var iA = html.indexOf('window.AMAP_OFF');
+  var iC = html.indexOf('window.TEST_CONFIG=');
+  if (iC < 0) throw new Error('test page has no TEST_CONFIG');
+  var start = (iA >= 0 && iA < iC) ? iA : iC;
+  var iB = html.indexOf('window.TEST_BANKS', iC);
+  if (iB < 0) throw new Error('test page has no TEST_BANKS');
+  // The assignment ends with ";" at end of its line — but bank strings can
+  // contain ";" mid-line, so scan for the newline, not the next ";".
+  var end = html.indexOf('\n', iB); if (end < 0) end = html.length;
+  var sb = {};
+  new Function('window', html.slice(start, end))(sb);
+  if (!sb.TEST_CONFIG || !sb.TEST_BANKS) throw new Error('test page banks unreadable');
+  var off = sb.AMAP_OFF || 7;
+  function dec(v){
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') return (v.charCodeAt(0) - 65 - off + 52) % 26;
+    if (Array.isArray(v)) return v.map(dec);
+    throw new Error('bad answer shape');
+  }
+  var cfg = sb.TEST_CONFIG, banks = sb.TEST_BANKS;
+  var groups = [], questions = [], audios = [];
+  (cfg.groups || []).forEach(function(g){
+    var rows = banks[g.id];
+    if (!rows) throw new Error('group ' + g.id + ' has no bank');
+    groups.push({ id: g.id, title: String(g.title || ''), dirs: String(g.dirs || '') });
+    rows.forEach(function(r, i){
+      var ans = dec(r[2]);
+      questions.push({ g: g.id, i: i, p: String(r[0] || ''), c: (r[1] || []).map(String),
+        a: ans, m: Array.isArray(ans) });
+    });
+  });
+  var m, re = /<h4[^>]*>([\s\S]*?)<\/h4>\s*<audio[^>]*>(?:\s*<source src="([^"]+)")?/g;
+  while ((m = re.exec(html))) {
+    // src kept page-relative (e.g. "isec2-week2-b2.mp3") — the student
+    // runner resolves it against /biweek-planner/tests/ at render time.
+    audios.push({ label: m[1].replace(/<[^>]*>/g, '').trim(), src: m[2] || '' });
+  }
+  return { cfg: cfg, groups: groups, questions: questions, audios: audios };
+}
+/* Student-safe payload for studio_docs.linkedTest — NO answer field. */
+function linkedTestPayload(slug, ex){
+  return { slug: slug, title: String(ex.cfg.title || testTitleOf(slug)),
+    kicker: String(ex.cfg.kicker || ''), instructions: String(ex.cfg.instructions || ''),
+    transcript: String(ex.cfg.transcript || ''), minutes: Number(ex.cfg.examMinutes) || 0,
+    groups: ex.groups,
+    questions: ex.questions.map(function(q){ return { g: q.g, i: q.i, p: q.p, c: q.c, m: !!q.m }; }),
+    audios: ex.audios, total: ex.questions.length };
+}
+/* Teacher-side: rebuild the answer key from the live test page, aligned to
+   the payload's question order (groups order, then bank row order). */
+function answerKeyOf(ex){
+  return ex.questions.map(function(q){ return q.a; });
+}
+
 /* ── Input-cell marking (teacher authoring, Excel mode) ── */
 function studioToggleInputCell(){
+  if (!requireTeacher()) return;
   if (shareMode) { statusFlash('Not available while viewing a shared copy'); return; }
   if (currentMode() !== 'sheet') { statusFlash('Select cells in the Excel tool first'); return; }
   var refs = [];
@@ -5520,6 +5691,7 @@ function serializePayload(kind){
 
 /* ── Publish dialog ── */
 function studioShare(){
+  if (!requireTeacher()) return;
   var mode = currentMode();
   if (mode !== 'doc' && mode !== 'sheet') { statusFlash('Open the Docs or Excel tool first, then share it'); return; }
   ensureCss();
@@ -5533,6 +5705,12 @@ function studioShare(){
     '<div class="cmc-radio-card" data-m="view"><b>👁 View only</b><span>Everyone with the link sees this ' + (kind === 'doc' ? 'document' : 'spreadsheet') + ' read-only. Nothing is collected.</span></div>' +
     '<div class="cmc-radio-card" data-m="collect"><b>✍ Collect answers</b><span>Students open the link, fill the ' + (kind === 'doc' ? 'document copy' : 'shaded ✎ Input cells') + ', and submit — answers land in your Results dashboard.</span></div>' +
     '</div>' +
+    '<label class="cmc-label">Link a test (optional)</label>' +
+    '<select class="cmc-input" id="cmcLinkTest"><option value="">— No test —</option>' +
+    STUDIO_TESTS.map(function(g){ return '<optgroup label="' + escapeHtml(g.group) + '">' +
+      g.items.map(function(t){ return '<option value="' + t.slug + '">' + escapeHtml(t.title) + '</option>'; }).join('') + '</optgroup>'; }).join('') +
+    '</select>' +
+    '<p class="cmc-hint">Students answer the linked test inside the same link. The answer key never goes to students — submissions are graded in your Results dashboard (the key is read from the live test page when you open Results).</p>' +
     (kind === 'sheet' ? '<p class="cmc-hint" id="cmcInputHint"></p>' : '') +
     '<div class="cmc-note" id="cmcShareNote" style="display:none"></div>' +
     '<div class="cmc-row-actions">' +
@@ -5563,30 +5741,49 @@ function studioShare(){
   }
   body.querySelector('#cmcPublishBtn').addEventListener('click', function(){
     var title = (body.querySelector('#cmcShareTitle').value || '').trim() || 'Untitled';
-    var btn = this; btn.disabled = true; statusEl.textContent = 'Publishing…'; noteEl.style.display = 'none';
-    publishDoc(kind, chosen, title, function(res){
-      btn.disabled = false;
-      if (!res.ok) { statusEl.textContent = ''; noteEl.textContent = res.msg; noteEl.style.display = 'block'; return; }
-      statusEl.textContent = 'Published ✓';
-      shareDocId = res.id; shareMeta = { title: title, kind: kind, mode: chosen, ownerUid: uid, ownerName: res.ownerName };
-      showResult(res.id, chosen);
-      loadMyDocs(body.querySelector('#cmcMyDocs'));
-    });
+    var testSlug = (body.querySelector('#cmcLinkTest') || {}).value || '';
+    var btn = this; btn.disabled = true; noteEl.style.display = 'none';
+    var finish = function(linked, warn){
+      statusEl.textContent = 'Publishing…';
+      publishDoc(kind, chosen, title, linked, function(res){
+        btn.disabled = false;
+        if (!res.ok) { statusEl.textContent = ''; noteEl.textContent = res.msg; noteEl.style.display = 'block'; return; }
+        statusEl.textContent = 'Published ✓';
+        shareDocId = res.id; shareMeta = { title: title, kind: kind, mode: chosen, ownerUid: uid, ownerName: res.ownerName, linkedTest: linked };
+        if (warn) { noteEl.textContent = warn; noteEl.style.display = 'block'; }
+        showResult(res.id, chosen);
+        loadMyDocs(body.querySelector('#cmcMyDocs'));
+      });
+    };
+    if (!testSlug) { finish(null); return; }
+    statusEl.textContent = 'Reading the test page…';
+    fetch(testPageUrl(testSlug)).then(function(r){ return r.ok ? r.text() : Promise.reject(new Error('HTTP ' + r.status)); })
+      .then(function(html){
+        var linked = linkedTestPayload(testSlug, extractTestPage(html));
+        finish(linked);
+      })
+      .catch(function(e){
+        btn.disabled = false; statusEl.textContent = '';
+        if (window.confirm('Could not read the test page (' + (e && e.message || 'error') + ').\n\nPublish WITHOUT the linked test?')) finish(null, 'Published without the linked test — the test page could not be read.');
+      });
   });
   loadMyDocs(body.querySelector('#cmcMyDocs'));
 }
 window.studioShare = studioShare;
 
-function publishDoc(kind, mode, title, cb){
+function publishDoc(kind, mode, title, linkedTest, cb){
   ensureToken(function(tok){
     if (!tok) { cb({ ok: false, msg: "You're not signed in. Open the Creative Minds site, sign in with your teacher account (an “edu” email), then come back to Studio." }); return; }
     if (!uid) { cb({ ok: false, msg: 'Signed-in session is missing its user id — sign in again on the main site.' }); return; }
     var payload = serializePayload(kind);
-    var size = JSON.stringify(payload).length;
+    var size = JSON.stringify(payload).length + (linkedTest ? JSON.stringify(linkedTest).length : 0);
     if (size > 700000) { cb({ ok: false, msg: 'Too large to publish (' + Math.round(size / 1024) + ' KB). Large embedded images push documents over the database limit — remove or shrink images and try again.' }); return; }
     var ownerName = String(sname || ls('cmc-student-email') || 'Teacher').slice(0, 60);
     var doc = { title: title.slice(0, 200), kind: kind, mode: mode, ownerUid: uid, ownerName: ownerName,
       createdAt: nowIso(), updatedAt: nowIso(), revision: 1, data: payload };
+    // linkedTest is a top-level field (public read, student-safe: questions
+    // only, never the answer key) so the Results list can badge it cheaply.
+    if (linkedTest) doc.linkedTest = linkedTest;
     rest('/studio_docs', { method: 'POST', body: JSON.stringify({ fields: toFs(doc).mapValue.fields }) }, function(r){
       if (r.ok && r.body && r.body.name) cb({ ok: true, id: fsId(r.body.name), ownerName: ownerName });
       else cb({ ok: false, msg: restErrMsg(r.status) });
@@ -5618,8 +5815,10 @@ function loadMyDocs(container){
       var f = d.document.fields || {};
       var id = fsId(d.document.name);
       var t = fromFs(f.title) || 'Untitled', kind = fromFs(f.kind) || 'doc', m = fromFs(f.mode) || 'view', up = String(fromFs(f.updatedAt) || '').slice(0, 10);
+      var lt = fromFs(f.linkedTest) || null;
       var row = document.createElement('div'); row.className = 'cmc-doc-row';
       row.innerHTML = '<span class="t">' + escapeHtml(t) + '</span>' +
+        (lt ? '<span class="cmc-badge collect">📝 TEST</span>' : '') +
         '<span class="cmc-badge ' + (m === 'collect' ? 'collect' : 'view') + '">' + (m === 'collect' ? 'COLLECT' : 'VIEW') + '</span>' +
         '<span class="d">' + escapeHtml(kind === 'doc' ? 'Doc' : 'Excel') + ' · ' + escapeHtml(up) + '</span>';
       var acts = document.createElement('div'); acts.style.display = 'flex'; acts.style.gap = '6px';
@@ -5676,13 +5875,27 @@ function buildBanner(msg, msgClass){
     '<span class="cmc-spacer"></span>';
   var right = document.createElement('div'); right.style.display = 'flex'; right.style.gap = '8px'; right.style.alignItems = 'center';
   if (shareMode === 'collect') {
+    var lt = shareMeta.linkedTest;
+    if (lt && lt.questions && lt.questions.length) {
+      var bT = document.createElement('button'); bT.className = 'cmc-btn'; bT.id = 'cmcTestBtn';
+      if (submittedLocal) { bT.textContent = '📝 Test — answers sent ✓'; bT.disabled = true; }
+      else {
+        var st = testDraftState();
+        bT.textContent = st.answered ? ('📝 Test — continue (' + st.answered + '/' + st.total + ')') : ('📝 Take the test (' + lt.total + ' questions)');
+        bT.addEventListener('click', openTestRunner);
+      }
+      right.appendChild(bT);
+    }
     var bSub = document.createElement('button'); bSub.className = 'cmc-btn green'; bSub.id = 'cmcSubmitBtn';
     if (submittedLocal) { bSub.textContent = '✓ Submitted'; bSub.disabled = true; }
     else { bSub.textContent = 'Submit my answers'; bSub.addEventListener('click', studioSubmit); }
     right.appendChild(bSub);
-    var bRes = document.createElement('button'); bRes.className = 'cmc-btn'; bRes.textContent = '📊 Results';
-    bRes.addEventListener('click', openResults);
-    right.appendChild(bRes);
+    // Results are for the teacher's eyes only — students never see the button.
+    if (window.__cmcIsTeacher && window.__cmcIsTeacher()) {
+      var bRes = document.createElement('button'); bRes.className = 'cmc-btn'; bRes.textContent = '📊 Results';
+      bRes.addEventListener('click', openResults);
+      right.appendChild(bRes);
+    }
   }
   var bCopy = document.createElement('button'); bCopy.className = 'cmc-btn'; bCopy.textContent = '⧉ Copy link';
   bCopy.addEventListener('click', function(){ copyText(shareUrl(shareDocId)); });
@@ -5710,14 +5923,25 @@ function initFromUrl(){
       return;
     }
     var f = r.body.fields;
+    var ltRaw = fromFs(f.linkedTest) || null;
+    // Firestore has no empty lists: toFs() stores [] as [null], so strip
+    // nulls from every list field after the round-trip.
+    if (ltRaw) {
+      if (Array.isArray(ltRaw.questions)) ltRaw.questions = ltRaw.questions.filter(Boolean);
+      if (Array.isArray(ltRaw.groups)) ltRaw.groups = ltRaw.groups.filter(Boolean);
+      if (Array.isArray(ltRaw.audios)) ltRaw.audios = ltRaw.audios.filter(Boolean);
+    }
+    var lt = (ltRaw && typeof ltRaw.slug === 'string' && Array.isArray(ltRaw.questions) && ltRaw.questions.length) ? ltRaw : null;
     var meta = {
       title: fromFs(f.title) || 'Untitled', kind: fromFs(f.kind) || 'doc',
       mode: fromFs(f.mode) || 'view', ownerUid: fromFs(f.ownerUid) || '',
-      ownerName: fromFs(f.ownerName) || 'your teacher'
+      ownerName: fromFs(f.ownerName) || 'your teacher', linkedTest: lt
     };
     var data = fromFs(f.data) || {};
     shareDocId = id; shareMeta = meta; shareMode = meta.mode;
     submittedLocal = ls('studio-submitted-' + id) === '1';
+    testDraftKey = 'studio-test-draft-' + id;
+    testDraft = (meta.linkedTest && !submittedLocal) ? loadTestDraft(meta.linkedTest.total) : null;
     document.getElementById('welcomeScreen').classList.add('hidden');
     if (meta.kind === 'doc') {
       docLayer.innerHTML = data.doc || '<p></p>';
@@ -5741,6 +5965,147 @@ function initFromUrl(){
     buildBanner();
     if (q.get('results') === '1') openResults();
   });
+}
+
+/* ── Linked-test runner (students, collect mode) ──
+   Renders the published test questions inside the shared view. The draft
+   persists locally (per doc) so students can come back before submitting.
+   The payload carries NO answer key — grading happens in the teacher's
+   Results dashboard, so there is nothing here to peek at. */
+function loadTestDraft(total){
+  try {
+    var raw = JSON.parse(ls(testDraftKey) || 'null');
+    if (Array.isArray(raw) && raw.length === total) return raw;
+  } catch (e) {}
+  var arr = []; for (var i = 0; i < total; i++) arr.push(null); return arr;
+}
+function saveTestDraft(){ if (testDraftKey && testDraft) { lsSet(testDraftKey, JSON.stringify(testDraft)); } }
+function clearTestDraft(){ try { if (testDraftKey) localStorage.removeItem(testDraftKey); } catch (e) {} testDraft = null; }
+function testAnsweredCount(){
+  if (!testDraft) return 0;
+  return testDraft.reduce(function(n, a){ return n + (a == null ? 0 : (Array.isArray(a) ? (a.length ? 1 : 0) : 1)); }, 0);
+}
+function testDraftState(){
+  var lt = shareMeta && shareMeta.linkedTest;
+  return { answered: testAnsweredCount(), total: lt ? lt.total : 0 };
+}
+function refreshTestBtn(){
+  var b = document.getElementById('cmcTestBtn');
+  if (!b || !shareMeta || !shareMeta.linkedTest || submittedLocal) return;
+  var st = testDraftState();
+  b.textContent = st.answered ? ('📝 Test — continue (' + st.answered + '/' + st.total + ')') : ('📝 Take the test (' + st.total + ' questions)');
+}
+function answerEquals(sel, key){
+  var a = Array.isArray(sel) ? sel.slice().sort(function(x, y){ return x - y; }) : [sel];
+  var b = Array.isArray(key) ? key.slice().sort(function(x, y){ return x - y; }) : [key];
+  return a.length === b.length && a.every(function(v, i){ return v === b[i]; });
+}
+function openTestRunner(){
+  if (shareMode !== 'collect' || !shareMeta || !shareMeta.linkedTest) return;
+  if (submittedLocal) { statusFlash('Already submitted ✓'); return; }
+  var lt = shareMeta.linkedTest;
+  if (!testDraft) testDraft = loadTestDraft(lt.total);
+  ensureCss();
+  if (testOverlayEl) testOverlayEl.remove();
+  var ov = document.createElement('div'); ov.className = 'cmc-test-overlay'; ov.id = 'cmcTestOverlay';
+  var wrap = document.createElement('div'); wrap.className = 'cmc-test-wrap';
+  var head = document.createElement('div'); head.className = 'cmc-test-head';
+  head.innerHTML = '<div class="t">📝 ' + escapeHtml(lt.title || 'Linked test') +
+    (lt.kicker ? ' <span class="k">' + escapeHtml(lt.kicker) + '</span>' : '') + '</div>' +
+    '<div class="r"><span class="cmc-badge collect" id="cmcTestProgress"></span>' +
+    (lt.minutes ? '<span class="cmc-test-timer" id="cmcTestTimer" title="Countdown starts with your first answer"></span>' : '') + '</div>';
+  var bClear = mkBtn('Clear answers', 'cmc-btn', function(){
+    if (!window.confirm('Clear all your test answers?')) return;
+    testDraft = loadTestDraft(lt.total); saveTestDraft(); wrap.remove(); ov.remove(); testOverlayEl = null; openTestRunner();
+  });
+  head.querySelector('.r').appendChild(bClear);
+  var bClose = mkBtn('Save & close', 'cmc-btn primary', closeTestRunner);
+  head.querySelector('.r').appendChild(bClose);
+  var scroll = document.createElement('div'); scroll.className = 'cmc-test-scroll';
+  var intro = '';
+  if (lt.instructions) intro += '<p class="cmc-test-inst">' + escapeHtml(lt.instructions) + '</p>';
+  if (lt.transcript) intro += '<div class="cmc-test-transcript"><b>Transcript</b>' + escapeHtml(lt.transcript) + '</div>';
+  (lt.audios || []).filter(Boolean).forEach(function(a, ix){
+    var src = a.src || '';
+    if (src && src.indexOf('/') < 0) src = '../biweek-planner/tests/' + src;
+    intro += '<div class="cmc-test-audio"><b>' + escapeHtml(a.label || ('Audio ' + (ix + 1))) + '</b>' +
+      (src ? '<audio controls preload="none" src="' + escapeHtml(src) + '"></audio>' : '<i>(audio unavailable)</i>') + '</div>';
+  });
+  if (intro) { var d1 = document.createElement('div'); d1.innerHTML = intro; scroll.appendChild(d1); }
+  var qn = 0;
+  (lt.groups || []).forEach(function(g){
+    var gEl = document.createElement('div'); gEl.className = 'cmc-test-group';
+    gEl.innerHTML = '<h4>' + escapeHtml(g.title || '') + '</h4>' + (g.dirs ? '<p class="d">' + escapeHtml(g.dirs) + '</p>' : '');
+    lt.questions.forEach(function(q, qi){
+      if (q.g !== g.id) return;
+      qn++;
+      var card = document.createElement('div'); card.className = 'cmc-test-q'; card.dataset.qi = qi;
+      var qh = '<p class="p"><span class="n">' + qn + '.</span> ' + escapeHtml(q.p) + '</p>';
+      var opts = '';
+      (q.c || []).forEach(function(ch, ci){
+        var sel = testDraft[qi];
+        var checked = q.m ? (Array.isArray(sel) && sel.indexOf(ci) >= 0) : sel === ci;
+        opts += '<label class="o"><input type="' + (q.m ? 'checkbox' : 'radio') + '" name="cmcq' + qi + '" value="' + ci + '"' + (checked ? ' checked' : '') + '><span class="l">' + String.fromCharCode(65 + ci) + '.</span><span class="c">' + escapeHtml(ch) + '</span></label>';
+      });
+      card.innerHTML = qh + '<div class="os">' + opts + '</div>';
+      card.addEventListener('change', function(ev){
+        var inp = ev.target; if (!inp || inp.tagName !== 'INPUT') return;
+        if (q.m) {
+          var cur = Array.isArray(testDraft[qi]) ? testDraft[qi].slice() : [];
+          var v = Number(inp.value);
+          var at = cur.indexOf(v);
+          if (inp.checked && at < 0) cur.push(v);
+          if (!inp.checked && at >= 0) cur.splice(at, 1);
+          testDraft[qi] = cur.length ? cur : null;
+        } else testDraft[qi] = Number(inp.value);
+        saveTestDraft(); syncProgress(); refreshTestBtn(); bumpTimer();
+      });
+      gEl.appendChild(card);
+    });
+    scroll.appendChild(gEl);
+  });
+  var foot = document.createElement('div'); foot.className = 'cmc-test-foot';
+  foot.innerHTML = '<span class="cmc-hint" style="margin:0">Your answers save on this device until you press “Submit my answers”.</span>';
+  foot.appendChild(mkBtn('Save & close', 'cmc-btn primary', closeTestRunner));
+  wrap.appendChild(head); wrap.appendChild(scroll); wrap.appendChild(foot);
+  ov.appendChild(wrap);
+  ov.addEventListener('mousedown', function(e){ if (e.target === ov) closeTestRunner(); });
+  document.body.appendChild(ov);
+  testOverlayEl = ov;
+  syncProgress();
+  function syncProgress(){
+    var el = ov.querySelector('#cmcTestProgress');
+    if (el) el.textContent = testAnsweredCount() + ' / ' + lt.total + ' answered';
+  }
+}
+function closeTestRunner(){
+  saveTestDraft(); refreshTestBtn();
+  if (testOverlayEl) { testOverlayEl.remove(); testOverlayEl = null; }
+}
+/* Lightweight countdown — starts on the student's first answer. Advisory
+   only: time-up shows a note and never locks the student out. */
+var testTimer = { left: 0, iv: null, started: false };
+function bumpTimer(){
+  var lt = shareMeta && shareMeta.linkedTest;
+  if (!lt || !lt.minutes || testTimer.started || !testOverlayEl) return;
+  testTimer.started = true; testTimer.left = Math.max(1, Number(lt.minutes) || 1) * 60;
+  var el = function(){ return testOverlayEl ? testOverlayEl.querySelector('#cmcTestTimer') : null; };
+  var paint = function(){
+    var e = el(); if (!e) return;
+    var m = Math.floor(testTimer.left / 60), s = testTimer.left % 60;
+    e.textContent = '⏱ ' + m + ':' + (s < 10 ? '0' : '') + s;
+    e.classList.toggle('warn', testTimer.left <= 60);
+  };
+  paint();
+  testTimer.iv = setInterval(function(){
+    testTimer.left--;
+    if (testTimer.left <= 0) {
+      clearInterval(testTimer.iv); testTimer.iv = null;
+      var e = el(); if (e) { e.textContent = '⏱ Time is up — press Save & close, then Submit'; e.classList.add('warn'); }
+      return;
+    }
+    paint();
+  }, 1000);
 }
 
 /* ── Submit (collect mode) ── */
@@ -5768,20 +6133,39 @@ function studioSubmit(){
       var p = k.split(','); var cell = getCell(+p[0], +p[1]);
       if (cell && cell.v !== '' && cell.v !== undefined && cell.v !== null) answers[k] = String(cell.v);
     });
-    if (!Object.keys(answers).length) { statusFlash('Fill in at least one shaded cell first'); return; }
+    var testAnswered = shareMeta.linkedTest ? testAnsweredCount() : 0;
+    if (!Object.keys(answers).length && !testAnswered) {
+      statusFlash(shareMeta.linkedTest ? 'Fill in at least one shaded cell — or take the linked test — first' : 'Fill in at least one shaded cell first');
+      return;
+    }
+  }
+  // Linked-test answers travel as raw indices — the key stays with the
+  // teacher, so there is nothing in the submission for students to grade
+  // themselves against.
+  var testOut = null;
+  if (shareMeta.linkedTest) {
+    testOut = { slug: String(shareMeta.linkedTest.slug || '').slice(0, 100),
+      title: String(shareMeta.linkedTest.title || '').slice(0, 200),
+      total: shareMeta.linkedTest.total || (shareMeta.linkedTest.questions || []).length,
+      answered: testAnsweredCount(),
+      answers: (testDraft || loadTestDraft(shareMeta.linkedTest.total)).slice() };
   }
   var name = sname || ls('cmc-player-name') || '';
   var proceed = function(finalName){
     var send = function(studentUid, subId){
       var sub = { docId: shareDocId, docTitle: String(shareMeta.title || '').slice(0, 200), ownerUid: String(shareMeta.ownerUid || '').slice(0, 100),
         kind: kind, studentUid: studentUid, studentName: finalName, submittedAt: nowIso(), answers: answers };
+      if (testOut) sub.test = testOut;
       rest('/studio_submissions?documentId=' + encodeURIComponent(subId), { method: 'POST', body: JSON.stringify({ fields: toFs(sub).mapValue.fields }), anon: true }, function(r){
         if (r.ok) {
           submittedLocal = true;
           lsSet('studio-submitted-' + shareDocId, '1');
           lsSet('cmc-player-name', finalName);
+          clearTestDraft();
           var b = document.getElementById('cmcSubmitBtn');
           if (b) { b.textContent = '✓ Submitted'; b.disabled = true; }
+          var bt = document.getElementById('cmcTestBtn');
+          if (bt) { bt.textContent = '📝 Test — answers sent ✓'; bt.disabled = true; }
           statusFlash('Sent to your teacher ✓ Thank you!');
         } else if (r.status === 409) { submittedLocal = true; lsSet('studio-submitted-' + shareDocId, '1'); statusFlash('You already submitted this worksheet.'); var b2 = document.getElementById('cmcSubmitBtn'); if (b2) { b2.textContent = '✓ Submitted'; b2.disabled = true; } }
         else statusFlash(restErrMsg(r.status));
@@ -5797,8 +6181,10 @@ function studioSubmit(){
 }
 
 /* ── Results dashboard (teacher) ── */
+var resultsKeyFailed = false;   // live test page unreadable while grading
 function openResults(){
   if (!shareDocId || !shareMeta || shareMeta.mode !== 'collect') return;
+  if (!(window.__cmcIsTeacher && window.__cmcIsTeacher())) { statusFlash('Results are for teachers only'); return; }
   ensureToken(function(tok){
     if (!tok) { statusFlash('Sign in with a teacher account to see results'); return; }
     var q = { structuredQuery: { from: [{ collectionId: 'studio_submissions' }],
@@ -5814,11 +6200,44 @@ function openResults(){
         var f = d.document.fields || {};
         return { id: fsId(d.document.name), studentName: fromFs(f.studentName) || '(no name)',
           studentUid: fromFs(f.studentUid) || '', submittedAt: fromFs(f.submittedAt) || '',
-          kind: fromFs(f.kind) || shareMeta.kind, answers: fromFs(f.answers) || {} };
+          kind: fromFs(f.kind) || shareMeta.kind, answers: fromFs(f.answers) || {}, test: fromFs(f.test) || null };
       });
-      renderResults(subs);
+      gradeResults(subs, function(){ renderResults(subs); });
     });
   });
+}
+/* Teacher-side grading: the key comes from the live test page at view time,
+   so it never exists in the published doc or the student's submission. */
+function gradeResults(subs, done){
+  var lt = shareMeta.linkedTest;
+  resultsKeyFailed = false;
+  if (!lt) { done(); return; }
+  subs.forEach(function(s){ s.testScore = null; });
+  fetch(testPageUrl(lt.slug)).then(function(r){ return r.ok ? r.text() : Promise.reject(new Error('HTTP ' + r.status)); })
+    .then(function(html){
+      var key = answerKeyOf(extractTestPage(html));
+      subs.forEach(function(s){
+        if (!s.test || !Array.isArray(s.test.answers)) return;
+        var n = Math.min(key.length, s.test.answers.length);
+        var correct = 0;
+        for (var i = 0; i < n; i++) if (s.test.answers[i] != null && answerEquals(s.test.answers[i], key[i])) correct++;
+        var total = lt.total || key.length;
+        s.testScore = { correct: correct, total: total, pct: total ? Math.round(correct / total * 100) : 0,
+          mismatch: key.length !== s.test.answers.length };
+      });
+      done();
+    })
+    .catch(function(){ resultsKeyFailed = true; done(); });
+}
+function testScoreCellHtml(s){
+  var answered = (s.test && Array.isArray(s.test.answers))
+    ? (typeof s.test.answered === 'number' ? s.test.answered : s.test.answers.filter(function(a){ return a != null && (!Array.isArray(a) || a.length); }).length)
+    : 0;
+  if (!answered) return '<td style="color:#8891ad">—</td>';
+  if (!s.testScore) return '<td style="color:#fbbf24">' + (resultsKeyFailed ? 'taken · key unavailable' : '…') + '</td>';
+  var col = s.testScore.pct >= 80 ? '#34d399' : (s.testScore.pct >= 50 ? '#fbbf24' : '#f87171');
+  return '<td><b style="color:' + col + '">' + s.testScore.correct + '/' + s.testScore.total + ' (' + s.testScore.pct + '%)</b>' +
+    (s.testScore.mismatch ? ' <span title="The test page changed since this was published — graded on the aligned questions only">⚠</span>' : '') + '</td>';
 }
 function renderResults(subs){
   var body = document.createElement('div');
@@ -5839,13 +6258,14 @@ function renderResults(subs){
   } else {
     var tbl = document.createElement('table'); tbl.className = 'cmc-tbl';
     var isSheet = shareMeta.kind === 'sheet';
-    tbl.innerHTML = '<thead><tr><th>Student</th><th>Submitted</th>' + (isSheet ? '<th>Answers</th>' : '<th>Size</th>') + '<th></th></tr></thead>';
+    var hasTest = !!shareMeta.linkedTest;
+    tbl.innerHTML = '<thead><tr><th>Student</th><th>Submitted</th>' + (isSheet ? '<th>Answers</th>' : '<th>Size</th>') + (hasTest ? '<th>Test</th>' : '') + '<th></th></tr></thead>';
     var tb = document.createElement('tbody');
     subs.forEach(function(s){
       var tr = document.createElement('tr'); tr.className = 'clickable';
       var when = String(s.submittedAt || '').replace('T', ' ').slice(0, 16);
       var extra = isSheet ? Object.keys(s.answers).length + ' cells' : Math.round((s.answers.content || '').length / 102.4) / 10 + ' KB';
-      tr.innerHTML = '<td><b>' + escapeHtml(s.studentName) + '</b></td><td>' + escapeHtml(when) + '</td><td>' + escapeHtml(extra) + '</td>';
+      tr.innerHTML = '<td><b>' + escapeHtml(s.studentName) + '</b></td><td>' + escapeHtml(when) + '</td><td>' + escapeHtml(extra) + '</td>' + (hasTest ? testScoreCellHtml(s) : '');
       var tdOpen = document.createElement('td');
       var bOpen = document.createElement('button'); bOpen.className = 'cmc-btn'; bOpen.textContent = isSheet ? 'Open' : 'Read';
       bOpen.addEventListener('click', function(){ previewSubmission(s); });
@@ -5868,13 +6288,21 @@ function displayOf(v){
 }
 function resultsCsv(subs){
   var rows = [];
+  var hasTest = !!shareMeta.linkedTest;
+  var testCols = function(s){
+    if (!hasTest) return [];
+    var answered = (s.test && Array.isArray(s.test.answers))
+      ? (typeof s.test.answered === 'number' ? s.test.answered : s.test.answers.filter(function(a){ return a != null && (!Array.isArray(a) || a.length); }).length) : 0;
+    if (s.testScore) return [s.testScore.pct + '%', s.testScore.correct, s.testScore.total];
+    return [answered ? (resultsKeyFailed ? 'key unavailable' : '') : 'not taken', s.testScore ? s.testScore.correct : '', s.test ? s.test.total : ''];
+  };
   if (shareMeta.kind === 'sheet') {
     var refs = Array.from(studioInputCells).sort(sortRef);
-    rows.push(['Student', 'Submitted'].concat(refs.map(refToA1)));
-    subs.forEach(function(s){ rows.push([s.studentName, s.submittedAt].concat(refs.map(function(ref){ return displayOf(s.answers[ref]); }))); });
+    rows.push(['Student', 'Submitted'].concat(refs.map(refToA1), hasTest ? ['Test score', 'Test correct', 'Test total'] : []));
+    subs.forEach(function(s){ rows.push([s.studentName, s.submittedAt].concat(refs.map(function(ref){ return displayOf(s.answers[ref]); }), testCols(s))); });
   } else {
-    rows.push(['Student', 'Submitted', 'Characters']);
-    subs.forEach(function(s){ rows.push([s.studentName, s.submittedAt, String((s.answers.content || '').length)]); });
+    rows.push(['Student', 'Submitted', 'Characters'].concat(hasTest ? ['Test score', 'Test correct', 'Test total'] : []));
+    subs.forEach(function(s){ rows.push([s.studentName, s.submittedAt, String((s.answers.content || '').length)].concat(testCols(s))); });
   }
   var csv = rows.map(function(row){ return row.map(function(v){ v = String(v == null ? '' : v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\r\n');
   var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });

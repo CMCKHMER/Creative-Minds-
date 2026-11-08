@@ -432,6 +432,45 @@ service cloud.firestore {
     // Delete: owner-only, so a teacher can remove a mis-shared link.
     // Size: the doc field is capped (600 KB) and sheets list capped (12);
     // Firestore's own 1 MiB per-document limit is the hard backstop.
+    // linkedTest (optional, top-level): a student-safe copy of a bi-week
+    // test — questions only. The key whitelist below makes it IMPOSSIBLE to
+    // publish an answer field inside linkedTest, even from a tampered
+    // client: keys must be exactly {slug,title,kicker,instructions,
+    // transcript,minutes,groups,questions,audios,total} and each question
+    // exactly {g,i,p,c,m}. Grading uses the live test page at Results time
+    // (teacher-only), so the key never enters the database at all.
+    function linkedTestQuestionOk(q) {
+      return q is map
+        && q.keys().hasOnly(['g', 'i', 'p', 'c', 'm'])
+        && q.g is string && q.g.size() >= 1 && q.g.size() <= 100
+        && q.i is number && q.i >= 0 && q.i <= 500
+        && q.p is string && q.p.size() >= 1 && q.p.size() <= 2000
+        && q.c is list && q.c.size() >= 2 && q.c.size() <= 12
+        && q.c.all(ch, ch is string && ch.size() >= 0 && ch.size() <= 2000)
+        && (q.m is bool || q.m == null);
+    }
+    function linkedTestOk(t) {
+      return t is map
+        && t.keys().hasOnly(['slug', 'title', 'kicker', 'instructions', 'transcript', 'minutes', 'groups', 'questions', 'audios', 'total'])
+        && t.slug is string && t.slug.size() >= 1 && t.slug.size() <= 100
+        && t.title is string && t.title.size() >= 1 && t.title.size() <= 200
+        && t.kicker is string && t.kicker.size() <= 200
+        && t.instructions is string && t.instructions.size() <= 4000
+        && t.transcript is string && t.transcript.size() <= 8000
+        && t.minutes is number && t.minutes >= 0 && t.minutes <= 300
+        && t.total is number && t.total >= 1 && t.total <= 500
+        && t.groups is list && t.groups.size() >= 1 && t.groups.size() <= 50
+        && t.groups.all(g, g is map && g.keys().hasOnly(['id', 'title', 'dirs'])
+          && g.id is string && g.id.size() >= 1 && g.id.size() <= 100
+          && g.title is string && g.title.size() <= 300
+          && g.dirs is string && g.dirs.size() <= 600)
+        && t.questions is list && t.questions.size() >= 1 && t.questions.size() <= 500
+        && t.questions.all(linkedTestQuestionOk)
+        && t.audios is list && t.audios.size() <= 20
+        && t.audios.all(a, a is map && a.keys().hasOnly(['label', 'src'])
+          && a.label is string && a.label.size() <= 300
+          && a.src is string && a.src.size() <= 300);
+    }
     function studioDocFieldsOk(d) {
       return d.title is string
         && d.title.size() >= 1
@@ -450,6 +489,7 @@ service cloud.firestore {
         && d.revision >= 1
         && d.revision <= 10000
         && d.data is map
+        && (!(d.keys().hasAny(['linkedTest'])) || linkedTestOk(d.linkedTest))
         && ((d.kind == 'doc'
              && d.data.doc is string
              && d.data.doc.size() <= 600000
@@ -494,6 +534,20 @@ service cloud.firestore {
     // Reading results: teachers only. Students may GET their own doc.
     // Every create costs one extra read (the get() of the referenced
     // studio_doc) so submissions can only ever land on live collect docs.
+    // test (optional): the student's raw chosen option indices for the
+    // linked test. Indicies only — no score, no key. The teacher's Results
+    // view grades them against the live test page. A worksheet with zero
+    // filled cells is still valid when the test itself was answered.
+    function studioSubTestOk(t) {
+      return t is map
+        && t.keys().hasOnly(['slug', 'title', 'total', 'answered', 'answers'])
+        && t.slug is string && t.slug.size() >= 1 && t.slug.size() <= 100
+        && t.title is string && t.title.size() <= 200
+        && t.total is number && t.total >= 1 && t.total <= 500
+        && t.answered is number && t.answered >= 0 && t.answered <= 500
+        && t.answers is list && t.answers.size() >= 1 && t.answers.size() <= 500
+        && t.answers.all(x, x == null || (x is number && x >= 0 && x <= 20));
+    }
     function studioSubFieldsOk(d) {
       return d.docId is string
         && d.docId.size() >= 10
@@ -507,8 +561,13 @@ service cloud.firestore {
         && d.studentName.size() >= 1
         && d.studentName.size() <= 40
         && d.answers is map
-        && d.answers.size() >= 1
         && d.answers.size() <= 400
+        && (d.answers.size() >= 1
+            || (d.keys().hasAny(['test'])
+                && d.test is map
+                && d.test.answered is number
+                && d.test.answered >= 1))
+        && (!(d.keys().hasAny(['test'])) || studioSubTestOk(d.test))
         && d.submittedAt is string
         && d.submittedAt.size() <= 40
         && get(/databases/$(database)/documents/studio_docs/$(d.docId)).data.mode == 'collect';
