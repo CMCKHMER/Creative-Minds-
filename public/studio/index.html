@@ -378,6 +378,9 @@
 .sheet-grid td.cell.fx-bordered{box-shadow:inset 0 0 0 1px #8a94a6}
 /* Spreadsheet: fill handle */
 #fxFillHandle{position:fixed;width:8px;height:8px;background:#12b76a;border:1.5px solid #fff;box-shadow:0 0 0 1px #12b76a;cursor:crosshair;z-index:61;display:none}
+  /* Excel-style drag-selection: every cell inside the range gets a real shaded
+     fill (inset spread shadow tints over any inline cell background). */
+  .sheet-grid td.cell.fx-inrange{box-shadow:inset 0 0 0 999px rgba(10,132,255,.14)}
 /* Spreadsheet quick bar: tiny inline color inputs */
 #quickSet-sheet input[type=color]{width:22px;height:22px;padding:0;border:1px solid var(--line);border-radius:4px;background:#fff;cursor:pointer}
 /* Document: images + floating image toolbar */
@@ -2055,7 +2058,15 @@ function renderSheet(){
     const newTable = temp.firstElementChild;
     if (newTable) { sheetGrid.innerHTML = ''; while (newTable.firstChild) sheetGrid.appendChild(newTable.firstChild); }
   }
+  // CMC-DRAG-SELECT — keep range shading + overlays glued after any re-render
+  // (formatting, formula apply, undo… would otherwise drop the shading classes).
+  // try/catch: fxPaintSelection's state may not exist during early boot renders.
+  try { fxPaintSelection(); } catch(err) {}
   sheetGrid.querySelectorAll('td.cell').forEach(td => { td.addEventListener('click', () => {
+    // CMC-DRAG-SELECT — after the fx layer handled a mousedown (single click,
+    // shift-extend or the start of a drag), this legacy click handler must not
+    // run: it would reset the multi-cell range back to one cell.
+    if (fxPressHandled) { fxPressHandled = false; return; }
     const r = +td.dataset.r, c = +td.dataset.c;
     // renderSheet() replaces the whole table on every click, so the native
     // dblclick event can never fire on one element — detect double clicks
@@ -2895,8 +2906,8 @@ function printFromMode(){
     statusFlash('Print / Save-as-PDF opened for the document');
   } else if (mode === 'sheet') {
     const tbl = buildSheetTableNode(); if (!tbl) return;
-    printWindow(name + ' — ' + (sheets[currentSheet] ? sheets[currentSheet].name : 'Sheet'), tbl.outerHTML, { css: 'table{font-size:9.5pt;} th,td{padding:3px 6px;}' });
-    statusFlash('Print / Save-as-PDF opened for the spreadsheet');
+    printWindow(name + ' — ' + (sheets[currentSheet] ? sheets[currentSheet].name : 'Sheet'), tbl.outerHTML, { landscape: true, css: 'table{font-size:9.5pt;} th,td{padding:3px 6px;}' });
+    statusFlash('Print / Save-as-PDF opened for the spreadsheet (landscape)');
   } else if (mode === 'code') {
     printWindow(name + ' — Code', '<pre>' + escapeHtml(codeEditor.value) + '</pre>');
     statusFlash('Print / Save-as-PDF opened for the code');
@@ -4389,6 +4400,7 @@ let fxAnchor = null;     // anchor cell of the selection
 let fxShiftBase = null;  // base for shift+click / shift+arrows
 let fxExtCorner = null;  // moving corner for shift+arrows
 let fxSelecting = null;  // active drag-select state
+let fxPressHandled = false; // fx layer consumed the current press — next legacy td click must not reset the selection
 let fxClip = null;       // internal clipboard {rows, w, h, tsv, cut}
 let fxLastClick = null;  // double-click detector
 let fxHandleDrag = null; // active fill-handle drag
@@ -4519,12 +4531,24 @@ function fxPaintSelection(){
     } else fxHandleEl.style.display = 'none';
   }
   if (fxFillBox) fxFillBox.style.display = 'none';
+  // CMC-DRAG-SELECT — shade every cell inside the active range (Excel-style),
+  // live during the drag; the anchor cell keeps its own .selected look.
+  if (sheetGrid) {
+    const rng = (fxRange && fxRangeSize(fxRange) > 1) ? fxRange : null;
+    sheetGrid.querySelectorAll('td.cell').forEach(td => {
+      const r = +td.dataset.r, c = +td.dataset.c;
+      const on = !!rng && !(r === selectedCell.row && c === selectedCell.col) &&
+        r >= rng.r1 && r <= rng.r2 && c >= rng.c1 && c <= rng.c2;
+      td.classList.toggle('fx-inrange', on);
+    });
+  }
   fxUpdateStatus();
 }
 function fxHideOverlays(){
   if (fxRangeBox) fxRangeBox.style.display = 'none';
   if (fxFillBox) fxFillBox.style.display = 'none';
   if (fxHandleEl) fxHandleEl.style.display = 'none';
+  if (sheetGrid) sheetGrid.querySelectorAll('td.fx-inrange').forEach(td => td.classList.remove('fx-inrange'));
 }
 function showFillHandle(){ fxPaintSelection(); }
 function fxUpdateOverlays(){ fxPaintSelection(); }
@@ -4569,6 +4593,7 @@ function fxGridMouseDown(e){
   fxLastClick = { r, c, t: now };
   e.preventDefault();
   sheetGrid.focus();
+  fxPressHandled = true;
   if (e.shiftKey && fxShiftBase) {
     fxRange = fxNormRange(fxShiftBase.row, fxShiftBase.col, r, c);
     fxExtCorner = { row: r, col: c };
@@ -4578,7 +4603,7 @@ function fxGridMouseDown(e){
     fxPaintSelection();
     return;
   }
-  if (dbl) { fxLastClick = null; selectedCell = { row: r, col: c }; startCellEdit(); return; }
+  if (dbl) { fxLastClick = null; selectedCell = { row: r, col: c }; fxPressHandled = true; startCellEdit(); return; }
   fxAnchor = { row: r, col: c };
   fxShiftBase = { ...fxAnchor };
   fxExtCorner = { ...fxAnchor };
@@ -4586,6 +4611,7 @@ function fxGridMouseDown(e){
   selectedCell = { row: r, col: c };
   sheetFormula.value = getCell(r, c).v || '';
   fxSelecting = { base: { ...fxAnchor }, last: { r, c } };
+  fxPressHandled = true;
   renderSheet();
 }
 function fxGridMouseMove(e){
@@ -4604,6 +4630,8 @@ function fxGridMouseMove(e){
 function fxGridMouseUp(){
   if (fxHandleDrag) { fxFillDragEnd(); return; }
   if (fxSelecting) { fxSelecting = null; fxPaintSelection(); }
+  // A browser click event (if any) fires right after mouseup, before this timeout.
+  setTimeout(function(){ fxPressHandled = false; }, 0);
 }
 function fxGridHeaderClick(e){
   if (currentMode() !== 'sheet' || fxEditing()) return;
