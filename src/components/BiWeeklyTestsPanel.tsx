@@ -70,6 +70,7 @@ interface AttemptDoc {
   durationSeconds: number | null;
   submittedAt: string;
   answers: string;
+  inviteMode: boolean;
   integrity: { blurs?: number; fsExits?: number };
 }
 
