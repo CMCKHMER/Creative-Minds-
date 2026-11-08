@@ -7,6 +7,7 @@
 
 import { Suspense, lazy, memo, useCallback, useEffect, useState, type ComponentType } from 'react';
 import { Navbar } from './components/Navbar';
+import { TestThanksOverlay } from './components/TestThanksOverlay';
 import { QuickDrawer } from './components/QuickDrawer';
 import { Hero } from './components/Hero';
 import { Footer } from './components/Footer';
@@ -231,6 +232,9 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col relative selection:bg-cyan-500 selection:text-white">
+      {/* Thank-you overlay after an invited bi-weekly test submission (?thanks=1) */}
+      <TestThanksOverlay />
+
       {/* Sticky Top Navbar */}
       <Navbar
         onOpenQuickLinks={() => setQuickDrawerOpen(true)}

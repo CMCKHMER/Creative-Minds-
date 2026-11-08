@@ -9,6 +9,7 @@ import { useStudentAttempts } from '../hooks/useDrillAttempts';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import { StudentAuthModal } from './StudentAuthModal';
 import { BiWeeklyScoresCard } from './BiWeeklyScoresCard';
+import { BiWeeklyTestsPanel } from './BiWeeklyTestsPanel';
 
 export function FirebaseDashboard() {
   const memberAuth = useMemberAuth();
@@ -376,6 +377,14 @@ export function FirebaseDashboard() {
               )}
             </div>
           </div>
+        )}
+
+        {/* Bi-Weekly Tests — teacher share links: pick a test, copy the
+            student invite link (teacher ID code rides on it), students take
+            the test behind a name+ID gate, invite attempts stream back with
+            the full answer sheet + CSV. */}
+        {isTeacher && (
+          <BiWeeklyTestsPanel />
         )}
 
         {/* Bi-Weekly Test Scores — simple spreadsheet export. The old private

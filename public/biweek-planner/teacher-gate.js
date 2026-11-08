@@ -62,7 +62,11 @@
     return role === 'teacher';
   }
   // Exposed so the page's own scripts can branch on the gate result.
-  window.CMC_TEACHER_GATE_OK = isTeacher();
+  // Invite links (student-invite.js, loaded before this script) set
+  // window.CMC_INVITE_OK when the URL carries a valid ?invite=<teacher-code>
+  // — students arriving through a teacher's share link are let through and
+  // student-invite.js runs its own name/ID entry gate instead.
+  window.CMC_TEACHER_GATE_OK = isTeacher() || window.CMC_INVITE_OK === true;
   if (window.CMC_TEACHER_GATE_OK) return; // teacher — page runs normally
 
   /* ── 2. Lock the page before first paint ───────────────────────────── */

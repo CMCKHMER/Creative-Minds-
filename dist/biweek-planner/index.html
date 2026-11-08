@@ -372,7 +372,11 @@ WEEKS.forEach((w,idx)=>{
     if(t.file==='#'){
       return `<span class="drill-btn disabled" aria-disabled="true">${ic}<span class="btn-label">${t.text}</span><i class="fas fa-lock btn-go"></i></span>`;
     }
-    return `<a href="tests/${t.file}" class="drill-btn" target="_blank" rel="noopener">${ic}<span class="btn-label">${t.text}</span><i class="fas fa-arrow-right btn-go"></i></a>`;
+    // Share chip (test pages only): opens the teacher share/results modal.
+    const shareBtn=t.file.endsWith('.html')
+      ? `<button type="button" class="bp-share" data-file="${t.file}" data-text="${t.text.replace(/"/g,'&quot;')}" title="Share with students · view results" aria-label="Share ${t.text} with students"><i class="fas fa-share-nodes"></i></button>`
+      : '';
+    return `<span class="bp-test-row"><a href="tests/${t.file}" class="drill-btn" target="_blank" rel="noopener">${ic}<span class="btn-label">${t.text}</span><i class="fas fa-arrow-right btn-go"></i></a>${shareBtn}</span>`;
   }).join('');
 
   // Featured card (Week 1 — Orientation & Diagnostic) gets a bigger,
@@ -420,5 +424,239 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
 
 
 
+<!-- ===== Teacher share + results modal (invite links, Nov 2026) ===== -->
+<style>
+.bp-test-row{display:contents}
+.bp-share{display:inline-flex;align-items:center;justify-content:center;width:35px;height:35px;border-radius:12px;cursor:pointer;
+  border:1px solid var(--border);background:var(--card);color:var(--accent);font-size:12px;transition:transform .15s,border-color .15s,background .15s}
+.bp-share:hover{transform:translateY(-1px);border-color:var(--accent)}
+.bp-modal{position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:rgba(2,6,23,.72);backdrop-filter:blur(6px)}
+.bp-modal[hidden]{display:none}
+.bp-modal-card{max-width:680px;width:100%;max-height:88vh;overflow:auto;padding:22px;border-radius:18px;background:var(--card);
+  border:1px solid var(--border);backdrop-filter:blur(14px);box-shadow:0 30px 80px -42px rgba(0,0,0,.6);color:var(--text)}
+</style>
+<script>
+/* Teacher share + results for bi-weekly tests.
+ * - "Share test" builds the student invite link: tests/<file>?invite=<TEACHER-CODE>
+ * - The teacher ID code is stored once per device (localStorage) and rides on
+ *   every student attempt so results attribute back to the sharing teacher.
+ * - "Results" lists every recorded attempt for that test (public read on
+ *   drill_attempts — same source the homepage ticker uses) with CSV export.
+ */
+(function(){
+  'use strict';
+  var CODE_KEY='cmc-teacher-invite-code';
+  var currentFile=null,currentText='';
+  var refreshTimer=null;
+
+  function el(id){return document.getElementById(id);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function getBasePath(){return window.location.pathname.replace(/index\.html$/,'');}
+  function sanitizeCode(v){return String(v||'').trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,24);}
+  function getCode(){try{return sanitizeCode(localStorage.getItem(CODE_KEY)||'');}catch(e){return '';}}
+  function setCode(v){try{localStorage.setItem(CODE_KEY,sanitizeCode(v));}catch(e){}}
+  function inviteUrl(file){return window.location.origin+getBasePath()+'tests/'+file+'?invite='+encodeURIComponent(getCode());}
+  function track(ev,params){try{if(typeof window.cmcTrack==='function')window.cmcTrack(ev,params);}catch(e){}}
+
+  // ── modal shell ───────────────────────────────────────────────────
+  var modal=document.createElement('div');
+  modal.id='bp-share-modal';
+  modal.className='bp-modal';
+  modal.hidden=true;
+  modal.setAttribute('role','dialog');
+  modal.setAttribute('aria-modal','true');
+  modal.setAttribute('aria-label','Share test with students');
+  modal.innerHTML=
+    '<div class="bp-modal-card" style="position:relative">'+
+      '<button type="button" id="bp-modal-x" aria-label="Close" style="position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:14px"><i class="fas fa-xmark"></i></button>'+
+      '<p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)">Teacher tools</p>'+
+      '<h3 id="bp-modal-title" class="font-display" style="margin:4px 0 0;font-size:19px;font-weight:800">'+esc('Share test')+'</h3>'+
+      '<div style="display:flex;gap:6px;margin:14px 0 0">'+
+        '<button type="button" id="bp-tab-share" class="bp-tab" style="flex:1">Share with students</button>'+
+        '<button type="button" id="bp-tab-results" class="bp-tab" style="flex:1">Results</button>'+
+      '</div>'+
+      // share tab
+      '<section id="bp-pane-share">'+
+        '<div style="margin-top:16px;padding:13px;border:1px solid var(--border);border-radius:12px;background:rgba(56,189,248,.05)">'+
+          '<label for="bp-code" style="display:block;font-size:11px;font-weight:700;margin-bottom:6px;color:var(--muted)">YOUR TEACHER ID CODE — rides on the link so results come back to you</label>'+
+          '<div style="display:flex;gap:8px">'+
+            '<input id="bp-code" type="text" maxlength="24" placeholder="e.g. SOKHA-07" style="flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-size:13.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;outline:none">'+
+            '<button type="button" id="bp-code-gen" style="padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--accent);cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap">Generate</button>'+
+          '</div>'+
+          '<p id="bp-code-hint" style="margin:7px 0 0;font-size:10.5px;color:var(--muted)"></p>'+
+        '</div>'+
+        '<div style="margin-top:12px">'+
+          '<label for="bp-link" style="display:block;font-size:11px;font-weight:700;margin-bottom:6px;color:var(--muted)">STUDENT LINK — send it in the class group chat</label>'+
+          '<div style="display:flex;gap:8px">'+
+            '<input id="bp-link" type="text" readonly style="flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-size:12px;outline:none">'+
+            '<button type="button" id="bp-copy" style="padding:10px 16px;border:0;border-radius:10px;background:linear-gradient(100deg,#c4b5fd,#67e8f9);color:#0f172a;cursor:pointer;font-size:12.5px;font-weight:800;white-space:nowrap"><i class="fas fa-copy"></i> Copy</button>'+
+          '</div>'+
+          '<div style="display:flex;gap:8px;margin-top:8px">'+
+            '<button type="button" id="bp-preview" style="flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:11.5px;font-weight:600"><i class="fas fa-eye"></i> Preview as student</button>'+
+            '<button type="button" id="bp-native-share" style="flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:11.5px;font-weight:600"><i class="fas fa-share-nodes"></i> Share…</button>'+
+          '</div>'+
+          '<p style="margin:12px 0 0;font-size:11px;line-height:1.6;color:var(--muted)">Students open the link, type their <b>name + student ID</b>, and press Start — the timer begins and every answer is recorded. On Submit they land on the homepage with a thank-you message, and the attempt appears under <b>Results</b> here with the full answer sheet.</p>'+
+        '</div>'+
+      '</section>'+
+      // results tab
+      '<section id="bp-pane-results" hidden>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:16px">'+
+          '<p id="bp-results-meta" style="margin:0;font-size:11px;color:var(--muted)">Loading…</p>'+
+          '<button type="button" id="bp-csv" style="padding:8px 13px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--accent);cursor:pointer;font-size:11.5px;font-weight:700;white-space:nowrap"><i class="fas fa-file-csv"></i> Export CSV</button>'+
+        '</div>'+
+        '<div id="bp-results-wrap" style="margin-top:10px;overflow-x:auto"></div>'+
+      '</section>'+
+    '</div>';
+  document.body.appendChild(modal);
+
+  var style=document.createElement('style');
+  style.textContent=
+    '.bp-tab{padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-weight:700;transition:all .15s}'+
+    '.bp-tab.active{background:rgba(139,92,246,.14);border-color:rgba(139,92,246,.5);color:#c4b5fd}'+
+    '.bp-results-table{width:100%;border-collapse:collapse;font-size:11.5px;color:var(--text)}'+
+    '.bp-results-table th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:7px 8px;border-bottom:1px solid var(--border);white-space:nowrap}'+
+    '.bp-results-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top}'+
+    '.bp-results-table tr:hover td{background:rgba(255,255,255,.03)}'+
+    '.bp-ans{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}';
+  document.head.appendChild(style);
+
+  function tab(which){
+    el('bp-tab-share').classList.toggle('active',which==='share');
+    el('bp-tab-results').classList.toggle('active',which==='results');
+    el('bp-pane-share').hidden=which!=='share';
+    el('bp-pane-results').hidden=which!=='results';
+    if(which==='results'&&currentFile)loadResults(currentFile);
+  }
+
+  function open(file,text,tabName){
+    currentFile=file;currentText=text||file;
+    el('bp-modal-title').textContent=currentText;
+    var code=getCode();
+    if(!code){setCode('TEACHER-'+Math.random().toString(36).slice(2,6).toUpperCase());code=getCode();}
+    el('bp-code').value=code;
+    el('bp-link').value=inviteUrl(file);
+    codeHint();
+    modal.hidden=false;
+    tab(tabName||'share');
+    track('biweek_share_open',{drill_slug:file});
+  }
+  function close(){modal.hidden=true;if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}}
+
+  function codeHint(){
+    var c=el('bp-code').value;
+    el('bp-code-hint').textContent=c.length>=3
+      ?'Saved on this device — every link you share carries this code.'
+      :'Code needs at least 3 letters/numbers (A–Z, 0–9, dash, underscore).';
+  }
+
+  el('bp-modal-x').addEventListener('click',close);
+  modal.addEventListener('click',function(e){if(e.target===modal)close();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!modal.hidden)close();});
+  el('bp-tab-share').addEventListener('click',function(){tab('share');});
+  el('bp-tab-results').addEventListener('click',function(){tab('results');});
+  el('bp-code').addEventListener('input',function(){
+    var before=el('bp-code').value;
+    var clean=sanitizeCode(before);
+    if(clean!==before)el('bp-code').value=clean;
+    setCode(clean);el('bp-link').value=inviteUrl(currentFile);codeHint();
+  });
+  el('bp-code-gen').addEventListener('click',function(){
+    setCode('TEACHER-'+Math.random().toString(36).slice(2,6).toUpperCase());
+    el('bp-code').value=getCode();el('bp-link').value=inviteUrl(currentFile);codeHint();
+  });
+  el('bp-copy').addEventListener('click',function(){
+    var url=inviteUrl(currentFile);
+    var done=function(){var b=el('bp-copy');b.innerHTML='<i class="fas fa-check"></i> Copied!';setTimeout(function(){b.innerHTML='<i class="fas fa-copy"></i> Copy';},1500);};
+    try{navigator.clipboard.writeText(url).then(done).catch(done);}catch(e){done();}
+    track('biweek_share_copy',{drill_slug:currentFile});
+  });
+  el('bp-preview').addEventListener('click',function(){window.open(inviteUrl(currentFile),'_blank','noopener');});
+  el('bp-native-share').addEventListener('click',function(){
+    var url=inviteUrl(currentFile);
+    if(navigator.share){navigator.share({title:currentText+' — CMC bi-weekly test',url:url}).catch(function(){});}
+    else{try{navigator.clipboard.writeText(url);}catch(e){}var b=el('bp-native-share');b.innerHTML='<i class="fas fa-check"></i> Link copied';setTimeout(function(){b.innerHTML='<i class="fas fa-share-nodes"></i> Share…';},1500);}
+  });
+
+  // ── results (public read on drill_attempts, anonymous REST) ──────
+  function dec(v){
+    if(!v)return '';
+    if('stringValue'in v)return v.stringValue;
+    if('integerValue'in v)return Number(v.integerValue);
+    if('booleanValue'in v)return v.booleanValue;
+    if('timestampValue'in v)return v.timestampValue;
+    if('mapValue'in v){var out={},f=(v.mapValue&&v.mapValue.fields)||{};Object.keys(f).forEach(function(k){out[k]=dec(f[k]);});return out;}
+    return '';
+  }
+  var resultsCache=[];
+  function loadResults(file){
+    el('bp-results-meta').textContent='Loading results…';
+    el('bp-results-wrap').innerHTML='<p style="font-size:11.5px;color:var(--muted);padding:12px 2px">Fetching…</p>';
+    try{
+      fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents:runQuery',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({structuredQuery:{from:[{collectionId:'drill_attempts',allDescendants:false}],
+          where:{fieldFilter:{field:{fieldPath:'drillSlug'},op:'EQUAL',value:{stringValue:file}}},limit:200}})
+      }).then(function(r){return r.ok?r.json():[];}).then(function(rows){
+        var docs=(Array.isArray(rows)?rows:[]).filter(function(r){return r&&r.document;})
+          .map(function(r){var f=r.document.fields||{},d={id:(r.document.name||'').split('/').pop()};
+            ['studentName','studentCode','inviteCode','answers','drillSource','submittedAt'].forEach(function(k){d[k]=dec(f[k]);});
+            ['scorePct','correctCount','totalCount','durationSeconds'].forEach(function(k){d[k]=dec(f[k]);});
+            d.inviteMode=dec(f.inviteMode)===true;d.integrity=dec(f.integrity)||{};return d;})
+          .filter(function(d){return d.inviteMode;}) // invite attempts only — practice attempts stay on the student dashboard
+          .sort(function(a,b){return String(b.submittedAt||'').localeCompare(String(a.submittedAt||''));});
+        resultsCache=docs;
+        renderResults(docs);
+      }).catch(function(){renderResults([]);});
+    }catch(e){renderResults([]);}
+    if(refreshTimer)clearInterval(refreshTimer);
+    refreshTimer=setInterval(function(){if(!modal.hidden&&currentFile)loadResults(currentFile);},8000);
+  }
+  function renderResults(docs){
+    el('bp-results-meta').textContent=docs.length
+      ?docs.length+' submitted invite attempt'+(docs.length===1?'':'s')+' · auto-refreshes'
+      :'No student has submitted through an invite link yet.';
+    if(!docs.length){el('bp-results-wrap').innerHTML='<p style="font-size:11.5px;color:var(--muted);padding:12px 2px">Share the student link first — submissions land here automatically (name, ID, score and full answer sheet).</p>';return;}
+    var rows=docs.map(function(d){
+      var flags=(d.integrity&&(d.integrity.blurs+d.integrity.fsExits))||0;
+      var when=d.submittedAt?new Date(d.submittedAt).toLocaleString():'—';
+      return '<tr>'+
+        '<td style="font-weight:700;white-space:nowrap">'+esc(d.studentName||'—')+'</td>'+
+        '<td style="white-space:nowrap">'+esc(d.studentCode||'—')+'</td>'+
+        '<td style="white-space:nowrap">'+esc(d.inviteCode||'—')+'</td>'+
+        '<td style="font-weight:700;white-space:nowrap;color:'+(d.scorePct>=80?'#34d399':d.scorePct>=50?'#fbbf24':'#f87171')+'">'+(d.scorePct==null?'—':d.scorePct+'%')+' <span style="color:var(--muted);font-weight:400">('+esc(d.correctCount==null?'?':d.correctCount)+'/'+esc(d.totalCount==null?'?':d.totalCount)+')</span></td>'+
+        '<td style="white-space:nowrap">'+(d.durationSeconds!=null?Math.round(d.durationSeconds/60)+'m':'—')+'</td>'+
+        '<td style="white-space:nowrap">'+(flags?'<span style="color:#f87171">⚠ '+flags+'</span>':'<span style="color:#34d399">✓</span>')+'</td>'+
+        '<td style="white-space:nowrap;font-size:10.5px;color:var(--muted)">'+esc(when)+'</td>'+
+        '<td class="bp-ans" title="'+esc(d.answers||'')+'">'+esc(d.answers||'—')+'</td>'+
+      '</tr>';
+    }).join('');
+    el('bp-results-wrap').innerHTML='<table class="bp-results-table"><thead><tr>'+
+      '<th>Student</th><th>ID</th><th>Code</th><th>Score</th><th>Time</th><th>Flags</th><th>Submitted</th><th>Answers</th>'+
+      '</tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+  function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+  el('bp-csv').addEventListener('click',function(){
+    var lines=[['Student','Student ID','Teacher code','Score %','Correct','Total','Duration s','Flags','Submitted','Answers'].join(',')];
+    resultsCache.forEach(function(d){
+      var flags=(d.integrity&&((d.integrity.blurs||0)+(d.integrity.fsExits||0)))||0;
+      lines.push([d.studentName,d.studentCode,d.inviteCode,d.scorePct,d.correctCount,d.totalCount,d.durationSeconds,flags,d.submittedAt,d.answers].map(csvCell).join(','));
+    });
+    var blob=new Blob([lines.join('\n')],{type:'text/csv'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='results-'+(currentFile||'test').replace(/\.html$/,'')+'.csv';a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // wire the per-test share chips
+  document.addEventListener('click',function(e){
+    var btn=e.target&&e.target.closest?e.target.closest('.bp-share'):null;
+    if(!btn)return;
+    e.preventDefault();
+    open(btn.dataset.file,btn.dataset.text,'share');
+  });
+})();
+</script>
 </body>
 </html>

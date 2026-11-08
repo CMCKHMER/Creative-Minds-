@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v6'; // v6: private-tests panel retired → Bi-Weekly Test Scores spreadsheet export (.xls/CSV)
+const CACHE_VERSION = 'cmc-v7'; // v7: student invite links on bi-weekly tests (student-invite.js, share modals, thanks overlay); v6 retired the private panel
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 
