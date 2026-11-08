@@ -1,0 +1,343 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isCmcAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.uid == '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+    }
+    function isCmcTeacher() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email != null
+        && (request.auth.token.email.matches('.*[eE][dD][uU].*')
+            || isCmcAdmin());
+    }
+    function isVerifiedUser() {
+      return request.auth != null
+        && request.auth.token.email_verified == true;
+    }
+    match /drill_attempts/{attemptId} {
+      allow read: if true;
+      allow create: if (
+          isVerifiedUser()
+          && request.resource.data.studentUid == request.auth.uid
+          && request.resource.data.studentUid is string
+          && request.resource.data.studentName is string
+          && request.resource.data.drillSlug is string
+          && request.resource.data.drillTitle is string
+          && request.resource.data.drillSource is string
+          && request.resource.data.scorePct is int
+          && request.resource.data.scorePct >= 0
+          && request.resource.data.scorePct <= 100
+          && request.resource.data.correctCount is int
+          && request.resource.data.correctCount >= 0
+          && request.resource.data.totalCount is int
+          && request.resource.data.totalCount >= 0
+        ) || (
+          request.auth == null
+          && request.resource.data.studentUid == ''
+          && request.resource.data.studentName is string
+          && request.resource.data.studentName.size() >= 1
+          && request.resource.data.studentName.size() <= 40
+          && request.resource.data.drillSlug is string
+          && request.resource.data.drillSlug.size() >= 1
+          && request.resource.data.drillSlug.size() <= 80
+          && request.resource.data.drillTitle is string
+          && request.resource.data.drillTitle.size() >= 1
+          && request.resource.data.drillTitle.size() <= 120
+          && request.resource.data.drillSource is string
+          && request.resource.data.drillSource.size() >= 1
+          && request.resource.data.drillSource.size() <= 40
+          && request.resource.data.scorePct is int
+          && request.resource.data.scorePct >= 0
+          && request.resource.data.scorePct <= 100
+          && request.resource.data.correctCount is int
+          && request.resource.data.correctCount >= 0
+          && request.resource.data.correctCount <= 10000
+          && request.resource.data.totalCount is int
+          && request.resource.data.totalCount >= 0
+          && request.resource.data.totalCount <= 10000
+          && (!('classId' in request.resource.data) || request.resource.data.classId == null)
+        );
+      allow update, delete: if false;
+    }
+    match /teacher_chat/{msgId} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
+    function isCmcApprovedAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && (isCmcAdmin()
+            || (exists(/databases/$(database)/documents/site_config/admins)
+                && request.auth.uid in
+                    get(/databases/$(database)/documents/site_config/admins).data.get('uids', [])));
+    }
+    match /announcements/{postId} {
+      allow read: if true;
+      allow create: if isCmcApprovedAdmin()
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.body is string
+        && request.resource.data.body.size() <= 20000
+        && request.resource.data.imageUrl is string
+        && request.resource.data.imageUrl.size() <= 900000
+        && request.resource.data.pinned is bool
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.authorUid is string
+        && request.resource.data.authorName is string
+        && request.resource.data.authorEmail is string
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+      allow update, delete: if isCmcApprovedAdmin();
+    }
+    match /site_config/{configId} {
+      allow read: if true;
+      allow write: if isCmcAdmin();
+    }
+    match /students/{uid} {
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow read, update, delete: if isVerifiedUser() && request.auth.uid == uid;
+    }
+    match /classes/{classId} {
+      allow read: if true;
+      allow create, update: if isVerifiedUser();
+      allow delete: if isVerifiedUser()
+        && resource.data.teacherUid == request.auth.uid;
+      match /enrollments/{studentUid} {
+        allow read: if true;
+        allow create, update: if isVerifiedUser() && request.auth.uid == studentUid;
+        allow delete: if isVerifiedUser()
+          && (request.auth.uid == studentUid
+              || resource.data.teacherUid == request.auth.uid);
+      }
+    }
+    match /assessment_classes/{classId} {
+      allow read: if isCmcTeacher();
+      allow create: if isCmcTeacher()
+        && request.resource.data.teacherUid == request.auth.uid
+        && request.resource.data.teacherUid is string;
+      allow update: if isCmcTeacher();
+      allow delete: if false;
+      match /students/{studentId} {
+        allow read: if isCmcTeacher();
+        allow create, update: if isCmcTeacher();
+        allow delete: if isCmcTeacher();
+      }
+    }
+    match /teachers/{uid} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && isCmcTeacher();
+      allow update, delete: if false;
+    }
+    function isVerifiedTeacher() {
+      return request.auth.uid is string
+        && (isCmcAdmin()
+            || (isCmcTeacher()
+                && exists(/databases/$(database)/documents/teachers/$(request.auth.uid))));
+    }
+    match /biweekly_tests/{testId} {
+      allow read: if true;
+      allow create, update: if isVerifiedTeacher();
+      allow delete: if false;
+    }
+    match /test_keys/{testId} {
+      allow read, write: if isVerifiedTeacher();
+    }
+    match /test_assignments/{assignmentId} {
+      allow read: if isVerifiedTeacher()
+        || (isVerifiedUser()
+            && resource.data.classId is string
+            && exists(/databases/$(database)/documents/classes/$(resource.data.classId)/enrollments/$(request.auth.uid)));
+      allow create, update: if isVerifiedTeacher()
+        && request.resource.data.teacherUid == request.auth.uid;
+      allow delete: if isVerifiedTeacher()
+        && resource.data.teacherUid == request.auth.uid;
+    }
+    match /test_submissions/{docId} {
+      allow get: if isVerifiedTeacher()
+        || (isVerifiedUser()
+            && resource.data.studentUid == request.auth.uid);
+      allow list: if isVerifiedTeacher();
+      allow create: if isVerifiedUser()
+        && request.auth.uid is string
+        && request.resource.data.studentUid == request.auth.uid
+        && request.resource.data.assignmentId is string
+        && request.resource.data.testId is string
+        && request.resource.data.classId is string
+        && request.resource.data.studentName is string
+        && request.resource.data.status == 'submitted'
+        && request.resource.data.answers is map
+        && request.resource.data.answers.size() > 0
+        && request.resource.data.answers.size() <= 300
+        && request.resource.data.integrity is map
+        && docId == (request.resource.data.assignmentId + '__' + request.auth.uid)
+        && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.classId == request.resource.data.classId
+        && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.opensAt <= request.time
+        && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.closesAt >= request.time;
+      allow update, delete: if false;
+    }
+    match /test_scores/{docId} {
+      allow read, write: if isVerifiedTeacher();
+    }
+    match /ticker_stats/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /chess_rooms/{roomId} {
+      allow read: if isVerifiedUser();
+      allow create: if isVerifiedUser()
+        && request.resource.data.code == roomId
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.hostName is string
+        && request.resource.data.hostName.size() > 0
+        && request.resource.data.hostName.size() <= 40
+        && request.resource.data.hostColor in ['w', 'b']
+        && request.resource.data.guestUid == null
+        && request.resource.data.guestName == null
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.moves is list
+        && request.resource.data.moves.size() == 0
+        && request.resource.data.result == null
+        && request.resource.data.drawOffer == null
+        && request.resource.data.gameNo == 1;
+      allow update: if isVerifiedUser()
+        && ((resource.data.guestUid == null
+             && request.resource.data.guestUid == request.auth.uid)
+            || request.auth.uid == resource.data.hostUid
+            || request.auth.uid == resource.data.guestUid);
+      allow delete: if isVerifiedUser() && resource.data.hostUid == request.auth.uid;
+    }
+    function linkedTestQuestionOk(q) {
+      return q is map
+        && q.keys().hasOnly(['g', 'i', 'p', 'c', 'm'])
+        && q.g is string && q.g.size() >= 1 && q.g.size() <= 100
+        && q.i is number && q.i >= 0 && q.i <= 500
+        && q.p is string && q.p.size() >= 1 && q.p.size() <= 2000
+        && q.c is list && q.c.size() >= 2 && q.c.size() <= 12
+        && q.c.all(ch, ch is string && ch.size() >= 0 && ch.size() <= 2000)
+        && (q.m is bool || q.m == null);
+    }
+    function linkedTestOk(t) {
+      return t is map
+        && t.keys().hasOnly(['slug', 'title', 'kicker', 'instructions', 'transcript', 'minutes', 'groups', 'questions', 'audios', 'total'])
+        && t.slug is string && t.slug.size() >= 1 && t.slug.size() <= 100
+        && t.title is string && t.title.size() >= 1 && t.title.size() <= 200
+        && t.kicker is string && t.kicker.size() <= 200
+        && t.instructions is string && t.instructions.size() <= 4000
+        && t.transcript is string && t.transcript.size() <= 8000
+        && t.minutes is number && t.minutes >= 0 && t.minutes <= 300
+        && t.total is number && t.total >= 1 && t.total <= 500
+        && t.groups is list && t.groups.size() >= 1 && t.groups.size() <= 50
+        && t.groups.all(g, g is map && g.keys().hasOnly(['id', 'title', 'dirs'])
+          && g.id is string && g.id.size() >= 1 && g.id.size() <= 100
+          && g.title is string && g.title.size() <= 300
+          && g.dirs is string && g.dirs.size() <= 600)
+        && t.questions is list && t.questions.size() >= 1 && t.questions.size() <= 500
+        && t.questions.all(linkedTestQuestionOk)
+        && t.audios is list && t.audios.size() <= 20
+        && t.audios.all(a, a is map && a.keys().hasOnly(['label', 'src'])
+          && a.label is string && a.label.size() <= 300
+          && a.src is string && a.src.size() <= 300);
+    }
+    function studioDocFieldsOk(d) {
+      return d.title is string
+        && d.title.size() >= 1
+        && d.title.size() <= 200
+        && d.kind in ['doc', 'sheet']
+        && d.mode in ['view', 'collect']
+        && d.ownerUid == request.auth.uid
+        && d.ownerName is string
+        && d.ownerName.size() >= 1
+        && d.ownerName.size() <= 60
+        && d.createdAt is string
+        && d.createdAt.size() <= 40
+        && d.updatedAt is string
+        && d.updatedAt.size() <= 40
+        && d.revision is number
+        && d.revision >= 1
+        && d.revision <= 10000
+        && d.data is map
+        && (!(d.keys().hasAny(['linkedTest'])) || linkedTestOk(d.linkedTest))
+        && ((d.kind == 'doc'
+             && d.data.doc is string
+             && d.data.doc.size() <= 600000
+             && d.data.docHeader is string
+             && d.data.docHeader.size() <= 60000
+             && d.data.docFooter is string
+             && d.data.docFooter.size() <= 60000)
+           || (d.kind == 'sheet'
+             && d.data.sheets is list
+             && d.data.sheets.size() >= 1
+             && d.data.sheets.size() <= 12));
+    }
+    match /studio_docs/{docId} {
+      allow read: if true;
+      allow create: if isCmcTeacher() && studioDocFieldsOk(request.resource.data);
+      allow update: if isCmcTeacher()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.kind == resource.data.kind
+        && studioDocFieldsOk(request.resource.data);
+      allow delete: if isCmcTeacher() && resource.data.ownerUid == request.auth.uid;
+      allow list: if isCmcTeacher();
+    }
+    function studioSubTestOk(t) {
+      return t is map
+        && t.keys().hasOnly(['slug', 'title', 'total', 'answered', 'answers'])
+        && t.slug is string && t.slug.size() >= 1 && t.slug.size() <= 100
+        && t.title is string && t.title.size() <= 200
+        && t.total is number && t.total >= 1 && t.total <= 500
+        && t.answered is number && t.answered >= 0 && t.answered <= 500
+        && t.answers is list && t.answers.size() >= 1 && t.answers.size() <= 500
+        && t.answers.all(x, x == null || (x is number && x >= 0 && x <= 20));
+    }
+    function studioSubFieldsOk(d) {
+      return d.docId is string
+        && d.docId.size() >= 10
+        && d.docId.size() <= 100
+        && d.docTitle is string
+        && d.docTitle.size() <= 200
+        && d.ownerUid is string
+        && d.ownerUid.size() <= 100
+        && d.kind in ['doc', 'sheet']
+        && d.studentName is string
+        && d.studentName.size() >= 1
+        && d.studentName.size() <= 40
+        && d.answers is map
+        && d.answers.size() <= 400
+        && (d.answers.size() >= 1
+            || (d.keys().hasAny(['test'])
+                && d.test is map
+                && d.test.answered is number
+                && d.test.answered >= 1))
+        && (!(d.keys().hasAny(['test'])) || studioSubTestOk(d.test))
+        && d.submittedAt is string
+        && d.submittedAt.size() <= 40
+        && get(/databases/$(database)/documents/studio_docs/$(d.docId)).data.mode == 'collect';
+    }
+    match /studio_submissions/{subId} {
+      allow get: if isCmcTeacher()
+        || (isVerifiedUser() && resource.data.studentUid == request.auth.uid);
+      allow list: if isCmcTeacher();
+      allow create: if (
+          isVerifiedUser()
+          && request.resource.data.studentUid == request.auth.uid
+          && subId == (request.resource.data.docId + '__' + request.auth.uid)
+          && studioSubFieldsOk(request.resource.data)
+        ) || (
+          request.auth == null
+          && request.resource.data.studentUid == ''
+          && subId.matches(request.resource.data.docId + '__guest_[a-zA-Z0-9]{8,20}')
+          && studioSubFieldsOk(request.resource.data)
+        );
+      allow update, delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
