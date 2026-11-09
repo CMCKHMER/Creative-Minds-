@@ -25,7 +25,7 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Instrument Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden}
-  .app{display:grid; grid-template-rows:40px 28px 52px 1fr 30px; height:100vh}
+  .app{display:grid; grid-template-rows:40px 28px auto 52px 1fr 30px; height:100vh}
 
   /* ── Quick-access toolbar (customizable) ──────────────── */
   .quick-bar{display:flex; align-items:center; gap:4px; padding:0 10px; background:var(--panel); border-bottom:1px solid var(--line); z-index:55; overflow-x:auto; user-select:none}
@@ -47,6 +47,56 @@
   .quick-bar input[type=color]{width:28px; height:24px; padding:1px; border:1px solid var(--line); background:var(--panel-2); border-radius:6px; cursor:pointer}
   .quick-add{padding:5px 8px; border:1px dashed var(--line); background:transparent; color:var(--muted); border-radius:7px; cursor:pointer; font-size:14px; font-weight:600; transition:all .15s}
   .quick-add:hover{color:var(--amber); border-color:var(--amber)}
+
+  /* ── My Bar — personal drag-and-drop strip below the tool section ── */
+  .my-dock{display:flex; align-items:center; gap:8px; padding:5px 10px; background:rgba(29,32,41,.55); border-bottom:1px solid var(--line); min-height:34px; user-select:none}
+  .my-dock.hidden{display:none}
+  .my-dock-grip{color:var(--amber); font-size:11px; font-weight:800; letter-spacing:.4px; flex:none; cursor:default}
+  .my-dock-items{display:flex; align-items:center; gap:4px; flex-wrap:wrap; flex:1; min-height:24px}
+  .my-dock-hint{font-size:10.5px; color:var(--muted); font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .my-dock-actions{margin-left:auto; display:flex; gap:4px; flex:none}
+  .my-dock-btn{padding:3px 9px; border:1px solid var(--line); background:var(--panel-2); color:var(--muted); border-radius:7px; cursor:pointer; font-family:inherit; font-size:10.5px; font-weight:700; white-space:nowrap; transition:all .15s}
+  .my-dock-btn:hover{color:var(--text); border-color:var(--cm-primary)}
+  .my-dock.customizing{border-bottom:1px dashed var(--cm-primary); background:rgba(6,182,212,.07)}
+  .my-dock.dock-dragover{background:rgba(6,182,212,.1)}
+  .my-dock-item{position:relative}
+  .my-dock-item.dock-drop-before{box-shadow:-3px 0 0 0 var(--cm-primary)}
+  .my-dock-item.dock-drop-after{box-shadow:3px 0 0 0 var(--cm-primary)}
+  .my-dock-x{position:absolute; top:-6px; right:-6px; width:15px; height:15px; border-radius:50%; background:#ef4444; color:#fff; border:none; font-size:9px; line-height:15px; text-align:center; cursor:pointer; display:none; z-index:5; padding:0; font-family:inherit}
+  .my-dock.customizing .my-dock-x{display:block}
+  .my-dock.customizing .my-dock-item:hover{outline:1px dashed rgba(94,230,200,.55); outline-offset:2px}
+  body.dock-customizing .quick-set > [data-dockable]{outline:1px dashed rgba(94,230,200,.4); outline-offset:1px; cursor:grab}
+  .menubar .icon-btn.mb-toggle{width:26px; height:26px; border-radius:7px; font-size:12px; margin-left:4px; flex:none; padding:0}
+  .menubar .icon-btn.mb-toggle.dim{opacity:.4}
+  .mb-spacer{flex:1}
+
+  /* ── Studio dark mode — Docs & Excel surfaces (Code is always dark) ── */
+  html.studio-dark{color-scheme:dark}
+  html.studio-dark .doc-layer{background:#232634; color:#dfe4f0}
+  html.studio-dark .doc-layer h1, html.studio-dark .doc-layer h2{color:#f2f5fb}
+  html.studio-dark .doc-header, html.studio-dark .doc-footer{background:rgba(30,33,44,.96); border-color:#3a3f52; color:#dbe0ec}
+  html.studio-dark .doc-header:empty::before, html.studio-dark .doc-footer:empty::before{color:#7b8299}
+  html.studio-dark .sheet-layer{background:#1b1e29; color:#dfe4f0}
+  html.studio-dark .sheet-toolbar{background:#20232f; border-bottom-color:#333849}
+  html.studio-dark .sheet-toolbar .label{color:#9aa2b8}
+  html.studio-dark .sheet-toolbar .formula{background:#181b25; border-color:#333849; color:#dfe4f0}
+  html.studio-dark .sheet-toolbar button{background:#262a38; border-color:#3a4054; color:#dfe4f0}
+  html.studio-dark .sheet-grid-wrap{background:#1b1e29}
+  html.studio-dark .sheet-grid td, html.studio-dark .sheet-grid th{border-color:#333849}
+  html.studio-dark .sheet-grid th{background:#232736; color:#9aa2b8}
+  html.studio-dark .sheet-grid td.cell{background:#1b1e29}
+  html.studio-dark .sheet-grid td.cell input{color:#dfe4f0}
+  html.studio-dark .sheet-grid td.cell.selected{outline-color:#4cc9f0; background:#1c2b3a}
+  html.studio-dark .sheet-grid th.col-h.frozen, html.studio-dark .sheet-grid th.row-h.frozen{background:#262b3c!important}
+  html.studio-dark .sheet-grid td.cell.frozen-col, html.studio-dark .sheet-grid td.cell.frozen-row{background:#1b1e29!important}
+  html.studio-dark .sheet-tabs{background:#181b25; border-top-color:#333849}
+  html.studio-dark .sheet-tab{background:#20232f; border-right-color:#333849; color:#9aa2b8}
+  html.studio-dark .sheet-tab.active{background:#1b1e29; color:#dfe4f0}
+  html.studio-dark .sheet-tab-add{background:#20232f; color:#9aa2b8}
+  html.studio-dark .sheet-status{background:#20232f; border-top-color:#333849; color:#9aa2b8}
+  html.studio-dark .sheet-status b{color:#dfe4f0}
+  html.studio-dark .sheet-status .fx-pill{background:#262a38; border-color:#3a4054}
+  html.studio-dark #quickSet-sheet input[type=color]{background:var(--panel-2)}
 
   /* ── Menu bar ─────────────────────────────────────────── */
   .menubar{display:flex; align-items:center; gap:0; padding:0 8px; background:var(--panel); border-bottom:1px solid var(--line); z-index:60; font-size:13px; user-select:none}
@@ -553,6 +603,9 @@
         <div class="menu-item" data-action="view-toggle-rulers"><span>Show Rulers</span><span class="check">✓</span></div>
         <div class="menu-item" data-action="view-toggle-panel"><span>Show Side Panel</span><span class="check">✓</span></div>
         <div class="menu-item" data-action="view-toggle-grid"><span>Show Canvas Grid</span><span class="check empty">·</span></div>
+        <div class="menu-sep"></div>
+        <div class="menu-item" data-action="view-toggle-dark"><span>Dark Mode — Docs &amp; Excel</span><span class="check empty">·</span></div>
+        <div class="menu-item" data-action="view-toggle-mybar"><span>Show My Bar</span><span class="check">✓</span></div>
       </div>
     </div>
 
@@ -643,6 +696,9 @@
       </div>
     </div>
 
+    <span class="mb-spacer"></span>
+    <button class="icon-btn mb-toggle" id="themeToggle" title="Dark mode for Docs &amp; Excel — Code is always dark" aria-label="Toggle dark mode">🌙</button>
+    <button class="icon-btn mb-toggle" id="myBarStar" title="Show / hide My Bar — your personal tool strip" aria-label="Show or hide My Bar">★</button>
     <span class="file" id="filename" contenteditable spellcheck="false">untitled.project</span>
   </nav>
 
@@ -851,6 +907,20 @@
       <div class="quick-sep"></div>
       <button class="quick-btn" onclick="codeDownload()" title="Download the code as a file">⬇ Download</button>
       <button class="quick-btn" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
+    </div>
+  </div>
+
+  <!-- ── My Bar — a personal, drag-and-drop strip below the tool section ──
+       Press ✎ Customize to make every tool in the toolbar above draggable,
+       then drag tools down here, reorder them, or drag them back out / press
+       the ✕ chip to remove. Layout is saved per device for each mode. -->
+  <div class="my-dock" id="myDock" aria-label="My Bar — your customized tool strip">
+    <span class="my-dock-grip" title="My Bar">★ My Bar</span>
+    <div class="my-dock-items" id="myDockItems"></div>
+    <span class="my-dock-hint" id="myDockHint">Drag tools here from the toolbar above — press ✎ Customize to start</span>
+    <div class="my-dock-actions">
+      <button class="my-dock-btn" id="myDockCustomize" title="Customize — makes every tool in the toolbar above draggable into My Bar; drag back out or press ✕ to remove">✎ Customize</button>
+      <button class="my-dock-btn" id="myDockHideBtn" title="Hide My Bar (View ▸ Show My Bar or the ★ button brings it back)">✕</button>
     </div>
   </div>
 
@@ -1528,15 +1598,25 @@ let autoSaveTimer = null;
 function scheduleAutoSave(){ if (autoSaveTimer) clearTimeout(autoSaveTimer); autoSaveTimer = setTimeout(doAutoSave, 30000); }
 function doAutoSave(){
   try {
-    const proj = { version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML, docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show'), sheets, currentSheet, docRotation, code: codeContent, codeLang: currentCodeLang };
+    const proj = { version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML, docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show'), sheets, currentSheet, docRotation, mode: tool, code: codeContent, codeLang: currentCodeLang };
     localStorage.setItem('cm-studio-auto-save', JSON.stringify(proj));
   } catch(e) {}
 }
 function offerRecovery(){
+  /* Auto-saved work is restored silently — the old confirm() dialog appeared
+     on every visit and annoyed people. A non-blocking status flash says what
+     happened; File ▸ New Project starts fresh (and clears the auto-save). */
   try {
     const saved = localStorage.getItem('cm-studio-auto-save');
     if (!saved) return;
-    setTimeout(() => { if (confirm('Creative Minds Studio found auto-saved work from a previous session. Restore it?')) { document.getElementById('welcomeScreen').classList.add('hidden'); loadProject(JSON.parse(saved)); filename.textContent = 'recovered.project'; } }, 500);
+    setTimeout(() => {
+      try {
+        document.getElementById('welcomeScreen').classList.add('hidden');
+        loadProject(JSON.parse(saved));
+        filename.textContent = 'recovered.project';
+        statusFlash('Auto-saved work restored — File ▸ New Project starts fresh');
+      } catch(e) {}
+    }, 400);
   } catch(e) {}
 }
 function loadProject(proj){
@@ -1577,6 +1657,7 @@ function loadProject(proj){
         undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList();
         rebuildImgs(JSON.stringify(proj.imgs || []), () => { renderTexts(); });
         composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); fitCanvas();
+        try { if (proj.mode && (proj.mode === 'doc' || proj.mode === 'sheet' || proj.mode === 'code')) selectTool(proj.mode); } catch(e) {}
       }
     };
     img.src = l.canvas;
@@ -3271,7 +3352,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 const ACTIONS = {
   'file-new': fileNew, 'file-open': fileOpen, 'file-save-png': fileSavePng, 'file-save-jpg': fileSaveJpg, 'file-save-svg': fileSaveSvg, 'file-save-pdf': fileSavePdf, 'file-save-json': fileSaveJson, 'file-save-csv': fileSaveCsv, 'file-print': filePrint, 'file-import': insertImage,
   'edit-undo': undo, 'edit-redo': redo, 'edit-cut': editCut, 'edit-copy': editCopy, 'edit-paste': editPaste, 'edit-delete': editDelete, 'edit-duplicate': editDuplicate, 'edit-select-all': editSelectAll, 'edit-clear': editClear, 'edit-flip-h': () => flipCanvas(true), 'edit-flip-v': () => flipCanvas(false), 'edit-rotate-img-90-cw': () => rotateActiveLayer(90), 'edit-rotate-img-90-ccw': () => rotateActiveLayer(-90), 'edit-rotate-doc-15-cw': () => { rotateDoc(15); }, 'edit-rotate-doc-15-ccw': () => { rotateDoc(-15); }, 'edit-rotate-doc-reset': () => { resetDocRotation(); },
-  'view-zoom-in': viewZoomIn, 'view-zoom-out': viewZoomOut, 'view-zoom-fit': viewZoomFit, 'view-zoom-100': viewZoom100, 'view-toggle-rulers': viewToggleRulers, 'view-toggle-panel': viewTogglePanel, 'view-toggle-grid': viewToggleGrid,
+  'view-zoom-in': viewZoomIn, 'view-zoom-out': viewZoomOut, 'view-zoom-fit': viewZoomFit, 'view-zoom-100': viewZoom100, 'view-toggle-rulers': viewToggleRulers, 'view-toggle-panel': viewTogglePanel, 'view-toggle-grid': viewToggleGrid, 'view-toggle-dark': viewToggleDark, 'view-toggle-mybar': viewToggleMyBar,
   'image-page-size': () => openModal('pageSizeModal'), 'image-resize': () => openModal('imageResizeModal'), 'image-extend': () => openModal('canvasExtendModal'), 'image-rotate-90-cw': () => rotateCanvas(90), 'image-rotate-90-ccw': () => rotateCanvas(-90), 'image-rotate-180': () => rotateCanvas(180), 'image-bg-remove-chroma': () => { document.getElementById('bgMethodChroma').click(); openModal('bgRemoveModal'); }, 'image-bg-remove-wand': () => { document.getElementById('bgMethodWand').click(); openModal('bgRemoveModal'); },
   'layer-new': () => { pushUndo('New layer'); layers.splice(currentLayer + 1, 0, newLayer()); currentLayer++; renderLayerList(); composite(); }, 'layer-duplicate': () => { pushUndo('Duplicate layer'); const copy = newLayer(layers[currentLayer].name + ' copy'); copy.canvas = makeBlankCanvas(W, H); copy.canvas.getContext('2d').drawImage(layers[currentLayer].canvas, 0, 0); copy.opacity = layers[currentLayer].opacity; copy.blendMode = layers[currentLayer].blendMode; layers.splice(currentLayer + 1, 0, copy); currentLayer++; renderLayerList(); composite(); }, 'layer-delete': () => { if (layers.length <= 1) return; pushUndo('Delete layer'); layers.splice(currentLayer, 1); currentLayer = Math.max(0, currentLayer - 1); renderLayerList(); composite(); }, 'layer-merge-down': () => { if (currentLayer <= 0) return; pushUndo('Merge down'); const target = layers[currentLayer - 1]; const ctx = target.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layers[currentLayer].opacity; ctx.globalCompositeOperation = layers[currentLayer].blendMode || 'source-over'; ctx.drawImage(layers[currentLayer].canvas, 0, 0); ctx.restore(); layers.splice(currentLayer, 1); currentLayer--; renderLayerList(); composite(); }, 'layer-flatten': () => { pushUndo('Flatten'); const flat = newLayer('Background'); for (const layer of layers) { const ctx = flat.canvas.getContext('2d'); ctx.save(); ctx.globalAlpha = layer.opacity; ctx.globalCompositeOperation = layer.blendMode || 'source-over'; ctx.drawImage(layer.canvas, 0, 0); ctx.restore(); } layers = [flat]; currentLayer = 0; renderLayerList(); composite(); }, 'layer-effect-shadow': () => openModal('shadowModal'), 'layer-effect-glow': () => openModal('shadowModal'), 'layer-effect-clear': () => { pushUndo('Clear effects'); layers[currentLayer].effect = null; composite(); },
   'insert-image': insertImage, 'insert-text': insertText, 'insert-doc': insertDoc, 'insert-sheet': insertSheet, 'insert-rect': insertRect, 'insert-ellipse': insertEllipse, 'insert-line': insertLine, 'insert-gradient': insertGradient, 'insert-header': insertHeader, 'insert-footer': insertFooter, 'insert-table': () => { selectTool('doc'); insertTable(); }, 'insert-link': () => { selectTool('doc'); insertLink(); }, 'insert-special-char': () => { selectTool('doc'); insertSpecialChar(); },
@@ -3340,8 +3421,231 @@ document.querySelectorAll('.quick-btn').forEach(btn => {
 const _origSelectTool = selectTool;
 selectTool = function(t) {
   _origSelectTool(t);
+  try { renderMyDock(); } catch(e) {}
   document.querySelectorAll('.quick-btn[data-quick-tool]').forEach(b => b.classList.toggle('active', b.dataset.quickTool === t));
 };
+
+/* ── Studio dark mode — Docs & Excel surfaces (Code is always dark) ──── */
+const THEME_KEY = 'cm-studio-theme';
+function applyStudioTheme(on){
+  document.documentElement.classList.toggle('studio-dark', on);
+  const t = document.getElementById('themeToggle'); if (t) t.textContent = on ? '☀' : '🌙';
+  updateMenuCheck('view-toggle-dark', on);
+  try { localStorage.setItem(THEME_KEY, on ? 'dark' : 'light'); } catch(e) {}
+}
+function viewToggleDark(){
+  applyStudioTheme(!document.documentElement.classList.contains('studio-dark'));
+  statusFlash(document.documentElement.classList.contains('studio-dark') ? 'Dark mode on — Docs & Excel surfaces go dark (Code is always dark)' : 'Dark mode off');
+}
+(function initStudioTheme(){ let on = false; try { on = localStorage.getItem(THEME_KEY) === 'dark'; } catch(e) {} applyStudioTheme(on); })();
+const themeToggleBtn = document.getElementById('themeToggle');
+if (themeToggleBtn) themeToggleBtn.onclick = viewToggleDark;
+
+/* ── My Bar — personal drag-and-drop tool strip below the tool section ──
+   Press ✎ Customize → every tool in the toolbar above becomes draggable;
+   drop tools into My Bar, reorder them by dragging, remove with the ✕ chip
+   or by dragging them back out. Saved per device, one layout per mode. */
+const MYDOCK_KEY = 'cm-studio-my-dock';
+let myDockState = { v: 1, hidden: false, docks: { canvas: [], doc: [], sheet: [], code: [] } };
+try {
+  const s = JSON.parse(localStorage.getItem(MYDOCK_KEY) || 'null');
+  if (s && s.v === 1 && s.docks) myDockState = { v: 1, hidden: !!s.hidden, docks: { canvas: s.docks.canvas || [], doc: s.docks.doc || [], sheet: s.docks.sheet || [], code: s.docks.code || [] } };
+} catch(e) {}
+let myDockCustomizing = false, dockDropped = false;
+const myDock = document.getElementById('myDock');
+const myDockItems = document.getElementById('myDockItems');
+const myDockHint = document.getElementById('myDockHint');
+function dockCurrentMode(){ return tool === 'doc' ? 'doc' : tool === 'sheet' ? 'sheet' : tool === 'code' ? 'code' : 'canvas'; }
+function dockRefOf(el){
+  if (el.dataset.tool) return 'tool:' + el.dataset.tool;
+  if (el.dataset.quickTool) return 'qt:' + el.dataset.quickTool;
+  if (el.dataset.quickAction) return 'qa:' + el.dataset.quickAction;
+  return null;
+}
+function dockSourceOf(ref, set){
+  const root = document.getElementById('quickSet-' + set); if (!root) return null;
+  let sel = null;
+  if (ref.indexOf('tool:') === 0) sel = '[data-tool="' + ref.slice(5) + '"]';
+  else if (ref.indexOf('qt:') === 0) sel = '[data-quick-tool="' + ref.slice(3) + '"]';
+  else if (ref.indexOf('qa:') === 0) sel = '[data-quick-action="' + ref.slice(3) + '"]';
+  return sel ? root.querySelector(sel) : null;
+}
+function dockSave(){ try { localStorage.setItem(MYDOCK_KEY, JSON.stringify(myDockState)); } catch(e) {} }
+function dockMakeItem(set, ref){
+  const src = dockSourceOf(ref, set); if (!src) return null;
+  const c = src.cloneNode(true);
+  /* IDs and inline handlers are stripped — the clone works through a small
+     event bridge that forwards every click/input/change to the original
+     toolbar element, so nothing fires twice and JS-wired tools keep working. */
+  c.removeAttribute('id');
+  ['onclick','onchange','oninput','onmouseover','onmouseout'].forEach(a => c.removeAttribute(a));
+  c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  c.querySelectorAll('*').forEach(n => { ['onclick','onchange','oninput','onmouseover','onmouseout'].forEach(a => n.removeAttribute(a)); });
+  c.setAttribute('data-dock-ref', ref);
+  c.setAttribute('data-set', set);
+  c.classList.add('my-dock-item');
+  c.classList.remove('active');
+  c.draggable = true;
+  const x = document.createElement('button');
+  x.type = 'button'; x.className = 'my-dock-x'; x.textContent = '✕'; x.title = 'Remove from My Bar'; x.setAttribute('aria-label', 'Remove from My Bar');
+  c.appendChild(x);
+  return c;
+}
+function renderMyDock(){
+  if (!myDock || !myDockItems) return;
+  const mode = dockCurrentMode();
+  myDock.classList.toggle('hidden', !!myDockState.hidden);
+  myDockItems.innerHTML = '';
+  (myDockState.docks[mode] || []).forEach(ref => { const it = dockMakeItem(mode, ref); if (it) myDockItems.appendChild(it); });
+  if (myDockHint) myDockHint.style.display = (myDockState.docks[mode] || []).length ? 'none' : '';
+  updateMenuCheck('view-toggle-mybar', !myDockState.hidden);
+  const star = document.getElementById('myBarStar'); if (star) star.classList.toggle('dim', !!myDockState.hidden);
+}
+function dockSetDraggable(on){
+  document.querySelectorAll('.quick-set').forEach(set => {
+    Array.prototype.forEach.call(set.children, el => {
+      const ref = dockRefOf(el);
+      const dockable = !!ref && el.dataset.tool !== 'customize';
+      el.draggable = !!(on && dockable);
+      if (dockable) el.setAttribute('data-dockable', ''); else el.removeAttribute('data-dockable');
+    });
+  });
+}
+function dockToggleCustomize(force){
+  myDockCustomizing = (force === undefined) ? !myDockCustomizing : !!force;
+  document.body.classList.toggle('dock-customizing', myDockCustomizing);
+  myDock.classList.toggle('customizing', myDockCustomizing);
+  const btn = document.getElementById('myDockCustomize');
+  if (btn) btn.textContent = myDockCustomizing ? '✓ Done' : '✎ Customize';
+  dockSetDraggable(myDockCustomizing);
+  statusFlash(myDockCustomizing ? 'Customizing — drag tools from the toolbar above into My Bar' : 'My Bar layout saved on this device');
+}
+function viewToggleMyBar(){
+  myDockState.hidden = !myDockState.hidden;
+  dockSave(); renderMyDock();
+  statusFlash(myDockState.hidden ? 'My Bar hidden — View ▸ Show My Bar or the ★ button brings it back' : 'My Bar shown');
+}
+function dockInsertRef(refs, ref, anchor, before){
+  let idx = refs.length;
+  if (anchor) {
+    const ai = refs.indexOf(anchor.getAttribute('data-dock-ref'));
+    if (ai >= 0) idx = before ? ai : ai + 1;
+  }
+  refs.splice(idx, 0, ref);
+}
+function dockInsertInfo(e){
+  const items = Array.prototype.slice.call(myDockItems.querySelectorAll('.my-dock-item'));
+  if (!items.length) return { el: null, before: false };
+  for (let i = 0; i < items.length; i++) {
+    const r = items[i].getBoundingClientRect();
+    if (e.clientX < r.right) return { el: items[i], before: e.clientX < r.left + r.width / 2 };
+  }
+  return { el: items[items.length - 1], before: false };
+}
+function clearDockMarkers(){ if (myDockItems) myDockItems.querySelectorAll('.my-dock-item').forEach(n => n.classList.remove('dock-drop-before', 'dock-drop-after')); }
+function dockApplyDrop(payload, anchor, before){
+  const mode = dockCurrentMode();
+  if (payload.set !== mode) return;
+  const refs = myDockState.docks[mode];
+  const i = refs.indexOf(payload.ref);
+  if (payload.from === 'bar' && i < 0 && refs.length >= 24) { statusFlash('My Bar is full (24 tools max)'); return; }
+  if (i >= 0) refs.splice(i, 1);
+  dockInsertRef(refs, payload.ref, anchor, before);
+  dockSave(); renderMyDock();
+}
+function removeDockItem(item){
+  if (!item) return;
+  const set = item.getAttribute('data-set'), ref = item.getAttribute('data-dock-ref');
+  const refs = myDockState.docks[set] || [];
+  const i = refs.indexOf(ref); if (i >= 0) refs.splice(i, 1);
+  myDockState.docks[set] = refs;
+  dockSave(); renderMyDock();
+}
+/* Event bridge: forward clone interactions to the original toolbar element */
+function dockTwin(item, target){
+  const src = dockSourceOf(item.getAttribute('data-dock-ref'), item.getAttribute('data-set'));
+  if (!src) return null;
+  if (target === item) return src;
+  const cNodes = [item].concat(Array.prototype.slice.call(item.querySelectorAll('*')));
+  const sNodes = [src].concat(Array.prototype.slice.call(src.querySelectorAll('*')));
+  const i = cNodes.indexOf(target);
+  return (i >= 0 && sNodes[i]) ? sNodes[i] : src;
+}
+function dockForward(e, item){
+  const twin = dockTwin(item, e.target);
+  if (!twin) return;
+  if (e.type === 'input' || e.type === 'change') {
+    if (twin.tagName === 'SELECT') twin.selectedIndex = e.target.selectedIndex;
+    else if ('value' in twin) try { twin.value = e.target.value; } catch(err) {}
+  }
+  twin.dispatchEvent(new e.constructor(e.type, { bubbles: true, cancelable: true }));
+}
+if (myDockItems) {
+  myDockItems.addEventListener('click', e => {
+    if (e.target.closest('.my-dock-x')) { removeDockItem(e.target.closest('.my-dock-item')); return; }
+    if (myDockCustomizing) { e.preventDefault(); return; }
+    const item = e.target.closest('.my-dock-item');
+    if (item) dockForward(e, item);
+  });
+  ['input','change','dblclick'].forEach(evt => myDockItems.addEventListener(evt, e => {
+    if (myDockCustomizing) return;
+    const item = e.target.closest('.my-dock-item');
+    if (item) dockForward(e, item);
+  }));
+}
+/* Drag & drop wiring */
+document.addEventListener('dragstart', e => {
+  if (!e.dataTransfer) return;
+  const dockEl = e.target.closest ? e.target.closest('.my-dock-item') : null;
+  if (dockEl && myDock.contains(dockEl)) {
+    dockDropped = false;
+    e.dataTransfer.setData('text/plain', JSON.stringify({ from: 'dock', set: dockEl.getAttribute('data-set'), ref: dockEl.getAttribute('data-dock-ref') }));
+    e.dataTransfer.effectAllowed = 'move';
+    return;
+  }
+  const barEl = e.target.closest ? e.target.closest('.quick-set > *') : null;
+  if (barEl && myDockCustomizing) {
+    const setEl = barEl.closest('.quick-set');
+    const ref = dockRefOf(barEl);
+    if (ref && barEl.dataset.tool !== 'customize' && setEl) {
+      e.dataTransfer.setData('text/plain', JSON.stringify({ from: 'bar', set: setEl.dataset.set, ref: ref }));
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  }
+});
+if (myDock) {
+  myDock.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    myDock.classList.add('dock-dragover');
+    clearDockMarkers();
+    const info = dockInsertInfo(e);
+    if (info.el) info.el.classList.add(info.before ? 'dock-drop-before' : 'dock-drop-after');
+  });
+  myDock.addEventListener('dragleave', e => {
+    if (!myDock.contains(e.relatedTarget)) { myDock.classList.remove('dock-dragover'); clearDockMarkers(); }
+  });
+  myDock.addEventListener('drop', e => {
+    e.preventDefault();
+    let p = null;
+    try { p = JSON.parse(e.dataTransfer.getData('text/plain')); } catch(err) {}
+    if (p && p.ref) { dockDropped = true; const info = dockInsertInfo(e); dockApplyDrop(p, info.el, info.before); }
+    myDock.classList.remove('dock-dragover'); clearDockMarkers();
+  });
+}
+document.addEventListener('dragend', e => {
+  const dockEl = e.target.closest ? e.target.closest('.my-dock-item') : null;
+  if (dockEl && myDock.contains(dockEl) && !dockDropped && myDockCustomizing) removeDockItem(dockEl);
+  dockDropped = false;
+  if (myDock) { myDock.classList.remove('dock-dragover'); clearDockMarkers(); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && myDockCustomizing) dockToggleCustomize(false); });
+const myDockCustomizeBtn = document.getElementById('myDockCustomize');
+if (myDockCustomizeBtn) myDockCustomizeBtn.onclick = () => dockToggleCustomize();
+const myDockHideBtn = document.getElementById('myDockHideBtn');
+if (myDockHideBtn) myDockHideBtn.onclick = () => viewToggleMyBar();
+const myBarStarBtn = document.getElementById('myBarStar');
+if (myBarStarBtn) myBarStarBtn.onclick = () => viewToggleMyBar();
 
 /* Keyboard */
 const keyMap={b:'brush',e:'eraser',l:'line',r:'rect',o:'ellipse',g:'gradient',t:'text',c:'crop',i:'picker',d:'doc',s:'sheet',v:'transform',p:'perspective',m:'select',n:'margins',k:'code'};
@@ -5296,6 +5600,7 @@ function fxDocStats(){
   const words = text ? (text.match(/\S+/g) || []).length : 0;
   const chars = text.replace(/\s/g, '').length;
   el.textContent = words + ' words · ' + chars + ' chars';
+  document.querySelectorAll('.my-dock-items [data-dock-ref="tool:dStats"]').forEach(n => { n.textContent = el.textContent; });
 }
 /* ── zoom ── */
 function docZoom(v){
