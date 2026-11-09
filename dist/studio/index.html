@@ -1586,9 +1586,7 @@ function restore(snap){
         bgColor = snap.bgColor; wrap.style.background = bgColor;
         texts = JSON.parse(snap.texts); selected = -1; selectedImg = -1; textEditing = null;
         docLayer.innerHTML = snap.doc || '';
-        docHeader.innerHTML = snap.docHeader || '';
-        docFooter.innerHTML = snap.docFooter || '';
-        docHeader.classList.toggle('show', !!snap.docHeaderShow);
+        if (typeof fxHealDocImages === 'function') setTimeout(fxHealDocImages, 400);   // revive blob: images saved by older versions
         docFooter.classList.toggle('show', !!snap.docFooterShow);
         docRotation = snap.docRotation || 0; applyDocRotation();
         if (snap.sheets) { sheets = JSON.parse(snap.sheets); currentSheet = snap.currentSheet || 0; renderSheet(); renderSheetTabs(); }
@@ -1702,6 +1700,7 @@ function offerRecovery(){
             docHeader.classList.toggle('show', !!ds.docHeaderShow);
             docFooter.classList.toggle('show', !!ds.docFooterShow);
             if (typeof fxDocStats === 'function') fxDocStats();
+            if (typeof fxHealDocImages === 'function') setTimeout(fxHealDocImages, 400);   // revive blob: images saved by older versions
           }
         } catch(e) {}
         filename.textContent = 'recovered.project';
@@ -1748,6 +1747,7 @@ function loadProject(proj){
         undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList();
         rebuildImgs(JSON.stringify(proj.imgs || []), () => { renderTexts(); });
         composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); fitCanvas();
+        if (typeof fxHealDocImages === 'function') setTimeout(fxHealDocImages, 400);   // revive blob: images saved by older versions
         try { if (proj.mode && (proj.mode === 'doc' || proj.mode === 'sheet' || proj.mode === 'code')) selectTool(proj.mode); } catch(e) {}
       }
     };
@@ -2670,7 +2670,7 @@ fileInput.onchange=e=>{
     e.target.value='';
     return;
   }
-  if (tool === 'sheet' || tool === 'code') statusFlash('Image placed on the canvas — press M to move it');
+  if (tool === 'sheet' || tool === 'code') statusFlash('Image placed on the Canvas — switch to Canvas mode to see, move or resize it');
   const img=new Image();
   img.onload=()=>{
     pushUndo('Place image');
@@ -8941,6 +8941,22 @@ try {
     fxOpenAny(f, null);
   });
 })();
+})();
+</script>
+<script>
+/* Keep the studio fresh: register the root service worker from here too, and
+   reload once when a newly-installed version takes over — users no longer get
+   stuck on a cached studio missing the latest fixes. */
+(function(){
+  if (!('serviceWorker' in navigator)) return;
+  var hadController = !!navigator.serviceWorker.controller, reloaded = false;
+  navigator.serviceWorker.register('../sw.js').then(function(reg){
+    try { if (reg.update) reg.update(); } catch (e) {}
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if (!hadController || reloaded) return;
+      reloaded = true; location.reload();
+    });
+  }).catch(function(){});
 })();
 </script>
 </body>
