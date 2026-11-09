@@ -26,8 +26,8 @@ html[data-theme="light"] body::before{background:radial-gradient(ellipse 60% 40%
    photo plane -> veil -> glow -> orbit, one image graded per theme */
 .bp-hero{position:relative;overflow:hidden;background:var(--hero-bg);padding:92px 0 84px}
 .bp-hero::after{content:'';position:absolute;bottom:0;left:0;right:0;z-index:2;height:1px;background:linear-gradient(90deg,transparent,rgba(125,211,252,.45),transparent)}
-.bp-hero-photo{position:absolute;inset:-2%;z-index:0;width:104%;height:104%;object-fit:cover;object-position:58% center;filter:saturate(.85) contrast(1.10) brightness(.78);animation:bpBreathe 22s ease-in-out infinite alternate;pointer-events:none}
-.bp-hero-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(4,18,30,.98) 0%,rgba(4,18,30,.93) 25%,rgba(4,18,30,.74) 48%,rgba(4,18,30,.18) 100%),linear-gradient(0deg,rgba(4,18,30,.75) 0%,transparent 31%,transparent 74%,rgba(4,18,30,.3) 100%)}
+.bp-hero-photo{position:absolute;inset:-2%;z-index:0;width:104%;height:104%;object-fit:cover;object-position:62% center;filter:saturate(1) contrast(1.06) brightness(.88);animation:bpBreathe 22s ease-in-out infinite alternate;pointer-events:none}
+.bp-hero-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(4,18,30,.97) 0%,rgba(4,18,30,.9) 25%,rgba(4,18,30,.6) 48%,rgba(4,18,30,.1) 100%),linear-gradient(0deg,rgba(4,18,30,.68) 0%,transparent 30%,transparent 76%,rgba(4,18,30,.26) 100%)}
 .bp-hero-glow{position:absolute;inset:-10%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 73% 50%,rgba(90,255,239,.13),transparent 34%),radial-gradient(ellipse at 16% 78%,rgba(23,156,177,.16),transparent 37%);animation:bpDrift 11s ease-in-out infinite alternate}
 .bp-hero-orbit{position:absolute;top:4%;right:-6%;width:min(46vw,560px);height:auto;z-index:1;opacity:.72;animation:bpSpin 42s linear infinite;transform-origin:center;pointer-events:none}
 @keyframes bpBreathe{from{transform:scale(1.03)}to{transform:scale(1.105)}}
@@ -35,8 +35,8 @@ html[data-theme="light"] body::before{background:radial-gradient(ellipse 60% 40%
 @keyframes bpSpin{to{transform:rotate(360deg)}}
 html[data-theme="light"] .bp-hero{background:linear-gradient(180deg,#e3e9f1 0%,#e0e7ef 55%,#e8edf4 100%)}
 html[data-theme="light"] .bp-hero::after{background:linear-gradient(90deg,transparent,rgba(2,132,199,.28),transparent)}
-html[data-theme="light"] .bp-hero-photo{filter:saturate(.9) contrast(.98) brightness(1.05)}
-html[data-theme="light"] .bp-hero-veil{background:linear-gradient(90deg,rgba(228,234,242,.95) 0%,rgba(228,234,242,.82) 24%,rgba(228,234,242,.3) 50%,rgba(228,234,242,.04) 100%),linear-gradient(0deg,rgba(223,230,239,.6) 0%,transparent 30%,transparent 76%,rgba(228,234,242,.32) 100%)}
+html[data-theme="light"] .bp-hero-photo{filter:saturate(.95) contrast(.96) brightness(1.14)}
+html[data-theme="light"] .bp-hero-veil{background:linear-gradient(90deg,rgba(228,234,242,.96) 0%,rgba(228,234,242,.86) 26%,rgba(228,234,242,.42) 52%,rgba(228,234,242,.06) 100%),linear-gradient(0deg,rgba(223,230,239,.55) 0%,transparent 30%,transparent 76%,rgba(228,234,242,.3) 100%)}
 html[data-theme="light"] .bp-hero-glow{background:radial-gradient(ellipse at 73% 50%,rgba(14,165,233,.14),transparent 34%),radial-gradient(ellipse at 16% 78%,rgba(99,102,241,.1),transparent 37%)}
 html[data-theme="light"] .bp-hero-orbit{opacity:.4}
 .bp-hero-inner{position:relative;z-index:2;max-width:72rem;margin:0 auto;padding:0 1rem}
@@ -229,7 +229,7 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 
 <!-- ===== HERO BAND — same stack as the main site hero ===== -->
 <header class="bp-hero">
-  <img class="bp-hero-photo" src="../images/classroom-hero-renaissance.webp" alt="" aria-hidden="true">
+  <img class="bp-hero-photo" src="../images/hero-toefl-blue.jpg" alt="" aria-hidden="true">
   <div class="bp-hero-veil"></div>
   <div class="bp-hero-glow"></div>
   <svg class="bp-hero-orbit" viewBox="0 0 600 600" fill="none" aria-hidden="true">
