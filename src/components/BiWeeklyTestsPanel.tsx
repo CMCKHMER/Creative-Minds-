@@ -53,6 +53,12 @@ const TEST_CATALOG: TestEntry[] = [
   { title: 'W3 · L9b Listening: Inference & Attitude', slug: '9b-w3-listening.html', group: 'Level 9 weekly tests' },
   { title: 'W4 · L9b Reading: Inference Questions', slug: '9b-w4-reading.html', group: 'Level 9 weekly tests' },
   { title: 'W5 · L9b Grammar: Modifiers & Connectors', slug: '9b-w5-grammar.html', group: 'Level 9 weekly tests' },
+  { title: 'W6 · L9a Listening: Dialogue Analysis', slug: '9a-w6-listening.html', group: 'Level 9 weekly tests' },
+  { title: 'W7 · L9a Grammar: Verb Tenses', slug: '9a-w7-grammar.html', group: 'Level 9 weekly tests' },
+  { title: 'W8 · L9a Reading: Vocabulary in Context', slug: '9a-w8-reading.html', group: 'Level 9 weekly tests' },
+  { title: 'W6 · L9b Listening: Note-Taking Techniques', slug: '9b-w6-listening.html', group: 'Level 9 weekly tests' },
+  { title: 'W7 · L9b Reading: Reference & Cohesion', slug: '9b-w7-reading.html', group: 'Level 9 weekly tests' },
+  { title: 'W8 · L9b Grammar: Parallel Structure & Connectors', slug: '9b-w8-grammar.html', group: 'Level 9 weekly tests' },
   // Skills drills
   { title: 'Level 9b Grammar', slug: 'grammar.html', group: 'Skills drills' },
   { title: 'Level 11b Written Expressions', slug: 'structure.html', group: 'Skills drills' },
