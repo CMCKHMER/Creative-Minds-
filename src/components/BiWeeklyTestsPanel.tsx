@@ -59,6 +59,10 @@ const TEST_CATALOG: TestEntry[] = [
   { title: 'W6 · L9b Listening: Note-Taking Techniques', slug: '9b-w6-listening.html', group: 'Level 9 weekly tests' },
   { title: 'W7 · L9b Reading: Reference & Cohesion', slug: '9b-w7-reading.html', group: 'Level 9 weekly tests' },
   { title: 'W8 · L9b Grammar: Parallel Structure & Connectors', slug: '9b-w8-grammar.html', group: 'Level 9 weekly tests' },
+  // Level 11b weekly tests
+  { title: 'W4 · L11b Reading: Recognizing Inference', slug: 'isec2-w4-inference.html', group: 'Level 11b weekly tests' },
+  { title: 'W5 · L11b Grammar: Mysteries & the Unexplained', slug: 'isec2-w5-grammar.html', group: 'Level 11b weekly tests' },
+  { title: 'W6 · L11b Listening: Tone & Attitude', slug: 'isec2-w6-tone.html', group: 'Level 11b weekly tests' },
   // Skills drills
   { title: 'Level 9b Grammar', slug: 'grammar.html', group: 'Skills drills' },
   { title: 'Level 11b Written Expressions', slug: 'structure.html', group: 'Skills drills' },
