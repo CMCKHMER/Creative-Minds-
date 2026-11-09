@@ -7,11 +7,18 @@
 // test_* blocks in firestore.rules:
 //
 //   biweekly_tests/{testId}        public shell metadata (no answers)
-//   test_keys/{testId}             THE answer key — verified teachers only
+//   test_keys/{testId}             THE answer key — owner teacher only
 //   test_assignments/{id}          test + class + window
 //   test_submissions/{a}__{uid}    raw student answers (student create-once)
-//   test_scores/{a}__{uid}         computed scores — verified teachers only
+//   test_scores/{a}__{uid}         computed scores — owner teacher only
 //   teachers/{uid}                 append-only teacher allowlist
+//
+// PRIVACY MODEL (Nov 2026): every submission/score/key doc carries the
+// owning teacher's uid, stamped at write time. The security rules only let
+// THAT teacher list/read them, so results are handed to students by their
+// own teacher — never to other teachers or the public. List queries
+// therefore MUST filter teacherUid == auth.uid (the rules engine rejects
+// unconstrained queries rather than leaking rows).
 //
 // Grading itself lives in biweeklyGrading.ts and runs in the browser on the
 // teacher's device; scores are cached into test_scores so reopening the
@@ -129,6 +136,20 @@ const fieldFilter = (field: string, op: string, value: unknown) => ({
   where: { fieldFilter: { field: { fieldPath: field }, op, value: enc(value) } },
 });
 
+/** AND-composite of field filters (equality-only conjunctions run on the
+ *  automatic single-field indexes — no console index setup needed). */
+function andFilters(...filters: ReturnType<typeof fieldFilter>[]): { where: Record<string, unknown> } {
+  if (filters.length === 1) return filters[0];
+  return {
+    where: {
+      compositeFilter: {
+        op: 'AND',
+        filters: filters.map((f) => f.where),
+      },
+    },
+  };
+}
+
 // ── Types ────────────────────────────────────────────────────────────
 
 export interface AssignmentDoc {
@@ -245,10 +266,13 @@ export async function getTestKey(testId: string): Promise<TestKey | null> {
   }
 }
 
-export async function putTestKey(key: TestKey): Promise<void> {
+/** Install/refresh the answer key. `teacherUid` (the REST-session uid) is
+ *  stamped onto the doc so the rules can make the key owner-private —
+ *  another verified teacher can neither read nor overwrite it. */
+export async function putTestKey(key: TestKey, teacherUid: string): Promise<void> {
   await fsCall(`/test_keys/${encodeURIComponent(key.testId)}`, {
     method: 'PATCH',
-    body: JSON.stringify({ fields: encMap(key as unknown as Record<string, unknown>) }),
+    body: JSON.stringify({ fields: encMap({ ...key, teacherUid } as unknown as Record<string, unknown>) }),
   });
 }
 
@@ -308,9 +332,15 @@ export async function deleteAssignment(id: string): Promise<void> {
 
 // ── Submissions + scores ─────────────────────────────────────────────
 
-export async function listSubmissions(assignmentId: string): Promise<SubmissionDoc[]> {
+/** Submissions of one assignment FOR the calling teacher. The teacherUid
+ *  equality is required by the list rules — without it Firestore rejects
+ *  the whole query (403) instead of leaking another teacher's rows. */
+export async function listSubmissions(assignmentId: string, teacherUid: string): Promise<SubmissionDoc[]> {
   const docs = await runQuery('test_submissions', {
-    ...fieldFilter('assignmentId', 'EQUAL', assignmentId),
+    ...andFilters(
+      fieldFilter('assignmentId', 'EQUAL', assignmentId),
+      fieldFilter('teacherUid', 'EQUAL', teacherUid),
+    ),
     limit: 200,
   });
   return (docs as unknown as SubmissionDoc[]).sort((a, b) =>
@@ -318,16 +348,22 @@ export async function listSubmissions(assignmentId: string): Promise<SubmissionD
   );
 }
 
-export async function listScores(assignmentId: string): Promise<ScoreDoc[]> {
+/** Owner-filtered like listSubmissions — see the privacy note there. */
+export async function listScores(assignmentId: string, teacherUid: string): Promise<ScoreDoc[]> {
   const docs = await runQuery('test_scores', {
-    ...fieldFilter('assignmentId', 'EQUAL', assignmentId),
+    ...andFilters(
+      fieldFilter('assignmentId', 'EQUAL', assignmentId),
+      fieldFilter('teacherUid', 'EQUAL', teacherUid),
+    ),
     limit: 200,
   });
   return docs as unknown as ScoreDoc[];
 }
 
-/** Cache one graded submission (score doc id === submission doc id). */
-export async function putScore(submission: SubmissionDoc, grade: GradeResult, gradedBy: string): Promise<void> {
+/** Cache one graded submission (score doc id === submission doc id).
+ *  `teacherUid` stamps ownership so only that teacher can read the score
+ *  back — students get their result from their teacher, nobody else. */
+export async function putScore(submission: SubmissionDoc, grade: GradeResult, gradedBy: string, teacherUid: string): Promise<void> {
   const payload: ScoreDoc = {
     id: submission.id,
     assignmentId: submission.assignmentId,
@@ -343,6 +379,73 @@ export async function putScore(submission: SubmissionDoc, grade: GradeResult, gr
   };
   await fsCall(`/test_scores/${encodeURIComponent(submission.id)}`, {
     method: 'PATCH',
-    body: JSON.stringify({ fields: encMap({ ...payload, gradedBy }) }),
+    body: JSON.stringify({ fields: encMap({ ...payload, gradedBy, teacherUid }) }),
   });
+}
+
+// ── Private invite-test results (Nov 2026) ───────────────────────────
+//
+// The simple share flow's private pipeline: the dashboard binds the
+// teacher's personal invite code to their uid in invite_codes (public-read
+// registry, create-once), students submit into invite_attempts stamped with
+// that owner, and ONLY the owning teacher can list/read the results back.
+// This replaces the old world-readable invite rows in drill_attempts.
+
+export interface InviteAttemptDoc {
+  id: string;
+  drillSlug: string;
+  drillTitle: string;
+  studentName: string;
+  studentCode: string;
+  inviteCode: string;
+  scorePct: number | null;
+  correctCount: number | null;
+  totalCount: number | null;
+  durationSeconds: number | null;
+  submittedAt: string;
+  answers: string;
+  inviteMode: boolean;
+  integrity: Record<string, unknown>;
+}
+
+/** Create-once binding of an invite code to its owner. Returns 'ok' when
+ *  the code is (or already was) ours, 'taken' when another teacher
+ *  registered it first — the caller should generate a fresh code. */
+export async function registerInviteCode(code: string, teacherUid: string): Promise<'ok' | 'taken'> {
+  try {
+    await fsCall(`/invite_codes?documentId=${encodeURIComponent(code)}`, {
+      method: 'POST',
+      body: JSON.stringify({ fields: encMap({ teacherUid, registeredAt: new Date().toISOString() }) }),
+    });
+    return 'ok';
+  } catch (err) {
+    // Already exists — fine when it was registered by THIS teacher.
+    if (err instanceof RestError && (err.status === 409 || err.status === 412 || err.status === 400)) {
+      try {
+        const doc = await fsCall<{ fields?: FsFields }>(`/invite_codes/${encodeURIComponent(code)}`);
+        const owner = dec(doc.fields?.teacherUid as FsValue | undefined);
+        return owner === teacherUid ? 'ok' : 'taken';
+      } catch {
+        return 'taken';
+      }
+    }
+    throw err;
+  }
+}
+
+/** This teacher's invite attempts for one test (drillSlug INCLUDES the
+ *  .html extension, e.g. "week3-listening.html"). The teacherUid equality
+ *  is required by the list rules — without it Firestore rejects the whole
+ *  query (403) instead of leaking another teacher's rows. */
+export async function listInviteAttempts(drillSlug: string, teacherUid: string): Promise<InviteAttemptDoc[]> {
+  const docs = await runQuery('invite_attempts', {
+    ...andFilters(
+      fieldFilter('drillSlug', 'EQUAL', drillSlug),
+      fieldFilter('teacherUid', 'EQUAL', teacherUid),
+    ),
+    limit: 200,
+  });
+  return (docs as unknown as InviteAttemptDoc[]).sort((a, b) =>
+    String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')),
+  );
 }

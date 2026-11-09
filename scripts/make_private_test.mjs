@@ -340,6 +340,9 @@ function trySubmit(auto){
     assignmentId:{stringValue:assignmentId},
     testId:{stringValue:T.testId},
     classId:{stringValue:assignment.classId},
+    // Owner stamp: the rules verify this equals the assignment's teacherUid,
+    // so ONLY the assigning teacher can ever list/read this submission.
+    teacherUid:{stringValue:(assignment&&assignment.teacherUid)||''},
     studentUid:{stringValue:uid},
     studentName:{stringValue:sname},
     status:{stringValue:'submitted'},
@@ -413,6 +416,7 @@ function boot(){
     assignment={
       classId:dec(f.classId),testId:dec(f.testId),title:dec(f.title),
       className:dec(f.className)||dec(f.classId),
+      teacherUid:dec(f.teacherUid),
       opensAt:dec(f.opensAt),closesAt:dec(f.closesAt),
       durationMinutes:Number(dec(f.durationMinutes))||20
     };

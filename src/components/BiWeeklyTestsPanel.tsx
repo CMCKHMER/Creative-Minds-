@@ -9,16 +9,22 @@
 //   2. Students open the link, enter name + student ID, press Start — the
 //      enforced timer runs and every answer is recorded (public/biweek-planner/
 //      student-invite.js does the gating + recording).
-//   3. Submissions land in Firestore drill_attempts (inviteMode: true) and
-//      stream into the results table below with the full answer sheet, plus
-//      CSV export for grading in any spreadsheet.
+//   3. Submissions land in Firestore invite_attempts (PRIVATE — Nov 2026):
+//      each attempt is stamped with the code owner's uid, copied by the
+//      student's browser from the public invite_codes registry doc, and the
+//      database rules verify that stamp — so ONLY the owning teacher can
+//      ever read their results. Scores are handed to students by their
+//      teacher personally: no classmates, no other teachers, no public
+//      feed, no homepage ticker.
 //
-// Reads are PUBLIC on drill_attempts (same source as the homepage ticker),
-// so this panel needs no extra tokens or rules — it works from any teacher
-// device straight away.
+// Reads on invite_attempts are AUTHENTICATED (the teacher's Firebase
+// session) and filtered to their own uid — the rules engine rejects
+// anything broader.
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ClipboardList, Copy, Download, ExternalLink, RefreshCw, Shuffle } from 'lucide-react';
+import { getRestAuthUid, listInviteAttempts, registerInviteCode, RestError } from '../lib/testDb';
+import type { InviteAttemptDoc } from '../lib/testDb';
 
 /** Shareable test catalog — keep slugs in sync with the files under
  *  public/biweek-planner/tests/ (each has a student invite gate built in). */
@@ -103,61 +109,34 @@ function plannerBase(): string {
   return window.location.pathname.replace(/index\.html$/, '') + 'biweek-planner/tests/';
 }
 
-function dec(v: any): any {
-  if (!v) return '';
-  if ('stringValue' in v) return v.stringValue;
-  if ('integerValue' in v) return Number(v.integerValue);
-  if ('booleanValue' in v) return v.booleanValue;
-  if ('timestampValue' in v) return v.timestampValue;
-  if ('mapValue' in v) {
-    const out: Record<string, any> = {};
-    const f = v.mapValue?.fields ?? {};
-    for (const k of Object.keys(f)) out[k] = dec(f[k]);
-    return out;
-  }
-  return '';
+async function fetchAttempts(file: string, teacherUid: string): Promise<AttemptDoc[]> {
+  // Authenticated owner-scoped query — the rules REQUIRE the teacherUid
+  // equality filter (an unconstrained query is rejected with 403 rather
+  // than leaking another teacher's rows).
+  const docs = await listInviteAttempts(file, teacherUid);
+  return docs.map((d: Partial<InviteAttemptDoc> & { id: string }) => ({
+    id: d.id,
+    studentName: d.studentName ?? '',
+    studentCode: d.studentCode ?? '',
+    inviteCode: d.inviteCode ?? '',
+    scorePct: d.scorePct ?? null,
+    correctCount: d.correctCount ?? null,
+    totalCount: d.totalCount ?? null,
+    durationSeconds: d.durationSeconds ?? null,
+    submittedAt: d.submittedAt ?? '',
+    answers: d.answers ?? '',
+    inviteMode: true,
+    integrity: (d.integrity as AttemptDoc['integrity']) ?? {},
+  } as AttemptDoc));
 }
 
-async function fetchAttempts(file: string): Promise<AttemptDoc[]> {
-  const res = await fetch(
-    'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents:runQuery',
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        structuredQuery: {
-          from: [{ collectionId: 'drill_attempts', allDescendants: false }],
-          where: { fieldFilter: { field: { fieldPath: 'drillSlug' }, op: 'EQUAL', value: { stringValue: file } } },
-          limit: 200,
-        },
-      }),
-    },
-  );
-  if (!res.ok) throw new Error(`Firestore query failed (HTTP ${res.status})`);
-  const json: any = await res.json().catch(() => []);
-  const rows: any[] = Array.isArray(json) ? json : [];
-  return (rows || [])
-    .filter((r) => r?.document)
-    .map((r) => {
-      const f = r.document.fields ?? {};
-      const d: Partial<AttemptDoc> & Record<string, any> = { id: String(r.document.name || '').split('/').pop() };
-      for (const k of ['studentName', 'studentCode', 'inviteCode', 'answers', 'submittedAt']) d[k] = dec(f[k]);
-      for (const k of ['scorePct', 'correctCount', 'totalCount', 'durationSeconds']) d[k] = dec(f[k]);
-      d.inviteMode = dec(f.inviteMode) === true;
-      d.integrity = dec(f.integrity) ?? {};
-      return d as AttemptDoc;
-    })
-    .filter((d) => d.inviteMode) // invite attempts only — practice attempts live on the student dashboard
-    .sort((a, b) => String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')));
-}
-
-/** Props kept optional-and-ignored so the dashboard call site stays valid.
- *  The new flow needs no teacher uid (results are a public read). */
+/** Props kept optional-and-ignored so the dashboard call site stays valid. */
 export const BiWeeklyTestsPanel: React.FC<{
   teacherUid?: string;
   classes?: { id: string; name?: string; program?: string; code?: string }[];
 }> = () => {
   const [teacherCode, setTeacherCode] = useState('');
+  const [restUid, setRestUid] = useState('');
   const [formSlug, setFormSlug] = useState(TEST_CATALOG[0].slug);
   const [resultsOpen, setResultsOpen] = useState(false);
   const [attempts, setAttempts] = useState<AttemptDoc[]>([]);
@@ -166,7 +145,10 @@ export const BiWeeklyTestsPanel: React.FC<{
   const [copied, setCopied] = useState(false);
   const alive = useRef(true);
 
-  // Restore/generate the personal teacher ID code once.
+  // Restore/generate the personal teacher ID code once, resolve the REST
+  // session uid, and REGISTER the code in the invite_codes registry (the
+  // create-once code→owner binding students copy onto their submissions —
+  // without it their attempts cannot be owned, so they would be rejected).
   useEffect(() => {
     let code = '';
     try { code = sanitizeCode(localStorage.getItem(CODE_KEY) || ''); } catch { /* stays '' */ }
@@ -175,22 +157,42 @@ export const BiWeeklyTestsPanel: React.FC<{
       try { localStorage.setItem(CODE_KEY, code); } catch { /* private mode — code stays in memory */ }
     }
     setTeacherCode(code);
+    void getRestAuthUid().then(async (uid) => {
+      if (!alive.current) return;
+      setRestUid(uid ?? '');
+      if (!uid) return; // no Firebase session — results view will ask to sign in
+      // Bind the code to this teacher. If another teacher registered the
+      // random code first (collision), roll a fresh one and bind that.
+      let result: 'ok' | 'taken' = 'taken';
+      for (let attemptNo = 0; attemptNo < 3 && result === 'taken'; attemptNo += 1) {
+        result = await registerInviteCode(code, uid).catch(() => 'taken');
+        if (result === 'taken') {
+          code = 'TEACHER-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+          try { localStorage.setItem(CODE_KEY, code); } catch { /* in-memory */ }
+          if (alive.current) setTeacherCode(code);
+        }
+      }
+    });
     return () => { alive.current = false; };
   }, []);
 
   const inviteUrl = `${window.location.origin}${plannerBase()}${formSlug}?invite=${encodeURIComponent(teacherCode)}`;
 
-  const loadAttempts = useCallback(async (file: string) => {
+  const loadAttempts = useCallback(async (file: string, uid: string) => {
     setLoading(true);
     try {
-      const docs = await fetchAttempts(file);
+      if (!uid) {
+        if (alive.current) setResultsState({ tone: 'info', text: 'Sign in with your teacher account (top-right) to collect results — they are private to you.' });
+        return;
+      }
+      const docs = await fetchAttempts(file, uid);
       if (!alive.current) return;
       setAttempts(docs);
       setResultsState(docs.length
-        ? { tone: 'ok', text: `${docs.length} submitted attempt${docs.length === 1 ? '' : 's'} · refreshes automatically` }
+        ? { tone: 'ok', text: `${docs.length} submitted attempt${docs.length === 1 ? '' : 's'} · refreshes automatically · private to you` }
         : { tone: 'info', text: 'No invite submissions yet — share the link above; answers land here automatically.' });
     } catch (err) {
-      if (alive.current) setResultsState({ tone: 'err', text: err instanceof Error ? err.message : 'Could not load results.' });
+      if (alive.current) setResultsState({ tone: 'err', text: err instanceof RestError ? err.message : 'Could not load results.' });
     } finally {
       if (alive.current) setLoading(false);
     }
@@ -199,12 +201,12 @@ export const BiWeeklyTestsPanel: React.FC<{
   // Auto-refresh while the results view is open (8s, visibility-aware).
   useEffect(() => {
     if (!resultsOpen) return;
-    void loadAttempts(formSlug);
+    void loadAttempts(formSlug, restUid);
     const iv = window.setInterval(() => {
-      if (document.visibilityState === 'visible') void loadAttempts(formSlug);
+      if (document.visibilityState === 'visible') void loadAttempts(formSlug, restUid);
     }, 8000);
     return () => window.clearInterval(iv);
-  }, [resultsOpen, formSlug, loadAttempts]);
+  }, [resultsOpen, formSlug, loadAttempts, restUid]);
 
   const copyLink = () => {
     void navigator.clipboard.writeText(inviteUrl).then(() => {
@@ -334,7 +336,7 @@ export const BiWeeklyTestsPanel: React.FC<{
             </div>
             <div className="flex gap-1.5">
               <button
-                onClick={() => void loadAttempts(formSlug)}
+                onClick={() => void loadAttempts(formSlug, restUid)}
                 className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-[10px] font-bold text-slate-200 transition hover:bg-white/10"
               >
                 <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} /> Refresh
@@ -350,7 +352,7 @@ export const BiWeeklyTestsPanel: React.FC<{
           </div>
           {attempts.length === 0 ? (
             <div className="py-10 text-center text-xs text-slate-500">
-              No submissions yet. Students' answers appear here the moment they submit through your link.
+              No submissions yet. Students' answers appear here the moment they submit through your link — visible only to you.
             </div>
           ) : (
             <div className="overflow-x-auto">

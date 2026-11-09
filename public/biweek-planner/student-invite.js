@@ -27,18 +27,25 @@
  *      a test by opening it WITHOUT ?invite= (answers + grading visible).
  *   5. Submit records the full attempt (score + per-question answers +
  *      duration + integrity flags + teacher code) into Firestore
- *      drill_attempts, then auto-redirects to the homepage hero which
- *      shows a thank-you message (?thanks=1). Students never see the
- *      correct answers in invite mode — the reveal/grading UI is skipped.
+ *      invite_attempts — the PRIVATE results collection (Nov 2026) — then
+ *      auto-redirects to the homepage hero which shows a thank-you message
+ *      (?thanks=1). Students never see the correct answers or their score in
+ *      invite mode — the reveal/grading UI is skipped; the teacher hands
+ *      students their results personally.
  *
  * Recording identity: anonymous Firebase sign-in is NOT enabled on the
  * project, but email/password sign-up is. The first attempt on a device
  * creates a throwaway "invite-…@cmc-invite.example" account (stored in
- * localStorage) and every later attempt reuses it — the drill_attempts
- * rules require studentUid == request.auth.uid, which this satisfies
- * without any teacher action. Extra attempt fields (inviteCode,
- * studentCode, answers, integrity, inviteMode, startedAt) pass freely:
- * the rules only validate the original scoreboard fields.
+ * localStorage) and every later attempt reuses it — the invite_attempts
+ * rules require a signed-in device, which this satisfies without any
+ * teacher action.
+ *
+ * PRIVACY (Nov 2026): every attempt is stamped with the OWNING teacher's
+ * uid, copied from the public invite_codes/{code} registry doc. The create
+ * rules verify the stamp against the registry, so a submission can never be
+ * pointed at another teacher — and ONLY that teacher can read the result
+ * back. If the registry lookup fails (code not registered yet, or offline),
+ * the attempt is queued and retried later, when the stamp is fetched again.
  *
  * Soft limits (same class as teacher-gate.js): this is a static GitHub
  * Pages deploy — a student who reads page source can find the answer
@@ -594,7 +601,7 @@
         if (!token || !uid) { queueAttempt(fields); goHome({ cloud: false }); return; }
         fields.studentUid = { stringValue: uid };
         fields.inviteUid = { stringValue: uid };
-        postAttempt(token, fields, function (ok) {
+        stampAndPost(token, fields, function (ok) {
           if (ok) {
             track('invite_submit', { invite_code: inviteCode, score_pct: pct, cloud: true });
             setLs(LOCK_KEY, JSON.stringify({ at: new Date().toISOString(), name: studentName, code: studentCode, score: sc.correct, total: total, pct: pct }));
@@ -702,7 +709,7 @@
     try {
       var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
       var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 9000) : null;
-      fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts', {
+      fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/invite_attempts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ fields: fields }),
@@ -712,6 +719,34 @@
         cb(r.ok);
       }).catch(function () { if (timer) clearTimeout(timer); cb(false); });
     } catch (e) { cb(false); }
+  }
+
+  /* Owner stamp: copy the invite code's registered owner onto the attempt.
+   * The invite_codes registry is public-read (it only maps code → uid), so
+   * no sign-in is needed here. Without the stamp the create is rejected —
+   * that is the point: results can only ever be owned by the teacher who
+   * shares the link. */
+  function fetchOwnerUid(code, cb) {
+    try {
+      fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/invite_codes/' + encodeURIComponent(code))
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          var f = d && d.fields && d.fields.teacherUid;
+          cb(f && f.stringValue ? f.stringValue : null);
+        })
+        .catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+
+  /* Ensure the owner stamp, then post. Used by BOTH the live submit path
+   * and the offline-queue replay, so a queued attempt picks up the stamp at
+   * retry time (the teacher may register the code after the student tried). */
+  function stampAndPost(token, fields, cb) {
+    if (fields.teacherUid && fields.teacherUid.stringValue) { postAttempt(token, fields, cb); return; }
+    fetchOwnerUid(inviteCode, function (ownerUid) {
+      if (ownerUid) fields.teacherUid = { stringValue: ownerUid };
+      postAttempt(token, fields, cb);
+    });
   }
 
   /* ── 8. Offline queue — retried on any later biweek page load ─────── */
@@ -736,7 +771,7 @@
         var item = remaining.shift();
         item.fields.studentUid = { stringValue: uid };
         if (item.fields.inviteUid) item.fields.inviteUid = { stringValue: uid };
-        postAttempt(token, item.fields, function (ok) { if (ok) setTimeout(next, 250); else setLs('cmc-invite-pending', JSON.stringify([item].concat(remaining))); });
+        stampAndPost(token, item.fields, function (ok) { if (ok) setTimeout(next, 250); else setLs('cmc-invite-pending', JSON.stringify([item].concat(remaining))); });
       }
       next();
     });

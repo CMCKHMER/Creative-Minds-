@@ -25,7 +25,18 @@ rules_version = '2';
 //     branch — empty studentUid, size/range-checked name & fields, no
 //     class attribution — so visitors who play the games appear on the
 //     ticker and leaderboards too (Nov 2026). Scores are immutable
-//     (no update/delete by clients).
+//     (no update/delete by clients). NEW (Nov 2026): private invite-test
+//     results may NO LONGER be written here — they go to invite_attempts
+//     (owner-private). The inviteMode guard keeps stale cached pages from
+//     leaking test results into the public feed.
+//   - invite_codes/{code} + invite_attempts/{attemptId} (Nov 2026): the
+//     private homework/test result pipeline. The dashboard stamps each
+//     teacher's personal invite code with their uid (invite_codes, create-once,
+//     public read so student devices can copy the owner). Student submissions
+//     land in invite_attempts stamped with that owner — verified against the
+//     registry at create, so the stamp cannot be forged — and ONLY that
+//     teacher can ever read them. Scores are handed to students by their own
+//     teacher, never exposed to other teachers or the public.
 //   - teacher_chat/{msgId}: RETIRED (Nov 2026) — replaced by the blog-style
 //     `announcements` board. Kept publicly readable so old messages stay
 //     reachable, but every write is denied: the chat UI is gone.
@@ -107,6 +118,17 @@ service cloud.firestore {
     match /drill_attempts/{attemptId} {
       allow read: if true; // public scoreboard (ticker / leaderboard / dashboard)
 
+      // PRIVATE-TEST GUARD (Nov 2026): invite-mode test results are
+      // teacher-private and live in invite_attempts. Neither create branch
+      // may smuggle an inviteMode doc into this PUBLIC collection — a stale
+      // cached page that still posts here is denied and the attempt simply
+      // stays in that student's offline queue until their browser picks up
+      // the updated script.
+      function notInviteMode() {
+        return !('inviteMode' in request.resource.data)
+          || request.resource.data.inviteMode == false;
+      }
+
       // GUEST ATTEMPTS (Nov 2026): games used to record nothing for visitors
       // who never signed up, so the homepage ticker never moved. Guests may
       // now create attempts too — with an EMPTY studentUid (they have no
@@ -116,7 +138,7 @@ service cloud.firestore {
       // pollute the motivational ticker/leaderboard — no class attribution
       // (classId must be null), no account impact, append-only, and the
       // signed-in path below still pins rows to the caller's own verified uid.
-      allow create: if (
+      allow create: if notInviteMode() && (
           isVerifiedUser()
           && request.resource.data.studentUid == request.auth.uid
           && request.resource.data.studentUid is string
@@ -159,6 +181,79 @@ service cloud.firestore {
         );
 
       // Score history is append-only — nobody rewrites results.
+      allow update, delete: if false;
+    }
+
+    // ── Private invite-test results (Nov 2026) ──
+    //
+    // The simple share flow: the dashboard gives every teacher a personal
+    // invite code; a test link looks like tests/<slug>.html?invite=CODE.
+    // Results are TEST SCORES, so per the site's privacy model they are
+    // visible ONLY to the owning teacher — handed to students by their
+    // teacher, never to classmates, other teachers, or the public feed.
+    //
+    // invite_codes/{code}: the registry binding a code to its owner. The
+    // dashboard creates it (create-once) the moment the teacher's panel
+    // opens. Public READ so a student's browser can copy the owner uid onto
+    // their submission without signing in; only verified teachers write.
+    match /invite_codes/{code} {
+      allow read: if true;
+      allow create: if isVerifiedTeacher()
+        && request.resource.data.teacherUid == request.auth.uid
+        && code.size() >= 8
+        && code.size() <= 32;
+      // Re-stamping an existing code is owner-only — a stolen code cannot
+      // be re-pointed at a different teacher's account.
+      allow update: if isVerifiedTeacher()
+        && resource.data.teacherUid == request.auth.uid
+        && request.resource.data.teacherUid == request.auth.uid;
+      allow delete: if isVerifiedTeacher()
+        && resource.data.teacherUid == request.auth.uid;
+    }
+
+    // invite_attempts/{attemptId}: one student's test attempt (score +
+    // full answer sheet + integrity counters). Creates are allowed for ANY
+    // signed-in device (students use throwaway invite identities, so the
+    // email-verification gate does NOT apply here) — the ownership stamp is
+    // the real gate: it must match the registry's owner for the used code,
+    // which makes forging or misdirecting results impossible. Reads are
+    // strictly owner-only; the list query MUST filter teacherUid ==
+    // request.auth.uid. Append-only like every result collection.
+    match /invite_attempts/{attemptId} {
+      allow read: if isVerifiedTeacher()
+        && resource.data.teacherUid == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.teacherUid is string
+        && request.resource.data.teacherUid.size() > 0
+        && request.resource.data.inviteCode is string
+        && request.resource.data.inviteCode.size() >= 3
+        && request.resource.data.inviteCode.size() <= 24
+        && exists(/databases/$(database)/documents/invite_codes/$(request.resource.data.inviteCode))
+        && get(/databases/$(database)/documents/invite_codes/$(request.resource.data.inviteCode)).data.teacherUid == request.resource.data.teacherUid
+        && request.resource.data.studentName is string
+        && request.resource.data.studentName.size() >= 1
+        && request.resource.data.studentName.size() <= 60
+        && request.resource.data.studentCode is string
+        && request.resource.data.studentCode.size() <= 24
+        && request.resource.data.drillSlug is string
+        && request.resource.data.drillSlug.size() >= 1
+        && request.resource.data.drillSlug.size() <= 80
+        && request.resource.data.drillTitle is string
+        && request.resource.data.drillTitle.size() >= 1
+        && request.resource.data.drillTitle.size() <= 120
+        && request.resource.data.scorePct is int
+        && request.resource.data.scorePct >= 0
+        && request.resource.data.scorePct <= 100
+        && request.resource.data.correctCount is int
+        && request.resource.data.correctCount >= 0
+        && request.resource.data.correctCount <= 10000
+        && request.resource.data.totalCount is int
+        && request.resource.data.totalCount >= 0
+        && request.resource.data.totalCount <= 10000
+        && (!('classId' in request.resource.data) || request.resource.data.classId == null);
+
+      // Result history is append-only — nobody rewrites a submission.
       allow update, delete: if false;
     }
 
@@ -265,6 +360,24 @@ service cloud.firestore {
 
     // ── Private bi-weekly test system (Option A: teacher-side grading) ──
     //
+    // PRIVACY MODEL (Nov 2026): private-test data is visible ONLY to the
+    // teacher who owns the class. Scores are handed to students by their own
+    // teacher — never shown to other teachers, other classes, or the public.
+    // Ownership = a teacherUid field stamped on every document at write time
+    // and verified against the signed-in token's uid:
+    //   - test_assignments: stamped at create (rules enforce owner writes).
+    //   - test_submissions: the student page copies teacherUid from the
+    //     assignment it already reads; create verifies it matches the
+    //     assignment's owner, so it cannot be forged.
+    //   - test_keys / test_scores: stamped by the dashboard when the owner
+    //     installs the key / grades. A second teacher can neither read nor
+    //     silently overwrite them.
+    // LIST queries must filter teacherUid == request.auth.uid — the rules
+    // engine rejects unconstrained queries (403) instead of leaking rows.
+    // Docs created BEFORE stamping began ("legacy": no teacherUid field)
+    // remain readable by any verified teacher via single-doc GETs until the
+    // owner re-installs the key / re-grades, which claims the doc.
+    //
     // Flow: teacher creates test_assignments/{id} for a class → students open
     // the private (answer-free) test page, sign in, and POST raw answers to
     // test_submissions/{assignmentId}__{studentUid} → the teacher dashboard
@@ -302,17 +415,37 @@ service cloud.firestore {
     }
 
     // THE answer key. The single most protected collection on the site.
+    // Owner-only: another verified teacher can neither read nor overwrite a
+    // key stamped to someone else. Legacy keys (pre-stamp) stay readable
+    // until the owner re-installs — the re-install claims the doc.
     match /test_keys/{testId} {
-      allow read, write: if isVerifiedTeacher();
+      allow read: if isVerifiedTeacher()
+        && (resource.data.teacherUid == request.auth.uid
+            || !('teacherUid' in resource.data));
+      allow create: if isVerifiedTeacher()
+        && request.resource.data.teacherUid == request.auth.uid;
+      allow update: if isVerifiedTeacher()
+        && request.resource.data.teacherUid == request.auth.uid
+        && (!('teacherUid' in resource.data)
+            || resource.data.teacherUid == request.auth.uid);
+      allow delete: if false;
     }
 
-    // One assignment = test + class + window.
+    // One assignment = test + class + window. Reads: the owning teacher, or
+    // an enrolled student (the private page loads the window/duration from
+    // here before accepting answers).
     match /test_assignments/{assignmentId} {
-      allow read: if isVerifiedTeacher()
-        || (isVerifiedUser()
-            && resource.data.classId is string
-            && exists(/databases/$(database)/documents/classes/$(resource.data.classId)/enrollments/$(request.auth.uid)));
-      allow create, update: if isVerifiedTeacher()
+      allow read: if request.auth != null
+        && (resource.data.teacherUid == request.auth.uid
+            || (isVerifiedUser()
+                && resource.data.classId is string
+                && exists(/databases/$(database)/documents/classes/$(resource.data.classId)/enrollments/$(request.auth.uid))));
+      allow create: if isVerifiedTeacher()
+        && request.resource.data.teacherUid == request.auth.uid;
+      // PATCH replaces the whole document, so updates must carry the full
+      // owner-stamped doc — ownership can never be moved or wiped.
+      allow update: if isVerifiedTeacher()
+        && resource.data.teacherUid == request.auth.uid
         && request.resource.data.teacherUid == request.auth.uid;
       allow delete: if isVerifiedTeacher()
         && resource.data.teacherUid == request.auth.uid;
@@ -322,11 +455,17 @@ service cloud.firestore {
     // create-once rule IS the one-attempt rule: a second create with the same
     // ID fails at the database level, not just in the UI. Students may GET
     // their own doc (resume UX) but can never list or read anyone else's.
+    // LIST (the dashboard scoreboard) requires the query to filter
+    // teacherUid == auth.uid, so a teacher cannot enumerate another
+    // teacher's submissions even by guessing assignment ids.
     match /test_submissions/{docId} {
-      allow get: if isVerifiedTeacher()
-        || (isVerifiedUser()
-            && resource.data.studentUid == request.auth.uid);
-      allow list: if isVerifiedTeacher();
+      allow get: if (isVerifiedUser()
+            && resource.data.studentUid == request.auth.uid)
+        || (isVerifiedTeacher()
+            && (resource.data.teacherUid == request.auth.uid
+                || !('teacherUid' in resource.data)));
+      allow list: if isVerifiedTeacher()
+        && resource.data.teacherUid == request.auth.uid;
 
       allow create: if isVerifiedUser()
         && request.auth.uid is string
@@ -340,8 +479,11 @@ service cloud.firestore {
         && request.resource.data.answers.size() > 0
         && request.resource.data.answers.size() <= 300
         && request.resource.data.integrity is map
+        && request.resource.data.teacherUid is string
+        && request.resource.data.teacherUid.size() > 0
         && docId == (request.resource.data.assignmentId + '__' + request.auth.uid)
         && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.classId == request.resource.data.classId
+        && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.teacherUid == request.resource.data.teacherUid
         && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.opensAt <= request.time
         && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.closesAt >= request.time;
 
@@ -349,9 +491,22 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Computed scores + per-skill breakdown + most-missed data. Teachers only.
+    // Computed scores + per-skill breakdown + most-missed data.
+    // Owner-only: visible solely to the teacher stamped on the doc when the
+    // dashboard graded it. Students never read scores here — their teacher
+    // hands them their result personally. Legacy scores (pre-stamp) stay
+    // readable until the owner re-grades, which claims the doc.
     match /test_scores/{docId} {
-      allow read, write: if isVerifiedTeacher();
+      allow read: if isVerifiedTeacher()
+        && (resource.data.teacherUid == request.auth.uid
+            || !('teacherUid' in resource.data));
+      allow create: if isVerifiedTeacher()
+        && request.resource.data.teacherUid == request.auth.uid;
+      allow update: if isVerifiedTeacher()
+        && request.resource.data.teacherUid == request.auth.uid
+        && (!('teacherUid' in resource.data)
+            || resource.data.teacherUid == request.auth.uid);
+      allow delete: if false;
     }
 
     // SERVER-AGGREGATED TICKER STATS (Blaze plan, Oct 2026): the scheduled
