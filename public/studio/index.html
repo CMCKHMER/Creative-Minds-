@@ -949,7 +949,7 @@
       <input type="file" id="fileInput" accept="image/*" hidden>
       <input type="file" id="openInput" accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.json,.docx,.odt,.rtf,.txt,.md,.markdown,.html,.htm,.csv,.tsv,.xlsx,.js,.mjs,.ts,.py,.css,.java,.c,.cpp,.h,.cs,.php,.rb,.go,.rs,.swift,.kt,.sql,.sh,.bat,.ps1,.yml,.yaml,.xml,.ini,.toml,.log" hidden>
       <input type="file" id="sheetCsvInput" accept=".csv,.tsv,.txt,text/csv" hidden>
-      <input type="file" id="docImgInput" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+      <input type="file" id="docImgInput" accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/svg+xml,image/heic,image/heif,image/avif" hidden>
       <input type="file" id="docHtmlInput" accept=".html,.htm,.txt" hidden>
       <button class="icon-btn" id="undoBtn" title="Undo (Ctrl+Z)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 016 6v1"/></svg>
@@ -2665,14 +2665,8 @@ fileInput.onchange=e=>{
   // (inline, as a data URL so it survives project save/load and exports).
   // In every other area it is placed on the canvas as before.
   if (tool === 'doc') {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      docLayer.focus();
-      document.execCommand('insertHTML', false, '<img src="' + ev.target.result + '" class="doc-img" style="max-width:100%;height:auto;border-radius:4px;margin:6px 0" alt="Inserted image"><p><br></p>');
-      pushUndo('Insert image in document');
-      statusFlash('Image inserted into the document');
-    };
-    reader.readAsDataURL(f);
+    // One shared, engine-proof insert path (execCommand + Range fallback).
+    if (typeof fxDocInsertImageFile === 'function') fxDocInsertImageFile(f);
     e.target.value='';
     return;
   }
@@ -2688,6 +2682,7 @@ fileInput.onchange=e=>{
     // Switch to a generic "move" cursor so user knows they can drag
     preview.style.cursor='move';
   };
+  img.onerror=()=>statusFlash("This browser can't display that image format — try a JPG or PNG");
   img.src=URL.createObjectURL(f); e.target.value='';
 };
 
@@ -3411,7 +3406,18 @@ function filePrint(){
 function pasteTextIntoDoc(){
   // execCommand('paste') is blocked in modern browsers — use the async
   // Clipboard API, with a graceful hint when permission is denied.
-  if (navigator.clipboard && navigator.clipboard.readText) {
+  // Images on the clipboard are inserted as pictures (data URLs), not skipped.
+  if (navigator.clipboard && navigator.clipboard.read) {
+    navigator.clipboard.read().then(items => {
+      for (const it of (items || [])) {
+        const imgType = (it.types || []).find(t => /^image\//.test(t));
+        if (imgType) {
+          return it.getType(imgType).then(b => fxDocInsertImageFile(new File([b], 'pasted.' + imgType.split('/')[1].replace('jpeg','jpg'), { type: imgType })));
+        }
+      }
+      return navigator.clipboard.readText().then(txt => { if (txt) { document.execCommand('insertText', false, txt); statusFlash('Pasted into document'); } });
+    }).catch(() => statusFlash('Clipboard blocked — press Ctrl+V inside the document'));
+  } else if (navigator.clipboard && navigator.clipboard.readText) {
     navigator.clipboard.readText().then(txt => { if (txt) { document.execCommand('insertText', false, txt); statusFlash('Pasted into document'); } }).catch(() => statusFlash('Clipboard blocked — press Ctrl+V inside the document'));
   } else statusFlash('Press Ctrl+V inside the document to paste');
 }
@@ -5802,15 +5808,65 @@ function docInsertHR(){
   pushUndo('Horizontal rule');
   fxDocStats();
 }
-/* ── images: insert + click-to-select + floating toolbar ── */
+/* ── images: insert + click-to-select + floating toolbar ──
+   Engine-proof doc image insert: decode-check → downscale big photos →
+   execCommand at the caret → VERIFY it landed → Range-API fallback.
+   Safari/Firefox can silently no-op execCommand when a file dialog or a
+   toolbar click took the selection away — the fallback guarantees the
+   image still appears instead of "nothing happens". */
+function fxDocImgCount(){ return docLayer.querySelectorAll('img').length; }
+function fxDocInsertImgAtCaret(img){
+  let placed = false;
+  try {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount && docLayer.contains(sel.getRangeAt(0).startContainer)) {
+      const r = sel.getRangeAt(0);
+      r.deleteContents();
+      r.insertNode(img);
+      placed = docLayer.contains(img);
+    }
+  } catch (err) { placed = false; }
+  if (!placed) {
+    docLayer.appendChild(img);
+    const tail = document.createElement('p'); tail.innerHTML = '<br>';
+    img.after(tail);
+  }
+  img.draggable = false;
+  return docLayer.contains(img);
+}
 function fxDocInsertImageFile(file){
   const reader = new FileReader();
+  reader.onerror = () => statusFlash('Could not read that image file');
   reader.onload = ev => {
-    docLayer.focus();
-    document.execCommand('insertHTML', false, '<img src="' + ev.target.result + '" class="doc-img" alt="">');
-    pushUndo('Insert image');
-    fxDocStats();
-    statusFlash('Image inserted — click it to resize or align');
+    const raw = ev.target.result;
+    const probe = new Image();
+    probe.onerror = () => statusFlash("This browser can't display that image format (" + (file.type || 'unknown') + ') — try a JPG or PNG');
+    probe.onload = () => {
+      const finish = dataUrl => {
+        const before = fxDocImgCount();
+        let ok = false;
+        try { docLayer.focus(); ok = document.execCommand('insertHTML', false, '<img src="' + dataUrl + '" class="doc-img" alt="">'); } catch (err) { ok = false; }
+        if (!ok || fxDocImgCount() === before) {
+          const img = document.createElement('img');
+          img.src = dataUrl; img.className = 'doc-img'; img.alt = '';
+          fxDocInsertImgAtCaret(img);
+        }
+        pushUndo('Insert image');
+        fxDocStats();
+        scheduleAutoSave();
+        statusFlash('Image inserted — click it to resize or align');
+      };
+      // Big photos: shrink to max 1600px JPEG so autosave, saves and exports stay light.
+      const MAXPX = 1600, BIG = 400 * 1024;
+      if (file.size > BIG && (probe.naturalWidth > MAXPX || probe.naturalHeight > MAXPX) && /^(image\/jpeg|image\/png)$/.test(file.type)) {
+        const s = Math.min(MAXPX / probe.naturalWidth, MAXPX / probe.naturalHeight);
+        const c = document.createElement('canvas');
+        c.width = Math.round(probe.naturalWidth * s); c.height = Math.round(probe.naturalHeight * s);
+        c.getContext('2d').drawImage(probe, 0, 0, c.width, c.height);
+        finish(c.toDataURL('image/jpeg', 0.85));
+      } else finish(raw);
+    };
+    probe.src = raw;
   };
   reader.readAsDataURL(file);
 }
@@ -5854,6 +5910,30 @@ function fxDocClick(e){
   const img = e.target.closest ? e.target.closest('img') : null;
   if (img && docLayer.contains(img)) { fxDocSelectImg(img); return; }
   fxDocDeselectImg();
+}
+/* ── paste: screenshots & copied images go straight into the doc ──
+   Without this, a screenshot paste either does nothing (several engines)
+   or lands as a blob: URL that dies the next time the doc is saved/reopened. */
+docLayer.addEventListener('paste', function(e){
+  const cd = e.clipboardData; if (!cd) return;
+  let imgFile = null;
+  for (let i = 0; i < (cd.items ? cd.items.length : 0); i++) {
+    const it = cd.items[i];
+    if (it.kind === 'file' && /^image\//.test(it.type)) { const f = it.getAsFile(); if (f) { imgFile = f; break; } }
+  }
+  if (!imgFile && cd.files && cd.files.length && /^image\//.test(cd.files[0].type)) imgFile = cd.files[0];
+  if (imgFile) { e.preventDefault(); e.stopPropagation(); fxDocInsertImageFile(imgFile); return; }
+  setTimeout(fxHealDocImages, 60);
+});
+function fxHealDocImages(){
+  docLayer.querySelectorAll('img[src^="blob:"]').forEach(function(img){
+    fetch(img.src).then(function(r){ return r.blob(); }).then(function(b){
+      if (!/^image\//.test(b.type || '')) return;
+      const fr = new FileReader();
+      fr.onload = function(){ img.src = fr.result; scheduleAutoSave(); };
+      fr.readAsDataURL(b);
+    }).catch(function(){});
+  });
 }
 /* ── word / character count ── */
 function fxDocStats(){
@@ -8854,7 +8934,11 @@ try {
   stage.addEventListener('drop', function(e){
     if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
     e.preventDefault(); depth = 0; stage.classList.remove('fx-file-drag');
-    fxOpenAny(e.dataTransfer.files[0], null);
+    var f = e.dataTransfer.files[0];
+    // Dropping a picture while editing a document puts it IN the document —
+    // it used to hijack you to Canvas mode and open the picture there.
+    if (typeof tool !== 'undefined' && tool === 'doc' && /^image\//.test(f.type || '') && typeof fxDocInsertImageFile === 'function') { fxDocInsertImageFile(f); return; }
+    fxOpenAny(f, null);
   });
 })();
 })();
