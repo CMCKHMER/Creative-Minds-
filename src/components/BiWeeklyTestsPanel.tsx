@@ -45,6 +45,14 @@ const TEST_CATALOG: TestEntry[] = [
   { title: 'Week 5 · Grammar: Conditionals & Agreement', slug: 'week5-grammar.html', group: 'Weekly drills (earlier cohort)' },
   { title: 'Week 6 · Listening: Student Athletes', slug: 'week6-listening.html', group: 'Weekly drills (earlier cohort)' },
   { title: 'Week 7 · Reading: How We Name the Stars', slug: 'week7-reading.html', group: 'Weekly drills (earlier cohort)' },
+  // Level 9 weekly tests
+  { title: 'W3 · L9a Listening: Short Conversation Quiz', slug: '9a-w3-listening.html', group: 'Level 9 weekly tests' },
+  { title: 'W4 · L9a Grammar: Sentence Completion', slug: '9a-w4-grammar.html', group: 'Level 9 weekly tests' },
+  { title: 'W5 · L9a Reading: Main Ideas & Details', slug: '9a-w5-reading.html', group: 'Level 9 weekly tests' },
+  { title: 'W2 · L9b Grammar: Parallel Structure (B2)', slug: '9b-w2-grammar.html', group: 'Level 9 weekly tests' },
+  { title: 'W3 · L9b Listening: Inference & Attitude', slug: '9b-w3-listening.html', group: 'Level 9 weekly tests' },
+  { title: 'W4 · L9b Reading: Inference Questions', slug: '9b-w4-reading.html', group: 'Level 9 weekly tests' },
+  { title: 'W5 · L9b Grammar: Modifiers & Connectors', slug: '9b-w5-grammar.html', group: 'Level 9 weekly tests' },
   // Skills drills
   { title: 'Level 9b Grammar', slug: 'grammar.html', group: 'Skills drills' },
   { title: 'Level 11b Written Expressions', slug: 'structure.html', group: 'Skills drills' },
