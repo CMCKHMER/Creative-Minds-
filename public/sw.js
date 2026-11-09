@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v16'; // v16: Studio Docs autosave with an on/off toggle (toolbar + File menu, fast doc snapshots, remembered per device); v15 Studio popup/MyBar/dark-mode; v14 Real-time Dashboard video hero + last-5 completed lists
+const CACHE_VERSION = 'cmc-v17'; // v17: Studio opens real files — File ▸ Open + drag-drop route .docx/.odt/.rtf/.md to Docs, .xlsx (multi-tab)/.csv/.tsv to Excel, .js/.py/.css/.json etc. to Code, images to Canvas (zip parsing in-browser, no deps); v16: Studio Docs autosave with an on/off toggle (toolbar + File menu, fast doc snapshots, remembered per device); v15 Studio popup/MyBar/dark-mode; v14 Real-time Dashboard video hero + last-5 completed lists
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

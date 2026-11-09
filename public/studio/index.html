@@ -554,7 +554,10 @@
       <img src="../icons/favicon-64.png" alt="" style="width:15px;height:15px;object-fit:contain;vertical-align:-3px;margin-right:6px"><b>CREATIVE MINDS</b>File
       <div class="menu-dropdown">
         <div class="menu-item" data-action="file-new"><span>New Project</span><span class="kbd">Ctrl+N</span></div>
-        <div class="menu-item" data-action="file-open"><span>Open… (PNG, JPG, JSON)</span><span class="kbd">Ctrl+O</span></div>
+        <div class="menu-item" data-action="file-open"><span>Open… (Docs, Excel, Code, images — any file)</span><span class="kbd">Ctrl+O</span></div>
+        <div class="menu-item" data-action="file-open-doc"><span>Open Document… (.docx, .odt, .rtf, .txt, .md, .html)</span></div>
+        <div class="menu-item" data-action="file-open-sheet"><span>Open Spreadsheet… (.xlsx, .csv, .tsv)</span></div>
+        <div class="menu-item" data-action="file-open-code"><span>Open Code File… (.js, .py, .css, .json…)</span></div>
         <div class="menu-sep"></div>
         <div class="menu-item" data-action="file-save-png"><span>Save as PNG</span><span class="kbd">Ctrl+S</span></div>
         <div class="menu-item" data-action="file-save-jpg"><span>Save as JPG</span></div>
@@ -930,7 +933,7 @@
     <div class="top-actions">
       <button class="btn-ghost" id="importBtn">+ Image</button>
       <input type="file" id="fileInput" accept="image/*" hidden>
-      <input type="file" id="openInput" accept="image/png,image/jpeg,application/json,.json" hidden>
+      <input type="file" id="openInput" accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.json,.docx,.odt,.rtf,.txt,.md,.markdown,.html,.htm,.csv,.tsv,.xlsx,.js,.mjs,.ts,.py,.css,.java,.c,.cpp,.h,.cs,.php,.rb,.go,.rs,.swift,.kt,.sql,.sh,.bat,.ps1,.yml,.yaml,.xml,.ini,.toml,.log" hidden>
       <input type="file" id="sheetCsvInput" accept=".csv,.tsv,.txt,text/csv" hidden>
       <input type="file" id="docImgInput" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
       <input type="file" id="docHtmlInput" accept=".html,.htm,.txt" hidden>
@@ -8073,6 +8076,568 @@ window.__cmcLiveState = live;
 })();
 })();
 /* ═══ end CMC-STUDIO-LIVE ═══ */
+</script>
+
+<script>
+/* ═══════════════ CMC-STUDIO-OPEN · open any file into the right editor ═══════════════
+   File ▸ Open (Ctrl+O) and files dropped onto the working area now route by type:
+   • .docx .odt .rtf .txt .md .html  → Docs (converted to editable rich text)
+   • .xlsx (multi-sheet) .csv .tsv   → Excel
+   • .js .py .css .json .html …      → Code (language picked from the extension)
+   • .png .jpg .gif .webp .svg …     → Canvas
+   • studio project .json            → whole project
+   Zero dependencies: .docx/.xlsx/.odt are ZIP packages, unpacked in the browser
+   with DecompressionStream — no libraries needed, works offline. */
+(function(){
+'use strict';
+
+/* ── helpers ── */
+function fxExt(name){ var m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
+function fxDecode(u8){ try { return new TextDecoder('utf-8').decode(u8); } catch (e) { return ''; } }
+function fxXml(u8){ return new DOMParser().parseFromString(fxDecode(u8), 'application/xml'); }
+function fxPad2(n){ return (n < 10 ? '0' : '') + n; }
+function fxTextLinesToHtml(text){
+  var lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+  return lines.map(function(l){ return '<p>' + (l ? escapeHtml(l) : '<br>') + '</p>'; }).join('');
+}
+
+/* ── 1. Mini ZIP reader (stored + deflate) — for .docx / .xlsx / .odt ── */
+async function fxZipRead(buf){
+  var u8 = new Uint8Array(buf), dv = new DataView(buf), i, eocd = -1;
+  for (i = u8.length - 22; i >= Math.max(0, u8.length - 22 - 65536); i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('not a valid Office/OpenDocument package');
+  var count = dv.getUint16(eocd + 10, true), ptr = dv.getUint32(eocd + 16, true), out = {};
+  for (var n = 0; n < count; n++) {
+    if (ptr + 46 > u8.length || dv.getUint32(ptr, true) !== 0x02014b50) break;
+    var method = dv.getUint16(ptr + 10, true), csize = dv.getUint32(ptr + 20, true),
+        nameLen = dv.getUint16(ptr + 28, true), extraLen = dv.getUint16(ptr + 30, true),
+        cmtLen = dv.getUint16(ptr + 32, true), lho = dv.getUint32(ptr + 42, true),
+        name = fxDecode(u8.subarray(ptr + 46, ptr + 46 + nameLen));
+    if (lho + 30 <= u8.length) {
+      var lNameLen = dv.getUint16(lho + 26, true), lExtraLen = dv.getUint16(lho + 28, true),
+          start = lho + 30 + lNameLen + lExtraLen;
+      if (start + csize <= u8.length) out[name] = { method: method, data: u8.subarray(start, start + csize) };
+    }
+    ptr += 46 + nameLen + extraLen + cmtLen;
+  }
+  return out;
+}
+async function fxZipInflate(ent){
+  if (!ent) throw new Error('required file part is missing');
+  if (ent.method === 0) return ent.data;
+  if (ent.method !== 8) throw new Error('unsupported ZIP compression method ' + ent.method);
+  if (typeof DecompressionStream === 'undefined') throw new Error('this browser cannot unzip Office files — use Chrome, Edge, Firefox 113+ or Safari 16.4+');
+  var ds = new DecompressionStream('deflate-raw');
+  var ab = await new Response(new Blob([ent.data]).stream().pipeThrough(ds)).arrayBuffer();
+  return new Uint8Array(ab);
+}
+
+/* ── 2. Markdown → HTML ── */
+function fxMdInline(s){
+  return escapeHtml(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*\*([^*]+)\*\*\*/g, '<b><i>$1</i></b>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/\*([^*]+)\*/g, '<i>$1</i>')
+    .replace(/(^|[\s(])_([^_]+)_(?=[\s.,)!?]|$)/g, '$1<i>$2</i>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function(_, txt, url){ return '<a href="' + url + '" target="_blank" rel="noopener">' + txt + '</a>'; });
+}
+function fxMdToHtml(md){
+  var lines = String(md).replace(/\r\n?/g, '\n').split('\n'), out = [], i = 0, listType = null;
+  function closeList(){ if (listType) { out.push('</' + listType + '>'); listType = null; } }
+  while (i < lines.length) {
+    var line = lines[i];
+    if (/^```/.test(line)) {
+      closeList(); var buf = []; i++;
+      while (i < lines.length && !/^```/.test(lines[i])) { buf.push(lines[i]); i++; }
+      i++; out.push('<pre>' + escapeHtml(buf.join('\n')) + '</pre>'); continue;
+    }
+    var h = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (h) { closeList(); out.push('<h' + h[1].length + '>' + fxMdInline(h[2]) + '</h' + h[1].length + '>'); i++; continue; }
+    if (/^\s*([-*_])\s*\1\s*\1[\s\1]*$/.test(line)) { closeList(); out.push('<hr>'); i++; continue; }
+    if (/^\s*>\s?/.test(line)) {
+      closeList(); var q = [];
+      while (i < lines.length && /^\s*>\s?/.test(lines[i])) { q.push(lines[i].replace(/^\s*>\s?/, '')); i++; }
+      out.push('<blockquote>' + fxMdInline(q.join(' ')) + '</blockquote>'); continue;
+    }
+    var ul = /^\s*[-*+]\s+(.*)$/.exec(line), ol = /^\s*\d+[.)]\s+(.*)$/.exec(line);
+    if (ul || ol) {
+      var want = ul ? 'ul' : 'ol';
+      if (listType !== want) { closeList(); out.push('<' + want + '>'); listType = want; }
+      out.push('<li>' + fxMdInline(ul ? ul[1] : ol[1]) + '</li>'); i++; continue;
+    }
+    closeList();
+    if (!line.trim()) { i++; continue; }
+    var para = [line]; i++;
+    while (i < lines.length && lines[i].trim() && !/^(#{1,6})\s|^```|^\s*[-*+]\s|^\s*\d+[.)]\s|^\s*>/.test(lines[i])) { para.push(lines[i]); i++; }
+    out.push('<p>' + fxMdInline(para.join(' ')) + '</p>');
+  }
+  closeList();
+  return out.join('') || '<p><br></p>';
+}
+
+/* ── 3. RTF → plain text (control words stripped, unicode kept) ── */
+function fxRtfToText(rtf){
+  var out = '', i = 0, n = rtf.length, skip = 0;
+  while (i < n) {
+    var ch = rtf[i];
+    if (ch === '{') {
+      if (skip > 0 || /^\\(\*|fonttbl|colortbl|stylesheet|info|pict|header|footer|listtable|listoverridetable|latentstyles|datastore|themedata|colorschememapping|generator|rsidtbl|object)/i.test(rtf.slice(i + 1, i + 40))) skip++;
+      i++; continue;
+    }
+    if (ch === '}') { if (skip > 0) skip--; i++; continue; }
+    if (skip > 0) { i++; continue; }
+    if (ch === '\\') {
+      if (rtf[i + 1] === '\\') { out += '\\'; i += 2; continue; }
+      if (rtf[i + 1] === '{') { out += '{'; i += 2; continue; }
+      if (rtf[i + 1] === '}') { out += '}'; i += 2; continue; }
+      var hex = /^\\'([0-9a-f]{2})/i.exec(rtf.slice(i));
+      if (hex) { out += String.fromCharCode(parseInt(hex[1], 16)); i += 4; continue; }
+      var m = /^\\([a-zA-Z]+)(-?\d+)? ?/.exec(rtf.slice(i));
+      if (m) {
+        var word = m[1];
+        if (word === 'par' || word === 'line') out += '\n';
+        else if (word === 'tab') out += '\t';
+        else if (word === 'u') {
+          var c = parseInt(m[2], 10); if (isNaN(c)) c = 63;
+          if (c < 0) c += 65536;
+          out += String.fromCharCode(c);
+          i += m[0].length + 1; // skip the \uc1 fallback char
+          continue;
+        }
+        i += m[0].length; continue;
+      }
+      if (rtf[i + 1] === '*' || rtf[i + 1] === '~' || rtf[i + 1] === '\n' || rtf[i + 1] === '\r') { i += (rtf[i + 1] === '~' ? 2 : 1); if (rtf[i - 1] === '~') out += ' '; continue; }
+      if (rtf[i + 1] === '~') { out += ' '; i += 2; continue; }
+      i += 2; continue;
+    }
+    if (ch === '\n' || ch === '\r') { i++; continue; }
+    out += ch; i++;
+  }
+  return out.replace(/[ \t]+\n/g, '\n');
+}
+
+/* ── 4. .docx → HTML ── */
+function fxWValOff(node){ var v = node.getAttribute('w:val'); return v === '0' || v === 'false' || v === 'off' || v === 'none'; }
+function fxWRunsToHtml(p){
+  var runs = p.getElementsByTagName('w:r'), out = '';
+  for (var i = 0; i < runs.length; i++) {
+    var r = runs[i], bold = false, ital = false, under = false, text = '';
+    var rprs = r.getElementsByTagName('w:rPr');
+    if (rprs.length) {
+      var bs = rprs[0].getElementsByTagName('w:b');
+      bold = bs.length > 0 && !fxWValOff(bs[0]);
+      var isl = rprs[0].getElementsByTagName('w:i');
+      ital = isl.length > 0 && !fxWValOff(isl[0]);
+      var us = rprs[0].getElementsByTagName('w:u');
+      under = us.length > 0 && !fxWValOff(us[0]);
+    }
+    var kids = r.children;
+    for (var k = 0; k < kids.length; k++) {
+      var nn = kids[k].nodeName;
+      if (nn === 'w:t') text += kids[k].textContent;
+      else if (nn === 'w:tab') text += '\u2003';
+      else if (nn === 'w:br' || nn === 'w:cr') text += '\n';
+    }
+    if (!text) continue;
+    var esc = escapeHtml(text).replace(/\n/g, '<br>');
+    if (bold) esc = '<b>' + esc + '</b>';
+    if (ital) esc = '<i>' + esc + '</i>';
+    if (under) esc = '<u>' + esc + '</u>';
+    out += esc;
+  }
+  return out;
+}
+function fxWParaInfo(p){
+  var tag = 'p', list = false;
+  var prs = p.getElementsByTagName('w:pPr');
+  if (prs.length) {
+    var pr = prs[0];
+    var sts = pr.getElementsByTagName('w:pStyle');
+    if (sts.length) {
+      var v = (sts[0].getAttribute('w:val') || '').toLowerCase().replace(/[\s_]+/g, '');
+      if (v === 'title' || v === 'heading1') tag = 'h1';
+      else if (v === 'heading2' || v === 'subtitle') tag = 'h2';
+      else if (v === 'heading3') tag = 'h3';
+      else if (v === 'heading4' || v === 'heading5' || v === 'heading6') tag = 'h4';
+      else if (v === 'quote' || v === 'intensequote') tag = 'blockquote';
+    }
+    list = pr.getElementsByTagName('w:numPr').length > 0;
+  }
+  return { tag: tag, list: list };
+}
+function fxWTableToHtml(tbl){
+  var rows = tbl.getElementsByTagName('w:tr'), out = '<table style="border-collapse:collapse;width:100%">';
+  for (var r = 0; r < rows.length; r++) {
+    var row = rows[r], trPr = row.getElementsByTagName('w:trPr');
+    var isHdrRow = trPr.length > 0 && trPr[0].getElementsByTagName('w:tblHeader').length > 0;
+    out += '<tr>';
+    var cells = row.children;
+    for (var c = 0; c < cells.length; c++) {
+      if (cells[c].nodeName !== 'w:tc') continue;
+      var ps = cells[c].getElementsByTagName('w:p'), txt = '';
+      for (var p = 0; p < ps.length; p++) { var t = fxWRunsToHtml(ps[p]); if (t) txt += (txt ? '<br>' : '') + t; }
+      var cellTag = isHdrRow ? 'th' : 'td';
+      out += '<' + cellTag + ' style="border:1px solid #ccc;padding:6px 10px;' + (isHdrRow ? 'background:#f0f0f0;font-weight:600;text-align:left;' : '') + '">' + (txt || '&nbsp;') + '</' + cellTag + '>';
+    }
+    out += '</tr>';
+  }
+  return out + '</table><p><br></p>';
+}
+async function fxDocxToHtml(zip){
+  if (!zip || !zip['word/document.xml']) throw new Error('not a .docx file (word/document.xml missing)');
+  var doc = fxXml(await fxZipInflate(zip['word/document.xml']));
+  var body = doc.getElementsByTagName('w:body')[0];
+  if (!body) throw new Error('document body missing');
+  var html = '', listOpen = false;
+  function closeList(){ if (listOpen) { html += '</ul>'; listOpen = false; } }
+  var nodes = body.childNodes;
+  for (var i = 0; i < nodes.length; i++) {
+    var el = nodes[i];
+    if (el.nodeName === 'w:p') {
+      var info = fxWParaInfo(el), inner = fxWRunsToHtml(el);
+      if (info.list) {
+        if (!listOpen) { html += '<ul>'; listOpen = true; }
+        html += '<li>' + (inner || '&nbsp;') + '</li>';
+      } else {
+        closeList();
+        html += inner ? '<' + info.tag + '>' + inner + '</' + info.tag + '>' : '<p><br></p>';
+      }
+    } else if (el.nodeName === 'w:tbl') {
+      closeList();
+      html += fxWTableToHtml(el);
+    }
+  }
+  closeList();
+  return html || '<p><br></p>';
+}
+
+/* ── 5. .odt → HTML ── */
+async function fxOdtToHtml(buf){
+  var zip = await fxZipRead(buf);
+  if (!zip['content.xml']) throw new Error('not an .odt file (content.xml missing)');
+  var doc = fxXml(await fxZipInflate(zip['content.xml']));
+  var body = doc.getElementsByTagName('office:text')[0];
+  if (!body) throw new Error('document body missing');
+  var cellCss = 'border:1px solid #ccc;padding:6px 10px;';
+  function blocks(root){
+    var html = '', kids = root.childNodes;
+    for (var i = 0; i < kids.length; i++) {
+      var el = kids[i], nn = el.nodeName;
+      if (nn === 'text:h' || nn === 'text:p') {
+        var lvl = parseInt(el.getAttribute('text:outline-level') || '1', 10);
+        var tag = nn === 'text:h' ? 'h' + Math.min(6, Math.max(1, lvl)) : 'p';
+        var txt = el.textContent;
+        html += '<' + tag + '>' + (txt ? escapeHtml(txt) : '<br>') + '</' + tag + '>';
+      } else if (nn === 'text:list') {
+        html += '<ul>';
+        var items = el.getElementsByTagName('text:list-item');
+        for (var it = 0; it < items.length; it++) html += '<li>' + escapeHtml(items[it].textContent) + '</li>';
+        html += '</ul>';
+      } else if (nn === 'table:table') {
+        var rows = el.getElementsByTagName('table:table-row');
+        html += '<table style="border-collapse:collapse;width:100%">';
+        for (var r = 0; r < rows.length; r++) {
+          var cells = rows[r].getElementsByTagName('table:table-cell'), hdr = r === 0;
+          html += '<tr>';
+          for (var c = 0; c < cells.length; c++) {
+            var ct = hdr ? 'th' : 'td';
+            html += '<' + ct + ' style="' + cellCss + (hdr ? 'background:#f0f0f0;font-weight:600;text-align:left;' : '') + '">' + escapeHtml(cells[c].textContent) + '</' + ct + '>';
+          }
+          html += '</tr>';
+        }
+        html += '</table><p><br></p>';
+      } else if (nn === 'text:section') {
+        html += blocks(el);
+      }
+    }
+    return html;
+  }
+  return blocks(body) || '<p><br></p>';
+}
+
+/* ── 6. .xlsx → studio sheets (multi-tab, shared strings, dates) ── */
+function fxXlsColIdx(ref){
+  var n = 0, i = 0;
+  for (; i < ref.length; i++) { var c = ref.charCodeAt(i); if (c >= 65 && c <= 90) n = n * 26 + (c - 64); else break; }
+  return n - 1;
+}
+function fxXlsIsDateFmt(id, custom){
+  id = parseInt(id, 10); if (isNaN(id)) return false;
+  if ((id >= 14 && id <= 22) || (id >= 27 && id <= 36) || (id >= 45 && id <= 47) || (id >= 50 && id <= 58)) return true;
+  var f = custom[id];
+  return !!f && /[ymdhs]/i.test(f) && !/[#0]/.test(f.replace(/\[[^\]]*\]/g, ''));
+}
+function fxXlsSerialToText(n){
+  var neg = n < 0, a = Math.abs(n), days = Math.floor(a), frac = a - days, sign = neg ? '-' : '';
+  var datePart = function(d){ return d.getUTCFullYear() + '-' + fxPad2(d.getUTCMonth() + 1) + '-' + fxPad2(d.getUTCDate()); };
+  var timePart = function(f){ var tot = Math.round(f * 86400); return fxPad2(Math.floor(tot / 3600)) + ':' + fxPad2(Math.floor(tot % 3600 / 60)) + ':' + fxPad2(tot % 60); };
+  if (days === 0) return sign + timePart(frac);
+  var d = new Date(Math.round((days - 25569) * 86400000));
+  if (frac < 1e-6) return sign + datePart(d);
+  return sign + datePart(d) + ' ' + timePart(frac);
+}
+async function fxXlsxToSheets(buf){
+  var zip = await fxZipRead(buf);
+  if (!zip['xl/workbook.xml']) throw new Error('not an .xlsx file (xl/workbook.xml missing)');
+  var wb = fxXml(await fxZipInflate(zip['xl/workbook.xml']));
+  var relMap = {};
+  if (zip['xl/_rels/workbook.xml.rels']) {
+    var rels = fxXml(await fxZipInflate(zip['xl/_rels/workbook.xml.rels']));
+    Array.prototype.forEach.call(rels.getElementsByTagName('Relationship'), function(r){ relMap[r.getAttribute('Id')] = r.getAttribute('Target') || ''; });
+  }
+  var shared = [];
+  if (zip['xl/sharedStrings.xml']) {
+    var ss = fxXml(await fxZipInflate(zip['xl/sharedStrings.xml']));
+    Array.prototype.forEach.call(ss.getElementsByTagName('si'), function(si){
+      var t = '', nodes = si.getElementsByTagName('t');
+      for (var i = 0; i < nodes.length; i++) t += nodes[i].textContent;
+      shared.push(t);
+    });
+  }
+  var customFmt = {}, xfFmt = [];
+  if (zip['xl/styles.xml']) {
+    var st = fxXml(await fxZipInflate(zip['xl/styles.xml']));
+    Array.prototype.forEach.call(st.getElementsByTagName('numFmt'), function(nf){ customFmt[nf.getAttribute('numFmtId')] = nf.getAttribute('formatCode') || ''; });
+    var xfs = st.getElementsByTagName('cellXfs');
+    if (xfs.length) Array.prototype.forEach.call(xfs[0].getElementsByTagName('xf'), function(xf){ xfFmt.push(parseInt(xf.getAttribute('numFmtId') || '0', 10)); });
+  }
+  var out = [], sheetNodes = wb.getElementsByTagName('sheet');
+  for (var s = 0; s < sheetNodes.length; s++) {
+    var name = (sheetNodes[s].getAttribute('name') || ('Sheet' + (s + 1))).slice(0, 31);
+    var rid = sheetNodes[s].getAttribute('r:id') || sheetNodes[s].getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || '';
+    var target = relMap[rid] || ''; if (!target) continue;
+    var path = String(target).replace(/^\/+/, '');
+    if (path.indexOf('xl/') !== 0) path = 'xl/' + path;
+    if (!zip[path]) continue;
+    var sx = fxXml(await fxZipInflate(zip[path]));
+    var grid = [], width = 0;
+    Array.prototype.forEach.call(sx.getElementsByTagName('row'), function(row){
+      var ri = row.getAttribute('r') ? parseInt(row.getAttribute('r'), 10) - 1 : grid.length;
+      Array.prototype.forEach.call(row.getElementsByTagName('c'), function(c){
+        var refA = c.getAttribute('r') || '', ci = refA ? fxXlsColIdx(refA) : -1;
+        if (ci < 0) return;
+        var t = c.getAttribute('t') || 'n', vNode = c.getElementsByTagName('v')[0], val = '';
+        if (t === 's') val = vNode ? (shared[parseInt(vNode.textContent, 10)] || '') : '';
+        else if (t === 'inlineStr') { var ts = c.getElementsByTagName('t'), tt = ''; for (var k = 0; k < ts.length; k++) tt += ts[k].textContent; val = tt; }
+        else if (t === 'b') val = vNode && vNode.textContent === '1' ? 'TRUE' : 'FALSE';
+        else if (t === 'e') val = '';
+        else if (vNode) {
+          var raw = vNode.textContent, num = parseFloat(raw);
+          var sIdx = parseInt(c.getAttribute('s') || '-1', 10);
+          if (!isNaN(num) && sIdx >= 0 && fxXlsIsDateFmt(xfFmt[sIdx], customFmt) && num > 0) val = fxXlsSerialToText(num);
+          else val = raw;
+        }
+        if (val === '' || val === undefined || val === null) return;
+        while (grid.length <= ri) grid.push([]);
+        grid[ri][ci] = String(val);
+        if (ci + 1 > width) width = ci + 1;
+      });
+    });
+    out.push({ name: name, rows: grid, width: Math.max(width, 1) });
+  }
+  if (!out.length) throw new Error('no readable sheets found');
+  return out;
+}
+
+/* ── 7. Routing table ── */
+var FX_CODE_LANGS = { js: 'javascript', mjs: 'javascript', ts: 'javascript', jsx: 'javascript', tsx: 'javascript', py: 'python', css: 'css', json: 'json', html: 'html', htm: 'html', md: 'markdown', markdown: 'markdown' };
+var FX_PLAIN_CODE = 'java,c,cpp,h,hpp,cs,php,rb,go,rs,swift,kt,sql,sh,bash,bat,ps1,yml,yaml,xml,ini,toml,log'.split(',');
+var FX_IMAGE_EXTS = 'png,jpg,jpeg,gif,webp,bmp,ico,svg,tif,tiff'.split(',');
+var FX_DOC_EXTS = 'docx,odt,rtf,txt,md,markdown,html,htm'.split(',');
+var FX_SHEET_EXTS = 'xlsx,csv,tsv'.split(',');
+function fxRouteFor(name, force){
+  var ext = fxExt(name);
+  if (force === 'doc') return FX_DOC_EXTS.indexOf(ext) >= 0 ? 'doc' : 'nope-doc';
+  if (force === 'sheet') return FX_SHEET_EXTS.indexOf(ext) >= 0 ? 'sheet' : 'nope-sheet';
+  if (force === 'code') return 'code';
+  if (ext === 'json') return currentMode() === 'code' ? 'code' : 'project';
+  if (ext === 'doc' || ext === 'xls') return 'legacy';
+  if (FX_IMAGE_EXTS.indexOf(ext) >= 0) return 'image';
+  if (ext === 'docx' || ext === 'odt' || ext === 'rtf') return 'doc';
+  if (ext === 'md' || ext === 'markdown' || ext === 'txt' || ext === 'html' || ext === 'htm') return currentMode() === 'code' ? 'code' : 'doc';
+  if (ext === 'xlsx' || ext === 'csv' || ext === 'tsv') return 'sheet';
+  if (FX_CODE_LANGS[ext] || FX_PLAIN_CODE.indexOf(ext) >= 0) return 'code';
+  return 'unknown';
+}
+
+/* ── 8. Importers per route ── */
+async function fxOpenDocFile(file){
+  var ext = fxExt(file.name);
+  try {
+    var html = '';
+    if (ext === 'docx') html = await fxDocxToHtml(await fxZipRead(await file.arrayBuffer()));
+    else if (ext === 'odt') html = await fxOdtToHtml(await file.arrayBuffer());
+    else if (ext === 'rtf') html = fxTextLinesToHtml(fxRtfToText(await file.text()));
+    else if (ext === 'md' || ext === 'markdown') html = fxMdToHtml(await file.text());
+    else if (ext === 'txt') html = fxTextLinesToHtml(await file.text());
+    else {
+      var doc = new DOMParser().parseFromString(await file.text(), 'text/html');
+      doc.querySelectorAll('script').forEach(function(s){ s.remove(); });
+      html = doc.body ? doc.body.innerHTML : '<p><br></p>';
+    }
+    if (!confirm('Open "' + file.name + '" as a document? The current document will be replaced.')) return;
+    docLayer.innerHTML = html;
+    try { fxDocDeselectImg(); } catch (e) {}
+    fxDocStats(); scheduleAutoSave();
+    filename.textContent = file.name.replace(/\.[^.]+$/, '');
+    selectTool('doc');
+    statusFlash('Opened ' + file.name + ' in Docs');
+  } catch (err) { alert('Could not open "' + file.name + '": ' + err.message); }
+}
+async function fxOpenXlsxFile(file){
+  try {
+    var parsed = await fxXlsxToSheets(await file.arrayBuffer());
+    var names = parsed.map(function(p){ return p.name; }).join(', ');
+    if (!confirm('Open "' + file.name + '" — ' + parsed.length + ' sheet' + (parsed.length > 1 ? 's' : '') + ' (' + names + ')? This replaces the current workbook.')) return;
+    sheetSnapshotPush();
+    var seen = {};
+    sheets = parsed.map(function(p, idx){
+      var nm = p.name || ('Sheet' + (idx + 1));
+      if (seen[nm]) nm = nm.slice(0, 28) + '-' + (idx + 1);
+      seen[nm] = true;
+      var sh = { name: nm, rows: Math.max(30, p.rows.length + 5), cols: Math.max(12, p.width), cells: {} };
+      p.rows.forEach(function(r, ri){ r.forEach(function(v, ci){ if (v === '' || v === undefined) return; sh.cells[cellKey(ri, ci)] = { v: v }; }); });
+      return sh;
+    });
+    currentSheet = 0; fxRange = null; selectedCell = { row: 0, col: 0 };
+    try { colWidths = {}; rowHeights = {}; freezeRows = 0; freezeCols = 0; } catch (e) {}
+    filename.textContent = file.name.replace(/\.xlsx$/i, '');
+    renderSheet(); renderSheetTabs(); scheduleAutoSave();
+    selectTool('sheet');
+    statusFlash('Opened ' + file.name + ' — ' + parsed.length + ' sheet' + (parsed.length > 1 ? 's' : ''));
+  } catch (err) { alert('Could not open "' + file.name + '": ' + err.message); }
+}
+async function fxOpenSheetFile(file){
+  var ext = fxExt(file.name);
+  if (ext === 'xlsx') { fxOpenXlsxFile(file); return; }
+  try {
+    var rows = fxParseDelimited(await file.text());
+    if (!rows.length) { statusFlash('That file looks empty'); return; }
+    if (!confirm('Open "' + file.name + '" — ' + rows.length + ' rows into "' + sheets[currentSheet].name + '"? The current sheet contents will be replaced.')) return;
+    sheetSnapshotPush();
+    var sh = sheets[currentSheet];
+    sh.cells = {};
+    sh.rows = Math.max(30, rows.length);
+    sh.cols = Math.max(12, Math.max.apply(null, rows.map(function(r){ return r.length; })));
+    rows.forEach(function(cols, r){ cols.forEach(function(val, c){ if (val === '') return; var cell = fxEnsureCell(r, c); cell.v = val; delete cell.style; }); });
+    fxRange = null; selectedCell = { row: 0, col: 0 };
+    filename.textContent = file.name.replace(/\.[^.]+$/, '');
+    renderSheet(); renderSheetTabs(); scheduleAutoSave();
+    selectTool('sheet');
+    statusFlash('Opened ' + file.name + ' — ' + rows.length + ' rows');
+  } catch (err) { alert('Could not open "' + file.name + '": ' + err.message); }
+}
+async function fxOpenCodeFile(file, asPlain){
+  var ext = fxExt(file.name);
+  var lang = (!asPlain && FX_CODE_LANGS[ext]) ? FX_CODE_LANGS[ext] : 'plaintext';
+  try {
+    var text = await file.text();
+    if (text.length > 2 * 1024 * 1024) { alert('That file is too large for the code editor (2 MB limit).'); return; }
+    if (typeof setCodeLangQuick === 'function') setCodeLangQuick(lang);
+    else { codeLangSelect.value = lang; updateCodeLang(); }
+    codeEditor.value = text;
+    codeSync(); scheduleAutoSave();
+    filename.textContent = file.name.replace(/\.[^.]+$/, '');
+    selectTool('code');
+    statusFlash('Opened ' + file.name + ' in Code (' + lang + ')');
+  } catch (err) { alert('Could not open "' + file.name + '": ' + err.message); }
+}
+function fxOpenImageFile(file){
+  var img = new Image();
+  img.onload = function(){
+    initLayers(); setCanvasSize(img.width, img.height);
+    activeCtx().drawImage(img, 0, 0); composite(); renderLayerList();
+    texts = []; selected = -1; renderTexts();
+    undoStack = []; redoStack = []; updateHistoryUI(); renderHistoryList();
+    filename.textContent = file.name.replace(/\.[^.]+$/, '');
+    statusFlash('Opened ' + file.name + ' on the canvas');
+  };
+  img.onerror = function(){ alert('Could not open that image: ' + file.name); };
+  img.src = URL.createObjectURL(file);
+}
+async function fxOpenProjectFile(file){
+  try {
+    loadProject(JSON.parse(await file.text()));
+    filename.textContent = file.name.replace(/\.json$/i, '');
+    statusFlash('Project opened: ' + file.name);
+  } catch (err) { alert('Could not open project: ' + err.message); }
+}
+async function fxOpenAny(file, force){
+  var ext = fxExt(file.name);
+  var route = fxRouteFor(file.name, force);
+  if (route === 'nope-doc') { alert('Studio can open these as documents: .docx, .odt, .rtf, .txt, .md, .html'); return; }
+  if (route === 'nope-sheet') { alert('Studio can open these as spreadsheets: .xlsx, .csv, .tsv'); return; }
+  if (route === 'legacy') { alert('.' + ext.toUpperCase() + ' is the old Word/Excel format — please re-save the file as .docx / .xlsx (or .csv) and open it again.'); return; }
+  if (route === 'unknown') {
+    try {
+      if (file.size > 8 * 1024 * 1024) throw new Error('too large');
+      var text = await file.text();
+      if (/[\u0000-\u0008\u000e-\u001f]/.test(text.slice(0, 4096))) throw new Error('binary');
+      return fxOpenCodeFile(file, true);
+    } catch (err) {
+      alert('Studio can open: documents (.docx .odt .rtf .txt .md .html), spreadsheets (.xlsx .csv .tsv), code (.js .py .css .json …), images and project files — but not "' + (ext ? '.' + ext : 'that') + '" files.');
+      return;
+    }
+  }
+  if (route === 'project') return fxOpenProjectFile(file);
+  if (route === 'image') return fxOpenImageFile(file);
+  if (route === 'doc') return fxOpenDocFile(file);
+  if (route === 'sheet') return fxOpenSheetFile(file);
+  if (route === 'code') return fxOpenCodeFile(file);
+}
+
+/* ── 9. Pickers, actions, Ctrl+O ── */
+var FX_ACCEPT_ALL = '.png,.jpg,.jpeg,.gif,.webp,.bmp,.svg,.json,.docx,.odt,.rtf,.txt,.md,.markdown,.html,.htm,.csv,.tsv,.xlsx,.js,.mjs,.ts,.py,.css,.java,.c,.cpp,.h,.cs,.php,.rb,.go,.rs,.swift,.kt,.sql,.sh,.bat,.ps1,.yml,.yaml,.xml,.ini,.toml,.log';
+var fxOpenRoute = null;
+function fxPickOpen(accept, route){
+  fxOpenRoute = route || null;
+  try { openInput.setAttribute('accept', accept || FX_ACCEPT_ALL); } catch (e) {}
+  openInput.click();
+}
+function fileOpenSmart(){ fxPickOpen(FX_ACCEPT_ALL, null); }
+function fileOpenDocPick(){ fxPickOpen('.docx,.odt,.rtf,.txt,.md,.markdown,.html,.htm', 'doc'); }
+function fileOpenSheetPick(){ fxPickOpen('.xlsx,.csv,.tsv', 'sheet'); }
+function fileOpenCodePick(){ fxPickOpen('.js,.mjs,.ts,.py,.css,.json,.html,.htm,.md,.markdown,.txt,.java,.c,.cpp,.cs,.php,.rb,.go,.rs,.swift,.kt,.sql,.sh,.bat,.ps1,.yml,.yaml,.xml,.ini,.toml,.log', 'code'); }
+openInput.onchange = function(e){
+  var f = e.target.files[0], route = fxOpenRoute;
+  fxOpenRoute = null;
+  try { openInput.setAttribute('accept', FX_ACCEPT_ALL); } catch (err) {}
+  e.target.value = '';
+  if (f) fxOpenAny(f, route);
+};
+try {
+  ACTIONS['file-open'] = fileOpenSmart;
+  ACTIONS['file-open-doc'] = fileOpenDocPick;
+  ACTIONS['file-open-sheet'] = fileOpenSheetPick;
+  ACTIONS['file-open-code'] = fileOpenCodePick;
+  fileOpen = fileOpenSmart; /* Ctrl+O calls fileOpen() directly */
+} catch (e) {}
+
+/* ── 10. Drag & drop files onto the working area ── */
+try {
+  var fxStyle = document.createElement('style');
+  fxStyle.textContent = '#stage{position:relative}#stage.fx-file-drag::after{content:"⬇ Drop to open — Docs · Excel · Code · Canvas";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 15px Instrument Sans,sans-serif;color:#0e7490;background:rgba(6,182,212,.08);border:2px dashed #06b6d4;border-radius:10px;z-index:60;pointer-events:none}html:not(.light) #stage.fx-file-drag::after{color:#67e8f9}';
+  document.head.appendChild(fxStyle);
+} catch (e) {}
+(function fxStageDnd(){
+  if (typeof stage === 'undefined' || !stage) return;
+  var depth = 0;
+  stage.addEventListener('dragenter', function(e){
+    if (!e.dataTransfer || Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') < 0) return;
+    e.preventDefault(); depth++; stage.classList.add('fx-file-drag');
+  });
+  stage.addEventListener('dragover', function(e){ if (depth > 0) e.preventDefault(); });
+  stage.addEventListener('dragleave', function(){ depth = Math.max(0, depth - 1); if (!depth) stage.classList.remove('fx-file-drag'); });
+  stage.addEventListener('drop', function(e){
+    if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+    e.preventDefault(); depth = 0; stage.classList.remove('fx-file-drag');
+    fxOpenAny(e.dataTransfer.files[0], null);
+  });
+})();
+})();
 </script>
 </body>
 </html>
