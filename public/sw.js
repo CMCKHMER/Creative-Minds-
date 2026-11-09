@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v17'; // v17: Studio opens real files — File ▸ Open + drag-drop route .docx/.odt/.rtf/.md to Docs, .xlsx (multi-tab)/.csv/.tsv to Excel, .js/.py/.css/.json etc. to Code, images to Canvas (zip parsing in-browser, no deps); v16: Studio Docs autosave with an on/off toggle (toolbar + File menu, fast doc snapshots, remembered per device); v15 Studio popup/MyBar/dark-mode; v14 Real-time Dashboard video hero + last-5 completed lists
+const CACHE_VERSION = 'cmc-v18'; // v18: Studio Docs Page Setup (A4/A5/A3/Letter/Legal/Tabloid/Executive/Half-Letter/16:9 presets, portrait/landscape, margins — honored by Print/PDF and Word export) + Excel merge/unmerge cells (with row/col insert/delete shifting, sort guard, .xlsx merge import, .xls/print export), border styles (all/outside/none), wrap text, row height & column width dialogs, insert-function helper, sheet find & replace, more number formats (€, date, time, scientific…); v17: Studio opens real files — File ▸ Open + drag-drop route .docx/.odt/.rtf/.md to Docs, .xlsx (multi-tab)/.csv/.tsv to Excel, .js/.py/.css/.json etc. to Code, images to Canvas (zip parsing in-browser, no deps); v16: Studio Docs autosave with an on/off toggle (toolbar + File menu, fast doc snapshots, remembered per device); v15 Studio popup/MyBar/dark-mode; v14 Real-time Dashboard video hero + last-5 completed lists
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

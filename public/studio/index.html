@@ -567,6 +567,7 @@
         <div class="menu-item" data-action="file-save-csv"><span>Export Spreadsheet as CSV</span></div>
         <div class="menu-item" data-action="file-autosave"><span>Autosave — On/Off</span><span class="check">✓</span></div>
         <div class="menu-sep"></div>
+        <div class="menu-item" data-action="file-page-setup"><span>Page Setup… (Docs — size, orientation, margins)</span></div>
         <div class="menu-item" data-action="file-print"><span>Print…</span><span class="kbd">Ctrl+P</span></div>
         <div class="menu-item" data-action="file-import"><span>Insert Image (Doc or Canvas)…</span></div>
       </div>
@@ -827,6 +828,7 @@
         <option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option>
       </select>
       <div class="quick-sep" data-tool="dSep6"></div>
+      <button class="quick-btn" data-tool="dPage" onclick="openDocPageSetup()" title="Page Setup — page size, orientation, margins">▤ Page</button>
       <button class="quick-btn" data-tool="pdf" onclick="fileSavePdf()" title="Print / Save as PDF">🖨 PDF</button>
       <button class="quick-btn" data-tool="docx" onclick="fxDocExportWord()" title="Download as .doc — opens in Microsoft Word">W ⬇doc</button>
       <button class="quick-btn" data-tool="html" onclick="fxDocExportHtml()" title="Download as .html">⬇html</button>
@@ -847,6 +849,9 @@
       <button class="quick-btn" data-tool="alignLeft" onclick="sheetCmd('alignLeft')" title="Align Left">≡←</button>
       <button class="quick-btn" data-tool="alignCenter" onclick="sheetCmd('alignCenter')" title="Align Center">≡</button>
       <button class="quick-btn" data-tool="alignRight" onclick="sheetCmd('alignRight')" title="Align Right">≡→</button>
+      <button class="quick-btn" data-tool="mergeCells" onclick="sheetCmd('mergeCells')" title="Merge the selected cells into one">⬛ Merge</button>
+      <button class="quick-btn" data-tool="unmergeCells" onclick="sheetCmd('unmergeCells')" title="Unmerge the selected merged cell">⬚ Unmerge</button>
+      <button class="quick-btn" data-tool="wrapText" onclick="sheetCmd('wrapText')" title="Wrap long text onto multiple lines in the selected cells">↵ Wrap</button>
       <span data-tool="fillColor" style="display:inline-flex;align-items:center;gap:4px"><button class="quick-btn" onclick="sheetCmd('fillColor')" title="Fill Color — paints the whole selection">🎨</button><input type="color" id="sheetFill" value="#eafaff" title="Cell Fill Color"></span>
       <span data-tool="textColor" style="display:inline-flex;align-items:center;gap:4px"><button class="quick-btn" onclick="sheetCmd('textColor')" title="Text Color — paints the whole selection" style="color:#f38ba8">A</button><input type="color" id="sheetColor" value="#000000" title="Cell Text Color"></span>
       <div class="quick-sep" data-tool="sep1"></div>
@@ -860,19 +865,28 @@
       <button class="quick-btn" data-tool="insertColRight" onclick="sheetCmd('insertColRight')" title="Insert column right">+Col→</button>
       <button class="quick-btn" data-tool="deleteRow" onclick="sheetCmd('deleteRow')" title="Delete row">−Row</button>
       <button class="quick-btn" data-tool="deleteCol" onclick="sheetCmd('deleteCol')" title="Delete column">−Col</button>
+      <button class="quick-btn" data-tool="rowHeight" onclick="sheetCmd('rowHeight')" title="Set the row height of the selection">↕ Row</button>
+      <button class="quick-btn" data-tool="colWidth" onclick="sheetCmd('colWidth')" title="Set the column width of the selection">↔ Col</button>
       <button class="quick-btn" data-tool="addSheet" onclick="sheetCmd('addSheet')" title="Add sheet">+Sheet</button>
       <div class="quick-sep" data-tool="sep3"></div>
       <button class="quick-btn" data-tool="freezeToggle" onclick="sheetCmd('freezeToggle')" title="Freeze Panes">⏸</button>
       <button class="quick-btn" data-tool="recalc" onclick="sheetRecalc()" title="Recalculate formulas">↻ Recalc</button>
+      <span data-tool="fxSel"><select id="sheetFxSel" onchange="sheetInsertFunction(this.value); this.selectedIndex=0" title="Insert a function template into the formula bar">
+        <option value="">ƒx Function…</option><option value="SUM">=SUM(…)</option><option value="AVERAGE">=AVERAGE(…)</option><option value="MIN">=MIN(…)</option><option value="MAX">=MAX(…)</option><option value="COUNT">=COUNT(…)</option><option value="COUNTA">=COUNTA(…)</option><option value="IF">=IF(…)</option><option value="CONCAT">=CONCAT(…)</option><option value="ROUND">=ROUND(…)</option><option value="ABS">=ABS(…)</option><option value="TODAY">=TODAY()</option>
+      </select></span>
       <span data-tool="fmtSel"><select id="sheetFmtSel" onchange="sheetCmd('fmt', this.value); this.selectedIndex=0" title="Number format (applies to the whole selection)">
-        <option value="">123 Format…</option><option value="gen">General</option><option value="int">1,234</option><option value="thou2">1,234.00</option><option value="cur">$1,234.00</option><option value="pct">12%</option><option value="pct2">12.34%</option><option value="text">Text (as typed)</option>
+        <option value="">123 Format…</option><option value="gen">General</option><option value="int">1,234</option><option value="thou2">1,234.00</option><option value="cur">$1,234.00</option><option value="eur">€1,234.00</option><option value="pct">12%</option><option value="pct2">12.34%</option><option value="date">Date</option><option value="time">Time</option><option value="dt">Date &amp; time</option><option value="num0">Plain number</option><option value="num3">3 decimals</option><option value="sci">Scientific</option><option value="text">Text (as typed)</option>
       </select></span>
       <button class="quick-btn" data-tool="border" onclick="sheetCmd('border')" title="Toggle box borders on the selection">⊞</button>
+      <span data-tool="borderSel"><select id="sheetBorderSel" onchange="sheetCmd(this.value); this.selectedIndex=0" title="Border styles (applies to the whole selection)">
+        <option value="">⊞ Borders…</option><option value="borderAll">All borders</option><option value="borderOutside">Outside borders</option><option value="borderNone">No borders</option>
+      </select></span>
       <div class="quick-sep" data-tool="sep4"></div>
       <button class="quick-btn" data-tool="sortAsc" onclick="sheetCmd('sortAsc')" title="Sort selection A → Z (by the active column)">A↓Z</button>
       <button class="quick-btn" data-tool="sortDesc" onclick="sheetCmd('sortDesc')" title="Sort selection Z → A (by the active column)">Z↓A</button>
       <button class="quick-btn" data-tool="fillDown" onclick="sheetCmd('fillDown')" title="Fill down from the top row of the selection">⤓</button>
       <button class="quick-btn" data-tool="fillRight" onclick="sheetCmd('fillRight')" title="Fill right from the left column of the selection">⤒</button>
+      <button class="quick-btn" data-tool="findRep" onclick="sheetFindReplace()" title="Find &amp; replace across the whole sheet">🔍</button>
       <div class="quick-sep" data-tool="sep5"></div>
       <button class="quick-btn" data-tool="clearFormat" onclick="sheetCmd('clearFormat')" title="Clear Format">⌫F</button>
       <button class="quick-btn" data-tool="clearAll" onclick="sheetCmd('clearAll')" title="Clear All">🗑</button>
@@ -1254,6 +1268,17 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
   <div class="dialog-field"><label>Custom width × height (px)</label><div style="display:flex; gap:8px"><input type="number" id="pageW" value="794" min="1" max="8000"><input type="number" id="pageH" value="1123" min="1" max="8000"></div></div>
   <div class="dialog-field"><label>Background</label><div class="bg-row" id="pageBgRow"></div></div>
   <div class="dialog-buttons"><button class="cancel" onclick="closeModal('pageSizeModal')">Cancel</button><button class="primary" id="pageSizeApply">Apply</button></div>
+</div></div>
+
+<!-- Docs page setup dialog (size · orientation · margins) -->
+<div class="modal-overlay" id="docPageModal"><div class="modal">
+  <span class="modal-close" onclick="closeModal('docPageModal')">Close ×</span>
+  <h2>Page Setup — Docs</h2>
+  <div class="dialog-field"><label>Page size</label><div class="preset-grid" id="docPagePresets"></div></div>
+  <div class="dialog-field"><label>Orientation</label><div class="seg" id="docOrientSeg"><button id="docOrientP" class="on">Portrait</button><button id="docOrientL">Landscape</button></div></div>
+  <div class="dialog-field"><label>Margins</label><div class="seg" id="docMarginSeg"><button data-mg="narrow">Narrow</button><button data-mg="normal" class="on">Normal</button><button data-mg="wide">Wide</button></div></div>
+  <div class="dialog-field"><label>Custom width × height (px)</label><div style="display:flex; gap:8px"><input type="number" id="docPageW" value="794" min="1" max="8000"><input type="number" id="docPageH" value="1123" min="1" max="8000"></div></div>
+  <div class="dialog-buttons"><button class="cancel" onclick="closeModal('docPageModal')">Cancel</button><button class="primary" id="docPageApply">Apply</button></div>
 </div></div>
 
 <!-- Image resize dialog -->
@@ -2720,6 +2745,66 @@ let pageBgColor = '#ffffff';
 (function(){ const pbgRow = document.getElementById('pageBgRow'); ['#ffffff','#f5f1e8','#dde3ea','#12141c','#0e2233','#1c1224'].forEach((c,i)=>{ const b=document.createElement('button'); b.className='bg-sw'+(i===0?' on':''); b.style.background=c; b.setAttribute('aria-label','Page background '+c); b.title='Page background '+c; b.onclick=()=>{ pageBgColor=c; pbgRow.querySelectorAll('.bg-sw').forEach(x=>x.classList.remove('on')); b.classList.add('on'); }; pbgRow.appendChild(b); }); })();
 document.getElementById('pageSizeApply').onclick = () => { const w = +document.getElementById('pageW').value, h = +document.getElementById('pageH').value; pushUndo('Page size'); bgColor = pageBgColor; wrap.style.background = bgColor; setCanvasSize(w, h); closeModal('pageSizeModal'); };
 
+/* ══ CMC-DOC-PAGE · Docs page setup: size presets, orientation, margins ══ */
+const DOC_PAGE_PRESETS = { 'A4': { w: 794, h: 1123 }, 'A5': { w: 559, h: 794 }, 'A3': { w: 1123, h: 1587 }, 'Letter': { w: 816, h: 1056 }, 'Legal': { w: 816, h: 1344 }, 'Tabloid': { w: 1056, h: 1632 }, 'Executive': { w: 696, h: 1008 }, 'Half Letter': { w: 528, h: 816 }, 'Slide 16:9': { w: 1280, h: 720 } };
+const DOC_MARGIN_PX = { narrow: 40, normal: 72, wide: 110 };
+let docPageCfg = { preset: 'A4', orient: 'portrait', margin: 'normal' };
+try { const savedDp = JSON.parse(localStorage.getItem('cm-studio-doc-page') || 'null'); if (savedDp && savedDp.margin && DOC_MARGIN_PX[savedDp.margin]) docPageCfg = savedDp; } catch (e) {}
+function docPageApplyMargins(){ if (typeof docLayer !== 'undefined' && docLayer) docLayer.style.padding = (DOC_MARGIN_PX[docPageCfg.margin] || 72) + 'px 64px'; }
+docPageApplyMargins();
+function pxToMm(px){ return Math.round(px * 25.4 / 96 * 10) / 10; }
+function docPageSizePx(){ const p = DOC_PAGE_PRESETS[docPageCfg.preset] || { w: 794, h: 1123 }; return docPageCfg.orient === 'landscape' ? { w: p.h, h: p.w } : { w: p.w, h: p.h }; }
+function renderDocPagePresets(){
+  const container = document.getElementById('docPagePresets'); if (!container) return;
+  container.innerHTML = '';
+  Object.entries(DOC_PAGE_PRESETS).forEach(([name, dim]) => {
+    const btn = document.createElement('button'); btn.className = 'preset-btn';
+    btn.innerHTML = `<div style="font-weight:700">${name}</div><div style="color:var(--muted); font-size:10px">${dim.w} × ${dim.h}</div>`;
+    btn.onclick = () => { docPageCfg.preset = name; const s = docPageSizePx(); document.getElementById('docPageW').value = s.w; document.getElementById('docPageH').value = s.h; renderDocPagePresets(); };
+    container.appendChild(btn);
+  });
+}
+function syncDocOrientSeg(){
+  const p = document.getElementById('docOrientP'), l = document.getElementById('docOrientL');
+  if (!p || !l) return;
+  p.classList.toggle('on', docPageCfg.orient !== 'landscape');
+  l.classList.toggle('on', docPageCfg.orient === 'landscape');
+}
+function openDocPageSetup(){
+  selectTool('doc');
+  const s = docPageSizePx();
+  document.getElementById('docPageW').value = s.w;
+  document.getElementById('docPageH').value = s.h;
+  renderDocPagePresets(); syncDocOrientSeg();
+  document.querySelectorAll('#docMarginSeg button').forEach(b => b.classList.toggle('on', b.dataset.mg === docPageCfg.margin));
+  openModal('docPageModal');
+}
+window.openDocPageSetup = openDocPageSetup;
+(function(){
+  const wEl = document.getElementById('docPageW'), hEl = document.getElementById('docPageH');
+  const setOrient = (wantL) => {
+    let w = +wEl.value, h = +hEl.value;
+    if (wantL && w < h) { wEl.value = h; hEl.value = w; }
+    if (!wantL && w > h) { wEl.value = h; hEl.value = w; }
+    docPageCfg.orient = wantL ? 'landscape' : 'portrait';
+    syncDocOrientSeg();
+  };
+  const pB = document.getElementById('docOrientP'), lB = document.getElementById('docOrientL');
+  if (pB) pB.onclick = () => setOrient(false);
+  if (lB) lB.onclick = () => setOrient(true);
+  document.querySelectorAll('#docMarginSeg button').forEach(b => { b.onclick = () => { docPageCfg.margin = b.dataset.mg; document.querySelectorAll('#docMarginSeg button').forEach(x => x.classList.toggle('on', x === b)); }; });
+})();
+document.getElementById('docPageApply').onclick = () => {
+  const w = Math.max(1, Math.round(+document.getElementById('docPageW').value) || 794);
+  const h = Math.max(1, Math.round(+document.getElementById('docPageH').value) || 1123);
+  pushUndo('Page setup');
+  setCanvasSize(w, h);
+  docPageApplyMargins();
+  try { localStorage.setItem('cm-studio-doc-page', JSON.stringify(docPageCfg)); } catch (e) {}
+  closeModal('docPageModal');
+  statusFlash('Page setup applied — ' + w + ' × ' + h + ' px, ' + docPageCfg.margin + ' margins');
+};
+
 /* ══ IMAGE RESIZE / EXTEND / ROTATE / FLIP ═════════ */
 let rsLockAspect = true; let rsRatio = W / H;
 document.getElementById('rsLockOn').onclick = () => { rsLockAspect = true; document.getElementById('rsLockOn').classList.add('on'); document.getElementById('rsLockOff').classList.remove('on'); };
@@ -3132,7 +3217,7 @@ function printFromMode(){
   const name = filename.textContent || 'untitled';
   if (mode === 'doc') {
     const { node } = buildDocExportNode();
-    printWindow(name + ' — Document', node.innerHTML, { css: '.dx{padding:0;} .dx-hf{padding:8px 0;}' });
+    printWindow(name + ' — Document', node.innerHTML, { css: '@page{size:' + pxToMm(W) + 'mm ' + pxToMm(H) + 'mm;margin:' + pxToMm(DOC_MARGIN_PX[docPageCfg.margin] || 72) + 'mm;} .dx{padding:0;} .dx-hf{padding:8px 0;}' });
     statusFlash('Print / Save-as-PDF opened for the document');
   } else if (mode === 'sheet') {
     const tbl = buildSheetTableNode(); if (!tbl) return;
@@ -3416,7 +3501,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 
 /* ══ MENU WIRING ══════════════════════════════════ */
 const ACTIONS = {
-  'file-new': fileNew, 'file-open': fileOpen, 'file-save-png': fileSavePng, 'file-save-jpg': fileSaveJpg, 'file-save-svg': fileSaveSvg, 'file-save-pdf': fileSavePdf, 'file-save-json': fileSaveJson, 'file-save-csv': fileSaveCsv, 'file-autosave': toggleAutoSave, 'file-print': filePrint, 'file-import': insertImage,
+  'file-new': fileNew, 'file-open': fileOpen, 'file-page-setup': openDocPageSetup, 'file-save-png': fileSavePng, 'file-save-jpg': fileSaveJpg, 'file-save-svg': fileSaveSvg, 'file-save-pdf': fileSavePdf, 'file-save-json': fileSaveJson, 'file-save-csv': fileSaveCsv, 'file-autosave': toggleAutoSave, 'file-print': filePrint, 'file-import': insertImage,
   'edit-undo': undo, 'edit-redo': redo, 'edit-cut': editCut, 'edit-copy': editCopy, 'edit-paste': editPaste, 'edit-delete': editDelete, 'edit-duplicate': editDuplicate, 'edit-select-all': editSelectAll, 'edit-clear': editClear, 'edit-flip-h': () => flipCanvas(true), 'edit-flip-v': () => flipCanvas(false), 'edit-rotate-img-90-cw': () => rotateActiveLayer(90), 'edit-rotate-img-90-ccw': () => rotateActiveLayer(-90), 'edit-rotate-doc-15-cw': () => { rotateDoc(15); }, 'edit-rotate-doc-15-ccw': () => { rotateDoc(-15); }, 'edit-rotate-doc-reset': () => { resetDocRotation(); },
   'view-zoom-in': viewZoomIn, 'view-zoom-out': viewZoomOut, 'view-zoom-fit': viewZoomFit, 'view-zoom-100': viewZoom100, 'view-toggle-rulers': viewToggleRulers, 'view-toggle-panel': viewTogglePanel, 'view-toggle-grid': viewToggleGrid, 'view-toggle-dark': viewToggleDark, 'view-toggle-mybar': viewToggleMyBar,
   'image-page-size': () => openModal('pageSizeModal'), 'image-resize': () => openModal('imageResizeModal'), 'image-extend': () => openModal('canvasExtendModal'), 'image-rotate-90-cw': () => rotateCanvas(90), 'image-rotate-90-ccw': () => rotateCanvas(-90), 'image-rotate-180': () => rotateCanvas(180), 'image-bg-remove-chroma': () => { document.getElementById('bgMethodChroma').click(); openModal('bgRemoveModal'); }, 'image-bg-remove-wand': () => { document.getElementById('bgMethodWand').click(); openModal('bgRemoveModal'); },
@@ -4815,6 +4900,13 @@ function fxFormatNum(n, fmt){
     case 'cur': return (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     case 'pct': return (n * 100).toLocaleString('en-US', { maximumFractionDigits: 0 }) + '%';
     case 'pct2': return (n * 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+    case 'eur': return (n < 0 ? '-€' : '€') + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    case 'num0': return String(Math.round(n));
+    case 'num3': return n.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    case 'sci': return n.toExponential(2);
+    case 'date': { if (n >= 20000 && n <= 80000) { const d = new Date(Date.UTC(1899, 11, 30) + n * 86400000); return d.toLocaleDateString('en-GB'); } return fxNumToDisp(n); }
+    case 'time': { const mins = Math.round((n % 1) * 1440) % 1440; return String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0'); }
+    case 'dt': { if (n >= 20000 && n <= 80000) { const d = new Date(Date.UTC(1899, 11, 30) + n * 86400000); return d.toLocaleDateString('en-GB') + ' ' + String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0'); } return fxNumToDisp(n); }
     case 'text': return String(n);
     default: return fxNumToDisp(n);
   }
@@ -4867,7 +4959,7 @@ function fxSelRange(){
 function fxRangeSize(rng){ return (rng.r2 - rng.r1 + 1) * (rng.c2 - rng.c1 + 1); }
 function fxNormRange(r1, c1, r2, c2){ return { r1: Math.min(r1, r2), c1: Math.min(c1, c2), r2: Math.max(r1, r2), c2: Math.max(c1, c2) }; }
 function fxEditing(){ return !!(sheetGrid.querySelector('td.editing input') || document.activeElement === sheetFormula); }
-function fxCellTd(r, c){ return sheetGrid.querySelector(`td.cell[data-r="${r}"][data-c="${c}"]`); }
+function fxCellTd(r, c){ const m = fxMergeAt(r, c); if (m && !(r === m.r1 && c === m.c1)) { r = m.r1; c = m.c1; } return sheetGrid.querySelector(`td.cell[data-r="${r}"][data-c="${c}"]`); }
 function fxEnsureCell(r, c){ const sh = sheets[currentSheet]; const k = cellKey(r, c); if (!sh.cells[k]) sh.cells[k] = { v: '' }; if (!sh.cells[k].style) sh.cells[k].style = {}; return sh.cells[k]; }
 function fxCellDisplay(cell){
   let v = cell.v;
@@ -4888,19 +4980,31 @@ function fxRenderSheet(){
   for (let c = 0; c < sheet.cols; c++) { const w = colWidths[c] || 80; html.push(`<th class="col-h" style="min-width:${w}px;width:${w}px">${colName(c)}</th>`); }
   html.push('</tr></thead><tbody>');
   const selR = fxSelRange();
+  /* CMC-MERGE: expand the merges map once for O(1) per-cell lookups */
+  const mergeMap = {};
+  const shMerges = sheet.merges || {};
+  for (const mk in shMerges) {
+    const mm = shMerges[mk]; const mp = mk.split(','); const mr1 = +mp[0], mc1 = +mp[1];
+    for (let rr = mr1; rr < mr1 + mm.rows; rr++) for (let cc = mc1; cc < mc1 + mm.cols; cc++) mergeMap[rr + ',' + cc] = { r1: mr1, c1: mc1, rows: mm.rows, cols: mm.cols };
+  }
   for (let r = 0; r < sheet.rows; r++) {
     const rh = rowHeights[r] || 24;
     html.push(`<tr style="height:${rh}px"><th class="row-h" style="min-height:${rh}px;height:${rh}px">${r + 1}</th>`);
     for (let c = 0; c < sheet.cols; c++) {
+      const mg = mergeMap[r + ',' + c];
+      if (mg && !(r === mg.r1 && c === mg.c1)) continue; /* covered by a merge — render nothing */
       const cell = getCell(r, c);
       const display = fxCellDisplay(cell);
       const st = cell.style || {};
       const cw = colWidths[c] || 80;
-      const customStyle = (st.bold ? 'font-weight:bold;' : '') + (st.italic ? 'font-style:italic;' : '') + (st.underline ? 'text-decoration:underline;' : '') + (st.color ? 'color:' + st.color + ';' : '') + (st.align ? 'text-align:' + st.align + ';' : '') + (st.bg ? 'background:' + st.bg + ';' : '');
+      const edges = st.edges || (st.border ? { t: 1, r: 1, b: 1, l: 1 } : null);
+      const edgeStyle = edges ? (edges.t ? 'border-top:1px solid #8a94a6;' : '') + (edges.r ? 'border-right:1px solid #8a94a6;' : '') + (edges.b ? 'border-bottom:1px solid #8a94a6;' : '') + (edges.l ? 'border-left:1px solid #8a94a6;' : '') : '';
+      const customStyle = (st.bold ? 'font-weight:bold;' : '') + (st.italic ? 'font-style:italic;' : '') + (st.underline ? 'text-decoration:underline;' : '') + (st.color ? 'color:' + st.color + ';' : '') + (st.align ? 'text-align:' + st.align + ';' : '') + (st.bg ? 'background:' + st.bg + ';' : '') + edgeStyle + (st.wrap ? 'white-space:normal;word-break:break-word;overflow-wrap:anywhere;' : '');
       const inSel = r >= selR.r1 && r <= selR.r2 && c >= selR.c1 && c <= selR.c2;
       const isAnchor = r === selectedCell.row && c === selectedCell.col;
       const cls = 'cell' + (isAnchor ? ' selected' : '') + (st.border ? ' fx-bordered' : '');
-      html.push(`<td class="${cls}" data-r="${r}" data-c="${c}" style="min-width:${cw}px;height:${rh}px;${customStyle}"><span class="cell-display">${escapeHtml(display)}</span></td>`);
+      const spanAttr = (mg && mg.rows > 1 ? ' rowspan="' + mg.rows + '"' : '') + (mg && mg.cols > 1 ? ' colspan="' + mg.cols + '"' : '');
+      html.push(`<td class="${cls}" data-r="${r}" data-c="${c}"${spanAttr} style="min-width:${cw}px;height:${rh}px;${customStyle}"><span class="cell-display">${escapeHtml(display)}</span></td>`);
     }
     html.push('</tr>');
   }
@@ -4950,8 +5054,22 @@ function startCellEdit(){
 /* ── moveSelection (shadows legacy): collapses any range, syncs overlays ── */
 function moveSelection(dr, dc){
   const sh = sheets[currentSheet]; if (!sh) return;
-  selectedCell.row = Math.max(0, Math.min(sh.rows - 1, selectedCell.row + dr));
-  selectedCell.col = Math.max(0, Math.min(sh.cols - 1, selectedCell.col + dc));
+  let nr = Math.max(0, Math.min(sh.rows - 1, selectedCell.row + dr));
+  let nc = Math.max(0, Math.min(sh.cols - 1, selectedCell.col + dc));
+  /* CMC-MERGE: never rest on a covered cell — anchor to the merge's top-left,
+     or step out past the far edge when the move started from that anchor */
+  const mHere = fxMergeAt(selectedCell.row, selectedCell.col);
+  const fromTL = mHere && selectedCell.row === mHere.r1 && selectedCell.col === mHere.c1;
+  const mThere = fxMergeAt(nr, nc);
+  if (mThere && !(nr === mThere.r1 && nc === mThere.c1)) {
+    if (fromTL && mThere.r1 === mHere.r1 && mThere.c1 === mHere.c1) {
+      if (dr > 0) nr = mThere.r1 + mThere.rows; else if (dr < 0) nr = mThere.r1 - 1;
+      if (dc > 0) nc = mThere.c1 + mThere.cols; else if (dc < 0) nc = mThere.c1 - 1;
+      nr = Math.max(0, Math.min(sh.rows - 1, nr)); nc = Math.max(0, Math.min(sh.cols - 1, nc));
+      const m2 = fxMergeAt(nr, nc); if (m2 && !(nr === m2.r1 && nc === m2.c1)) { nr = m2.r1; nc = m2.c1; }
+    } else { nr = mThere.r1; nc = mThere.c1; }
+  }
+  selectedCell.row = nr; selectedCell.col = nc;
   fxRange = null; fxAnchor = { row: selectedCell.row, col: selectedCell.col }; fxShiftBase = { ...fxAnchor }; fxExtCorner = { ...fxAnchor };
   const cell = getCell(selectedCell.row, selectedCell.col);
   sheetFormula.value = cell.v || '';
@@ -5035,6 +5153,36 @@ function fxUpdateStatus(){
   }
   statsEl.innerHTML = parts.map(p => `<span class="fx-pill">${p}</span>`).join(' ');
 }
+/* ── CMC-SHEET-TOOLS: function helper + sheet-wide find & replace ── */
+function sheetInsertFunction(name){
+  if (!name) return;
+  const templates = { SUM: '=SUM(A1:A10)', AVERAGE: '=AVERAGE(A1:A10)', MIN: '=MIN(A1:A10)', MAX: '=MAX(A1:A10)', COUNT: '=COUNT(A1:A10)', COUNTA: '=COUNTA(A1:A10)', IF: '=IF(A1>10,"Yes","No")', CONCAT: '=CONCAT(A1," ",B1)', ROUND: '=ROUND(A1,2)', ABS: '=ABS(A1)', TODAY: '=TODAY()' };
+  const rng = fxSelRange();
+  let tpl = templates[name] || ('=' + name + '(A1:A10)');
+  if (rng && fxRangeSize(rng) > 1 && ['SUM','AVERAGE','MIN','MAX','COUNT','COUNTA'].indexOf(name) >= 0) tpl = '=' + name + '(' + colName(rng.c1) + (rng.r1 + 1) + ':' + colName(rng.c2) + (rng.r2 + 1) + ')';
+  sheetFormula.value = tpl;
+  sheetFormula.focus();
+  statusFlash(name + ' added to the formula bar — edit the arguments, then press Enter');
+}
+function sheetFindReplace(){
+  const q = prompt('Find what (searches the whole sheet):');
+  if (!q) return;
+  const rep = prompt('Replace "' + q + '" with:', '');
+  if (rep === null) return;
+  const sh = sheets[currentSheet]; if (!sh) return;
+  sheetSnapshotPush();
+  const used = sheetUsedRange(sh);
+  let hits = 0;
+  for (let r = 0; r <= used.maxR; r++) for (let c = 0; c <= used.maxC; c++) {
+    const cell = sh.cells[cellKey(r, c)];
+    if (!cell || typeof cell.v !== 'string' || cell.v.indexOf(q) < 0) continue;
+    hits += cell.v.split(q).length - 1;
+    cell.v = cell.v.split(q).join(rep);
+  }
+  renderSheet(); scheduleAutoSave();
+  statusFlash(hits ? hits + ' replacement' + (hits > 1 ? 's' : '') + ' made' : 'No matches found');
+}
+window.sheetInsertFunction = sheetInsertFunction; window.sheetFindReplace = sheetFindReplace;
 /* ── selection interactions: mousedown/drag/shift+click/header click ── */
 function fxGridMouseDown(e){
   if (currentMode() !== 'sheet' || e.button !== 0) return;
@@ -5300,10 +5448,49 @@ function fxFillDragEnd(){
   renderSheet(); renderSheetTabs(); scheduleAutoSave();
   statusFlash('Filled ' + fxRangeSize(tgt) + ' cells');
 }
+/* ── CMC-MERGE: merged-cell helpers (sheet.merges map: "r1,c1" → {rows, cols}, key = top-left) ── */
+function fxMergeAt(r, c){
+  const sh = sheets[currentSheet]; if (!sh || !sh.merges) return null;
+  for (const k in sh.merges) {
+    const m = sh.merges[k]; const p = k.split(','); const r1 = +p[0], c1 = +p[1];
+    if (r >= r1 && r < r1 + m.rows && c >= c1 && c < c1 + m.cols) return { r1, c1, rows: m.rows, cols: m.cols };
+  }
+  return null;
+}
+function fxMergesIntersect(rng){
+  const sh = sheets[currentSheet]; if (!sh || !sh.merges) return false;
+  for (const k in sh.merges) {
+    const m = sh.merges[k]; const p = k.split(','); const r1 = +p[0], c1 = +p[1];
+    if (r1 <= rng.r2 && r1 + m.rows - 1 >= rng.r1 && c1 <= rng.c2 && c1 + m.cols - 1 >= rng.c1) return true;
+  }
+  return false;
+}
+function fxRemoveMergesIn(rng){
+  const sh = sheets[currentSheet]; if (!sh || !sh.merges) return 0;
+  let removed = 0; const out = {};
+  for (const k in sh.merges) {
+    const m = sh.merges[k]; const p = k.split(','); const r1 = +p[0], c1 = +p[1];
+    const hit = r1 <= rng.r2 && r1 + m.rows - 1 >= rng.r1 && c1 <= rng.c2 && c1 + m.cols - 1 >= rng.c1;
+    if (hit) removed++; else out[k] = m;
+  }
+  sh.merges = out; return removed;
+}
+function fxShiftMerges(kind, at, sh){
+  if (!sh.merges) return; const out = {};
+  for (const k in sh.merges) {
+    const m = sh.merges[k]; const p = k.split(','); let r1 = +p[0], c1 = +p[1], rows = m.rows, cols = m.cols, drop = false;
+    if (kind === 'rowIns') { if (r1 >= at) r1++; else if (at <= r1 + rows - 1) rows++; }
+    else if (kind === 'colIns') { if (c1 >= at) c1++; else if (at <= c1 + cols - 1) cols++; }
+    else if (kind === 'rowDel') { if (r1 === at) drop = true; else if (r1 > at) r1--; else if (at <= r1 + rows - 1) rows--; }
+    else if (kind === 'colDel') { if (c1 === at) drop = true; else if (c1 > at) c1--; else if (at <= c1 + cols - 1) cols--; }
+    if (!drop && rows >= 1 && cols >= 1 && !(rows === 1 && cols === 1)) out[r1 + ',' + c1] = { rows: rows, cols: cols };
+  }
+  sh.merges = out;
+}
 /* ── sheetCmd (shadows legacy): range-aware styling + new commands ── */
 function sheetCmd(cmd, val){
   const sh = sheets[currentSheet]; if (!sh) return;
-  const structural = ['addSheet','insertRowAbove','insertRowBelow','insertColLeft','insertColRight','deleteRow','deleteCol','dupSheet','sortAsc','sortDesc','fillDown','fillRight','clearAll'].includes(cmd);
+  const structural = ['addSheet','insertRowAbove','insertRowBelow','insertColLeft','insertColRight','deleteRow','deleteCol','dupSheet','sortAsc','sortDesc','fillDown','fillRight','clearAll','mergeCells','unmergeCells','borderOutside','rowHeight','colWidth'].includes(cmd);
   if (structural) sheetSnapshotPush();
   function shiftSizeMap(map, at, delta, removeAt){
     const out = {};
@@ -5326,15 +5513,20 @@ function sheetCmd(cmd, val){
   };
   if (cmd === 'addSheet') { let n = sheets.length + 1; const used = new Set(sheets.map(s => s.name)); while (used.has('Sheet' + n)) n++; sheets.push({ name: 'Sheet' + n, rows: 30, cols: 12, cells: {} }); currentSheet = sheets.length - 1; fxRange = null; renderSheet(); renderSheetTabs(); }
   else if (cmd === 'dupSheet') { const src = sheets[currentSheet]; const clone = JSON.parse(JSON.stringify(src)); let n = 2; const base = src.name.replace(/ \(\d+\)$/, ''); while (sheets.some(s => s.name === base + ' (' + n + ')')) n++; clone.name = base + ' (' + n + ')'; sheets.splice(currentSheet + 1, 0, clone); currentSheet++; fxRange = null; renderSheet(); renderSheetTabs(); statusFlash('Duplicated "' + src.name + '"'); }
-  else if (cmd === 'insertRowAbove') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (r >= selectedCell.row) newCells[(r + 1) + ',' + c] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.rows++; rowHeights = shiftSizeMap(rowHeights, selectedCell.row, 1); if (freezeRows >= selectedCell.row) freezeRows++; fxRange = null; renderSheet(); }
-  else if (cmd === 'insertColLeft') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (c >= selectedCell.col) newCells[r + ',' + (c + 1)] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.cols++; colWidths = shiftSizeMap(colWidths, selectedCell.col, 1); if (freezeCols >= selectedCell.col) freezeCols++; fxRange = null; renderSheet(); }
-  else if (cmd === 'insertRowBelow') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (r > selectedCell.row) newCells[(r + 1) + ',' + c] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.rows++; rowHeights = shiftSizeMap(rowHeights, selectedCell.row + 1, 1); if (freezeRows > selectedCell.row) freezeRows++; fxRange = null; renderSheet(); }
-  else if (cmd === 'insertColRight') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (c > selectedCell.col) newCells[r + ',' + (c + 1)] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.cols++; colWidths = shiftSizeMap(colWidths, selectedCell.col + 1, 1); if (freezeCols > selectedCell.col) freezeCols++; fxRange = null; renderSheet(); }
-  else if (cmd === 'deleteRow') { if (sh.rows <= 1) return; const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (r === selectedCell.row) return; newCells[(r > selectedCell.row ? r - 1 : r) + ',' + c] = sh.cells[k]; }); sh.cells = newCells; sh.rows--; rowHeights = shiftSizeMap(rowHeights, selectedCell.row, -1, selectedCell.row); if (freezeRows > selectedCell.row) freezeRows--; else if (freezeRows === selectedCell.row) freezeRows = 0; fxRange = null; renderSheet(); }
-  else if (cmd === 'deleteCol') { if (sh.cols <= 1) return; const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (c === selectedCell.col) return; newCells[r + ',' + (c > selectedCell.col ? c - 1 : c)] = sh.cells[k]; }); sh.cells = newCells; sh.cols--; colWidths = shiftSizeMap(colWidths, selectedCell.col, -1, selectedCell.col); if (freezeCols > selectedCell.col) freezeCols--; else if (freezeCols === selectedCell.col) freezeCols = 0; fxRange = null; renderSheet(); }
+  else if (cmd === 'insertRowAbove') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (r >= selectedCell.row) newCells[(r + 1) + ',' + c] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.rows++; fxShiftMerges('rowIns', selectedCell.row, sh); rowHeights = shiftSizeMap(rowHeights, selectedCell.row, 1); if (freezeRows >= selectedCell.row) freezeRows++; fxRange = null; renderSheet(); }
+  else if (cmd === 'insertColLeft') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (c >= selectedCell.col) newCells[r + ',' + (c + 1)] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.cols++; fxShiftMerges('colIns', selectedCell.col, sh); colWidths = shiftSizeMap(colWidths, selectedCell.col, 1); if (freezeCols >= selectedCell.col) freezeCols++; fxRange = null; renderSheet(); }
+  else if (cmd === 'insertRowBelow') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (r > selectedCell.row) newCells[(r + 1) + ',' + c] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.rows++; fxShiftMerges('rowIns', selectedCell.row + 1, sh); rowHeights = shiftSizeMap(rowHeights, selectedCell.row + 1, 1); if (freezeRows > selectedCell.row) freezeRows++; fxRange = null; renderSheet(); }
+  else if (cmd === 'insertColRight') { const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (c > selectedCell.col) newCells[r + ',' + (c + 1)] = sh.cells[k]; else newCells[k] = sh.cells[k]; }); sh.cells = newCells; sh.cols++; fxShiftMerges('colIns', selectedCell.col + 1, sh); colWidths = shiftSizeMap(colWidths, selectedCell.col + 1, 1); if (freezeCols > selectedCell.col) freezeCols++; fxRange = null; renderSheet(); }
+  else if (cmd === 'deleteRow') { if (sh.rows <= 1) return; const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (r === selectedCell.row) return; newCells[(r > selectedCell.row ? r - 1 : r) + ',' + c] = sh.cells[k]; }); sh.cells = newCells; sh.rows--; fxShiftMerges('rowDel', selectedCell.row, sh); rowHeights = shiftSizeMap(rowHeights, selectedCell.row, -1, selectedCell.row); if (freezeRows > selectedCell.row) freezeRows--; else if (freezeRows === selectedCell.row) freezeRows = 0; fxRange = null; renderSheet(); }
+  else if (cmd === 'deleteCol') { if (sh.cols <= 1) return; const newCells = {}; Object.keys(sh.cells).forEach(k => { const [r, c] = k.split(',').map(Number); if (c === selectedCell.col) return; newCells[r + ',' + (c > selectedCell.col ? c - 1 : c)] = sh.cells[k]; }); sh.cells = newCells; sh.cols--; fxShiftMerges('colDel', selectedCell.col, sh); colWidths = shiftSizeMap(colWidths, selectedCell.col, -1, selectedCell.col); if (freezeCols > selectedCell.col) freezeCols--; else if (freezeCols === selectedCell.col) freezeCols = 0; fxRange = null; renderSheet(); }
+  else if (cmd === 'mergeCells') { const rng = fxSelRange(); if (fxRangeSize(rng) <= 1) { statusFlash('Select two or more cells, then Merge'); return; } sheetSnapshotPush(); sh.merges = sh.merges || {}; fxRemoveMergesIn(rng); sh.merges[rng.r1 + ',' + rng.c1] = { rows: rng.r2 - rng.r1 + 1, cols: rng.c2 - rng.c1 + 1 }; fxIterRange(rng, (r, c) => { if (r === rng.r1 && c === rng.c1) return; delete sh.cells[cellKey(r, c)]; }); fxRange = { ...rng }; renderSheet(); scheduleAutoSave(); statusFlash('Merged ' + colName(rng.c1) + (rng.r1 + 1) + ':' + colName(rng.c2) + (rng.r2 + 1)); }
+  else if (cmd === 'unmergeCells') { const rng = fxSelRange(); const removed = fxRemoveMergesIn(rng); if (!removed) { statusFlash('The selection has no merged cells'); return; } renderSheet(); scheduleAutoSave(); statusFlash('Unmerged ' + removed + ' merged cell' + (removed > 1 ? 's' : '')); }
+  else if (cmd === 'borderOutside') { const rng = fxSelRange(); fxIterRange(rng, (r, c) => { const cell = fxEnsureCell(r, c); cell.style.edges = { t: r === rng.r1 ? 1 : 0, r: c === rng.c2 ? 1 : 0, b: r === rng.r2 ? 1 : 0, l: c === rng.c1 ? 1 : 0 }; if (!cell.style.edges.t && !cell.style.edges.r && !cell.style.edges.b && !cell.style.edges.l) delete cell.style.edges; delete cell.style.border; }); renderSheet(); scheduleAutoSave(); }
+  else if (cmd === 'rowHeight') { const rng = fxSelRange(); const cur = rowHeights[selectedCell.row] || 24; const v = prompt('Row height in pixels (rows ' + (rng.r1 + 1) + ' to ' + (rng.r2 + 1) + '):', cur); if (v === null) return; const n = Math.max(18, Math.min(400, Math.round(+v) || 24)); for (let r = rng.r1; r <= rng.r2; r++) rowHeights[r] = n; renderSheet(); scheduleAutoSave(); statusFlash('Row height set to ' + n + 'px'); }
+  else if (cmd === 'colWidth') { const rng = fxSelRange(); const cur = colWidths[selectedCell.col] || 80; const v = prompt('Column width in pixels (columns ' + colName(rng.c1) + ' to ' + colName(rng.c2) + '):', cur); if (v === null) return; const n = Math.max(30, Math.min(600, Math.round(+v) || 80)); for (let c = rng.c1; c <= rng.c2; c++) colWidths[c] = n; renderSheet(); scheduleAutoSave(); statusFlash('Column width set to ' + n + 'px'); }
   else if (cmd === 'freezeToggle') { if (freezeRows === selectedCell.row && freezeCols === selectedCell.col) { freezeRows = 0; freezeCols = 0; statusFlash('Frozen panes cleared'); } else { freezeRows = selectedCell.row; freezeCols = selectedCell.col; statusFlash('Frozen above row ' + (selectedCell.row + 1) + ' and left of column ' + colName(selectedCell.col)); } renderSheet(); }
   else if (cmd === 'clearAll') { sh.cells = {}; fxRange = null; renderSheet(); }
-  else if (cmd === 'bold' || cmd === 'italic' || cmd === 'underline' || cmd === 'alignLeft' || cmd === 'alignCenter' || cmd === 'alignRight' || cmd === 'fillColor' || cmd === 'textColor' || cmd === 'border' || cmd === 'fmt' || cmd === 'clearFormat') styleRange();
+  else if (cmd === 'bold' || cmd === 'italic' || cmd === 'underline' || cmd === 'alignLeft' || cmd === 'alignCenter' || cmd === 'alignRight' || cmd === 'fillColor' || cmd === 'textColor' || cmd === 'border' || cmd === 'fmt' || cmd === 'clearFormat' || cmd === 'borderAll' || cmd === 'borderNone' || cmd === 'wrapText') styleRange();
   else if (cmd === 'sortAsc') fxSortSheet(1);
   else if (cmd === 'sortDesc') fxSortSheet(-1);
   else if (cmd === 'fillDown') fxFillDir('down');
@@ -5353,6 +5545,9 @@ function fxStyleOne(cmd, val, style){
     case 'fillColor': style.bg = (document.getElementById('sheetFill') || {}).value || '#eafaff'; break;
     case 'textColor': style.color = (document.getElementById('sheetColor') || {}).value || '#111111'; break;
     case 'border': style.border = !style.border; break;
+    case 'borderAll': style.edges = { t: 1, r: 1, b: 1, l: 1 }; delete style.border; break;
+    case 'borderNone': delete style.edges; delete style.border; break;
+    case 'wrapText': style.wrap = !style.wrap; break;
     case 'fmt': if (val && val !== 'gen') style.fmt = val; else delete style.fmt; break;
   }
 }
@@ -5366,6 +5561,7 @@ function fxSortSheet(dir){
     rng = { r1: 0, r2: maxR - 1, c1: 0, c2: maxC - 1 };
     if (rng.r2 - rng.r1 < 1) { statusFlash('Nothing to sort — only one used row'); return; }
   }
+  if (fxMergesIntersect(rng)) { statusFlash('Unmerge the cells in this range before sorting'); return; }
   const keyCol = Math.min(Math.max(selectedCell.col, rng.c1), rng.c2);
   sheetSnapshotPush();
   const rows = [];
@@ -5679,7 +5875,7 @@ function fxDocEnvelopeTitle(){
 }
 function fxDocExportWord(){
   const { node } = buildDocExportNode();
-  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + escapeHtml(fxDocEnvelopeTitle()) + '</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>@page{size:21cm 29.7cm;margin:2cm}</style></head><body>' + node.innerHTML + '</body></html>';
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + escapeHtml(fxDocEnvelopeTitle()) + '</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>@page{size:' + pxToMm(W) + 'mm ' + pxToMm(H) + 'mm;margin:' + pxToMm(DOC_MARGIN_PX[docPageCfg.margin] || 72) + 'mm}</style></head><body>' + node.innerHTML + '</body></html>';
   downloadBlob(new Blob(['\ufeff' + html], { type: 'application/msword' }), fxDocEnvelopeTitle() + '.doc');
   statusFlash('.doc exported — opens in Microsoft Word');
 }
@@ -5780,11 +5976,17 @@ function buildSheetTableNode(){
     const th = document.createElement('th'); th.textContent = String(r + 1); th.style.cssText = 'border:1px solid #bbb;background:#e8e8e8;padding:4px 8px;text-align:center;';
     tr.appendChild(th);
     for (let c = 0; c < cols; c++) {
+      const mg = fxMergeAt(r, c);
+      if (mg && !(r === mg.r1 && c === mg.c1)) continue; /* covered — skipped, the TL cell carries the span */
       const td = document.createElement('td');
       const cell = getCell(r, c);
       td.textContent = fxCellDisplay(cell);
       const st = cell.style || {};
-      td.style.cssText = 'border:1px solid #bbb;padding:4px 8px;' + (st.bold ? 'font-weight:bold;' : '') + (st.italic ? 'font-style:italic;' : '') + (st.underline ? 'text-decoration:underline;' : '') + (st.color ? 'color:' + st.color + ';' : '') + (st.bg ? 'background:' + st.bg + ';' : '') + (st.align ? 'text-align:' + st.align + ';' : '') + (st.border ? 'box-shadow:inset 0 0 0 1px #8a94a6;' : '');
+      const edges = st.edges || (st.border ? { t: 1, r: 1, b: 1, l: 1 } : null);
+      const edgeCss = edges ? (edges.t ? 'border-top:1px solid #8a94a6;' : '') + (edges.r ? 'border-right:1px solid #8a94a6;' : '') + (edges.b ? 'border-bottom:1px solid #8a94a6;' : '') + (edges.l ? 'border-left:1px solid #8a94a6;' : '') : '';
+      td.style.cssText = 'border:1px solid #bbb;padding:4px 8px;' + (st.bold ? 'font-weight:bold;' : '') + (st.italic ? 'font-style:italic;' : '') + (st.underline ? 'text-decoration:underline;' : '') + (st.color ? 'color:' + st.color + ';' : '') + (st.bg ? 'background:' + st.bg + ';' : '') + (st.align ? 'text-align:' + st.align + ';' : '') + edgeCss + (st.wrap ? 'white-space:normal;word-break:break-word;' : '');
+      if (mg && mg.rows > 1) td.setAttribute('rowspan', mg.rows);
+      if (mg && mg.cols > 1) td.setAttribute('colspan', mg.cols);
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -6936,6 +7138,9 @@ const SHEET_TOOL_CATALOG = {
   alignLeft:      { label:'Align left', glyph:'≡←', group:'style', toolbar:true, menu:false },
   alignCenter:    { label:'Align center', glyph:'≡', group:'style', toolbar:true, menu:false },
   alignRight:     { label:'Align right', glyph:'≡→', group:'style', toolbar:true, menu:false },
+  mergeCells:     { label:'Merge cells', glyph:'⬛', group:'style', toolbar:true, menu:true, fn:function(){ sheetCmd('mergeCells'); } },
+  unmergeCells:   { label:'Unmerge cells', glyph:'⬚', group:'style', toolbar:true, menu:true, fn:function(){ sheetCmd('unmergeCells'); } },
+  wrapText:       { label:'Wrap text', glyph:'↵', group:'style', toolbar:true, menu:true, fn:function(){ sheetCmd('wrapText'); } },
   fillColor:      { label:'Fill color', glyph:'🎨', group:'style', toolbar:true, menu:false },
   textColor:      { label:'Text color', glyph:'A', group:'style', toolbar:true, menu:false },
   sep1:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
@@ -6946,21 +7151,26 @@ const SHEET_TOOL_CATALOG = {
   insertRowAbove: { label:'Insert row above', glyph:'＋↑', group:'rows', toolbar:true, menu:true, fn:function(){ sheetCmd('insertRowAbove'); } },
   insertRowBelow: { label:'Insert row below', glyph:'＋↓', group:'rows', toolbar:true, menu:true, fn:function(){ sheetCmd('insertRowBelow'); } },
   deleteRow:      { label:'Delete row', glyph:'－', group:'rows', toolbar:true, menu:true, danger:true, fn:function(){ sheetCmd('deleteRow'); } },
+  rowHeight:      { label:'Row height…', glyph:'↕', group:'rows', toolbar:true, menu:true, fn:function(){ sheetCmd('rowHeight'); } },
   sep3:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
   insertColLeft:  { label:'Insert column left', glyph:'＋←', group:'cols', toolbar:true, menu:true, fn:function(){ sheetCmd('insertColLeft'); } },
   insertColRight: { label:'Insert column right', glyph:'＋→', group:'cols', toolbar:true, menu:true, fn:function(){ sheetCmd('insertColRight'); } },
   deleteCol:      { label:'Delete column', glyph:'－', group:'cols', toolbar:true, menu:true, danger:true, fn:function(){ sheetCmd('deleteCol'); } },
+  colWidth:       { label:'Column width…', glyph:'↔', group:'cols', toolbar:true, menu:true, fn:function(){ sheetCmd('colWidth'); } },
   addSheet:       { label:'Add sheet', glyph:'+Sheet', group:'cols', toolbar:true, menu:false, fn:function(){ sheetCmd('addSheet'); } },
   sep4:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
   freezeToggle:   { label:'Freeze panes', glyph:'⏸', group:'view', toolbar:true, menu:true, fn:function(){ sheetCmd('freezeToggle'); } },
   recalc:         { label:'Recalculate', glyph:'↻', group:'view', toolbar:true, menu:false, fn:function(){ sheetRecalc(); } },
+  fxSel:          { label:'Insert function', glyph:'ƒx', group:'view', toolbar:true, menu:false },
   fmtSel:         { label:'Number format', glyph:'123', group:'view', toolbar:true, menu:false },
   border:         { label:'Borders', glyph:'⊞', group:'view', toolbar:true, menu:false, fn:function(){ sheetCmd('border'); } },
+  borderSel:      { label:'Border styles', glyph:'⊞', group:'view', toolbar:true, menu:false },
   sep5:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
   sortAsc:        { label:'Sort A → Z', glyph:'A↓', group:'data', toolbar:true, menu:true, fn:function(){ sheetCmd('sortAsc'); } },
   sortDesc:       { label:'Sort Z → A', glyph:'Z↑', group:'data', toolbar:true, menu:true, fn:function(){ sheetCmd('sortDesc'); } },
   fillDown:       { label:'Fill down', glyph:'⤓', shortcut:'Ctrl+D', group:'data', toolbar:true, menu:true, fn:function(){ sheetCmd('fillDown'); } },
   fillRight:      { label:'Fill right', glyph:'⤒', group:'data', toolbar:true, menu:true, fn:function(){ sheetCmd('fillRight'); } },
+  findRep:        { label:'Find & replace', glyph:'🔍', group:'data', toolbar:true, menu:true, fn:function(){ sheetFindReplace(); } },
   sep6:           { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
   clearFormat:    { label:'Clear format', glyph:'⌫F', group:'edit', toolbar:true, menu:false, fn:function(){ sheetCmd('clearFormat'); } },
   clearAll:       { label:'Clear the whole sheet', glyph:'🗑', group:'edit', toolbar:true, menu:true, danger:true, fn:function(){ sheetCmd('clearAll'); } },
@@ -7280,6 +7490,7 @@ const DOC_TOOL_CATALOG = {
   dStats:     { label:'Word count', glyph:'123', group:'view', toolbar:true, menu:false },
   dSep5:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
   dZoom:      { label:'Zoom', glyph:'%', group:'view', toolbar:true, menu:false },
+  dPage:      { label:'Page setup — size, orientation, margins', glyph:'▤', group:'view', toolbar:true, menu:true, fn:function(){ openDocPageSetup(); } },
   dSep6:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
   pdf:        { label:'Print / PDF', glyph:'🖨', group:'export', toolbar:true, menu:false, fn:function(){ fileSavePdf(); } },
   docx:       { label:'Download .doc', glyph:'W⬇', group:'export', toolbar:true, menu:false, fn:function(){ fxDocExportWord(); } },
@@ -8436,7 +8647,15 @@ async function fxXlsxToSheets(buf){
         if (ci + 1 > width) width = ci + 1;
       });
     });
-    out.push({ name: name, rows: grid, width: Math.max(width, 1) });
+    var mergesOut = {};
+    Array.prototype.forEach.call(sx.getElementsByTagName('mergeCell'), function(mc){
+      var parts = (mc.getAttribute('ref') || '').split(':'); if (parts.length !== 2) return;
+      function refRC(s){ var i = 0, col = 0; for (; i < s.length; i++) { var ch = s.charCodeAt(i); if (ch >= 65 && ch <= 90) col = col * 26 + (ch - 64); else break; } var row = parseInt(s.slice(i), 10); if (isNaN(row) || row < 1 || col < 1) return null; return { r: row - 1, c: col - 1 }; }
+      var a = refRC(parts[0]), b = refRC(parts[1]);
+      if (!a || !b || b.r < a.r || b.c < a.c) return;
+      mergesOut[a.r + ',' + a.c] = { rows: b.r - a.r + 1, cols: b.c - a.c + 1 };
+    });
+    out.push({ name: name, rows: grid, width: Math.max(width, 1), merges: mergesOut });
   }
   if (!out.length) throw new Error('no readable sheets found');
   return out;
@@ -8500,6 +8719,7 @@ async function fxOpenXlsxFile(file){
       seen[nm] = true;
       var sh = { name: nm, rows: Math.max(30, p.rows.length + 5), cols: Math.max(12, p.width), cells: {} };
       p.rows.forEach(function(r, ri){ r.forEach(function(v, ci){ if (v === '' || v === undefined) return; sh.cells[cellKey(ri, ci)] = { v: v }; }); });
+      if (p.merges && Object.keys(p.merges).length) { sh.merges = p.merges; Object.keys(p.merges).forEach(function(k){ var mm = p.merges[k]; var kp = k.split(','); sh.rows = Math.max(sh.rows, +kp[0] + mm.rows); sh.cols = Math.max(sh.cols, +kp[1] + mm.cols); }); }
       return sh;
     });
     currentSheet = 0; fxRange = null; selectedCell = { row: 0, col: 0 };
