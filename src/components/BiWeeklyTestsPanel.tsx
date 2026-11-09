@@ -33,7 +33,7 @@ const TEST_CATALOG: TestEntry[] = [
   { title: 'W5 · C1 Listening: Innovation in Business', slug: 'isec2-w5-listening.html', group: 'ISEC II weekly tests' },
   { title: 'W6 · C2 Grammar: Modals & Conditionals', slug: 'isec2-w6-grammar.html', group: 'ISEC II weekly tests' },
   { title: 'W7 · C2 Reading: The Algorithmic Enterprise', slug: 'isec2-w7-reading.html', group: 'ISEC II weekly tests' },
-  { title: 'Level 10 TOEFL Mock Test (30 questions)', slug: 'week8-mock.html', group: 'ISEC II weekly tests' },
+  { title: 'Level 10 TOEFL Mock Test (40 questions)', slug: 'week8-mock.html', group: 'ISEC II weekly tests' },
   // Week 8 recaps
   { title: 'Grammar Drill — Recap', slug: 'week8-recap-grammar.html', group: 'Week 8 recaps' },
   { title: 'Listening Drill — Recap', slug: 'week8-recap-listening.html', group: 'Week 8 recaps' },
