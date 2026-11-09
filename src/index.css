@@ -1784,3 +1784,80 @@ html.light .cmc-role-gate .bg-amber-100\/10 { background-color: rgba(180, 83, 9,
 html.light .cmc-role-gate .hover\:bg-amber-200\/20:hover { background-color: rgba(180, 83, 9, 0.15); }
 html.light .cmc-role-gate .ring-amber-200\/30 { --tw-ring-color: rgba(180, 83, 9, 0.3); }
 html.light .cmc-role-gate .bg-white\/5 { background-color: rgba(15, 23, 42, 0.05); }
+
+/* ============================================================
+   Light theme: Real-time Dashboard (#firebase-dashboard).
+   The section is dark-first: an animated video/poster backdrop
+   sits under a near-opaque navy veil that painted the whole
+   section dark even after the shell + card utilities were
+   light-converted, and its Bi-Weekly Tests cards carry
+   data-keep-dark (forcing white text / dark surfaces back on).
+   In light mode the backdrop + veil are hidden and the
+   keep-dark Bi-Weekly cards are re-lit. Scoped by ID so
+   genuine keep-dark artwork zones elsewhere are untouched.
+   ============================================================ */
+html.light #firebase-dashboard .cmc-rtdash-media,
+html.light #firebase-dashboard .cmc-rtdash-veil { display: none; }
+
+/* Bi-Weekly Tests cards: data-keep-dark → light inside this section */
+html.light #firebase-dashboard [data-keep-dark] {
+  background-color: var(--cmc-l-card);
+  background-image: none;
+  border-color: var(--cmc-l-border);
+}
+html.light #firebase-dashboard [data-keep-dark] .text-white,
+html.light #firebase-dashboard [data-keep-dark] .hover\:text-white:hover { color: var(--cmc-l-ink); }
+html.light #firebase-dashboard [data-keep-dark] .text-slate-200,
+html.light #firebase-dashboard [data-keep-dark] .text-slate-300 { color: var(--cmc-l-text-mid); }
+html.light #firebase-dashboard [data-keep-dark] .text-slate-400 { color: var(--cmc-l-text-soft); }
+html.light #firebase-dashboard [data-keep-dark] .text-slate-500,
+html.light #firebase-dashboard [data-keep-dark] .text-slate-600 { color: var(--cmc-l-text-dim); }
+html.light #firebase-dashboard [data-keep-dark] .text-cyan-200,
+html.light #firebase-dashboard [data-keep-dark] .text-cyan-300 { color: var(--cmc-l-accent); }
+html.light #firebase-dashboard [data-keep-dark] .text-violet-200,
+html.light #firebase-dashboard [data-keep-dark] .text-violet-300 { color: #6d28d9; }
+html.light #firebase-dashboard [data-keep-dark] .text-emerald-200,
+html.light #firebase-dashboard [data-keep-dark] .text-emerald-300 { color: #047857; }
+html.light #firebase-dashboard [data-keep-dark] .text-rose-200,
+html.light #firebase-dashboard [data-keep-dark] .text-rose-300 { color: #be123c; }
+html.light #firebase-dashboard [data-keep-dark] .text-amber-300 { color: #b45309; }
+html.light #firebase-dashboard [data-keep-dark] .bg-white\/5 { background-color: rgba(15, 23, 42, 0.05); }
+html.light #firebase-dashboard [data-keep-dark] .bg-white\/10 { background-color: rgba(15, 23, 42, 0.08); }
+html.light #firebase-dashboard [data-keep-dark] .bg-slate-900 { background-color: rgba(255, 255, 255, 0.72); }
+html.light #firebase-dashboard [data-keep-dark] .bg-slate-900\/50 { background-color: rgba(255, 255, 255, 0.7); }
+html.light #firebase-dashboard [data-keep-dark] .bg-slate-950\/40,
+html.light #firebase-dashboard [data-keep-dark] .bg-slate-950\/50 { background-color: var(--cmc-l-card); }
+html.light #firebase-dashboard [data-keep-dark] .border-white\/5,
+html.light #firebase-dashboard [data-keep-dark] .border-white\/10 { border-color: var(--cmc-l-border); }
+html.light #firebase-dashboard [data-keep-dark] .border-slate-700 { border-color: rgba(15, 23, 42, 0.16); }
+html.light #firebase-dashboard [data-keep-dark] .border-cyan-400\/30 { border-color: rgba(8, 145, 178, 0.32); }
+html.light #firebase-dashboard [data-keep-dark] .border-violet-300\/15,
+html.light #firebase-dashboard [data-keep-dark] .border-violet-300\/20 { border-color: rgba(109, 40, 217, 0.3); }
+html.light #firebase-dashboard [data-keep-dark] .border-emerald-300\/15,
+html.light #firebase-dashboard [data-keep-dark] .border-emerald-300\/20 { border-color: rgba(5, 150, 105, 0.3); }
+html.light #firebase-dashboard [data-keep-dark] .bg-cyan-400\/10 { background-color: rgba(8, 145, 178, 0.09); }
+html.light #firebase-dashboard [data-keep-dark] .bg-emerald-300\/10 { background-color: rgba(5, 150, 105, 0.09); }
+html.light #firebase-dashboard [data-keep-dark] .bg-violet-300\/10 { background-color: rgba(109, 40, 217, 0.09); }
+html.light #firebase-dashboard [data-keep-dark] .bg-rose-400\/10 { background-color: rgba(190, 18, 60, 0.08); }
+html.light #firebase-dashboard [data-keep-dark] .hover\:bg-cyan-400\/20:hover { background-color: rgba(8, 145, 178, 0.14); }
+html.light #firebase-dashboard [data-keep-dark] .hover\:bg-white\/5:hover,
+html.light #firebase-dashboard [data-keep-dark] .hover\:bg-white\/10:hover { background-color: rgba(15, 23, 42, 0.08); }
+
+/* remaining utility gaps unique to the dashboard */
+html.light #firebase-dashboard .bg-cyan-500\/5 { background-color: rgba(8, 145, 178, 0.07); }
+html.light #firebase-dashboard .bg-violet-400\/15 { background-color: rgba(124, 58, 237, 0.09); }
+html.light #firebase-dashboard .border-cyan-500\/20 { border-color: rgba(8, 145, 178, 0.26); }
+html.light #firebase-dashboard .border-cyan-500\/30 { border-color: rgba(8, 145, 178, 0.35); }
+html.light #firebase-dashboard .border-emerald-500\/30 { border-color: rgba(5, 150, 105, 0.35); }
+html.light #firebase-dashboard .bg-emerald-500\/5 { background-color: rgba(5, 150, 105, 0.07); }
+html.light #firebase-dashboard .bg-emerald-500\/15 { background-color: rgba(5, 150, 105, 0.14); }
+html.light #firebase-dashboard .hover\:bg-rose-500\/10:hover { background-color: rgba(190, 18, 60, 0.08); }
+html.light #firebase-dashboard .hover\:text-cyan-200:hover { color: #155e75; }
+
+/* self-case: the Bi-Weekly card roots carry data-keep-dark AND their
+   border/text utilities on the same element (descendant rules miss them) */
+html.light #firebase-dashboard [data-keep-dark].text-white { color: var(--cmc-l-ink); }
+html.light #firebase-dashboard [data-keep-dark].border-emerald-300\/15,
+html.light #firebase-dashboard [data-keep-dark].border-emerald-300\/20 { border-color: rgba(5, 150, 105, 0.3); }
+html.light #firebase-dashboard [data-keep-dark].border-violet-300\/15,
+html.light #firebase-dashboard [data-keep-dark].border-violet-300\/20 { border-color: rgba(109, 40, 217, 0.3); }

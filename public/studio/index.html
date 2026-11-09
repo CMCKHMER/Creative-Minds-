@@ -562,6 +562,7 @@
         <div class="menu-item" data-action="file-save-pdf"><span>Save as PDF</span></div>
         <div class="menu-item" data-action="file-save-json"><span>Save Project (.json)</span><span class="kbd">Ctrl+Shift+S</span></div>
         <div class="menu-item" data-action="file-save-csv"><span>Export Spreadsheet as CSV</span></div>
+        <div class="menu-item" data-action="file-autosave"><span>Autosave — On/Off</span><span class="check">✓</span></div>
         <div class="menu-sep"></div>
         <div class="menu-item" data-action="file-print"><span>Print…</span><span class="kbd">Ctrl+P</span></div>
         <div class="menu-item" data-action="file-import"><span>Insert Image (Doc or Canvas)…</span></div>
@@ -830,6 +831,7 @@
       <div class="quick-sep" data-tool="dSep7"></div>
       <button class="quick-btn cmc-teacher-only" data-tool="share" onclick="studioShare()" title="Publish to a live link students can open — or collect their answers as a worksheet">☁ Share</button>
       <button class="quick-btn cmc-teacher-only" data-tool="live" onclick="studioLive()" title="Live session — everyone with the invite link edits this spreadsheet together, like Google Sheets">⚡ Live</button>
+      <button class="quick-btn" data-tool="autosave" onclick="toggleAutoSave()" title="Autosave on/off — saves your Docs, Excel and Code work on this device as you go">⏱ Autosave</button>
       <div class="quick-sep" data-tool="dSep8"></div>
       <button class="quick-btn" data-tool="customize" onclick="openDocToolsCustomize()" title="Customize which tools appear in the Docs toolbar and the right-click menu">⚙ Tools</button>
     </div>
@@ -1595,24 +1597,85 @@ function renderHistoryList(){
 
 /* ── Auto-save ─────────────────────────────────────── */
 let autoSaveTimer = null;
-function scheduleAutoSave(){ if (autoSaveTimer) clearTimeout(autoSaveTimer); autoSaveTimer = setTimeout(doAutoSave, 30000); }
+let docAutoSaveTimer = null;
+/* Autosave can be turned OFF or ON — Docs toolbar "⏱ Autosave" button or
+   File ▸ Autosave — On/Off. The preference is remembered on this device.
+   ON (default): a lightweight doc snapshot is written ~1.2 s after typing
+   stops (header/footer included) plus the full-project snapshot every 30 s.
+   OFF: nothing is written at all — save manually instead. */
+const AUTOSAVE_PREF_LS = 'cm-studio-autosave';
+const DOC_AUTOSAVE_LS = 'cm-studio-doc-autosave';
+function autoSaveOn(){ try { return (localStorage.getItem(AUTOSAVE_PREF_LS) || 'on') !== 'off'; } catch(e) { return true; } }
+function scheduleAutoSave(){
+  if (!autoSaveOn()) return;
+  if (autoSaveTimer) clearTimeout(autoSaveTimer); autoSaveTimer = setTimeout(doAutoSave, 30000);
+  if (docAutoSaveTimer) clearTimeout(docAutoSaveTimer); docAutoSaveTimer = setTimeout(doDocAutoSave, 1200);
+}
+function doDocAutoSave(){
+  if (!autoSaveOn()) return;
+  try {
+    localStorage.setItem(DOC_AUTOSAVE_LS, JSON.stringify({ version: 1, app: 'creative-minds-studio', kind: 'doc-autosave', savedAt: new Date().toISOString(), doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML, docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show') }));
+  } catch(e) {}
+}
 function doAutoSave(){
+  if (!autoSaveOn()) return;
   try {
     const proj = { version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: new Date().toISOString(), W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: docLayer.innerHTML, docHeader: docHeader.innerHTML, docFooter: docFooter.innerHTML, docHeaderShow: docHeader.classList.contains('show'), docFooterShow: docFooter.classList.contains('show'), sheets, currentSheet, docRotation, mode: tool, code: codeContent, codeLang: currentCodeLang };
     localStorage.setItem('cm-studio-auto-save', JSON.stringify(proj));
   } catch(e) {}
+}
+function toggleAutoSave(){
+  const on = !autoSaveOn();
+  try { localStorage.setItem(AUTOSAVE_PREF_LS, on ? 'on' : 'off'); } catch(e) {}
+  if (on) { scheduleAutoSave(); statusFlash('Autosave on — your Docs, Excel and Code work saves itself on this device'); }
+  else { if (autoSaveTimer) clearTimeout(autoSaveTimer); if (docAutoSaveTimer) clearTimeout(docAutoSaveTimer); statusFlash('Autosave off — nothing saves automatically until you turn it back on'); }
+  applyAutoSaveUI();
+}
+function applyAutoSaveUI(){
+  const on = autoSaveOn();
+  document.querySelectorAll('[data-tool="autosave"]').forEach(function(b){
+    if (b.tagName === 'BUTTON') {
+      b.classList.toggle('active', on);
+      b.textContent = on ? '⏱ Autosave ON' : '⏱ Autosave OFF';
+      b.title = on ? 'Autosave is on — click to turn it off' : 'Autosave is off — click to turn it on';
+    }
+  });
+  updateMenuCheck('file-autosave', on);
 }
 function offerRecovery(){
   /* Auto-saved work is restored silently — the old confirm() dialog appeared
      on every visit and annoyed people. A non-blocking status flash says what
      happened; File ▸ New Project starts fresh (and clears the auto-save). */
   try {
-    const saved = localStorage.getItem('cm-studio-auto-save');
+    let saved = localStorage.getItem('cm-studio-auto-save');
+    let ds = null;
+    try { ds = JSON.parse(localStorage.getItem(DOC_AUTOSAVE_LS) || 'null'); } catch(e) { ds = null; }
+    if (!saved && ds && typeof ds.doc === 'string' && ds.doc) {
+      /* Doc-only save (typed for < 30 s on a fresh visit, before the first
+         full-project snapshot): snapshot the pristine app state now, swap in
+         the doc fields, and recover that. */
+      try {
+        saved = JSON.stringify({ version: 1, app: 'creative-minds-studio', autoSave: true, savedAt: ds.savedAt, W, H, bgColor, layers: layers.map(l => ({...l, canvas: l.canvas.toDataURL()})), currentLayer, texts, imgs: JSON.parse(serializeImgs()), doc: ds.doc, docHeader: ds.docHeader || '', docFooter: ds.docFooter || '', docHeaderShow: !!ds.docHeaderShow, docFooterShow: !!ds.docFooterShow, sheets, currentSheet, docRotation });
+      } catch(e) { saved = null; }
+    }
     if (!saved) return;
     setTimeout(() => {
       try {
         document.getElementById('welcomeScreen').classList.add('hidden');
-        loadProject(JSON.parse(saved));
+        const proj = JSON.parse(saved);
+        loadProject(proj);
+        /* a newer doc-only autosave (1.2 s cadence) beats the 30 s project snapshot */
+        try {
+          const ds = JSON.parse(localStorage.getItem(DOC_AUTOSAVE_LS) || 'null');
+          if (ds && typeof ds.doc === 'string' && (Date.parse(ds.savedAt || '') || 0) >= (Date.parse(proj.savedAt || '') || 0)) {
+            docLayer.innerHTML = ds.doc;
+            docHeader.innerHTML = ds.docHeader || '';
+            docFooter.innerHTML = ds.docFooter || '';
+            docHeader.classList.toggle('show', !!ds.docHeaderShow);
+            docFooter.classList.toggle('show', !!ds.docFooterShow);
+            if (typeof fxDocStats === 'function') fxDocStats();
+          }
+        } catch(e) {}
         filename.textContent = 'recovered.project';
         statusFlash('Auto-saved work restored — File ▸ New Project starts fresh');
       } catch(e) {}
@@ -3128,7 +3191,7 @@ function canvasToBlob(callback, type='image/png', quality=0.92){
   o.drawImage(base,0,0); o.drawImage(textLayer,0,0);
   out.toBlob(callback, type, quality);
 }
-function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(794, 1123); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docHeader.innerHTML = ''; docFooter.innerHTML = ''; docHeader.classList.remove('show'); docFooter.classList.remove('show'); docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' }; codeEditor.value = ''; updateLineNumbers(); updateCodeStats(); bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; sheetCellUndo = []; sheetCellRedo = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); } catch(e) {} }
+function fileNew(){ if (!confirm('Start a new project? Current work will be lost unless saved.')) return; initLayers(); setCanvasSize(794, 1123); bctx.clearRect(0,0,W,H); texts=[]; imgObjects=[]; selected=-1; selectedImg=-1; docLayer.innerHTML = '<h1>Document Title</h1><p>Start typing…</p>'; docHeader.innerHTML = ''; docFooter.innerHTML = ''; docHeader.classList.remove('show'); docFooter.classList.remove('show'); docRotation = 0; applyDocRotation(); sheets = [{ name: 'Sheet1', rows: 30, cols: 12, cells: {} }]; currentSheet = 0; selectedCell = { row: 0, col: 0 }; codeContent = { javascript: '', html: '', css: '', python: '', json: '', markdown: '', plaintext: '' }; codeEditor.value = ''; updateLineNumbers(); updateCodeStats(); bgColor = '#ffffff'; wrap.style.background = bgColor; undoStack = []; redoStack = []; sheetCellUndo = []; sheetCellRedo = []; updateHistoryUI(); renderHistoryList(); selectTool('select'); composite(); renderTexts(); renderLayerList(); renderSheet(); renderSheetTabs(); filename.textContent = 'untitled.project'; try { localStorage.removeItem('cm-studio-auto-save'); localStorage.removeItem(DOC_AUTOSAVE_LS); } catch(e) {} }
 function fileOpen(){ openInput.click(); }
 openInput.onchange = e => {
   const f = e.target.files[0]; if (!f) return;
@@ -3350,7 +3413,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 
 /* ══ MENU WIRING ══════════════════════════════════ */
 const ACTIONS = {
-  'file-new': fileNew, 'file-open': fileOpen, 'file-save-png': fileSavePng, 'file-save-jpg': fileSaveJpg, 'file-save-svg': fileSaveSvg, 'file-save-pdf': fileSavePdf, 'file-save-json': fileSaveJson, 'file-save-csv': fileSaveCsv, 'file-print': filePrint, 'file-import': insertImage,
+  'file-new': fileNew, 'file-open': fileOpen, 'file-save-png': fileSavePng, 'file-save-jpg': fileSaveJpg, 'file-save-svg': fileSaveSvg, 'file-save-pdf': fileSavePdf, 'file-save-json': fileSaveJson, 'file-save-csv': fileSaveCsv, 'file-autosave': toggleAutoSave, 'file-print': filePrint, 'file-import': insertImage,
   'edit-undo': undo, 'edit-redo': redo, 'edit-cut': editCut, 'edit-copy': editCopy, 'edit-paste': editPaste, 'edit-delete': editDelete, 'edit-duplicate': editDuplicate, 'edit-select-all': editSelectAll, 'edit-clear': editClear, 'edit-flip-h': () => flipCanvas(true), 'edit-flip-v': () => flipCanvas(false), 'edit-rotate-img-90-cw': () => rotateActiveLayer(90), 'edit-rotate-img-90-ccw': () => rotateActiveLayer(-90), 'edit-rotate-doc-15-cw': () => { rotateDoc(15); }, 'edit-rotate-doc-15-ccw': () => { rotateDoc(-15); }, 'edit-rotate-doc-reset': () => { resetDocRotation(); },
   'view-zoom-in': viewZoomIn, 'view-zoom-out': viewZoomOut, 'view-zoom-fit': viewZoomFit, 'view-zoom-100': viewZoom100, 'view-toggle-rulers': viewToggleRulers, 'view-toggle-panel': viewTogglePanel, 'view-toggle-grid': viewToggleGrid, 'view-toggle-dark': viewToggleDark, 'view-toggle-mybar': viewToggleMyBar,
   'image-page-size': () => openModal('pageSizeModal'), 'image-resize': () => openModal('imageResizeModal'), 'image-extend': () => openModal('canvasExtendModal'), 'image-rotate-90-cw': () => rotateCanvas(90), 'image-rotate-90-ccw': () => rotateCanvas(-90), 'image-rotate-180': () => rotateCanvas(180), 'image-bg-remove-chroma': () => { document.getElementById('bgMethodChroma').click(); openModal('bgRemoveModal'); }, 'image-bg-remove-wand': () => { document.getElementById('bgMethodWand').click(); openModal('bgRemoveModal'); },
@@ -7220,6 +7283,7 @@ const DOC_TOOL_CATALOG = {
   html:       { label:'Download .html', glyph:'⬇', group:'export', toolbar:true, menu:false, fn:function(){ fxDocExportHtml(); } },
   import:     { label:'Import .html / .txt', glyph:'⬆', group:'export', toolbar:true, menu:false, fn:function(){ var el = document.getElementById('docHtmlInput'); if (el) el.click(); } },
   dSep7:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
+  autosave:   { label:'Autosave on/off', glyph:'⏱', group:'view', toolbar:true, menu:false, fn:function(){ toggleAutoSave(); } },
   share:      { label:'Share', glyph:'☁', group:'share', toolbar:true, menu:false, fn:function(){ studioShare(); } },
   live:       { label:'Live session', glyph:'⚡', group:'share', toolbar:true, menu:false, fn:function(){ studioLive(); } },
   dSep8:      { label:'Divider', glyph:'', group:'sep', toolbar:true, menu:false, isSep:true },
@@ -7523,6 +7587,7 @@ function fxImgHandleEnd(){
 /* keep chip + handles glued to the image through any scroll */
 window.addEventListener('scroll', function(){ if (fxImgSel && docLayer.contains(fxImgSel)) fxDocSelectImg(fxImgSel); }, true);
 applyDocToolLayout();
+applyAutoSaveUI();
 
 /* ═══════════════════ CMC-STUDIO-LIVE · real-time co-editing ═══════════════════
    Google-Sheets-style live sessions over WebRTC (PeerJS) — deliberately NOT
