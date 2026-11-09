@@ -144,6 +144,16 @@ export function FirebaseDashboard() {
   // to the signed-in student and sorts them newest-first.
   const { attempts: studentAttempts } = useStudentAttempts(isStudent ? studentUid : null);
 
+  // Compact-by-default completed lists: both attempt tables show only the
+  // 5 newest rows until "Show all" is pressed, keeping the dashboard tight.
+  const [showAllAttempts, setShowAllAttempts] = useState(false);
+  const [showAllStudent, setShowAllStudent] = useState(false);
+  const scopedAttempts = selectedClass
+    ? attempts.filter((a: any) => a.classId === selectedClass)
+    : attempts;
+  const visibleAttempts = showAllAttempts ? scopedAttempts.slice(0, 50) : scopedAttempts.slice(0, 5);
+  const hiddenAttemptCount = Math.max(0, scopedAttempts.length - 5);
+
   // Join a class by its CMC-XXXXXX code: writes the enrollment doc, stamps
   // the student profile, and persists the code for the submit paths
   // (submitScore.ts + cmc-shared.js) so future attempts carry classId.
@@ -201,10 +211,36 @@ export function FirebaseDashboard() {
 
   return (
     <section id="firebase-dashboard" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#061018] py-20 sm:py-24 lg:py-28">
+      {/* Hero backdrop — the animated TOEFL iBT header art (same family as the
+          main hero), heavily veiled so the tables stay readable. The poster
+          frame paints instantly; the muted 5s loop takes over; visitors with
+          reduced-motion get the still poster only. */}
+      <div aria-hidden="true" className="cmc-rtdash-media pointer-events-none absolute inset-0 overflow-hidden">
+        <img
+          src="./images/hero-toefl-blue.jpg"
+          alt=""
+          className="cmc-rtdash-poster"
+          loading="lazy"
+          decoding="async"
+        />
+        <video
+          className="cmc-rtdash-video"
+          src="./images/hero-toefl-header.mp4"
+          poster="./images/hero-toefl-blue.jpg"
+          autoPlay
+          muted
+          loop
+          playsInline
+          disablePictureInPicture
+          preload="metadata"
+          tabIndex={-1}
+        />
+        <div className="cmc-rtdash-veil" />
+      </div>
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-cyan-500/[0.10] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-violet-500/[0.10] blur-[125px]" />
 
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -346,7 +382,7 @@ export function FirebaseDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {(selectedClass ? attempts.filter((a: any) => a.classId === selectedClass) : attempts).slice(0, 50).map((a: any, i: number) => (
+                    {visibleAttempts.map((a: any, i: number) => (
                       <tr key={i} className="hover:bg-white/5">
                         <td className="px-4 py-3 text-xs font-medium text-slate-200">{a.studentName || 'Unknown'}</td>
                         <td className="px-4 py-3 text-xs text-slate-400">
@@ -374,6 +410,17 @@ export function FirebaseDashboard() {
                     ))}
                   </tbody>
                 </table>
+              )}
+              {!loading && hiddenAttemptCount > 0 && (
+                <div className="border-t border-white/10 px-4 py-2.5 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowAllAttempts((v) => !v)}
+                    className="text-[11px] font-semibold text-cyan-300 transition hover:text-cyan-200"
+                  >
+                    {showAllAttempts ? 'Show less' : `Show all ${scopedAttempts.length} attempts`}
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -446,7 +493,7 @@ export function FirebaseDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {studentAttempts.map((a: any, i: number) => (
+                  {(showAllStudent ? studentAttempts.slice(0, 50) : studentAttempts.slice(0, 5)).map((a: any, i: number) => (
                     <tr key={i}>
                       <td className="px-4 py-3 text-xs text-slate-300">
                         {a.drillTitle || a.drillSlug}
@@ -464,6 +511,17 @@ export function FirebaseDashboard() {
                   ))}
                 </tbody>
               </table>
+            )}
+            {studentAttempts.length > 5 && (
+              <div className="border-t border-white/10 px-4 py-2.5 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowAllStudent((v) => !v)}
+                  className="text-[11px] font-semibold text-cyan-300 transition hover:text-cyan-200"
+                >
+                  {showAllStudent ? 'Show less' : `Show all ${studentAttempts.length} drills`}
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -630,7 +688,7 @@ function CommunityLive() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {recent.slice(0, 6).map((a, i) => (
+              {recent.slice(0, 5).map((a, i) => (
                 <tr key={i} className="hover:bg-white/5">
                   <td className="px-4 py-3 text-xs font-medium text-slate-200">{a.name}</td>
                   <td className="px-4 py-3 text-xs text-slate-400">

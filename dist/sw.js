@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v13'; // v13: bi-week planner hero swapped to the static deep-blue TOEFL iBT artwork; v12 main hero static artwork; v11 animated book-and-world-map hero video + studio Docs right-click tools
+const CACHE_VERSION = 'cmc-v14'; // v14: Real-time Dashboard gets the animated TOEFL header video backdrop + completed-attempt tables capped to the last 5 (Show all toggle); v13 planner hero static artwork
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 
