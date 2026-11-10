@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v29'; // v29: Voice Quest replaced by "Talk to me" — the new voice-controlled English game (12 levels in 4 units, Game Designer for building and sharing custom levels, Word Book, tap controls + typed commands alongside voice, accessibility settings, Back to CMC link in the top bar and footer); same voice-quest.html URL and browser-saved stars carry over.
+const CACHE_VERSION = 'cmc-v30'; // v30: Floating 3D stage on the bi-weekly planner — week panels rest at translateZ(48px) hovering IN FRONT of the darkened backdrop, gentle staggered idle bob, hover pops the panel toward the viewer (translateZ 106px + scale 1.03), shared stage perspective + vignette backdrop; reduced-motion and touch degrade gracefully.
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

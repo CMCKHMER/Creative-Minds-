@@ -16,8 +16,8 @@
 html[data-theme="light"]{--bg:#e2e8f0;--hero-bg:#e3e9f1;--card:rgba(255,255,255,.78);--border:rgba(15,23,42,.10);--accent:#0e7490;--text:#0c1a2c;--muted:#5c6b7d;--shadow:rgba(15,23,42,.08)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(56,189,248,.08),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(139,92,246,.08),transparent 50%)}
-html[data-theme="light"] body::before{background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(14,165,233,.06),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(168,85,247,.04),transparent 50%)}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(56,189,248,.08),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(139,92,246,.08),transparent 50%),radial-gradient(ellipse 95% 75% at 50% 42%,transparent 56%,rgba(1,4,14,.62) 100%)}
+html[data-theme="light"] body::before{background:radial-gradient(ellipse 60% 40% at 10% 10%,rgba(14,165,233,.06),transparent 50%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(168,85,247,.04),transparent 50%),radial-gradient(ellipse 95% 75% at 50% 42%,transparent 54%,rgba(71,105,134,.28) 100%)}
 .font-display{font-family:'Syne',sans-serif;letter-spacing:-0.02em}
 .font-mono2{font-family:'Space Grotesk',monospace}
 :focus-visible{outline:2px solid #67e8f9;outline-offset:3px}
@@ -243,13 +243,46 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 @media (prefers-reduced-motion:no-preference){
   .week-card .holo-sheen::before{transition:left 1.05s cubic-bezier(.22,1,.36,1)}
   .week-card:hover .holo-sheen::before{left:135%}
-  /* cursor-tracked 3D tilt (JS feeds --tx/--ty; --gx/--gy steer the projector light) */
-  .week-card.holo-tilt:hover{transform:perspective(1200px) rotateX(var(--ty,0deg)) rotateY(var(--tx,0deg)) translateY(-5px)}
+  /* cursor-tracked 3D tilt (JS feeds --tx/--ty; --gx/--gy steer the projector light) —
+     tilt now rides on the shared stage perspective; hover ALSO pushes the panel
+     forward via translateZ, see the FLOATING 3D STAGE block below */
 }
-.week-card.holo-tilt{will-change:transform}
-.week-card:hover{transform:translateY(-5px);border-color:rgba(147,222,255,.4);
-  box-shadow:0 30px 70px -30px rgba(8,145,178,.5),0 0 34px -6px rgba(56,189,248,.28),inset 0 1px 0 rgba(213,245,255,.2),inset 0 0 42px rgba(56,189,248,.08)}
-.week-card.holo-tilt:hover{border-color:rgba(147,222,255,.4)}
+/* — FLOATING 3D STAGE (Nov 2026): panels pop forward and hover in front of you —
+   Both grids share one perspective (a console stage). Every card rests at
+   translateZ(48px) so it physically floats IN FRONT of the darkened backdrop,
+   gently bobbing on the separate `translate` property (staggered per card) so
+   the idle float never fights the tilt `transform`. On hover the panel pushes
+   farther out of the wall toward the viewer (translateZ 106px + scale) with a
+   deeper drop shadow — it reads as a hologram panel lifted off the console. */
+#featured-week,#schedule-grid{perspective:1500px;perspective-origin:50% 26%}
+.week-card{
+  transform:translateZ(48px);
+  transition:transform .5s cubic-bezier(.16,1,.3,1),translate .5s cubic-bezier(.16,1,.3,1),scale .5s cubic-bezier(.16,1,.3,1),border-color .3s ease,box-shadow .3s ease,background .3s;
+  box-shadow:0 36px 74px -34px rgba(2,6,23,.92),0 16px 40px -18px rgba(8,145,178,.26),inset 0 1px 0 rgba(213,245,255,.14),inset 0 0 42px rgba(56,189,248,.05)}
+.week-card.holo-tilt{will-change:transform,translate,scale}
+.week-card:hover{border-color:rgba(147,222,255,.4);
+  box-shadow:0 52px 96px -38px rgba(2,6,23,.95),0 24px 58px -20px rgba(8,145,178,.4),0 0 46px -6px rgba(56,189,248,.3),inset 0 1px 0 rgba(213,245,255,.2),inset 0 0 42px rgba(56,189,248,.08)}
+@media (prefers-reduced-motion:no-preference){
+  @keyframes holoFloat{0%,100%{translate:0 0}50%{translate:0 -9px}}
+  .week-card{animation:holoFloat 6.5s ease-in-out infinite}
+  .week-card:nth-child(2n){animation-delay:-2.2s}
+  .week-card:nth-child(3n){animation-delay:-3.7s}
+  .week-card:nth-child(5n){animation-delay:-4.9s}
+  #featured-week .week-card{animation-duration:7.4s}
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  /* pointer devices: hover pops the panel toward the viewer (never sticks on touch) */
+  .week-card:hover{transform:translateZ(106px) translateY(-6px);scale:1.03}
+  .week-card.holo-tilt:hover{transform:translateZ(106px) rotateX(var(--ty,0deg)) rotateY(var(--tx,0deg)) translateY(-6px);scale:1.03}
+}
+@media (hover:none){
+  /* touch: keep the forward float, drop the cursor pop */
+  .week-card{transform:translateZ(30px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .week-card{animation:none;transform:translateZ(20px);transition:none}
+  .week-card:hover{transform:translateZ(20px) translateY(-2px)}
+}
 
 /* — keycap drill buttons: holo glass cap, light-blue glow on press — */
 .drill-btn .btn-ic{
@@ -283,14 +316,14 @@ html[data-theme="light"] .glass{
 html[data-theme="light"] .week-card{
   background:linear-gradient(165deg,rgba(255,255,255,.8),rgba(255,255,255,.56) 40%,rgba(224,242,254,.66))!important;
   border-color:rgba(125,211,252,.5)!important;
-  box-shadow:0 16px 40px -26px rgba(2,132,199,.3),inset 0 1px 0 rgba(255,255,255,.9)}
+  box-shadow:0 30px 64px -32px rgba(2,132,199,.34),0 14px 36px -16px rgba(2,132,199,.18),inset 0 1px 0 rgba(255,255,255,.9)}
 html[data-theme="light"] .week-card::before{
   background:
     radial-gradient(42% 34% at var(--gx,50%) var(--gy,16%),rgba(14,165,233,.12),transparent 72%),
     repeating-linear-gradient(0deg,rgba(14,116,144,.05) 0 1px,transparent 1px 4px),
     radial-gradient(120% 60% at 50% -12%,rgba(14,165,233,.10),transparent 55%)}
 html[data-theme="light"] .week-card:hover{border-color:rgba(14,165,233,.55)!important;
-  box-shadow:0 28px 60px -30px rgba(2,132,199,.4),0 0 26px -8px rgba(14,165,233,.28),inset 0 1px 0 rgba(255,255,255,.9)}
+  box-shadow:0 44px 84px -36px rgba(2,132,199,.44),0 22px 52px -20px rgba(2,132,199,.3),0 0 36px -6px rgba(14,165,233,.3),inset 0 1px 0 rgba(255,255,255,.9)}
 html[data-theme="light"] .week-card .holo-sheen::before{background:linear-gradient(100deg,transparent 8%,rgba(255,255,255,.3) 42%,rgba(255,255,255,.52) 50%,rgba(255,255,255,.3) 58%,transparent 92%)}
 html[data-theme="light"] .drill-btn .btn-ic{
   background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(224,242,254,.6) 46%,rgba(125,211,252,.25)),var(--chip-bg);
