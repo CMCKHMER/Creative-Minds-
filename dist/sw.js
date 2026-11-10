@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v26'; // v26: Level 11b weekly series completed from the teacher's Drive folder — W2 Matching Practice, W3 Listening Paraphrasing, W7 Reading Human Bionics, W8 Peer-Led AI Practice (public + private variants, planner + panel entries).
+const CACHE_VERSION = 'cmc-v27'; // v27: ISEC II Week 8 Recap test (21 questions — listening ×3 parts, grammar ×3 parts, reading inference) built from the teacher's Week8 recap PDF (teofl files.zip); Week 2 interview recordings and Week 5 innovation podcast replaced with the teacher's full-length originals; planner Week 8 + teacher panel entries.
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 
