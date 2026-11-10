@@ -10,6 +10,7 @@ import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import { StudentAuthModal } from './StudentAuthModal';
 import { BiWeeklyScoresCard } from './BiWeeklyScoresCard';
 import { BiWeeklyTestsPanel } from './BiWeeklyTestsPanel';
+import './command-center.css';
 
 export function FirebaseDashboard() {
   const memberAuth = useMemberAuth();
@@ -82,6 +83,69 @@ export function FirebaseDashboard() {
     });
     return () => { alive = false; };
   }, []);
+
+  // Command-center clock — the console top bar's live HH:MM:SS readout.
+  const [clock, setClock] = useState('');
+  useEffect(() => {
+    const fmt = () => setClock(new Date().toLocaleTimeString('en-GB', { hour12: false }));
+    fmt();
+    const id = setInterval(fmt, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Holographic tilt delegation — ONE pointermove listener on the section
+  // feeds --rx/--ry (cursor tilt) and --gx/--gy (projector light) to whichever
+  // .cmcdc-tilt element sits under the cursor. Same holo language as the
+  // bi-weekly planner; pointer devices only, reduced-motion skips it.
+  // (Delegation, not per-node listeners, so late-mounted panels wire up too.)
+  useEffect(() => {
+    if (!firebaseReady) return;
+    const root = document.getElementById('firebase-dashboard');
+    if (!root) return;
+    try {
+      if (window.matchMedia('(hover: none)').matches) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    } catch { return; }
+    let raf = 0;
+    let last: HTMLElement | null = null;
+    const clear = (el: HTMLElement | null) => {
+      if (!el) return;
+      el.style.removeProperty('--rx');
+      el.style.removeProperty('--ry');
+      el.style.removeProperty('--gx');
+      el.style.removeProperty('--gy');
+    };
+    const move = (e: PointerEvent) => {
+      const t = (e.target as Element | null)?.closest?.('.cmcdc-tilt') as HTMLElement | null;
+      if (!t) return;
+      if (last && last !== t) { clear(last); last = null; }
+      last = t;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const r = t.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        t.style.setProperty('--rx', `${(-py * 6).toFixed(2)}deg`);
+        t.style.setProperty('--ry', `${(px * 7).toFixed(2)}deg`);
+        t.style.setProperty('--gx', `${(50 + px * 70).toFixed(1)}%`);
+        t.style.setProperty('--gy', `${(50 + py * 70).toFixed(1)}%`);
+      });
+    };
+    const leaveSection = () => {
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      clear(last);
+      last = null;
+    };
+    root.addEventListener('pointermove', move);
+    root.addEventListener('pointerleave', leaveSection);
+    return () => {
+      root.removeEventListener('pointermove', move);
+      root.removeEventListener('pointerleave', leaveSection);
+      if (raf) cancelAnimationFrame(raf);
+      clear(last);
+    };
+  }, [firebaseReady]);
 
   // Display name + email for the badge — prefer whichever auth source has data.
   const signedInDisplayName = studentAuth.student?.displayName
@@ -210,7 +274,7 @@ export function FirebaseDashboard() {
   }
 
   return (
-    <section id="firebase-dashboard" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#061018] py-20 sm:py-24 lg:py-28">
+    <section id="firebase-dashboard" className="cmc-cmdc cmc-section relative scroll-mt-24 overflow-hidden border-y border-white/10 bg-[#061018] py-20 sm:py-24 lg:py-28">
       {/* Hero backdrop — the animated TOEFL iBT header art (same family as the
           main hero), heavily veiled so the tables stay readable. The poster
           frame paints instantly; the muted 5s loop takes over; visitors with
@@ -241,6 +305,14 @@ export function FirebaseDashboard() {
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-violet-500/[0.10] blur-[125px]" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
+        {/* Command-center console bar — ambient system status readouts */}
+        <div className="cmcdc-consolebar" aria-hidden="true">
+          <span className="cmcdc-consolebar-title">Teacher Command Center</span>
+          <span className="cmcdc-chip"><span className="cmcdc-led cmcdc-led--live" />Live feed</span>
+          <span className="cmcdc-chip">Source · drill_attempts</span>
+          <span className="cmcdc-chip">Firebase · online</span>
+          <span className="cmcdc-chip cmcdc-chip--clock">Sync {clock || '…'}</span>
+        </div>
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -252,7 +324,7 @@ export function FirebaseDashboard() {
           </div>
           <div className="flex gap-2 items-center">
             {isTeacher && (
-              <button onClick={() => setShowCreateClass(true)} className="rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2.5 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5">
+              <button onClick={() => setShowCreateClass(true)} className="cmcdc-cta rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2.5 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5">
                 + Create Class
               </button>
             )}
@@ -296,20 +368,20 @@ export function FirebaseDashboard() {
 
         {/* Stats row */}
         {isTeacher && (
-          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+          <div className="cmcdc-stage mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
               <p className="font-[var(--font-display)] text-2xl font-bold text-cyan-300">{stats.total}</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Total Attempts</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
               <p className="font-[var(--font-display)] text-2xl font-bold text-violet-300">{stats.avgScore}%</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Avg Score</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
               <p className="font-[var(--font-display)] text-2xl font-bold text-emerald-300">{stats.uniqueStudents}</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Students</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
               <p className="font-[var(--font-display)] text-2xl font-bold text-amber-300">{stats.recentCount}</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Last 24h</p>
             </div>
@@ -318,14 +390,18 @@ export function FirebaseDashboard() {
 
         {/* Teacher view: classes + attempts */}
         {isTeacher && (
-          <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-            {/* Class list */}
-            <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Classes</p>
+          <div className="cmcdc-stage grid gap-4 lg:grid-cols-[280px_1fr]">
+            {/* Class list — console roster panel */}
+            <div className="cmcdc-panel overflow-hidden">
+              <div className="cmcdc-panel-head">
+                <span className="cmcdc-led" />Class Roster
+                <span className="cmcdc-panel-tag">{classes.length} units</span>
+              </div>
+              <div className="space-y-2 p-3">
               {classes.length === 0 && <p className="text-xs text-slate-600">No classes yet. Create one to get started.</p>}
               {classes.map((c: any) => (
                 <div key={c.id} className="relative">
-                  <button onClick={() => setSelectedClass(c.id)} className={`w-full rounded-lg border p-3 pr-9 text-left transition ${selectedClass === c.id ? 'border-cyan-500/50 bg-cyan-500/10' : 'border-white/10 bg-slate-950/40 hover:border-white/20'}`}>
+                  <button onClick={() => setSelectedClass(c.id)} className={`cmcdc-key w-full rounded-lg border p-3 pr-9 text-left transition ${selectedClass === c.id ? 'border-cyan-500/50 bg-cyan-500/10 cmcdc-key--on' : 'border-white/10 bg-slate-950/40 hover:border-white/20'}`}>
                     <p className="text-xs font-bold text-white">{c.name}</p>
                     <p className="mt-0.5 text-[10px] text-slate-500">{c.program} · Code: {c.code}</p>
                   </button>
@@ -359,10 +435,15 @@ export function FirebaseDashboard() {
                   Students join with the code: they sign in, then use "Join a class" below.
                 </p>
               )}
+              </div>
             </div>
 
-            {/* Attempts table */}
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
+            {/* Attempts feed — console frame (the table itself stays plain) */}
+            <div className="cmcdc-panel overflow-hidden rounded-xl">
+              <div className="cmcdc-panel-head">
+                <span className="cmcdc-led cmcdc-led--live" />Attempt Feed · Live
+                <span className="cmcdc-panel-tag">{loading ? 'syncing…' : `${scopedAttempts.length} rows`}</span>
+              </div>
               {loading ? (
                 <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-500">
                   <RefreshCw className="h-4 w-4 animate-spin" /> Loading…
@@ -443,7 +524,7 @@ export function FirebaseDashboard() {
 
         {/* Student view: class join + own attempts */}
         {isStudent && (
-          <div className="mb-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+          <div className="cmcdc-panel mb-4 rounded-xl p-4">
             {joinedClass ? (
               <p className="text-xs text-slate-300">
                 ✓ Joined <span className="font-bold text-white">{joinedClass.name}</span> — your drill scores now appear in your teacher's Live Class Results.
@@ -464,7 +545,7 @@ export function FirebaseDashboard() {
                   <button
                     onClick={handleJoinClass}
                     disabled={joining || !studentUid}
-                    className="rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:opacity-50"
+                    className="cmcdc-cta rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:opacity-50"
                   >
                     {joining ? 'Joining…' : 'Join class'}
                   </button>
@@ -475,9 +556,9 @@ export function FirebaseDashboard() {
           </div>
         )}
         {isStudent && (
-          <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
-            <div className="border-b border-white/10 px-4 py-3">
-              <h3 className="text-sm font-bold text-white">Your Drill History</h3>
+          <div className="cmcdc-panel overflow-hidden rounded-xl">
+            <div className="cmcdc-panel-head">
+              <span className="cmcdc-led" />Your Drill History
             </div>
             {studentAttempts.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500">
@@ -532,7 +613,7 @@ export function FirebaseDashboard() {
         {!isTeacher && !isStudent && (
           <div className="space-y-4">
             <CommunityLive />
-            <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-8 text-center">
+            <div className="cmcdc-panel rounded-xl p-8 text-center">
             <p className="text-sm font-semibold text-white">Sign in to see real-time results</p>
             <p className="mt-2 text-xs text-slate-500 max-w-md mx-auto">
               Teachers can create classes and see live student scores. Students can track their drill history and scores.
@@ -542,7 +623,7 @@ export function FirebaseDashboard() {
                 here. Defaults to sign-in (most common intent); users who need
                 to create an account can click the toggle inside the modal. */}
             <div className="mt-4">
-              <button onClick={() => { setStudentAuthMode('sign-in'); setShowStudentAuth(true); }} className="rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5">
+              <button onClick={() => { setStudentAuthMode('sign-in'); setShowStudentAuth(true); }} className="cmcdc-cta rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5">
                 Sign in as student
               </button>
             </div>
@@ -557,7 +638,7 @@ export function FirebaseDashboard() {
       {/* Create class modal */}
       {showCreateClass && isTeacher && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4" onClick={() => setShowCreateClass(false)}>
-          <div className="w-full max-w-md rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-8" onClick={e => e.stopPropagation()}>
+          <div className="cmcdc-modal w-full max-w-md rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-8" onClick={e => e.stopPropagation()}>
             <h3 className="font-[var(--font-display)] text-lg font-bold text-white mb-4">Create New Class</h3>
             <div className="space-y-3">
               <input type="text" placeholder="Class name (e.g. GEP 11A)" value={newClassName} onChange={e => setNewClassName(e.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:border-cyan-500 focus:outline-none" />
@@ -654,24 +735,24 @@ function CommunityLive() {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+      <div className="cmcdc-stage grid grid-cols-3 gap-3">
+        <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
           <p className="text-2xl font-bold text-cyan-300">{last24h}</p>
           <p className="text-[10px] uppercase tracking-wider text-slate-500">Drills · last 24h</p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+        <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
           <p className="text-2xl font-bold text-emerald-300">{students}</p>
           <p className="text-[10px] uppercase tracking-wider text-slate-500">Students drilling</p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+        <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
           <p className="text-2xl font-bold text-violet-300">{avg}%</p>
           <p className="text-[10px] uppercase tracking-wider text-slate-500">Avg score</p>
         </div>
       </div>
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/40">
-        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+      <div className="cmcdc-panel overflow-hidden rounded-xl">
+        <div className="cmcdc-panel-head">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
-          <h3 className="text-sm font-bold text-white">Live from the drill floor — recent submissions</h3>
+          Live from the drill floor — recent submissions
         </div>
         {recent.length === 0 ? (
           <div className="py-10 text-center text-sm text-slate-500">

@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v30'; // v30: Floating 3D stage on the bi-weekly planner — week panels rest at translateZ(48px) hovering IN FRONT of the darkened backdrop, gentle staggered idle bob, hover pops the panel toward the viewer (translateZ 106px + scale 1.03), shared stage perspective + vignette backdrop; reduced-motion and touch degrade gracefully.
+const CACHE_VERSION = 'cmc-v31'; // v31: Live Class Results section reskinned as a Teacher Command Center — holographic console bar with live status chips + clock, see-through glass stat readouts and roster/feed panels floating on a shared 3D stage (translateZ lift, staggered bob, cursor tilt + projector glow), HUD corner brackets, keycap press glow in light-blue on all console buttons; data tables and the spreadsheet card intentionally left untouched; reduced-motion and touch degrade gracefully. // v30: Floating 3D stage on the bi-weekly planner — week panels rest at translateZ(48px) hovering IN FRONT of the darkened backdrop, gentle staggered idle bob, hover pops the panel toward the viewer (translateZ 106px + scale 1.03), shared stage perspective + vignette backdrop; reduced-motion and touch degrade gracefully.
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

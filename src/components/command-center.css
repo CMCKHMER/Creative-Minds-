@@ -1,0 +1,150 @@
+/* ===== TEACHER COMMAND CENTER — holographic skin for the Live Class
+   Results section (FirebaseDashboard.tsx, Nov 2026). Mirrors the bi-weekly
+   planner holo language: see-through cyan glass, holographic edge light,
+   faint scanlines, projector glow that follows the cursor, floating 3D
+   panels (shared stage perspective + translateZ idle lift + staggered bob),
+   keycap press glow in light-blue, HUD corner brackets and a console top
+   bar with live status chips + clock.
+
+   Scoped under .cmc-cmdc (applied to the section root) so nothing leaks
+   site-wide. THE DATA TABLES THEMSELVES ARE LEFT UNTOUCHED on purpose —
+   the spreadsheet keeps its plain, readable styling. ===== */
+
+.cmc-cmdc{position:relative}
+/* console texture over the video backdrop: faint scanlines + vignette */
+.cmc-cmdc::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    repeating-linear-gradient(0deg,rgba(148,222,255,.028) 0 1px,transparent 1px 5px),
+    radial-gradient(ellipse 95% 75% at 50% 40%,transparent 55%,rgba(1,4,14,.55) 100%);
+  opacity:.9}
+
+/* — console top bar: status chips + clock — */
+.cmcdc-consolebar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:24px;
+  border:1px solid rgba(125,211,252,.18);border-radius:12px;padding:8px 12px;
+  background:linear-gradient(180deg,rgba(10,26,44,.72),rgba(4,12,24,.72));
+  box-shadow:0 18px 40px -26px rgba(2,6,23,.9),inset 0 1px 0 rgba(213,245,255,.10)}
+.cmcdc-consolebar-title{display:inline-flex;align-items:center;gap:8px;font-size:10px;font-weight:800;
+  letter-spacing:.24em;text-transform:uppercase;color:#a5f3fc;margin-right:4px}
+.cmcdc-consolebar-title::before{content:'';width:7px;height:7px;border-radius:2px;background:#38bdf8;
+  box-shadow:0 0 10px rgba(56,189,248,.8);animation:cmcdcBlink 2.2s steps(2,start) infinite}
+@keyframes cmcdcBlink{50%{opacity:.3}}
+.cmcdc-chip{display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace);
+  font-size:9px;font-weight:600;letter-spacing:.14em;color:#7dd3fc;text-transform:uppercase;
+  border:1px solid rgba(125,211,252,.22);border-radius:999px;padding:3px 9px;background:rgba(56,189,248,.06)}
+.cmcdc-chip--clock{color:#cdeaff;border-color:rgba(147,222,255,.35);background:rgba(56,189,248,.12);min-width:96px;justify-content:center}
+.cmcdc-led{width:6px;height:6px;border-radius:999px;background:#34d399;box-shadow:0 0 8px rgba(52,211,153,.9);flex:0 0 auto}
+.cmcdc-led--live{animation:cmcdcPulse 1.6s ease-in-out infinite}
+@keyframes cmcdcPulse{50%{opacity:.3}}
+
+/* HUD eyebrow brackets */
+.cmc-cmdc .cmc-eyebrow{position:relative;padding-left:14px}
+.cmc-cmdc .cmc-eyebrow::before{content:'[';position:absolute;left:0;color:#67e8f9;opacity:.7}
+.cmc-cmdc .cmc-eyebrow::after{content:']';color:#67e8f9;opacity:.7}
+
+/* — floating 3D stage: panels hover in front of the console backdrop — */
+.cmcdc-stage{perspective:1400px;perspective-origin:50% 28%}
+.cmcdc-stat,.cmcdc-panel{position:relative}
+.cmcdc-stat{
+  transform:translateZ(44px);
+  transition:transform .5s cubic-bezier(.16,1,.3,1),translate .5s cubic-bezier(.16,1,.3,1),scale .5s cubic-bezier(.16,1,.3,1),border-color .3s,box-shadow .3s;
+  will-change:transform,translate,scale}
+.cmcdc-panel{
+  transform:translateZ(34px);
+  transition:transform .5s cubic-bezier(.16,1,.3,1),translate .5s cubic-bezier(.16,1,.3,1),scale .5s cubic-bezier(.16,1,.3,1),border-color .3s,box-shadow .3s;
+  will-change:transform,translate,scale}
+
+/* see-through holographic glass (overrides the slate utilities) */
+.cmc-cmdc .cmcdc-stat{
+  border-color:rgba(125,211,252,.22)!important;
+  background:linear-gradient(165deg,rgba(125,211,252,.10),rgba(255,255,255,.02) 38%,rgba(56,189,248,.05) 82%,rgba(125,211,252,.09))!important;
+  -webkit-backdrop-filter:blur(16px) saturate(1.35);backdrop-filter:blur(16px) saturate(1.35);
+  box-shadow:0 26px 60px -34px rgba(2,6,23,.92),0 12px 34px -16px rgba(8,145,178,.25),inset 0 1px 0 rgba(213,245,255,.14)}
+.cmc-cmdc .cmcdc-panel{
+  border-color:rgba(125,211,252,.20)!important;
+  background:linear-gradient(168deg,rgba(125,211,252,.09),rgba(255,255,255,.015) 40%,rgba(56,189,248,.045) 80%,rgba(125,211,252,.08))!important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);
+  box-shadow:0 30px 70px -36px rgba(2,6,23,.92),0 14px 38px -18px rgba(8,145,178,.22),inset 0 1px 0 rgba(213,245,255,.12)}
+
+/* projector glow + scanlines layer under the panel content */
+.cmcdc-stat::before,.cmcdc-panel::before{content:'';position:absolute;inset:0;z-index:0;border-radius:inherit;pointer-events:none;
+  background:
+    radial-gradient(46% 36% at var(--gx,50%) var(--gy,14%),rgba(147,222,255,.14),transparent 72%),
+    repeating-linear-gradient(0deg,rgba(148,222,255,.05) 0 1px,transparent 1px 4px),
+    radial-gradient(120% 55% at 50% -10%,rgba(125,211,252,.13),transparent 55%);
+  opacity:.85;transition:opacity .3s}
+.cmc-cmdc .cmcdc-stat>*,.cmc-cmdc .cmcdc-panel>*{position:relative;z-index:1}
+
+/* HUD corner brackets */
+.cmcdc-stat::after,.cmcdc-panel::after{content:'';position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;
+  background:
+    linear-gradient(#67e8f9,#67e8f9) left 8px top 8px/12px 1.5px,
+    linear-gradient(#67e8f9,#67e8f9) left 8px top 8px/1.5px 12px,
+    linear-gradient(#67e8f9,#67e8f9) right 8px top 8px/12px 1.5px,
+    linear-gradient(#67e8f9,#67e8f9) right 8px top 8px/1.5px 12px,
+    linear-gradient(#67e8f9,#67e8f9) left 8px bottom 8px/12px 1.5px,
+    linear-gradient(#67e8f9,#67e8f9) left 8px bottom 8px/1.5px 12px,
+    linear-gradient(#67e8f9,#67e8f9) right 8px bottom 8px/12px 1.5px,
+    linear-gradient(#67e8f9,#67e8f9) right 8px bottom 8px/1.5px 12px;
+  background-repeat:no-repeat;opacity:.38;transition:opacity .3s}
+.cmcdc-stat:hover::after,.cmcdc-panel:hover::after{opacity:.85}
+
+/* console panel header strips */
+.cmcdc-panel-head{display:flex;align-items:center;gap:8px;padding:10px 14px;
+  border-bottom:1px solid rgba(125,211,252,.16);
+  background:linear-gradient(180deg,rgba(56,189,248,.10),rgba(56,189,248,.03));
+  font-size:10px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:#a5f3fc}
+.cmcdc-panel-tag{margin-left:auto;font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace);font-weight:600;
+  font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#67e8f9;
+  border:1px solid rgba(125,211,252,.25);border-radius:999px;padding:2px 8px;background:rgba(56,189,248,.08)}
+
+/* — idle float + hover pop (motion-safe only) — */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes cmcdcFloat{0%,100%{translate:0 0}50%{translate:0 -7px}}
+  .cmc-cmdc .cmcdc-stat{animation:cmcdcFloat 6.8s ease-in-out infinite}
+  .cmc-cmdc .cmcdc-stat:nth-child(2n){animation-delay:-2.3s}
+  .cmc-cmdc .cmcdc-stat:nth-child(3n){animation-delay:-3.8s}
+  .cmc-cmdc .cmcdc-panel{animation:cmcdcFloat 8.6s ease-in-out infinite}
+  .cmc-cmdc .cmcdc-panel:nth-of-type(2n){animation-delay:-4.2s}
+}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  /* stat readouts tilt toward the cursor (vars fed by pointer delegation) and pop */
+  .cmc-cmdc .cmcdc-stat:hover{transform:translateZ(96px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));scale:1.035;
+    border-color:rgba(147,222,255,.42)!important;
+    box-shadow:0 40px 84px -38px rgba(2,6,23,.95),0 20px 50px -20px rgba(8,145,178,.4),0 0 40px -8px rgba(56,189,248,.3),inset 0 1px 0 rgba(213,245,255,.2)}
+  /* data panels lift toward the viewer but never rotate — tables stay readable */
+  .cmc-cmdc .cmcdc-panel:hover{transform:translateZ(72px);scale:1.012;
+    border-color:rgba(147,222,255,.36)!important;
+    box-shadow:0 44px 90px -38px rgba(2,6,23,.95),0 22px 54px -20px rgba(8,145,178,.36),0 0 34px -8px rgba(56,189,248,.24),inset 0 1px 0 rgba(213,245,255,.18)}
+}
+@media (hover:none){
+  .cmc-cmdc .cmcdc-stat{transform:translateZ(26px)}
+  .cmc-cmdc .cmcdc-panel{transform:translateZ(20px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .cmc-cmdc .cmcdc-stat,.cmc-cmdc .cmcdc-panel{animation:none!important;transition:none!important}
+  .cmc-cmdc .cmcdc-stat{transform:translateZ(14px)}
+  .cmc-cmdc .cmcdc-panel{transform:translateZ(12px)}
+}
+
+/* — keycap press glow (light-blue) shared by console buttons — */
+.cmcdc-key{position:relative;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease,background .15s ease}
+.cmcdc-key:active{transform:translateY(1px) scale(.985);border-color:rgba(147,222,255,.65)!important;
+  box-shadow:0 0 16px rgba(56,189,248,.45),0 0 34px rgba(56,189,248,.2),inset 0 0 10px rgba(125,211,252,.3)!important}
+.cmcdc-key--on{border-color:rgba(103,232,249,.55)!important;background:rgba(56,189,248,.14)!important;
+  box-shadow:0 0 18px -4px rgba(56,189,248,.4),inset 0 0 12px rgba(56,189,248,.12)!important}
+
+/* CTA press glow (Create class / Join class / Sign in) */
+.cmcdc-cta{position:relative;transition:transform .15s ease,box-shadow .15s ease}
+.cmcdc-cta:active{transform:translateY(1px) scale(.98)!important;
+  box-shadow:0 0 18px rgba(56,189,248,.5),0 0 44px rgba(56,189,248,.25),inset 0 0 12px rgba(255,255,255,.25)!important}
+
+/* holographic modal (create class) */
+.cmcdc-modal{border-color:rgba(125,211,252,.3)!important;
+  background:linear-gradient(165deg,rgba(10,26,44,.94),rgba(4,12,24,.96))!important;
+  box-shadow:0 40px 100px -40px rgba(0,0,0,.9),0 0 60px -20px rgba(56,189,248,.2),inset 0 1px 0 rgba(213,245,255,.14)!important}
+
+@media(max-width:640px){
+  .cmcdc-stat::before,.cmcdc-panel::before{opacity:.65}
+  .cmcdc-consolebar{gap:6px;padding:7px 10px}
+}
