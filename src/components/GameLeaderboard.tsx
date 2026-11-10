@@ -66,11 +66,19 @@ function gameNameFromSlug(slug: string): string {
     'writequest-home': 'WriteQuest · Home',
     'word-forge-quiz': 'Word Forge · Quiz',
     'word-forge-match': 'Word Forge · Match',
-    'voice-quest-l1': 'Voice Quest · Level 1',
-    'voice-quest-l2': 'Voice Quest · Level 2',
-    'voice-quest-l3': 'Voice Quest · Level 3',
-    'voice-quest-l4': 'Voice Quest · Level 4',
-    'voice-quest-l5': 'Voice Quest · Level 5',
+    'voice-quest-l1': 'Talk to me · Level 1',
+    'voice-quest-l2': 'Talk to me · Level 2',
+    'voice-quest-l3': 'Talk to me · Level 3',
+    'voice-quest-l4': 'Talk to me · Level 4',
+    'voice-quest-l5': 'Talk to me · Level 5',
+    'voice-quest-l6': 'Talk to me · Level 6',
+    'voice-quest-l7': 'Talk to me · Level 7',
+    'voice-quest-l8': 'Talk to me · Level 8',
+    'voice-quest-l9': 'Talk to me · Level 9',
+    'voice-quest-l10': 'Talk to me · Level 10',
+    'voice-quest-l11': 'Talk to me · Level 11',
+    'voice-quest-l12': 'Talk to me · Level 12',
+    'voice-quest-custom': 'Talk to me · Custom level',
   };
   if (KNOWN[slug]) return KNOWN[slug];
   // Fall back to title-case of the slug
@@ -104,14 +112,17 @@ async function fetchGameAttempts(): Promise<Attempt[]> {
       submittedAt: submittedAtRaw ? Date.parse(submittedAtRaw) : 0,
     };
   });
-  // Filter to learning-games only (syntax-clash + writequest + word-forge + future React games)
+  // Filter to learning-games only (syntax-clash + writequest + word-forge +
+  // the voice-quest standalone game + future React games)
   return all.filter(a =>
     a.drillSlug.startsWith('syntax-clash') ||
     a.drillSlug.startsWith('writequest') ||
     a.drillSlug.startsWith('word-forge') ||
+    a.drillSlug.startsWith('voice-quest') ||
     a.drillTitle.toLowerCase().includes('syntax clash') ||
     a.drillTitle.toLowerCase().includes('writequest') ||
-    a.drillTitle.toLowerCase().includes('word forge')
+    a.drillTitle.toLowerCase().includes('word forge') ||
+    a.drillTitle.toLowerCase().includes('talk to me')
   );
 }
 
