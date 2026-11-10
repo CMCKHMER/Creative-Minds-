@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v25'; // v25: PRIVATE test results — invite submissions moved from the public drill_attempts feed (they were readable by anyone and appeared on the homepage ticker) to the owner-only invite_attempts collection: student pages stamp the attempt with the teacher's registered owner uid (invite_codes registry, verified by the security rules, forging impossible), the dashboard reads results authenticated and filtered to its own uid, and the drill_attempts rules now refuse new inviteMode docs. Scores are handed to students by their teacher only. Old private-test (key/assignment) collections hardened the same way.
+const CACHE_VERSION = 'cmc-v26'; // v26: Level 11b weekly series completed from the teacher's Drive folder — W2 Matching Practice, W3 Listening Paraphrasing, W7 Reading Human Bionics, W8 Peer-Led AI Practice (public + private variants, planner + panel entries).
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 
