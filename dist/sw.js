@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v27'; // v27: ISEC II Week 8 Recap test (21 questions — listening ×3 parts, grammar ×3 parts, reading inference) built from the teacher's Week8 recap PDF (teofl files.zip); Week 2 interview recordings and Week 5 innovation podcast replaced with the teacher's full-length originals; planner Week 8 + teacher panel entries.
+const CACHE_VERSION = 'cmc-v28'; // v28: Bi-Weekly planner redesigned as a 3D holographic touch panel — see-through glass week cards (holographic edge light, faint scanlines, cursor-tracked 3D tilt, sweeping sheen) and keycap drill buttons that glow light-blue while pressed; both dark and light themes tuned; reduced-motion and touch devices degrade gracefully.
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

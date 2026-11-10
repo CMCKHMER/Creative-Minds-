@@ -213,6 +213,107 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
   .bp-hero-inner{padding:0 1rem}
   .theme-toggle{right:150px}
 }
+
+/* ===== HOLO TOUCH PANEL — 3D holographic skin (Nov 2026) =====
+   See-through glass week panels (holographic edge light, faint scanlines,
+   cursor-tracked 3D tilt, sweeping sheen) + keycap drill buttons that
+   glow light-blue while pressed. Appended last: dark rules win ties in
+   dark mode, and every light-mode retune lives in the same block so the
+   themes can't fight each other. */
+.glass{
+  background:linear-gradient(165deg,rgba(125,211,252,.10),rgba(255,255,255,.02) 38%,rgba(56,189,248,.05) 82%,rgba(125,211,252,.09));
+  -webkit-backdrop-filter:blur(16px) saturate(1.35);backdrop-filter:blur(16px) saturate(1.35);
+  border-color:rgba(125,211,252,.22);
+  box-shadow:0 24px 60px -32px rgba(2,6,23,.85),inset 0 1px 0 rgba(213,245,255,.14),inset 0 0 42px rgba(56,189,248,.05);
+}
+.week-card{position:relative}
+/* holographic projector light + faint scanlines (under the content) */
+.week-card::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;
+  background:
+    radial-gradient(42% 34% at var(--gx,50%) var(--gy,16%),rgba(147,222,255,.15),transparent 72%),
+    repeating-linear-gradient(0deg,rgba(148,222,255,.05) 0 1px,transparent 1px 4px),
+    radial-gradient(120% 60% at 50% -12%,rgba(125,211,252,.14),transparent 55%);
+  opacity:.85;transition:opacity .3s ease}
+.week-card:hover::before{opacity:1}
+/* sweeping holographic sheen (injected span, above content, click-through) */
+.week-card .holo-sheen{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;overflow:hidden}
+.week-card .holo-sheen::before{content:'';position:absolute;top:-60%;left:-85%;width:55%;height:220%;
+  background:linear-gradient(100deg,transparent 8%,rgba(165,243,252,.10) 42%,rgba(190,255,243,.17) 50%,rgba(165,243,252,.10) 58%,transparent 92%);
+  transform:rotate(8deg)}
+@media (prefers-reduced-motion:no-preference){
+  .week-card .holo-sheen::before{transition:left 1.05s cubic-bezier(.22,1,.36,1)}
+  .week-card:hover .holo-sheen::before{left:135%}
+  /* cursor-tracked 3D tilt (JS feeds --tx/--ty; --gx/--gy steer the projector light) */
+  .week-card.holo-tilt:hover{transform:perspective(1200px) rotateX(var(--ty,0deg)) rotateY(var(--tx,0deg)) translateY(-5px)}
+}
+.week-card.holo-tilt{will-change:transform}
+.week-card:hover{transform:translateY(-5px);border-color:rgba(147,222,255,.4);
+  box-shadow:0 30px 70px -30px rgba(8,145,178,.5),0 0 34px -6px rgba(56,189,248,.28),inset 0 1px 0 rgba(213,245,255,.2),inset 0 0 42px rgba(56,189,248,.08)}
+.week-card.holo-tilt:hover{border-color:rgba(147,222,255,.4)}
+
+/* — keycap drill buttons: holo glass cap, light-blue glow on press — */
+.drill-btn .btn-ic{
+  background:
+    linear-gradient(180deg,rgba(224,247,255,.30),rgba(125,211,252,.10) 42%,rgba(2,18,34,.42)),
+    radial-gradient(90% 70% at 50% 12%,rgba(125,211,252,.16),transparent 70%),var(--chip-bg);
+  border-color:rgba(147,222,255,.34);
+  box-shadow:0 3px 0 -1px rgba(2,10,22,.72),0 8px 16px -8px rgba(2,10,22,.7),0 0 0 1px rgba(56,189,248,.10),inset 0 1px 0 rgba(224,247,255,.25),inset 0 -6px 12px -8px rgba(56,189,248,.35);
+  text-shadow:0 0 10px rgba(125,211,252,.45)}
+.drill-btn:hover .btn-ic{transform:translateY(-2px);
+  box-shadow:0 5px 0 -1px rgba(2,10,22,.6),0 12px 22px -9px rgba(2,10,22,.7),0 0 14px -2px rgba(56,189,248,.4),inset 0 1px 0 rgba(224,247,255,.3),inset 0 -6px 12px -8px rgba(56,189,248,.5)}
+/* THE PRESS: cap sinks, brightens, and glows light-blue */
+.drill-btn:active .btn-ic{transform:translateY(2px) scale(.97);
+  background:linear-gradient(180deg,rgba(190,238,255,.42),rgba(125,211,252,.24) 46%,rgba(56,189,248,.16)),var(--chip-bg);
+  border-color:rgba(165,233,255,.7);
+  box-shadow:0 0 0 1px rgba(147,222,255,.5),0 0 18px rgba(56,189,248,.55),0 0 44px rgba(56,189,248,.28),inset 0 2px 8px rgba(224,247,255,.35),inset 0 0 16px rgba(125,211,252,.45)}
+.drill-btn:active .btn-label{color:#cdeaff;text-shadow:0 0 12px rgba(125,211,252,.6)}
+/* filter pills + share chip + top buttons share the same press glow */
+.filter-btn:active{transform:translateY(1px) scale(.97);border-color:rgba(147,222,255,.65);color:#cdeaff;
+  box-shadow:0 0 16px rgba(56,189,248,.45),0 0 34px rgba(56,189,248,.22),inset 0 0 10px rgba(125,211,252,.3)}
+.bp-share:active{transform:translateY(1px);border-color:rgba(147,222,255,.6);background:rgba(125,211,252,.22);color:#cdeaff;
+  box-shadow:0 0 14px rgba(56,189,248,.5),inset 0 0 8px rgba(125,211,252,.35)}
+.bp-topbtn:active,.theme-toggle:active{border-color:rgba(147,222,255,.6);color:#cdeaff;
+  box-shadow:0 0 16px rgba(56,189,248,.45),inset 0 0 8px rgba(125,211,252,.3)}
+
+/* — light theme retune (same block so it wins its ties) — */
+html[data-theme="light"] .glass{
+  background:linear-gradient(165deg,rgba(255,255,255,.74),rgba(255,255,255,.5) 40%,rgba(224,242,254,.62));
+  border-color:rgba(125,211,252,.45);
+  box-shadow:0 20px 50px -30px rgba(2,132,199,.35),inset 0 1px 0 rgba(255,255,255,.9),inset 0 0 42px rgba(14,165,233,.05)}
+html[data-theme="light"] .week-card{
+  background:linear-gradient(165deg,rgba(255,255,255,.8),rgba(255,255,255,.56) 40%,rgba(224,242,254,.66))!important;
+  border-color:rgba(125,211,252,.5)!important;
+  box-shadow:0 16px 40px -26px rgba(2,132,199,.3),inset 0 1px 0 rgba(255,255,255,.9)}
+html[data-theme="light"] .week-card::before{
+  background:
+    radial-gradient(42% 34% at var(--gx,50%) var(--gy,16%),rgba(14,165,233,.12),transparent 72%),
+    repeating-linear-gradient(0deg,rgba(14,116,144,.05) 0 1px,transparent 1px 4px),
+    radial-gradient(120% 60% at 50% -12%,rgba(14,165,233,.10),transparent 55%)}
+html[data-theme="light"] .week-card:hover{border-color:rgba(14,165,233,.55)!important;
+  box-shadow:0 28px 60px -30px rgba(2,132,199,.4),0 0 26px -8px rgba(14,165,233,.28),inset 0 1px 0 rgba(255,255,255,.9)}
+html[data-theme="light"] .week-card .holo-sheen::before{background:linear-gradient(100deg,transparent 8%,rgba(255,255,255,.3) 42%,rgba(255,255,255,.52) 50%,rgba(255,255,255,.3) 58%,transparent 92%)}
+html[data-theme="light"] .drill-btn .btn-ic{
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(224,242,254,.6) 46%,rgba(125,211,252,.25)),var(--chip-bg);
+  border-color:rgba(14,165,233,.3);
+  box-shadow:0 3px 0 -1px rgba(15,23,42,.22),0 8px 16px -8px rgba(15,23,42,.3),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -6px 12px -8px rgba(14,165,233,.25);
+  text-shadow:none}
+html[data-theme="light"] .drill-btn:hover .btn-ic{
+  box-shadow:0 5px 0 -1px rgba(15,23,42,.2),0 12px 22px -9px rgba(15,23,42,.32),0 0 14px -2px rgba(14,165,233,.35),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -6px 12px -8px rgba(14,165,233,.35)}
+html[data-theme="light"] .drill-btn:active .btn-ic{
+  background:linear-gradient(180deg,rgba(224,242,254,.92),rgba(125,211,252,.5) 50%,rgba(56,189,248,.35)),var(--chip-bg);
+  border-color:rgba(14,165,233,.65);
+  box-shadow:0 0 0 1px rgba(14,165,233,.4),0 0 16px rgba(14,165,233,.4),0 0 36px rgba(56,189,248,.25),inset 0 2px 8px rgba(255,255,255,.75),inset 0 0 14px rgba(125,211,252,.5)}
+html[data-theme="light"] .drill-btn:active .btn-label{color:#0c4a6e;text-shadow:none}
+html[data-theme="light"] .filter-btn:active{border-color:rgba(14,165,233,.6);color:#0c4a6e;
+  box-shadow:0 0 14px rgba(14,165,233,.4),0 0 30px rgba(56,189,248,.2),inset 0 0 10px rgba(125,211,252,.35)}
+html[data-theme="light"] .bp-share:active{border-color:rgba(14,165,233,.55);background:rgba(125,211,252,.3);color:#0c4a6e;
+  box-shadow:0 0 12px rgba(14,165,233,.4),inset 0 0 8px rgba(125,211,252,.4)}
+html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggle:active{border-color:rgba(14,165,233,.55);color:#0e7490;
+  box-shadow:0 0 14px rgba(14,165,233,.4),inset 0 0 8px rgba(125,211,252,.35)}
+@media(max-width:640px){
+  /* touch screens have no hover: keep panels flat-ish so scanlines stay subtle */
+  .week-card::before{opacity:.7}
+}
 </style>
 
 <!-- Google Analytics 4 (gtag.js) -->
@@ -442,6 +543,45 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
     });
   });
 });
+
+// ===== HOLO TOUCH PANEL — sheen + cursor-tracked 3D tilt =====
+// Injects the sweeping-sheen span into every week card and (desktop only,
+// reduced-motion safe) feeds --tx/--ty/--gx/--gy so panels tilt toward the
+// cursor with a projector light following it. Touch devices skip the tilt.
+(function(){
+  'use strict';
+  var cards=document.querySelectorAll('.week-card');
+  cards.forEach(function(c){
+    c.insertAdjacentHTML('beforeend','<span class="holo-sheen" aria-hidden="true"></span>');
+  });
+  try{
+    if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches)return;
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    var raf=null,card=null;
+    var onMove=function(e){
+      card=e.currentTarget;
+      if(raf)return;
+      raf=requestAnimationFrame(function(){
+        raf=null;
+        var r=card.getBoundingClientRect();
+        var px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;
+        card.style.setProperty('--tx',(px*6.5).toFixed(2)+'deg');
+        card.style.setProperty('--ty',(-py*4.5).toFixed(2)+'deg');
+        card.style.setProperty('--gx',(50+px*70).toFixed(1)+'%');
+        card.style.setProperty('--gy',(50+py*70).toFixed(1)+'%');
+      });
+    };
+    var onLeave=function(){
+      if(raf){cancelAnimationFrame(raf);raf=null;}
+      if(card){card.style.removeProperty('--tx');card.style.removeProperty('--ty');card=null;}
+    };
+    cards.forEach(function(c){
+      c.classList.add('holo-tilt');
+      c.addEventListener('pointermove',onMove);
+      c.addEventListener('pointerleave',onLeave);
+    });
+  }catch(e){/* old browsers keep the static glass look */}
+})();
 </script>
 
 
