@@ -15,7 +15,7 @@
  * Deploying an update: bump CACHE_VERSION, old caches are purged on activate.
  */
 
-const CACHE_VERSION = 'cmc-v28'; // v28: Bi-Weekly planner redesigned as a 3D holographic touch panel — see-through glass week cards (holographic edge light, faint scanlines, cursor-tracked 3D tilt, sweeping sheen) and keycap drill buttons that glow light-blue while pressed; both dark and light themes tuned; reduced-motion and touch devices degrade gracefully.
+const CACHE_VERSION = 'cmc-v29'; // v29: Voice Quest replaced by "Talk to me" — the new voice-controlled English game (12 levels in 4 units, Game Designer for building and sharing custom levels, Word Book, tap controls + typed commands alongside voice, accessibility settings, Back to CMC link in the top bar and footer); same voice-quest.html URL and browser-saved stars carry over.
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const AUDIO_CACHE = `${CACHE_VERSION}-media`;
 

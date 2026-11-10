@@ -40,12 +40,12 @@ const listeningGameScript = 'Teacher: The model wind turbine will be ready for t
 export const LEARNING_GAMES: LearningGame[] = [
   {
     id: 'voice-quest',
-    title: 'Voice Quest · Speak to Play',
+    title: 'Talk to me · Speak to Play',
     skill: 'Speaking',
     level: 'Grades 1–7',
-    duration: '5 levels · about 10 min',
-    description: 'Speak English commands to guide your buddy through mini-missions — directions, numbers, colors, animals, and full sentences. The character only moves when you say it right, so every step is real pronunciation practice with instant feedback and a "listen" button on every phrase. Microphone required (Chrome or Edge); typing fallback included.',
-    instructions: 'Open Voice Quest in a new tab, tap the microphone, allow mic access, and say the mission phrases out loud. Say "help" anytime for a hint.',
+    duration: '12 levels · about 15 min',
+    description: 'The new Voice Quest: speak English commands to guide your buddy through 12 levels — directions, numbers, colors, animals, prepositions, daily routines and full sentences — with instant feedback and a "listen" button on every phrase. Includes a Word Book of every phrase the game understands and a Game Designer where students and teachers build and share their own levels. Voice works best in Chrome or Edge; typed commands and tap controls included as fallback.',
+    instructions: 'Open the game in a new tab, choose a buddy, then tap the microphone, allow mic access, and say the mission phrases out loud. Say "help" anytime for a hint. Progress and stars are saved in the browser — no account needed.',
     externalUrl: './voice-quest.html',
     badge: 'New',
     questions: [],
