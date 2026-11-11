@@ -7,6 +7,13 @@ export interface KidGradeMaterial {
   description: string;
   href: string;
   units?: number;
+  /** Firestore share doc (biweekly_tests collection) that gates this online
+   *  homework — publicly readable, teacher-only write. One doc per homework
+   *  so the teacher can assign them one at a time. */
+  shareDoc?: string;
+  /** Students must not even see the row until the teacher shares this
+   *  homework (the card hides it; the page hides its tab and content). */
+  hideUntilShared?: boolean;
 }
 
 export interface KidGradeResource {
@@ -102,13 +109,18 @@ const kid7Resources: KidGradeMaterial[] = [
 ];
 
 // Kid 11 — Reading Future Create 3 worksheets, served from public/rfc3/,
-// plus the online-homework worksheet (public/rfc3/doctor-fish.html). The
-// homework page follows the same self-contained pattern (back-to-CMC
-// button, share menu) and adds a "Submit to Teacher" completion button
-// that posts the student's name + score to the drill_attempts Firestore
-// collection via the validated guest branch (or the signed-in localStorage
-// session token) — same pipeline as the rfc2/rfc3 dictation sheets, so
-// completions reach the teacher dashboard feed with no rules change.
+// plus the online-homework worksheets (public/rfc3/doctor-fish.html and
+// public/rfc3/unit13hw.html). The homework pages follow the same
+// self-contained pattern (back-to-CMC button, share menu) and add a
+// "Submit to Teacher" completion button that posts the student's name +
+// score to the drill_attempts Firestore collection via the validated guest
+// branch (or the signed-in localStorage session token) — same pipeline as
+// the rfc2/rfc3 dictation sheets, so completions reach the teacher
+// dashboard with no rules change. Unit 13 is a 3-homework file where EACH
+// homework carries its own shareDoc: the teacher assigns one homework at a
+// time, and hideUntilShared keeps every unshared homework completely
+// invisible to students (locked rows show only for homeworks that are
+// meant to advertise themselves, like Doctor Fish).
 const kid11Resources: KidGradeMaterial[] = [
   {
     id: 'kid-11-rfc3-word-list',
@@ -148,6 +160,38 @@ const kid11Resources: KidGradeMaterial[] = [
     kind: 'Online homework',
     description: 'Reading, writing & critical-thinking homework on the Doctor Fish passage — two auto-graded assignments (Newsroom & Clinic). The teacher opens it with the share switch; students press “Submit to Teacher” when done.',
     href: './rfc3/doctor-fish.html',
+    shareDoc: 'hw-kid11-doctor-fish',
+  },
+  // Unit 13 — the teacher's 3-homework file (New Homes for Animals). Each
+  // homework is gated by its OWN share doc: when the teacher assigns one,
+  // only that one appears for students (row + page tab) until it too is
+  // shared — hideUntilShared keeps the others completely invisible.
+  {
+    id: 'kid-11-homework-u13-hw1',
+    title: 'Unit 13 · Homework 1 — Field Notebook',
+    kind: 'Online homework',
+    description: 'New Homes for Animals vocabulary & comprehension: word meanings, gap fills, reading comprehension, true/false and phrasal verbs — 30 auto-graded points. Only visible once the teacher shares Homework 1.',
+    href: './rfc3/unit13hw.html#hw-a',
+    shareDoc: 'hw-kid11-u13-hw1',
+    hideUntilShared: true,
+  },
+  {
+    id: 'kid-11-homework-u13-hw2',
+    title: 'Unit 13 · Homework 2 — Relocation Mission',
+    kind: 'Online homework',
+    description: 'New Homes for Animals process & critical thinking: order the mission steps, link causes to effects, sort research vs action, decision desk — 25 auto-graded points. Only visible once the teacher shares Homework 2.',
+    href: './rfc3/unit13hw.html#hw-b',
+    shareDoc: 'hw-kid11-u13-hw2',
+    hideUntilShared: true,
+  },
+  {
+    id: 'kid-11-homework-u13-hw3',
+    title: 'Unit 13 · Homework 3 — Campaign Studio',
+    kind: 'Online homework',
+    description: 'New Homes for Animals writing & speaking: fact vs opinion, slogan workshop, campaign text, interview prep and phrasal sentences — 16 auto-graded points. Only visible once the teacher shares Homework 3.',
+    href: './rfc3/unit13hw.html#hw-c',
+    shareDoc: 'hw-kid11-u13-hw3',
+    hideUntilShared: true,
   },
 ];
 

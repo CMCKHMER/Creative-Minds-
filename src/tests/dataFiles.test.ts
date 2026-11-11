@@ -154,7 +154,8 @@ describe('kid grade resource pathway files', () => {
     for (const grade of KID_GRADE_RESOURCES) {
       for (const material of grade.materials) {
         if (!material.href.startsWith('./')) continue; // absolute/external links are covered by the asset crawler
-        const target = resolve(PUBLIC_DIR, material.href.replace(/^\.\//, ''));
+        // Deep links (unit13hw.html#hw-a) point at the same physical file — strip the fragment.
+        const target = resolve(PUBLIC_DIR, material.href.replace(/^\.\//, '').split('#')[0]);
         if (!existsSync(target)) missing.push(`grade ${grade.grade}: ${material.href}`);
       }
     }

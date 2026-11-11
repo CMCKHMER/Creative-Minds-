@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 13 · New Homes for Animals · Homeworks 1–3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ================= FOUNDATION ================= */
+:root{
+  --head:66px;
+  --sky0:#1b1030; --sky1:#5b2a45; --sky2:#b8563f; --sky3:#e8a33d;
+  --ok:#3fa860; --bad:#e05252; --warn:#e8a33d; --info:#3d9bd6;
+  --glass:rgba(26,17,14,.88);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scrollbar-color:#7a4a2e #1b1030;scrollbar-width:thin}
+body{font-family:'Space Grotesk',system-ui,sans-serif;color:#f6ece2;
+  background:linear-gradient(180deg,var(--sky0) 0%,var(--sky1) 34%,var(--sky2) 66%,var(--sky3) 100%) fixed;
+  min-height:100vh}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#1b1030}
+::-webkit-scrollbar-thumb{background:linear-gradient(#b8563f,#3f8f4f);border-radius:8px;border:2px solid #1b1030}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(#e8a33d,#4fb060)}
+
+/* ================= LIVING BACKGROUND ================= */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.sun{position:absolute;right:13vw;top:9vh;width:190px;height:190px;border-radius:50%;
+  background:radial-gradient(circle,#ffe6a8,#ff9d4d 52%,transparent 72%);filter:blur(5px);
+  animation:pulse 9s ease-in-out infinite alternate}
+@keyframes pulse{to{transform:scale(1.12);opacity:.85}}
+.haze{position:absolute;border-radius:50%;filter:blur(80px);opacity:.4;animation:drift 30s ease-in-out infinite alternate}
+.haze.h1{width:50vw;height:40vw;left:-12vw;top:20vh;background:radial-gradient(circle,#e2703a,transparent 70%)}
+.haze.h2{width:44vw;height:36vw;right:-10vw;bottom:6vh;background:radial-gradient(circle,#1c8a9c,transparent 70%);animation-delay:-12s;opacity:.3}
+@keyframes drift{to{transform:translate(5vw,-4vh) scale(1.1)}}
+.grain{position:absolute;inset:0;opacity:.055;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
+.hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:36vh}
+.mote{position:absolute;bottom:-20px;border-radius:50%;background:rgba(255,224,170,.5);animation:float linear infinite}
+@keyframes float{to{transform:translate(30px,-112vh)}}
+.bird{position:absolute;color:rgba(35,20,18,.4);animation:fly linear infinite}
+.bird svg{display:block;animation:flap 1.6s ease-in-out infinite alternate}
+@keyframes fly{from{transform:translateX(-12vw)}to{transform:translateX(114vw)}}
+@keyframes flap{to{translate:0 -9px}}
+.walker{position:absolute;bottom:5vh;color:rgba(18,32,28,.42);animation:trek linear infinite}
+.walker svg{display:block}
+@keyframes trek{from{transform:translateX(-20vw)}to{transform:translateX(120vw)}}
+
+/* ================= HEADER ================= */
+.site-head{position:fixed;top:0;left:0;right:0;height:var(--head);z-index:50;background:var(--glass);
+  backdrop-filter:blur(10px);border-bottom:1px solid rgba(232,163,61,.25);
+  display:flex;align-items:center;gap:14px;padding:0 18px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.6px;font-size:14.5px;white-space:nowrap}
+.brand svg{width:38px;height:24px;color:#e8a33d}
+.brand small{display:block;font-size:9.5px;letter-spacing:2px;color:#c9a98e;font-weight:500}
+.tabs{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.switch-btn{border:1px solid rgba(232,163,61,.35);background:transparent;color:#f0dcc8;border-radius:999px;
+  padding:8px 15px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.2s}
+.switch-btn .dot{width:9px;height:9px;border-radius:50%}
+.switch-btn[data-mode="a"] .dot{background:#4fb060}
+.switch-btn[data-mode="b"] .dot{background:#25a5b8}
+.switch-btn[data-mode="c"] .dot{background:#e0576f}
+.switch-btn:hover{border-color:#e8a33d;transform:translateY(-1px)}
+body[data-mode="a"] .switch-btn[data-mode="a"],
+body[data-mode="b"] .switch-btn[data-mode="b"],
+body[data-mode="c"] .switch-btn[data-mode="c"]{background:#f6ece2;color:#2a1a12;border-color:#f6ece2}
+
+/* ================= THEMES ================= */
+.assignment{position:relative;z-index:1;max-width:930px;margin:0 auto;padding:calc(var(--head) + 20px) 16px 80px}
+#hw-a{--acc:#4fb060;--acc-ink:#2c6b39;--acc2:#2f7d43;--paper:#fdfbf4;--ink:#2b332a;--line:#e4e0cd;--soft:#f2f7ea}
+#hw-b{--acc:#25a5b8;--acc-ink:#0d6070;--acc2:#0f7183;--paper:#f5fbfc;--ink:#20343a;--line:#d3e8ec;--soft:#e6f6f8}
+#hw-c{--acc:#e0576f;--acc-ink:#a32b41;--acc2:#b8324a;--paper:#fffaf7;--ink:#3a2a2c;--line:#f0dcd6;--soft:#fdeee9}
+
+/* ================= HERO ================= */
+.hero{background:var(--paper);color:var(--ink);border-radius:20px;padding:30px;margin-bottom:16px;
+  border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.42);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0 0 auto 0;height:7px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.kicker{display:inline-block;background:var(--acc);color:#12200f;font-size:11px;font-weight:700;letter-spacing:2.4px;
+  padding:5px 14px;border-radius:999px;margin-bottom:12px}
+#hw-b .kicker,#hw-c .kicker{color:#fff}
+.hero h1{font-size:clamp(29px,5vw,48px);line-height:1.06;margin-bottom:10px}
+#hw-a .hero h1,#hw-c .hero h1{font-family:'Fraunces',Georgia,serif;font-weight:800}
+#hw-b .hero h1{font-weight:700;letter-spacing:-.5px}
+.hero h1 em{font-style:normal;color:var(--acc2)}
+.brief{max-width:660px;line-height:1.65;color:#55605a;font-size:15px}
+.stamp{position:absolute;right:26px;top:26px;transform:rotate(7deg);border:3px solid var(--acc2);color:var(--acc2);
+  font-weight:800;font-size:11.5px;letter-spacing:2px;padding:8px 13px;border-radius:8px;opacity:.7}
+.meta{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+.meta input{border:2px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font:inherit;color:var(--ink);width:auto}
+.hero-stats{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+.hero-stats span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-size:11.5px;
+  font-weight:700;padding:6px 12px;border-radius:999px}
+
+/* ================= TOOLBAR ================= */
+.toolbar{position:sticky;top:var(--head);z-index:40;display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+  background:var(--glass);backdrop-filter:blur(10px);border:1px solid rgba(232,163,61,.22);
+  border-radius:14px;padding:10px 16px;margin-bottom:18px}
+.progress{flex:1;min-width:160px}
+.progress-label{font-size:10.5px;letter-spacing:1.4px;color:#d9b590;font-weight:700;margin-bottom:5px}
+.progress-track{height:8px;background:rgba(255,255,255,.14);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s ease}
+.btn{border:none;border-radius:999px;padding:10px 22px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;
+  background:var(--acc2);color:#fff;transition:.18s}
+.btn:hover{filter:brightness(1.14);transform:translateY(-1px)}
+.btn.ghost{background:transparent;border:2px solid rgba(240,220,200,.5);color:#f0dcc8}
+.btn.ghost:hover{border-color:#fff}
+.btn.small{padding:8px 16px;font-size:13px}
+.btn.paper{background:var(--soft);color:var(--acc-ink);border:2px solid var(--line)}
+
+/* ================= TASKS ================= */
+.task{background:var(--paper);color:var(--ink);border-radius:18px;padding:24px 26px;margin-bottom:18px;
+  border:1px solid var(--line);box-shadow:0 12px 34px rgba(0,0,0,.34);position:relative;
+  scroll-margin-top:calc(var(--head) + 84px)}
+.task-head{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.tnum{background:var(--acc);color:#12200f;font-weight:800;font-size:13.5px;min-width:40px;height:38px;
+  display:grid;place-items:center;border-radius:11px}
+#hw-b .tnum{border-radius:50%;color:#fff}#hw-c .tnum{color:#fff;border-radius:11px 4px 11px 4px}
+.task-head h2{font-size:19px}
+#hw-a .task-head h2,#hw-c .task-head h2{font-family:'Fraunces',Georgia,serif}
+.pts{margin-left:auto;background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 11px;border-radius:999px}
+.hint{color:#6d7a72;font-size:13px;margin-bottom:16px;line-height:1.55}
+.hl{background:#e6f0cc;padding:0 5px;border-radius:4px;font-weight:600}
+.fb{display:block;font-size:12.5px;font-weight:700;margin-top:10px;min-height:1em}
+.correct .fb{color:#227a3f}.wrong .fb{color:#c33}
+.g-item.correct,.write-task.correct{background:#eef8ef;border-radius:12px}
+.g-item.wrong,.write-task.wrong{background:#fdeeee;border-radius:12px}
+
+input[type=text],select,textarea{border:2px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;
+  font-size:14px;background:#fff;color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 26%,transparent)}
+.correct input,.correct select{border-color:var(--ok)}
+.wrong input,.wrong select{border-color:var(--bad)}
+textarea{min-height:100px;resize:vertical;line-height:1.6}
+.field-row{display:grid;grid-template-columns:1fr minmax(190px,290px);gap:6px 16px;align-items:center;padding:11px 12px;border-radius:12px;margin-bottom:4px}
+.field-row label{font-size:14.5px;line-height:1.5}
+.field-row label b{color:var(--acc-ink)}
+.field-row .fb{grid-column:1/-1;margin-top:2px}
+
+.q{padding:13px 14px;margin-bottom:6px}
+.q p{font-size:14.5px;line-height:1.55}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.opt{border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;cursor:pointer;font:inherit;
+  font-size:13.5px;color:var(--ink);transition:.15s;text-align:left}
+.opt:hover{border-color:var(--acc);transform:translateY(-1px)}
+.opt.picked{background:var(--acc2);border-color:var(--acc2);color:#fff}
+.correct .opt.picked{background:var(--ok);border-color:var(--ok)}
+.wrong .opt.picked{background:var(--bad);border-color:var(--bad)}
+
+.tray{display:flex;flex-wrap:wrap;gap:9px;padding:14px;background:var(--soft);border:1px dashed var(--line);
+  border-radius:14px;margin-bottom:14px;min-height:64px}
+.tray-label,.bin-sub{font-size:10.5px;letter-spacing:1.5px;font-weight:700;color:#8b968f}
+.tray-label{width:100%}
+.sort-card{border:2px solid var(--line);background:#fff;border-radius:11px;padding:9px 14px;font:inherit;font-size:13px;
+  color:var(--ink);cursor:pointer;transition:.15s;box-shadow:0 2px 6px rgba(0,0,0,.07);text-align:left}
+.sort-card:hover{border-color:var(--acc);transform:translateY(-2px)}
+.sort-card.selected{border-color:var(--acc2);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc2) 30%,transparent);transform:translateY(-2px)}
+.sort-card.correct{border-color:var(--ok);background:#eef8ef}
+.sort-card.wrong{border-color:var(--bad);background:#fdeeee}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bin{border:2px dashed var(--line);border-radius:14px;padding:14px;cursor:pointer;transition:.15s;min-height:130px}
+.bin:hover,.bin:focus-visible{border-color:var(--acc);background:var(--soft);outline:none}
+.bin h4{font-size:14px;letter-spacing:1px;margin-bottom:2px}
+.bin-a h4{color:var(--info)}.bin-b h4{color:var(--acc2)}
+.bin-body{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.bin-body .sort-card{font-size:12.5px;padding:7px 11px}
+
+.order-list{list:none;counter-reset:ord;display:flex;flex-direction:column;gap:9px}
+.order-list li{counter-increment:ord;display:flex;align-items:center;gap:12px;background:#fff;border:2px solid var(--line);
+  border-radius:12px;padding:11px 14px;transition:.15s}
+.order-list li::before{content:counter(ord);background:var(--acc);color:#12200f;font-weight:800;min-width:28px;height:28px;
+  border-radius:8px;display:grid;place-items:center;font-size:13px}
+#hw-b .order-list li::before{color:#fff;border-radius:50%}
+.order-list li.correct{border-color:var(--ok);background:#eef8ef}
+.order-list li.wrong{border-color:var(--bad);background:#fdeeee}
+.ord-text{flex:1;font-size:13.5px;line-height:1.5}
+.ord-ctl{display:flex;gap:5px}
+.ord-btn{border:2px solid var(--line);background:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;
+  font-size:14px;color:var(--ink);transition:.15s}
+.ord-btn:hover{border-color:var(--acc);background:var(--soft)}
+
+.write-meta{display:flex;align-items:center;gap:10px;margin:8px 0}
+.wc{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
+.checks{list:none;display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.checks li{display:flex;align-items:center;gap:9px;font-size:13px;color:#6d7a72;transition:.2s}
+.checks .dot{width:18px;height:18px;border-radius:50%;border:2px solid #c6cfc8;display:grid;place-items:center;
+  font-size:11px;color:#fff;flex-shrink:0;transition:.2s}
+.checks li.ok{color:#227a3f;font-weight:600}
+.checks li.ok .dot{background:var(--ok);border-color:var(--ok)}
+.checks li.ok .dot::after{content:"✓"}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.chips span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px}
+.bank span{display:inline-block;background:#e6f0cc;border-radius:999px;padding:4px 12px;margin:3px;font-weight:600;font-size:13px;color:#33452c}
+.client{display:flex;gap:14px;align-items:center;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.client .avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));
+  display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.client p{font-size:13.5px;line-height:1.5}
+details.model,details.passage{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+details.passage{margin-top:0;border-top:none;padding-top:0}
+details summary{cursor:pointer;font-size:13.5px;font-weight:700;color:var(--acc-ink)}
+details p{font-size:13.5px;line-height:1.7;color:#4e5a52;margin-top:9px}
+details.passage p{background:var(--soft);border-radius:10px;padding:12px 14px}
+.sub-q{margin-bottom:20px}
+.sub-q>label{display:block;font-size:14.5px;font-weight:600;margin-bottom:8px;line-height:1.5}
+.ready-list{list:none;display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.ready-list label{display:flex;gap:11px;align-items:flex-start;font-size:14px;line-height:1.5;cursor:pointer}
+.ready-list input{width:19px;height:19px;margin-top:2px;accent-color:var(--acc2);flex-shrink:0}
+.ready-count{font-weight:700;color:var(--acc-ink);font-size:13px}
+
+.results{display:flex;gap:24px;align-items:center;flex-wrap:wrap;overflow:hidden}
+.ring{width:120px;height:120px;flex-shrink:0}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.ring .ring-bg{stroke:var(--line)}
+.ring .ring-fg{stroke:var(--acc2);stroke-dasharray:326.73;stroke-dashoffset:326.73;transform:rotate(-90deg);
+  transform-origin:center;transition:stroke-dashoffset 1s ease}
+.ring-wrap{position:relative}
+.ring-pct{position:absolute;inset:0;display:grid;place-items:center;font-weight:800;font-size:22px;color:var(--acc2)}
+.results-body{flex:1;min-width:230px}
+.results-body h2{font-size:22px;margin-bottom:4px}
+#hw-a .results-body h2,#hw-c .results-body h2{font-family:'Fraunces',Georgia,serif}
+.score-line{font-weight:800;font-size:17px;color:var(--acc-ink);margin-bottom:6px}
+.results-body p{font-size:14px;color:#55605a;line-height:1.55;margin-bottom:14px}
+.results-actions{display:flex;gap:9px;flex-wrap:wrap}
+.confetti{position:absolute;bottom:-10px;border-radius:50%;animation:pop 2.1s ease-out forwards;pointer-events:none}
+@keyframes pop{to{transform:translateY(-300px);opacity:0}}
+
+.js .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.js .reveal.in{opacity:1;transform:none}
+:focus-visible{outline:3px solid var(--info);outline-offset:2px}
+
+@media(max-width:700px){
+  .brand small{display:none}.brand{font-size:12.5px}
+  .switch-btn{padding:7px 10px;font-size:11.5px}
+  .field-row,.bins{grid-template-columns:1fr}
+  .stamp{display:none}.task{padding:20px 18px}.hero{padding:24px 20px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .js .reveal{opacity:1;transform:none}
+}
+/* ── CMC site furniture (Kid 11 online homework) — namespaced hw-/cmc- ── */
+#cmc-back-btn{position:fixed;top:14px;right:14px;z-index:60;display:flex;align-items:center;
+  gap:8px;padding:9px 16px;border-radius:999px;background:rgba(20,12,10,.9);
+  border:1px solid rgba(232,163,61,.45);color:#f6ece2;font-family:'Space Grotesk',system-ui,sans-serif;
+  font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
+#cmc-back-btn:hover{background:rgba(232,163,61,.16);transform:translateY(-1px)}
+/* the fixed worksheet header owns the top edge — leave room for the back pill */
+.site-head{padding-right:170px}
+@media(max-width:680px){
+  .site-head{padding-right:58px}
+  #cmc-back-btn{font-size:0;padding:9px;gap:0;top:10px;right:10px}
+  #cmc-back-btn svg{width:15px;height:15px}
+}
+/* The teacher's living background uses fixed glows that intentionally bleed
+   past the edges. `overflow-x:clip` stops the sideways scroll WITHOUT creating
+   a scroll container, so the sticky toolbars of the three homeworks keep
+   working (overflow-x:hidden would break them). */
+html,body{overflow-x:clip}
+
+/* Name/date fields stay readable on the white hero boxes — pinned like the
+   Doctor Fish fix so a later generic input rule can never flip them again. */
+.meta input{color:var(--ink)!important;caret-color:var(--ink)!important;font-weight:600}
+.meta input::placeholder{color:#6d7a72;opacity:1;font-weight:600}
+.meta input:-webkit-autofill{-webkit-text-fill-color:var(--ink);
+  -webkit-box-shadow:0 0 0 1000px #fff inset;transition:background-color 99999s}
+
+/* Teacher preview banner (teacher + at least one homework still unshared) */
+#hwBanner{display:none;position:relative;z-index:1;max-width:930px;margin:calc(var(--head) + 16px) auto -6px;
+  background:rgba(255,179,0,.12);border:1px solid rgba(255,179,0,.45);color:#ffd54f;
+  border-radius:12px;padding:10px 16px;font-size:13px;line-height:1.55}
+html.hw-teacher-locked #hwBanner{display:block}
+
+/* Bottom action bar: Submit to Teacher + Share */
+.hw-bar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(20,12,10,.94);
+  backdrop-filter:blur(8px);border-top:1px solid rgba(232,163,61,.25);
+  padding:12px 16px;display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}
+.hw-btn{border:none;border-radius:999px;padding:11px 24px;font:inherit;font-weight:700;font-size:14px;
+  cursor:pointer;transition:.18s}
+.hw-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.hw-btn-submit{background:linear-gradient(90deg,#4fb060,#2f7d43);color:#fff}
+.hw-btn-submit:disabled{opacity:.7;cursor:progress;filter:none}
+.hw-btn-submit.done{background:linear-gradient(90deg,#2c6b39,#4fb060)}
+.hw-btn-ghost{background:transparent;border:2px solid rgba(240,220,200,.5);color:#f0dcc8}
+.hw-btn-ghost:hover{border-color:#fff}
+.assignment{padding-bottom:130px!important}
+
+.needs-name{animation:needPulse 1.8s ease}
+@keyframes needPulse{0%,100%{box-shadow:none}25%,75%{box-shadow:0 0 0 4px rgba(63,168,96,.35);border-color:#e05252}}
+.cmc-toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(14px);
+  z-index:70;background:#fff;border:2px solid #2f7d43;color:#2c6b39;
+  padding:10px 18px;border-radius:999px;font-weight:700;font-size:13.5px;font-family:'Space Grotesk',system-ui,sans-serif;
+  box-shadow:0 12px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:all .3s;
+  max-width:88vw;text-align:center}
+.cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.cmc-toast.err{border-color:var(--bad);color:var(--bad)}
+.cmc-share{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:70;
+  background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.5);
+  padding:14px 16px;display:none;gap:8px;flex-wrap:wrap;justify-content:center;
+  align-items:center;max-width:92vw}
+.cmc-share.open{display:flex}
+.cmc-share button{border:2px solid #cfd8dc;background:#fff;border-radius:999px;
+  padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+.cmc-share button:hover{border-color:#2f7d43;color:#2c6b39}
+.cmc-share .close{border-color:transparent;color:#607d8b}
+
+/* ── Share gate: each homework opens only when the teacher shares it ────── */
+.tabs .switch-btn[hidden]{display:none!important}
+html.hw-pending body>*:not(#hwGate){display:none!important}
+html.hw-pending body{overflow:hidden!important}
+#hwGate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:linear-gradient(165deg,#1b1030,#3a2033 55%,#5b2a45)}
+#hwGate .hw-gate-card{max-width:430px;width:100%;text-align:center;background:#fffdf6;color:#26313a;
+  border-radius:18px;padding:34px 28px;border-top:6px solid #e8a33d;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+#hwGate .hw-gate-icon{width:58px;height:58px;margin:0 auto;border-radius:16px;display:grid;place-items:center;
+  font-size:26px;background:linear-gradient(135deg,#b8563f,#e8a33d);color:#fff}
+#hwGate h1{font-family:'Fraunces',Georgia,serif;font-size:23px;margin:16px 0 0}
+#hwGate p{font-size:13.5px;line-height:1.65;color:#45565f;margin:12px auto 0;max-width:340px}
+#hwGate a{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;text-decoration:none;
+  background:linear-gradient(90deg,#b8563f,#e8a33d);color:#fff;font-weight:700;font-size:13px}
+#hwGate .hw-gate-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+#hwGate .hw-gate-actions a{margin-top:20px}
+#hwGate button#hwGateCheck{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;cursor:pointer;
+  border:2px solid #b8563f;background:#fff;color:#b8563f;font-weight:700;font-size:13px;font-family:inherit}
+#hwGate button#hwGateCheck:hover{background:#fdf3ea}
+#hwGate button#hwGateCheck:disabled{opacity:.6;cursor:wait}
+
+@media print{
+  .bg,.site-head,.toolbar,.results,.no-print,details.model,.fb{display:none!important}
+  .hw-bar,#cmc-back-btn,#hwBanner,.cmc-share,.cmc-toast,#hwGate{display:none!important}
+  body{background:#fff;color:#000}
+  .assignment{padding:0;max-width:100%;padding-bottom:0!important}
+  .hero,.task{box-shadow:none;border:1px solid #bbb;break-inside:avoid;opacity:1!important;transform:none!important}
+  textarea{min-height:70px}
+}
+</style>
+<script>
+/* ── Kid 11 homework share gate — ONE switch per homework ────────────────
+   Owner request: "make sure when teacher assigns 1 homework, only that one
+   can be completed. this keeps students from seeing the others till teacher
+   shares it." Each of the three homeworks is gated by its own Firestore doc
+   (biweekly_tests/hw-kid11-u13-hw1|2|3 — public read, teacher-only write,
+   same collection the bi-weekly tests use, so NO rules change):
+     · students see ONLY the homeworks the teacher has shared — the other
+       tabs do not exist for them (hidden, not merely locked);
+     · no homework shared → a full-page locked overlay;
+     · teachers (same heuristic as teacher-gate.js / RoleGate) always get in
+       with a preview banner, and can preview any homework by deep link;
+     · a deep link to an unshared homework (#hw-b) falls back to the first
+       shared one instead of revealing content;
+   The gate RE-CHECKS by itself — every 15s, on tab focus/visibility, and via
+   a Check-again button — so sharing (or closing) a homework in another
+   tab/device updates this page without a reload. */
+(function () {
+  'use strict';
+  var FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/biweekly_tests/';
+  var HW_DOCS = [
+    { mode: 'a', doc: 'hw-kid11-u13-hw1' },
+    { mode: 'b', doc: 'hw-kid11-u13-hw2' },
+    { mode: 'c', doc: 'hw-kid11-u13-hw3' }
+  ];
+  var known = { a: null, b: null, c: null }; // null = share state not read yet
+  function ls(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function isTeacher() {
+    if (!ls('cmc-student-token')) return false;
+    var role = ls('cmc-student-role');
+    var email = ls('cmc-student-email').toLowerCase();
+    var uid = ls('cmc-student-uid');
+    return role === 'teacher' || email.indexOf('edu') !== -1 || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+  }
+  // Lock BEFORE first paint for everyone who is not a teacher — applyState()
+  // below lifts it (at least one homework shared) or builds the overlay.
+  window.CMC_HW_TEACHER = isTeacher();
+  if (!window.CMC_HW_TEACHER) document.documentElement.classList.add('hw-pending');
+
+  function buildGate() {
+    if (document.getElementById('hwGate')) return;
+    var g = document.createElement('div');
+    g.id = 'hwGate';
+    g.setAttribute('role', 'dialog');
+    g.setAttribute('aria-modal', 'true');
+    g.setAttribute('aria-label', 'Homework not shared yet');
+    g.innerHTML =
+      '<div class="hw-gate-card">' +
+      '<div class="hw-gate-icon" aria-hidden="true">🔒</div>' +
+      '<h1>Homework not shared yet</h1>' +
+      '<p>Your teacher hasn\u2019t opened the <b>Unit 13 homework</b> (New Homes for Animals) for the class yet. ' +
+      'Ask your teacher to share it from the <b>Kid 11 card</b> on the CMC homepage — this page unlocks by itself, no refresh needed.</p>' +
+      '<div class="hw-gate-actions">' +
+      '<button type="button" id="hwGateCheck">Check again</button>' +
+      '<a href="https://cmckhmer.github.io/Creative-Minds-/">Back to CMC home</a>' +
+      '</div>' +
+      '</div>';
+    document.body.appendChild(g);
+    var btn = document.getElementById('hwGateCheck');
+    if (btn) btn.addEventListener('click', function () {
+      btn.disabled = true; btn.textContent = 'Checking…';
+      check();
+      window.setTimeout(function () { btn.disabled = false; btn.textContent = 'Check again'; }, 1200);
+    });
+  }
+
+  function dropGate() {
+    var g = document.getElementById('hwGate');
+    if (g) g.remove();
+  }
+
+  // Students only get tab buttons for homeworks the teacher has shared —
+  // the unshared ones are hidden entirely (owner request), never shown locked.
+  function setTabs() {
+    var teacher = window.CMC_HW_TEACHER;
+    HW_DOCS.forEach(function (h) {
+      var btn = document.querySelector('.switch-btn[data-mode="' + h.mode + '"]');
+      if (btn) btn.hidden = !teacher && known[h.mode] !== true;
+    });
+  }
+
+  function firstSharedMode() {
+    for (var i = 0; i < HW_DOCS.length; i++) {
+      if (known[HW_DOCS[i].mode] === true) return HW_DOCS[i].mode;
+    }
+    return null;
+  }
+
+  function applyState() {
+    var root = document.documentElement;
+    // Re-read the teacher heuristic EVERY check — the session may appear
+    // after this page loaded (sign-in in another tab, token refresh).
+    window.CMC_HW_TEACHER = isTeacher();
+    var want = (location.hash.match(/^#hw-([abc])$/) || [])[1] || '';
+    if (window.CMC_HW_TEACHER) {
+      root.classList.remove('hw-pending');
+      root.classList.toggle('hw-teacher-locked', !(known.a === true && known.b === true && known.c === true));
+      dropGate();
+      setTabs();
+      if (want && typeof setMode === 'function') setMode(want); // teachers may preview any homework
+      return;
+    }
+    var anyShared = known.a === true || known.b === true || known.c === true;
+    if (anyShared) {
+      root.classList.remove('hw-pending', 'hw-teacher-locked');
+      root.classList.add('hw-open');
+      dropGate();
+      setTabs();
+      var m = document.body.dataset.mode || 'a';
+      if (want && known[want] === true) {
+        if (want !== m && typeof setMode === 'function') setMode(want);
+      } else if (known[m] !== true) {
+        var f = firstSharedMode();
+        if (f && f !== m && typeof setMode === 'function') setMode(f);
+      }
+    } else {
+      // Everything closed again (or still nothing shared) → full lock.
+      root.classList.remove('hw-open', 'hw-teacher-locked');
+      root.classList.add('hw-pending');
+      buildGate();
+    }
+  }
+
+  function shareState(d) {
+    return !!(d && d.fields && d.fields.shared && d.fields.shared.booleanValue === true);
+  }
+
+  var checking = false;
+  function check() {
+    if (checking) return;
+    checking = true;
+    // Each doc settles INDEPENDENTLY — one slow/failed read must never hold
+    // the other homeworks' state hostage. The checking flag releases as soon
+    // as this round's docs have settled, with a fixed timer as hang safety
+    // so a hanging request can never stop future re-checks.
+    var pending = HW_DOCS.length;
+    function done() { pending--; if (pending <= 0) checking = false; }
+    window.setTimeout(function () { checking = false; }, 8000);
+    HW_DOCS.forEach(function (h) {
+      function settle(v) {
+        // A network blip must not re-lock a homework the student already
+        // saw open — keep the last known state; only the very first read
+        // fails closed (locked) so a blip can never open the homework.
+        if (v === null) { if (known[h.mode] === null) known[h.mode] = false; }
+        else known[h.mode] = v;
+        applyState();
+        done();
+      }
+      fetch(FS + h.doc)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { settle(shareState(d)); })
+        .catch(function () { settle(null); });
+    });
+  }
+
+  function startPolling() {
+    window.setInterval(check, 15000);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') check();
+    });
+    window.addEventListener('focus', check);
+    window.addEventListener('pageshow', check);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { check(); startPolling(); });
+  } else {
+    check();
+    startPolling();
+  }
+})();
+</script>
+</head>
+<body data-mode="a">
+
+<!-- Back to CMC home (same fixture as the other Reading Future worksheets) -->
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" aria-label="Back to CMC home">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" stroke="#f6d8ad" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Back to CMC
+</a>
+
+<!-- Teacher preview banner (only shown to a teacher while at least one homework is still locked) -->
+<div id="hwBanner">👩‍🏫 <b>Teacher preview</b> — homeworks you haven't shared stay invisible to students. Flip the <b>Share with students</b> switches on the Kid&nbsp;11 card (CMC homepage, Kid Program section) to open Homework 1, 2 or 3 for the class.</div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="elephant" viewBox="0 0 200 120">
+    <path fill="currentColor" d="M18 100 L18 72 Q16 46 44 38 Q72 28 104 31 Q134 34 148 46 Q160 38 172 45 Q184 52 181 66 Q179 78 168 82 L166 100 L155 100 L153 84 Q138 90 118 90 L116 100 L105 100 L103 90 Q78 92 58 87 L56 100 L45 100 L43 85 Q28 83 26 100 Z"/>
+    <path fill="currentColor" d="M173 64 Q188 72 184 88 Q182 99 173 99 Q180 90 176 80 Q172 72 167 70 Z"/>
+  </symbol>
+  <symbol id="gull" viewBox="0 0 44 16"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M2 12 Q11 2 22 11 Q33 2 42 12"/></symbol>
+</defs></svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="sun"></div><div class="haze h1"></div><div class="haze h2"></div><div class="grain"></div>
+  <svg class="hills" viewBox="0 0 1440 320" preserveAspectRatio="none">
+    <path fill="rgba(14,48,44,.5)" d="M0 196 Q180 138 360 178 Q540 218 720 168 Q900 118 1080 174 Q1260 228 1440 178 L1440 320 L0 320 Z"/>
+    <g fill="rgba(10,36,32,.6)">
+      <rect x="243" y="150" width="7" height="46"/><ellipse cx="246" cy="148" rx="42" ry="12"/>
+      <rect x="1043" y="146" width="8" height="52"/><ellipse cx="1047" cy="144" rx="50" ry="13"/>
+    </g>
+    <path fill="rgba(7,26,24,.78)" d="M0 250 Q200 208 400 244 Q600 280 800 240 Q1000 200 1200 250 Q1320 276 1440 250 L1440 320 L0 320 Z"/>
+  </svg>
+  <span class="mote" style="left:9%;width:6px;height:6px;animation-duration:19s"></span>
+  <span class="mote" style="left:24%;width:4px;height:4px;animation-duration:15s;animation-delay:3s"></span>
+  <span class="mote" style="left:41%;width:7px;height:7px;animation-duration:23s;animation-delay:6s"></span>
+  <span class="mote" style="left:58%;width:5px;height:5px;animation-duration:17s;animation-delay:2s"></span>
+  <span class="mote" style="left:76%;width:6px;height:6px;animation-duration:21s;animation-delay:8s"></span>
+  <span class="mote" style="left:91%;width:4px;height:4px;animation-duration:14s;animation-delay:5s"></span>
+  <div class="bird" style="top:14vh;animation-duration:46s"><svg width="40" height="15"><use href="#gull"/></svg></div>
+  <div class="bird" style="top:19vh;animation-duration:54s;animation-delay:-16s"><svg width="28" height="11"><use href="#gull"/></svg></div>
+  <div class="bird" style="top:24vh;animation-duration:62s;animation-delay:-33s"><svg width="34" height="13"><use href="#gull"/></svg></div>
+  <div class="walker" style="animation-duration:96s"><svg width="130" height="78"><use href="#elephant"/></svg></div>
+  <div class="walker" style="bottom:3vh;animation-duration:124s;animation-delay:-40s;color:rgba(18,32,28,.3)"><svg width="86" height="52"><use href="#elephant"/></svg></div>
+</div>
+
+<header class="site-head">
+  <div class="brand">
+    <svg viewBox="0 0 200 120"><use href="#elephant"/></svg>
+    <span>NEW HOMES FOR ANIMALS<small>UNIT 13 · SCIENCE · HOMEWORKS 1–3</small></span>
+  </div>
+  <nav class="tabs" aria-label="Choose homework">
+    <button class="switch-btn" data-mode="a"><span class="dot"></span>01 Notebook</button>
+    <button class="switch-btn" data-mode="b"><span class="dot"></span>02 Mission</button>
+    <button class="switch-btn" data-mode="c"><span class="dot"></span>03 Campaign</button>
+  </nav>
+</header>
+
+<!-- ============ HOMEWORK 1 · FIELD NOTEBOOK ============ -->
+<main class="assignment" id="hw-a">
+  <section class="hero reveal">
+    <span class="stamp">FIELD NOTES · 13</span>
+    <span class="kicker">HOMEWORK 1 · VOCABULARY &amp; COMPREHENSION</span>
+    <h1>The Conservationist's <em>Field Notebook</em> 🌿</h1>
+    <p class="brief">You are a new wildlife conservationist. Before your first field mission you must master the unit vocabulary and understand the reading. Complete every page of your notebook — <b>30 points</b>. Estimated time: 35–45 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Student name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>8 word meanings</span><span>8 gap fills</span><span>5 comprehension</span><span>5 true / false</span><span>4 phrasal verbs</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 30 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button class="btn small" data-action="check">Check Notebook</button>
+    <button class="btn ghost small" data-action="reset">Reset</button>
+    <button class="btn ghost small no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Reading passage — New Homes for Animals (201 words) · tap to open</summary>
+      <p>A lot of animals' homes are being <span class="hl">ruined</span> by people or natural <span class="hl">disasters</span>. If animals stay in those places, they may die or become extinct. However, <span class="hl">wildlife</span> conservationists are working hard. They find new places for these animals to live and figure out how to move them there.</p>
+      <p>Wildlife conservationists study animals that migrate, or move from place to place. They learn how and where the animals move and what they eat. They also learn about what kinds of diseases affect the animals. Then, they decide which animals need a new home. After that, they search for a new environment that is <span class="hl">suitable</span> for the animals. One example of this is the plan to move tigers from India to Cambodia. Wildlife conservationists hope that this will help increase the population of tigers.</p>
+      <p>For situations where another natural home cannot be found for the animals, a new home must be created. Once wildlife conservationists find and prepare a new home, they develop a <span class="hl">strategy</span> to move the animals. <span class="hl">Finally</span>, they <span class="hl">put</span> the plan <span class="hl">into action</span> and <span class="hl">assist</span> the animals as they relocate to their new home.</p>
+      <p>Protecting and helping animals is important for the future and the health of the Earth.</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.1</span><h2>Word Meanings</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Match each highlighted unit word with its meaning (a–h).</p>
+    <div class="g-item field-row" data-answer="e"><label>1. If you spill juice on the sofa, you will <span class="hl">ruin</span> it.</label><select><option value="">— meaning —</option><option value="a">a. to start making an idea happen</option><option value="b">b. animals living in nature; wild animals</option><option value="c">c. to help</option><option value="d">d. a sudden event that causes a lot of damage</option><option value="e">e. to make something no good anymore</option><option value="f">f. appropriate or correct for a situation</option><option value="g">g. at last; after a long time</option><option value="h">h. a plan</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="d"><label>2. The hurricane was the worst natural <span class="hl">disaster</span> of the year.</label><select><option value="">— meaning —</option><option value="a">a. to start making an idea happen</option><option value="b">b. animals living in nature; wild animals</option><option value="c">c. to help</option><option value="d">d. a sudden event that causes a lot of damage</option><option value="e">e. to make something no good anymore</option><option value="f">f. appropriate or correct for a situation</option><option value="g">g. at last; after a long time</option><option value="h">h. a plan</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label>3. The woods behind my house are full of <span class="hl">wildlife</span>.</label><select><option value="">— meaning —</option><option value="a">a. to start making an idea happen</option><option value="b">b. animals living in nature; wild animals</option><option value="c">c. to help</option><option value="d">d. a sudden event that causes a lot of damage</option><option value="e">e. to make something no good anymore</option><option value="f">f. appropriate or correct for a situation</option><option value="g">g. at last; after a long time</option><option value="h">h. a plan</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="f"><label>4. This movie is <span class="hl">suitable</span> for people of all ages.</label><select><option value="">— meaning —</option><option value="a">a. to start making an idea happen</option><option value="b">b. animals living in nature; wild animals</option><option value="c">c. to help</option><option value="d">d. a sudden event that causes a lot of damage</option><option value="e">e. to make something no good anymore</option><option value="f">f. appropriate or correct for a situation</option><option value="g">g. at last; after a long time</option><option value="h">h. a plan</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="h"><label>5. Our <span class="hl">strategy</span> is to go slow but never stop.</label><select><option value="">— meaning —</option><option value="a">a. to start making an idea happen</option><option value="b">b. animals living in nature; wild animals</option><option value="c">c. to help</option><option value="d">d. a sudden event that causes a lot of damage</option><option value="e">e. to make something no good anymore</option><option value="f">f. appropriate or correct for a situation</option><option value="g">g. at last; after a long time</option><option value="h">h. a plan</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="g"><label>6. We <span class="hl">finally</span> arrived after a ten-hour drive.</label><select><option value="">— meaning —</option><option value="a">a. to start making an idea happen</option><option value="b">b. animals living in nature; wild animals</option><option value="c">c. to help</option><option value="d">d. a sudden event that causes a lot of damage</option><option value="e">e. to make something no good anymore</option><option value="f">f. appropriate or correct for a situation</option><option value="g">g. at last; after a long time</option><option value="h">h. a plan</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label>7. The firefighters <span class="hl">put</span> their plan <span class="hl">into action</span>.</label><select><option value="">— meaning —</option><option value="a">a. to start making an idea happen</option><option value="b">b. animals living in nature; wild animals</option><option value="c">c. to help</option><option value="d">d. a sudden event that causes a lot of damage</option><option value="e">e. to make something no good anymore</option><option value="f">f. appropriate or correct for a situation</option><option value="g">g. at last; after a long time</option><option value="h">h. a plan</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="c"><label>8. The man offered to <span class="hl">assist</span> the old woman.</label><select><option value="">— meaning —</option><option value="a">a. to start making an idea happen</option><option value="b">b. animals living in nature; wild animals</option><option value="c">c. to help</option><option value="d">d. a sudden event that causes a lot of damage</option><option value="e">e. to make something no good anymore</option><option value="f">f. appropriate or correct for a situation</option><option value="g">g. at last; after a long time</option><option value="h">h. a plan</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.2</span><h2>Field Report — Gap Fill</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Complete the report with the word bank. Type your answers.</p>
+    <div class="bank"><span>disaster</span><span>ruin</span><span>wildlife</span><span>suitable</span><span>strategy</span><span>assist</span><span>finally</span><span>put into action</span></div>
+    <div class="g-item field-row" data-answer="disaster"><label>1. A hurricane is a natural ______.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="ruin"><label>2. Cutting down every tree can ______ a forest.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="wildlife"><label>3. Deer, tigers and elephants are all ______.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="suitable"><label>4. A snowy forest is not ______ for a tiger from India.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="strategy"><label>5. The team made a careful ______ to move the animals.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="assist|assisted"><label>6. Volunteers ______ the scientists during the move.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="finally"><label>7. ______, after many months, the animals arrived safely.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="put into action|put the plan into action|put their plan into action"><label>8. Next week the team will ______ and move the tigers.</label><input type="text" spellcheck="false" placeholder="phrase"><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.3</span><h2>Understanding the Reading</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Choose the best answer.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> What is ruining animals' homes?</p><div class="opts"><button type="button" class="opt" data-val="a">Only natural disasters</button><button type="button" class="opt" data-val="b">People and natural disasters</button><button type="button" class="opt" data-val="c">Other animals</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>2.</b> What may happen if animals stay in a ruined place?</p><div class="opts"><button type="button" class="opt" data-val="a">They may die or become extinct</button><button type="button" class="opt" data-val="b">They will build a new home</button><button type="button" class="opt" data-val="c">They will stop migrating</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>3.</b> What do conservationists learn about migrating animals?</p><div class="opts"><button type="button" class="opt" data-val="a">Only their names</button><button type="button" class="opt" data-val="b">How old they are</button><button type="button" class="opt" data-val="c">How and where they move, what they eat, and their diseases</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>4.</b> Which plan is given as an example in the reading?</p><div class="opts"><button type="button" class="opt" data-val="a">Moving elephants to Africa</button><button type="button" class="opt" data-val="b">Moving tigers from India to Cambodia</button><button type="button" class="opt" data-val="c">Moving zebras to a zoo</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>5.</b> What happens when no natural home can be found?</p><div class="opts"><button type="button" class="opt" data-val="a">A new home must be created</button><button type="button" class="opt" data-val="b">The animals stay where they are</button><button type="button" class="opt" data-val="c">The strategy is cancelled</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.4</span><h2>True or False</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Based on the warm-up and the reading.</p>
+    <div class="g-item q" data-answer="F"><p><b>1.</b> Conservation protects only animals, not plants.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>2.</b> Wildlife conservationists study what animals eat.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>3.</b> Moving tigers to Cambodia should help increase the tiger population.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="F"><p><b>4.</b> A suitable new home can always be found in nature.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>5.</b> Protecting animals matters for the future and the health of the Earth.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.5</span><h2>Phrasal Verbs with <em>out</em></h2><span class="pts">4 PTS</span></div>
+    <p class="hint">Match each phrasal verb with its meaning.</p>
+    <div class="g-item field-row" data-answer="d"><label>1. <span class="hl">figure out</span></label><select><option value="">— meaning —</option><option value="a">a. to appear</option><option value="b">b. to use, sell, or finish all of something</option><option value="c">c. to eat in a restaurant</option><option value="d">d. to think and understand something</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label>2. <span class="hl">come out</span></label><select><option value="">— meaning —</option><option value="a">a. to appear</option><option value="b">b. to use, sell, or finish all of something</option><option value="c">c. to eat in a restaurant</option><option value="d">d. to think and understand something</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label>3. <span class="hl">run out</span></label><select><option value="">— meaning —</option><option value="a">a. to appear</option><option value="b">b. to use, sell, or finish all of something</option><option value="c">c. to eat in a restaurant</option><option value="d">d. to think and understand something</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="c"><label>4. <span class="hl">eat out</span></label><select><option value="">— meaning —</option><option value="a">a. to appear</option><option value="b">b. to use, sell, or finish all of something</option><option value="c">c. to eat in a restaurant</option><option value="d">d. to think and understand something</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Notebook Assessment</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button class="btn small" data-action="review">Review mistakes</button><button class="btn paper small" data-action="print">🖨 Print / PDF</button><button class="btn paper small" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- ============ HOMEWORK 2 · RELOCATION MISSION ============ -->
+<main class="assignment" id="hw-b" hidden>
+  <section class="hero reveal">
+    <span class="stamp">MISSION 13</span>
+    <span class="kicker">HOMEWORK 2 · PROCESS &amp; CRITICAL THINKING</span>
+    <h1>You are the <em>Relocation Mission Planner</em> 🧭</h1>
+    <p class="brief">A forest has been destroyed. Your team must move the animals to safety. Put the mission steps in order, link causes to effects, separate research from action, and make the right decisions under pressure. <b>25 points</b>. Estimated time: 35–45 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Planner name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>6 mission steps</span><span>5 cause–effect links</span><span>6 research cards</span><span>4 decisions</span><span>3 main-idea checks</span><span>1 mission report</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 25 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button class="btn small" data-action="check">File Mission Plan</button>
+    <button class="btn ghost small" data-action="reset">Reset</button>
+    <button class="btn ghost small no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Case file — the reading passage (201 words) · tap to open</summary>
+      <p>A lot of animals' homes are being <span class="hl">ruined</span> by people or natural <span class="hl">disasters</span>. If animals stay in those places, they may die or become extinct. However, <span class="hl">wildlife</span> conservationists are working hard. They find new places for these animals to live and figure out how to move them there.</p>
+      <p>Wildlife conservationists study animals that migrate, or move from place to place. They learn how and where the animals move and what they eat. They also learn about what kinds of diseases affect the animals. Then, they decide which animals need a new home. After that, they search for a new environment that is <span class="hl">suitable</span> for the animals. One example of this is the plan to move tigers from India to Cambodia. Wildlife conservationists hope that this will help increase the population of tigers.</p>
+      <p>For situations where another natural home cannot be found for the animals, a new home must be created. Once wildlife conservationists find and prepare a new home, they develop a <span class="hl">strategy</span> to move the animals. <span class="hl">Finally</span>, they <span class="hl">put</span> the plan <span class="hl">into action</span> and <span class="hl">assist</span> the animals as they relocate to their new home.</p>
+      <p>Protecting and helping animals is important for the future and the health of the Earth.</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.1</span><h2>Order the Mission Steps</h2><span class="pts">6 PTS</span></div>
+    <p class="hint">The steps arrived out of order. Use ↑ and ↓ to build the correct conservation process, from research to relocation.</p>
+    <div class="order-task" data-solution="study,decide,search,prepare,strategy,action">
+      <ol class="order-list">
+        <li data-key="search"><span class="ord-text">Search for a new environment that is suitable for the animals.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="action"><span class="ord-text">Put the plan into action and assist the animals as they relocate.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="study"><span class="ord-text">Study the animals: how they move, what they eat, and which diseases affect them.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="strategy"><span class="ord-text">Develop a strategy to move the animals.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="decide"><span class="ord-text">Decide which animals need a new home.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="prepare"><span class="ord-text">Find and prepare the new home — or create one if nature has no option.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+      </ol><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.2</span><h2>Cause → Effect</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Match each cause (1–5) with its effect (a–e).</p>
+    <div class="g-item field-row" data-answer="c"><label><b>1.</b> People damage the land, or a natural disaster strikes.</label><select><option value="">— effect —</option><option value="a">a. they may die or become extinct</option><option value="b">b. a new home must be created</option><option value="c">c. animals' homes are ruined</option><option value="d">d. the tiger population may increase</option><option value="e">e. they know which animals need a new home</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label><b>2.</b> Animals stay in a ruined place.</label><select><option value="">— effect —</option><option value="a">a. they may die or become extinct</option><option value="b">b. a new home must be created</option><option value="c">c. animals' homes are ruined</option><option value="d">d. the tiger population may increase</option><option value="e">e. they know which animals need a new home</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="e"><label><b>3.</b> Conservationists study migration, food and diseases.</label><select><option value="">— effect —</option><option value="a">a. they may die or become extinct</option><option value="b">b. a new home must be created</option><option value="c">c. animals' homes are ruined</option><option value="d">d. the tiger population may increase</option><option value="e">e. they know which animals need a new home</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label><b>4.</b> No suitable natural home can be found.</label><select><option value="">— effect —</option><option value="a">a. they may die or become extinct</option><option value="b">b. a new home must be created</option><option value="c">c. animals' homes are ruined</option><option value="d">d. the tiger population may increase</option><option value="e">e. they know which animals need a new home</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="d"><label><b>5.</b> Tigers are moved from India to Cambodia.</label><select><option value="">— effect —</option><option value="a">a. they may die or become extinct</option><option value="b">b. a new home must be created</option><option value="c">c. animals' homes are ruined</option><option value="d">d. the tiger population may increase</option><option value="e">e. they know which animals need a new home</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.3</span><h2>Research Phase or Action Phase?</h2><span class="pts">6 PTS</span></div>
+    <p class="hint"><b>Tap a card, then tap a column.</b> Tap a filed card to send it back.</p>
+    <div class="sort-task">
+      <div class="tray"><span class="tray-label">TEAM TASK CARDS — FILE ALL 6</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="research">Learn where the animals move</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="action">Prepare the new home</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="research">Learn what the animals eat</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="action">Develop a moving strategy</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="research">Learn which diseases affect them</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="action">Assist the animals as they relocate</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="research" tabindex="0" role="button" aria-label="Place card in RESEARCH"><h4>🔬 RESEARCH</h4><p class="bin-sub">LEARNING ABOUT THE ANIMALS</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="action" tabindex="0" role="button" aria-label="Place card in ACTION"><h4>🚚 ACTION</h4><p class="bin-sub">MOVING AND HELPING THEM</p><div class="bin-body"></div></div>
+      </div><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.4</span><h2>The Decision Desk</h2><span class="pts">4 PTS</span></div>
+    <p class="hint">Read each situation and choose the correct professional decision.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> A hurricane destroyed the forest, but the animals are still there. What is the main danger?</p><div class="opts"><button type="button" class="opt" data-val="a">They will get bored</button><button type="button" class="opt" data-val="b">They may die or become extinct if they stay</button><button type="button" class="opt" data-val="c">They will stop eating plants</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>2.</b> You must choose a new home for tigers from India. Which environment is <b>suitable</b>?</p><div class="opts"><button type="button" class="opt" data-val="a">A cold, snowy forest</button><button type="button" class="opt" data-val="b">A dry desert with no prey</button><button type="button" class="opt" data-val="c">A warm forest with prey, water and space</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>3.</b> No natural home exists for a species. What does the reading say to do?</p><div class="opts"><button type="button" class="opt" data-val="a">Create a new home</button><button type="button" class="opt" data-val="b">Leave the animals where they are</button><button type="button" class="opt" data-val="c">Wait for a natural disaster to end</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>4.</b> The new home is found and prepared. What comes next?</p><div class="opts"><button type="button" class="opt" data-val="a">Study what the animals eat</button><button type="button" class="opt" data-val="b">Develop a strategy to move the animals</button><button type="button" class="opt" data-val="c">Decide which animals need a home</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.5</span><h2>Main Idea &amp; Details</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">First find the topic. Then find the most important thing the reading says about it.</p>
+    <div class="g-item q" data-answer="c"><p><b>1.</b> What is the <b>topic</b> of the passage?</p><div class="opts"><button type="button" class="opt" data-val="a">Natural disasters around the world</button><button type="button" class="opt" data-val="b">Tigers living in India</button><button type="button" class="opt" data-val="c">Conservationists finding new homes for animals</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>2.</b> Which sentence best states the <b>main idea</b>?</p><div class="opts"><button type="button" class="opt" data-val="a">Wildlife conservationists work to move animals to safe new homes.</button><button type="button" class="opt" data-val="b">Tigers may be moved from India to Cambodia.</button><button type="button" class="opt" data-val="c">Hurricanes are the worst natural disasters.</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>3.</b> Which sentence is a <b>detail</b>, not the main idea?</p><div class="opts"><button type="button" class="opt" data-val="a">Protecting animals is important for the Earth's future.</button><button type="button" class="opt" data-val="b">One plan is to move tigers from India to Cambodia.</button><button type="button" class="opt" data-val="c">Conservationists find new places for animals to live.</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task write-task reveal" id="w-report">
+    <div class="task-head"><span class="tnum">2.6</span><h2>Write the Mission Report</h2><span class="pts">1 PT</span></div>
+    <p class="hint">In 50–80 words, explain your relocation plan to headquarters. The live checklist shows what a complete report needs.</p>
+    <div class="client"><span class="avatar">🐘</span><p><b>Mission brief:</b> 12 elephants have lost their forest home after a flood. A suitable valley has been found 60 km away.</p></div>
+    <textarea placeholder="First, our team will study…"></textarea>
+    <div class="write-meta"><span class="wc">0 words</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See a model report</summary><p>"First, our team will study the elephants: where they move, what they eat, and which diseases affect them. Then we will check that the new valley is suitable for the wildlife. We must figure out a safe strategy before we act. Finally, we will put the plan into action and assist the elephants as they relocate. If we run out of time, the animals may not survive."</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Mission Control Assessment</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button class="btn small" data-action="review">Review mistakes</button><button class="btn paper small" data-action="print">🖨 Print / PDF</button><button class="btn paper small" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- ============ HOMEWORK 3 · CAMPAIGN STUDIO ============ -->
+<main class="assignment" id="hw-c" hidden>
+  <section class="hero reveal">
+    <span class="stamp">STUDIO 13</span>
+    <span class="kicker">HOMEWORK 3 · WRITING &amp; SPEAKING</span>
+    <h1>You are the <em>Campaign Creator</em> 📣</h1>
+    <p class="brief">Your school is launching a conservation campaign. Separate facts from opinions, design a slogan, write a persuasive campaign text, and prepare to speak as a wildlife conservationist in an interview. <b>16 points</b>. Estimated time: 40–50 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Creator name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>8 claims to judge</span><span>1 slogan</span><span>1 campaign text</span><span>3 interview answers</span><span>2 phrasal sentences</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 16 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button class="btn small" data-action="check">Publish Campaign</button>
+    <button class="btn ghost small" data-action="reset">Reset</button>
+    <button class="btn ghost small no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Source material — the reading passage (201 words) · tap to open</summary>
+      <p>A lot of animals' homes are being <span class="hl">ruined</span> by people or natural <span class="hl">disasters</span>. If animals stay in those places, they may die or become extinct. However, <span class="hl">wildlife</span> conservationists are working hard. They find new places for these animals to live and figure out how to move them there.</p>
+      <p>Wildlife conservationists study animals that migrate, or move from place to place. They learn how and where the animals move and what they eat. They also learn about what kinds of diseases affect the animals. Then, they decide which animals need a new home. After that, they search for a new environment that is <span class="hl">suitable</span> for the animals. One example of this is the plan to move tigers from India to Cambodia. Wildlife conservationists hope that this will help increase the population of tigers.</p>
+      <p>For situations where another natural home cannot be found for the animals, a new home must be created. Once wildlife conservationists find and prepare a new home, they develop a <span class="hl">strategy</span> to move the animals. <span class="hl">Finally</span>, they <span class="hl">put</span> the plan <span class="hl">into action</span> and <span class="hl">assist</span> the animals as they relocate to their new home.</p>
+      <p>Protecting and helping animals is important for the future and the health of the Earth.</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.1</span><h2>Fact or Opinion?</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">A campaign must be honest. <b>Tap a card, then tap a bin.</b> Tap a placed card to return it.</p>
+    <div class="sort-task">
+      <div class="tray"><span class="tray-label">CAMPAIGN CLAIMS — SORT ALL 8</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="fact">Animals' homes are ruined by people and natural disasters.</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="opinion">Every country should pay for animal relocation.</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="fact">There is a plan to move tigers from India to Cambodia.</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="opinion">Saving animals is the most important job in the world.</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="fact">Conservationists study what animals eat.</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="opinion">Zoos are better than wild homes.</button>
+        <button type="button" class="sort-card" data-idx="6" data-correct="fact">A new home must be created when no natural home can be found.</button>
+        <button type="button" class="sort-card" data-idx="7" data-correct="opinion">Everyone should volunteer as a wildlife conservationist.</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="fact" tabindex="0" role="button" aria-label="Place card in FACT"><h4>📌 FACT</h4><p class="bin-sub">SUPPORTED BY THE READING</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="opinion" tabindex="0" role="button" aria-label="Place card in OPINION"><h4>💭 OPINION</h4><p class="bin-sub">A BELIEF OR SUGGESTION</p><div class="bin-body"></div></div>
+      </div><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task write-task reveal" id="w-slogan">
+    <div class="task-head"><span class="tnum">3.2</span><h2>The Slogan Workshop</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Write a short slogan for your campaign poster. The checklist turns green as you meet the rules.</p>
+    <input type="text" placeholder="Type your slogan here…" aria-label="Your slogan">
+    <div class="write-meta"><span class="wc">0 / 60 characters</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See model slogans</summary><p>"New Homes, New Hope" · "Save Their Home, Save Our Future" · "Wildlife Needs a Suitable Home — Help Us Build One"</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task write-task reveal" id="w-campaign">
+    <div class="task-head"><span class="tnum">3.3</span><h2>Write the Campaign Text</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Write 70–110 words for the school newsletter. Persuade readers to care about animals losing their homes.</p>
+    <textarea placeholder="Every year, animals lose their homes…"></textarea>
+    <div class="write-meta"><span class="wc">0 words</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See a model campaign text</summary><p>"Every year, people and natural disasters ruin the homes of wildlife. If animals stay in these places, they may die or become extinct. However, wildlife conservationists have a strategy. They study the animals, find a suitable environment, and finally put their plan into action to assist the animals as they relocate. We should support this work before we run out of time. Join our school campaign, help us figure out new solutions, and protect the health of the Earth."</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.4</span><h2>The Interview — Speaking Prep</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">A journalist will interview you as a conservationist. Prepare at least 12 words for each answer. Use the phrase chips for support.</p>
+    <div class="sub-q write-task" id="w-i1">
+      <label>1. "Why do animals need new homes?"</label>
+      <div class="chips"><span>ruined</span><span>natural disasters</span><span>become extinct</span></div>
+      <textarea placeholder="Because their homes are being…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"Because their homes are being ruined by people or natural disasters, and if they stay they may die or become extinct."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-i2">
+      <label>2. "How do you choose a suitable place?"</label>
+      <div class="chips"><span>study what they eat</span><span>diseases</span><span>suitable environment</span></div>
+      <textarea placeholder="First we study…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"First we study how the animals move, what they eat and which diseases affect them; then we search for a suitable environment."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-i3">
+      <label>3. "What is the hardest part of moving animals?"</label>
+      <div class="chips"><span>develop a strategy</span><span>put into action</span><span>assist</span></div>
+      <textarea placeholder="The hardest part is…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"The hardest part is developing a safe strategy, because we must put the plan into action carefully and assist every animal."</p></details><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.5</span><h2>Phrasal Verbs in Your Own Words</h2><span class="pts">2 PTS</span></div>
+    <p class="hint">Write one original sentence with each phrasal verb. At least 8 words each.</p>
+    <div class="sub-q write-task" id="w-p1">
+      <label>1. Use <span class="hl">run out</span> (to finish all of something).</label>
+      <textarea placeholder="If we run out of…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"If we run out of clean forests, many animals will have nowhere to live."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-p2">
+      <label>2. Use <span class="hl">figure out</span> (to think and understand something).</label>
+      <textarea placeholder="Scientists must figure out…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"Scientists must figure out how to move the animals without frightening them."</p></details><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.6</span><h2>The Closing Message</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Choose the sentence that best closes your campaign.</p>
+    <div class="g-item q" data-answer="b"><p><b>Which sentence best sums up the whole reading?</b></p>
+      <div class="opts"><button type="button" class="opt" data-val="a">Tigers are the most beautiful animals in Asia.</button><button type="button" class="opt" data-val="b">Protecting animals and their homes protects the future and the health of the Earth.</button><button type="button" class="opt" data-val="c">Natural disasters cannot be stopped by anyone.</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.7</span><h2>Creator's Checklist</h2><span class="pts">REFLECT</span></div>
+    <p class="hint">Tick what is true before you publish. <span class="ready-count">Ready: 0 / 4</span></p>
+    <ul class="ready-list">
+      <li><label><input type="checkbox" class="ready-check"> I used at least four unit words in my writing.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> My slogan is short, clear and has no full stop.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> Every fact in my campaign comes from the reading.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> I can answer the three interview questions aloud.</label></li>
+    </ul>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Campaign Review</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button class="btn small" data-action="review">Review mistakes</button><button class="btn paper small" data-action="print">🖨 Print / PDF</button><button class="btn paper small" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<noscript><p style="position:relative;z-index:2;text-align:center;padding:20px">Please enable JavaScript to use the interactive homeworks.</p></noscript>
+
+<!-- Bottom action bar: completion submit + share -->
+<div class="hw-bar no-print">
+  <button type="button" class="hw-btn hw-btn-submit" id="submitBtn">Submit to Teacher ✓</button>
+  <button type="button" class="hw-btn hw-btn-ghost" data-cmc-share aria-haspopup="true">Share homework ▾</button>
+</div>
+<div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
+<div class="cmc-share" id="cmcShare">
+  <button type="button" data-cmc-copy>🔗 Copy Link</button>
+  <button type="button" data-cmc-wa>💬 WhatsApp</button>
+  <button type="button" data-cmc-tg>✈️ Telegram</button>
+  <button type="button" data-cmc-email>✉️ Email</button>
+  <button type="button" class="close" data-cmc-close>✕ Close</button>
+</div>
+
+<script>
+document.documentElement.classList.add('js');
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const norm=s=>String(s).toLowerCase().replace(/,/g,'').replace(/[.!?]+$/,'').trim().replace(/\s+/g,' ');
+const wc=s=>(String(s).trim().match(/\S+/g)||[]).length;
+const UNIT=['ruin','disaster','wildlife','suitable','strategy','finally','assist','into action','conservation','extinct','relocate','migrate'];
+const OUT=/\b(figure|figured|come|came|run|ran|eat|ate)\s+(it\s+)?out\b/i;
+
+const WRITE={
+  'w-report':{checks:[
+    {label:'50–80 words',test:t=>{const n=wc(t);return n>=50&&n<=80;}},
+    {label:'3+ unit words (ruin, wildlife, suitable, strategy, assist…)',test:t=>UNIT.filter(v=>t.toLowerCase().includes(v)).length>=3},
+    {label:'Uses "finally" to close the plan',test:t=>/\bfinally\b/i.test(t)},
+    {label:'Uses a phrasal verb with out (figure out / run out…)',test:t=>OUT.test(t)}]},
+  'w-slogan':{unit:'chars',checks:[
+    {label:'Between 15 and 60 characters',test:t=>{const n=t.trim().length;return n>=15&&n<=60;}},
+    {label:'Mentions animals, home, wild, save or protect',test:t=>/animal|home|wild|save|protect/i.test(t)},
+    {label:'No full stop at the end',test:t=>t.trim().length>0&&!/\.$/.test(t.trim())}]},
+  'w-campaign':{checks:[
+    {label:'70–110 words',test:t=>{const n=wc(t);return n>=70&&n<=110;}},
+    {label:'3+ unit words',test:t=>UNIT.filter(v=>t.toLowerCase().includes(v)).length>=3},
+    {label:'A linking word: however / finally / moreover / thus',test:t=>/\b(however|finally|moreover|thus)\b/i.test(t)},
+    {label:'A phrasal verb with out',test:t=>OUT.test(t)},
+    {label:'A call to action: should / must / join / help / let\'s',test:t=>/\b(should|must|join|help)\b|let's/i.test(t)}]},
+  'w-i1':{checks:[{label:'At least 12 words',test:t=>wc(t)>=12}]},
+  'w-i2':{checks:[{label:'At least 12 words',test:t=>wc(t)>=12}]},
+  'w-i3':{checks:[{label:'At least 12 words',test:t=>wc(t)>=12}]},
+  'w-p1':{checks:[
+    {label:'Uses "run out" (or ran / running out)',test:t=>/\brun\s+out\b|\bran\s+out\b|\brunning\s+out\b/i.test(t)},
+    {label:'At least 8 words',test:t=>wc(t)>=8}]},
+  'w-p2':{checks:[
+    {label:'Uses "figure out" (or figured / figure it out)',test:t=>/\bfigure\s+(it\s+)?out\b|\bfigured\s+(it\s+)?out\b|\bfiguring\s+(it\s+)?out\b/i.test(t)},
+    {label:'At least 8 words',test:t=>wc(t)>=8}]}
+};
+
+$$('.write-task').forEach(t=>{
+  const cfg=WRITE[t.id];if(!cfg)return;
+  const field=$('textarea,input',t),list=$('.checks',t);
+  cfg.checks.forEach(c=>{const li=document.createElement('li');li.innerHTML='<span class="dot"></span><span>'+c.label+'</span>';list.appendChild(li);});
+  const update=()=>{
+    const v=field.value;let pass=true;
+    cfg.checks.forEach((c,i)=>{const ok=c.test(v);list.children[i].classList.toggle('ok',ok);if(!ok)pass=false;});
+    t.dataset.pass=pass?'1':'0';
+    $('.wc',t).textContent=cfg.unit==='chars'?v.trim().length+' / 60 characters':wc(v)+' words';
+    refreshProgress(t.closest('.assignment'));
+  };
+  field.addEventListener('input',update);t._update=update;update();
+});
+
+function hasResponse(q){
+  const sel=$('select',q),inp=$('input',q);
+  if(sel)return sel.value!=='';
+  if(inp)return inp.value.trim()!=='';
+  return !!q.dataset.picked;
+}
+function refreshProgress(root){
+  if(!root)return;
+  let done=0,total=0;
+  $$('.g-item',root).forEach(q=>{total++;if(hasResponse(q))done++;});
+  $$('.sort-task',root).forEach(t=>{const c=$$('.sort-card',t);total+=c.length;done+=c.filter(x=>x.closest('.bin')).length;});
+  $$('.order-task',root).forEach(t=>{const n=$$('li',t).length;total+=n;if(t.dataset.touched)done+=n;});
+  $$('.write-task',root).forEach(t=>{total++;if($('textarea,input',t).value.trim())done++;});
+  $('.progress-fill',root).style.width=(total?Math.round(done/total*100):0)+'%';
+  $('.progress-label-text',root).textContent=done+' / '+total+' answered';
+}
+
+$$('.assignment').forEach(root=>{
+  root.addEventListener('click',e=>{
+    const act=e.target.closest('[data-action]');
+    if(act){doAction(act.dataset.action,root);return;}
+    const opt=e.target.closest('.opt');
+    if(opt){
+      const q=opt.closest('.g-item');
+      $$('.opt',q).forEach(b=>b.classList.remove('picked'));
+      opt.classList.add('picked');q.dataset.picked=opt.dataset.val;
+      q.classList.remove('correct','wrong');$('.fb',q).textContent='';
+      refreshProgress(root);return;
+    }
+    const card=e.target.closest('.sort-card');
+    if(card){
+      const task=card.closest('.sort-task');
+      if(card.closest('.bin'))$('.tray',task).appendChild(card);
+      else{
+        const sel=$('.sort-card.selected',task);
+        if(sel===card)card.classList.remove('selected');
+        else{if(sel)sel.classList.remove('selected');card.classList.add('selected');}
+      }
+      card.classList.remove('correct','wrong');$('.fb',task).textContent='';
+      refreshProgress(root);return;
+    }
+    const bin=e.target.closest('.bin');
+    if(bin){placeCard(bin);return;}
+    const ob=e.target.closest('.ord-btn');
+    if(ob){
+      const li=ob.closest('li'),dir=+ob.dataset.dir;
+      const sib=dir<0?li.previousElementSibling:li.nextElementSibling;
+      if(!sib)return;
+      if(dir<0)li.parentNode.insertBefore(li,sib);else li.parentNode.insertBefore(sib,li);
+      const task=li.closest('.order-task');task.dataset.touched='1';
+      $$('li',task).forEach(x=>x.classList.remove('correct','wrong'));
+      $('.fb',task).textContent='';refreshProgress(root);
+    }
+  });
+  root.addEventListener('keydown',e=>{
+    const bin=e.target.closest('.bin');
+    if(bin&&(e.key==='Enter'||e.key===' ')){e.preventDefault();placeCard(bin);}
+  });
+  const onChange=e=>{
+    const q=e.target.closest('.g-item');
+    if(q&&e.target.matches('input,select')){q.classList.remove('correct','wrong');$('.fb',q).textContent='';refreshProgress(root);}
+    if(e.target.matches('.ready-check')){
+      const lbl=$('.ready-count',root);
+      if(lbl)lbl.textContent='Ready: '+$$('.ready-check:checked',root).length+' / 4';
+    }
+  };
+  root.addEventListener('input',onChange);
+  root.addEventListener('change',onChange);
+});
+
+function placeCard(bin){
+  const task=bin.closest('.sort-task'),root=bin.closest('.assignment');
+  const sel=$('.sort-card.selected',task);
+  if(!sel){$('.fb',task).textContent='👆 Select a card first, then tap a column.';return;}
+  $('.bin-body',bin).appendChild(sel);
+  sel.classList.remove('selected','correct','wrong');
+  $('.fb',task).textContent='';refreshProgress(root);
+}
+
+function grade(root){
+  let earned=0,total=0;
+  $$('.g-item',root).forEach(q=>{
+    total++;
+    const key=q.dataset.answer,acc=key.split('|').map(norm);
+    const sel=$('select',q),inp=$('input',q);
+    let val='',shown='';
+    if(sel){val=sel.value;const o=sel.querySelector('option[value="'+key+'"]');shown=o?o.textContent:key;}
+    else if(inp){val=inp.value;shown=key.split('|')[0];}
+    else{val=q.dataset.picked||'';const b=q.querySelector('.opt[data-val="'+key+'"]');shown=b?b.textContent:key;}
+    const ok=norm(val)!==''&&acc.includes(norm(val));
+    q.classList.toggle('correct',ok);q.classList.toggle('wrong',!ok);
+    $('.fb',q).textContent=ok?'✔ Correct':'✘ Answer: '+shown;
+    if(ok)earned++;
+  });
+  $$('.sort-task',root).forEach(t=>{
+    const cards=$$('.sort-card',t);let c=0;
+    cards.forEach(card=>{
+      const bin=card.closest('.bin');
+      const ok=!!bin&&bin.dataset.bin===card.dataset.correct;
+      card.classList.toggle('correct',ok);card.classList.toggle('wrong',!ok);
+      if(ok)c++;
+    });
+    total+=cards.length;earned+=c;
+    $('.fb',t).textContent=c+' / '+cards.length+' in the right column.'+(c===cards.length?' ✔':' — tap a card to move it.');
+  });
+  $$('.order-task',root).forEach(t=>{
+    const sol=t.dataset.solution.split(','),lis=$$('li',t);let c=0;
+    lis.forEach((li,i)=>{const ok=li.dataset.key===sol[i];li.classList.toggle('correct',ok);li.classList.toggle('wrong',!ok);if(ok)c++;});
+    total+=lis.length;earned+=c;
+    $('.fb',t).textContent=c+' / '+lis.length+' in the right position.'+(c===lis.length?' ✔':' Hint: study → decide → search → prepare → strategy → action.');
+  });
+  $$('.write-task',root).forEach(t=>{
+    total++;
+    const ok=t.dataset.pass==='1';
+    t.classList.toggle('correct',ok);t.classList.toggle('wrong',!ok);
+    $('.fb',t).textContent=ok?'✔ Requirements met — well done.':'✘ Finish the live checklist above to earn this point.';
+    if(ok)earned++;
+  });
+  showResults(root,earned,total);
+}
+
+function showResults(root,earned,total){
+  const pct=Math.round(earned/total*100),panel=$('.results',root);
+  $('.score-line',panel).textContent=earned+' / '+total+' points';
+  $('.ring-pct',panel).textContent=pct+'%';
+  const msgs={
+    'hw-a':['🏆 Field-ready! Your notebook is excellent.','🌟 Strong work — review the marked items.','👍 A good start. Reread the passage and revise.','📖 Open the reading passage above, then try again.'],
+    'hw-b':['🏆 Mission approved! The animals are in safe hands.','🌟 A solid plan — fix the marked steps.','👍 Reasonable start. Recheck the mission order.','📖 Study the case file above, then plan again.'],
+    'hw-c':['🏆 Campaign published! Your message is powerful.','🌟 A strong campaign — polish the marked parts.','👍 Good ideas. Strengthen your text and try again.','📖 Reread the source material, then create again.']
+  }[root.id];
+  $('.score-msg',panel).textContent=pct>=90?msgs[0]:pct>=70?msgs[1]:pct>=50?msgs[2]:msgs[3];
+  panel.hidden=false;
+  requestAnimationFrame(()=>{$('.ring-fg',panel).style.strokeDashoffset=326.73*(1-pct/100);});
+  if(pct>=90)celebrate(panel);
+  panel.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function celebrate(panel){
+  const colors=['#4fb060','#e8a33d','#25a5b8','#e0576f','#b8563f'];
+  for(let i=0;i<26;i++){
+    const s=document.createElement('span');s.className='confetti';
+    s.style.left=Math.random()*100+'%';s.style.animationDelay=(Math.random()*.6)+'s';
+    s.style.background=colors[i%5];
+    const sz=6+Math.random()*8;s.style.width=s.style.height=sz+'px';
+    panel.appendChild(s);setTimeout(()=>s.remove(),2800);
+  }
+}
+
+function doAction(a,root){
+  if(a==='check')grade(root);
+  else if(a==='reset')resetAll(root);
+  else if(a==='print')window.print();
+  else if(a==='review'){
+    const first=$('.wrong',root);
+    if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+    else $('.results',root).scrollIntoView({behavior:'smooth'});
+  }
+}
+function resetAll(root){
+  $$('.g-item',root).forEach(q=>{
+    q.classList.remove('correct','wrong');delete q.dataset.picked;
+    const sel=$('select',q);if(sel)sel.value='';
+    const inp=$('input',q);if(inp)inp.value='';
+    $$('.opt',q).forEach(b=>b.classList.remove('picked'));
+    $('.fb',q).textContent='';
+  });
+  $$('.sort-task',root).forEach(t=>{
+    const tray=$('.tray',t);
+    $$('.sort-card',t).sort((a,b)=>a.dataset.idx-b.dataset.idx).forEach(c=>{
+      c.classList.remove('selected','correct','wrong');tray.appendChild(c);
+    });
+    $('.fb',t).textContent='';
+  });
+  $$('.order-task',root).forEach(t=>{
+    const list=$('.order-list',t);
+    t.dataset.initial.split(',').forEach(k=>list.appendChild($('li[data-key="'+k+'"]',t)));
+    delete t.dataset.touched;
+    $$('li',t).forEach(li=>li.classList.remove('correct','wrong'));
+    $('.fb',t).textContent='';
+  });
+  $$('.write-task',root).forEach(t=>{
+    $('textarea,input',t).value='';
+    t.classList.remove('correct','wrong');$('.fb',t).textContent='';
+    if(t._update)t._update();
+  });
+  $$('.ready-check',root).forEach(c=>c.checked=false);
+  const lbl=$('.ready-count',root);if(lbl)lbl.textContent='Ready: 0 / 4';
+  const panel=$('.results',root);panel.hidden=true;
+  $('.ring-fg',panel).style.strokeDashoffset=326.73;
+  refreshProgress(root);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+$$('.order-task').forEach(t=>{t.dataset.initial=$$('li',t).map(li=>li.dataset.key).join(',');});
+
+function setMode(m){
+  document.body.dataset.mode=m;
+  $$('.assignment').forEach(a=>a.hidden=a.id!=='hw-'+m);
+  window.scrollTo({top:0});
+}
+$$('.switch-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+
+const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}}),{threshold:.08});
+$$('.reveal').forEach(el=>io.observe(el));
+
+$$('.assignment').forEach(refreshProgress);
+</script>
+
+<script>
+/* ── Kid 11 online homework: hero name/date sync + completion submit + share ──
+   Name and date typed in any homework hero mirror into the other two, so a
+   student who does Homework 1 today and Homework 2 tomorrow keeps their
+   details. Submit-to-Teacher reuses the site-wide drill_attempts pipeline:
+   signed-in students post under their own localStorage session token (with
+   securetoken refresh), visitors through the validated guest branch (empty
+   studentUid, 1-40 char name, classId null) — append-only, no rules change,
+   lands in the teacher dashboard feed and the homepage ticker. The payload
+   names the ACTIVE homework (1 Field Notebook / 2 Relocation Mission /
+   3 Campaign Studio) so the teacher can tell the three apart. */
+
+(function () {
+  var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+  var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+
+  var HW_LABELS = {
+    a: 'Homework 1 · Field Notebook',
+    b: 'Homework 2 · Relocation Mission',
+    c: 'Homework 3 · Campaign Studio'
+  };
+
+  function cmcToast(msg, err) {
+    var t = document.getElementById('cmcToast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!err);
+    t.classList.add('show');
+    clearTimeout(cmcToast._tm);
+    cmcToast._tm = setTimeout(function () { t.classList.remove('show'); }, 3600);
+  }
+
+  function cmcSession() {
+    var tok = '', uid = '', name = '';
+    try {
+      tok = localStorage.getItem('cmc-student-token') || '';
+      uid = localStorage.getItem('cmc-student-uid') || '';
+      name = localStorage.getItem('cmc-student-name') || '';
+    } catch (e) {}
+    return { tok: tok, uid: uid, name: name, authed: !!(tok && uid) };
+  }
+
+  // Mirror the Name/Date typed in any hero into every other hero (same role
+  // by aria-label), and prefill the Name for signed-in students.
+  function cmcSyncNameDate(from) {
+    var name = '', date = '';
+    document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+      var label = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (label.indexOf('date') !== -1) { if (inp.value) date = inp.value; }
+      else { if (inp.value) name = inp.value; }
+    });
+    if (from) {
+      var fl = (from.getAttribute('aria-label') || '').toLowerCase();
+      if (fl.indexOf('date') !== -1) date = from.value; else name = from.value;
+    }
+    document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+      if (inp === from) return;
+      var label = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (label.indexOf('date') !== -1) { if (date) inp.value = date; }
+      else { if (name) inp.value = name; }
+    });
+  }
+  document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+    inp.addEventListener('input', function () { cmcSyncNameDate(inp); });
+  });
+  try {
+    var pre = (localStorage.getItem('cmc-student-name') || '').trim();
+    if (pre) {
+      document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+        if (((inp.getAttribute('aria-label') || '').toLowerCase().indexOf('date')) === -1) inp.value = pre.slice(0, 40);
+      });
+    }
+  } catch (e) {}
+
+  function cmcRefreshToken(cb) {
+    // Same securetoken grant flow as the rfc2/rfc3 worksheets and cmc-shared.js.
+    try {
+      var rt = localStorage.getItem('cmc-student-refresh-token');
+      if (!rt) return cb(null);
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.id_token) {
+          try {
+            localStorage.setItem('cmc-student-token', d.id_token);
+            localStorage.setItem('cmc-student-token-expires', String(Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000));
+            if (d.refresh_token) localStorage.setItem('cmc-student-refresh-token', d.refresh_token);
+          } catch (e) {}
+          cb(d.id_token);
+        } else cb(null);
+      }).catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+
+  function cmcPost(body, token) {
+    var h = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return fetch(CMC_FS, { method: 'POST', headers: h, body: JSON.stringify({ fields: body }) });
+  }
+
+  function cmcActiveRoot() {
+    return document.getElementById('hw-' + (document.body.dataset.mode || 'a'));
+  }
+
+  function cmcActiveNameInput(root) {
+    // The heroes keep the teacher's markup order: name first, date second.
+    var inputs = root.querySelectorAll('.meta input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (((inputs[i].getAttribute('aria-label') || '').toLowerCase().indexOf('date')) === -1) return inputs[i];
+    }
+    return inputs[0] || null;
+  }
+
+  function cmcCurrentScore(root) {
+    // Reuse the homework's own grading — the score line reads "E / T points".
+    var line = root.querySelector('.score-line');
+    var panel = root.querySelector('.results');
+    var m = line && /^(\d+) \/ (\d+) points$/.exec((line.textContent || '').trim());
+    if (!(panel && !panel.hidden && m)) grade(root);
+    var txt = (root.querySelector('.score-line').textContent || '').trim();
+    var m2 = /^(\d+) \/ (\d+) points$/.exec(txt);
+    return { correct: m2 ? Number(m2[1]) : 0, total: m2 ? Number(m2[2]) : 0 };
+  }
+
+  function cmcBuildBody(name, uid, score, mode) {
+    // Field set matches the drill_attempts rules: guest branch requires
+    // studentUid == '', name 1-40 chars, ints in range, classId null.
+    var pct = score.total > 0 ? Math.round(score.correct / score.total * 100) : 0;
+    return {
+      drillSlug:   { stringValue: 'unit13hw.html' },
+      drillTitle:  { stringValue: 'Unit 13 · New Homes for Animals — ' + (HW_LABELS[mode] || HW_LABELS.a) },
+      drillSource: { stringValue: 'rfc3' },
+      studentName: { stringValue: name },
+      studentUid:  { stringValue: uid },
+      scorePct:      { integerValue: String(pct) },
+      correctCount:  { integerValue: String(score.correct) },
+      totalCount:    { integerValue: String(score.total) },
+      classId:       { nullValue: null },
+      submittedAt:   { timestampValue: new Date().toISOString() }
+    };
+  }
+
+  function submitCompletion() {
+    var btn = document.getElementById('submitBtn');
+    var root = cmcActiveRoot();
+    var mode = document.body.dataset.mode || 'a';
+    var nameEl = cmcActiveNameInput(root);
+
+    var sess = cmcSession();
+    var name = (((nameEl && nameEl.value) || '').trim() || sess.name).slice(0, 40);
+    if (!name) {
+      cmcToast('Add your name first — your teacher needs to know who finished the homework.', true);
+      btn.textContent = '⚠ Add your name first';
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 2600);
+      if (nameEl) {
+        nameEl.focus();
+        nameEl.classList.add('needs-name');
+        setTimeout(function () { nameEl.classList.remove('needs-name'); }, 1900);
+      }
+      var hero = root.querySelector('.hero');
+      if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.remove('done');
+    btn.textContent = 'Submitting…';
+    var score = cmcCurrentScore(root);
+    var body = cmcBuildBody(name, sess.authed ? sess.uid : '', score, mode);
+    var okMsg = '✓ Submitted! ' + name + ' — ' + score.correct + '/' + score.total + ' sent to your teacher.';
+
+    var done = function (ok, msg) {
+      btn.disabled = false;
+      btn.classList.toggle('done', ok);
+      btn.textContent = ok ? '✓ Submitted to teacher' : '⚠ Try again';
+      cmcToast(msg, !ok);
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 4200);
+    };
+
+    cmcPost(body, sess.authed ? sess.tok : '')
+      .then(function (r) {
+        if (r.ok) return done(true, okMsg);
+        if (r.status === 401 && sess.authed) {
+          cmcRefreshToken(function (t) {
+            if (t) {
+              cmcPost(body, t).then(function (r2) { done(r2.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+            } else {
+              // Session unrecoverable → validated guest branch.
+              cmcPost(cmcBuildBody(name, '', score, mode), '')
+                .then(function (r3) { done(r3.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+            }
+          });
+          return;
+        }
+        // Permission or server error → guest branch fallback (uid must be '').
+        cmcPost(cmcBuildBody(name, '', score, mode), '')
+          .then(function (r3) { done(r3.ok, okMsg); })
+          .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+      })
+      .catch(function () { done(false, 'Could not reach the teacher console — check your connection and try again.'); });
+  }
+  document.getElementById('submitBtn').addEventListener('click', submitCompletion);
+
+  /* ── Share (native sheet when available, fallback options otherwise) ── */
+  function cmcHomeworkUrl() {
+    return location.origin === 'null'
+      ? 'https://cmckhmer.github.io/Creative-Minds-/rfc3/unit13hw.html'
+      : location.href.split('#')[0];
+  }
+  function cmcShareText() {
+    return 'Kid 11 Online Homework — Unit 13 · New Homes for Animals · Homeworks 1–3 (auto-graded)';
+  }
+  function cmcToggleShare(force) {
+    var p = document.getElementById('cmcShare');
+    var open = typeof force === 'boolean' ? force : !p.classList.contains('open');
+    p.classList.toggle('open', open);
+  }
+  document.addEventListener('click', function (e) {
+    var p = document.getElementById('cmcShare');
+    if (p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('[data-cmc-share]')) cmcToggleShare(false);
+  });
+  function cmcNativeShare() {
+    if (navigator.share) {
+      navigator.share({ title: 'Unit 13 · New Homes for Animals', text: cmcShareText(), url: cmcHomeworkUrl() }).catch(function () {});
+      return true;
+    }
+    return false;
+  }
+  document.querySelector('[data-cmc-share]').addEventListener('click', function () { if (!cmcNativeShare()) cmcToggleShare(); });
+  function cmcCopyLink() {
+    var url = cmcHomeworkUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { cmcToast('Homework link copied — paste it into your class chat'); });
+    } else {
+      var t = document.createElement('textarea'); t.value = url; document.body.appendChild(t);
+      t.select(); document.execCommand('copy'); t.remove();
+      cmcToast('Homework link copied — paste it into your class chat');
+    }
+    cmcToggleShare(false);
+  }
+  document.querySelector('[data-cmc-copy]').addEventListener('click', cmcCopyLink);
+  document.querySelector('[data-cmc-wa]').addEventListener('click', function () {
+    window.open('https://wa.me/?text=' + encodeURIComponent(cmcShareText() + ' ' + cmcHomeworkUrl()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-tg]').addEventListener('click', function () {
+    window.open('https://t.me/share/url?url=' + encodeURIComponent(cmcHomeworkUrl()) + '&text=' + encodeURIComponent(cmcShareText()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-email]').addEventListener('click', function () {
+    location.href = 'mailto:?subject=' + encodeURIComponent('Unit 13 · New Homes for Animals — Kid 11 Online Homework') + '&body=' + encodeURIComponent(cmcShareText() + '\n' + cmcHomeworkUrl());
+    cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-close]').addEventListener('click', function () { cmcToggleShare(false); });
+})();
+</script>
+</body>
+</html>

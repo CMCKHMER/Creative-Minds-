@@ -153,6 +153,7 @@ const browser = await chromium.launch();
 // 3a. Student + homework NOT shared → locked overlay, worksheet hidden.
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   const page = await ctx.newPage();
   await page.route(HW_ROUTE, (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   await page.goto(`${BASE}/rfc3/doctor-fish.html`, { waitUntil: 'load' });
@@ -167,6 +168,7 @@ const browser = await chromium.launch();
 // 3b. Teacher + homework NOT shared → preview works, banner explains.
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   for (const [k, v] of Object.entries(TEACHER_SEED)) await ctx.addInitScript(([key, val]) => localStorage.setItem(key, val), [k, v]);
   const page = await ctx.newPage();
   await page.route(HW_ROUTE, (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
@@ -182,6 +184,7 @@ console.log('browser · worksheet — open homework (student)');
 const submits = [];
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
   const page = await ctx.newPage();
   await page.route(HW_ROUTE, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: hwDocBody }));
@@ -316,6 +319,7 @@ console.log('browser · Kid 11 card');
 // 4a. Visitor + not shared → locked row.
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   const page = await ctx.newPage();
   await page.route(HW_ROUTE, (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   await page.goto(`${BASE}/`, { waitUntil: 'load' });
@@ -330,7 +334,7 @@ console.log('browser · Kid 11 card');
   await page.waitForTimeout(600);
   const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
   ok(await kid11card.count() === 1, 'Kid 11 card renders with its book heading');
-  ok((await kid11card.textContent())?.includes('5 resources'), 'Kid 11 badge counts the homework (5 resources)');
+  ok((await kid11card.textContent())?.includes('8 resources'), 'Kid 11 badge counts the homework (8 resources: 4 sheets + Doctor Fish + 3 Unit 13 homeworks)');
   ok(await kid11card.locator('a[aria-label*="homework: Doctor Fish"]').count() === 0, 'no Open link while the homework is locked');
   ok((await kid11card.textContent())?.includes('Locked — your teacher opens this homework'), 'locked-row copy shown to visitors');
   await kid11card.screenshot({ path: join(SHOTS, 'doctor-fish-kid11-card-locked.png') });
@@ -339,6 +343,7 @@ console.log('browser · Kid 11 card');
 // 4b. Teacher + not shared → key switch; PATCH flips the row open.
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
   for (const [k, v] of Object.entries(TEACHER_SEED)) await ctx.addInitScript(([key, val]) => localStorage.setItem(key, val), [k, v]);
   const page = await ctx.newPage();
@@ -383,6 +388,7 @@ console.log('browser · Kid 11 card');
 // 4c. Student + shared → open row without any teacher switch.
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   const page = await ctx.newPage();
   await page.route(HW_ROUTE, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: hwDocBody }));
   await page.goto(`${BASE}/`, { waitUntil: 'load' });
@@ -403,6 +409,7 @@ console.log('browser · Kid 11 card');
 //     Pins the cmc-auth-changed re-sync (owner report: "telling me to sign in when i am already").
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   const page = await ctx.newPage();
   await page.route(HW_ROUTE, (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   await page.route('**/securetoken.googleapis.com/**', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: '{}' }));
@@ -430,6 +437,7 @@ console.log('browser · Kid 11 card');
 {
   // Expired mirror, no refresh token, no SDK session → "expired" + Sign in action, never a PATCH.
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   const page = await ctx.newPage();
   let patches = 0;
   await page.route(HW_ROUTE, (route) => {
@@ -466,6 +474,7 @@ console.log('browser · Kid 11 card');
   // Unverified email → verify-your-inbox message; the session must SURVIVE the failed share.
   const UNVERIFIED_JWT = 'eyJhbGciOiJIUzI1NiJ9.' + Buffer.from(JSON.stringify({ email_verified: false, email: 'owner@cmcedu.info', user_id: 'teacher-uid-1' })).toString('base64url') + '.sig';
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   const page = await ctx.newPage();
   await page.route(HW_ROUTE, (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   await page.route('**/securetoken.googleapis.com/**', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: '{}' }));
@@ -497,6 +506,7 @@ console.log('browser · Kid 11 card');
 {
   // Firebase 403 → permission message + Try again.
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   const page = await ctx.newPage();
   await page.route(HW_ROUTE, (route) => {
     if (route.request().method() === 'PATCH') return route.fulfill({ status: 403, contentType: 'application/json', body: '{"error":{"code":403}}' });
@@ -523,6 +533,7 @@ console.log('browser · Kid 11 card');
 // 4f. Gate page: homework shared (or teacher sign-in) in another tab lifts the lock WITHOUT a reload.
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   const page = await ctx.newPage();
   let shared = false;
   await page.route(HW_ROUTE, (route) => route.fulfill({ status: shared ? 200 : 404, contentType: 'application/json', body: shared ? hwDocBody : '{"error":{"code":404}}' }));
@@ -547,6 +558,7 @@ console.log('browser · Kid 11 card');
 console.log('browser · mobile worksheet');
 {
   const ctx = await browser.newContext({ viewport: { width: 393, height: 852 }, hasTouch: true });
+  await ctx.route('**/documents/biweekly_tests/hw-kid11-u13-hw*', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
   const page = await ctx.newPage();
   await page.route(HW_ROUTE, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: hwDocBody }));
   await page.goto(`${BASE}/rfc3/doctor-fish.html`, { waitUntil: 'load' });
