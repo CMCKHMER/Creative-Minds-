@@ -31,7 +31,8 @@ import {
   type AssessmentStudentScores,
 } from '../lib/assessmentScoring';
 import { sanitizeScoreText } from '../lib/scoreInput';
-import { AssessmentInsights } from './AssessmentInsights';
+import { AssessmentInsights, type TutorAgentBridge } from './AssessmentInsights';
+import type { TutorIntent } from '../lib/tutorAgent';
 import { TransferStudentModal } from './TransferStudentModal';
 
 // ── Tab + field definitions (drive the whole UI) ─────────────────────
@@ -42,7 +43,7 @@ type TabKey =
 
 const TABS: Array<{ key: TabKey; label: string; icon: React.ElementType }> = [
   { key: 'roster', label: 'Roster', icon: ClipboardList },
-  { key: 'insights', label: 'AI Insights', icon: Bot },
+  { key: 'insights', label: 'AI Tutor', icon: Bot },
   { key: 'listening', label: 'Listening & Speaking', icon: Headphones },
   { key: 'reading', label: 'Reading', icon: BookOpen },
   { key: 'pbl', label: 'PBL', icon: Gamepad2 },
@@ -299,6 +300,8 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
 
   // Realtime roster
   const [students, setStudents] = useState<AssessmentStudentDoc[]>([]);
+  const studentsMirror = useRef(students);
+  useEffect(() => { studentsMirror.current = students; }, [students]);
   const [rosterError, setRosterError] = useState<string | null>(null);
   // Clear the roster during render when switching class (React docs pattern)
   const [rosterClassId, setRosterClassId] = useState<string | null>(classId);
@@ -435,6 +438,88 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
     }, 700), dest });
   }, [classId, email]);
 
+  // Tutor agent executor — the AI Tutor's write path. Every intent lands
+  // through the SAME db functions the tables use (per-field masks, audit
+  // stamps, teacher-only rules — nothing new server-side), optimistic state
+  // merges keep the UI instant, and the previous values ride along so the
+  // card's Undo can write them back.
+  const runTutorIntents = useCallback(async (intents: TutorIntent[]): Promise<{ ok: boolean; message: string; undo?: () => Promise<void> }> => {
+    if (!classId) return { ok: false, message: 'No class is selected — pick one above first.' };
+    const undoFns: Array<() => Promise<void>> = [];
+    try {
+      for (const intent of intents) {
+        if (intent.kind === 'add-student') {
+          const id = await addAssessmentStudent(classId, { ...newStudentRow(), name: intent.name }, email);
+          if (id) setStudents((prev) => [...prev, { ...newStudentRow(), name: intent.name, id, updatedAt: Date.now(), updatedBy: email } as AssessmentStudentDoc]);
+          undoFns.unshift(async () => {
+            if (!id) return;
+            await removeAssessmentStudent(classId, id);
+            setStudents((prev) => prev.filter((x) => x.id !== id));
+          });
+          continue;
+        }
+        const s = studentsMirror.current.find((x) => x.id === intent.studentId);
+        if (!s) return { ok: false, message: `${intent.studentName || 'That student'} is no longer on the roster — refresh and try again.` };
+        if (intent.kind === 'set-note') {
+          const prior = s.teacherComment;
+          await patchAssessmentStudent(classId, s.id, { teacherComment: intent.text }, email);
+          setStudents((prev) => prev.map((x) => (x.id === s.id ? { ...x, teacherComment: intent.text } as AssessmentStudentDoc : x)));
+          undoFns.unshift(async () => {
+            await patchAssessmentStudent(classId, s.id, { teacherComment: prior }, email);
+            setStudents((prev) => prev.map((x) => (x.id === s.id ? { ...x, teacherComment: prior } as AssessmentStudentDoc : x)));
+          });
+        } else if (intent.kind === 'clear-week') {
+          const prior = { ...(s.weeks?.[intent.weekKey] ?? {}) };
+          await clearAssessmentWeek(classId, s.id, intent.weekKey);
+          setStudents((prev) => prev.map((x) => {
+            if (x.id !== s.id) return x;
+            const weeks = { ...(x.weeks ?? {}) };
+            delete weeks[intent.weekKey];
+            return { ...x, weeks } as AssessmentStudentDoc;
+          }));
+          undoFns.unshift(async () => {
+            if (!Object.keys(prior).length) return;
+            await patchAssessmentStudentWeek(classId, s.id, intent.weekKey, prior, email);
+            setStudents((prev) => prev.map((x) => (x.id === s.id ? { ...x, weeks: { ...(x.weeks ?? {}), [intent.weekKey]: { ...(x.weeks?.[intent.weekKey] ?? {}), ...prior } } } as AssessmentStudentDoc : x)));
+          });
+        } else if (intent.kind === 'record-scores') {
+          const prior: Record<string, number> = {};
+          const wkKey = intent.target === 'week' ? weekKey : null;
+          const undo = async () => {
+            if (intent.target === 'initial') {
+              await patchAssessmentStudent(classId, s.id, prior, email);
+              setStudents((prev) => prev.map((x) => (x.id === s.id ? { ...x, ...prior } as AssessmentStudentDoc : x)));
+            } else if (wkKey) {
+              await patchAssessmentStudentWeek(classId, s.id, wkKey, prior, email);
+              setStudents((prev) => prev.map((x) => (x.id === s.id ? { ...x, weeks: { ...(x.weeks ?? {}), [wkKey]: { ...(x.weeks?.[wkKey] ?? {}), ...prior } } } as AssessmentStudentDoc : x)));
+            }
+          };
+          if (intent.target === 'initial') {
+            for (const [k, v] of Object.entries(intent.fields)) prior[k] = Number(s[k] ?? 0);
+            await patchAssessmentStudent(classId, s.id, intent.fields, email);
+            setStudents((prev) => prev.map((x) => (x.id === s.id ? { ...x, ...intent.fields } as AssessmentStudentDoc : x)));
+          } else if (weekKey) {
+            const entry = s.weeks?.[weekKey] ?? {};
+            for (const k of Object.keys(intent.fields)) prior[k] = Number(entry[k] ?? 0);
+            await patchAssessmentStudentWeek(classId, s.id, weekKey, intent.fields, email);
+            setStudents((prev) => prev.map((x) => (x.id === s.id ? { ...x, weeks: { ...(x.weeks ?? {}), [weekKey]: { ...(x.weeks?.[weekKey] ?? {}), ...intent.fields } } } as AssessmentStudentDoc : x)));
+          } else {
+            return { ok: false, message: 'No week is selected for the week entry — pick a week or say "initial".' };
+          }
+          undoFns.unshift(undo);
+        }
+      }
+      return {
+        ok: true,
+        message: intents.length === 1 ? 'Saved to the records.' : `${intents.length} record updates saved.`,
+        undo: undoFns.length ? async () => { for (const fn of undoFns) await fn(); } : undefined,
+      };
+    } catch (e) {
+      return { ok: false, message: humanizeError(e) };
+    }
+  }, [classId, email, weekKey]);
+  const tutorAgent: TutorAgentBridge = useMemo(() => ({ weekKey, execute: runTutorIntents }), [weekKey, runTutorIntents]);
+
   const changeField = useCallback((studentId: string, key: string, value: string | number) => {
     if (!classId) return;
     // Identity fields (name, schoolId, sponsorship, …) always live on the
@@ -457,7 +542,13 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
     if (!classId || busy) return;
     setBusy(true);
     try {
-      for (let i = 0; i < count; i++) await addAssessmentStudent(classId, newStudentRow(), email);
+      for (let i = 0; i < count; i++) {
+        const id = await addAssessmentStudent(classId, newStudentRow(), email);
+        // Optimistic insert — the 6-second poll used to be the only thing
+        // that painted the new row, so "Add student" looked broken for up
+        // to a whole poll cycle (the row just never seemed to arrive).
+        if (id) setStudents((prev) => [...prev, { ...newStudentRow(), id, updatedAt: Date.now(), updatedBy: email } as AssessmentStudentDoc]);
+      }
     } catch (e) { setRosterError(humanizeError(e)); }
     setBusy(false);
   }, [classId, email, busy]);
@@ -466,7 +557,9 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
     if (!classId || busy) return;
     setBusy(true);
     try {
-      await duplicateAssessmentStudent(classId, { ...s, name: s.name ? `${s.name} (copy)` : '' }, email);
+      const copy = { ...s, name: s.name ? `${s.name} (copy)` : '' };
+      const id = await duplicateAssessmentStudent(classId, copy, email);
+      if (id) setStudents((prev) => [...prev, { ...copy, id, updatedAt: Date.now(), updatedBy: email } as AssessmentStudentDoc]);
     } catch (e) { setRosterError(humanizeError(e)); }
     setBusy(false);
   }, [classId, email, busy]);
@@ -691,6 +784,12 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
               aria-label="Assessment week"
             >
               <option value="__base__">Initial record (no date)</option>
+              {/* The freshly-picked week has no data yet, so it is not in
+                  weekOptions — without this the selector kept displaying
+                  "Initial record" while the caption said the new week was
+                  being recorded into (the selector lied until the first
+                  score landed). */}
+              {weekKey && !weekOptions.includes(weekKey) && <option value={weekKey}>{formatWeekLabel(weekKey)}</option>}
               {weekOptions.map((k) => <option key={k} value={k}>{formatWeekLabel(k)}</option>)}
             </select>
             <input
@@ -810,15 +909,20 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
             />
           )}
 
-          {tab === 'insights' && classId && students.length > 0 && (
-            <AssessmentInsights students={students} />
-          )}
-          {tab === 'insights' && classId && students.length === 0 && (
-            <EmptyState
-              title="Nothing to analyze yet"
-              body="AI Insights reads the recorded scores for this class. Add students and record at least one assessment — the trend analysis appears here automatically."
-            />
-          )}
+          {/* AI Tutor — kept MOUNTED when another tab is active (hidden, not
+              unmounted): the agent thread and its per-card Undo must survive
+              the teacher peeking at the roster mid-conversation. */}
+          <div className={tab === 'insights' ? 'contents' : 'hidden'} aria-hidden={tab !== 'insights'}>
+            {classId && students.length > 0 && (
+              <AssessmentInsights students={students} agent={tutorAgent} />
+            )}
+            {classId && students.length === 0 && (
+              <EmptyState
+                title="Nothing to analyze yet"
+                body="The AI Tutor reads the recorded scores for this class and keeps them for you — key stats in plain language or ask about trends. Add students and record at least one assessment to begin."
+              />
+            )}
+          </div>
 
           {classId && visibleStudents.length > 0 && TAB_DEFS[tab as keyof typeof TAB_DEFS] && (
             <ScoresTab

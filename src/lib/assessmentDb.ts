@@ -209,8 +209,7 @@ function toStudent(id: string, data: Fields): AssessmentStudentDoc {
     }
     if (Object.keys(entry).length) weeks[key] = entry;
   }
-  const ts = data.updatedAt as Record<string, unknown> | undefined;
-  const iso = ts && typeof ts.timestampValue === 'string' ? ts.timestampValue : null;
+  const ts = timestampOf(data, 'updatedAt');
   return {
     id,
     name: str('name'), schoolId: str('schoolId'), sponsorship: str('sponsorship') || 'Pending',
@@ -230,9 +229,24 @@ function toStudent(id: string, data: Fields): AssessmentStudentDoc {
     hwDay5: num('hwDay5'), hwNotes: str('hwNotes'),
     partDay1: num('partDay1'), partDay2: num('partDay2'), partDay3: num('partDay3'),
     partDay4: num('partDay4'), partDay5: num('partDay5'), partNotes: str('partNotes'),
-    updatedAt: iso ? Date.parse(iso) || null : null,
+    updatedAt: ts,
     updatedBy: str('updatedBy'),
   };
+}
+
+/** Read a Firestore timestamp field that may ALSO have been written as a
+ *  plain ISO string (the REST layer's enc() ships Date.toISOString() as a
+ *  stringValue). The reader used to accept only timestampValue, so every
+ *  updatedAt this app writes read back as null and "newest activity first"
+ *  class ordering silently never worked. Accept both shapes. */
+function timestampOf(data: Fields, key: string): number | null {
+  const v = data[key] as Record<string, unknown> | undefined;
+  const iso = v && typeof v.timestampValue === 'string'
+    ? v.timestampValue
+    : v && typeof v.stringValue === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v.stringValue)
+      ? v.stringValue
+      : null;
+  return iso ? Date.parse(iso) || null : null;
 }
 
 function toClass(id: string, data: Fields): AssessmentClassDoc {
@@ -240,16 +254,11 @@ function toClass(id: string, data: Fields): AssessmentClassDoc {
     const v = data[k] as Record<string, unknown> | undefined;
     return v && typeof v.stringValue === 'string' ? v.stringValue : '';
   };
-  const ms = (k: string): number | null => {
-    const v = data[k] as Record<string, unknown> | undefined;
-    const iso = v && typeof v.timestampValue === 'string' ? v.timestampValue : null;
-    return iso ? Date.parse(iso) || null : null;
-  };
   return {
     id,
     name: str('name'), schoolName: str('schoolName'), teacherName: str('teacherName'),
     teacherUid: str('teacherUid'), teacherEmail: str('teacherEmail'), remarks: str('remarks'),
-    createdAt: ms('createdAt'), updatedAt: ms('updatedAt'),
+    createdAt: timestampOf(data, 'createdAt'), updatedAt: timestampOf(data, 'updatedAt'),
   };
 }
 

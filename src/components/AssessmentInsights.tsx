@@ -1,12 +1,12 @@
-// Insight AI tab — who is rising, who is falling, who needs attention.
-//
-// Renders the deterministic on-device analysis from src/lib/insightEngine.ts:
-// a class pulse grid, rising/falling/steady/needs-data lists with sparklines,
-// and a keyword assistant thread. All computation happens from the RAW roster
-// already in memory — nothing is sent anywhere.
+// AI Tutor tab — who is rising, who is falling, who needs attention — plus
+// the tutor agent that can WRITE: the teacher keys stats in plain language,
+// the agent parses them into record operations, shows a confirmation card,
+// and applies them through the exact same Firestore data layer the tables
+// use (same masks, same audit stamps). All parsing/analysis is on-device —
+// nothing is uploaded, no model calls, no keys.
 
-import { useMemo, useState } from 'react';
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Bot, Send, Sparkles, User } from 'lucide-react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Bot, Check, Loader2, Send, Sparkles, Undo2, User } from 'lucide-react';
 import type { AssessmentStudentDoc } from '../lib/assessmentDb';
 import {
   answerInsightQuestion,
@@ -15,6 +15,17 @@ import {
   type ClassInsights,
   type StudentInsight,
 } from '../lib/insightEngine';
+import { parseTutorCommand, TUTOR_HELP, type TutorIntent } from '../lib/tutorAgent';
+
+/** Bridge from the workspace: everything the agent needs to actually
+ *  maintain the records. execute() runs the intents through the same db
+ *  layer + optimistic merge the tables use, and returns an undo closure
+ *  for the just-applied writes. */
+export interface TutorAgentBridge {
+  /** Currently selected week — null = the Initial record. */
+  weekKey: string | null;
+  execute: (intents: TutorIntent[]) => Promise<{ ok: boolean; message: string; undo?: () => Promise<void> }>;
+}
 
 // ── Sparkline (pure SVG, 0–100 normalized) ───────────────────────────
 
@@ -96,22 +107,122 @@ function StudentCard({ i, tone }: { i: StudentInsight; tone: 'good' | 'bad' | 'f
   );
 }
 
-// ── Assistant thread ─────────────────────────────────────────────────
+// ── Tutor agent thread ──────────────────────────────────────────────
 
-interface ChatMsg { role: 'teacher' | 'ai'; text: string }
+interface ChatMsg {
+  /** Stable per-message id — card updates key on it, never on object
+   *  identity: the first status change replaces the object, so an
+   *  identity-based second update would silently miss (card stuck at
+   *  "applying" even though the save landed). */
+  id: number;
+  role: 'teacher' | 'ai';
+  text: string;
+  card?: {
+    intents: TutorIntent[];
+    summary: string[];
+    status: 'draft' | 'applying' | 'applied' | 'failed' | 'undone';
+    message?: string;
+    undo?: () => Promise<void>;
+  };
+}
 
-function AssistantThread({ insights }: { insights: ClassInsights }) {
+/** Render **bold** segments in a summary line (agent cards use them). */
+function bold(line: string): ReactNode[] {
+  return line.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+    (i % 2 === 1 ? <strong key={i} className="font-bold text-white">{part}</strong> : part));
+}
+
+function IntentCard({ msg, onApply, onUndo }: { msg: ChatMsg; onApply: (id: number) => void; onUndo: (id: number) => void }) {
+  const card = msg.card!;
+  return (
+    <div className={`w-[88%] rounded-xl border p-3 ${card.status === 'failed' ? 'border-rose-300/25 bg-rose-400/[0.06]' : card.status === 'applied' ? 'border-emerald-300/25 bg-emerald-400/[0.06]' : 'border-cyan-300/25 bg-cyan-300/[0.05]'}`}>
+      <div className="space-y-0.5 text-[11px] leading-relaxed text-slate-200">
+        {card.summary.map((line, i) => <p key={i}>{bold(line)}</p>)}
+      </div>
+      {card.status === 'draft' && (
+        <div className="mt-2.5 flex items-center gap-2">
+          <button type="button" onClick={() => onApply(msg.id)} className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-2.5 py-1.5 text-[10px] font-bold text-slate-950 transition hover:-translate-y-0.5">
+            <Check className="h-3 w-3" aria-hidden="true" /> Apply to records
+          </button>
+          <span className="text-[9px] font-semibold text-slate-500">Nothing is saved until you apply.</span>
+        </div>
+      )}
+      {card.status === 'applying' && (
+        <p className="mt-2.5 inline-flex items-center gap-1.5 text-[10px] font-bold text-cyan-200"><Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> Saving to the records…</p>
+      )}
+      {card.status === 'applied' && (
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          <p className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-200"><Check className="h-3 w-3" aria-hidden="true" /> {card.message || 'Saved to the records.'}</p>
+          {card.undo && (
+            <button type="button" onClick={() => onUndo(msg.id)} className="inline-flex items-center gap-1 rounded-lg border border-white/15 bg-white/[0.05] px-2 py-1 text-[10px] font-bold text-slate-200 transition hover:border-white/30 hover:bg-white/[0.09]">
+              <Undo2 className="h-3 w-3" aria-hidden="true" /> Undo
+            </button>
+          )}
+        </div>
+      )}
+      {card.status === 'undone' && (
+        <p className="mt-2.5 text-[10px] font-bold text-slate-400">Undone — the previous values were written back.</p>
+      )}
+      {card.status === 'failed' && (
+        <p className="mt-2.5 inline-flex items-start gap-1.5 text-[10px] font-semibold leading-relaxed text-rose-200"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" /> {card.message}</p>
+      )}
+    </div>
+  );
+}
+
+function TutorThread({ insights, agent, students }: { insights: ClassInsights; agent: TutorAgentBridge | null; students: AssessmentStudentDoc[] }) {
   const [messages, setMessages] = useState<ChatMsg[]>([
-    { role: 'ai', text: 'Ask me about your class — try a suggestion below, or type a student\'s name.' },
+    { id: 0, role: 'ai', text: 'I keep your records. Key stats in plain language — "Dara listening 4 speaking 3" — and I file them after you apply. Or ask about the class: try a suggestion below.' },
   ]);
   const [input, setInput] = useState('');
+  const nextId = useRef(1);
+  const newMsg = (m: Omit<ChatMsg, 'id'>): ChatMsg => ({ ...m, id: nextId.current++ });
+
+  /** Patch one message's card BY ID — safe across repeated updates. */
+  const setCard = (id: number, patch: (card: NonNullable<ChatMsg['card']>) => NonNullable<ChatMsg['card']>) => {
+    setMessages((prev) => prev.map((m) => (m.id === id && m.card ? { ...m, card: patch(m.card) } : m)));
+  };
+
+  const apply = async (id: number) => {
+    const msg = messages.find((m) => m.id === id);
+    if (!agent || !msg?.card) return;
+    const intents = msg.card.intents;
+    setCard(id, (card) => ({ ...card, status: 'applying' }));
+    try {
+      const res = await agent.execute(intents);
+      setCard(id, (card) => ({ ...card, status: res.ok ? 'applied' : 'failed', message: res.message, undo: res.undo }));
+    } catch (e) {
+      setCard(id, (card) => ({ ...card, status: 'failed', message: String((e as Error)?.message ?? e) }));
+    }
+  };
+
+  const undo = async (id: number) => {
+    const fn = messages.find((m) => m.id === id)?.card?.undo;
+    if (!fn) return;
+    try { await fn(); } finally {
+      setCard(id, (card) => ({ ...card, status: 'undone', undo: undefined }));
+    }
+  };
 
   const ask = (question: string) => {
     const q = question.trim();
     if (!q) return;
-    const { text } = answerInsightQuestion(q, insights);
-    setMessages((prev) => [...prev, { role: 'teacher', text: q }, { role: 'ai', text }]);
     setInput('');
+    if (/^(help|what can you (do|record)|how (do|to) (i )?record)/i.test(q)) {
+      setMessages((prev) => [...prev, newMsg({ role: 'teacher', text: q }), newMsg({ role: 'ai', text: TUTOR_HELP })]);
+      return;
+    }
+    const parsed = parseTutorCommand(q, { students, weekKey: agent?.weekKey ?? null });
+    if (parsed.problem) {
+      setMessages((prev) => [...prev, newMsg({ role: 'teacher', text: q }), newMsg({ role: 'ai', text: parsed.problem! })]);
+      return;
+    }
+    if (parsed.intents.length > 0) {
+      setMessages((prev) => [...prev, newMsg({ role: 'teacher', text: q }), newMsg({ role: 'ai', text: 'Ready to write — check this card:', card: { intents: parsed.intents, summary: parsed.summary, status: 'draft' } })]);
+      return;
+    }
+    const { text } = answerInsightQuestion(q, insights);
+    setMessages((prev) => [...prev, newMsg({ role: 'teacher', text: q }), newMsg({ role: 'ai', text })]);
   };
 
   return (
@@ -119,20 +230,24 @@ function AssistantThread({ insights }: { insights: ClassInsights }) {
       <div className="flex items-center gap-2">
         <span className="grid h-7 w-7 place-items-center rounded-lg border border-cyan-300/25 bg-cyan-300/10 text-cyan-200"><Bot className="h-3.5 w-3.5" aria-hidden="true" /></span>
         <div>
-          <p className="text-xs font-bold text-white">Insight assistant</p>
-          <p className="text-[9px] font-semibold tracking-[0.1em] text-slate-500 uppercase">On-device · no data leaves this browser</p>
+          <p className="text-xs font-bold text-white">Tutor agent</p>
+          <p className="text-[9px] font-semibold tracking-[0.1em] text-slate-500 uppercase">On-device · records keyed-in stats · nothing leaves this browser</p>
         </div>
       </div>
       <div className="mt-3 space-y-2.5">
         {messages.map((m, idx) => (
-          <div key={idx} className={`flex items-start gap-2 ${m.role === 'teacher' ? 'flex-row-reverse' : ''}`}>
-            <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border ${m.role === 'teacher' ? 'border-white/10 bg-white/[0.05] text-slate-300' : 'border-cyan-300/25 bg-cyan-300/10 text-cyan-200'}`}>
-              {m.role === 'teacher' ? <User className="h-3 w-3" aria-hidden="true" /> : <Bot className="h-3 w-3" aria-hidden="true" />}
-            </span>
-            <p className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-2 text-[11px] leading-relaxed ${m.role === 'teacher' ? 'bg-cyan-300/10 text-cyan-50' : 'border border-white/8 bg-white/[0.03] text-slate-200'}`}>
-              {m.text}
-            </p>
-          </div>
+          m.card
+            ? <div key={m.id} className="flex justify-start"><IntentCard msg={m} onApply={(id) => void apply(id)} onUndo={(id) => void undo(id)} /></div>
+            : (
+              <div key={idx} className={`flex items-start gap-2 ${m.role === 'teacher' ? 'flex-row-reverse' : ''}`}>
+                <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border ${m.role === 'teacher' ? 'border-white/10 bg-white/[0.05] text-slate-300' : 'border-cyan-300/25 bg-cyan-300/10 text-cyan-200'}`}>
+                  {m.role === 'teacher' ? <User className="h-3 w-3" aria-hidden="true" /> : <Bot className="h-3 w-3" aria-hidden="true" />}
+                </span>
+                <p className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-2 text-[11px] leading-relaxed ${m.role === 'teacher' ? 'bg-cyan-300/10 text-cyan-50' : 'border border-white/8 bg-white/[0.03] text-slate-200'}`}>
+                  {m.text}
+                </p>
+              </div>
+            )
         ))}
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -146,6 +261,13 @@ function AssistantThread({ insights }: { insights: ClassInsights }) {
             {chip}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => ask('help')}
+          className="rounded-full border border-cyan-300/25 bg-cyan-300/[0.06] px-2.5 py-1 text-[10px] font-semibold text-cyan-100 transition hover:border-cyan-300/50"
+        >
+          How to record scores
+        </button>
       </div>
       <form
         className="mt-3 flex gap-2"
@@ -154,8 +276,8 @@ function AssistantThread({ insights }: { insights: ClassInsights }) {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about a student or the class…"
-          aria-label="Ask the insight assistant"
+          placeholder={agent ? 'e.g. Dara listening 4 speaking 3 · or ask who is falling…' : 'Ask about a student or the class…'}
+          aria-label="Ask the tutor agent"
           className="flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/50"
         />
         <button
@@ -163,7 +285,7 @@ function AssistantThread({ insights }: { insights: ClassInsights }) {
           disabled={!input.trim()}
           className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-3 py-2 text-[11px] font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:opacity-40"
         >
-          <Send className="h-3.5 w-3.5" aria-hidden="true" /> Ask
+          <Send className="h-3.5 w-3.5" aria-hidden="true" /> {agent ? 'Record / Ask' : 'Ask'}
         </button>
       </form>
     </div>
@@ -172,7 +294,7 @@ function AssistantThread({ insights }: { insights: ClassInsights }) {
 
 // ── Tab root ─────────────────────────────────────────────────────────
 
-export function AssessmentInsights({ students }: { students: AssessmentStudentDoc[] }) {
+export function AssessmentInsights({ students, agent }: { students: AssessmentStudentDoc[]; agent?: TutorAgentBridge | null }) {
   const insights = useMemo(() => buildClassInsights(students), [students]);
   const { pulse, rising, falling, steady, needsData } = insights;
 
@@ -188,7 +310,7 @@ export function AssessmentInsights({ students }: { students: AssessmentStudentDo
       <div className="flex flex-wrap items-center gap-2 px-1">
         <Sparkles className="h-4 w-4 text-cyan-200" aria-hidden="true" />
         <p className="text-[11px] leading-relaxed text-slate-400">
-          <span className="font-bold text-slate-200">AI Insights.</span> Computed on-device from the recorded history — who is rising, who is falling, and what to do next. Nothing is uploaded.
+          <span className="font-bold text-slate-200">AI Tutor.</span> Key stats in plain language and the agent files them into your records after you apply — it also reads the saved history for who is rising, who is falling, and what to do next. Computed on-device; nothing is uploaded.
         </p>
       </div>
 
@@ -269,7 +391,7 @@ export function AssessmentInsights({ students }: { students: AssessmentStudentDo
         </div>
       </div>
 
-      <AssistantThread insights={insights} />
+      <TutorThread insights={insights} agent={agent ?? null} students={students} />
     </div>
   );
 }

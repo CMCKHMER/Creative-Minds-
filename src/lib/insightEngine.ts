@@ -359,10 +359,14 @@ export function answerInsightQuestion(question: string, c: ClassInsights): { tex
   const q = question.trim().toLowerCase();
   if (!q) return { text: 'Ask about a student by name, or try "Who is falling?"', matched: false };
 
-  // A known student name takes priority.
+  // A known student name takes priority — matched on word boundaries so a
+  // two-letter name ("Ly") can never light up inside "falling" (the old
+  // substring test allowed exactly that false positive).
   const hit = c.insights.find((i) => {
-    const n = i.student.name.trim().toLowerCase();
-    return n.length > 1 && q.includes(n);
+    const n = i.student.name.trim();
+    if (n.length < 2) return false;
+    const esc = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(^|[^\\p{L}])${esc}([^\\p{L}]|$)`, 'iu').test(question);
   });
   if (hit) {
     return {
