@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 14 · Doctor Fish — Live Worksheet</title>
+<style>
+  :root{
+    --purple:#7b1fa2; --magenta:#c2185b; --hl:#dcedc8;
+    --ink:#263238; --ok:#2e7d32; --bad:#c62828;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,sans-serif;color:var(--ink);
+    background:linear-gradient(160deg,#0f2027,#203a43,#2c5364) fixed;
+    min-height:100vh;padding:24px 16px 90px;
+  }
+  /* Floating bubbles — fish-tank atmosphere */
+  .bubble{position:fixed;bottom:-70px;border-radius:50%;
+    background:rgba(255,255,255,.08);animation:rise linear infinite;z-index:0}
+  @keyframes rise{to{transform:translateY(-115vh)}}
+
+  .wrap{max-width:900px;margin:0 auto;position:relative;z-index:1}
+  .card{background:#fff;border-radius:16px;padding:22px 24px;margin:18px 0;
+    box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .hero{background:linear-gradient(120deg,var(--purple),var(--magenta));color:#fff}
+  .badge{display:inline-block;background:rgba(255,255,255,.22);padding:4px 14px;
+    border-radius:999px;font-size:12px;letter-spacing:2px;font-weight:700}
+  h1{font-size:clamp(28px,5vw,44px);margin:8px 0 4px}
+  .meta{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap}
+  .meta input{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.45);
+    color:#fff;border-radius:8px;padding:8px 10px;font:inherit}
+  .meta input::placeholder{color:rgba(255,255,255,.8)}
+
+  .sec-title{display:flex;align-items:center;gap:10px;color:var(--purple);
+    font-size:20px;margin-bottom:6px}
+  .chip{background:var(--purple);color:#fff;border-radius:8px;padding:2px 10px;font-size:15px}
+  .hint{color:#607d8b;font-size:13px;margin-bottom:14px}
+  .hl{background:var(--hl);padding:0 4px;border-radius:4px;font-weight:600}
+
+  select,input[type=text]{padding:8px 10px;border:2px solid #cfd8dc;border-radius:8px;
+    font:inherit;background:#fff}
+  textarea{width:100%;border:2px solid #cfd8dc;border-radius:10px;padding:10px;
+    font:inherit;min-height:80px}
+
+  .match{display:grid;grid-template-columns:1fr minmax(210px,300px);gap:6px 14px;
+    padding:10px;border-radius:10px;align-items:center}
+  .match .fb{grid-column:1/-1}
+  .q{padding:12px;border-radius:10px;margin-bottom:6px}
+  .opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .opt{border:2px solid #cfd8dc;background:#fff;border-radius:999px;padding:8px 14px;
+    cursor:pointer;font:inherit;transition:.15s}
+  .opt:hover{border-color:var(--purple);transform:translateY(-1px)}
+  .opt.picked{background:var(--purple);border-color:var(--purple);color:#fff}
+
+  .bank span{display:inline-block;background:var(--hl);border-radius:999px;
+    padding:4px 12px;margin:3px;font-weight:600}
+  .cloze{line-height:2.6;margin-top:12px}
+  .blank{display:inline-block;text-align:center;vertical-align:top}
+  .blank input{text-align:center}
+  .blank .fb{font-size:11px}
+
+  .fb{display:block;font-size:12.5px;margin-top:6px;font-weight:600}
+  .correct{background:#e8f5e9}.correct .fb{color:var(--ok)}
+  .wrong{background:#ffebee}.wrong .fb{color:var(--bad)}
+  .correct select,.correct input{border-color:var(--ok)}
+  .wrong select,.wrong input{border-color:var(--bad)}
+  .correct .opt.picked{background:var(--ok);border-color:var(--ok)}
+  .wrong .opt.picked{background:var(--bad);border-color:var(--bad)}
+
+  details summary{cursor:pointer;font-weight:700;color:var(--purple);font-size:17px}
+  .passage p{margin:12px 0;line-height:1.75}
+
+  .score-big{font-size:42px;font-weight:800;color:var(--purple)}
+  .meter{height:14px;background:#eceff1;border-radius:999px;overflow:hidden;margin:12px 0}
+  .meter i{display:block;height:100%;width:0;
+    background:linear-gradient(90deg,var(--purple),var(--magenta));transition:width .8s ease}
+
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:5;
+    background:rgba(15,32,39,.92);backdrop-filter:blur(6px);
+    padding:12px 16px;display:flex;gap:12px;justify-content:center;align-items:center;
+    flex-wrap:wrap}
+  .btn{border:none;border-radius:999px;padding:11px 26px;font:inherit;font-weight:700;
+    cursor:pointer;background:linear-gradient(90deg,var(--purple),var(--magenta));color:#fff}
+  .btn:hover{filter:brightness(1.15)}
+  .ghost{background:transparent;border:2px solid rgba(255,255,255,.6);color:#fff}
+  #miniScore{color:#fff;font-weight:700;min-width:60px;text-align:center}
+
+  @media(max-width:640px){.match{grid-template-columns:1fr}}
+
+  /* ── Kid 11 online-homework plumbing (submit · share · back) ── */
+  #cmc-back-btn{position:fixed;top:14px;right:14px;z-index:40;display:flex;align-items:center;
+    gap:8px;padding:9px 16px;border-radius:999px;background:rgba(15,32,39,.88);
+    border:1px solid rgba(125,211,252,.4);color:#bae6fd;font:inherit;font-size:13px;
+    font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
+  #cmc-back-btn:hover{background:rgba(125,211,252,.14);transform:translateY(-1px)}
+  .btn-submit{background:linear-gradient(90deg,var(--ok),#00695c)}
+  .btn-submit:disabled{opacity:.7;cursor:progress;filter:none}
+  .btn-submit.done{background:linear-gradient(90deg,#1b5e20,var(--ok))}
+  .needs-name{animation:needPulse 1.8s ease}
+  @keyframes needPulse{
+    0%,100%{box-shadow:none}
+    25%,75%{box-shadow:0 0 0 4px rgba(255,255,255,.25);border-color:#ffcdd2}
+  }
+  .cmc-toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(14px);
+    z-index:60;background:#fff;border:2px solid var(--purple);color:var(--purple);
+    padding:10px 18px;border-radius:999px;font-weight:700;font-size:13.5px;
+    box-shadow:0 12px 30px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:all .3s;
+    max-width:88vw;text-align:center}
+  .cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .cmc-toast.err{border-color:var(--bad);color:var(--bad)}
+  .cmc-share{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:60;
+    background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.45);
+    padding:14px 16px;display:none;gap:8px;flex-wrap:wrap;justify-content:center;
+    align-items:center;max-width:92vw}
+  .cmc-share.open{display:flex}
+  .cmc-share button{border:2px solid #cfd8dc;background:#fff;border-radius:999px;
+    padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+  .cmc-share button:hover{border-color:var(--purple);color:var(--purple)}
+  .cmc-share .close{border-color:transparent;color:#607d8b}
+</style>
+</head>
+<body>
+
+<!-- Decorative bubbles -->
+<span class="bubble" style="left:8%;width:26px;height:26px;animation-duration:14s"></span>
+<span class="bubble" style="left:22%;width:14px;height:14px;animation-duration:10s;animation-delay:2s"></span>
+<span class="bubble" style="left:45%;width:34px;height:34px;animation-duration:18s;animation-delay:4s"></span>
+<span class="bubble" style="left:64%;width:18px;height:18px;animation-duration:12s;animation-delay:1s"></span>
+<span class="bubble" style="left:80%;width:24px;height:24px;animation-duration:16s;animation-delay:3s"></span>
+<span class="bubble" style="left:92%;width:12px;height:12px;animation-duration:9s;animation-delay:5s"></span>
+
+<!-- Back to CMC home (same fixture as the other Reading Future worksheets) -->
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" aria-label="Back to CMC home">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" stroke="#bae6fd" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Back to CMC
+</a>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="card hero">
+    <span class="badge">UNIT 14 · SCIENCE</span>
+    <span class="badge">KID 11 · ONLINE HOMEWORK</span>
+    <h1>Doctor Fish 🐟</h1>
+    <p>Live Worksheet · Reading &amp; Vocabulary · 30 auto-graded questions</p>
+    <div class="meta">
+      <input type="text" id="stuName" placeholder="Name" autocomplete="name" maxlength="40">
+      <input type="text" id="stuDate" placeholder="Date">
+    </div>
+  </header>
+
+  <!-- WARM-UP (not graded) -->
+  <section class="card">
+    <h2 class="sec-title"><span class="chip">★</span> Warm-Up</h2>
+    <p class="hint">Preview &amp; Predict: look at the title and think before you read. Not graded.</p>
+    <p>Animals can make people happier and healthier. <b>How can fish help our health?</b> Write your prediction:</p>
+    <textarea placeholder="I think fish can help because..."></textarea>
+  </section>
+
+  <!-- PASSAGE -->
+  <section class="card">
+    <details>
+      <summary>📖 Reading Passage — Doctor Fish (218 words) · click to open</summary>
+      <div class="passage">
+        <p>For a long time, people have known that eating fish is healthy. It is common knowledge that eating fish is good for our skin. Now people are noticing that living fish, <span class="hl">in particular</span> "doctor fish," can also be good for our skin. Going to a "doctor fish" hot <span class="hl">spring</span> is becoming a popular way to <span class="hl">treat</span> certain forms of skin disease.</p>
+        <p>"Doctor fish" are an interesting species of fish called <i>garra rufa</i>. They are found near two small towns in Turkey. In these towns, there are hot springs. These little fish live in the warm waters of these hot springs. Because it is hard for <span class="hl">nutrients</span> to survive in hot spring water, the fish are very hungry. As a result, they like to eat dead skin.</p>
+        <p>Every year, about 3,000 visitors come to these towns to sit in the hot springs with the fish. As they sit, the fish <span class="hl">surround</span> them and eat the bad parts of their skin. Amazingly, the fish do not harm the healthy skin. According to studies, "doctor fish" can help people with <span class="hl">severe</span> skin problems get clear skin in 21 days. Unfortunately, this is not a <span class="hl">permanent</span> cure. But luckily, the results can last for many months.</p>
+        <p>For people <span class="hl">suffering from</span> certain skin diseases, "doctor fish" may be a good option for treatment.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- A · VOCABULARY MATCHING -->
+  <section class="card">
+    <h2 class="sec-title"><span class="chip">A</span> Vocabulary Matching</h2>
+    <p class="hint">Match each highlighted word with its meaning (a–h).</p>
+
+    <div class="match" data-answer="h"><span>1. He mentioned one person <span class="hl">in particular</span>.</span>
+      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
+
+    <div class="match" data-answer="b"><span>2. The <span class="hl">spring</span> dried up three years ago.</span>
+      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
+
+    <div class="match" data-answer="d"><span>3. Doctors can <span class="hl">treat</span> the common cold but cannot cure it.</span>
+      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
+
+    <div class="match" data-answer="f"><span>4. Salt is an important <span class="hl">nutrient</span> for humans.</span>
+      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
+
+    <div class="match" data-answer="a"><span>5. She likes to <span class="hl">surround</span> her house with flowers.</span>
+      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
+
+    <div class="match" data-answer="e"><span>6. She fell asleep on the beach and got a <span class="hl">severe</span> sunburn.</span>
+      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
+
+    <div class="match" data-answer="c"><span>7. Is this scar <span class="hl">permanent</span>, or will it go away?</span>
+      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
+
+    <div class="match" data-answer="g"><span>8. I <span class="hl">suffer from</span> a bad cold.</span>
+      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
+  </section>
+
+  <!-- B · COMPREHENSION -->
+  <section class="card">
+    <h2 class="sec-title"><span class="chip">B</span> Reading Comprehension</h2>
+    <p class="hint">Choose the best answer.</p>
+
+    <div class="q" data-answer="a"><p><b>1.</b> What is the scientific name of "doctor fish"?</p>
+      <div class="opts"><button class="opt" data-val="a">a) Garra rufa</button><button class="opt" data-val="b">b) Turkey rufa</button><button class="opt" data-val="c">c) Doctor rufa</button></div><small class="fb"></small></div>
+
+    <div class="q" data-answer="b"><p><b>2.</b> Where do doctor fish live?</p>
+      <div class="opts"><button class="opt" data-val="a">a) In cold rivers in Turkey</button><button class="opt" data-val="b">b) In hot springs near two small towns in Turkey</button><button class="opt" data-val="c">c) In hospital fish tanks</button></div><small class="fb"></small></div>
+
+    <div class="q" data-answer="a"><p><b>3.</b> Why do doctor fish eat dead skin?</p>
+      <div class="opts"><button class="opt" data-val="a">a) They are very hungry — few nutrients survive in hot spring water</button><button class="opt" data-val="b">b) Dead skin tastes sweet</button><button class="opt" data-val="c">c) Visitors feed them bread</button></div><small class="fb"></small></div>
+
+    <div class="q" data-answer="b"><p><b>4.</b> About how many visitors come to the towns every year?</p>
+      <div class="opts"><button class="opt" data-val="a">a) 300</button><button class="opt" data-val="b">b) 3,000</button><button class="opt" data-val="c">c) 30,000</button></div><small class="fb"></small></div>
+
+    <div class="q" data-answer="a"><p><b>5.</b> According to studies, how long can it take to get clear skin?</p>
+      <div class="opts"><button class="opt" data-val="a">a) 21 days</button><button class="opt" data-val="b">b) 21 months</button><button class="opt" data-val="c">c) 2 days</button></div><small class="fb"></small></div>
+
+    <div class="q" data-answer="b"><p><b>6.</b> What do the fish do to healthy skin?</p>
+      <div class="opts"><button class="opt" data-val="a">a) They eat it slowly</button><button class="opt" data-val="b">b) They do not harm it</button><button class="opt" data-val="c">c) They scratch it</button></div><small class="fb"></small></div>
+  </section>
+
+  <!-- C · TRUE / FALSE -->
+  <section class="card">
+    <h2 class="sec-title"><span class="chip">C</span> True or False</h2>
+    <p class="hint">Based on the passage.</p>
+
+    <div class="q" data-answer="T"><p><b>1.</b> Eating fish is good for our skin.</p>
+      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="q" data-answer="T"><p><b>2.</b> Doctor fish are found near two small towns in Turkey.</p>
+      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="q" data-answer="F"><p><b>3.</b> The fish eat both dead skin and healthy skin.</p>
+      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="q" data-answer="F"><p><b>4.</b> The doctor fish treatment is a permanent cure.</p>
+      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="q" data-answer="T"><p><b>5.</b> The results of the treatment can last for many months.</p>
+      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+  </section>
+
+  <!-- D · FILL IN THE BLANKS -->
+  <section class="card">
+    <h2 class="sec-title"><span class="chip">D</span> Fill in the Blanks</h2>
+    <p class="hint">Complete the summary using the word bank. Type your answers.</p>
+    <div class="bank"><span>treat</span><span>severe</span><span>spring</span><span>in particular</span><span>permanent</span><span>nutrients</span><span>suffering from</span><span>surround</span></div>
+    <p class="cloze">
+      People, <span class="blank" data-answer="in particular"><input type="text" size="14" placeholder="(1)" spellcheck="false"><small class="fb"></small></span>
+      those with skin problems, travel to a hot
+      <span class="blank" data-answer="spring"><input type="text" size="10" placeholder="(2)" spellcheck="false"><small class="fb"></small></span>
+      in Turkey to
+      <span class="blank" data-answer="treat"><input type="text" size="9" placeholder="(3)" spellcheck="false"><small class="fb"></small></span>
+      their skin. Few
+      <span class="blank" data-answer="nutrients|nutrient"><input type="text" size="11" placeholder="(4)" spellcheck="false"><small class="fb"></small></span>
+      survive in the warm water, so the fish are very hungry. They
+      <span class="blank" data-answer="surround"><input type="text" size="11" placeholder="(5)" spellcheck="false"><small class="fb"></small></span>
+      the visitors and eat the dead skin. People
+      <span class="blank" data-answer="suffering from|suffer from"><input type="text" size="15" placeholder="(6)" spellcheck="false"><small class="fb"></small></span>
+      <span class="blank" data-answer="severe"><input type="text" size="9" placeholder="(7)" spellcheck="false"><small class="fb"></small></span>
+      skin problems can get clear skin in 21 days, but it is not a
+      <span class="blank" data-answer="permanent"><input type="text" size="12" placeholder="(8)" spellcheck="false"><small class="fb"></small></span> cure.
+    </p>
+  </section>
+
+  <!-- E · CONJUNCTIVE ADVERBS -->
+  <section class="card">
+    <h2 class="sec-title"><span class="chip">E</span> Vocabulary Skills — Conjunctive Adverbs</h2>
+    <p class="hint">Choose: <b>thus</b> (because of that) · <b>moreover</b> (also) · <b>in particular</b> (especially).</p>
+
+    <div class="q" data-answer="thus"><p><b>1.</b> The hot spring water has few nutrients. ______, the fish are very hungry.</p>
+      <div class="opts"><button class="opt" data-val="thus">thus</button><button class="opt" data-val="moreover">moreover</button><button class="opt" data-val="in particular">in particular</button></div><small class="fb"></small></div>
+    <div class="q" data-answer="moreover"><p><b>2.</b> The fish eat dead skin. ______, they do not harm healthy skin.</p>
+      <div class="opts"><button class="opt" data-val="thus">thus</button><button class="opt" data-val="moreover">moreover</button><button class="opt" data-val="in particular">in particular</button></div><small class="fb"></small></div>
+    <div class="q" data-answer="in particular"><p><b>3.</b> Living fish, ______ "doctor fish," can also be good for our skin.</p>
+      <div class="opts"><button class="opt" data-val="thus">thus</button><button class="opt" data-val="moreover">moreover</button><button class="opt" data-val="in particular">in particular</button></div><small class="fb"></small></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="card" id="results" hidden>
+    <h2 class="sec-title"><span class="chip">✓</span> Your Results</h2>
+    <div class="score-big" id="scoreNum"></div>
+    <div class="meter"><i id="scoreBar"></i></div>
+    <p id="scoreMsg"></p>
+  </section>
+
+</div>
+
+<!-- SHARE SHEET (opens above the action bar) -->
+<div class="cmc-share" id="cmcShare" role="dialog" aria-label="Share this homework">
+  <button onclick="cmcCopyLink()"><span aria-hidden="true">🔗</span> Copy Link</button>
+  <button onclick="cmcShareWA()"><span aria-hidden="true">💬</span> WhatsApp</button>
+  <button onclick="cmcShareTG()"><span aria-hidden="true">✈️</span> Telegram</button>
+  <button onclick="cmcShareEmail()"><span aria-hidden="true">✉️</span> Email</button>
+  <button class="close" onclick="cmcToggleShare(false)" aria-label="Close share menu">✕</button>
+</div>
+<div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
+
+<!-- ACTION BAR -->
+<div class="bar">
+  <button class="btn" onclick="checkAnswers()">Check Answers</button>
+  <button class="btn btn-submit" id="submitBtn" onclick="submitCompletion()">Submit to Teacher ✓</button>
+  <span id="miniScore">– / 30</span>
+  <button class="btn ghost" onclick="cmcToggleOrShare()">Share</button>
+  <button class="btn ghost" onclick="resetAll()">Try Again</button>
+</div>
+
+<script>
+  // Normalise typed answers: lowercase, trim, single spaces
+  const norm = s => s.toLowerCase().trim().replace(/\s+/g, ' ');
+
+  // Handle option-button groups (MCQ, True/False, adverbs)
+  document.querySelectorAll('.opts').forEach(group => {
+    group.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      group.querySelectorAll('button').forEach(b => b.classList.remove('picked'));
+      btn.classList.add('picked');
+      group.closest('[data-answer]').dataset.picked = btn.dataset.val;
+    });
+  });
+
+  // Latest graded result (set by checkAnswers, cleared by resetAll) —
+  // read by the Submit-to-Teacher button below.
+  let _lastScore = null;
+
+  function checkAnswers() {
+    let correct = 0, blank = 0;
+    const questions = document.querySelectorAll('[data-answer]');
+
+    questions.forEach(q => {
+      const key = q.dataset.answer;
+      const accepted = key.split('|').map(norm);   // "|" allows alternative answers
+      const sel = q.querySelector('select');
+      const inp = q.querySelector('input');
+      let val = '', shown = '';
+
+      if (sel) {                                   // matching dropdowns
+        val = sel.value;
+        const o = sel.querySelector('option[value="' + key + '"]');
+        shown = o ? o.textContent : key;
+      } else if (inp) {                            // typed blanks
+        val = inp.value;
+        shown = key.split('|')[0];
+      } else {                                     // button groups
+        val = q.dataset.picked || '';
+        const b = q.querySelector('button[data-val="' + key + '"]');
+        shown = b ? b.textContent : key;
+      }
+
+      const isBlank = norm(val) === '';
+      const ok = !isBlank && accepted.includes(norm(val));
+      q.classList.toggle('correct', ok);
+      q.classList.toggle('wrong', !ok);
+
+      const fb = q.querySelector('.fb');
+      if (ok) { correct++; fb.textContent = '✔ Correct'; }
+      else {
+        if (isBlank) blank++;
+        fb.textContent = (isBlank ? '⚠ Not answered. ' : '✘ ') + 'Answer: ' + shown;
+      }
+    });
+
+    const total = questions.length;
+    const pct = Math.round(correct / total * 100);
+    _lastScore = { correct: correct, total: total, pct: pct };
+    document.getElementById('scoreNum').textContent = correct + ' / ' + total + '  (' + pct + '%)';
+    document.getElementById('scoreBar').style.width = pct + '%';
+    document.getElementById('miniScore').textContent = correct + ' / ' + total;
+
+    let msg = pct >= 90 ? '🏆 Excellent! You are a Doctor Fish expert!'
+            : pct >= 70 ? '🌟 Great job! Review the few you missed.'
+            : pct >= 50 ? '👍 Good effort — reread the passage and try again.'
+            : '📖 Open the reading passage above, then give it another try.';
+    if (blank > 0) msg += '  (' + blank + ' left blank)';
+    document.getElementById('scoreMsg').textContent = msg;
+
+    const res = document.getElementById('results');
+    res.hidden = false;
+    res.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function resetAll() {
+    document.querySelectorAll('[data-answer]').forEach(q => {
+      q.classList.remove('correct', 'wrong');
+      delete q.dataset.picked;
+      const sel = q.querySelector('select'); if (sel) sel.value = '';
+      const inp = q.querySelector('input');  if (inp) inp.value = '';
+      q.querySelectorAll('.opt').forEach(b => b.classList.remove('picked'));
+      q.querySelector('.fb').textContent = '';
+    });
+    _lastScore = null;
+    document.getElementById('results').hidden = true;
+    document.getElementById('miniScore').textContent = '– / 30';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ── Kid 11 online homework: share + completion submit ──────────────
+     Same pipeline as the site's worksheets and games: completions POST to
+     the public drill_attempts Firestore collection (project
+     creative-minds-cambodia). Signed-in students submit under their own
+     localStorage session token (cmc-student-token); visitors use the
+     validated guest branch (empty studentUid, name 1–40 chars, classId
+     null — append-only). The teacher sees every completion in the
+     dashboard feed; rules need no change. */
+
+  const CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+  const CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+  const HOMEWORK_TITLE = 'Unit 14 · Doctor Fish';
+
+  function cmcToast(msg, err) {
+    const t = document.getElementById('cmcToast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!err);
+    t.classList.add('show');
+    clearTimeout(cmcToast._tm);
+    cmcToast._tm = setTimeout(() => t.classList.remove('show'), 3600);
+  }
+
+  function cmcSession() {
+    let tok = '', uid = '', name = '';
+    try {
+      tok = localStorage.getItem('cmc-student-token') || '';
+      uid = localStorage.getItem('cmc-student-uid') || '';
+      name = localStorage.getItem('cmc-student-name') || '';
+    } catch (e) {}
+    return { tok: tok, uid: uid, name: name, authed: !!(tok && uid) };
+  }
+
+  // Pre-fill the Name field for signed-in students (guests type their own).
+  try {
+    const pre = (localStorage.getItem('cmc-student-name') || '').trim();
+    if (pre) document.getElementById('stuName').value = pre.slice(0, 40);
+  } catch (e) {}
+
+  function cmcRefreshToken(cb) {
+    // Same securetoken grant flow as rfc3/rfc2 worksheets and cmc-shared.js.
+    try {
+      const rt = localStorage.getItem('cmc-student-refresh-token');
+      if (!rt) return cb(null);
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(r => r.json()).then(d => {
+        if (d && d.id_token) {
+          try {
+            localStorage.setItem('cmc-student-token', d.id_token);
+            localStorage.setItem('cmc-student-token-expires', String(Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000));
+            if (d.refresh_token) localStorage.setItem('cmc-student-refresh-token', d.refresh_token);
+          } catch (e) {}
+          cb(d.id_token);
+        } else cb(null);
+      }).catch(() => cb(null));
+    } catch (e) { cb(null); }
+  }
+
+  function cmcPost(body, token) {
+    const h = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return fetch(CMC_FS, { method: 'POST', headers: h, body: JSON.stringify({ fields: body }) });
+  }
+
+  function cmcBuildBody(name, uid, score, total) {
+    // Field set matches the drill_attempts rules: guest branch requires
+    // studentUid == '' , name 1–40 chars, ints in range, classId null.
+    return {
+      drillSlug:   { stringValue: 'doctor-fish.html' },
+      drillTitle:  { stringValue: HOMEWORK_TITLE },
+      drillSource: { stringValue: 'rfc3' },
+      studentName: { stringValue: name },
+      studentUid:  { stringValue: uid },
+      scorePct:      { integerValue: String(score.pct) },
+      correctCount:  { integerValue: String(score.correct) },
+      totalCount:    { integerValue: String(total) },
+      classId:       { nullValue: null },
+      submittedAt:   { timestampValue: new Date().toISOString() }
+    };
+  }
+
+  function submitCompletion() {
+    const btn = document.getElementById('submitBtn');
+    const questions = document.querySelectorAll('[data-answer]');
+    const total = questions.length;
+    const score = (_lastScore && _lastScore.total === total) ? _lastScore : (checkAnswers(), _lastScore);
+
+    const sess = cmcSession();
+    let name = (document.getElementById('stuName').value || '').trim() || sess.name;
+    name = name.slice(0, 40);
+
+    const nameEl = document.getElementById('stuName');
+    if (!name) {
+      cmcToast('Add your name first — your teacher needs to know who finished the homework.', true);
+      btn.textContent = '⚠ Add your name first';
+      setTimeout(() => { btn.textContent = 'Submit to Teacher ✓'; }, 2600);
+      if (nameEl) {
+        nameEl.focus();
+        nameEl.classList.add('needs-name');
+        setTimeout(() => nameEl.classList.remove('needs-name'), 1900);
+        document.querySelector('.hero').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.remove('done');
+    btn.textContent = 'Submitting…';
+
+    const done = (ok, msg) => {
+      btn.disabled = false;
+      btn.classList.toggle('done', ok);
+      btn.textContent = ok ? '✓ Submitted to teacher' : '⚠ Try again';
+      cmcToast(msg, !ok);
+      if (ok) setTimeout(() => { btn.textContent = 'Submit to Teacher ✓'; }, 4200);
+      else setTimeout(() => { btn.textContent = 'Submit to Teacher ✓'; }, 3200);
+    };
+
+    const body = cmcBuildBody(name, sess.authed ? sess.uid : '', score, total);
+    const guestMsg = '✓ Submitted! ' + name + ' — ' + score.correct + '/' + score.total + ' sent to your teacher.';
+
+    cmcPost(body, sess.authed ? sess.tok : '')
+      .then(r => {
+        if (r.ok) return done(true, guestMsg);
+        if (r.status === 401 && sess.authed) {
+          cmcRefreshToken(t => {
+            if (t) {
+              cmcPost(body, t).then(r2 => done(r2.ok, guestMsg)).catch(() => done(false, 'Could not submit — check your connection and try again.'));
+            } else {
+              // Session unrecoverable → fall back to the validated guest branch.
+              cmcPost(cmcBuildBody(name, '', score, total), '')
+                .then(r3 => done(r3.ok, guestMsg))
+                .catch(() => done(false, 'Could not submit — check your connection and try again.'));
+            }
+          });
+          return;
+        }
+        // Permission or server error → guest branch fallback (uid must be '').
+        cmcPost(cmcBuildBody(name, '', score, total), '')
+          .then(r3 => done(r3.ok, guestMsg))
+          .catch(() => done(false, 'Could not submit — check your connection and try again.'));
+      })
+      .catch(() => done(false, 'Could not reach the teacher console — check your connection and try again.'));
+  }
+
+  /* ── Share (native sheet when available, fallback options otherwise) ── */
+  function cmcHomeworkUrl() { return location.origin === 'null' ? 'https://cmckhmer.github.io/Creative-Minds-/rfc3/doctor-fish.html' : location.href.split('#')[0]; }
+  function cmcShareText() { return 'Kid 11 Online Homework — ' + HOMEWORK_TITLE + ' live worksheet (30 auto-graded questions)'; }
+
+  function cmcToggleShare(force) {
+    const p = document.getElementById('cmcShare');
+    const open = typeof force === 'boolean' ? force : !p.classList.contains('open');
+    p.classList.toggle('open', open);
+  }
+  document.addEventListener('click', e => {
+    const p = document.getElementById('cmcShare');
+    if (p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('.ghost')) cmcToggleShare(false);
+  });
+
+  function cmcNativeShare() {
+    if (navigator.share) {
+      navigator.share({ title: HOMEWORK_TITLE, text: cmcShareText(), url: cmcHomeworkUrl() }).catch(() => {});
+      return true;
+    }
+    return false;
+  }
+  function cmcToggleOrShare() { if (!cmcNativeShare()) cmcToggleShare(); }
+
+  function cmcCopyLink() {
+    const url = cmcHomeworkUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => cmcToast('Homework link copied — paste it into your class chat'));
+    } else {
+      const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t);
+      t.select(); document.execCommand('copy'); t.remove();
+      cmcToast('Homework link copied — paste it into your class chat');
+    }
+    cmcToggleShare(false);
+  }
+  function cmcShareWA() { window.open('https://wa.me/?text=' + encodeURIComponent(cmcShareText() + ' ' + cmcHomeworkUrl()), '_blank', 'noopener'); cmcToggleShare(false); }
+  function cmcShareTG() { window.open('https://t.me/share/url?url=' + encodeURIComponent(cmcHomeworkUrl()) + '&text=' + encodeURIComponent(cmcShareText()), '_blank', 'noopener'); cmcToggleShare(false); }
+  function cmcShareEmail() { location.href = 'mailto:?subject=' + encodeURIComponent(HOMEWORK_TITLE + ' — Online Homework') + '&body=' + encodeURIComponent(cmcShareText() + '\n' + cmcHomeworkUrl()); cmcToggleShare(false); }
+</script>
+</body>
+</html>

@@ -29,13 +29,21 @@ describe('Kid Program grade resource pathway', () => {
     ]);
     expect(kid11?.status).toBe('available');
     // Kid 11 worksheets are served from this site's public/rfc3/ directory
-    // (absolute URLs so the links also work from the static HTML worksheets).
+    // (absolute URLs so the links also work from the static HTML worksheets),
+    // plus the shareable online-homework worksheet (relative URL) whose page
+    // carries the student "Submit to Teacher" completion button.
     expect(kid11?.materials.map((material) => material.href)).toEqual([
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/word-list.html',
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/dictation.html',
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/review-tests.html',
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/unscramble.html',
+      './rfc3/doctor-fish.html',
     ]);
+    // The online-homework entry is the Doctor Fish live worksheet and is the
+    // only material allowed outside the grade's Reading Future book naming.
+    const kid11Homework = kid11?.materials.filter((material) => material.kind === 'Online homework') ?? [];
+    expect(kid11Homework.map((material) => material.id)).toEqual(['kid-11-homework-doctor-fish']);
+    expect(kid11Homework[0]?.title).toContain('Doctor Fish');
     expect(KID_GRADE_RESOURCES.filter((grade) => grade.grade !== 6 && grade.grade !== 7 && grade.grade !== 11).every((grade) => grade.status === 'planned' && grade.materials.length === 0)).toBe(true);
   });
 
@@ -47,6 +55,7 @@ describe('Kid Program grade resource pathway', () => {
       if (grade.status === 'available' && grade.materials.length > 0) {
         expect(GRADE_BOOK_NAMES[grade.grade], `grade ${grade.grade} missing book name`).toBeDefined();
         for (const material of grade.materials) {
+          if (material.kind === 'Online homework') continue; // standalone homework, not a book worksheet
           expect(material.title).toContain(GRADE_BOOK_NAMES[grade.grade]);
         }
       }

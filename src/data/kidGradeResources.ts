@@ -1,4 +1,4 @@
-export type KidMaterialKind = 'Vocabulary list' | 'Dictation worksheet' | 'Review test' | 'Unscramble sheet' | 'Sentence unscramble';
+export type KidMaterialKind = 'Vocabulary list' | 'Dictation worksheet' | 'Review test' | 'Unscramble sheet' | 'Sentence unscramble' | 'Online homework';
 
 export interface KidGradeMaterial {
   id: string;
@@ -101,6 +101,14 @@ const kid7Resources: KidGradeMaterial[] = [
   },
 ];
 
+// Kid 11 — Reading Future Create 3 worksheets, served from public/rfc3/,
+// plus the online-homework worksheet (public/rfc3/doctor-fish.html). The
+// homework page follows the same self-contained pattern (back-to-CMC
+// button, share menu) and adds a "Submit to Teacher" completion button
+// that posts the student's name + score to the drill_attempts Firestore
+// collection via the validated guest branch (or the signed-in localStorage
+// session token) — same pipeline as the rfc2/rfc3 dictation sheets, so
+// completions reach the teacher dashboard feed with no rules change.
 const kid11Resources: KidGradeMaterial[] = [
   {
     id: 'kid-11-rfc3-word-list',
@@ -133,6 +141,13 @@ const kid11Resources: KidGradeMaterial[] = [
     description: 'Interactive sentence-unscramble exercises for all 16 units. Rebuild scrambled sentences and place them back into the passage. Auto-graded with instant feedback.',
     href: 'https://cmckhmer.github.io/Creative-Minds-/rfc3/unscramble.html',
     units: 16,
+  },
+  {
+    id: 'kid-11-homework-doctor-fish',
+    title: 'Doctor Fish · Unit 14 Live Worksheet',
+    kind: 'Online homework',
+    description: 'Reading & vocabulary homework: 30 auto-graded questions on the Doctor Fish passage. Shareable link for the class; students press “Submit to Teacher” when done.',
+    href: './rfc3/doctor-fish.html',
   },
 ];
 
