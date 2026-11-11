@@ -221,9 +221,9 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
    dark mode, and every light-mode retune lives in the same block so the
    themes can't fight each other. */
 .glass{
-  background:linear-gradient(165deg,rgba(125,211,252,.10),rgba(255,255,255,.02) 38%,rgba(56,189,248,.05) 82%,rgba(125,211,252,.09));
+  background:linear-gradient(165deg,rgba(125,211,252,.055),rgba(255,255,255,.012) 38%,rgba(56,189,248,.03) 82%,rgba(125,211,252,.05));
   -webkit-backdrop-filter:blur(16px) saturate(1.35);backdrop-filter:blur(16px) saturate(1.35);
-  border-color:rgba(125,211,252,.22);
+  border-color:rgba(125,211,252,.26);
   box-shadow:0 24px 60px -32px rgba(2,6,23,.85),inset 0 1px 0 rgba(213,245,255,.14),inset 0 0 42px rgba(56,189,248,.05);
 }
 .week-card{position:relative}
@@ -308,13 +308,21 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 .bp-topbtn:active,.theme-toggle:active{border-color:rgba(147,222,255,.6);color:#cdeaff;
   box-shadow:0 0 16px rgba(56,189,248,.45),inset 0 0 8px rgba(125,211,252,.3)}
 
+/* — glowing blue text: every word on a panel carries its own hologram
+   light. The glass got cleared out (see .glass above), so the glow is what
+   keeps the text standing proud of the panel in both themes. — */
+.glass :is(h2,h3,p,.btn-label,.week-chip,.drill-count){
+  text-shadow:0 0 7px rgba(147,222,255,.32),0 0 22px rgba(56,189,248,.18)}
+
 /* — light theme retune (same block so it wins its ties) — */
 html[data-theme="light"] .glass{
-  background:linear-gradient(165deg,rgba(255,255,255,.74),rgba(255,255,255,.5) 40%,rgba(224,242,254,.62));
+  background:linear-gradient(165deg,rgba(255,255,255,.58),rgba(255,255,255,.36) 40%,rgba(224,242,254,.5));
   border-color:rgba(125,211,252,.45);
   box-shadow:0 20px 50px -30px rgba(2,132,199,.35),inset 0 1px 0 rgba(255,255,255,.9),inset 0 0 42px rgba(14,165,233,.05)}
+html[data-theme="light"] .glass :is(h2,h3,p,.btn-label,.week-chip,.drill-count){
+  text-shadow:0 0 6px rgba(14,165,233,.22),0 0 18px rgba(14,165,233,.10)}
 html[data-theme="light"] .week-card{
-  background:linear-gradient(165deg,rgba(255,255,255,.8),rgba(255,255,255,.56) 40%,rgba(224,242,254,.66))!important;
+  background:linear-gradient(165deg,rgba(255,255,255,.62),rgba(255,255,255,.4) 40%,rgba(224,242,254,.52))!important;
   border-color:rgba(125,211,252,.5)!important;
   box-shadow:0 30px 64px -32px rgba(2,132,199,.34),0 14px 36px -16px rgba(2,132,199,.18),inset 0 1px 0 rgba(255,255,255,.9)}
 html[data-theme="light"] .week-card::before{

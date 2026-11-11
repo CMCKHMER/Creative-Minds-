@@ -1,20 +1,23 @@
 /* ===== TEACHER COMMAND CENTER — holographic skin for the Live Class
    Results section (FirebaseDashboard.tsx, Nov 2026). Mirrors the bi-weekly
-   planner holo language: see-through cyan glass, holographic edge light,
-   faint scanlines, projector glow that follows the cursor, floating 3D
-   panels (shared stage perspective + translateZ idle lift + staggered bob),
-   keycap press glow in light-blue, HUD corner brackets and a console top
-   bar with live status chips + clock.
+   planner holo language: crystal-clear see-through cyan glass (fills thinned
+   Nov 2026 so the panels read as clear holograms), holographic edge light,
+   projector glow that follows the cursor, floating 3D panels (shared stage
+   perspective + translateZ idle lift + staggered bob), keycap press glow in
+   light-blue, HUD corner brackets and a console top bar with live status
+   chips + clock. The old faint scanlines were REMOVED (owner request) —
+   the panels are clean glass now, and every word carries its own glowing
+   blue hologram light instead.
 
    Scoped under .cmc-cmdc (applied to the section root) so nothing leaks
    site-wide. THE DATA TABLES THEMSELVES ARE LEFT UNTOUCHED on purpose —
-   the spreadsheet keeps its plain, readable styling. ===== */
+   the spreadsheet keeps its plain, readable styling (and gets no text
+   glow either). ===== */
 
 .cmc-cmdc{position:relative}
-/* console texture over the video backdrop: faint scanlines + vignette */
+/* console vignette over the video backdrop (scanlines removed Nov 2026) */
 .cmc-cmdc::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
   background:
-    repeating-linear-gradient(0deg,rgba(148,222,255,.028) 0 1px,transparent 1px 5px),
     radial-gradient(ellipse 95% 75% at 50% 40%,transparent 55%,rgba(1,4,14,.55) 100%);
   opacity:.9}
 
@@ -54,25 +57,27 @@
   transition:transform .5s cubic-bezier(.16,1,.3,1),translate .5s cubic-bezier(.16,1,.3,1),scale .5s cubic-bezier(.16,1,.3,1),border-color .3s,box-shadow .3s;
   will-change:transform,translate,scale}
 
-/* see-through holographic glass (overrides the slate utilities) */
+/* see-through holographic glass — cleared out (owner request) so the panels
+   read as transparent holo glass; brighter edge light keeps them standout */
 .cmc-cmdc .cmcdc-stat{
-  border-color:rgba(125,211,252,.22)!important;
-  background:linear-gradient(165deg,rgba(125,211,252,.10),rgba(255,255,255,.02) 38%,rgba(56,189,248,.05) 82%,rgba(125,211,252,.09))!important;
+  border-color:rgba(147,222,255,.30)!important;
+  background:linear-gradient(165deg,rgba(125,211,252,.055),rgba(255,255,255,.012) 38%,rgba(56,189,248,.03) 82%,rgba(125,211,252,.05))!important;
   -webkit-backdrop-filter:blur(16px) saturate(1.35);backdrop-filter:blur(16px) saturate(1.35);
-  box-shadow:0 26px 60px -34px rgba(2,6,23,.92),0 12px 34px -16px rgba(8,145,178,.25),inset 0 1px 0 rgba(213,245,255,.14)}
+  box-shadow:0 26px 60px -34px rgba(2,6,23,.9),0 12px 34px -16px rgba(8,145,178,.28),0 0 0 1px rgba(147,222,255,.10),inset 0 1px 0 rgba(213,245,255,.16)}
 .cmc-cmdc .cmcdc-panel{
-  border-color:rgba(125,211,252,.20)!important;
-  background:linear-gradient(168deg,rgba(125,211,252,.09),rgba(255,255,255,.015) 40%,rgba(56,189,248,.045) 80%,rgba(125,211,252,.08))!important;
+  border-color:rgba(147,222,255,.26)!important;
+  background:linear-gradient(168deg,rgba(125,211,252,.05),rgba(255,255,255,.012) 40%,rgba(56,189,248,.026) 80%,rgba(125,211,252,.045))!important;
   -webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);
-  box-shadow:0 30px 70px -36px rgba(2,6,23,.92),0 14px 38px -18px rgba(8,145,178,.22),inset 0 1px 0 rgba(213,245,255,.12)}
+  box-shadow:0 30px 70px -36px rgba(2,6,23,.9),0 14px 38px -18px rgba(8,145,178,.25),0 0 0 1px rgba(147,222,255,.08),inset 0 1px 0 rgba(213,245,255,.14)}
 
-/* projector glow + scanlines layer under the panel content */
+/* projector glow layer under the panel content — no scanlines; a soft holo
+   floor-light at the bottom keeps the panels standing out on the console */
 .cmcdc-stat::before,.cmcdc-panel::before{content:'';position:absolute;inset:0;z-index:0;border-radius:inherit;pointer-events:none;
   background:
-    radial-gradient(46% 36% at var(--gx,50%) var(--gy,14%),rgba(147,222,255,.14),transparent 72%),
-    repeating-linear-gradient(0deg,rgba(148,222,255,.05) 0 1px,transparent 1px 4px),
-    radial-gradient(120% 55% at 50% -10%,rgba(125,211,252,.13),transparent 55%);
-  opacity:.85;transition:opacity .3s}
+    radial-gradient(46% 36% at var(--gx,50%) var(--gy,14%),rgba(147,222,255,.20),transparent 72%),
+    radial-gradient(120% 55% at 50% -10%,rgba(125,211,252,.16),transparent 55%),
+    linear-gradient(0deg,rgba(56,189,248,.055),transparent 30%);
+  opacity:.9;transition:opacity .3s}
 .cmc-cmdc .cmcdc-stat>*,.cmc-cmdc .cmcdc-panel>*{position:relative;z-index:1}
 
 /* HUD corner brackets */
@@ -98,6 +103,20 @@
   font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#67e8f9;
   border:1px solid rgba(125,211,252,.25);border-radius:999px;padding:2px 8px;background:rgba(56,189,248,.08)}
 
+/* — glowing blue text: every word on the console carries its own hologram
+   light. DATA TABLES ARE DELIBERATELY EXCLUDED (td/th/table) so the roster,
+   feed and spreadsheet stay plain and readable. — */
+.cmcdc-consolebar-title,.cmcdc-chip{text-shadow:0 0 8px rgba(125,211,252,.32)}
+.cmc-cmdc .cmc-eyebrow{text-shadow:0 0 9px rgba(103,232,249,.35),0 0 24px rgba(56,189,248,.18)}
+.cmc-cmdc .cmc-h2{text-shadow:0 0 14px rgba(56,189,248,.26),0 0 40px rgba(56,189,248,.12)}
+.cmc-cmdc .cmc-h2 .cmc-gradient-text{text-shadow:none}
+.cmc-cmdc .cmcdc-stat p{text-shadow:0 0 8px rgba(147,222,255,.30),0 0 24px rgba(56,189,248,.16)}
+.cmc-cmdc .cmcdc-panel-head{text-shadow:0 0 9px rgba(147,222,255,.34),0 0 22px rgba(56,189,248,.18)}
+.cmc-cmdc .cmcdc-panel>p,.cmc-cmdc .cmcdc-panel div>p{text-shadow:0 0 7px rgba(147,222,255,.24),0 0 20px rgba(56,189,248,.12)}
+html.light .cmc-cmdc .cmc-eyebrow,html.light .cmc-cmdc .cmcdc-stat p,
+html.light .cmc-cmdc .cmcdc-panel-head,html.light .cmc-cmdc .cmcdc-panel>p,
+html.light .cmc-cmdc .cmcdc-panel div>p{text-shadow:0 0 6px rgba(14,165,233,.26),0 0 18px rgba(14,165,233,.12)}
+
 /* — idle float + hover pop (motion-safe only) — */
 @media (prefers-reduced-motion:no-preference){
   @keyframes cmcdcFloat{0%,100%{translate:0 0}50%{translate:0 -7px}}
@@ -110,12 +129,12 @@
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
   /* stat readouts tilt toward the cursor (vars fed by pointer delegation) and pop */
   .cmc-cmdc .cmcdc-stat:hover{transform:translateZ(96px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));scale:1.035;
-    border-color:rgba(147,222,255,.42)!important;
-    box-shadow:0 40px 84px -38px rgba(2,6,23,.95),0 20px 50px -20px rgba(8,145,178,.4),0 0 40px -8px rgba(56,189,248,.3),inset 0 1px 0 rgba(213,245,255,.2)}
+    border-color:rgba(165,233,255,.5)!important;
+    box-shadow:0 40px 84px -38px rgba(2,6,23,.95),0 20px 50px -20px rgba(8,145,178,.42),0 0 44px -8px rgba(56,189,248,.34),0 0 0 1px rgba(165,233,255,.16),inset 0 1px 0 rgba(213,245,255,.22)}
   /* data panels lift toward the viewer but never rotate — tables stay readable */
   .cmc-cmdc .cmcdc-panel:hover{transform:translateZ(72px);scale:1.012;
-    border-color:rgba(147,222,255,.36)!important;
-    box-shadow:0 44px 90px -38px rgba(2,6,23,.95),0 22px 54px -20px rgba(8,145,178,.36),0 0 34px -8px rgba(56,189,248,.24),inset 0 1px 0 rgba(213,245,255,.18)}
+    border-color:rgba(165,233,255,.44)!important;
+    box-shadow:0 44px 90px -38px rgba(2,6,23,.95),0 22px 54px -20px rgba(8,145,178,.38),0 0 38px -8px rgba(56,189,248,.28),0 0 0 1px rgba(165,233,255,.12),inset 0 1px 0 rgba(213,245,255,.2)}
 }
 @media (hover:none){
   .cmc-cmdc .cmcdc-stat{transform:translateZ(26px)}
