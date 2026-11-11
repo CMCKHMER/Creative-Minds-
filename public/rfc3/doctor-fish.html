@@ -1,135 +1,443 @@
 <!DOCTYPE html>
-<html lang="en" translate="no">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Unit 14 · Doctor Fish — Live Worksheet</title>
+<title>Unit 14 · Doctor Fish — Kid 11 Online Homework (Home Assignments 1 &amp; 2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --purple:#7b1fa2; --magenta:#c2185b; --hl:#dcedc8;
-    --ink:#263238; --ok:#2e7d32; --bad:#c62828;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    font-family:'Segoe UI',system-ui,sans-serif;color:var(--ink);
-    background:linear-gradient(160deg,#0f2027,#203a43,#2c5364) fixed;
-    min-height:100vh;padding:24px 16px 90px;
-  }
-  /* Floating bubbles — fish-tank atmosphere */
-  .bubble{position:fixed;bottom:-70px;border-radius:50%;
-    background:rgba(255,255,255,.08);animation:rise linear infinite;z-index:0}
-  @keyframes rise{to{transform:translateY(-115vh)}}
+/* ============ FOUNDATION ============ */
+:root{
+  --head:64px;
+  --bg0:#051e26; --bg1:#0a3540; --bg2:#0e4a52;
+  --ok:#2fbf71; --bad:#ff5d5d; --warn:#ffb020; --info:#43b7ff;
+  --glass:rgba(6,30,38,.86);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Space Grotesk',system-ui,sans-serif;color:#eaf6f8;
+  background:linear-gradient(165deg,var(--bg0),var(--bg1) 55%,var(--bg2)) fixed;
+  min-height:100vh;
+}
+/* custom scrollbars */
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#062730}
+::-webkit-scrollbar-thumb{background:linear-gradient(#0e6f7a,#c2185b);border-radius:8px;border:2px solid #062730}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(#14929f,#e91e63)}
+html{scrollbar-color:#0e6f7a #062730;scrollbar-width:thin}
 
-  .wrap{max-width:900px;margin:0 auto;position:relative;z-index:1}
-  .card{background:#fff;border-radius:16px;padding:22px 24px;margin:18px 0;
-    box-shadow:0 10px 30px rgba(0,0,0,.35)}
-  .hero{background:linear-gradient(120deg,var(--purple),var(--magenta));color:#fff}
-  .badge{display:inline-block;background:rgba(255,255,255,.22);padding:4px 14px;
-    border-radius:999px;font-size:12px;letter-spacing:2px;font-weight:700}
-  h1{font-size:clamp(28px,5vw,44px);margin:8px 0 4px}
-  .meta{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap}
-  .meta input{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.45);
-    color:#fff;border-radius:8px;padding:8px 10px;font:inherit}
-  .meta input::placeholder{color:rgba(255,255,255,.8)}
+/* ============ LIVING BACKGROUND ============ */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.glow{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;animation:drift 26s ease-in-out infinite alternate}
+.glow.g1{width:52vw;height:52vw;left:-14vw;top:-16vw;background:radial-gradient(circle,#0e7f86,transparent 70%)}
+.glow.g2{width:44vw;height:44vw;right:-12vw;top:24vh;background:radial-gradient(circle,#7b1fa2,transparent 70%);animation-delay:-9s;opacity:.32}
+.glow.g3{width:40vw;height:40vw;left:22vw;bottom:-18vw;background:radial-gradient(circle,#c2185b,transparent 70%);animation-delay:-17s;opacity:.22}
+@keyframes drift{to{transform:translate(6vw,-5vh) scale(1.12)}}
+.grain{position:absolute;inset:0;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
+.bubble{position:absolute;bottom:-70px;border-radius:50%;background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.14);animation:rise linear infinite}
+@keyframes rise{to{transform:translateY(-118vh)}}
+.fish{position:absolute;color:rgba(140,220,225,.14);animation:swim linear infinite}
+.fish svg{display:block;animation:bob 4.5s ease-in-out infinite alternate}
+.fish.rev svg{transform:scaleX(-1)}
+@keyframes swim{from{transform:translateX(-18vw)}to{transform:translateX(118vw)}}
+@keyframes bob{to{translate:0 10px}}
 
-  .sec-title{display:flex;align-items:center;gap:10px;color:var(--purple);
-    font-size:20px;margin-bottom:6px}
-  .chip{background:var(--purple);color:#fff;border-radius:8px;padding:2px 10px;font-size:15px}
-  .hint{color:#607d8b;font-size:13px;margin-bottom:14px}
-  .hl{background:var(--hl);padding:0 4px;border-radius:4px;font-weight:600}
+/* ============ FIXED HEADER ============ */
+.site-head{position:fixed;top:0;left:0;right:0;height:var(--head);z-index:50;
+  background:var(--glass);backdrop-filter:blur(10px);border-bottom:1px solid rgba(140,220,225,.18);
+  display:flex;align-items:center;gap:16px;padding:0 20px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:1px;font-size:15px;white-space:nowrap}
+.brand svg{width:34px;height:20px;color:#5fd6dd}
+.brand small{display:block;font-size:10px;letter-spacing:2px;color:#8fc7cd;font-weight:500}
+.tabs{margin-left:auto;display:flex;gap:8px}
+.switch-btn{border:1px solid rgba(140,220,225,.3);background:transparent;color:#cfeef1;
+  border-radius:999px;padding:8px 16px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:8px;transition:.2s}
+.switch-btn .dot{width:9px;height:9px;border-radius:50%}
+.switch-btn[data-mode="a"] .dot{background:#ffb300}
+.switch-btn[data-mode="b"] .dot{background:#00c2d1}
+.switch-btn:hover{border-color:#5fd6dd;transform:translateY(-1px)}
+body[data-mode="a"] .switch-btn[data-mode="a"],
+body[data-mode="b"] .switch-btn[data-mode="b"]{background:#eaf6f8;color:#0a3540;border-color:#eaf6f8}
 
-  select,input[type=text]{padding:8px 10px;border:2px solid #cfd8dc;border-radius:8px;
-    font:inherit;background:#fff}
-  textarea{width:100%;border:2px solid #cfd8dc;border-radius:10px;padding:10px;
-    font:inherit;min-height:80px}
+/* ============ ASSIGNMENT THEMES ============ */
+.assignment{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:calc(var(--head) + 18px) 16px 70px}
+#assignment-a{--acc:#ffb300;--acc-ink:#7a5200;--acc2:#c2185b;--paper:#fffdf6;--ink:#26313a;--line:#efe2c4;--soft:#fff6df}
+#assignment-b{--acc:#00c2d1;--acc-ink:#00616b;--acc2:#007c8a;--paper:#f6fdfe;--ink:#1e3238;--line:#d2ebef;--soft:#e6f8fa}
 
-  .match{display:grid;grid-template-columns:1fr minmax(210px,300px);gap:6px 14px;
-    padding:10px;border-radius:10px;align-items:center}
-  .match .fb{grid-column:1/-1}
-  .q{padding:12px;border-radius:10px;margin-bottom:6px}
-  .opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  .opt{border:2px solid #cfd8dc;background:#fff;border-radius:999px;padding:8px 14px;
-    cursor:pointer;font:inherit;transition:.15s}
-  .opt:hover{border-color:var(--purple);transform:translateY(-1px)}
-  .opt.picked{background:var(--purple);border-color:var(--purple);color:#fff}
+/* ============ HERO ============ */
+.hero-card{background:var(--paper);color:var(--ink);border-radius:20px;padding:30px 30px 26px;
+  border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.4);position:relative;overflow:hidden;margin-bottom:16px}
+.hero-card::before{content:"";position:absolute;inset:0 0 auto 0;height:7px;
+  background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.kicker{display:inline-block;background:var(--acc);color:#20242a;font-size:11px;font-weight:700;
+  letter-spacing:2.5px;padding:5px 14px;border-radius:999px;margin-bottom:12px}
+#assignment-a .hero-card h1{font-family:'Fraunces',Georgia,serif;font-weight:800}
+.hero-card h1{font-size:clamp(30px,5vw,50px);line-height:1.05;margin-bottom:10px}
+.hero-card h1 em{font-style:normal;color:var(--acc2)}
+.brief{max-width:640px;line-height:1.65;color:#45565f;font-size:15px}
+.stamp{position:absolute;right:26px;top:26px;transform:rotate(8deg);border:3px solid var(--acc2);
+  color:var(--acc2);font-weight:800;font-size:12px;letter-spacing:2px;padding:8px 14px;border-radius:8px;opacity:.75}
+.meta{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+.meta input{border:2px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font:inherit;color:var(--ink)}
+.meta input:focus{outline:none;border-color:var(--acc)}
+.hero-stats{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.hero-stats span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px}
 
-  .bank span{display:inline-block;background:var(--hl);border-radius:999px;
-    padding:4px 12px;margin:3px;font-weight:600}
-  .cloze{line-height:2.6;margin-top:12px}
-  .blank{display:inline-block;text-align:center;vertical-align:top}
-  .blank input{text-align:center}
-  .blank .fb{font-size:11px}
+/* ============ STICKY TOOLBAR ============ */
+.toolbar{position:sticky;top:var(--head);z-index:40;display:flex;align-items:center;gap:14px;
+  background:var(--glass);backdrop-filter:blur(10px);border:1px solid rgba(140,220,225,.2);
+  border-radius:14px;padding:10px 16px;margin-bottom:18px;flex-wrap:wrap}
+.progress{flex:1;min-width:160px}
+.progress-label{font-size:11px;letter-spacing:1px;color:#9fd3d9;font-weight:700;margin-bottom:5px}
+.progress-track{height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s ease}
+.btn{border:none;border-radius:999px;padding:10px 22px;font:inherit;font-weight:700;font-size:14px;
+  cursor:pointer;background:var(--acc2);color:#fff;transition:.18s}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.btn.ghost{background:transparent;border:2px solid rgba(207,238,241,.5);color:#cfeef1}
+.btn.ghost:hover{border-color:#fff}
+.btn.small{padding:8px 16px;font-size:13px}
 
-  .fb{display:block;font-size:12.5px;margin-top:6px;font-weight:600}
-  .correct{background:#e8f5e9}.correct .fb{color:var(--ok)}
-  .wrong{background:#ffebee}.wrong .fb{color:var(--bad)}
-  .correct select,.correct input{border-color:var(--ok)}
-  .wrong select,.wrong input{border-color:var(--bad)}
-  .correct .opt.picked{background:var(--ok);border-color:var(--ok)}
-  .wrong .opt.picked{background:var(--bad);border-color:var(--bad)}
+/* ============ TASK CARDS ============ */
+.task{background:var(--paper);color:var(--ink);border-radius:18px;padding:24px 26px;margin-bottom:18px;
+  border:1px solid var(--line);box-shadow:0 12px 34px rgba(0,0,0,.32);scroll-margin-top:calc(var(--head) + 80px);position:relative}
+.task-head{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.tnum{background:var(--acc);color:#20242a;font-weight:800;font-size:14px;min-width:38px;height:38px;
+  display:grid;place-items:center;border-radius:11px}
+#assignment-b .tnum{border-radius:50%}
+.task-head h2{font-size:19px;color:var(--ink)}
+#assignment-a .task-head h2{font-family:'Fraunces',Georgia,serif}
+.pts{margin-left:auto;background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 11px;border-radius:999px}
+.hint{color:#6a7d86;font-size:13px;margin-bottom:16px;line-height:1.5}
+.hl{background:#e2f0c8;padding:0 5px;border-radius:4px;font-weight:600}
+.fb{display:block;font-size:12.5px;font-weight:700;margin-top:10px;min-height:1em}
+.correct .fb{color:#1d7a44}.wrong .fb{color:#c62828}
+.g-item.correct,.write-task.correct{background:#eef9f0;border-radius:12px}
+.g-item.wrong,.write-task.wrong{background:#fdeeee;border-radius:12px}
 
-  details summary{cursor:pointer;font-weight:700;color:var(--purple);font-size:17px}
-  .passage p{margin:12px 0;line-height:1.75}
+/* inputs */
+.field-row{display:grid;grid-template-columns:1fr minmax(190px,280px);gap:6px 16px;align-items:center;
+  padding:11px 12px;border-radius:12px;margin-bottom:4px}
+.field-row label{font-size:14.5px;line-height:1.5}
+.field-row label b{color:var(--acc-ink);letter-spacing:.5px}
+.field-row .fb{grid-column:1/-1;margin-top:2px}
+input[type=text],select,textarea{border:2px solid var(--line);border-radius:10px;padding:9px 12px;
+  font:inherit;font-size:14px;background:#fff;color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
+.correct input,.correct select{border-color:var(--ok)}
+.wrong input,.wrong select{border-color:var(--bad)}
+textarea{min-height:96px;resize:vertical;line-height:1.6}
 
-  .score-big{font-size:42px;font-weight:800;color:var(--purple)}
-  .meter{height:14px;background:#eceff1;border-radius:999px;overflow:hidden;margin:12px 0}
-  .meter i{display:block;height:100%;width:0;
-    background:linear-gradient(90deg,var(--purple),var(--magenta));transition:width .8s ease}
+/* choice buttons */
+.q{padding:13px 14px;margin-bottom:6px}
+.q p{font-size:14.5px;line-height:1.55}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.opt{border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;cursor:pointer;
+  font:inherit;font-size:13.5px;color:var(--ink);transition:.15s;text-align:left}
+.opt:hover{border-color:var(--acc);transform:translateY(-1px)}
+.opt.picked{background:var(--acc2);border-color:var(--acc2);color:#fff}
+.correct .opt.picked{background:var(--ok);border-color:var(--ok)}
+.wrong .opt.picked{background:var(--bad);border-color:var(--bad)}
 
-  .bar{position:fixed;left:0;right:0;bottom:0;z-index:5;
-    background:rgba(15,32,39,.92);backdrop-filter:blur(6px);
-    padding:12px 16px;display:flex;gap:12px;justify-content:center;align-items:center;
-    flex-wrap:wrap}
-  .btn{border:none;border-radius:999px;padding:11px 26px;font:inherit;font-weight:700;
-    cursor:pointer;background:linear-gradient(90deg,var(--purple),var(--magenta));color:#fff}
-  .btn:hover{filter:brightness(1.15)}
-  .ghost{background:transparent;border:2px solid rgba(255,255,255,.6);color:#fff}
-  #miniScore{color:#fff;font-weight:700;min-width:60px;text-align:center}
+/* sorting */
+.tray{display:flex;flex-wrap:wrap;gap:9px;padding:14px;background:var(--soft);
+  border:1px dashed var(--line);border-radius:14px;margin-bottom:14px;min-height:64px}
+.tray-label,.bin-sub{font-size:11px;letter-spacing:1.5px;font-weight:700;color:#8a99a1}
+.tray-label{width:100%}
+.sort-card{border:2px solid var(--line);background:#fff;border-radius:11px;padding:9px 14px;font:inherit;
+  font-size:13px;color:var(--ink);cursor:pointer;transition:.15s;box-shadow:0 2px 6px rgba(0,0,0,.07);text-align:left}
+.sort-card:hover{border-color:var(--acc);transform:translateY(-2px)}
+.sort-card.selected{border-color:var(--acc2);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc2) 30%,transparent);transform:translateY(-2px)}
+.sort-card.correct{border-color:var(--ok);background:#eef9f0}
+.sort-card.wrong{border-color:var(--bad);background:#fdeeee}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bin{border:2px dashed var(--line);border-radius:14px;padding:14px;cursor:pointer;transition:.15s;min-height:130px}
+.bin:hover,.bin:focus-visible{border-color:var(--acc);background:var(--soft);outline:none}
+.bin h4{font-size:14px;letter-spacing:1px;margin-bottom:2px}
+.bin-a h4{color:var(--info)}.bin-b h4{color:var(--acc2)}
+.bin-body{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.bin-body .sort-card{font-size:12.5px;padding:7px 11px}
 
-  @media(max-width:640px){.match{grid-template-columns:1fr}}
+/* ordering */
+.order-list{list:none;counter-reset:ord;display:flex;flex-direction:column;gap:9px}
+.order-list li{counter-increment:ord;display:flex;align-items:center;gap:12px;background:#fff;
+  border:2px solid var(--line);border-radius:12px;padding:11px 14px;transition:.15s}
+.order-list li::before{content:counter(ord);background:var(--acc);color:#20242a;font-weight:800;
+  min-width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:13px}
+.order-list li.correct{border-color:var(--ok);background:#eef9f0}
+.order-list li.wrong{border-color:var(--bad);background:#fdeeee}
+.ord-text{flex:1;font-size:13.5px;line-height:1.5}
+.ord-ctl{display:flex;gap:5px}
+.ord-btn{border:2px solid var(--line);background:#fff;width:32px;height:32px;border-radius:8px;
+  cursor:pointer;font-size:14px;color:var(--ink);transition:.15s}
+.ord-btn:hover{border-color:var(--acc);background:var(--soft)}
 
-  /* ── Kid 11 online-homework plumbing (submit · share · back) ── */
-  #cmc-back-btn{position:fixed;top:14px;right:14px;z-index:40;display:flex;align-items:center;
-    gap:8px;padding:9px 16px;border-radius:999px;background:rgba(15,32,39,.88);
-    border:1px solid rgba(125,211,252,.4);color:#bae6fd;font:inherit;font-size:13px;
-    font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
+/* writing tasks */
+.write-meta{display:flex;align-items:center;gap:10px;margin:8px 0}
+.wc{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-size:12px;
+  font-weight:700;padding:4px 12px;border-radius:999px}
+.checks{list:none;display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.checks li{display:flex;align-items:center;gap:9px;font-size:13px;color:#6a7d86;transition:.2s}
+.checks .dot{width:18px;height:18px;border-radius:50%;border:2px solid #c3cfd4;display:grid;
+  place-items:center;font-size:11px;color:#fff;flex-shrink:0;transition:.2s}
+.checks li.ok{color:#1d7a44;font-weight:600}
+.checks li.ok .dot{background:var(--ok);border-color:var(--ok)}
+.checks li.ok .dot::after{content:"✓"}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.chips span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px}
+.client{display:flex;gap:14px;align-items:center;background:var(--soft);border:1px solid var(--line);
+  border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.client .avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));
+  display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.client p{font-size:13.5px;line-height:1.5}
+details.model{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+details.model summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--acc-ink)}
+details.model p{font-size:13.5px;line-height:1.65;color:#45565f;margin-top:8px;
+  background:var(--soft);border-radius:10px;padding:12px 14px}
+.sub-q{margin-bottom:18px}
+.sub-q>label{display:block;font-size:14.5px;font-weight:600;margin-bottom:8px;line-height:1.5}
+
+/* readiness checklist */
+.ready-list{list:none;display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.ready-list label{display:flex;gap:11px;align-items:flex-start;font-size:14px;line-height:1.5;cursor:pointer}
+.ready-list input{width:19px;height:19px;margin-top:2px;accent-color:var(--acc2);flex-shrink:0}
+.ready-count{font-weight:700;color:var(--acc-ink);font-size:13px}
+
+/* results */
+.results{display:flex;gap:24px;align-items:center;flex-wrap:wrap;overflow:hidden}
+.ring{width:120px;height:120px;flex-shrink:0}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.ring .ring-bg{stroke:var(--line)}
+.ring .ring-fg{stroke:var(--acc2);stroke-dasharray:326.73;stroke-dashoffset:326.73;
+  transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 1s ease}
+.ring-wrap{position:relative}
+.ring-pct{position:absolute;inset:0;display:grid;place-items:center;font-weight:800;font-size:22px;color:var(--acc2)}
+.results-body{flex:1;min-width:230px}
+.results-body h2{font-size:22px;margin-bottom:4px}
+#assignment-a .results-body h2{font-family:'Fraunces',Georgia,serif}
+.score-line{font-weight:800;font-size:17px;color:var(--acc-ink);margin-bottom:6px}
+.results-body p{font-size:14px;color:#45565f;line-height:1.55;margin-bottom:14px}
+.results-actions{display:flex;gap:9px;flex-wrap:wrap}
+.btn.paper{background:var(--soft);color:var(--acc-ink);border:2px solid var(--line)}
+.confetti{position:absolute;bottom:-10px;border-radius:50%;animation:pop 2.1s ease-out forwards;pointer-events:none}
+@keyframes pop{to{transform:translateY(-300px);opacity:0}}
+
+/* reveal on scroll */
+.js .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.js .reveal.in{opacity:1;transform:none}
+:focus-visible{outline:3px solid var(--info);outline-offset:2px}
+
+/* ============ RESPONSIVE ============ */
+@media(max-width:680px){
+  .brand small{display:none}
+  .brand{font-size:13px}
+  .switch-btn{padding:7px 11px;font-size:12px}
+  .field-row{grid-template-columns:1fr}
+  .bins{grid-template-columns:1fr}
+  .stamp{display:none}
+  .task{padding:20px 18px}
+  .hero-card{padding:24px 20px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .js .reveal{opacity:1;transform:none}
+}
+/* ============ PRINT ============ */
+@media print{
+  .bg,.site-head,.toolbar,.results,.no-print,details.model,.fb{display:none!important}
+  body{background:#fff;color:#000}
+  .assignment{padding:0;max-width:100%}
+  .hero-card,.task{box-shadow:none;border:1px solid #bbb;break-inside:avoid;opacity:1!important;transform:none!important}
+  .sort-card,.opt,.ord-btn{box-shadow:none}
+  textarea{min-height:70px}
+}
+
+  /* ── CMC site furniture (Kid 11 online homework) — namespaced hw-/cmc- ── */
+  #cmc-back-btn{position:fixed;top:14px;right:14px;z-index:60;display:flex;align-items:center;
+    gap:8px;padding:9px 16px;border-radius:999px;background:rgba(6,30,38,.88);
+    border:1px solid rgba(125,211,252,.4);color:#bae6fd;font-family:'Space Grotesk',system-ui,sans-serif;
+    font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
   #cmc-back-btn:hover{background:rgba(125,211,252,.14);transform:translateY(-1px)}
-  .btn-submit{background:linear-gradient(90deg,var(--ok),#00695c)}
-  .btn-submit:disabled{opacity:.7;cursor:progress;filter:none}
-  .btn-submit.done{background:linear-gradient(90deg,#1b5e20,var(--ok))}
-  .needs-name{animation:needPulse 1.8s ease}
-  @keyframes needPulse{
-    0%,100%{box-shadow:none}
-    25%,75%{box-shadow:0 0 0 4px rgba(255,255,255,.25);border-color:#ffcdd2}
+  /* the fixed worksheet header owns the top edge — leave room for the back pill */
+  .site-head{padding-right:180px}
+  @media(max-width:680px){
+    .site-head{padding-right:64px}
+    #cmc-back-btn{font-size:0;padding:9px;gap:0;top:10px;right:10px}
+    #cmc-back-btn svg{width:15px;height:15px}
+    .hw-hero{padding:22px 18px}.hw-meta input{min-width:0;flex:1 1 140px}
   }
-  .cmc-toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(14px);
-    z-index:60;background:#fff;border:2px solid var(--purple);color:var(--purple);
-    padding:10px 18px;border-radius:999px;font-weight:700;font-size:13.5px;
-    box-shadow:0 12px 30px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:all .3s;
+  /* The teacher's living background uses fixed glows that intentionally bleed
+     past the right edge (right:-12vw). `overflow-x:clip` stops the sideways
+     scroll WITHOUT creating a scroll container, so the sticky toolbars of the
+     two assignments keep working (overflow-x:hidden would break them). */
+  html,body{overflow-x:clip}
+
+  /* Purple online-homework hero — the name/date bug fix lives here:
+     !important beats the later generic input[type=text] rule that used to
+     paint these boxes white while .hw-meta kept the white text. */
+  .hw-hero{position:relative;z-index:1;max-width:920px;margin:calc(var(--head) + 16px) auto 18px;
+    background:linear-gradient(120deg,#7b1fa2,#c2185b);color:#fff;border-radius:20px;
+    padding:26px 28px 24px;box-shadow:0 18px 50px rgba(0,0,0,.45);overflow:hidden}
+  .hw-hero::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;
+    background:linear-gradient(90deg,#ffb300,#e91e63,#00c2d1)}
+  .hw-badge{display:inline-block;background:rgba(255,255,255,.22);padding:5px 14px;
+    border-radius:999px;font-size:11px;letter-spacing:2px;font-weight:700;margin:0 8px 8px 0}
+  .hw-hero h1{font-family:'Fraunces',Georgia,serif;font-size:clamp(30px,5vw,46px);line-height:1.05;margin:2px 0 8px}
+  .hw-hero .hw-sub{font-size:14px;line-height:1.55;color:rgba(255,255,255,.92);margin-bottom:4px}
+  .hw-meta{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .hw-meta input{background:rgba(255,255,255,.16)!important;border:2px solid rgba(255,255,255,.5)!important;
+    color:#fff!important;caret-color:#fff;border-radius:10px;padding:10px 14px;font:inherit;
+    font-weight:600;letter-spacing:.3px;min-width:200px}
+  .hw-meta input::placeholder{color:rgba(255,255,255,.85);font-weight:500}
+  .hw-meta input:focus{outline:none;border-color:#fff!important;background:rgba(255,255,255,.26)!important}
+  .hw-meta input:-webkit-autofill{-webkit-text-fill-color:#fff;
+    -webkit-box-shadow:0 0 0 1000px rgba(123,31,162,.55) inset;transition:background-color 99999s}
+  @media(max-width:680px){.hw-hero{padding:22px 18px}.hw-meta input{min-width:0;flex:1 1 140px}}
+
+  /* Teacher preview banner (teacher + homework not shared) */
+  #hwBanner{display:none;position:relative;z-index:1;max-width:920px;margin:calc(var(--head) + 16px) auto -6px;
+    background:rgba(255,179,0,.12);border:1px solid rgba(255,179,0,.45);color:#ffd54f;
+    border-radius:12px;padding:10px 16px;font-size:13px;line-height:1.55}
+  html.hw-teacher-locked #hwBanner{display:block}
+  html.hw-teacher-locked .hw-hero{margin-top:14px}
+
+  /* Bottom action bar: Submit to Teacher + Share */
+  .hw-bar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(6,30,38,.92);
+    backdrop-filter:blur(8px);border-top:1px solid rgba(140,220,225,.18);
+    padding:12px 16px;display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}
+  .hw-btn{border:none;border-radius:999px;padding:11px 24px;font:inherit;font-weight:700;font-size:14px;
+    cursor:pointer;transition:.18s}
+  .hw-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+  .hw-btn-submit{background:linear-gradient(90deg,var(--ok),#00695c);color:#fff}
+  .hw-btn-submit:disabled{opacity:.7;cursor:progress;filter:none}
+  .hw-btn-submit.done{background:linear-gradient(90deg,#1b5e20,var(--ok))}
+  .hw-btn-ghost{background:transparent;border:2px solid rgba(207,238,241,.5);color:#cfeef1}
+  .hw-btn-ghost:hover{border-color:#fff}
+  .assignment{padding-bottom:130px!important}
+
+  .needs-name{animation:needPulse 1.8s ease}
+  @keyframes needPulse{0%,100%{box-shadow:none}25%,75%{box-shadow:0 0 0 4px rgba(255,255,255,.3);border-color:#ffcdd2}}
+  .cmc-toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(14px);
+    z-index:70;background:#fff;border:2px solid #7b1fa2;color:#7b1fa2;
+    padding:10px 18px;border-radius:999px;font-weight:700;font-size:13.5px;font-family:'Space Grotesk',system-ui,sans-serif;
+    box-shadow:0 12px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:all .3s;
     max-width:88vw;text-align:center}
   .cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .cmc-toast.err{border-color:var(--bad);color:var(--bad)}
-  .cmc-share{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:60;
-    background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.45);
+  .cmc-share{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:70;
+    background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.5);
     padding:14px 16px;display:none;gap:8px;flex-wrap:wrap;justify-content:center;
     align-items:center;max-width:92vw}
   .cmc-share.open{display:flex}
   .cmc-share button{border:2px solid #cfd8dc;background:#fff;border-radius:999px;
     padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
-  .cmc-share button:hover{border-color:var(--purple);color:var(--purple)}
+  .cmc-share button:hover{border-color:#7b1fa2;color:#7b1fa2}
   .cmc-share .close{border-color:transparent;color:#607d8b}
-</style>
-</head>
-<body>
 
-<!-- Decorative bubbles -->
-<span class="bubble" style="left:8%;width:26px;height:26px;animation-duration:14s"></span>
-<span class="bubble" style="left:22%;width:14px;height:14px;animation-duration:10s;animation-delay:2s"></span>
-<span class="bubble" style="left:45%;width:34px;height:34px;animation-duration:18s;animation-delay:4s"></span>
-<span class="bubble" style="left:64%;width:18px;height:18px;animation-duration:12s;animation-delay:1s"></span>
-<span class="bubble" style="left:80%;width:24px;height:24px;animation-duration:16s;animation-delay:3s"></span>
-<span class="bubble" style="left:92%;width:12px;height:12px;animation-duration:9s;animation-delay:5s"></span>
+  /* ── Share gate: homework opens only when the teacher shares it ────── */
+  html.hw-pending body>*:not(#hwGate){display:none!important}
+  html.hw-pending body{overflow:hidden!important}
+  #hwGate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+    padding:20px;background:linear-gradient(165deg,#051e26,#0a3540 55%,#0e4a52)}
+  #hwGate .hw-gate-card{max-width:430px;width:100%;text-align:center;background:#fffdf6;color:#26313a;
+    border-radius:18px;padding:34px 28px;border-top:6px solid #7b1fa2;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+  #hwGate .hw-gate-icon{width:58px;height:58px;margin:0 auto;border-radius:16px;display:grid;place-items:center;
+    font-size:26px;background:linear-gradient(135deg,#7b1fa2,#c2185b);color:#fff}
+  #hwGate h1{font-family:'Fraunces',Georgia,serif;font-size:23px;margin:16px 0 0}
+  #hwGate p{font-size:13.5px;line-height:1.65;color:#45565f;margin:12px auto 0;max-width:340px}
+  #hwGate a{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;text-decoration:none;
+    background:linear-gradient(90deg,#7b1fa2,#c2185b);color:#fff;font-weight:700;font-size:13px}
+
+  @media print{
+    .hw-bar,#cmc-back-btn,#hwBanner,.cmc-share,.cmc-toast,#hwGate{display:none!important}
+    .assignment{padding-bottom:0!important}
+  }
+</style>
+<script>
+/* ── Kid 11 homework share gate ─────────────────────────────────────────
+   Owner request: the homework "can only be done if teacher shares the home".
+   The share state lives in Firestore at biweekly_tests/hw-kid11-doctor-fish
+   (public read, teacher-only write — same collection the bi-weekly tests
+   use, so NO rules change). Students see a locked overlay until the teacher
+   flips the share switch on the Kid 11 card; teachers (same site role
+   heuristic as teacher-gate.js / RoleGate) always get in, plus a preview
+   banner while the homework is still locked for the class. */
+(function () {
+  'use strict';
+  var HW_DOC = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/biweekly_tests/hw-kid11-doctor-fish';
+  function ls(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function isTeacher() {
+    if (!ls('cmc-student-token')) return false;
+    var role = ls('cmc-student-role');
+    var email = ls('cmc-student-email').toLowerCase();
+    var uid = ls('cmc-student-uid');
+    return role === 'teacher' || email.indexOf('edu') !== -1 || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+  }
+  window.CMC_HW_TEACHER = isTeacher();
+  // Lock BEFORE first paint for everyone who is not a teacher — the
+  // resolve() below lifts it (open) or builds the overlay (students).
+  if (!window.CMC_HW_TEACHER) document.documentElement.classList.add('hw-pending');
+
+  function buildGate() {
+    if (document.getElementById('hwGate')) return;
+    var g = document.createElement('div');
+    g.id = 'hwGate';
+    g.setAttribute('role', 'dialog');
+    g.setAttribute('aria-modal', 'true');
+    g.setAttribute('aria-label', 'Homework not shared yet');
+    g.innerHTML =
+      '<div class="hw-gate-card">' +
+      '<div class="hw-gate-icon" aria-hidden="true">🔒</div>' +
+      '<h1>Homework not shared yet</h1>' +
+      '<p>Your teacher hasn\u2019t opened <b>Doctor Fish · Home Assignments 1 &amp; 2</b> for the class yet. ' +
+      'Ask your teacher to share it from the <b>Kid 11 card</b> on the CMC homepage — then this page unlocks automatically.</p>' +
+      '<a href="https://cmckhmer.github.io/Creative-Minds-/">Back to CMC home</a>' +
+      '</div>';
+    document.body.appendChild(g);
+  }
+
+  function resolve(shared) {
+    var root = document.documentElement;
+    if (shared) {
+      root.classList.remove('hw-pending');
+      root.classList.add('hw-open');
+    } else if (window.CMC_HW_TEACHER) {
+      root.classList.remove('hw-pending');
+      root.classList.add('hw-teacher-locked');
+    } else {
+      buildGate(); // keeps hw-pending: worksheet stays hidden behind the gate
+    }
+  }
+
+  function shareState(d) {
+    return !!(d && d.fields && d.fields.shared && d.fields.shared.booleanValue === true);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      fetch(HW_DOC)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { resolve(shareState(d)); })
+        .catch(function () { resolve(false); });
+    });
+  } else {
+    fetch(HW_DOC)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { resolve(shareState(d)); })
+      .catch(function () { resolve(false); });
+  }
+})();
+</script>
+</head>
+<body data-mode="a">
 
 <!-- Back to CMC home (same fixture as the other Reading Future worksheets) -->
 <a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" aria-label="Back to CMC home">
@@ -137,291 +445,672 @@
   Back to CMC
 </a>
 
-<div class="wrap">
+<!-- Teacher preview banner (only shown to a teacher while the homework is locked) -->
+<div id="hwBanner">👩‍🏫 <b>Teacher preview</b> — students can't open this homework yet. Flip the <b>Share with students</b> switch on the Kid&nbsp;11 card (CMC homepage, Kid Program section) to unlock it for the class.</div>
 
-  <!-- HEADER -->
-  <header class="card hero">
-    <span class="badge">UNIT 14 · SCIENCE</span>
-    <span class="badge">KID 11 · ONLINE HOMEWORK</span>
-    <h1>Doctor Fish 🐟</h1>
-    <p>Live Worksheet · Reading &amp; Vocabulary · 30 auto-graded questions</p>
-    <div class="meta">
-      <input type="text" id="stuName" placeholder="Name" autocomplete="name" maxlength="40">
-      <input type="text" id="stuDate" placeholder="Date">
-    </div>
-  </header>
+<!-- Purple online-homework hero — name/date inputs now fully readable -->
+<header class="hw-hero">
+  <span class="hw-badge">UNIT 14 · SCIENCE</span>
+  <span class="hw-badge">KID 11 · ONLINE HOMEWORK</span>
+  <h1>Doctor Fish 🐟</h1>
+  <p class="hw-sub">Live Worksheet · Home Assignments 1 &amp; 2 · Reading, Writing &amp; Critical Thinking · auto-graded</p>
+  <div class="hw-meta">
+    <input type="text" id="stuName" placeholder="Name" autocomplete="name" maxlength="40" aria-label="Your name">
+    <input type="text" id="stuDate" placeholder="Date" aria-label="Date">
+  </div>
+</header>
 
-  <!-- WARM-UP (not graded) -->
-  <section class="card">
-    <h2 class="sec-title"><span class="chip">★</span> Warm-Up</h2>
-    <p class="hint">Preview &amp; Predict: look at the title and think before you read. Not graded.</p>
-    <p>Animals can make people happier and healthier. <b>How can fish help our health?</b> Write your prediction:</p>
-    <textarea placeholder="I think fish can help because..."></textarea>
-  </section>
 
-  <!-- PASSAGE -->
-  <section class="card">
-    <details>
-      <summary>📖 Reading Passage — Doctor Fish (218 words) · click to open</summary>
-      <div class="passage">
-        <p>For a long time, people have known that eating fish is healthy. It is common knowledge that eating fish is good for our skin. Now people are noticing that living fish, <span class="hl">in particular</span> "doctor fish," can also be good for our skin. Going to a "doctor fish" hot <span class="hl">spring</span> is becoming a popular way to <span class="hl">treat</span> certain forms of skin disease.</p>
-        <p>"Doctor fish" are an interesting species of fish called <i>garra rufa</i>. They are found near two small towns in Turkey. In these towns, there are hot springs. These little fish live in the warm waters of these hot springs. Because it is hard for <span class="hl">nutrients</span> to survive in hot spring water, the fish are very hungry. As a result, they like to eat dead skin.</p>
-        <p>Every year, about 3,000 visitors come to these towns to sit in the hot springs with the fish. As they sit, the fish <span class="hl">surround</span> them and eat the bad parts of their skin. Amazingly, the fish do not harm the healthy skin. According to studies, "doctor fish" can help people with <span class="hl">severe</span> skin problems get clear skin in 21 days. Unfortunately, this is not a <span class="hl">permanent</span> cure. But luckily, the results can last for many months.</p>
-        <p>For people <span class="hl">suffering from</span> certain skin diseases, "doctor fish" may be a good option for treatment.</p>
-      </div>
-    </details>
-  </section>
+<!-- shared fish symbol -->
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="fish-shape" viewBox="0 0 120 60">
+  <path fill="currentColor" d="M8 30 Q38 6 84 22 L112 8 L103 30 L112 52 L84 38 Q38 54 8 30 Z"/>
+  <circle cx="86" cy="26" r="3.4" fill="#06222b"/>
+</symbol>
+</defs></svg>
 
-  <!-- A · VOCABULARY MATCHING -->
-  <section class="card">
-    <h2 class="sec-title"><span class="chip">A</span> Vocabulary Matching</h2>
-    <p class="hint">Match each highlighted word with its meaning (a–h).</p>
-
-    <div class="match" data-answer="h"><span>1. He mentioned one person <span class="hl">in particular</span>.</span>
-      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
-
-    <div class="match" data-answer="b"><span>2. The <span class="hl">spring</span> dried up three years ago.</span>
-      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
-
-    <div class="match" data-answer="d"><span>3. Doctors can <span class="hl">treat</span> the common cold but cannot cure it.</span>
-      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
-
-    <div class="match" data-answer="f"><span>4. Salt is an important <span class="hl">nutrient</span> for humans.</span>
-      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
-
-    <div class="match" data-answer="a"><span>5. She likes to <span class="hl">surround</span> her house with flowers.</span>
-      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
-
-    <div class="match" data-answer="e"><span>6. She fell asleep on the beach and got a <span class="hl">severe</span> sunburn.</span>
-      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
-
-    <div class="match" data-answer="c"><span>7. Is this scar <span class="hl">permanent</span>, or will it go away?</span>
-      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
-
-    <div class="match" data-answer="g"><span>8. I <span class="hl">suffer from</span> a bad cold.</span>
-      <select><option value="">— choose —</option><option value="a">a. to be on all sides</option><option value="b">b. a place where water flows from the ground naturally</option><option value="c">c. lasting forever</option><option value="d">d. to try to make an illness better</option><option value="e">e. extremely bad or unpleasant</option><option value="f">f. something that plants or animals need to live or grow</option><option value="g">g. to be affected badly by something, usually an illness</option><option value="h">h. especially</option></select><small class="fb"></small></div>
-  </section>
-
-  <!-- B · COMPREHENSION -->
-  <section class="card">
-    <h2 class="sec-title"><span class="chip">B</span> Reading Comprehension</h2>
-    <p class="hint">Choose the best answer.</p>
-
-    <div class="q" data-answer="a"><p><b>1.</b> What is the scientific name of "doctor fish"?</p>
-      <div class="opts"><button class="opt" data-val="a">a) Garra rufa</button><button class="opt" data-val="b">b) Turkey rufa</button><button class="opt" data-val="c">c) Doctor rufa</button></div><small class="fb"></small></div>
-
-    <div class="q" data-answer="b"><p><b>2.</b> Where do doctor fish live?</p>
-      <div class="opts"><button class="opt" data-val="a">a) In cold rivers in Turkey</button><button class="opt" data-val="b">b) In hot springs near two small towns in Turkey</button><button class="opt" data-val="c">c) In hospital fish tanks</button></div><small class="fb"></small></div>
-
-    <div class="q" data-answer="a"><p><b>3.</b> Why do doctor fish eat dead skin?</p>
-      <div class="opts"><button class="opt" data-val="a">a) They are very hungry — few nutrients survive in hot spring water</button><button class="opt" data-val="b">b) Dead skin tastes sweet</button><button class="opt" data-val="c">c) Visitors feed them bread</button></div><small class="fb"></small></div>
-
-    <div class="q" data-answer="b"><p><b>4.</b> About how many visitors come to the towns every year?</p>
-      <div class="opts"><button class="opt" data-val="a">a) 300</button><button class="opt" data-val="b">b) 3,000</button><button class="opt" data-val="c">c) 30,000</button></div><small class="fb"></small></div>
-
-    <div class="q" data-answer="a"><p><b>5.</b> According to studies, how long can it take to get clear skin?</p>
-      <div class="opts"><button class="opt" data-val="a">a) 21 days</button><button class="opt" data-val="b">b) 21 months</button><button class="opt" data-val="c">c) 2 days</button></div><small class="fb"></small></div>
-
-    <div class="q" data-answer="b"><p><b>6.</b> What do the fish do to healthy skin?</p>
-      <div class="opts"><button class="opt" data-val="a">a) They eat it slowly</button><button class="opt" data-val="b">b) They do not harm it</button><button class="opt" data-val="c">c) They scratch it</button></div><small class="fb"></small></div>
-  </section>
-
-  <!-- C · TRUE / FALSE -->
-  <section class="card">
-    <h2 class="sec-title"><span class="chip">C</span> True or False</h2>
-    <p class="hint">Based on the passage.</p>
-
-    <div class="q" data-answer="T"><p><b>1.</b> Eating fish is good for our skin.</p>
-      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
-    <div class="q" data-answer="T"><p><b>2.</b> Doctor fish are found near two small towns in Turkey.</p>
-      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
-    <div class="q" data-answer="F"><p><b>3.</b> The fish eat both dead skin and healthy skin.</p>
-      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
-    <div class="q" data-answer="F"><p><b>4.</b> The doctor fish treatment is a permanent cure.</p>
-      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
-    <div class="q" data-answer="T"><p><b>5.</b> The results of the treatment can last for many months.</p>
-      <div class="opts"><button class="opt" data-val="T">True</button><button class="opt" data-val="F">False</button></div><small class="fb"></small></div>
-  </section>
-
-  <!-- D · FILL IN THE BLANKS -->
-  <section class="card">
-    <h2 class="sec-title"><span class="chip">D</span> Fill in the Blanks</h2>
-    <p class="hint">Complete the summary using the word bank. Type your answers.</p>
-    <div class="bank"><span>treat</span><span>severe</span><span>spring</span><span>in particular</span><span>permanent</span><span>nutrients</span><span>suffering from</span><span>surround</span></div>
-    <p class="cloze">
-      People, <span class="blank" data-answer="in particular"><input type="text" size="14" placeholder="(1)" spellcheck="false"><small class="fb"></small></span>
-      those with skin problems, travel to a hot
-      <span class="blank" data-answer="spring"><input type="text" size="10" placeholder="(2)" spellcheck="false"><small class="fb"></small></span>
-      in Turkey to
-      <span class="blank" data-answer="treat"><input type="text" size="9" placeholder="(3)" spellcheck="false"><small class="fb"></small></span>
-      their skin. Few
-      <span class="blank" data-answer="nutrients|nutrient"><input type="text" size="11" placeholder="(4)" spellcheck="false"><small class="fb"></small></span>
-      survive in the warm water, so the fish are very hungry. They
-      <span class="blank" data-answer="surround"><input type="text" size="11" placeholder="(5)" spellcheck="false"><small class="fb"></small></span>
-      the visitors and eat the dead skin. People
-      <span class="blank" data-answer="suffering from|suffer from"><input type="text" size="15" placeholder="(6)" spellcheck="false"><small class="fb"></small></span>
-      <span class="blank" data-answer="severe"><input type="text" size="9" placeholder="(7)" spellcheck="false"><small class="fb"></small></span>
-      skin problems can get clear skin in 21 days, but it is not a
-      <span class="blank" data-answer="permanent"><input type="text" size="12" placeholder="(8)" spellcheck="false"><small class="fb"></small></span> cure.
-    </p>
-  </section>
-
-  <!-- E · CONJUNCTIVE ADVERBS -->
-  <section class="card">
-    <h2 class="sec-title"><span class="chip">E</span> Vocabulary Skills — Conjunctive Adverbs</h2>
-    <p class="hint">Choose: <b>thus</b> (because of that) · <b>moreover</b> (also) · <b>in particular</b> (especially).</p>
-
-    <div class="q" data-answer="thus"><p><b>1.</b> The hot spring water has few nutrients. ______, the fish are very hungry.</p>
-      <div class="opts"><button class="opt" data-val="thus">thus</button><button class="opt" data-val="moreover">moreover</button><button class="opt" data-val="in particular">in particular</button></div><small class="fb"></small></div>
-    <div class="q" data-answer="moreover"><p><b>2.</b> The fish eat dead skin. ______, they do not harm healthy skin.</p>
-      <div class="opts"><button class="opt" data-val="thus">thus</button><button class="opt" data-val="moreover">moreover</button><button class="opt" data-val="in particular">in particular</button></div><small class="fb"></small></div>
-    <div class="q" data-answer="in particular"><p><b>3.</b> Living fish, ______ "doctor fish," can also be good for our skin.</p>
-      <div class="opts"><button class="opt" data-val="thus">thus</button><button class="opt" data-val="moreover">moreover</button><button class="opt" data-val="in particular">in particular</button></div><small class="fb"></small></div>
-  </section>
-
-  <!-- RESULTS -->
-  <section class="card" id="results" hidden>
-    <h2 class="sec-title"><span class="chip">✓</span> Your Results</h2>
-    <div class="score-big" id="scoreNum"></div>
-    <div class="meter"><i id="scoreBar"></i></div>
-    <p id="scoreMsg"></p>
-  </section>
-
+<!-- living background -->
+<div class="bg" aria-hidden="true">
+  <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+  <div class="grain"></div>
+  <span class="bubble" style="left:7%;width:24px;height:24px;animation-duration:15s"></span>
+  <span class="bubble" style="left:20%;width:13px;height:13px;animation-duration:11s;animation-delay:2s"></span>
+  <span class="bubble" style="left:38%;width:30px;height:30px;animation-duration:19s;animation-delay:5s"></span>
+  <span class="bubble" style="left:57%;width:16px;height:16px;animation-duration:12s;animation-delay:1s"></span>
+  <span class="bubble" style="left:73%;width:22px;height:22px;animation-duration:17s;animation-delay:4s"></span>
+  <span class="bubble" style="left:88%;width:12px;height:12px;animation-duration:10s;animation-delay:6s"></span>
+  <div class="fish" style="top:16vh;animation-duration:52s"><svg width="110" height="55"><use href="#fish-shape"/></svg></div>
+  <div class="fish rev" style="top:52vh;animation-duration:68s;animation-delay:-24s;color:rgba(255,179,0,.10)"><svg width="76" height="38"><use href="#fish-shape"/></svg></div>
+  <div class="fish" style="top:78vh;animation-duration:44s;animation-delay:-12s;color:rgba(233,30,99,.09)"><svg width="58" height="29"><use href="#fish-shape"/></svg></div>
 </div>
 
-<!-- SHARE SHEET (opens above the action bar) -->
-<div class="cmc-share" id="cmcShare" role="dialog" aria-label="Share this homework">
-  <button onclick="cmcCopyLink()"><span aria-hidden="true">🔗</span> Copy Link</button>
-  <button onclick="cmcShareWA()"><span aria-hidden="true">💬</span> WhatsApp</button>
-  <button onclick="cmcShareTG()"><span aria-hidden="true">✈️</span> Telegram</button>
-  <button onclick="cmcShareEmail()"><span aria-hidden="true">✉️</span> Email</button>
-  <button class="close" onclick="cmcToggleShare(false)" aria-label="Close share menu">✕</button>
+<!-- fixed header -->
+<header class="site-head">
+  <div class="brand">
+    <svg viewBox="0 0 120 60"><use href="#fish-shape"/></svg>
+    <span>DOCTOR FISH<small>UNIT 14 · SCIENCE · HOME ASSIGNMENTS</small></span>
+  </div>
+  <nav class="tabs" aria-label="Choose assignment">
+    <button class="switch-btn" data-mode="a"><span class="dot"></span>01 · Newsroom</button>
+    <button class="switch-btn" data-mode="b"><span class="dot"></span>02 · Clinic</button>
+  </nav>
+</header>
+
+<!-- ================================================== -->
+<!-- ASSIGNMENT A · THE SCIENCE JOURNALIST -->
+<!-- ================================================== -->
+<main class="assignment" id="assignment-a">
+
+  <section class="hero-card reveal">
+    <span class="stamp">PRESS · Nº 14</span>
+    <span class="kicker">HOME ASSIGNMENT 1 · WRITING &amp; MEDIA</span>
+    <h1>You are the <em>Science Journalist</em> 📰</h1>
+    <p class="brief">A health magazine has sent you to Turkey to report on "doctor fish". Your editor needs facts, a catchy headline, a strong lead paragraph and expert sentences. Work through the newsroom tasks in order — <b>22 points</b> are on the table. Estimated time: 40–50 minutes.</p>
+    <div class="meta">
+      <input type="text" placeholder="Reporter name" aria-label="Your name">
+      <input type="text" placeholder="Date" aria-label="Date">
+    </div>
+    <div class="hero-stats"><span>6 facts</span><span>8 claims to judge</span><span>1 headline</span><span>1 lead paragraph</span><span>3 expert sentences</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress">
+      <div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 22 answered</span></div>
+      <div class="progress-track"><div class="progress-fill"></div></div>
+    </div>
+    <button class="btn small" data-action="check">Submit to Editor</button>
+    <button class="btn ghost small" data-action="reset">Reset</button>
+    <button class="btn ghost small no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <!-- A1 · FACTS -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">A1</span><h2>Get the Facts — the 5W1H Desk</h2><span class="pts">6 PTS</span></div>
+    <p class="hint">Every story starts with verified facts. Use the passage in your textbook (Track 29) to complete the reporter's notebook. Type your answers.</p>
+    <div class="g-item field-row" data-answer="garra rufa"><label><b>WHAT</b> — the scientific name of the fish</label><input type="text" spellcheck="false" placeholder="species name"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="turkey"><label><b>WHERE</b> — the country with the hot springs</label><input type="text" spellcheck="false" placeholder="country"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="3000|about 3000|around 3000"><label><b>HOW MANY</b> — visitors to the towns each year</label><input type="text" spellcheck="false" placeholder="number"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="21|21 days|twenty-one days"><label><b>HOW LONG</b> — time to get clear skin, according to studies</label><input type="text" spellcheck="false" placeholder="time"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="nutrients|nutrient"><label><b>WHY</b> — the fish are hungry because few ______ survive in the water</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="dead"><label><b>WHAT</b> — the fish like to eat ______ skin</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+  </section>
+
+  <!-- A2 · FACT OR OPINION -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">A2</span><h2>Fact or Opinion? The Verification Desk</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Journalists never print opinions as facts. <b>Tap a card, then tap a bin</b> to sort it. Tap a placed card to send it back.</p>
+    <div class="sort-task">
+      <div class="tray">
+        <span class="tray-label">INCOMING CLAIMS — SORT ALL 8</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="fact">Garra rufa live in hot springs in Turkey.</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="opinion">Doctor fish are the most fascinating creatures on Earth.</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="fact">Around 3,000 people visit the springs each year.</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="opinion">Fish spas are better than any hospital treatment.</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="fact">The fish eat dead skin but leave healthy skin alone.</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="opinion">Everyone with skin problems should try doctor fish.</button>
+        <button type="button" class="sort-card" data-idx="6" data-correct="fact">Studies show clear skin can appear in 21 days.</button>
+        <button type="button" class="sort-card" data-idx="7" data-correct="opinion">A fish spa is the most relaxing holiday ever.</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="fact" tabindex="0" role="button" aria-label="Place selected card in FACT"><h4>📌 FACT</h4><p class="bin-sub">CAN BE PROVEN</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="opinion" tabindex="0" role="button" aria-label="Place selected card in OPINION"><h4>💭 OPINION</h4><p class="bin-sub">A FEELING OR BELIEF</p><div class="bin-body"></div></div>
+      </div>
+      <small class="fb"></small>
+    </div>
+  </section>
+
+  <!-- A3 · HEADLINE -->
+  <section class="task write-task reveal" id="w-headline">
+    <div class="task-head"><span class="tnum">A3</span><h2>The Headline Desk</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Write a headline for your story. The live checklist below turns green as your headline meets the editor's rules.</p>
+    <input type="text" placeholder="Type your headline here…" aria-label="Your headline">
+    <div class="write-meta"><span class="wc">0 / 60 characters</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See model headlines</summary>
+      <p>"Tiny Fish, Big Cure: Turkey's Living Skin Doctors" · "The Fish That Eat Your Problems Away" · "21 Days to Clear Skin — with a Little Help from Garra Rufa"</p>
+    </details>
+    <small class="fb"></small>
+  </section>
+
+  <!-- A4 · LEAD PARAGRAPH -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">A4</span><h2>Build the Lead Paragraph</h2><span class="pts">4 PTS</span></div>
+    <p class="hint">Your four sentences arrived in the wrong order. Use ↑ and ↓ to arrange them: <b>hook → the fish → the visitors → the results</b>.</p>
+    <div class="order-task" data-solution="hook,who,detail,payoff">
+      <ol class="order-list">
+        <li data-key="detail"><span class="ord-text">Every year, about 3,000 visitors sit in the water while the fish eat their dead skin.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="payoff"><span class="ord-text">Studies suggest the treatment can clear severe skin problems in just 21 days.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="hook"><span class="ord-text">A tiny fish in Turkey is becoming a surprising new kind of doctor.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="who"><span class="ord-text">The fish, called garra rufa, live in warm hot springs near two small towns.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+      </ol>
+      <small class="fb"></small>
+    </div>
+  </section>
+
+  <!-- A5 · EXPERT SENTENCES -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">A5</span><h2>Quote the Expert — Linking Adverbs</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">Write your own sentences for the article. Each must use the target adverb and contain at least 8 words. The checklists update live.</p>
+
+    <div class="sub-q write-task" id="w-thus">
+      <label>1. Explain <b>why</b> the fish eat dead skin. Use <span class="hl">thus</span>.</label>
+      <textarea placeholder="Few nutrients survive in the hot spring water…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div>
+      <ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"Few nutrients survive in the hot spring water; thus, the fish are always hungry and eat dead skin."</p></details>
+      <small class="fb"></small>
+    </div>
+
+    <div class="sub-q write-task" id="w-moreover">
+      <label>2. Add a <b>second benefit</b> of the treatment. Use <span class="hl">moreover</span>.</label>
+      <textarea placeholder="The fish remove dead skin…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div>
+      <ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"The fish remove dead skin; moreover, they never harm the healthy skin."</p></details>
+      <small class="fb"></small>
+    </div>
+
+    <div class="sub-q write-task" id="w-inparticular">
+      <label>3. Zoom in from "fish" to "doctor fish". Use <span class="hl">in particular</span>.</label>
+      <textarea placeholder="Many animals help people…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div>
+      <ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"Many animals help people; fish, in particular doctor fish, can help our skin."</p></details>
+      <small class="fb"></small>
+    </div>
+  </section>
+
+  <!-- A6 · EDITOR'S CHECKLIST -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">A6</span><h2>The Editor's Checklist</h2><span class="pts">REFLECT</span></div>
+    <p class="hint">Before you submit, tick what is true. Honest journalists check their own work. <span class="ready-count">Ready: 0 / 4</span></p>
+    <ul class="ready-list">
+      <li><label><input type="checkbox" class="ready-check"> I used at least four new words from Unit 14 in my writing.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> My headline is short, catchy and has no full stop.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> I checked every fact against the reading passage.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> I used <b>thus</b>, <b>moreover</b> and <b>in particular</b> correctly.</label></li>
+    </ul>
+  </section>
+
+  <!-- RESULTS A -->
+  <section class="task results" hidden>
+    <div class="ring-wrap">
+      <svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg>
+      <span class="ring-pct">0%</span>
+    </div>
+    <div class="results-body">
+      <h2>The Editor's Verdict</h2>
+      <div class="score-line"></div>
+      <p class="score-msg"></p>
+      <div class="results-actions no-print">
+        <button class="btn small" data-action="review">Review mistakes</button>
+        <button class="btn paper small" data-action="print">🖨 Print / Save PDF</button>
+        <button class="btn paper small" data-action="reset">Try again</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================================================== -->
+<!-- ASSIGNMENT B · THE HEALTH ADVISOR -->
+<!-- ================================================== -->
+<main class="assignment" id="assignment-b" hidden>
+
+  <section class="hero-card reveal">
+    <span class="stamp">CASE FILE #14</span>
+    <span class="kicker">HOME ASSIGNMENT 2 · CRITICAL THINKING &amp; SPEAKING</span>
+    <h1>You are the <em>Health Advisor</em> 🩺</h1>
+    <p class="brief">A client with severe skin problems asks you: <i>"Should I try doctor fish?"</i> Study the case, link causes to effects, weigh benefits against limitations, and prepare a professional recommendation you can defend. <b>21 points</b> are available. Estimated time: 35–45 minutes.</p>
+    <div class="meta">
+      <input type="text" placeholder="Advisor name" aria-label="Your name">
+      <input type="text" placeholder="Date" aria-label="Date">
+    </div>
+    <div class="hero-stats"><span>5 cause–effect links</span><span>8 evidence cards</span><span>3 evidence checks</span><span>1 recommendation</span><span>3 client answers</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress">
+      <div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 21 answered</span></div>
+      <div class="progress-track"><div class="progress-fill"></div></div>
+    </div>
+    <button class="btn small" data-action="check">File the Report</button>
+    <button class="btn ghost small" data-action="reset">Reset</button>
+    <button class="btn ghost small no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <!-- B1 · CAUSE & EFFECT -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">B1</span><h2>Case Analysis — Cause → Effect</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">A good advisor understands <b>why</b> things happen. Match each cause (1–5) with its effect (a–e).</p>
+    <div class="g-item field-row" data-answer="d"><label><b>1.</b> Few nutrients survive in hot spring water.</label>
+      <select><option value="">— choose effect —</option><option value="a">a. healthy skin stays safe</option><option value="b">b. the results last for many months, not forever</option><option value="c">c. fish spas are becoming a popular treatment</option><option value="d">d. the fish are very hungry</option><option value="e">e. they like to eat dead skin</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="e"><label><b>2.</b> The fish are very hungry.</label>
+      <select><option value="">— choose effect —</option><option value="a">a. healthy skin stays safe</option><option value="b">b. the results last for many months, not forever</option><option value="c">c. fish spas are becoming a popular treatment</option><option value="d">d. the fish are very hungry</option><option value="e">e. they like to eat dead skin</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label><b>3.</b> The fish eat only dead skin.</label>
+      <select><option value="">— choose effect —</option><option value="a">a. healthy skin stays safe</option><option value="b">b. the results last for many months, not forever</option><option value="c">c. fish spas are becoming a popular treatment</option><option value="d">d. the fish are very hungry</option><option value="e">e. they like to eat dead skin</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label><b>4.</b> The treatment is not a permanent cure.</label>
+      <select><option value="">— choose effect —</option><option value="a">a. healthy skin stays safe</option><option value="b">b. the results last for many months, not forever</option><option value="c">c. fish spas are becoming a popular treatment</option><option value="d">d. the fish are very hungry</option><option value="e">e. they like to eat dead skin</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="c"><label><b>5.</b> About 3,000 visitors come every year.</label>
+      <select><option value="">— choose effect —</option><option value="a">a. healthy skin stays safe</option><option value="b">b. the results last for many months, not forever</option><option value="c">c. fish spas are becoming a popular treatment</option><option value="d">d. the fish are very hungry</option><option value="e">e. they like to eat dead skin</option></select><small class="fb"></small></div>
+  </section>
+
+  <!-- B2 · BENEFITS VS LIMITATIONS -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">B2</span><h2>Weigh the Treatment — Benefits vs Limitations</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Every treatment has two sides. <b>Tap a card, then tap a column</b> to file it. Tap a filed card to return it.</p>
+    <div class="sort-task">
+      <div class="tray">
+        <span class="tray-label">EVIDENCE CARDS — FILE ALL 8</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="benefit">Can clear severe skin problems in 21 days</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="limitation">It is not a permanent cure</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="benefit">Does not harm healthy skin</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="limitation">The springs are only near two small towns in Turkey</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="benefit">Results can last for many months</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="limitation">Clients must travel to the hot springs</button>
+        <button type="button" class="sort-card" data-idx="6" data-correct="benefit">A natural treatment — no medicine needed</button>
+        <button type="button" class="sort-card" data-idx="7" data-correct="limitation">It may not help every kind of skin disease</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="benefit" tabindex="0" role="button" aria-label="Place selected card in BENEFITS"><h4>✔ BENEFITS</h4><p class="bin-sub">REASONS TO TRY IT</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="limitation" tabindex="0" role="button" aria-label="Place selected card in LIMITATIONS"><h4>⚠ LIMITATIONS</h4><p class="bin-sub">THINGS TO WARN ABOUT</p><div class="bin-body"></div></div>
+      </div>
+      <small class="fb"></small>
+    </div>
+  </section>
+
+  <!-- B3 · EVIDENCE -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">B3</span><h2>Check the Evidence</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">Professional advisors know where claims come from. Choose the best answer.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> "Doctor fish can clear skin in 21 days." Where does this claim come from?</p>
+      <div class="opts"><button type="button" class="opt" data-val="a">Common knowledge</button><button type="button" class="opt" data-val="b">Studies / research</button><button type="button" class="opt" data-val="c">The writer's imagination</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>2.</b> "Eating fish is good for our skin." The passage calls this…</p>
+      <div class="opts"><button type="button" class="opt" data-val="a">a new discovery</button><button type="button" class="opt" data-val="b">common knowledge</button><button type="button" class="opt" data-val="c">a permanent cure</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>3.</b> Which sentence shows the writer is <b>careful</b>, not 100% certain?</p>
+      <div class="opts"><button type="button" class="opt" data-val="a">"Doctor fish may be a good option for treatment."</button><button type="button" class="opt" data-val="b">"The fish are very hungry."</button><button type="button" class="opt" data-val="c">"They are found in Turkey."</button></div><small class="fb"></small></div>
+  </section>
+
+  <!-- B4 · RECOMMENDATION -->
+  <section class="task write-task reveal" id="w-reco">
+    <div class="task-head"><span class="tnum">B4</span><h2>Write Your Recommendation</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Write a 60–100 word recommendation to your client. The live checklist shows exactly what a professional answer needs.</p>
+    <div class="client"><span class="avatar">🧑</span><p><b>Client: Maya, 34.</b> She has suffered from severe skin problems for years and asks: <i>"Should I travel to Turkey for doctor fish treatment?"</i></p></div>
+    <textarea placeholder="Dear Maya, thank you for your question…"></textarea>
+    <div class="write-meta"><span class="wc">0 words</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See a model recommendation</summary>
+      <p>"Dear Maya, thank you for your question. Doctor fish may be a good option for your severe skin problems. According to studies, the treatment can give you clear skin in 21 days. The fish eat only dead skin; moreover, they do not harm healthy skin. Thus, it is a natural and gentle treatment. However, it is not a permanent cure, so the results last for many months, not forever. I recommend trying it, in particular if other treatments have not helped."</p>
+    </details>
+    <small class="fb"></small>
+  </section>
+
+  <!-- B5 · CLIENT QUESTIONS -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">B5</span><h2>Face the Client — Speaking Prep</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">In the next lesson you will role-play this conversation. Prepare an answer of at least 10 words for each question. Use the phrase chips for support.</p>
+
+    <div class="sub-q write-task" id="w-q1">
+      <label>1. Maya asks: <i>"Will the fish hurt me?"</i></label>
+      <div class="chips"><span>not at all</span><span>only dead skin</span><span>healthy skin is safe</span></div>
+      <textarea placeholder="Not at all. The fish…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div>
+      <ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"Not at all. The fish only eat dead skin, so your healthy skin stays completely safe."</p></details>
+      <small class="fb"></small>
+    </div>
+
+    <div class="sub-q write-task" id="w-q2">
+      <label>2. Maya asks: <i>"Is the cure permanent?"</i></label>
+      <div class="chips"><span>unfortunately</span><span>not permanent</span><span>last for many months</span></div>
+      <textarea placeholder="Unfortunately, no…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div>
+      <ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"Unfortunately, no. It is not permanent, but luckily the results can last for many months."</p></details>
+      <small class="fb"></small>
+    </div>
+
+    <div class="sub-q write-task" id="w-q3">
+      <label>3. Maya asks: <i>"Why should I choose this treatment?"</i></label>
+      <div class="chips"><span>according to studies</span><span>21 days</span><span>a natural option</span></div>
+      <textarea placeholder="According to studies…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div>
+      <ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"According to studies, it can clear severe skin problems in 21 days, and it is a natural option."</p></details>
+      <small class="fb"></small>
+    </div>
+  </section>
+
+  <!-- B6 · VERDICT -->
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">B6</span><h2>The Final Verdict</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Based on all the evidence, choose the most professional advice.</p>
+    <div class="g-item q" data-answer="b"><p><b>What do you tell Maya?</b></p>
+      <div class="opts"><button type="button" class="opt" data-val="a">"Yes — it is a permanent cure, so book the trip today."</button><button type="button" class="opt" data-val="b">"It may help, but you must understand the results are not permanent."</button><button type="button" class="opt" data-val="c">"No — the fish harm healthy skin, so it is dangerous."</button></div><small class="fb"></small></div>
+  </section>
+
+  <!-- RESULTS B -->
+  <section class="task results" hidden>
+    <div class="ring-wrap">
+      <svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg>
+      <span class="ring-pct">0%</span>
+    </div>
+    <div class="results-body">
+      <h2>The Clinic's Assessment</h2>
+      <div class="score-line"></div>
+      <p class="score-msg"></p>
+      <div class="results-actions no-print">
+        <button class="btn small" data-action="review">Review mistakes</button>
+        <button class="btn paper small" data-action="print">🖨 Print / Save PDF</button>
+        <button class="btn paper small" data-action="reset">Try again</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Bottom bar: student completion submit + share (grading lives in each assignment toolbar) -->
+<div class="hw-bar no-print">
+  <button type="button" class="hw-btn hw-btn-submit" id="submitBtn">Submit to Teacher ✓</button>
+  <button type="button" class="hw-btn hw-btn-ghost" data-cmc-share aria-haspopup="true">Share homework ▾</button>
 </div>
 <div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
-
-<!-- ACTION BAR -->
-<div class="bar">
-  <button class="btn" onclick="checkAnswers()">Check Answers</button>
-  <button class="btn btn-submit" id="submitBtn" onclick="submitCompletion()">Submit to Teacher ✓</button>
-  <span id="miniScore">– / 30</span>
-  <button class="btn ghost" onclick="cmcToggleOrShare()">Share</button>
-  <button class="btn ghost" onclick="resetAll()">Try Again</button>
+<div class="cmc-share" id="cmcShare">
+  <button type="button" data-cmc-copy>🔗 Copy Link</button>
+  <button type="button" data-cmc-wa>💬 WhatsApp</button>
+  <button type="button" data-cmc-tg>✈️ Telegram</button>
+  <button type="button" data-cmc-email>✉️ Email</button>
+  <button type="button" class="close" data-cmc-close>✕ Close</button>
 </div>
 
+<noscript><p style="position:relative;z-index:2;text-align:center;padding:20px">Please enable JavaScript to use the interactive assignments.</p></noscript>
+
 <script>
-  // Normalise typed answers: lowercase, trim, single spaces
-  const norm = s => s.toLowerCase().trim().replace(/\s+/g, ' ');
+document.documentElement.classList.add('js');
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const norm = s=>String(s).toLowerCase().replace(/,/g,'').replace(/[.!?]+$/,'').trim().replace(/\s+/g,' ');
+const wc   = s=>(String(s).trim().match(/\S+/g)||[]).length;
+const VOCAB = ['treat','severe','permanent','spring','nutrient','surround','suffer','in particular'];
 
-  // Handle option-button groups (MCQ, True/False, adverbs)
-  document.querySelectorAll('.opts').forEach(group => {
-    group.addEventListener('click', e => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-      group.querySelectorAll('button').forEach(b => b.classList.remove('picked'));
-      btn.classList.add('picked');
-      group.closest('[data-answer]').dataset.picked = btn.dataset.val;
-    });
+/* ---------- live writing checklists ---------- */
+const WRITE = {
+  'w-headline':{unit:'chars',checks:[
+    {label:'Between 10 and 60 characters',test:t=>{const n=t.trim().length;return n>=10&&n<=60;}},
+    {label:'Mentions fish, skin or "doctor"',test:t=>/fish|skin|doctor/i.test(t)},
+    {label:'No full stop at the end',test:t=>t.trim().length>0&&!/\.$/.test(t.trim())}]},
+  'w-thus':{checks:[
+    {label:'Uses the word "thus"',test:t=>/\bthus\b/i.test(t)},
+    {label:'At least 8 words',test:t=>wc(t)>=8}]},
+  'w-moreover':{checks:[
+    {label:'Uses the word "moreover"',test:t=>/\bmoreover\b/i.test(t)},
+    {label:'At least 8 words',test:t=>wc(t)>=8}]},
+  'w-inparticular':{checks:[
+    {label:'Uses "in particular"',test:t=>/\bin particular\b/i.test(t)},
+    {label:'At least 8 words',test:t=>wc(t)>=8}]},
+  'w-reco':{checks:[
+    {label:'60–100 words',test:t=>{const n=wc(t);return n>=60&&n<=100;}},
+    {label:'2+ unit words (treat, severe, permanent, spring, nutrient, surround, suffer…)',test:t=>VOCAB.filter(v=>t.toLowerCase().includes(v)).length>=2},
+    {label:'A careful word: may / might / could',test:t=>/\b(may|might|could)\b/i.test(t)},
+    {label:'A linking adverb: thus / moreover / in particular',test:t=>/\b(thus|moreover)\b|\bin particular\b/i.test(t)}]},
+  'w-q1':{checks:[{label:'At least 10 words',test:t=>wc(t)>=10}]},
+  'w-q2':{checks:[{label:'At least 10 words',test:t=>wc(t)>=10}]},
+  'w-q3':{checks:[{label:'At least 10 words',test:t=>wc(t)>=10}]}
+};
+
+$$('.write-task').forEach(t=>{
+  const cfg=WRITE[t.id]; if(!cfg)return;
+  const field=$('textarea,input',t), list=$('.checks',t);
+  cfg.checks.forEach(c=>{const li=document.createElement('li');li.innerHTML='<span class="dot"></span><span>'+c.label+'</span>';list.appendChild(li);});
+  const update=()=>{
+    const v=field.value; let pass=true;
+    cfg.checks.forEach((c,i)=>{const ok=c.test(v);list.children[i].classList.toggle('ok',ok);if(!ok)pass=false;});
+    t.dataset.pass=pass?'1':'0';
+    $('.wc',t).textContent = cfg.unit==='chars' ? v.trim().length+' / 60 characters' : wc(v)+' words';
+    refreshProgress(t.closest('.assignment'));
+  };
+  field.addEventListener('input',update);
+  t._update=update; update();
+});
+
+/* ---------- progress ---------- */
+function hasResponse(q){
+  const sel=$('select',q),inp=$('input',q);
+  if(sel)return sel.value!=='';
+  if(inp)return inp.value.trim()!=='';
+  return !!q.dataset.picked;
+}
+function refreshProgress(root){
+  if(!root)return;
+  let done=0,total=0;
+  $$('.g-item',root).forEach(q=>{total++;if(hasResponse(q))done++;});
+  $$('.sort-task',root).forEach(t=>{const cards=$$('.sort-card',t);total+=cards.length;done+=cards.filter(c=>c.closest('.bin')).length;});
+  $$('.order-task',root).forEach(t=>{const n=$$('li',t).length;total+=n;if(t.dataset.touched)done+=n;});
+  $$('.write-task',root).forEach(t=>{total++;if($('textarea,input',t).value.trim())done++;});
+  const pct=total?Math.round(done/total*100):0;
+  $('.progress-fill',root).style.width=pct+'%';
+  $('.progress-label-text',root).textContent=done+' / '+total+' answered';
+}
+
+/* ---------- interactions (delegated per assignment) ---------- */
+$$('.assignment').forEach(root=>{
+  root.addEventListener('click',e=>{
+    const act=e.target.closest('[data-action]');
+    if(act){doAction(act.dataset.action,root);return;}
+    const opt=e.target.closest('.opt');
+    if(opt){
+      const q=opt.closest('.g-item');
+      $$('.opt',q).forEach(b=>b.classList.remove('picked'));
+      opt.classList.add('picked'); q.dataset.picked=opt.dataset.val;
+      q.classList.remove('correct','wrong'); $('.fb',q).textContent='';
+      refreshProgress(root); return;
+    }
+    const card=e.target.closest('.sort-card');
+    if(card){
+      const task=card.closest('.sort-task');
+      if(card.closest('.bin')){ $('.tray',task).appendChild(card); }
+      else{
+        const sel=$('.sort-card.selected',task);
+        if(sel===card)card.classList.remove('selected');
+        else{ if(sel)sel.classList.remove('selected'); card.classList.add('selected'); }
+      }
+      card.classList.remove('correct','wrong'); $('.fb',task).textContent='';
+      refreshProgress(root); return;
+    }
+    const bin=e.target.closest('.bin');
+    if(bin){placeCard(bin);return;}
+    const ob=e.target.closest('.ord-btn');
+    if(ob){
+      const li=ob.closest('li'),dir=+ob.dataset.dir;
+      const sib=dir<0?li.previousElementSibling:li.nextElementSibling;
+      if(!sib)return;
+      if(dir<0)li.parentNode.insertBefore(li,sib);else li.parentNode.insertBefore(sib,li);
+      const task=li.closest('.order-task'); task.dataset.touched='1';
+      $$('li',task).forEach(x=>x.classList.remove('correct','wrong'));
+      $('.fb',task).textContent=''; refreshProgress(root);
+    }
   });
+  root.addEventListener('keydown',e=>{
+    const bin=e.target.closest('.bin');
+    if(bin&&(e.key==='Enter'||e.key===' ')){e.preventDefault();placeCard(bin);}
+  });
+  const clearMark=e=>{
+    const q=e.target.closest('.g-item');
+    if(q&&(e.target.matches('input,select'))){q.classList.remove('correct','wrong');$('.fb',q).textContent='';refreshProgress(root);}
+    if(e.target.matches('.ready-check')){
+      const n=$$('.ready-check:checked',root).length;
+      const lbl=$('.ready-count',root); if(lbl)lbl.textContent='Ready: '+n+' / 4';
+    }
+  };
+  root.addEventListener('input',clearMark);
+  root.addEventListener('change',clearMark);
+});
 
-  // Latest graded result (set by checkAnswers, cleared by resetAll) —
-  // read by the Submit-to-Teacher button below.
-  let _lastScore = null;
+function placeCard(bin){
+  const task=bin.closest('.sort-task'),root=bin.closest('.assignment');
+  const sel=$('.sort-card.selected',task);
+  if(!sel){$('.fb',task).textContent='👆 Select a card first, then tap a column.';return;}
+  $('.bin-body',bin).appendChild(sel);
+  sel.classList.remove('selected','correct','wrong');
+  $('.fb',task).textContent=''; refreshProgress(root);
+}
 
-  function checkAnswers() {
-    let correct = 0, blank = 0;
-    const questions = document.querySelectorAll('[data-answer]');
-
-    questions.forEach(q => {
-      const key = q.dataset.answer;
-      const accepted = key.split('|').map(norm);   // "|" allows alternative answers
-      const sel = q.querySelector('select');
-      const inp = q.querySelector('input');
-      let val = '', shown = '';
-
-      if (sel) {                                   // matching dropdowns
-        val = sel.value;
-        const o = sel.querySelector('option[value="' + key + '"]');
-        shown = o ? o.textContent : key;
-      } else if (inp) {                            // typed blanks
-        val = inp.value;
-        shown = key.split('|')[0];
-      } else {                                     // button groups
-        val = q.dataset.picked || '';
-        const b = q.querySelector('button[data-val="' + key + '"]');
-        shown = b ? b.textContent : key;
-      }
-
-      const isBlank = norm(val) === '';
-      const ok = !isBlank && accepted.includes(norm(val));
-      q.classList.toggle('correct', ok);
-      q.classList.toggle('wrong', !ok);
-
-      const fb = q.querySelector('.fb');
-      if (ok) { correct++; fb.textContent = '✔ Correct'; }
-      else {
-        if (isBlank) blank++;
-        fb.textContent = (isBlank ? '⚠ Not answered. ' : '✘ ') + 'Answer: ' + shown;
-      }
+/* ---------- grading ---------- */
+function grade(root){
+  let earned=0,total=0;
+  $$('.g-item',root).forEach(q=>{
+    total++;
+    const key=q.dataset.answer,acc=key.split('|').map(norm);
+    const sel=$('select',q),inp=$('input',q);
+    let val='',shown='';
+    if(sel){val=sel.value;const o=sel.querySelector('option[value="'+key+'"]');shown=o?o.textContent:key;}
+    else if(inp){val=inp.value;shown=key.split('|')[0];}
+    else{val=q.dataset.picked||'';const b=q.querySelector('.opt[data-val="'+key+'"]');shown=b?b.textContent:key;}
+    const ok=norm(val)!==''&&acc.includes(norm(val));
+    q.classList.toggle('correct',ok);q.classList.toggle('wrong',!ok);
+    $('.fb',q).textContent=ok?'✔ Correct':'✘ Answer: '+shown;
+    if(ok)earned++;
+  });
+  $$('.sort-task',root).forEach(t=>{
+    const cards=$$('.sort-card',t);let c=0;
+    cards.forEach(card=>{
+      const bin=card.closest('.bin');
+      const ok=!!bin&&bin.dataset.bin===card.dataset.correct;
+      card.classList.toggle('correct',ok);card.classList.toggle('wrong',!ok);
+      if(ok)c++;
     });
+    total+=cards.length;earned+=c;
+    $('.fb',t).textContent=c+' / '+cards.length+' in the right column.'+(c===cards.length?' ✔':' — tap a card to move it.');
+  });
+  $$('.order-task',root).forEach(t=>{
+    const sol=t.dataset.solution.split(','),lis=$$('li',t);let c=0;
+    lis.forEach((li,i)=>{const ok=li.dataset.key===sol[i];li.classList.toggle('correct',ok);li.classList.toggle('wrong',!ok);if(ok)c++;});
+    total+=lis.length;earned+=c;
+    $('.fb',t).textContent=c+' / '+lis.length+' in the right position.'+(c===lis.length?' ✔':' Hint: hook → the fish → the visitors → the results.');
+  });
+  $$('.write-task',root).forEach(t=>{
+    total++;
+    const ok=t.dataset.pass==='1';
+    t.classList.toggle('correct',ok);t.classList.toggle('wrong',!ok);
+    $('.fb',t).textContent=ok?'✔ Requirements met — well done.':'✘ Finish the live checklist above to earn this point.';
+    if(ok)earned++;
+  });
+  showResults(root,earned,total);
+}
 
-    const total = questions.length;
-    const pct = Math.round(correct / total * 100);
-    _lastScore = { correct: correct, total: total, pct: pct };
-    document.getElementById('scoreNum').textContent = correct + ' / ' + total + '  (' + pct + '%)';
-    document.getElementById('scoreBar').style.width = pct + '%';
-    document.getElementById('miniScore').textContent = correct + ' / ' + total;
-
-    let msg = pct >= 90 ? '🏆 Excellent! You are a Doctor Fish expert!'
-            : pct >= 70 ? '🌟 Great job! Review the few you missed.'
-            : pct >= 50 ? '👍 Good effort — reread the passage and try again.'
-            : '📖 Open the reading passage above, then give it another try.';
-    if (blank > 0) msg += '  (' + blank + ' left blank)';
-    document.getElementById('scoreMsg').textContent = msg;
-
-    const res = document.getElementById('results');
-    res.hidden = false;
-    res.scrollIntoView({ behavior: 'smooth' });
+function showResults(root,earned,total){
+  const pct=Math.round(earned/total*100),panel=$('.results',root);
+  $('.score-line',panel).textContent=earned+' / '+total+' points';
+  $('.ring-pct',panel).textContent=pct+'%';
+  const isA=root.id==='assignment-a';
+  $('.score-msg',panel).textContent =
+    pct>=90 ? (isA?'🏆 Front-page material! Your editor is impressed.':'🏆 Trusted advisor! Your client is in safe hands.') :
+    pct>=70 ? (isA?'🌟 A strong draft — polish the marked items and resubmit.':'🌟 Sound advice — review the marked items before your meeting.') :
+    pct>=50 ? (isA?'✍️ A good start. Reread the passage and revise your story.':'👍 A reasonable start. Recheck the evidence and try again.') :
+              (isA?'📖 Open the reading passage in your textbook, then try again.':'📖 Study the case file in your textbook, then try again.');
+  panel.hidden=false;
+  requestAnimationFrame(()=>{ $('.ring-fg',panel).style.strokeDashoffset=326.73*(1-pct/100); });
+  if(pct>=90)celebrate(panel);
+  panel.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function celebrate(panel){
+  const colors=['#ffb300','#e91e63','#00c2d1','#2fbf71','#43b7ff'];
+  for(let i=0;i<26;i++){
+    const s=document.createElement('span');s.className='confetti';
+    s.style.left=Math.random()*100+'%';
+    s.style.animationDelay=(Math.random()*.6)+'s';
+    s.style.background=colors[i%5];
+    const sz=6+Math.random()*8;s.style.width=s.style.height=sz+'px';
+    panel.appendChild(s);setTimeout(()=>s.remove(),2800);
   }
+}
 
-  function resetAll() {
-    document.querySelectorAll('[data-answer]').forEach(q => {
-      q.classList.remove('correct', 'wrong');
-      delete q.dataset.picked;
-      const sel = q.querySelector('select'); if (sel) sel.value = '';
-      const inp = q.querySelector('input');  if (inp) inp.value = '';
-      q.querySelectorAll('.opt').forEach(b => b.classList.remove('picked'));
-      q.querySelector('.fb').textContent = '';
+/* ---------- actions ---------- */
+function doAction(action,root){
+  if(action==='check')grade(root);
+  else if(action==='reset')resetAll(root);
+  else if(action==='print')window.print();
+  else if(action==='review'){
+    const first=$('.wrong',root);
+    if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+    else $('.results',root).scrollIntoView({behavior:'smooth'});
+  }
+}
+function resetAll(root){
+  $$('.g-item',root).forEach(q=>{
+    q.classList.remove('correct','wrong');delete q.dataset.picked;
+    const sel=$('select',q);if(sel)sel.value='';
+    const inp=$('input',q);if(inp)inp.value='';
+    $$('.opt',q).forEach(b=>b.classList.remove('picked'));
+    $('.fb',q).textContent='';
+  });
+  $$('.sort-task',root).forEach(t=>{
+    const tray=$('.tray',t);
+    $$('.sort-card',t).sort((a,b)=>a.dataset.idx-b.dataset.idx).forEach(c=>{
+      c.classList.remove('selected','correct','wrong');tray.appendChild(c);
     });
-    _lastScore = null;
-    document.getElementById('results').hidden = true;
-    document.getElementById('miniScore').textContent = '– / 30';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+    $('.fb',t).textContent='';
+  });
+  $$('.order-task',root).forEach(t=>{
+    const list=$('.order-list',t);
+    t.dataset.initial.split(',').forEach(k=>list.appendChild($('li[data-key="'+k+'"]',t)));
+    delete t.dataset.touched;
+    $$('li',t).forEach(li=>li.classList.remove('correct','wrong'));
+    $('.fb',t).textContent='';
+  });
+  $$('.write-task',root).forEach(t=>{
+    $('textarea,input',t).value='';
+    t.classList.remove('correct','wrong');$('.fb',t).textContent='';
+    if(t._update)t._update();
+  });
+  $$('.ready-check',root).forEach(c=>c.checked=false);
+  const lbl=$('.ready-count',root);if(lbl)lbl.textContent='Ready: 0 / 4';
+  const panel=$('.results',root);panel.hidden=true;
+  $('.ring-fg',panel).style.strokeDashoffset=326.73;
+  refreshProgress(root);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
-  /* ── Kid 11 online homework: share + completion submit ──────────────
-     Same pipeline as the site's worksheets and games: completions POST to
-     the public drill_attempts Firestore collection (project
-     creative-minds-cambodia). Signed-in students submit under their own
-     localStorage session token (cmc-student-token); visitors use the
-     validated guest branch (empty studentUid, name 1–40 chars, classId
-     null — append-only). The teacher sees every completion in the
-     dashboard feed; rules need no change. */
+/* ---------- store initial scramble order ---------- */
+$$('.order-task').forEach(t=>{t.dataset.initial=$$('li',t).map(li=>li.dataset.key).join(',');});
 
-  const CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
-  const CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
-  const HOMEWORK_TITLE = 'Unit 14 · Doctor Fish';
+/* ---------- assignment switcher ---------- */
+function setMode(m){
+  document.body.dataset.mode=m;
+  $$('.assignment').forEach(a=>a.hidden=a.id!=='assignment-'+m);
+  window.scrollTo({top:0});
+}
+$$('.switch-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+
+/* ---------- staged reveal ---------- */
+const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}}),{threshold:.08});
+$$('.reveal').forEach(el=>io.observe(el));
+
+/* ---------- init ---------- */
+$$('.assignment').forEach(refreshProgress);
+
+/* ── Kid 11 online homework: hero name/date sync + completion submit + share ──
+   Name and date typed in the purple hero flow into both assignment sheets
+   (Reporter name / Advisor name + Date). Submit-to-Teacher reuses the
+   site-wide drill_attempts pipeline: signed-in students post under their own
+   localStorage session token (with securetoken refresh), visitors through
+   the validated guest branch (empty studentUid, 1-40 char name, classId
+   null) — append-only, no rules change, lands in the teacher dashboard
+   feed and the homepage ticker. */
+
+(function () {
+  var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+  var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
 
   function cmcToast(msg, err) {
-    const t = document.getElementById('cmcToast');
+    var t = document.getElementById('cmcToast');
     t.textContent = msg;
     t.classList.toggle('err', !!err);
     t.classList.add('show');
     clearTimeout(cmcToast._tm);
-    cmcToast._tm = setTimeout(() => t.classList.remove('show'), 3600);
+    cmcToast._tm = setTimeout(function () { t.classList.remove('show'); }, 3600);
   }
 
   function cmcSession() {
-    let tok = '', uid = '', name = '';
+    var tok = '', uid = '', name = '';
     try {
       tok = localStorage.getItem('cmc-student-token') || '';
       uid = localStorage.getItem('cmc-student-uid') || '';
@@ -430,21 +1119,33 @@
     return { tok: tok, uid: uid, name: name, authed: !!(tok && uid) };
   }
 
-  // Pre-fill the Name field for signed-in students (guests type their own).
+  // Pre-fill the hero Name for signed-in students; mirror hero → sheets.
+  function cmcSyncNameDate() {
+    var n = document.getElementById('stuName').value;
+    var d = document.getElementById('stuDate').value;
+    document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+      var label = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (label.indexOf('date') !== -1) { if (d) inp.value = d; }
+      else { if (n) inp.value = n; }
+    });
+  }
+  document.getElementById('stuName').addEventListener('input', cmcSyncNameDate);
+  document.getElementById('stuDate').addEventListener('input', cmcSyncNameDate);
   try {
-    const pre = (localStorage.getItem('cmc-student-name') || '').trim();
+    var pre = (localStorage.getItem('cmc-student-name') || '').trim();
     if (pre) document.getElementById('stuName').value = pre.slice(0, 40);
   } catch (e) {}
+  cmcSyncNameDate();
 
   function cmcRefreshToken(cb) {
-    // Same securetoken grant flow as rfc3/rfc2 worksheets and cmc-shared.js.
+    // Same securetoken grant flow as the rfc2/rfc3 worksheets and cmc-shared.js.
     try {
-      const rt = localStorage.getItem('cmc-student-refresh-token');
+      var rt = localStorage.getItem('cmc-student-refresh-token');
       if (!rt) return cb(null);
       fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
-      }).then(r => r.json()).then(d => {
+      }).then(function (r) { return r.json(); }).then(function (d) {
         if (d && d.id_token) {
           try {
             localStorage.setItem('cmc-student-token', d.id_token);
@@ -453,134 +1154,160 @@
           } catch (e) {}
           cb(d.id_token);
         } else cb(null);
-      }).catch(() => cb(null));
+      }).catch(function () { cb(null); });
     } catch (e) { cb(null); }
   }
 
   function cmcPost(body, token) {
-    const h = { 'Content-Type': 'application/json' };
+    var h = { 'Content-Type': 'application/json' };
     if (token) h['Authorization'] = 'Bearer ' + token;
     return fetch(CMC_FS, { method: 'POST', headers: h, body: JSON.stringify({ fields: body }) });
   }
 
-  function cmcBuildBody(name, uid, score, total) {
+  function cmcActiveRoot() {
+    return document.getElementById('assignment-' + (document.body.dataset.mode || 'a'));
+  }
+
+  function cmcCurrentScore(root) {
+    // Reuse the assignment's own grading — the score line reads "E / T points".
+    var line = root.querySelector('.score-line');
+    var panel = root.querySelector('.results');
+    var m = line && /^(\d+) \/ (\d+) points$/.exec((line.textContent || '').trim());
+    if (!(panel && !panel.hidden && m)) grade(root);
+    var txt = (root.querySelector('.score-line').textContent || '').trim();
+    var m2 = /^(\d+) \/ (\d+) points$/.exec(txt);
+    return { correct: m2 ? Number(m2[1]) : 0, total: m2 ? Number(m2[2]) : 0 };
+  }
+
+  function cmcBuildBody(name, uid, score, mode) {
     // Field set matches the drill_attempts rules: guest branch requires
-    // studentUid == '' , name 1–40 chars, ints in range, classId null.
+    // studentUid == '', name 1-40 chars, ints in range, classId null.
+    var label = mode === 'b' ? 'Home Assignment 2 · Clinic' : 'Home Assignment 1 · Newsroom';
+    var pct = score.total > 0 ? Math.round(score.correct / score.total * 100) : 0;
     return {
       drillSlug:   { stringValue: 'doctor-fish.html' },
-      drillTitle:  { stringValue: HOMEWORK_TITLE },
+      drillTitle:  { stringValue: 'Unit 14 · Doctor Fish — ' + label },
       drillSource: { stringValue: 'rfc3' },
       studentName: { stringValue: name },
       studentUid:  { stringValue: uid },
-      scorePct:      { integerValue: String(score.pct) },
+      scorePct:      { integerValue: String(pct) },
       correctCount:  { integerValue: String(score.correct) },
-      totalCount:    { integerValue: String(total) },
+      totalCount:    { integerValue: String(score.total) },
       classId:       { nullValue: null },
       submittedAt:   { timestampValue: new Date().toISOString() }
     };
   }
 
   function submitCompletion() {
-    const btn = document.getElementById('submitBtn');
-    const questions = document.querySelectorAll('[data-answer]');
-    const total = questions.length;
-    const score = (_lastScore && _lastScore.total === total) ? _lastScore : (checkAnswers(), _lastScore);
+    var btn = document.getElementById('submitBtn');
+    var root = cmcActiveRoot();
+    var mode = document.body.dataset.mode || 'a';
 
-    const sess = cmcSession();
-    let name = (document.getElementById('stuName').value || '').trim() || sess.name;
-    name = name.slice(0, 40);
-
-    const nameEl = document.getElementById('stuName');
+    var sess = cmcSession();
+    var name = ((document.getElementById('stuName').value || '').trim() || sess.name).slice(0, 40);
+    var nameEl = document.getElementById('stuName');
     if (!name) {
       cmcToast('Add your name first — your teacher needs to know who finished the homework.', true);
       btn.textContent = '⚠ Add your name first';
-      setTimeout(() => { btn.textContent = 'Submit to Teacher ✓'; }, 2600);
-      if (nameEl) {
-        nameEl.focus();
-        nameEl.classList.add('needs-name');
-        setTimeout(() => nameEl.classList.remove('needs-name'), 1900);
-        document.querySelector('.hero').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 2600);
+      nameEl.focus();
+      nameEl.classList.add('needs-name');
+      setTimeout(function () { nameEl.classList.remove('needs-name'); }, 1900);
+      document.querySelector('.hw-hero').scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
     btn.disabled = true;
     btn.classList.remove('done');
     btn.textContent = 'Submitting…';
+    var score = cmcCurrentScore(root);
+    var body = cmcBuildBody(name, sess.authed ? sess.uid : '', score, mode);
+    var okMsg = '✓ Submitted! ' + name + ' — ' + score.correct + '/' + score.total + ' sent to your teacher.';
 
-    const done = (ok, msg) => {
+    var done = function (ok, msg) {
       btn.disabled = false;
       btn.classList.toggle('done', ok);
       btn.textContent = ok ? '✓ Submitted to teacher' : '⚠ Try again';
       cmcToast(msg, !ok);
-      if (ok) setTimeout(() => { btn.textContent = 'Submit to Teacher ✓'; }, 4200);
-      else setTimeout(() => { btn.textContent = 'Submit to Teacher ✓'; }, 3200);
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 4200);
     };
 
-    const body = cmcBuildBody(name, sess.authed ? sess.uid : '', score, total);
-    const guestMsg = '✓ Submitted! ' + name + ' — ' + score.correct + '/' + score.total + ' sent to your teacher.';
-
     cmcPost(body, sess.authed ? sess.tok : '')
-      .then(r => {
-        if (r.ok) return done(true, guestMsg);
+      .then(function (r) {
+        if (r.ok) return done(true, okMsg);
         if (r.status === 401 && sess.authed) {
-          cmcRefreshToken(t => {
+          cmcRefreshToken(function (t) {
             if (t) {
-              cmcPost(body, t).then(r2 => done(r2.ok, guestMsg)).catch(() => done(false, 'Could not submit — check your connection and try again.'));
+              cmcPost(body, t).then(function (r2) { done(r2.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
             } else {
-              // Session unrecoverable → fall back to the validated guest branch.
-              cmcPost(cmcBuildBody(name, '', score, total), '')
-                .then(r3 => done(r3.ok, guestMsg))
-                .catch(() => done(false, 'Could not submit — check your connection and try again.'));
+              // Session unrecoverable → validated guest branch.
+              cmcPost(cmcBuildBody(name, '', score, mode), '')
+                .then(function (r3) { done(r3.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
             }
           });
           return;
         }
         // Permission or server error → guest branch fallback (uid must be '').
-        cmcPost(cmcBuildBody(name, '', score, total), '')
-          .then(r3 => done(r3.ok, guestMsg))
-          .catch(() => done(false, 'Could not submit — check your connection and try again.'));
+        cmcPost(cmcBuildBody(name, '', score, mode), '')
+          .then(function (r3) { done(r3.ok, okMsg); })
+          .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
       })
-      .catch(() => done(false, 'Could not reach the teacher console — check your connection and try again.'));
+      .catch(function () { done(false, 'Could not reach the teacher console — check your connection and try again.'); });
   }
+  document.getElementById('submitBtn').addEventListener('click', submitCompletion);
 
   /* ── Share (native sheet when available, fallback options otherwise) ── */
-  function cmcHomeworkUrl() { return location.origin === 'null' ? 'https://cmckhmer.github.io/Creative-Minds-/rfc3/doctor-fish.html' : location.href.split('#')[0]; }
-  function cmcShareText() { return 'Kid 11 Online Homework — ' + HOMEWORK_TITLE + ' live worksheet (30 auto-graded questions)'; }
-
+  function cmcHomeworkUrl() {
+    return location.origin === 'null'
+      ? 'https://cmckhmer.github.io/Creative-Minds-/rfc3/doctor-fish.html'
+      : location.href.split('#')[0];
+  }
+  function cmcShareText() {
+    return 'Kid 11 Online Homework — Unit 14 · Doctor Fish · Home Assignments 1 & 2 (auto-graded live worksheet)';
+  }
   function cmcToggleShare(force) {
-    const p = document.getElementById('cmcShare');
-    const open = typeof force === 'boolean' ? force : !p.classList.contains('open');
+    var p = document.getElementById('cmcShare');
+    var open = typeof force === 'boolean' ? force : !p.classList.contains('open');
     p.classList.toggle('open', open);
   }
-  document.addEventListener('click', e => {
-    const p = document.getElementById('cmcShare');
-    if (p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('.ghost')) cmcToggleShare(false);
+  document.addEventListener('click', function (e) {
+    var p = document.getElementById('cmcShare');
+    if (p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('[data-cmc-share]')) cmcToggleShare(false);
   });
-
   function cmcNativeShare() {
     if (navigator.share) {
-      navigator.share({ title: HOMEWORK_TITLE, text: cmcShareText(), url: cmcHomeworkUrl() }).catch(() => {});
+      navigator.share({ title: 'Unit 14 · Doctor Fish', text: cmcShareText(), url: cmcHomeworkUrl() }).catch(function () {});
       return true;
     }
     return false;
   }
-  function cmcToggleOrShare() { if (!cmcNativeShare()) cmcToggleShare(); }
-
+  document.querySelector('[data-cmc-share]').addEventListener('click', function () { if (!cmcNativeShare()) cmcToggleShare(); });
   function cmcCopyLink() {
-    const url = cmcHomeworkUrl();
+    var url = cmcHomeworkUrl();
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(() => cmcToast('Homework link copied — paste it into your class chat'));
+      navigator.clipboard.writeText(url).then(function () { cmcToast('Homework link copied — paste it into your class chat'); });
     } else {
-      const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t);
+      var t = document.createElement('textarea'); t.value = url; document.body.appendChild(t);
       t.select(); document.execCommand('copy'); t.remove();
       cmcToast('Homework link copied — paste it into your class chat');
     }
     cmcToggleShare(false);
   }
-  function cmcShareWA() { window.open('https://wa.me/?text=' + encodeURIComponent(cmcShareText() + ' ' + cmcHomeworkUrl()), '_blank', 'noopener'); cmcToggleShare(false); }
-  function cmcShareTG() { window.open('https://t.me/share/url?url=' + encodeURIComponent(cmcHomeworkUrl()) + '&text=' + encodeURIComponent(cmcShareText()), '_blank', 'noopener'); cmcToggleShare(false); }
-  function cmcShareEmail() { location.href = 'mailto:?subject=' + encodeURIComponent(HOMEWORK_TITLE + ' — Online Homework') + '&body=' + encodeURIComponent(cmcShareText() + '\n' + cmcHomeworkUrl()); cmcToggleShare(false); }
+  document.querySelector('[data-cmc-copy]').addEventListener('click', cmcCopyLink);
+  document.querySelector('[data-cmc-wa]').addEventListener('click', function () {
+    window.open('https://wa.me/?text=' + encodeURIComponent(cmcShareText() + ' ' + cmcHomeworkUrl()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-tg]').addEventListener('click', function () {
+    window.open('https://t.me/share/url?url=' + encodeURIComponent(cmcHomeworkUrl()) + '&text=' + encodeURIComponent(cmcShareText()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-email]').addEventListener('click', function () {
+    location.href = 'mailto:?subject=' + encodeURIComponent('Unit 14 · Doctor Fish — Kid 11 Online Homework') + '&body=' + encodeURIComponent(cmcShareText() + '\n' + cmcHomeworkUrl());
+    cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-close]').addEventListener('click', function () { cmcToggleShare(false); });
+})();
 </script>
 </body>
 </html>

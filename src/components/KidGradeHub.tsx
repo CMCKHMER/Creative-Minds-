@@ -1,7 +1,18 @@
-import { useState } from 'react';
-import { ArrowUpRight, BookOpen, CheckCircle2, Check, ClipboardList, Clock3, GraduationCap, Layers3, Share2, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowUpRight, BookOpen, CheckCircle2, Check, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles } from 'lucide-react';
 import { KID_GRADE_RESOURCES, type KidGradeMaterial } from '../data/kidGradeResources';
+import { getProjectId, getValidIdToken } from '../lib/firebaseAuth';
 import { Reveal } from './Reveal';
+
+// The homework share state lives in Firestore at
+// biweekly_tests/hw-kid11-doctor-fish — public read, teacher-only write
+// (same collection the bi-weekly test shells use, so NO rules change).
+// Until the teacher flips the share switch, students see the row locked
+// and the worksheet page itself sits behind a locked overlay.
+const HW_SHARE_DOC_ID = 'hw-kid11-doctor-fish';
+const FS_BASE = `https://firestore.googleapis.com/v1/projects/${getProjectId()}/databases/(default)/documents`;
+
+type HomeworkShareStatus = 'pending' | 'locked' | 'open';
 
 export const GRADE_BOOK_NAMES: Record<number, string> = {
   6: 'Reading Future Connect 2',
@@ -23,6 +34,63 @@ export function KidGradeHub() {
   const availableResourceCount = KID_GRADE_RESOURCES.reduce((sum, grade) => sum + grade.materials.length, 0);
   const availableGradeCount = KID_GRADE_RESOURCES.filter((grade) => grade.status === 'available' && grade.materials.length > 0).length;
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [shareStatus, setShareStatus] = useState<HomeworkShareStatus>('pending');
+  const [isTeacher, setIsTeacher] = useState(false);
+  const [toggling, setToggling] = useState(false);
+  const [toggleError, setToggleError] = useState(false);
+
+  // Share state + role detection. The share doc is publicly readable, so
+  // every visitor sees the homework appear the moment the teacher opens
+  // it. The teacher switch only renders for a signed-in teacher session
+  // (same localStorage heuristic as RoleGate / teacher-gate.js).
+  useEffect(() => {
+    let alive = true;
+    fetch(`${FS_BASE}/biweekly_tests/${HW_SHARE_DOC_ID}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((doc) => {
+        if (alive) setShareStatus(doc?.fields?.shared?.booleanValue === true ? 'open' : 'locked');
+      })
+      .catch(() => { if (alive) setShareStatus('locked'); });
+    try {
+      const token = localStorage.getItem('cmc-student-token');
+      const role = localStorage.getItem('cmc-student-role');
+      const email = (localStorage.getItem('cmc-student-email') || '').toLowerCase();
+      const uid = localStorage.getItem('cmc-student-uid') || '';
+      setIsTeacher(!!token && (role === 'teacher' || email.includes('edu') || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63'));
+    } catch { setIsTeacher(false); }
+    return () => { alive = false; };
+  }, []);
+
+  // Teacher-only: open/close the homework for the class. PATCH (upsert) the
+  // share doc under the teacher's own token — rules: biweekly_tests write
+  // requires a verified teacher. On failure the row stays as it was and a
+  // retry hint appears next to the switch.
+  async function toggleHomeworkShare() {
+    if (toggling || shareStatus === 'pending') return;
+    setToggling(true);
+    setToggleError(false);
+    const nextOpen = shareStatus !== 'open';
+    try {
+      const token = await getValidIdToken();
+      if (!token) throw new Error('sign-in required');
+      const res = await fetch(`${FS_BASE}/biweekly_tests/${HW_SHARE_DOC_ID}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ fields: {
+          shared: { booleanValue: nextOpen },
+          homeworkId: { stringValue: 'kid-11-homework-doctor-fish' },
+          title: { stringValue: 'Doctor Fish · Unit 14 · Kid 11 Online Homework' },
+          updatedAt: { timestampValue: new Date().toISOString() },
+        } }),
+      });
+      if (!res.ok) throw new Error(`share update failed (${res.status})`);
+      setShareStatus(nextOpen ? 'open' : 'locked');
+    } catch {
+      setToggleError(true);
+    } finally {
+      setToggling(false);
+    }
+  }
 
   // Share a homework link: native share sheet first (phones), clipboard
   // fallback everywhere else — mirrors the worksheet's own Share button.
@@ -107,19 +175,38 @@ export function KidGradeHub() {
                           <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-emerald-100">Online homework</span>
                         </div>
                         <div className="mt-2 space-y-2">
-                          {homework.map((material) => (
-                            <div key={material.id} className="group/hw flex items-start gap-2 rounded-lg border border-emerald-200/20 bg-emerald-200/[0.05] p-2.5 transition hover:border-emerald-100/40 hover:bg-emerald-200/[0.09]">
-                              <a href={material.href} aria-label={`Open Kid ${resource.grade} homework: ${material.title}`} className="flex min-w-0 flex-1 items-start gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">
-                                <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-200" aria-hidden="true" />
-                                <span className="min-w-0 flex-1"><span className="block text-[10px] font-semibold leading-snug text-slate-100 group-hover/hw:text-emerald-50">{material.title}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-500">{material.kind}{material.units ? ` · ${material.units} units` : ''}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-600">{material.description}</span></span>
-                              </a>
-                              <button type="button" onClick={() => shareHomework(material)} aria-label={`Share ${material.title} homework link`} title="Share this homework" className="shrink-0 rounded-md border border-emerald-200/25 bg-slate-950/50 p-1.5 text-emerald-100 transition hover:border-emerald-100/50 hover:bg-emerald-200/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">
-                                {copiedId === material.id ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Share2 className="h-3.5 w-3.5" aria-hidden="true" />}
-                              </button>
-                            </div>
-                          ))}
+                          {homework.map((material) => {
+                            const isOpen = shareStatus === 'open';
+                            const isPending = shareStatus === 'pending';
+                            return (
+                              <div key={material.id} className={`group/hw flex items-start gap-2 rounded-lg border p-2.5 transition ${isOpen ? 'border-emerald-200/20 bg-emerald-200/[0.05] hover:border-emerald-100/40 hover:bg-emerald-200/[0.09]' : 'border-white/10 bg-slate-950/50'}`}>
+                                {isOpen ? (
+                                  <a href={material.href} aria-label={`Open Kid ${resource.grade} homework: ${material.title}`} className="flex min-w-0 flex-1 items-start gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">
+                                    <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-200" aria-hidden="true" />
+                                    <span className="min-w-0 flex-1"><span className="block text-[10px] font-semibold leading-snug text-slate-100 group-hover/hw:text-emerald-50">{material.title}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-500">{material.kind}{material.units ? ` · ${material.units} units` : ''}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-600">{material.description}</span></span>
+                                  </a>
+                                ) : (
+                                  <span className="flex min-w-0 flex-1 items-start gap-2">
+                                    <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />
+                                    <span className="min-w-0 flex-1"><span className="block text-[10px] font-semibold leading-snug text-slate-300">{material.title}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-500">{material.kind}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-600">{isPending ? 'Checking whether your teacher has opened this homework…' : 'Locked — your teacher opens this homework for the class when it’s time.'}</span></span>
+                                  </span>
+                                )}
+                                {isOpen && (
+                                  <button type="button" onClick={() => shareHomework(material)} aria-label={`Share ${material.title} homework link`} title="Share this homework" className="shrink-0 rounded-md border border-emerald-200/25 bg-slate-950/50 p-1.5 text-emerald-100 transition hover:border-emerald-100/50 hover:bg-emerald-200/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">
+                                    {copiedId === material.id ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Share2 className="h-3.5 w-3.5" aria-hidden="true" />}
+                                  </button>
+                                )}
+                                {isTeacher && (
+                                  <button type="button" onClick={toggleHomeworkShare} disabled={toggling || isPending} aria-label={isOpen ? `Close ${material.title} homework for students` : `Share ${material.title} homework with students`} title={isOpen ? 'Homework is open — select to close it again' : 'Share with students — opens the homework for the class'} className={`shrink-0 rounded-md border p-1.5 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200 disabled:opacity-60 ${isOpen ? 'border-emerald-200/25 bg-slate-950/50 text-emerald-100 hover:border-emerald-100/50 hover:bg-emerald-200/10' : 'border-amber-200/30 bg-amber-200/[0.08] text-amber-100 hover:border-amber-100/60 hover:bg-amber-200/[0.16]'}`}>
+                                    {isOpen ? <Lock className="h-3.5 w-3.5" aria-hidden="true" /> : <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
-                        <p className="mt-2 text-[9px] leading-relaxed text-slate-500">Auto-graded · opens in this site · students press “Submit to Teacher” when done.</p>
+                        {isTeacher && toggleError && <p className="mt-2 flex items-center gap-1.5 text-[9px] font-semibold text-rose-300"><Link2 className="h-3 w-3" aria-hidden="true" />Could not reach Firestore — check you are signed in as a teacher, then try again.</p>}
+                        <p className="mt-2 text-[9px] leading-relaxed text-slate-500">{isTeacher ? 'Teacher switch opens/closes the homework · students press “Submit to Teacher” when done.' : 'Your teacher opens each homework here · students press “Submit to Teacher” when done.'}</p>
                       </div>
                     )}
                   </>
@@ -135,7 +222,7 @@ export function KidGradeHub() {
         </Reveal>
 
         <Reveal className="mt-5">
-        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 7 worksheets open in this site (each with a back-to-CMC button; answer keys on Kid 7 dictation are teacher-locked); Kid 11 links to the separate Reading Future Create 3 pages, and its online homework opens here too — auto-graded with a Submit-to-Teacher completion button and a share link for the class chat. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP &amp; ISEC Program Resources section below.</span></p>
+        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 7 worksheets open in this site (each with a back-to-CMC button; answer keys on Kid 7 dictation are teacher-locked); Kid 11 links to the separate Reading Future Create 3 pages, and its online homework opens here too — the teacher flips the Share-with-students switch on the card to unlock it, and the page carries a Submit-to-Teacher completion button plus a share link for the class chat. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP &amp; ISEC Program Resources section below.</span></p>
         </Reveal>
       </div>
     </section>

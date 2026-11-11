@@ -144,9 +144,9 @@ const kid11Resources: KidGradeMaterial[] = [
   },
   {
     id: 'kid-11-homework-doctor-fish',
-    title: 'Doctor Fish · Unit 14 Live Worksheet',
+    title: 'Doctor Fish · Home Assignments 1 & 2',
     kind: 'Online homework',
-    description: 'Reading & vocabulary homework: 30 auto-graded questions on the Doctor Fish passage. Shareable link for the class; students press “Submit to Teacher” when done.',
+    description: 'Reading, writing & critical-thinking homework on the Doctor Fish passage — two auto-graded assignments (Newsroom & Clinic). The teacher opens it with the share switch; students press “Submit to Teacher” when done.',
     href: './rfc3/doctor-fish.html',
   },
 ];
