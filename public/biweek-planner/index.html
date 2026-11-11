@@ -355,6 +355,198 @@ html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggl
   /* touch screens have no hover: keep panels flat-ish so scanlines stay subtle */
   .week-card::before{opacity:.7}
 }
+
+/* ===== HUD SCI-FI SKIN (Nov 2026) — reference: blue sci-fi HUD hologram board =====
+   Console look layered AROUND the existing hologram (nothing removed): electric-blue
+   deep-space wash, perspective runway grid floor with red runway lights, fixed HUD
+   corner brackets + edge rulers, dotted globe + circuit traces + rainbow scanner
+   ring in the hero, module headers with dotted leaders, corner brackets on every
+   panel, angular filter pills, hazard advisory strip, warning footer tag.
+   Mechanics pinned by the verifiers (3D stage values, glass 0.055 stop, blue text
+   glow, card scanlines, vignette stops) are preserved — additions only. */
+body{background:linear-gradient(180deg,#050e28 0%,#04102e 34%,#030b22 62%,#020617 100%)}
+html[data-theme="light"] body{background:var(--bg)}
+body::before{background:
+  radial-gradient(ellipse 44% 34% at 82% 26%,rgba(59,110,255,.16),transparent 62%),
+  radial-gradient(ellipse 36% 28% at 10% 14%,rgba(56,189,248,.12),transparent 62%),
+  radial-gradient(ellipse 60% 40% at 10% 10%,rgba(56,189,248,.08),transparent 50%),
+  radial-gradient(ellipse 50% 40% at 90% 90%,rgba(139,92,246,.08),transparent 50%),
+  radial-gradient(ellipse 95% 75% at 50% 42%,transparent 56%,rgba(1,4,14,.62) 100%)}
+
+/* — fixed runway grid floor (bottom of viewport, converging like the reference) — */
+.hud-floor{position:fixed;left:-24vw;right:-24vw;bottom:-4vh;height:44vh;z-index:0;pointer-events:none;
+  transform-origin:50% 100%;transform:perspective(620px) rotateX(64deg);
+  background-image:
+    repeating-linear-gradient(90deg,rgba(63,140,255,.20) 0 1px,transparent 1px 88px),
+    repeating-linear-gradient(0deg,rgba(63,140,255,.16) 0 1px,transparent 1px 88px);
+  -webkit-mask-image:linear-gradient(180deg,transparent 4%,#000 62%);mask-image:linear-gradient(180deg,transparent 4%,#000 62%);
+  opacity:.55}
+.hud-floor::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);
+  background:linear-gradient(180deg,transparent,rgba(255,61,110,.5) 30%,rgba(255,61,110,.85));
+  box-shadow:0 0 18px rgba(255,61,110,.5)}
+.hud-floor::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:72px;transform:translateX(-50%);
+  background:repeating-linear-gradient(90deg,rgba(255,61,110,.13) 0 1px,transparent 1px 9px);
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 70%);mask-image:linear-gradient(180deg,transparent,#000 70%)}
+html[data-theme="light"] .hud-floor{opacity:.26;
+  background-image:
+    repeating-linear-gradient(90deg,rgba(2,132,199,.22) 0 1px,transparent 1px 88px),
+    repeating-linear-gradient(0deg,rgba(2,132,199,.18) 0 1px,transparent 1px 88px)}
+html[data-theme="light"] .hud-floor::before{background:linear-gradient(180deg,transparent,rgba(190,18,60,.35) 30%,rgba(190,18,60,.6));box-shadow:0 0 14px rgba(190,18,60,.35)}
+
+/* — fixed HUD corner brackets + side rulers (cockpit frame) — */
+.hud-frame{position:fixed;inset:8px;z-index:60;pointer-events:none}
+.hud-frame i{position:absolute;width:24px;height:24px;border:1.5px solid rgba(147,222,255,.5);filter:drop-shadow(0 0 6px rgba(56,189,248,.35))}
+.hud-frame i:nth-child(1){top:0;left:0;border-width:1.5px 0 0 1.5px}
+.hud-frame i:nth-child(2){top:0;right:0;border-width:1.5px 1.5px 0 0}
+.hud-frame i:nth-child(3){bottom:0;left:0;border-width:0 0 1.5px 1.5px}
+.hud-frame i:nth-child(4){bottom:0;right:0;border-width:0 1.5px 1.5px 0}
+.hud-frame::before{content:'';position:absolute;top:0;bottom:0;left:5px;width:1px;background:repeating-linear-gradient(180deg,rgba(147,222,255,.28) 0 3px,transparent 3px 10px)}
+.hud-frame::after{content:'';position:absolute;top:0;bottom:0;right:5px;width:1px;background:repeating-linear-gradient(180deg,rgba(147,222,255,.28) 0 3px,transparent 3px 10px)}
+html[data-theme="light"] .hud-frame i{border-color:rgba(2,132,199,.45);filter:none}
+html[data-theme="light"] .hud-frame::before,html[data-theme="light"] .hud-frame::after{background:repeating-linear-gradient(180deg,rgba(2,132,199,.3) 0 3px,transparent 3px 10px)}
+
+/* — hero: edge rulers, rainbow scanner ring, dotted globe, circuit traces — */
+.bp-hero::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:
+  repeating-linear-gradient(180deg,rgba(165,243,252,.35) 0 2px,transparent 2px 30px) 16px 30%/2px 34% no-repeat,
+  repeating-linear-gradient(180deg,rgba(165,243,252,.35) 0 2px,transparent 2px 30px) calc(100% - 16px) 30%/2px 34% no-repeat}
+html[data-theme="light"] .bp-hero::before{background:
+  repeating-linear-gradient(180deg,rgba(2,132,199,.4) 0 2px,transparent 2px 30px) 16px 30%/2px 34% no-repeat,
+  repeating-linear-gradient(180deg,rgba(2,132,199,.4) 0 2px,transparent 2px 30px) calc(100% - 16px) 30%/2px 34% no-repeat}
+.hud-scanner{position:absolute;top:50%;right:6%;width:min(31vw,372px);aspect-ratio:1;z-index:1;pointer-events:none;transform:translateY(-50%);filter:drop-shadow(0 0 30px rgba(70,110,255,.28))}
+.hud-scanner span{position:absolute;border-radius:50%}
+.hud-sc-ticks{inset:-4.5%;background:repeating-conic-gradient(rgba(165,243,252,.55) 0deg 1.1deg,transparent 1.1deg 9deg);
+  -webkit-mask:radial-gradient(farthest-side,transparent 0 61.5%,#000 62% 66%,transparent 66.5%);mask:radial-gradient(farthest-side,transparent 0 61.5%,#000 62% 66%,transparent 66.5%)}
+.hud-sc-ring{inset:0;background:conic-gradient(from 220deg,#ff3d6e,#ff8a3d,#ffe23d,#54ff9f,#3dd6ff,#3d6eff,#b44dff,#ff3d6e);
+  -webkit-mask:radial-gradient(farthest-side,transparent 0 55.5%,#000 56% 70%,transparent 70.5%);mask:radial-gradient(farthest-side,transparent 0 55.5%,#000 56% 70%,transparent 70.5%)}
+.hud-sc-ring2{inset:11%;border:1px dashed rgba(147,222,255,.5)}
+.hud-sc-core{inset:22%;background:radial-gradient(circle at 42% 36%,rgba(125,211,252,.30),rgba(10,30,64,.68) 58%,rgba(2,8,24,.92));
+  border:1px solid rgba(147,222,255,.35);box-shadow:inset 0 0 34px rgba(56,189,248,.22),0 0 40px rgba(56,189,248,.14)}
+.hud-sc-core::before{content:'';position:absolute;inset:13%;border-radius:50%;
+  background:repeating-radial-gradient(circle at 50% 50%,rgba(125,211,252,.16) 0 2px,transparent 2px 11px)}
+.hud-sc-sweep{inset:22%;background:conic-gradient(from 0deg,rgba(125,211,252,.36),rgba(125,211,252,.06) 52deg,transparent 72deg 360deg)}
+.hud-sc-cross{inset:2%;background:
+  linear-gradient(rgba(165,243,252,.6),rgba(165,243,252,.6)) 50% 0/1.5px 13px no-repeat,
+  linear-gradient(rgba(165,243,252,.6),rgba(165,243,252,.6)) 50% 100%/1.5px 13px no-repeat,
+  linear-gradient(rgba(165,243,252,.6),rgba(165,243,252,.6)) 0 50%/13px 1.5px no-repeat,
+  linear-gradient(rgba(165,243,252,.6),rgba(165,243,252,.6)) 100% 50%/13px 1.5px no-repeat}
+.hud-sc-pos{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);font-family:'Space Grotesk',monospace;font-size:9px;font-weight:700;letter-spacing:.32em;color:#9beaff;text-shadow:0 0 12px rgba(56,189,248,.6);white-space:nowrap;border-radius:0}
+.hud-sc-pos i{font-size:9px;margin-right:6px;color:#67e8f9}
+.hud-globe{position:absolute;left:-3%;bottom:-16%;width:min(26vw,300px);z-index:1;pointer-events:none;opacity:.62;filter:drop-shadow(0 0 26px rgba(56,140,255,.3))}
+.hud-circuit{position:absolute;top:16px;left:0;width:min(44vw,410px);z-index:1;pointer-events:none;opacity:.42}
+html[data-theme="light"] .hud-globe{opacity:.4}
+html[data-theme="light"] .hud-circuit{opacity:.5}
+html[data-theme="light"] .hud-sc-pos{color:#0369a1;text-shadow:none}
+html[data-theme="light"] .hud-sc-ticks{background:repeating-conic-gradient(rgba(2,132,199,.55) 0deg 1.1deg,transparent 1.1deg 9deg)}
+html[data-theme="light"] .hud-sc-cross{background:
+  linear-gradient(rgba(2,132,199,.55),rgba(2,132,199,.55)) 50% 0/1.5px 13px no-repeat,
+  linear-gradient(rgba(2,132,199,.55),rgba(2,132,199,.55)) 50% 100%/1.5px 13px no-repeat,
+  linear-gradient(rgba(2,132,199,.55),rgba(2,132,199,.55)) 0 50%/13px 1.5px no-repeat,
+  linear-gradient(rgba(2,132,199,.55),rgba(2,132,199,.55)) 100% 50%/13px 1.5px no-repeat}
+html[data-theme="light"] .hud-sc-core{background:radial-gradient(circle at 42% 36%,rgba(255,255,255,.85),rgba(224,242,254,.75) 58%,rgba(186,230,253,.9));border-color:rgba(2,132,199,.4)}
+html[data-theme="light"] .hud-sc-sweep{background:conic-gradient(from 0deg,rgba(14,165,233,.3),rgba(14,165,233,.05) 52deg,transparent 72deg 360deg)}
+html[data-theme="light"] .hud-sc-ring2{border-color:rgba(2,132,199,.5)}
+
+/* — module headers: HUD eyebrow with chevrons + dotted leader — */
+.hud-eyebrow{display:flex;align-items:center;gap:9px}
+.hud-eyebrow i{font-size:9px;color:#67e8f9;text-shadow:0 0 9px rgba(56,189,248,.55)}
+.hud-eyebrow::after{content:'';flex:0 0 58px;height:1px;background:repeating-linear-gradient(90deg,rgba(103,232,249,.45) 0 7px,transparent 7px 14px)}
+html[data-theme="light"] .hud-eyebrow i{color:#0891b2;text-shadow:none}
+html[data-theme="light"] .hud-eyebrow::after{background:repeating-linear-gradient(90deg,rgba(2,132,199,.45) 0 7px,transparent 7px 14px)}
+
+/* — panel tech-strip (MDL readout above each week card) — */
+.hud-strip{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-family:'Space Grotesk',monospace;font-size:9px;font-weight:700;letter-spacing:.22em;color:rgba(147,222,255,.8);text-shadow:0 0 9px rgba(56,189,248,.4)}
+.hud-strip .fas{font-size:10px;color:#7ddcff}
+.hud-strip .hud-lead{flex:1;height:1px;background:repeating-linear-gradient(90deg,rgba(147,222,255,.35) 0 6px,transparent 6px 12px)}
+.hud-strip b{display:inline-flex;align-items:center;gap:5px;font-size:8.5px;letter-spacing:.2em;color:#7ef0ff;font-weight:700}
+.hud-strip b::before{content:'';width:5px;height:5px;border-radius:50%;background:#39e0a8;box-shadow:0 0 9px rgba(57,224,168,.85)}
+html[data-theme="light"] .hud-strip{color:rgba(3,105,161,.85);text-shadow:none}
+html[data-theme="light"] .hud-strip .fas{color:#0284c7}
+html[data-theme="light"] .hud-strip .hud-lead{background:repeating-linear-gradient(90deg,rgba(2,132,199,.4) 0 6px,transparent 6px 12px)}
+html[data-theme="light"] .hud-strip b{color:#0369a1}
+
+/* — HUD corner brackets on every floating panel (TL + BR + notch cut line) — */
+.week-card .holo-sheen::after{content:'';position:absolute;inset:7px;pointer-events:none;border-radius:inherit;opacity:.75;background:
+  linear-gradient(rgba(147,222,255,.8),rgba(147,222,255,.8)) 0 0/16px 1.5px no-repeat,
+  linear-gradient(rgba(147,222,255,.8),rgba(147,222,255,.8)) 0 0/1.5px 16px no-repeat,
+  linear-gradient(rgba(147,222,255,.8),rgba(147,222,255,.8)) 100% 100%/16px 1.5px no-repeat,
+  linear-gradient(rgba(147,222,255,.8),rgba(147,222,255,.8)) 100% 100%/1.5px 16px no-repeat,
+  linear-gradient(135deg,transparent 0 46%,rgba(147,222,255,.55) 46% 52%,transparent 52%) 100% 0/14px 14px no-repeat}
+html[data-theme="light"] .week-card .holo-sheen::after{opacity:.5;background:
+  linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 0 0/16px 1.5px no-repeat,
+  linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 0 0/1.5px 16px no-repeat,
+  linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 100% 100%/16px 1.5px no-repeat,
+  linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 100% 100%/1.5px 16px no-repeat,
+  linear-gradient(135deg,transparent 0 46%,rgba(2,132,199,.5) 46% 52%,transparent 52%) 100% 0/14px 14px no-repeat}
+.glass:not(.week-card){position:relative;overflow:hidden}
+.glass:not(.week-card)::after{content:'';position:absolute;inset:7px;pointer-events:none;opacity:.5;background:
+  linear-gradient(rgba(147,222,255,.8),rgba(147,222,255,.8)) 0 0/16px 1.5px no-repeat,
+  linear-gradient(rgba(147,222,255,.8),rgba(147,222,255,.8)) 0 0/1.5px 16px no-repeat,
+  linear-gradient(rgba(147,222,255,.8),rgba(147,222,255,.8)) 100% 100%/16px 1.5px no-repeat,
+  linear-gradient(rgba(147,222,255,.8),rgba(147,222,255,.8)) 100% 100%/1.5px 16px no-repeat}
+html[data-theme="light"] .glass:not(.week-card)::after{opacity:.4;background:
+  linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 0 0/16px 1.5px no-repeat,
+  linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 0 0/1.5px 16px no-repeat,
+  linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 100% 100%/16px 1.5px no-repeat,
+  linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 100% 100%/1.5px 16px no-repeat}
+
+/* — week card: faint circuit-board texture under the glass (0.055 stop preserved) — */
+.week-card{background-image:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='110'%3E%3Cg fill='none' stroke='%237dd3fc' stroke-opacity='.13'%3E%3Cpath d='M4 16h36l14 14h44'/%3E%3Cpath d='M4 74h24l16-16h32'/%3E%3Cpath d='M112 34h30v34h-26'/%3E%3Cpath d='M76 88h40'/%3E%3C/g%3E%3Cg fill='%2393e6ff' fill-opacity='.18'%3E%3Ccircle cx='4' cy='16' r='2'/%3E%3Ccircle cx='98' cy='30' r='2'/%3E%3Ccircle cx='4' cy='74' r='2'/%3E%3Ccircle cx='76' cy='58' r='2'/%3E%3Ccircle cx='142' cy='34' r='2'/%3E%3Ccircle cx='116' cy='88' r='2'/%3E%3C/g%3E%3C/svg%3E"),
+  linear-gradient(165deg,rgba(125,211,252,.055),rgba(255,255,255,.012) 38%,rgba(56,189,248,.03) 82%,rgba(125,211,252,.05))}
+
+/* — angular HUD filter pills (cut corners; hard edge becomes a clipped-shape drop-shadow) — */
+.filter-btn{clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.filter-btn.active{filter:drop-shadow(0 3px 0 #0e7490) drop-shadow(0 0 14px rgba(8,145,178,.55))}
+html[data-theme="light"] .filter-btn.active{filter:drop-shadow(0 3px 0 rgba(14,116,144,.8)) drop-shadow(0 0 12px rgba(14,165,233,.4))}
+
+/* — hero stat chips: mini readout bar — */
+.bp-stat{position:relative}
+.bp-stat::after{content:'';position:absolute;left:9px;right:9px;bottom:4px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--chip),rgba(125,211,252,0) 82%);opacity:.5;box-shadow:0 0 8px var(--glow)}
+
+/* — teacher tip as hazard advisory console — */
+.hud-alert::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;z-index:1;
+  background:repeating-linear-gradient(-45deg,rgba(251,191,36,.9) 0 10px,rgba(30,20,2,.92) 10px 20px);opacity:.8}
+.hud-alert-tag{display:flex;align-items:center;gap:8px;margin:0 0 4px;font-size:9.5px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:#fcd34d;text-shadow:0 0 10px rgba(251,191,36,.45)}
+.hud-alert-tag i{font-size:10px}
+html[data-theme="light"] .hud-alert::before{background:repeating-linear-gradient(-45deg,rgba(180,83,9,.85) 0 10px,rgba(255,255,255,.9) 10px 20px)}
+html[data-theme="light"] .hud-alert-tag{color:#b45309;text-shadow:none}
+
+/* — footer: warning tag + dotted transmission rule — */
+.hud-footer{position:relative}
+.hud-footer::before{content:'';display:block;width:220px;height:1px;margin:0 auto 18px;background:repeating-linear-gradient(90deg,rgba(103,232,249,.4) 0 10px,transparent 10px 20px)}
+.hud-warn{display:inline-flex;align-items:center;gap:10px;margin:0 0 12px;padding:6px 18px;font-size:9px;font-weight:800;letter-spacing:.3em;color:#fca5a5;text-shadow:0 0 12px rgba(255,61,110,.4);border:1px solid rgba(255,61,110,.35);background:rgba(255,61,110,.06);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.hud-warn i{font-size:9px;color:#ff5c8a}
+html[data-theme="light"] .hud-warn{color:#be123c;border-color:rgba(190,18,60,.35);background:rgba(190,18,60,.05);text-shadow:none}
+html[data-theme="light"] .hud-warn i{color:#e11d48}
+html[data-theme="light"] .hud-footer::before{background:repeating-linear-gradient(90deg,rgba(2,132,199,.4) 0 10px,transparent 10px 20px)}
+
+/* — HUD animations (reduced-motion safe: all inside no-preference) — */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes hudSpin{to{transform:rotate(360deg)}}
+  @keyframes hudSpinRev{to{transform:rotate(-360deg)}}
+  @keyframes hudPulse{0%,100%{opacity:.45}50%{opacity:1}}
+  @keyframes hudFloorScroll{to{background-position:0 88px,0 88px}}
+  @keyframes hudDash{to{stroke-dashoffset:-96}}
+  .hud-sc-ring{animation:hudSpin 16s linear infinite}
+  .hud-sc-ring2{animation:hudSpinRev 30s linear infinite}
+  .hud-sc-sweep{animation:hudSpin 5.6s linear infinite}
+  .hud-strip b::before{animation:hudPulse 2.6s ease-in-out infinite}
+  .hud-floor{animation:hudFloorScroll 6s linear infinite}
+  .hud-globe-wires :is(circle,ellipse,line){animation:hudDash 10s linear infinite}
+}
+
+/* — HUD skin on small screens: compact, overflow-free — */
+@media(max-width:640px){
+  .hud-frame{inset:6px}
+  .hud-frame::before,.hud-frame::after{display:none}
+  .hud-frame i{width:18px;height:18px}
+  .hud-floor{height:34vh;bottom:-2vh;opacity:.42}
+  .hud-scanner{width:80vw;right:-30vw;top:42%;opacity:.5}
+  .hud-sc-pos{display:none}
+  .hud-circuit{display:none}
+  .hud-globe{width:56vw;left:-20vw;opacity:.35}
+  .hud-strip{letter-spacing:.14em}
+}
 </style>
 
 <!-- Google Analytics 4 (gtag.js) -->
@@ -366,6 +558,8 @@ html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggl
   <link rel="stylesheet" href="../assets/css/cmc-utilities.css">
 </head>
 <body>
+<div class="hud-floor" aria-hidden="true"></div>
+<div class="hud-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <a class="bp-topbtn" href="https://cmckhmer.github.io/Creative-Minds-/"><i class="fas fa-arrow-left" style="font-size:12px"></i> Back to CMC</a>
 <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark"><i class="fas fa-sun"></i></button>
 
@@ -380,6 +574,52 @@ html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggl
     <path d="M 300 44 A 256 256 0 0 1 556 300" stroke="#AAFFED" stroke-opacity=".75" stroke-width="2" stroke-linecap="round"/>
     <circle cx="300" cy="44" r="4" fill="#A5F3EA"/>
     <circle cx="300" cy="44" r="14" stroke="#67E8F9" stroke-opacity=".15"/>
+  </svg>
+  <!-- HUD sci-fi decorations: circuit traces, rainbow scanner ring, dotted globe -->
+  <svg class="hud-circuit" viewBox="0 0 420 120" fill="none" aria-hidden="true">
+    <g stroke="#7dd3fc" stroke-opacity=".5">
+      <path d="M0 24h120l26 26h118"/>
+      <path d="M0 58h64l22-22h96"/>
+      <path d="M300 24h64l30 30h26"/>
+      <path d="M228 50h44l24 24h124"/>
+    </g>
+    <g fill="#a5f3fc">
+      <circle cx="120" cy="24" r="3" fill-opacity=".8"/>
+      <circle cx="264" cy="50" r="3" fill-opacity=".8"/>
+      <circle cx="64" cy="58" r="2.5" fill-opacity=".7"/>
+      <circle cx="300" cy="24" r="2.5" fill-opacity=".7"/>
+      <circle cx="296" cy="74" r="3" fill-opacity=".8"/>
+    </g>
+  </svg>
+  <div class="hud-scanner" aria-hidden="true">
+    <span class="hud-sc-ticks"></span>
+    <span class="hud-sc-ring"></span>
+    <span class="hud-sc-ring2"></span>
+    <span class="hud-sc-cross"></span>
+    <span class="hud-sc-core"></span>
+    <span class="hud-sc-sweep"></span>
+    <span class="hud-sc-pos"><i class="fas fa-location-crosshairs"></i>POS · PHNOM PENH</span>
+  </div>
+  <svg class="hud-globe" viewBox="0 0 240 240" aria-hidden="true">
+    <defs>
+      <radialGradient id="hgg" cx="40%" cy="34%" r="75%">
+        <stop offset="0" stop-color="#38bdf8" stop-opacity=".9"/>
+        <stop offset=".45" stop-color="#1d4ed8" stop-opacity=".6"/>
+        <stop offset="1" stop-color="#020617" stop-opacity=".95"/>
+      </radialGradient>
+      <pattern id="hdp" width="8" height="8" patternUnits="userSpaceOnUse">
+        <circle cx="1.8" cy="1.8" r="1.3" fill="#93e6ff"/>
+      </pattern>
+    </defs>
+    <circle cx="120" cy="120" r="88" fill="url(#hgg)"/>
+    <circle cx="120" cy="120" r="88" fill="url(#hdp)" opacity=".5"/>
+    <g class="hud-globe-wires" fill="none" stroke="#7dd3fc" stroke-opacity=".55">
+      <circle cx="120" cy="120" r="88" stroke-dasharray="3 7"/>
+      <ellipse cx="120" cy="120" rx="88" ry="34" stroke-dasharray="2 6"/>
+      <ellipse cx="120" cy="120" rx="58" ry="88" stroke-dasharray="2 6"/>
+      <ellipse cx="120" cy="120" rx="26" ry="88" stroke-dasharray="2 6"/>
+      <line x1="32" y1="120" x2="208" y2="120" stroke-dasharray="2 6"/>
+    </g>
   </svg>
   <div class="bp-hero-inner">
     <img src="../images/aii-language-center-logo.png" alt="Aii Language Center — A Mengly J. Quach Education School" width="1194" height="364" style="height:56px;width:auto;margin-bottom:18px;display:block;filter:drop-shadow(0 6px 16px rgba(2,8,20,.55))">
@@ -404,7 +644,7 @@ html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggl
   <section class="mb-8">
     <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
       <div>
-        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300 mb-1">Weekly Schedule</p>
+        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300 mb-1 hud-eyebrow"><i class="fas fa-angles-right" aria-hidden="true"></i>MODULE 01 · WEEKLY SCHEDULE</p>
         <h2 class="font-display text-2xl font-bold text-white">Weekly Study Plan</h2>
       </div>
       <nav class="flex flex-wrap gap-2">
@@ -421,7 +661,7 @@ html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggl
 
   <!-- ===== RESOURCES ===== -->
   <section class="mt-10 mb-8">
-    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300 mb-2">Reference Materials</p>
+    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300 mb-2 hud-eyebrow"><i class="fas fa-angles-right" aria-hidden="true"></i>MODULE 02 · REFERENCE MATERIALS</p>
     <h2 class="font-display text-2xl font-bold text-white mb-4">Recommended Books</h2>
     <div class="grid gap-3 sm:grid-cols-3">
       <div class="glass p-4 acc-cyan"><div class="bp-stat-chip" style="width:40px;height:40px;font-size:16px;margin-bottom:12px"><i class="fas fa-book"></i></div><h3 class="font-bold text-white text-sm">ETS TOEFL ITP Official Guide</h3><p class="text-xs text-slate-400 mt-1">Official test prep book from ETS with practice tests and answer keys.</p></div>
@@ -431,14 +671,14 @@ html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggl
   </section>
 
   <!-- ===== TEACHER TIP ===== -->
-  <section class="glass p-5 mb-8 border-l-4" style="border-left-color:#fbbf24">
+  <section class="glass p-5 mb-8 border-l-4 hud-alert" style="border-left-color:#fbbf24">
     <div class="flex items-start gap-3">
       <div class="bp-stat-chip acc-amber" style="width:40px;height:40px;font-size:16px;flex-shrink:0"><i class="fas fa-lightbulb"></i></div>
-      <div><h2 class="font-display text-lg font-bold text-white">Teacher's Tip</h2><p class="text-sm text-slate-300 mt-1 leading-relaxed">Use the diagnostic test in Week 2 to identify each student's weakest section. Then focus the bi-weekly drills on that section while maintaining the others. Each drill has its own link — share individual tests with students directly.</p></div>
+      <div><p class="hud-alert-tag"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i>MODULE 03 · FIELD ADVISORY</p><h2 class="font-display text-lg font-bold text-white">Teacher's Tip</h2><p class="text-sm text-slate-300 mt-1 leading-relaxed">Use the diagnostic test in Week 2 to identify each student's weakest section. Then focus the bi-weekly drills on that section while maintaining the others. Each drill has its own link — share individual tests with students directly.</p></div>
     </div>
   </section>
 
-  <footer class="text-center text-xs text-slate-600 py-6"><p>TOEFL ITP Bi-Weekly Planner · Prepared for Aii CAP Campus Teachers</p></footer>
+  <footer class="text-center text-xs text-slate-600 py-6 hud-footer"><p class="hud-warn"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i>WARNING · TEACHER-ONLY CONSOLE<i class="fas fa-triangle-exclamation" aria-hidden="true"></i></p><p>TOEFL ITP Bi-Weekly Planner · Prepared for Aii CAP Campus Teachers</p></footer>
 </div>
 
 <script>
@@ -548,6 +788,7 @@ WEEKS.forEach((w,idx)=>{
   if(idx===0){
     card.classList.add('p-6');
     card.innerHTML=`
+      <span class="hud-strip" aria-hidden="true"><i class="fas fa-microchip"></i><span>MDL-W${String(w.n).padStart(2,'0')}</span><i class="hud-lead"></i><b>ONLINE</b></span>
       <div class="flex items-center justify-between mb-3">
         <span class="week-chip" style="font-size:11px;padding:6px 12px"><i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}</span>
         <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-3.5 py-2 rounded-full" style="color:#04141f;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),linear-gradient(135deg,rgba(103,232,249,.95),rgba(125,211,252,.95));box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 0 #0e7490,0 10px 22px -10px rgba(8,145,178,.6)">
@@ -562,6 +803,7 @@ WEEKS.forEach((w,idx)=>{
     featured.appendChild(card);
   } else {
     card.innerHTML=`
+      <span class="hud-strip" aria-hidden="true"><i class="fas fa-microchip"></i><span>MDL-W${String(w.n).padStart(2,'0')}</span><i class="hud-lead"></i><b>ONLINE</b></span>
       <div class="flex items-center justify-between mb-2">
         <span class="week-chip"><i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}</span>
         <span class="drill-count">${w.tests.length} drill${w.tests.length===1?'':'s'}</span>
