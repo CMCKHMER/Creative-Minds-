@@ -1,4 +1,5 @@
 import { useCallback, useState, useEffect, useMemo } from 'react';
+import type { CSSProperties } from 'react';
 import { Activity, RefreshCw } from 'lucide-react';
 import { useMemberAuth } from '../hooks/useMemberAuth';
 import { useStudentAuth } from '../hooks/useStudentAuth';
@@ -301,8 +302,11 @@ export function FirebaseDashboard() {
         />
         <div className="cmc-rtdash-veil" />
       </div>
-      <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-cyan-500/[0.10] blur-[125px]" />
-      <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-10rem] -z-10 h-[30rem] w-[30rem] rounded-full bg-violet-500/[0.10] blur-[125px]" />
+      {/* HUD chrome — runway grid floor at the section foot + cockpit corner
+          brackets with dotted side rulers (same language as the bi-weekly
+          planner; both pointer-safe decorations) */}
+      <div aria-hidden="true" className="cmcdc-hudfloor" />
+      <div aria-hidden="true" className="cmcdc-hudframe"><i /><i /><i /><i /></div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
         {/* Command-center console bar — ambient system status readouts */}
@@ -369,19 +373,19 @@ export function FirebaseDashboard() {
         {/* Stats row */}
         {isTeacher && (
           <div className="cmcdc-stage mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center" style={{ '--ro': '#a5e8ff', '--ro-glow': 'rgba(56,189,248,.5)' } as CSSProperties}>
               <p className="font-[var(--font-display)] text-2xl font-bold text-cyan-300">{stats.total}</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Total Attempts</p>
             </div>
-            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center" style={{ '--ro': '#d8b4fe', '--ro-glow': 'rgba(139,92,246,.45)' } as CSSProperties}>
               <p className="font-[var(--font-display)] text-2xl font-bold text-violet-300">{stats.avgScore}%</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Avg Score</p>
             </div>
-            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center" style={{ '--ro': '#a7f3d0', '--ro-glow': 'rgba(52,211,153,.45)' } as CSSProperties}>
               <p className="font-[var(--font-display)] text-2xl font-bold text-emerald-300">{stats.uniqueStudents}</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Students</p>
             </div>
-            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+            <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center" style={{ '--ro': '#fde68a', '--ro-glow': 'rgba(251,191,36,.45)' } as CSSProperties}>
               <p className="font-[var(--font-display)] text-2xl font-bold text-amber-300">{stats.recentCount}</p>
               <p className="text-[10px] uppercase tracking-wider text-slate-500">Last 24h</p>
             </div>
@@ -390,11 +394,13 @@ export function FirebaseDashboard() {
 
         {/* Teacher view: classes + attempts */}
         {isTeacher && (
-          <div className="cmcdc-stage grid gap-4 lg:grid-cols-[280px_1fr]">
+          <div className="cmcdc-stage grid gap-4 lg:grid-cols-[300px_1fr]">
             {/* Class list — console roster panel */}
             <div className="cmcdc-panel overflow-hidden">
               <div className="cmcdc-panel-head">
+                <span className="cmcdc-panel-code">MDL-R01</span>
                 <span className="cmcdc-led" />Class Roster
+                <i className="cmcdc-lead" aria-hidden="true" />
                 <span className="cmcdc-panel-tag">{classes.length} units</span>
               </div>
               <div className="space-y-2 p-3">
@@ -441,7 +447,9 @@ export function FirebaseDashboard() {
             {/* Attempts feed — console frame (the table itself stays plain) */}
             <div className="cmcdc-panel overflow-hidden rounded-xl">
               <div className="cmcdc-panel-head">
+                <span className="cmcdc-panel-code">MDL-F02</span>
                 <span className="cmcdc-led cmcdc-led--live" />Attempt Feed · Live
+                <i className="cmcdc-lead" aria-hidden="true" />
                 <span className="cmcdc-panel-tag">{loading ? 'syncing…' : `${scopedAttempts.length} rows`}</span>
               </div>
               {loading ? (
@@ -558,7 +566,9 @@ export function FirebaseDashboard() {
         {isStudent && (
           <div className="cmcdc-panel overflow-hidden rounded-xl">
             <div className="cmcdc-panel-head">
+              <span className="cmcdc-panel-code">MDL-H03</span>
               <span className="cmcdc-led" />Your Drill History
+              <i className="cmcdc-lead" aria-hidden="true" />
             </div>
             {studentAttempts.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500">
@@ -736,23 +746,25 @@ function CommunityLive() {
   return (
     <div className="space-y-3">
       <div className="cmcdc-stage grid grid-cols-3 gap-3">
-        <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+        <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center" style={{ '--ro': '#a5e8ff', '--ro-glow': 'rgba(56,189,248,.5)' } as CSSProperties}>
           <p className="text-2xl font-bold text-cyan-300">{last24h}</p>
           <p className="text-[10px] uppercase tracking-wider text-slate-500">Drills · last 24h</p>
         </div>
-        <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+        <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center" style={{ '--ro': '#a7f3d0', '--ro-glow': 'rgba(52,211,153,.45)' } as CSSProperties}>
           <p className="text-2xl font-bold text-emerald-300">{students}</p>
           <p className="text-[10px] uppercase tracking-wider text-slate-500">Students drilling</p>
         </div>
-        <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center">
+        <div className="cmcdc-stat cmcdc-tilt rounded-xl border border-white/10 bg-slate-950/50 p-4 text-center" style={{ '--ro': '#d8b4fe', '--ro-glow': 'rgba(139,92,246,.45)' } as CSSProperties}>
           <p className="text-2xl font-bold text-violet-300">{avg}%</p>
           <p className="text-[10px] uppercase tracking-wider text-slate-500">Avg score</p>
         </div>
       </div>
       <div className="cmcdc-panel overflow-hidden rounded-xl">
         <div className="cmcdc-panel-head">
+          <span className="cmcdc-panel-code">MDL-P01</span>
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
           Live from the drill floor — recent submissions
+          <i className="cmcdc-lead" aria-hidden="true" />
         </div>
         {recent.length === 0 ? (
           <div className="py-10 text-center text-sm text-slate-500">

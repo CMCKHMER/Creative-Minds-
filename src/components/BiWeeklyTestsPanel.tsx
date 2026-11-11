@@ -22,7 +22,7 @@
 // anything broader.
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ClipboardList, Copy, Download, ExternalLink, RefreshCw, Shuffle } from 'lucide-react';
+import { ClipboardList, Copy, Cpu, Download, ExternalLink, RefreshCw, Shuffle } from 'lucide-react';
 import { getRestAuthUid, listInviteAttempts, registerInviteCode, RestError } from '../lib/testDb';
 import type { InviteAttemptDoc } from '../lib/testDb';
 
@@ -252,7 +252,7 @@ export const BiWeeklyTestsPanel: React.FC<{
     <select
       value={formSlug}
       onChange={(e) => setFormSlug(e.target.value)}
-      className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
+      className="rounded-lg border border-cyan-200/25 bg-slate-950/60 px-2.5 py-2 text-xs text-cyan-50 focus:border-cyan-200 focus:outline-none"
       aria-label="Pick a bi-weekly test"
     >
       {CATALOG_GROUPS.map((g) => (
@@ -264,10 +264,21 @@ export const BiWeeklyTestsPanel: React.FC<{
   );
 
   return (
-    <div data-keep-dark className="mt-8 rounded-2xl border border-violet-300/15 bg-gradient-to-br from-violet-950/25 via-slate-950/60 to-slate-950/80 p-5 sm:p-6">
+    // data-hud-panel pulls this panel into the bi-weekly HUD skin (glass +
+    // circuit texture + corner brackets, see command-center.css) while keeping
+    // it FREE of cmcdc classes — the command-center verifier requires the
+    // data-keep-dark sub-panels to carry zero command-center classes.
+    <div data-keep-dark data-hud-panel="bw-tests" className="mt-8 rounded-2xl border p-5 sm:p-6">
+      {/* HUD tech strip — module code + dotted leader + ONLINE readout */}
+      <div className="hudp-strip" aria-hidden="true">
+        <Cpu className="hudp-ic" aria-hidden="true" />
+        <span>MDL-T03</span>
+        <i className="hudp-lead" />
+        <b>ONLINE</b>
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl border border-violet-300/20 bg-violet-300/10 text-violet-200"><ClipboardList className="h-5 w-5" /></span>
+          <span className="grid h-10 w-10 place-items-center rounded-xl border border-cyan-200/25 bg-cyan-200/10 text-cyan-100"><ClipboardList className="h-5 w-5" /></span>
           <div>
             <h3 className="font-[var(--font-display)] text-lg font-bold text-white">Bi-Weekly Tests</h3>
             <p className="text-[11px] text-slate-400">Share a test in one tap — students enter name + ID, the timer runs, answers come back to you.</p>
@@ -284,41 +295,41 @@ export const BiWeeklyTestsPanel: React.FC<{
               try { localStorage.setItem(CODE_KEY, clean); } catch { /* in-memory only */ }
             }}
             maxLength={24}
-            className="w-32 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs font-bold tracking-wider text-white focus:border-cyan-500 focus:outline-none"
+            className="w-32 rounded-lg border border-cyan-200/25 bg-slate-950/60 px-2.5 py-1.5 font-mono text-xs font-bold tracking-wider text-cyan-100 focus:border-cyan-200 focus:outline-none"
           />
           <button
             onClick={regenerateCode}
             title="Generate a new code"
-            className="rounded-lg border border-white/10 bg-white/5 p-2 text-slate-300 transition hover:bg-white/10"
+            className="rounded-lg border border-cyan-200/25 bg-cyan-200/[0.06] p-2 text-cyan-100 transition hover:bg-cyan-200/[0.12]"
           >
             <Shuffle className="h-3 w-3" />
           </button>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-white/10 bg-slate-950/50 p-4">
+      <div className="mt-5 rounded-xl border border-cyan-200/12 bg-slate-950/40 p-4">
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           {picker}
           <button
             onClick={copyLink}
-            className="flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5"
+            className="hudp-cta flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5"
           >
             <Copy className="h-3 w-3" /> {copied ? 'Copied!' : 'Copy student link'}
           </button>
         </div>
-        <p className="mt-2 break-all rounded-lg border border-white/5 bg-white/5 px-3 py-2 font-mono text-[10.5px] text-slate-400">{inviteUrl}</p>
+        <p className="mt-2 break-all rounded-lg border border-cyan-200/10 bg-cyan-200/[0.04] px-3 py-2 font-mono text-[10.5px] text-cyan-100/70">{inviteUrl}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <a
             href={inviteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-[10px] font-bold text-slate-200 transition hover:bg-white/10"
+            className="flex items-center gap-1.5 rounded-md border border-cyan-200/25 bg-cyan-200/[0.06] px-2.5 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:bg-cyan-200/[0.12]"
           >
             <ExternalLink className="h-3 w-3" /> Preview as student
           </a>
           <button
             onClick={() => setResultsOpen((v) => !v)}
-            className="flex items-center gap-1.5 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 text-[10px] font-bold text-cyan-200 transition hover:bg-cyan-400/20"
+            className="flex items-center gap-1.5 rounded-md border border-cyan-200/30 bg-cyan-200/10 px-2.5 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:bg-cyan-200/20"
           >
             <ClipboardList className="h-3 w-3" /> {resultsOpen ? 'Hide results' : 'View results'}
           </button>
@@ -331,8 +342,8 @@ export const BiWeeklyTestsPanel: React.FC<{
       </div>
 
       {resultsOpen && (
-        <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/40">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
+        <div className="mt-4 rounded-xl border border-cyan-200/12 bg-slate-950/40">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-200/12 px-4 py-3">
             <div>
               <h4 className="text-sm font-bold text-white">{TEST_CATALOG.find((t) => t.slug === formSlug)?.title ?? formSlug}</h4>
               <p role="status" className={`mt-0.5 text-[10px] ${resultsState.tone === 'err' ? 'text-rose-300' : resultsState.tone === 'ok' ? 'text-emerald-300' : 'text-slate-500'}`}>
@@ -342,14 +353,14 @@ export const BiWeeklyTestsPanel: React.FC<{
             <div className="flex gap-1.5">
               <button
                 onClick={() => void loadAttempts(formSlug, restUid)}
-                className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-[10px] font-bold text-slate-200 transition hover:bg-white/10"
+                className="flex items-center gap-1.5 rounded-md border border-cyan-200/25 bg-cyan-200/[0.06] px-2.5 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:bg-cyan-200/[0.12]"
               >
                 <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} /> Refresh
               </button>
               <button
                 onClick={exportCsv}
                 disabled={attempts.length === 0}
-                className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-[10px] font-bold text-slate-200 transition hover:bg-white/10 disabled:opacity-40"
+                className="flex items-center gap-1.5 rounded-md border border-cyan-200/25 bg-cyan-200/[0.06] px-2.5 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:bg-cyan-200/[0.12] disabled:opacity-40"
               >
                 <Download className="h-3 w-3" /> CSV
               </button>

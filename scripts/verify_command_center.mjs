@@ -84,6 +84,56 @@ ok('keycap class buttons wired', (base?.keys || 0) >= 0, `${base?.keys} keys (0 
 ok('feed empty-state renders inside console frame', !!base?.feedEmpty, '');
 ok('spreadsheet + tests panels carry zero cmcdc classes', base?.subPanelCount === 2 && base.subPanelLeak.every(v => v === 'clean'), `panels=${base?.subPanelCount} ${JSON.stringify(base?.subPanelLeak)}`);
 
+// ---- BI-WEEKLY HUD SKIN (v39): floor, cockpit frame, circuit glass,
+// 4-layer neon, readout bars, tests-panel skin — matching the planner ----
+const hud = await page.evaluate(() => {
+  const sec = document.getElementById('firebase-dashboard');
+  if (!sec) return null;
+  const cs = (el, pseudo) => (el ? getComputedStyle(el, pseudo || null) : null);
+  const floor = sec.querySelector('.cmcdc-hudfloor');
+  const frame = sec.querySelector('.cmcdc-hudframe');
+  const stat = sec.querySelector('.cmcdc-stat');
+  const panel = [...sec.querySelectorAll('.cmcdc-panel')][0];
+  const head = sec.querySelector('.cmcdc-panel-head');
+  const testsPanel = sec.querySelector('[data-hud-panel="bw-tests"]');
+  const floorCs = cs(floor);
+  return {
+    floorAnim: floorCs?.animationName || '',
+    floorTilted: floorCs ? floorCs.transform.startsWith('matrix') && floorCs.transform !== 'none' : false,
+    frameCorners: frame ? frame.querySelectorAll('i').length : 0,
+    frameRuler: !!cs(frame, '::before')?.backgroundImage.includes('repeating-linear-gradient'),
+    statCircuit: !!cs(stat)?.backgroundImage.includes('data:image/svg+xml'),
+    panelCircuit: !!cs(panel)?.backgroundImage.includes('data:image/svg+xml'),
+    headNeon: (cs(head)?.textShadow.match(/rgba\(/g) || []).length >= 4,
+    statBar: !!cs(stat, '::after')?.backgroundImage.includes('90deg'),
+    testsCircuit: !!cs(testsPanel)?.backgroundImage.includes('data:image/svg+xml'),
+    testsBrackets: !!cs(testsPanel, '::after')?.backgroundSize.includes('16px'),
+    testsStrip: !!testsPanel?.querySelector('.hudp-strip'),
+    leadCount: sec.querySelectorAll('.cmcdc-lead').length,
+    codeCount: sec.querySelectorAll('.cmcdc-panel-code').length,
+  };
+});
+ok('HUD runway floor present + scrolling', hud?.floorAnim === 'cmcdcFloorScroll' && hud?.floorTilted, `anim=${hud?.floorAnim} tilted=${hud?.floorTilted}`);
+ok('cockpit frame: 4 corner brackets + dotted rulers', hud?.frameCorners === 4 && !!hud?.frameRuler, `corners=${hud?.frameCorners} ruler=${hud?.frameRuler}`);
+ok('circuit texture under stat + panel glass', !!hud?.statCircuit && !!hud?.panelCircuit, `stat=${hud?.statCircuit} panel=${hud?.panelCircuit}`);
+ok('panel heads carry 4-layer neon glow', !!hud?.headNeon, JSON.stringify(hud?.headNeon));
+ok('stat readout bar painted (planner bp-stat recipe)', !!hud?.statBar, '');
+ok('bi-weekly tests panel joins HUD skin (circuit + brackets + strip)', !!hud?.testsCircuit && !!hud?.testsBrackets && !!hud?.testsStrip, `circuit=${hud?.testsCircuit} brackets=${hud?.testsBrackets} strip=${hud?.testsStrip}`);
+ok('module codes + dotted leaders wired (MDL-*)', (hud?.codeCount || 0) >= 2 && (hud?.leadCount || 0) >= 2, `codes=${hud?.codeCount} leads=${hud?.leadCount}`);
+// td plainness: the live tables render only when data exists (aborted here),
+// so probe the exclusion rule by injecting a throwaway cell into a panel.
+const tdPlain = await page.evaluate(() => {
+  const panel = document.querySelector('#firebase-dashboard .cmcdc-panel');
+  if (!panel) return null;
+  const probe = document.createElement('table');
+  probe.innerHTML = '<tbody><tr><td id="cmcdc-td-probe">x</td></tr></tbody>';
+  panel.appendChild(probe);
+  const shadow = getComputedStyle(document.getElementById('cmcdc-td-probe')).textShadow;
+  probe.remove();
+  return ['none', ''].includes(shadow);
+});
+ok('data cells stay plain (no neon on td)', tdPlain === true, String(tdPlain));
+
 // hover pop + tilt vars on stat card
 const stat = (await page.$$('.cmcdc-stat'))[1];
 if (stat) {
