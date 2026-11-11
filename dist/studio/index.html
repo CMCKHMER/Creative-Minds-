@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Creative Minds — Studio</title>
 <link rel="icon" type="image/png" sizes="64x64" href="../icons/favicon-64.png">
 <link rel="apple-touch-icon" href="../icons/icon-192.png">
@@ -490,6 +490,110 @@
 .doc-layer blockquote{border-left:3px solid #06b6d4;background:#f5f8fc;margin:12px 0;padding:8px 16px;color:#334155}
 /* Quick bar word counter */
 .quick-stats{font:11px 'Instrument Sans',sans-serif;color:#45475a;white-space:nowrap;align-self:center}
+
+/* ═════════ CMC-MOBILE — compact phone & tablet layout ═════════
+   Same app, same tools — just tighter. Every function stays: the
+   menubar and quick toolbar scroll horizontally, the right panel
+   becomes a floating drawer over the stage (‹ › toggle still works),
+   the canvas rail collapses in Docs/Excel/Code, and the touch
+   long-press menus the app already has become the primary pointer.
+   Desktop (≥901px) is completely untouched by this block. */
+@media (hover:none){
+  .tool::after{display:none}  /* hover-only tooltips would stick on touch */
+}
+@media (max-width: 900px){
+  html,body{overscroll-behavior:none}
+  body{height:100vh; height:100dvh}
+  .app{height:100vh; height:100dvh; grid-template-rows:36px 34px auto 42px 1fr 24px}
+  button, .menu, .menu-item{touch-action:manipulation}
+
+  /* Menubar: scrollable strip; dropdowns never leave the screen */
+  .menubar{overflow-x:auto; overflow-y:hidden; scrollbar-width:none; padding:0 6px}
+  .menubar::-webkit-scrollbar{display:none}
+  .menu{padding:5px 7px; font-size:12px}
+  .menu[data-menu="file"] img{display:none}
+  .menu[data-menu="file"] b{display:none; margin-right:0}
+  .menu-dropdown{max-width:calc(100vw - 14px); min-width:180px}
+  .menu-item{white-space:normal; line-height:1.35; gap:10px; padding:9px 10px; font-size:12.5px}
+  .menu-item .kbd{display:none}   /* keyboard hints are noise on touch */
+  .menu:nth-last-child(-n+6) .menu-dropdown{left:auto; right:0}  /* right-side menus (Tools/Help) open leftwards */
+  .icon-btn.mb-toggle{width:30px; height:30px}
+  .menubar .file{max-width:30vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px}
+
+  /* Quick toolbar: horizontal scroll with bigger tap targets */
+  .quick-bar{padding:0 6px; gap:3px; -webkit-overflow-scrolling:touch}
+  .mode-tabs{padding:2px}
+  .mode-tab{padding:3px 9px; font-size:11px}
+  .quick-btn{padding:5px 9px; font-size:12px}
+  .quick-btn svg{width:15px; height:15px}
+  .quick-bar select{font-size:12px; padding:4px 6px}
+  .quick-stats{display:none}
+
+  /* My Bar: wrap items, hide the long hint text */
+  .my-dock{padding:4px 8px; gap:6px}
+  .my-dock-hint{display:none}
+  .my-dock-btn{padding:4px 9px; font-size:11px}
+
+  /* Header actions row */
+  header{padding:0 10px; gap:8px}
+  header .btn-ghost{padding:6px 12px; font-size:12px}
+  header .icon-btn{width:30px; height:30px}
+  header .btn-export{padding:7px 14px; font-size:12px}
+
+  /* Workspace: slim rail; panel becomes a floating drawer on the stage.
+     togglePanelSlide() keeps working — ‹ › hides/shows the drawer and
+     refits the canvas. Rail is canvas-only, so it collapses entirely in
+     Docs/Excel/Code, giving the page the full width. */
+  .workspace{position:relative; grid-template-columns:48px 1fr}
+  .workspace.no-panel{grid-template-columns:48px 1fr}
+  .workspace:has(.rail.off){grid-template-columns:0px 1fr}
+  .workspace > .stage-wrap{grid-column:2}  /* keep the stage in the 1fr track when rail/panel are display:none */
+  .rail{padding:10px 0; gap:6px; overflow-y:auto}
+  .rail.off{display:none}
+  .rail hr{width:20px}
+  .tool{width:38px; height:38px}
+  #panelToggle{z-index:52; width:20px; height:44px}
+  .panel{position:absolute; top:0; right:0; bottom:0; width:min(300px,86vw); box-shadow:-14px 0 44px rgba(0,0,0,.55); padding:12px; gap:12px; z-index:48}
+  .panel.hidden{display:none}
+
+  /* Stage & page layers */
+  .stage{padding:16px}
+  .stage-wrap{grid-template-columns:20px 1fr; grid-template-rows:20px 1fr}
+  .stage-wrap > .stage{grid-column:2; grid-row:2}  /* with rulers display:none the stage would auto-place into the 20px corner cell */
+  .doc-layer{padding:28px 18px; font-size:15px}
+  .doc-layer h1{font-size:26px}
+  .doc-header,.doc-footer{padding:8px 18px}
+
+  /* Sheets: wrap the toolbar so the formula bar stays reachable */
+  .sheet-toolbar{flex-wrap:wrap}
+  .sheet-toolbar .formula{min-width:140px}
+  .sheet-status{gap:8px}
+  .sheet-tab{padding:6px 12px}
+
+  /* Code editor */
+  .code-toolbar{flex-wrap:wrap}
+  .code-editor{font-size:14px; line-height:1.5}
+
+  /* Footer */
+  footer{padding:0 10px; gap:10px; font-size:10.5px; padding-bottom:env(safe-area-inset-bottom)}
+  footer .live{gap:4px}
+
+  /* Modals & dialogs */
+  .modal{width:94%; max-width:none; padding:16px 14px; max-height:86vh; max-height:86dvh}
+  .preset-grid{grid-template-columns:1fr}
+  .dialog-buttons button{padding:10px 14px}
+  .crop-bar{max-width:94vw; flex-wrap:wrap}
+
+  /* The floating back-home pill would cover the menubar's right side on a
+     phone — hidden here; File ▸ Back to CMC Home replaces it (first item). */
+  #cmc-back-btn{display:none!important}  /* the pill's inline display:flex beats any plain rule */
+
+  /* Welcome screen */
+  .welcome-screen{padding:16px}
+  .welcome-grid{grid-template-columns:repeat(auto-fit,minmax(136px,1fr)); gap:10px; width:100%; max-width:none}
+  .welcome-card{padding:16px 12px}
+  .welcome-logo{font-size:22px}
+}
 </style>
 <script>
 /* ── CMC-TEACHER-ONLY chrome ───────────────────────────────────────────
@@ -553,6 +657,8 @@
     <div class="menu" data-menu="file">
       <img src="../icons/favicon-64.png" alt="" style="width:15px;height:15px;object-fit:contain;vertical-align:-3px;margin-right:6px"><b>CREATIVE MINDS</b>File
       <div class="menu-dropdown">
+        <div class="menu-item" data-action="file-home"><span>Back to CMC Home</span></div>
+        <div class="menu-sep"></div>
         <div class="menu-item" data-action="file-new"><span>New Project</span><span class="kbd">Ctrl+N</span></div>
         <div class="menu-item" data-action="file-open"><span>Open… (Docs, Excel, Code, images — any file)</span><span class="kbd">Ctrl+O</span></div>
         <div class="menu-item" data-action="file-open-doc"><span>Open Document… (.docx, .odt, .rtf, .txt, .md, .html)</span></div>
@@ -1532,8 +1638,10 @@ function setCanvasSize(w,h, scaleContent=false){
 function fitCanvas(){
   const availW=Math.max(120, stage.clientWidth-60), availH=Math.max(120, stage.clientHeight-60);
   /* CMC-SHEET-LANDSCAPE: the Excel tool always presents its page box in
-     landscape (wide) orientation, whatever the canvas page size is. */
-  const inSheet = (tool === 'sheet');
+     landscape (wide) orientation, whatever the canvas page size is.
+     CMC-MOBILE: skip the landscape forcing on ≤900px — a wide box on a
+     tall phone leaves a ~200px strip of grid; portrait fills the stage. */
+  const inSheet = (tool === 'sheet') && !(window.matchMedia && matchMedia('(max-width: 900px)').matches);
   const vw = inSheet ? Math.max(W, H) : W, vh = inSheet ? Math.min(W, H) : H;
   wrap.style.aspectRatio = `${vw} / ${vh}`;
   const fitW = Math.max(280, Math.min(availW, availH*(vw/vh)));
@@ -1879,8 +1987,12 @@ function selectTool(t){
   vectorTextPanel.classList.toggle('hidden', isDoc || isSheet || isCode); // vector text is canvas-only — the one tool that genuinely does not apply in doc/sheet/code
   preview.style.pointerEvents = (isDoc || isSheet) ? 'none' : 'auto';
   if (isSheet) { renderSheet(); renderSheetTabs(); }
-  /* CMC-SHEET-LANDSCAPE: entering or leaving the Excel tool re-presents the page box */
-  if (isSheet || prevTool === 'sheet') fitCanvas();
+  /* CMC-SHEET-LANDSCAPE: entering or leaving the Excel tool re-presents the page box.
+     CMC-MOBILE: refit on ANY mode change — the stage width differs between canvas
+     (48px rail) and doc/sheet/code (rail collapsed), so a stale page box would
+     overflow the smaller stage after switching back. */
+  const modeOf = (x) => (x === 'doc' || x === 'sheet' || x === 'code') ? x : 'canvas';
+  if (isSheet || prevTool === 'sheet' || modeOf(t) !== modeOf(prevTool)) fitCanvas();
 }
 
 /* ── Rulers ─────────────────────────────────────── */
@@ -3489,6 +3601,17 @@ let gridVisible = false;
 function viewToggleGrid(){ gridVisible = !gridVisible; if (gridVisible) { stage.style.backgroundImage = 'radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1.5px), radial-gradient(circle, rgba(255,255,255,.04) 1px, transparent 1.5px)'; stage.style.backgroundSize = '22px 22px, 88px 88px'; } else { stage.style.backgroundImage = ''; stage.style.backgroundSize = ''; } updateMenuCheck('view-toggle-grid', gridVisible); }
 function updateMenuCheck(action, visible){ const item = document.querySelector(`.menu-item[data-action="${action}"] .check`); if (item) { item.classList.toggle('empty', !visible); item.textContent = visible ? '✓' : '·'; } }
 
+/* CMC-MOBILE — compact defaults on small screens (state stays in sync:
+   the View menu checks simply start unchecked, so toggling from the
+   menu works exactly as on desktop). Panel starts hidden on ≤900px so
+   the page has full width; rulers start hidden on phones (≤480px). */
+(function(){
+  try {
+    if (matchMedia('(max-width: 900px)').matches && panelVisible) togglePanelSlide();
+    if (matchMedia('(max-width: 480px)').matches && rulersVisible) viewToggleRulers();
+  } catch(e){}
+})();
+
 /* ══ INSERT / HELP ACTIONS ═══════════════════════ */
 function insertImage(){ fileInput.click(); }
 function insertText(){ selectTool('text'); }
@@ -3507,6 +3630,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 
 /* ══ MENU WIRING ══════════════════════════════════ */
 const ACTIONS = {
+  'file-home': () => { location.href = 'https://cmckhmer.github.io/Creative-Minds-/'; },
   'file-new': fileNew, 'file-open': fileOpen, 'file-page-setup': openDocPageSetup, 'file-save-png': fileSavePng, 'file-save-jpg': fileSaveJpg, 'file-save-svg': fileSaveSvg, 'file-save-pdf': fileSavePdf, 'file-save-json': fileSaveJson, 'file-save-csv': fileSaveCsv, 'file-autosave': toggleAutoSave, 'file-print': filePrint, 'file-import': insertImage,
   'edit-undo': undo, 'edit-redo': redo, 'edit-cut': editCut, 'edit-copy': editCopy, 'edit-paste': editPaste, 'edit-delete': editDelete, 'edit-duplicate': editDuplicate, 'edit-select-all': editSelectAll, 'edit-clear': editClear, 'edit-flip-h': () => flipCanvas(true), 'edit-flip-v': () => flipCanvas(false), 'edit-rotate-img-90-cw': () => rotateActiveLayer(90), 'edit-rotate-img-90-ccw': () => rotateActiveLayer(-90), 'edit-rotate-doc-15-cw': () => { rotateDoc(15); }, 'edit-rotate-doc-15-ccw': () => { rotateDoc(-15); }, 'edit-rotate-doc-reset': () => { resetDocRotation(); },
   'view-zoom-in': viewZoomIn, 'view-zoom-out': viewZoomOut, 'view-zoom-fit': viewZoomFit, 'view-zoom-100': viewZoom100, 'view-toggle-rulers': viewToggleRulers, 'view-toggle-panel': viewTogglePanel, 'view-toggle-grid': viewToggleGrid, 'view-toggle-dark': viewToggleDark, 'view-toggle-mybar': viewToggleMyBar,
