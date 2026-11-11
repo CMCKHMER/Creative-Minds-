@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from 'react';
-import { ArrowUpRight, BookOpen, CheckCircle2, Check, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles } from 'lucide-react';
+import { ArrowUpRight, BookOpen, CheckCircle2, Check, ChevronDown, ChevronUp, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles } from 'lucide-react';
 import { KID_GRADE_RESOURCES, type KidGradeMaterial } from '../data/kidGradeResources';
 import { getProjectId, getValidIdToken, restoreSession } from '../lib/firebaseAuth';
 import { Reveal } from './Reveal';
@@ -56,6 +56,11 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
   const [toggleError, setToggleError] = useState<ToggleErrorKind | null>(null);
   const [toggleErrEmail, setToggleErrEmail] = useState('');
   const [toggleErrFor, setToggleErrFor] = useState<string | null>(null);
+  // Homework fold (owner request: "add a more button so the card does not
+  // get too long" — a dedicated homework page was weighed and passed on:
+  // the fold keeps students on the page with zero duplicated gate logic).
+  // Per grade so the cards fold independently of each other.
+  const [hwExpanded, setHwExpanded] = useState<Record<number, boolean>>({});
 
   // All homework share docs across the grade cards (deduped).
   const shareDocIds = Array.from(new Set(
@@ -213,6 +218,19 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
             const isAvailable = resource.status === 'available' && resource.materials.length > 0;
             const sheets = resource.materials.filter((material) => material.kind !== 'Online homework');
             const homework = resource.materials.filter((material) => material.kind === 'Online homework');
+            // Fold math. Collapsed shows the first two rows PLUS every
+            // homework that is currently open for the class — a homework the
+            // teacher assigns must be visible on the folded card, so the
+            // fold can never hide the assigned work behind "More". Students
+            // count only viewer-visible rows: unshared homework stays
+            // completely invisible to them, the fold is never a peek.
+            const hwOpen = (material: KidGradeMaterial) => ((material.shareDoc && shareStatus[material.shareDoc]) || 'pending') === 'open';
+            const expanded = !!hwExpanded[resource.grade];
+            const viewerHomework = homework.filter((material) => !material.hideUntilShared || isTeacher || hwOpen(material));
+            const foldedIds = new Set(viewerHomework.slice(0, 2).map((material) => material.id));
+            const foldedHomework = viewerHomework.filter((material) => foldedIds.has(material.id) || hwOpen(material));
+            const shownHomework = expanded ? viewerHomework : foldedHomework;
+            const moreCount = viewerHomework.length - foldedHomework.length;
             return (
               <article key={resource.grade} aria-label={isAvailable ? `Kid ${resource.grade}, ${resource.materials.length} resources available` : `Kid ${resource.grade}, materials planned`} className={`flex min-h-[190px] flex-col rounded-2xl border p-4 transition duration-300 sm:p-5 ${isAvailable ? 'relative overflow-hidden border-cyan-200/25 bg-gradient-to-br from-cyan-400/[0.10] via-slate-900/90 to-indigo-500/[0.08] shadow-[0_20px_60px_-45px_rgba(34,211,238,.65)] hover:-translate-y-1 hover:border-cyan-100/45 hover:shadow-[0_28px_70px_-42px_rgba(34,211,238,.6)]' : 'border-white/[0.07] bg-slate-950/30 hover:border-white/15 hover:bg-slate-950/55'}`}>
                 {isAvailable && GRADE_CARD_IMAGES[resource.grade] && (
@@ -252,7 +270,7 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
                           <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-emerald-100">Online homework</span>
                         </div>
                         <div className="mt-2 space-y-2">
-                          {homework.map((material) => {
+                          {shownHomework.map((material) => {
                             const docId = material.shareDoc ?? '';
                             const status: HomeworkShareStatus = (docId && shareStatus[docId]) || 'pending';
                             const isOpen = status === 'open';
@@ -309,6 +327,12 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
                             );
                           })}
                         </div>
+                        {(moreCount > 0 || expanded) && (
+                          <button type="button" onClick={() => setHwExpanded((prev) => ({ ...prev, [resource.grade]: !prev[resource.grade] }))} aria-expanded={expanded} aria-label={expanded ? `Show fewer homework rows on the Kid ${resource.grade} card` : `Show ${moreCount} more homework row${moreCount === 1 ? '' : 's'} on the Kid ${resource.grade} card`} className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-emerald-200/25 bg-slate-950/50 px-2.5 py-1 text-[9px] font-bold text-emerald-100 transition hover:border-emerald-100/50 hover:bg-emerald-200/10 hover:text-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">
+                            {expanded ? <ChevronUp className="h-3 w-3" aria-hidden="true" /> : <ChevronDown className="h-3 w-3" aria-hidden="true" />}
+                            {expanded ? 'Show less' : `More homeworks · ${moreCount} more`}
+                          </button>
+                        )}
                         {!isTeacher && homework.every((material) => material.hideUntilShared && ((material.shareDoc && shareStatus[material.shareDoc]) || 'pending') !== 'open') && (
                           <p className="mt-2 text-[9px] leading-relaxed text-slate-600">Your teacher hasn’t shared homework here yet — it appears the moment they open it.</p>
                         )}

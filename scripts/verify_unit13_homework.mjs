@@ -432,6 +432,21 @@ console.log('browser · Kid 11 card — per-homework switches');
   }, null, { timeout: 30000 });
   await page.waitForTimeout(600);
   const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
+  // 4a-fold. Owner request: "add a more button so the card does not get too
+  // long" — the homework list starts folded to two rows behind a More
+  // control, and the fold ALWAYS carries every open homework so assigned
+  // work is never hidden behind it.
+  const moreBtn = kid11card.locator('button[aria-expanded]');
+  ok(await moreBtn.count() === 1, 'folded card carries exactly one More control');
+  ok((await moreBtn.getAttribute('aria-expanded')) === 'false', 'fold starts collapsed (aria-expanded=false)');
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 2 more'), 'fold label counts the two rows still folded away', await moreBtn.textContent());
+  ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 1"][aria-label*="with students"]').count() === 1, 'folded card keeps the Homework 1 switch (first two rows stay visible)');
+  ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 0, 'fold hides the Homework 2 switch');
+  ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 3"][aria-label*="with students"]').count() === 0, 'fold hides the Homework 3 switch');
+  await moreBtn.click();
+  await page.waitForTimeout(400);
+  ok((await moreBtn.getAttribute('aria-expanded')) === 'true', 'More unfolds the homework list');
+  ok(((await moreBtn.textContent()) || '').includes('Show less'), 'unfolded control flips to Show less');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 1"][aria-label*="with students"]').count() === 1, 'teacher sees the share switch for Homework 1');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 1, 'teacher sees the share switch for Homework 2');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 3"][aria-label*="with students"]').count() === 1, 'teacher sees the share switch for Homework 3');
@@ -452,6 +467,12 @@ console.log('browser · Kid 11 card — per-homework switches');
   await page.waitForTimeout(500);
   const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => ''));
   ok(clip.endsWith('/rfc3/unit13hw.html#hw-a'), 'card Share button copies the absolute homework URL', clip);
+  // Fold again — the assigned homework must stay on the folded card.
+  await moreBtn.click();
+  await page.waitForTimeout(400);
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 2 more'), 'Show less folds the list back with the count label', await moreBtn.textContent());
+  ok(await kid11card.locator('a[aria-label*="Unit 13 · Homework 1 — Field Notebook"]').count() === 1, 'assigned Homework 1 stays visible on the folded card');
+  ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 0, 'folded card hides the Homework 2 switch again');
   await kid11card.screenshot({ path: join(SHOTS, 'unit13-kid11-card.png') });
   await ctx.close();
 }
@@ -479,11 +500,61 @@ console.log('browser · Kid 11 card — per-homework switches');
   ok(await kid11card.locator('button[aria-label*="with students"]').count() === 0, 'students never see any teacher key switch');
   ok(((await kid11card.textContent())?.includes('Locked — your teacher opens this homework')) === true, 'Doctor Fish keeps its locked-row announcement for students');
   ok((await kid11card.textContent())?.includes('Your teacher opens each homework here'), 'student-facing caption');
+  ok(await kid11card.locator('button[aria-expanded]').count() === 0, 'student with the assigned homework in view: no fold control (nothing more to show them)');
   await kid11card.screenshot({ path: join(SHOTS, 'unit13-kid11-card-student.png') });
   await ctx.close();
 }
 
-// ── 5. mobile ────────────────────────────────────────────────────────────
+// 4c. Fold safety — an open homework beyond the first two rows still shows
+// on the folded card. The fold must never hide assigned work behind More.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  for (const [k, v] of Object.entries(TEACHER_SEED)) await ctx.addInitScript(([key, val]) => localStorage.setItem(key, val), [k, v]);
+  const page = await ctx.newPage();
+  await page.route(U13_ROUTE, routeU13({ hw1: false, hw2: false, hw3: true }));
+  await page.route(DF_ROUTE, routeDF(false));
+  await page.goto(`${BASE}/`, { waitUntil: 'load' });
+  await page.waitForFunction(() => {
+    const el = document.getElementById('kid-grades');
+    if (el && !document.body.textContent?.includes('Online homework')) {
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+    return document.body.textContent?.includes('Online homework') ?? false;
+  }, null, { timeout: 30000 });
+  await page.waitForTimeout(600);
+  const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
+  const moreBtn = kid11card.locator('button[aria-expanded]');
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 1 more'), 'fold label counts only the one still-hidden row', await moreBtn.textContent());
+  ok(await kid11card.locator('a[aria-label*="Unit 13 · Homework 3 — Campaign Studio"]').count() === 1, 'open Homework 3 shows on the folded card without expanding');
+  ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 0, 'the still-locked Homework 2 stays folded away');
+  await ctx.close();
+}
+
+// 4d. Student fold — viewer-visible rows only: the assigned homework shows
+// with no fold control, and the fold is never a peek at locked homework.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.route(U13_ROUTE, routeU13({ hw1: false, hw2: false, hw3: true }));
+  await page.route(DF_ROUTE, routeDF(false));
+  await page.goto(`${BASE}/`, { waitUntil: 'load' });
+  await page.waitForFunction(() => {
+    const el = document.getElementById('kid-grades');
+    if (el && !document.body.textContent?.includes('Online homework')) {
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+    return document.body.textContent?.includes('Online homework') ?? false;
+  }, null, { timeout: 30000 });
+  await page.waitForTimeout(600);
+  const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
+  ok(await kid11card.locator('a[aria-label*="Unit 13 · Homework 3 — Campaign Studio"]').count() === 1, 'student sees the one assigned homework (Homework 3) on the folded card');
+  ok(await kid11card.locator('button[aria-expanded]').count() === 0, 'student: no fold control — the fold never gates what the teacher assigned');
+  ok(((await kid11card.textContent())?.includes('Unit 13 · Homework 1 — Field Notebook')) === false, 'unshared Homework 1 stays invisible under the fold');
+  ok(((await kid11card.textContent())?.includes('Unit 13 · Homework 2 — Relocation Mission')) === false, 'unshared Homework 2 stays invisible under the fold');
+  await ctx.close();
+}
+
+// ── 5. mobile ──────────────────────────────────────────────────────────
 console.log('browser · mobile worksheet');
 {
   const ctx = await browser.newContext({ viewport: { width: 393, height: 852 }, hasTouch: true });
