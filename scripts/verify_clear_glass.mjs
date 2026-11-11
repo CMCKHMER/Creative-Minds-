@@ -1,7 +1,8 @@
 // Verify the clear-glass + glowing-blue-text pass:
 //   A. Bi-weekly planner hub (teacher-gated; bypassed via seeded session)
 //      - .glass fill thinned to the new stops, week-card 3D stage intact,
-//        glowing blue text on card headings/labels/buttons, scanlines kept,
+//        neon-blue glowing text on card headings/labels/buttons, card
+//        scanlines + circuit texture REMOVED (owner: spotless clear glass),
 //        light-theme variants
 //   B. Live Class Results command center (homepage #firebase-dashboard)
 //      - scanlines GONE from section + panels, clear glass fills,
@@ -78,9 +79,12 @@ const ok = (name, cond, detail) => results.push(`${cond ? 'PASS' : 'FAIL'}  ${na
   ok('week chip glows blue', chipShadow !== 'none' && chipShadow.includes('rgba(147, 222, 255'), chipShadow.slice(0, 90));
 
   const beforeBg = await card.evaluate(el => getComputedStyle(el, '::before').backgroundImage);
-  ok('planner scanlines kept (per request: only student area lines removed)', beforeBg.includes('repeating-linear-gradient'));
+  ok('planner card scanlines REMOVED (clear glass, no lines through panels)', !beforeBg.includes('repeating-linear-gradient'), beforeBg.slice(0, 100));
   const projBg = beforeBg;
   ok('planner projector light kept', projBg.includes('radial-gradient'));
+  ok('week-card circuit texture removed (no SVG lines under glass)', !glassBg.includes('data:image/svg+xml'), glassBg.slice(0, 100));
+  const glowLayers = (h3Shadow.match(/rgba\(/g) || []).length;
+  ok('neon text glow is a 4-layer emission (core + 3 halos)', glowLayers >= 4, `${glowLayers} shadow layers`);
 
   // 3D stage intact: rest translateZ 48 (read matrix m43 while bobbing)
   const m43 = await card.evaluate(el => {
@@ -100,6 +104,8 @@ const ok = (name, cond, detail) => results.push(`${cond ? 'PASS' : 'FAIL'}  ${na
   ok('light week-card glass thinned (0.62 stop)', lightBg.includes('rgba(255, 255, 255, 0.62)'), lightBg.slice(0, 110));
   const lightShadow = await card.locator('h3').first().evaluate(el => getComputedStyle(el).textShadow);
   ok('light theme glow retuned (14,165,233)', lightShadow.includes('rgba(14, 165, 233'), lightShadow.slice(0, 90));
+  const lightGlowLayers = (lightShadow.match(/rgba\(/g) || []).length;
+  ok('light theme neon glow is 4-layer too', lightGlowLayers >= 4, `${lightGlowLayers} shadow layers`);
   await page.screenshot({ path: `${SHOTS}/planner-clear-light.png` });
   ok('planner no page errors', errors.length === 0, errors.slice(0, 2).join(' | '));
   await ctx.close();

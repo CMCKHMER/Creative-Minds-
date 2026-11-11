@@ -215,23 +215,25 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 }
 
 /* ===== HOLO TOUCH PANEL — 3D holographic skin (Nov 2026) =====
-   See-through glass week panels (holographic edge light, faint scanlines,
-   cursor-tracked 3D tilt, sweeping sheen) + keycap drill buttons that
-   glow light-blue while pressed. Appended last: dark rules win ties in
-   dark mode, and every light-mode retune lives in the same block so the
-   themes can't fight each other. */
+   See-through clear-glass week panels (holographic edge light, NO scanlines
+   or circuit texture — owner asked for spotless clear glass —,
+   cursor-tracked 3D tilt, sweeping sheen, neon-blue glowing text) + keycap
+   drill buttons that glow light-blue while pressed. Appended last: dark
+   rules win ties in dark mode, and every light-mode retune lives in the
+   same block so the themes can't fight each other. */
 .glass{
   background:linear-gradient(165deg,rgba(125,211,252,.055),rgba(255,255,255,.012) 38%,rgba(56,189,248,.03) 82%,rgba(125,211,252,.05));
-  -webkit-backdrop-filter:blur(16px) saturate(1.35);backdrop-filter:blur(16px) saturate(1.35);
-  border-color:rgba(125,211,252,.26);
-  box-shadow:0 24px 60px -32px rgba(2,6,23,.85),inset 0 1px 0 rgba(213,245,255,.14),inset 0 0 42px rgba(56,189,248,.05);
+  -webkit-backdrop-filter:blur(18px) saturate(1.45);backdrop-filter:blur(18px) saturate(1.45);
+  border-color:rgba(147,222,255,.34);
+  box-shadow:0 24px 60px -32px rgba(2,6,23,.85),inset 0 1px 0 rgba(213,245,255,.24),inset 0 0 0 1px rgba(147,222,255,.06),inset 0 0 42px rgba(56,189,248,.05);
 }
 .week-card{position:relative}
-/* holographic projector light + faint scanlines (under the content) */
+/* holographic projector light (under the content) — scanlines REMOVED:
+   the owner wants spotless clear glass panels, the projector beam alone
+   keeps the hologram light alive on the glass */
 .week-card::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;
   background:
     radial-gradient(42% 34% at var(--gx,50%) var(--gy,16%),rgba(147,222,255,.15),transparent 72%),
-    repeating-linear-gradient(0deg,rgba(148,222,255,.05) 0 1px,transparent 1px 4px),
     radial-gradient(120% 60% at 50% -12%,rgba(125,211,252,.14),transparent 55%);
   opacity:.85;transition:opacity .3s ease}
 .week-card:hover::before{opacity:1}
@@ -308,11 +310,13 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
 .bp-topbtn:active,.theme-toggle:active{border-color:rgba(147,222,255,.6);color:#cdeaff;
   box-shadow:0 0 16px rgba(56,189,248,.45),inset 0 0 8px rgba(125,211,252,.3)}
 
-/* — glowing blue text: every word on a panel carries its own hologram
-   light. The glass got cleared out (see .glass above), so the glow is what
-   keeps the text standing proud of the panel in both themes. — */
+/* — NEON blue text: every word on a panel carries its own hologram light
+   source. 4-layer emission — a crisp ice-white core hugging the glyphs,
+   then three expanding blue halos that read as light emitting from the
+   text itself. The glass got cleared out (see .glass above), so this glow
+   is what keeps the text standing proud of the panel in both themes. — */
 .glass :is(h2,h3,p,.btn-label,.week-chip,.drill-count){
-  text-shadow:0 0 7px rgba(147,222,255,.32),0 0 22px rgba(56,189,248,.18)}
+  text-shadow:0 0 2px rgba(147,222,255,.6),0 0 9px rgba(125,211,252,.5),0 0 20px rgba(56,189,248,.35),0 0 44px rgba(56,189,248,.22)}
 
 /* — light theme retune (same block so it wins its ties) — */
 html[data-theme="light"] .glass{
@@ -320,7 +324,7 @@ html[data-theme="light"] .glass{
   border-color:rgba(125,211,252,.45);
   box-shadow:0 20px 50px -30px rgba(2,132,199,.35),inset 0 1px 0 rgba(255,255,255,.9),inset 0 0 42px rgba(14,165,233,.05)}
 html[data-theme="light"] .glass :is(h2,h3,p,.btn-label,.week-chip,.drill-count){
-  text-shadow:0 0 6px rgba(14,165,233,.22),0 0 18px rgba(14,165,233,.10)}
+  text-shadow:0 0 2px rgba(14,165,233,.4),0 0 8px rgba(14,165,233,.3),0 0 18px rgba(14,165,233,.16),0 0 34px rgba(14,165,233,.1)}
 html[data-theme="light"] .week-card{
   background:linear-gradient(165deg,rgba(255,255,255,.62),rgba(255,255,255,.4) 40%,rgba(224,242,254,.52))!important;
   border-color:rgba(125,211,252,.5)!important;
@@ -328,7 +332,6 @@ html[data-theme="light"] .week-card{
 html[data-theme="light"] .week-card::before{
   background:
     radial-gradient(42% 34% at var(--gx,50%) var(--gy,16%),rgba(14,165,233,.12),transparent 72%),
-    repeating-linear-gradient(0deg,rgba(14,116,144,.05) 0 1px,transparent 1px 4px),
     radial-gradient(120% 60% at 50% -12%,rgba(14,165,233,.10),transparent 55%)}
 html[data-theme="light"] .week-card:hover{border-color:rgba(14,165,233,.55)!important;
   box-shadow:0 44px 84px -36px rgba(2,132,199,.44),0 22px 52px -20px rgba(2,132,199,.3),0 0 36px -6px rgba(14,165,233,.3),inset 0 1px 0 rgba(255,255,255,.9)}
@@ -352,7 +355,7 @@ html[data-theme="light"] .bp-share:active{border-color:rgba(14,165,233,.55);back
 html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggle:active{border-color:rgba(14,165,233,.55);color:#0e7490;
   box-shadow:0 0 14px rgba(14,165,233,.4),inset 0 0 8px rgba(125,211,252,.35)}
 @media(max-width:640px){
-  /* touch screens have no hover: keep panels flat-ish so scanlines stay subtle */
+  /* touch screens have no hover: keep panels flat-ish so the projector beam stays subtle */
   .week-card::before{opacity:.7}
 }
 
@@ -362,8 +365,9 @@ html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggl
    corner brackets + edge rulers, dotted globe + circuit traces + rainbow scanner
    ring in the hero, module headers with dotted leaders, corner brackets on every
    panel, angular filter pills, hazard advisory strip, warning footer tag.
-   Mechanics pinned by the verifiers (3D stage values, glass 0.055 stop, blue text
-   glow, card scanlines, vignette stops) are preserved — additions only. */
+   Mechanics pinned by the verifiers (3D stage values, glass 0.055 stop, neon text
+   glow, vignette stops) are preserved — additions only. Card scanlines + circuit
+   texture REMOVED per owner request (clear glass, no lines through the panels). */
 body{background:linear-gradient(180deg,#050e28 0%,#04102e 34%,#030b22 62%,#020617 100%)}
 html[data-theme="light"] body{background:var(--bg)}
 body::before{background:
@@ -489,10 +493,10 @@ html[data-theme="light"] .glass:not(.week-card)::after{opacity:.4;background:
   linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 100% 100%/16px 1.5px no-repeat,
   linear-gradient(rgba(2,132,199,.6),rgba(2,132,199,.6)) 100% 100%/1.5px 16px no-repeat}
 
-/* — week card: faint circuit-board texture under the glass (0.055 stop preserved) — */
-.week-card{background-image:
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='110'%3E%3Cg fill='none' stroke='%237dd3fc' stroke-opacity='.13'%3E%3Cpath d='M4 16h36l14 14h44'/%3E%3Cpath d='M4 74h24l16-16h32'/%3E%3Cpath d='M112 34h30v34h-26'/%3E%3Cpath d='M76 88h40'/%3E%3C/g%3E%3Cg fill='%2393e6ff' fill-opacity='.18'%3E%3Ccircle cx='4' cy='16' r='2'/%3E%3Ccircle cx='98' cy='30' r='2'/%3E%3Ccircle cx='4' cy='74' r='2'/%3E%3Ccircle cx='76' cy='58' r='2'/%3E%3Ccircle cx='142' cy='34' r='2'/%3E%3Ccircle cx='116' cy='88' r='2'/%3E%3C/g%3E%3C/svg%3E"),
-  linear-gradient(165deg,rgba(125,211,252,.055),rgba(255,255,255,.012) 38%,rgba(56,189,248,.03) 82%,rgba(125,211,252,.05))}
+/* — week card fill: the circuit-board texture was REMOVED (owner wants clear
+   glass with no lines through the panels). Cards fall back to the shared .glass
+   gradient above (0.055 stop preserved) so the panels read as spotless clear
+   hologram glass with nothing but the projector light behind the text. — */
 
 /* — angular HUD filter pills (cut corners; hard edge becomes a clipped-shape drop-shadow) — */
 .filter-btn{clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
