@@ -2,7 +2,7 @@
 //   A. Bi-weekly planner hub (teacher-gated; bypassed via seeded session)
 //      - .glass fill thinned to the new stops, week-card 3D stage intact,
 //        neon-blue glowing text on card headings/labels/buttons, card
-//        scanlines + circuit texture REMOVED (owner: spotless clear glass),
+//        scanlines REMOVED while the circuit texture is KEPT (owner call),
 //        light-theme variants
 //   B. Live Class Results command center (homepage #firebase-dashboard)
 //      - scanlines GONE from section + panels, clear glass fills,
@@ -82,7 +82,7 @@ const ok = (name, cond, detail) => results.push(`${cond ? 'PASS' : 'FAIL'}  ${na
   ok('planner card scanlines REMOVED (clear glass, no lines through panels)', !beforeBg.includes('repeating-linear-gradient'), beforeBg.slice(0, 100));
   const projBg = beforeBg;
   ok('planner projector light kept', projBg.includes('radial-gradient'));
-  ok('week-card circuit texture removed (no SVG lines under glass)', !glassBg.includes('data:image/svg+xml'), glassBg.slice(0, 100));
+  ok('week-card circuit texture KEPT (owner: only scanlines removed)', glassBg.includes('data:image/svg+xml'), glassBg.slice(0, 100));
   const glowLayers = (h3Shadow.match(/rgba\(/g) || []).length;
   ok('neon text glow is a 4-layer emission (core + 3 halos)', glowLayers >= 4, `${glowLayers} shadow layers`);
 

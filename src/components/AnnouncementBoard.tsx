@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import {
-  CalendarDays, ImagePlus, Loader2, LockKeyhole, Megaphone, Pencil, Pin, PinOff,
+  CalendarDays, ChevronDown, ChevronUp, ImagePlus, Loader2, LockKeyhole, Megaphone, Pencil, Pin, PinOff,
   Plus, ShieldCheck, Trash2, Users, X,
 } from 'lucide-react';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
@@ -53,6 +53,61 @@ const TITLE_MAX = 120;
 const BODY_MAX = 5000;
 const PAGE_SIZE = 50;
 const IMAGE_DATAURL_LIMIT = 700_000; // chars — keeps the doc well under Firestore's 1 MiB
+
+// ── Compact feed: fold tall posts (owner request) ──────────────────────────
+// A post whose content (image + title + body) is taller than POST_FOLD_PX is
+// collapsed to that window with a soft bottom fade and a "Read more" toggle
+// ("Show less" folds it back). Posts inside the window render exactly as
+// before — no button, no visual change — so the hero page stays compact and
+// scrolling stays minimal.
+const POST_FOLD_PX = 600;
+
+function PostFold({ children }: { children: ReactNode }) {
+  const innerRef = useRef<HTMLDivElement | null>(null);
+  const [needsFold, setNeedsFold] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    // Re-measure whenever the content box changes (image load, edit, font swap).
+    const measure = () => setNeedsFold(el.scrollHeight > POST_FOLD_PX + 8);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const collapsed = needsFold && !expanded;
+  return (
+    <>
+      <div
+        className="relative"
+        style={collapsed ? { maxHeight: POST_FOLD_PX, overflow: 'hidden' } : undefined}
+      >
+        <div ref={innerRef}>{children}</div>
+        {collapsed && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#050c1b] via-[#050c1b]/85 to-transparent"
+          />
+        )}
+      </div>
+      {needsFold && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="mx-5 mb-4 mt-1 inline-flex items-center gap-1.5 self-start rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-semibold text-cyan-200 transition hover:border-cyan-300/40 hover:bg-cyan-200/10 hover:text-white sm:mx-6"
+        >
+          {expanded
+            ? <><ChevronUp className="h-3 w-3" aria-hidden="true" /> Show less</>
+            : <><ChevronDown className="h-3 w-3" aria-hidden="true" /> Read more</>}
+        </button>
+      )}
+    </>
+  );
+}
 
 /** Parse one Firestore REST document into an Announcement (null if malformed). */
 export function parseAnnouncementDoc(doc: any): Announcement | null {
@@ -463,6 +518,7 @@ export function AnnouncementBoard() {
             : 'border-white/10 bg-slate-950/60'
         }`}
       >
+      <PostFold>
         {post.imageUrl && (
           <img
             src={post.imageUrl}
@@ -500,35 +556,38 @@ export function AnnouncementBoard() {
             {post.title}
           </h3>
           <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-300">{post.body}</p>
-
-          {canPost && (
-            <div className="mt-4 flex items-center gap-2 border-t border-white/5 pt-3">
-              <button
-                type="button"
-                onClick={() => openComposer(post)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:border-cyan-300/40 hover:text-white"
-              >
-                <Pencil className="h-3 w-3" aria-hidden="true" /> Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => togglePin(post)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:border-amber-300/40 hover:text-amber-200"
-              >
-                {post.pinned
-                  ? <><PinOff className="h-3 w-3" aria-hidden="true" /> Unpin</>
-                  : <><Pin className="h-3 w-3" aria-hidden="true" /> Pin to top</>}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(post)}
-                className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-rose-300/15 px-2.5 py-1.5 text-[11px] font-semibold text-rose-300/80 transition hover:border-rose-300/40 hover:text-rose-200"
-              >
-                <Trash2 className="h-3 w-3" aria-hidden="true" /> Delete
-              </button>
-            </div>
-          )}
         </div>
+      </PostFold>
+
+      {canPost && (
+        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+          <div className="flex items-center gap-2 border-t border-white/5 pt-3">
+            <button
+              type="button"
+              onClick={() => openComposer(post)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:border-cyan-300/40 hover:text-white"
+            >
+              <Pencil className="h-3 w-3" aria-hidden="true" /> Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => togglePin(post)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:border-amber-300/40 hover:text-amber-200"
+            >
+              {post.pinned
+                ? <><PinOff className="h-3 w-3" aria-hidden="true" /> Unpin</>
+                : <><Pin className="h-3 w-3" aria-hidden="true" /> Pin to top</>}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDelete(post)}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-rose-300/15 px-2.5 py-1.5 text-[11px] font-semibold text-rose-300/80 transition hover:border-rose-300/40 hover:text-rose-200"
+            >
+              <Trash2 className="h-3 w-3" aria-hidden="true" /> Delete
+            </button>
+          </div>
+        </div>
+      )}
       </article>
     );
   };
