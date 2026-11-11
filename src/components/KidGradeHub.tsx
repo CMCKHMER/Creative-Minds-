@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, BookOpen, CheckCircle2, Check, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles } from 'lucide-react';
 import { KID_GRADE_RESOURCES, type KidGradeMaterial } from '../data/kidGradeResources';
-import { getProjectId, getValidIdToken } from '../lib/firebaseAuth';
+import { getProjectId, getValidIdToken, restoreSession } from '../lib/firebaseAuth';
 import { Reveal } from './Reveal';
 
 // The homework share state lives in Firestore at
@@ -13,6 +13,17 @@ const HW_SHARE_DOC_ID = 'hw-kid11-doctor-fish';
 const FS_BASE = `https://firestore.googleapis.com/v1/projects/${getProjectId()}/databases/(default)/documents`;
 
 type HomeworkShareStatus = 'pending' | 'locked' | 'open';
+
+/** Why the share switch failed — each kind gets its own recovery copy so a
+ *  signed-in teacher is never told to "sign in" when the real problem is an
+ *  expired mirror, an unverified email, or a rules denial. */
+type ToggleErrorKind = 'signed-out' | 'expired' | 'unverified' | 'forbidden' | 'network';
+
+export interface KidGradeHubProps {
+  /** Opens the teacher sign-in modal — wired to the Sign-in action the
+   *  share-switch error shows when there is genuinely no session. */
+  onOpenAuth?: () => void;
+}
 
 export const GRADE_BOOK_NAMES: Record<number, string> = {
   6: 'Reading Future Connect 2',
@@ -30,49 +41,93 @@ export const GRADE_CARD_IMAGES: Record<number, string> = {
   11: './images/card-kid11-create3.jpg',
 };
 
-export function KidGradeHub() {
+export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
   const availableResourceCount = KID_GRADE_RESOURCES.reduce((sum, grade) => sum + grade.materials.length, 0);
   const availableGradeCount = KID_GRADE_RESOURCES.filter((grade) => grade.status === 'available' && grade.materials.length > 0).length;
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState<HomeworkShareStatus>('pending');
   const [isTeacher, setIsTeacher] = useState(false);
   const [toggling, setToggling] = useState(false);
-  const [toggleError, setToggleError] = useState(false);
+  const [toggleError, setToggleError] = useState<ToggleErrorKind | null>(null);
+  const [toggleErrEmail, setToggleErrEmail] = useState('');
 
-  // Share state + role detection. The share doc is publicly readable, so
-  // every visitor sees the homework appear the moment the teacher opens
-  // it. The teacher switch only renders for a signed-in teacher session
-  // (same localStorage heuristic as RoleGate / teacher-gate.js).
+  // Share state. The share doc is publicly readable, so every visitor sees
+  // the homework appear the moment the teacher opens it — and because the
+  // card re-checks every 20s (plus on tab focus), a homework that is shared
+  // WHILE someone is looking at the page unlocks by itself. No reload.
   useEffect(() => {
     let alive = true;
-    fetch(`${FS_BASE}/biweekly_tests/${HW_SHARE_DOC_ID}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((doc) => {
-        if (alive) setShareStatus(doc?.fields?.shared?.booleanValue === true ? 'open' : 'locked');
-      })
-      .catch(() => { if (alive) setShareStatus('locked'); });
-    try {
-      const token = localStorage.getItem('cmc-student-token');
-      const role = localStorage.getItem('cmc-student-role');
-      const email = (localStorage.getItem('cmc-student-email') || '').toLowerCase();
-      const uid = localStorage.getItem('cmc-student-uid') || '';
-      setIsTeacher(!!token && (role === 'teacher' || email.includes('edu') || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63'));
-    } catch { setIsTeacher(false); }
-    return () => { alive = false; };
+    let firstRead = true;
+    const load = () => {
+      fetch(`${FS_BASE}/biweekly_tests/${HW_SHARE_DOC_ID}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((doc) => {
+          if (alive) setShareStatus(doc?.fields?.shared?.booleanValue === true ? 'open' : 'locked');
+        })
+        .catch(() => {
+          // Fail closed on the FIRST read (a blip must not open the
+          // homework); afterwards keep the last known state so a transient
+          // network error never re-locks an open homework row.
+          if (alive && firstRead) setShareStatus('locked');
+        })
+        .finally(() => { firstRead = false; });
+    };
+    load();
+    const timer = window.setInterval(load, 20000);
+    const onVisible = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, []);
+
+  // Role detection — same localStorage heuristic as RoleGate /
+  // teacher-gate.js, but ALSO re-synced on `cmc-auth-changed` (fired by
+  // every sign-in/out/refresh path). Without this, a teacher who signs in
+  // after the page mounted never sees the share switch and the card keeps
+  // claiming the homework is locked — the exact "it asks me to sign in
+  // when I am already signed in" report this fixes.
+  useEffect(() => {
+    const sync = () => {
+      try {
+        const token = localStorage.getItem('cmc-student-token');
+        const role = localStorage.getItem('cmc-student-role');
+        const email = (localStorage.getItem('cmc-student-email') || '').toLowerCase();
+        const uid = localStorage.getItem('cmc-student-uid') || '';
+        setIsTeacher(!!token && (role === 'teacher' || email.includes('edu') || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63'));
+      } catch { setIsTeacher(false); }
+    };
+    sync();
+    window.addEventListener('cmc-auth-changed', sync);
+    return () => window.removeEventListener('cmc-auth-changed', sync);
   }, []);
 
   // Teacher-only: open/close the homework for the class. PATCH (upsert) the
   // share doc under the teacher's own token — rules: biweekly_tests write
-  // requires a verified teacher. On failure the row stays as it was and a
-  // retry hint appears next to the switch.
+  // requires a verified teacher. getValidIdToken() now recovers by itself
+  // (refresh → live SDK session), so a signed-in teacher with a stale
+  // mirror goes through without any user action. When it still fails, the
+  // error is CLASSIFIED so the message names the real problem instead of
+  // blanket-asking an already-signed-in teacher to "sign in".
   async function toggleHomeworkShare() {
     if (toggling || shareStatus === 'pending') return;
     setToggling(true);
-    setToggleError(false);
+    setToggleError(null);
     const nextOpen = shareStatus !== 'open';
     try {
-      const token = await getValidIdToken();
-      if (!token) throw new Error('sign-in required');
+      // Snapshot the session BEFORE getValidIdToken — that call may legally
+      // recover via the SDK or clear an unverified mirror, and the
+      // classification has to describe the world the user is in.
+      const session = restoreSession();
+      if (!session) { setToggleError('signed-out'); return; }
+      const token = await getValidIdToken({ keepSessionOnUnverified: true });
+      if (!token) {
+        setToggleErrEmail(session.email || '');
+        setToggleError(session.emailVerified === false ? 'unverified' : 'expired');
+        return;
+      }
       const res = await fetch(`${FS_BASE}/biweekly_tests/${HW_SHARE_DOC_ID}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -83,10 +138,11 @@ export function KidGradeHub() {
           updatedAt: { timestampValue: new Date().toISOString() },
         } }),
       });
-      if (!res.ok) throw new Error(`share update failed (${res.status})`);
+      if (res.status === 403) { setToggleError('forbidden'); return; }
+      if (!res.ok) { setToggleError('network'); return; }
       setShareStatus(nextOpen ? 'open' : 'locked');
     } catch {
-      setToggleError(true);
+      setToggleError('network');
     } finally {
       setToggling(false);
     }
@@ -205,7 +261,24 @@ export function KidGradeHub() {
                             );
                           })}
                         </div>
-                        {isTeacher && toggleError && <p className="mt-2 flex items-center gap-1.5 text-[9px] font-semibold text-rose-300"><Link2 className="h-3 w-3" aria-hidden="true" />Could not reach Firestore — check you are signed in as a teacher, then try again.</p>}
+                        {isTeacher && toggleError && (
+                          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[9px] font-semibold leading-relaxed text-rose-300">
+                            <Link2 className="h-3 w-3 shrink-0" aria-hidden="true" />
+                            <span className="min-w-0 flex-1">
+                              {toggleError === 'signed-out' && 'Sharing needs a teacher sign-in on this device — no CMC session was found.'}
+                              {toggleError === 'expired' && 'Your sign-in expired before the share could be saved. Sign in again, then press the key once more.'}
+                              {toggleError === 'unverified' && `Almost there — Firebase allows the share only after the account's email is verified. Open the verification link we emailed ${toggleErrEmail || 'you'}, then press the key again.`}
+                              {toggleError === 'forbidden' && 'Firebase rejected the share write for this account — sharing needs a verified teacher account.'}
+                              {toggleError === 'network' && 'Could not reach Firestore — check the connection, then try again.'}
+                            </span>
+                            {(toggleError === 'signed-out' || toggleError === 'expired') && onOpenAuth && (
+                              <button type="button" onClick={onOpenAuth} className="shrink-0 rounded-md border border-emerald-200/30 bg-emerald-200/[0.08] px-2 py-1 text-[9px] font-bold text-emerald-100 transition hover:border-emerald-100/60 hover:bg-emerald-200/[0.16] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">Sign in</button>
+                            )}
+                            {toggleError !== 'signed-out' && (
+                              <button type="button" onClick={toggleHomeworkShare} disabled={toggling} className="shrink-0 rounded-md border border-white/15 bg-white/[0.04] px-2 py-1 text-[9px] font-bold text-slate-200 transition hover:border-white/30 hover:bg-white/[0.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200 disabled:opacity-60">Try again</button>
+                            )}
+                          </div>
+                        )}
                         <p className="mt-2 text-[9px] leading-relaxed text-slate-500">{isTeacher ? 'Teacher switch opens/closes the homework · students press “Submit to Teacher” when done.' : 'Your teacher opens each homework here · students press “Submit to Teacher” when done.'}</p>
                       </div>
                     )}

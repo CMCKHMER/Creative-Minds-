@@ -355,6 +355,12 @@ details.model p{font-size:13.5px;line-height:1.65;color:#45565f;margin-top:8px;
   #hwGate p{font-size:13.5px;line-height:1.65;color:#45565f;margin:12px auto 0;max-width:340px}
   #hwGate a{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;text-decoration:none;
     background:linear-gradient(90deg,#7b1fa2,#c2185b);color:#fff;font-weight:700;font-size:13px}
+  #hwGate .hw-gate-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  #hwGate .hw-gate-actions a{margin-top:20px}
+  #hwGate button#hwGateCheck{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;cursor:pointer;
+    border:2px solid #7b1fa2;background:#fff;color:#7b1fa2;font-weight:700;font-size:13px;font-family:inherit}
+  #hwGate button#hwGateCheck:hover{background:#f6edfb}
+  #hwGate button#hwGateCheck:disabled{opacity:.6;cursor:wait}
 
   @media print{
     .hw-bar,#cmc-back-btn,#hwBanner,.cmc-share,.cmc-toast,#hwGate{display:none!important}
@@ -369,7 +375,12 @@ details.model p{font-size:13.5px;line-height:1.65;color:#45565f;margin-top:8px;
    use, so NO rules change). Students see a locked overlay until the teacher
    flips the share switch on the Kid 11 card; teachers (same site role
    heuristic as teacher-gate.js / RoleGate) always get in, plus a preview
-   banner while the homework is still locked for the class. */
+   banner while the homework is still locked for the class.
+   The gate RE-CHECKS by itself — every 15s, on tab focus/visibility, and
+   via a Check-again button — and re-reads the teacher heuristic each time,
+   so sharing the homework (or signing in as the teacher) in another
+   tab/device lifts this overlay without a reload. Owner report this fixes:
+   "i cant access the homework. telling me to sign in when i am already". */
 (function () {
   'use strict';
   var HW_DOC = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/biweekly_tests/hw-kid11-doctor-fish';
@@ -381,9 +392,9 @@ details.model p{font-size:13.5px;line-height:1.65;color:#45565f;margin-top:8px;
     var uid = ls('cmc-student-uid');
     return role === 'teacher' || email.indexOf('edu') !== -1 || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
   }
-  window.CMC_HW_TEACHER = isTeacher();
   // Lock BEFORE first paint for everyone who is not a teacher — the
-  // resolve() below lifts it (open) or builds the overlay (students).
+  // applyState() below lifts it (open) or builds the overlay (students).
+  window.CMC_HW_TEACHER = isTeacher();
   if (!window.CMC_HW_TEACHER) document.documentElement.classList.add('hw-pending');
 
   function buildGate() {
@@ -398,20 +409,39 @@ details.model p{font-size:13.5px;line-height:1.65;color:#45565f;margin-top:8px;
       '<div class="hw-gate-icon" aria-hidden="true">🔒</div>' +
       '<h1>Homework not shared yet</h1>' +
       '<p>Your teacher hasn\u2019t opened <b>Doctor Fish · Home Assignments 1 &amp; 2</b> for the class yet. ' +
-      'Ask your teacher to share it from the <b>Kid 11 card</b> on the CMC homepage — then this page unlocks automatically.</p>' +
+      'Ask your teacher to share it from the <b>Kid 11 card</b> on the CMC homepage — this page unlocks by itself, no refresh needed.</p>' +
+      '<div class="hw-gate-actions">' +
+      '<button type="button" id="hwGateCheck">Check again</button>' +
       '<a href="https://cmckhmer.github.io/Creative-Minds-/">Back to CMC home</a>' +
+      '</div>' +
       '</div>';
     document.body.appendChild(g);
+    var btn = document.getElementById('hwGateCheck');
+    if (btn) btn.addEventListener('click', function () {
+      btn.disabled = true; btn.textContent = 'Checking…';
+      check();
+      window.setTimeout(function () { btn.disabled = false; btn.textContent = 'Check again'; }, 1200);
+    });
   }
 
-  function resolve(shared) {
+  function dropGate() {
+    var g = document.getElementById('hwGate');
+    if (g) g.remove();
+  }
+
+  function applyState(shared) {
     var root = document.documentElement;
+    // Re-read the teacher heuristic EVERY check — the session may appear
+    // after this page loaded (sign-in in another tab, token refresh).
+    window.CMC_HW_TEACHER = isTeacher();
     if (shared) {
-      root.classList.remove('hw-pending');
+      root.classList.remove('hw-pending', 'hw-teacher-locked');
       root.classList.add('hw-open');
+      dropGate();
     } else if (window.CMC_HW_TEACHER) {
       root.classList.remove('hw-pending');
       root.classList.add('hw-teacher-locked');
+      dropGate();
     } else {
       buildGate(); // keeps hw-pending: worksheet stays hidden behind the gate
     }
@@ -421,18 +451,31 @@ details.model p{font-size:13.5px;line-height:1.65;color:#45565f;margin-top:8px;
     return !!(d && d.fields && d.fields.shared && d.fields.shared.booleanValue === true);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      fetch(HW_DOC)
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (d) { resolve(shareState(d)); })
-        .catch(function () { resolve(false); });
-    });
-  } else {
+  var checking = false;
+  function check() {
+    if (checking) return;
+    checking = true;
     fetch(HW_DOC)
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { resolve(shareState(d)); })
-      .catch(function () { resolve(false); });
+      .then(function (d) { applyState(shareState(d)); })
+      .catch(function () { applyState(false); })
+      .finally(function () { checking = false; });
+  }
+
+  function startPolling() {
+    window.setInterval(check, 15000);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') check();
+    });
+    window.addEventListener('focus', check);
+    window.addEventListener('pageshow', check);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { check(); startPolling(); });
+  } else {
+    check();
+    startPolling();
   }
 })();
 </script>

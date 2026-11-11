@@ -399,6 +399,150 @@ console.log('browser · Kid 11 card');
   ok((await kid11card.textContent())?.includes('Your teacher opens each homework here'), 'student-facing caption');
   await ctx.close();
 }
+// 4d. Teacher signs in AFTER the card mounted → the switch appears without a reload.
+//     Pins the cmc-auth-changed re-sync (owner report: "telling me to sign in when i am already").
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.route(HW_ROUTE, (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
+  await page.route('**/securetoken.googleapis.com/**', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: '{}' }));
+  await page.goto(`${BASE}/`, { waitUntil: 'load' });
+  // Keep nudging the scroll until the lazy KidGradeHub chunk mounts — a
+  // single scrollIntoView can race the section's IntersectionObserver.
+  await page.waitForFunction(() => {
+    const el = document.getElementById('kid-grades');
+    if (el && !document.body.textContent?.includes('Online homework')) {
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+    return document.body.textContent?.includes('Online homework') ?? false;
+  }, null, { timeout: 30000 });
+  await page.waitForTimeout(400);
+  const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
+  ok(await kid11card.locator('button[aria-label*="with students"]').count() === 0, 'signed-out visitor: no share switch at first');
+  // The owner signs in (another tab / the auth modal) — the card must light the switch up WITHOUT a reload.
+  for (const [k, v] of Object.entries(TEACHER_SEED)) await page.evaluate(([key, val]) => localStorage.setItem(key, val), [k, v]);
+  await page.evaluate(() => window.dispatchEvent(new Event('cmc-auth-changed')));
+  await page.waitForTimeout(400);
+  ok(await kid11card.locator('button[aria-label*="Share Doctor Fish"][aria-label*="with students"]').count() === 1, 'teacher sign-in after mount lights the share switch without a reload (cmc-auth-changed re-sync)');
+  await ctx.close();
+}
+// 4e. Switch failures are CLASSIFIED — an already-signed-in teacher is never blanket-told to sign in.
+{
+  // Expired mirror, no refresh token, no SDK session → "expired" + Sign in action, never a PATCH.
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  let patches = 0;
+  await page.route(HW_ROUTE, (route) => {
+    if (route.request().method() === 'PATCH') { patches++; return route.fulfill({ status: 200, contentType: 'application/json', body: hwDocBody }); }
+    return route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' });
+  });
+  await page.route('**/securetoken.googleapis.com/**', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: '{}' }));
+  for (const [k, v] of Object.entries(TEACHER_SEED)) {
+    if (k === 'cmc-student-token-expires' || k === 'cmc-student-refresh-token') continue; // expired, pre-refresh-token session
+    await ctx.addInitScript(([key, val]) => localStorage.setItem(key, val), [k, v]);
+  }
+  await ctx.addInitScript(() => localStorage.setItem('cmc-student-token-expires', String(Date.now() - 60_000)));
+  await page.goto(`${BASE}/`, { waitUntil: 'load' });
+  // Keep nudging the scroll until the lazy KidGradeHub chunk mounts — a
+  // single scrollIntoView can race the section's IntersectionObserver.
+  await page.waitForFunction(() => {
+    const el = document.getElementById('kid-grades');
+    if (el && !document.body.textContent?.includes('Online homework')) {
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+    return document.body.textContent?.includes('Online homework') ?? false;
+  }, null, { timeout: 30000 });
+  await page.waitForTimeout(400);
+  const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
+  await kid11card.locator('button[aria-label*="Share Doctor Fish"][aria-label*="with students"]').click();
+  await page.waitForTimeout(700);
+  ok(patches === 0, 'expired session: no PATCH is fired');
+  ok((await kid11card.textContent())?.includes('Your sign-in expired before the share could be saved'), 'expired session gets its own message (not "check you are signed in as a teacher")');
+  ok(await kid11card.locator('button:has-text("Sign in")').count() === 1, 'expired session offers a Sign in action');
+  ok(await kid11card.locator('button:has-text("Try again")').count() === 1, 'expired session offers Try again');
+  await ctx.close();
+}
+{
+  // Unverified email → verify-your-inbox message; the session must SURVIVE the failed share.
+  const UNVERIFIED_JWT = 'eyJhbGciOiJIUzI1NiJ9.' + Buffer.from(JSON.stringify({ email_verified: false, email: 'owner@cmcedu.info', user_id: 'teacher-uid-1' })).toString('base64url') + '.sig';
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.route(HW_ROUTE, (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' }));
+  await page.route('**/securetoken.googleapis.com/**', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: '{}' }));
+  await page.goto(`${BASE}/`, { waitUntil: 'load' });
+  // Keep nudging the scroll until the lazy KidGradeHub chunk mounts — a
+  // single scrollIntoView can race the section's IntersectionObserver.
+  await page.waitForFunction(() => {
+    const el = document.getElementById('kid-grades');
+    if (el && !document.body.textContent?.includes('Online homework')) {
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+    return document.body.textContent?.includes('Online homework') ?? false;
+  }, null, { timeout: 30000 });
+  // Seed AFTER boot: ensureFreshSession() legally wipes unverified sessions
+  // at startup, so the toggle's own classification is what we pin here.
+  for (const [k, v] of Object.entries({ ...TEACHER_SEED, 'cmc-student-token': UNVERIFIED_JWT, 'cmc-student-email': 'owner@cmcedu.info' })) {
+    await page.evaluate(([key, val]) => localStorage.setItem(key, val), [k, v]);
+  }
+  await page.evaluate(() => window.dispatchEvent(new Event('cmc-auth-changed')));
+  await page.waitForTimeout(400);
+  const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
+  await kid11card.locator('button[aria-label*="Share Doctor Fish"][aria-label*="with students"]').click();
+  await page.waitForTimeout(700);
+  ok((await kid11card.textContent())?.includes('email is verified'), 'unverified email gets the verify-your-inbox message');
+  ok((await kid11card.textContent())?.includes('owner@cmcedu.info'), 'verify message names the account email');
+  ok(await page.evaluate(() => !!localStorage.getItem('cmc-student-token')), 'failed share on an unverified account does NOT wipe the session (keepSessionOnUnverified)');
+  await ctx.close();
+}
+{
+  // Firebase 403 → permission message + Try again.
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.route(HW_ROUTE, (route) => {
+    if (route.request().method() === 'PATCH') return route.fulfill({ status: 403, contentType: 'application/json', body: '{"error":{"code":403}}' });
+    return route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' });
+  });
+  for (const [k, v] of Object.entries(TEACHER_SEED)) await ctx.addInitScript(([key, val]) => localStorage.setItem(key, val), [k, v]);
+  await page.goto(`${BASE}/`, { waitUntil: 'load' });
+  // Keep nudging the scroll until the lazy KidGradeHub chunk mounts — a
+  // single scrollIntoView can race the section's IntersectionObserver.
+  await page.waitForFunction(() => {
+    const el = document.getElementById('kid-grades');
+    if (el && !document.body.textContent?.includes('Online homework')) {
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+    return document.body.textContent?.includes('Online homework') ?? false;
+  }, null, { timeout: 30000 });
+  await page.waitForTimeout(400);
+  const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
+  await kid11card.locator('button[aria-label*="Share Doctor Fish"][aria-label*="with students"]').click();
+  await page.waitForTimeout(700);
+  ok((await kid11card.textContent())?.includes('Firebase rejected the share write'), 'Firebase 403 gets the permission message');
+  await ctx.close();
+}
+// 4f. Gate page: homework shared (or teacher sign-in) in another tab lifts the lock WITHOUT a reload.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  let shared = false;
+  await page.route(HW_ROUTE, (route) => route.fulfill({ status: shared ? 200 : 404, contentType: 'application/json', body: shared ? hwDocBody : '{"error":{"code":404}}' }));
+  await page.goto(`${BASE}/rfc3/doctor-fish.html`, { waitUntil: 'load' });
+  await page.waitForSelector('#hwGate', { timeout: 8000 });
+  ok(await page.locator('#hwGate').isVisible(), 'gate up while the homework is locked');
+  ok(await page.locator('#hwGateCheck').isVisible(), 'gate offers a Check-again button');
+  ok((await page.locator('#hwGate').textContent())?.includes('no refresh needed'), 'gate copy promises the no-reload unlock');
+  await page.locator('#hwGateCheck').click();
+  await page.waitForTimeout(500);
+  ok(await page.locator('#hwGate').isVisible(), 'Check again keeps the gate while the doc says locked');
+  // The teacher flips the switch on the card (another tab) → the gate must lift by itself.
+  shared = true;
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await page.waitForFunction(() => !document.getElementById('hwGate'), null, { timeout: 8000 });
+  ok(true, 'sharing the homework in another tab drops the gate without a reload (visibility re-check)');
+  ok(await page.evaluate(() => document.documentElement.classList.contains('hw-open')), 'page flips to hw-open state');
+  ok(await page.locator('[data-answer]').first().isVisible(), 'worksheet visible after the auto-unlock');
+  await ctx.close();
+}
 // ── 5. mobile: no horizontal scroll, sticky toolbar still sticks ────────
 console.log('browser · mobile worksheet');
 {

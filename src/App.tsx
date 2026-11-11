@@ -327,7 +327,7 @@ export function App() {
 
         {/* Kid Program grade 5-12 resource pathway; Kid 6 + Kid 11 currently linked. */}
         <LazyMount id="kid-grades" minHeight={640}>
-          <KidGradeHub />
+          <KidGradeHub onOpenAuth={() => openMemberAuth('sign-in')} />
         </LazyMount>
 
         {/* GEP & ISEC adult-level program resources (Bi-Weekly Planner + ISEC drills). */}

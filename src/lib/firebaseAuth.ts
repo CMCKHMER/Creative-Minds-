@@ -584,21 +584,77 @@ export async function refreshIdToken(): Promise<string | null> {
   }
 }
 
+export interface ValidIdTokenOptions {
+  /** When the REST mirror is absent/expired and cannot refresh, consult the
+   *  live Firebase SDK session (Google popup / dashboard sign-in) for a
+   *  forced-fresh token before giving up. Default true — a user who IS
+   *  signed in must never be told to "sign in" because a localStorage
+   *  mirror went stale underneath them. */
+  sdkFallback?: boolean;
+  /** Keep the persisted session even when the token turns out unverified.
+   *  Callers that classify the failure themselves (e.g. the homework share
+   *  switch, which shows a precise "verify your email" message) pass true
+   *  so pressing the button never silently signs the user out. Default
+   *  false — the historic behaviour (unverified sessions must not
+   *  authenticate writes anywhere on the site). */
+  keepSessionOnUnverified?: boolean;
+}
+
 /** Returns a currently-valid ID token — the stored one when it still has
- *  >5 minutes of life, otherwise a refreshed one. Null when there is no
- *  session, refresh failed, or the account's email is not verified —
- *  unverified sessions must not authenticate writes anywhere on the site. */
-export async function getValidIdToken(): Promise<string | null> {
+ *  >5 minutes of life, otherwise a refreshed one (with a final fallback to
+ *  the live SDK session). Null when there is no recoverable session or the
+ *  account's email is not verified — unverified sessions must not
+ *  authenticate writes anywhere on the site. */
+export async function getValidIdToken(opts: ValidIdTokenOptions = {}): Promise<string | null> {
+  const { sdkFallback = true, keepSessionOnUnverified = false } = opts;
   const token = storedValue('cmc-student-token');
-  if (!token) return null;
   const expiresAt = Number(storedValue('cmc-student-token-expires') || '0');
-  const current = expiresAt > Date.now() + 5 * 60_000 ? token : await refreshIdToken();
+  let current = token && expiresAt > Date.now() + 5 * 60_000 ? token : await refreshIdToken();
+  if (!current && sdkFallback) current = await sdkFallbackIdToken();
   if (!current) return null;
   if (tokenEmailVerified(current) === false) {
-    clearPersistedSession();
+    if (!keepSessionOnUnverified) clearPersistedSession();
     return null;
   }
   return current;
+}
+
+/** Last-resort token recovery: the Firebase SDK may still hold a live
+ *  session (Google popup sign-in, dashboard listeners) even when the REST
+ *  mirror in localStorage is missing, expired, or lost its refresh token —
+ *  asking the SDK for a forced-fresh token revives the mirror so teacher
+ *  switches and worksheet submissions keep working without a re sign-in.
+ *  Restores the session fields a static page needs (uid/email/role/name)
+ *  if the mirror lost them. Returns null when there is no live SDK user. */
+async function sdkFallbackIdToken(): Promise<string | null> {
+  try {
+    const { getFirebaseAuth } = await import('./firebase');
+    const auth = await getFirebaseAuth();
+    const user = auth?.currentUser;
+    if (!user) return null;
+    const idToken = await user.getIdToken(true);
+    if (!idToken) return null;
+    const claims = decodeIdTokenClaims(idToken);
+    const expSec = typeof claims.exp === 'number' ? claims.exp : Math.floor(Date.now() / 1000) + 3600;
+    try {
+      // Refresh the mirror, but never DOWNGRADE identity fields the REST
+      // path still holds (the SDK user is the same account — bridgeToSdk
+      // guarantees that in the flows that mint SDK sessions).
+      localStorage.setItem('cmc-student-token', idToken);
+      localStorage.setItem('cmc-student-token-expires', String(expSec * 1000 - 60_000));
+      localStorage.setItem('cmc-student-verified', claims.email_verified ? '1' : '0');
+      if (!localStorage.getItem('cmc-student-uid') && user.uid) localStorage.setItem('cmc-student-uid', user.uid);
+      if (!localStorage.getItem('cmc-student-email') && user.email) localStorage.setItem('cmc-student-email', user.email);
+      if (!localStorage.getItem('cmc-student-name')) localStorage.setItem('cmc-student-name', user.displayName || user.email || '');
+      if (!localStorage.getItem('cmc-student-role')) {
+        localStorage.setItem('cmc-student-role', isAdminUid(user.uid) ? 'teacher' : detectRoleFromEmail(user.email || ''));
+      }
+    } catch { /* best-effort */ }
+    try { window.dispatchEvent(new CustomEvent('cmc-auth-changed')); } catch { /* non-DOM */ }
+    return idToken;
+  } catch {
+    return null;
+  }
 }
 
 /** Boot-time session self-heal: silently refresh an expired/near-expiry
