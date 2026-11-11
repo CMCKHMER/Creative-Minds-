@@ -78,6 +78,9 @@ function gameNameFromSlug(slug: string): string {
     'voice-quest-l10': 'Talk to me · Level 10',
     'voice-quest-l11': 'Talk to me · Level 11',
     'voice-quest-l12': 'Talk to me · Level 12',
+    'voice-quest-l13': 'Talk to me · Level 13',
+    'voice-quest-l14': 'Talk to me · Level 14',
+    'voice-quest-l15': 'Talk to me · Level 15',
     'voice-quest-custom': 'Talk to me · Custom level',
   };
   if (KNOWN[slug]) return KNOWN[slug];

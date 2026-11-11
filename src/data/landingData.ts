@@ -80,7 +80,7 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     badge: 'Example only',
     description: 'Preview example worksheet interactions; this demo does not generate or download custom worksheets.',
     iconName: 'FileSpreadsheet',
-    path: '#resources'
+    path: '#interactive-demo'
   },
   {
     id: 'worksheet-uploads',

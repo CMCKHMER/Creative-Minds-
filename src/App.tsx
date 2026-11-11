@@ -135,9 +135,18 @@ export function App() {
       scrollToSection('toefl-junior-assessments');
     } else if (toolId === 'toefl-suite') {
       scrollToSection('toefl-mini-test');
-    } else if (toolId === 'worksheet-uploads') {
-      scrollToSection('features');
-    } else if (toolId === 'auto-grading' || toolId === 'worksheets' || toolId === 'prefix-suffix') {
+    } else if (toolId === 'toefl-ibt-mock') {
+      // The Quick Link declares path '#toefl-ibt-mock' — scroll to the full
+      // mock-test card instead of falling through to the generic features grid.
+      scrollToSection('toefl-ibt-mock');
+    } else if (toolId === 'toefl-itp-planner') {
+      // Declared path './biweek-planner/' — open the standalone planner hub.
+      window.location.assign('./biweek-planner/');
+    } else if (toolId === 'worksheet-uploads' || toolId === 'prefix-suffix') {
+      // Declared path '#resources': printable handouts + the morphology
+      // assignment with its teacher key live in the Resource Library vault.
+      scrollToSection('resources');
+    } else if (toolId === 'auto-grading' || toolId === 'worksheets') {
       scrollToSection('interactive-demo');
     } else if (toolId === 'kid-program') {
       scrollToSection('kid-grades');
@@ -167,10 +176,17 @@ export function App() {
       scrollToSection('resources');
     } else if (feature === 'kid-grades') {
       scrollToSection('kid-grades');
+    } else if (feature === 'toefl-ibt-mock') {
+      // Quick-launch card promises the full mock test — there is a dedicated
+      // section for it (falling through to 'features' was a dead end).
+      scrollToSection('toefl-ibt-mock');
+    } else if (feature === 'games') {
+      // Quick-launch card promises the games — open the Play Lab page.
+      openGamesPage();
     } else {
       scrollToSection('features');
     }
-  }, [scrollToSection]);
+  }, [openGamesPage, scrollToSection]);
 
   useEffect(() => {
     const syncRoute = () => {
@@ -246,7 +262,7 @@ export function App() {
       <main className="flex-1">
         {/* Hero Section with Quick Feature Cards + News side panel (lg+) */}
         <Hero
-          onExploreTools={() => scrollToSection('features')}
+          onExploreTools={openTeacherToolsPage}
           onOpenStudentDemo={() => setStudentDemoModalOpen(true)}
           onOpenTeacherPass={() => openMemberAuth('sign-up')}
           onSelectFeatureCard={handleHeroFeatureSelect}
