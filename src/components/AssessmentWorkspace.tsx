@@ -495,7 +495,8 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
             }
           };
           if (intent.target === 'initial') {
-            for (const [k, v] of Object.entries(intent.fields)) prior[k] = Number(s[k] ?? 0);
+            const flat = s as unknown as Record<string, number | undefined>;
+            for (const k of Object.keys(intent.fields)) prior[k] = Number(flat[k] ?? 0);
             await patchAssessmentStudent(classId, s.id, intent.fields, email);
             setStudents((prev) => prev.map((x) => (x.id === s.id ? { ...x, ...intent.fields } as AssessmentStudentDoc : x)));
           } else if (weekKey) {
