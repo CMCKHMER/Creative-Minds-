@@ -55,6 +55,10 @@ await new Promise(r => server.listen(PORT, r));
 const sharedState = { hw1: false, hw2: false, hw3: false };
 const U13_ROUTE = '**/documents/biweekly_tests/hw-kid11-u13-hw*';
 const DF_ROUTE = '**/documents/biweekly_tests/hw-kid11-doctor-fish*';
+const U15_ROUTE = '**/documents/biweekly_tests/hw-kid11-u15-hw*';
+// Unit 15 exists in the data file but stays CLOSED for every Unit 13
+// scenario here — closed docs must never leak to the real network.
+const routeU15Closed = (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' });
 const docBody = (doc, shared) => JSON.stringify({
   name: `projects/demo/databases/(default)/documents/biweekly_tests/${doc}`,
   fields: { shared: { booleanValue: shared } },
@@ -183,6 +187,7 @@ const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   await page.route(U13_ROUTE, routeU13(sharedState));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.goto(`${BASE}/rfc3/unit13hw.html`, { waitUntil: 'load' });
   await page.waitForSelector('#hwGate', { timeout: 8000 });
   ok(await page.locator('#hwGate').isVisible(), 'locked overlay shown when no homework is shared');
@@ -201,6 +206,7 @@ const browser = await chromium.launch();
   for (const [k, v] of Object.entries(TEACHER_SEED)) await ctx.addInitScript(([key, val]) => localStorage.setItem(key, val), [k, v]);
   const page = await ctx.newPage();
   await page.route(U13_ROUTE, routeU13(sharedState));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.goto(`${BASE}/rfc3/unit13hw.html`, { waitUntil: 'load' });
   await page.waitForTimeout(500);
   ok(await page.locator('#hwGate').count() === 0, 'teacher bypasses the lock (no overlay)');
@@ -223,6 +229,7 @@ const browser = await chromium.launch();
   const page = await ctx.newPage();
   const mine = { hw1: true, hw2: false, hw3: false };
   await page.route(U13_ROUTE, routeU13(mine));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.goto(`${BASE}/rfc3/unit13hw.html#hw-b`, { waitUntil: 'load' });
   await page.waitForTimeout(600);
   ok(await page.locator('#hwGate').count() === 0, 'shared homework opens for students (no overlay)');
@@ -245,6 +252,7 @@ const submits = [];
   const page = await ctx.newPage();
   const mine = { hw1: true, hw2: false, hw3: false };
   await page.route(U13_ROUTE, routeU13(mine));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.route('**/documents/drill_attempts*', async (route) => {
     const req = route.request();
     submits.push({ headers: req.headers(), body: JSON.parse(req.postData() || '{}') });
@@ -327,6 +335,7 @@ const submits = [];
   for (const [k, v] of Object.entries(TEACHER_SEED)) await ctx.addInitScript(([key, val]) => localStorage.setItem(key, val), [k, v]);
   const page = await ctx.newPage();
   await page.route(U13_ROUTE, routeU13(sharedState));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.route('**/documents/drill_attempts*', async (route) => {
     const req = route.request();
     submits.push({ headers: req.headers(), body: JSON.parse(req.postData() || '{}') });
@@ -361,6 +370,7 @@ const submits = [];
   const page = await ctx.newPage();
   const mine = { hw1: false, hw2: false, hw3: false };
   await page.route(U13_ROUTE, routeU13(mine));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.goto(`${BASE}/rfc3/unit13hw.html`, { waitUntil: 'load' });
   await page.waitForSelector('#hwGate', { timeout: 8000 });
   ok(await page.locator('#hwGateCheck').isVisible(), 'gate offers a Check-again button');
@@ -387,6 +397,7 @@ const submits = [];
   const page = await ctx.newPage();
   const mine = { hw1: true, hw2: true, hw3: false };
   await page.route(U13_ROUTE, routeU13(mine));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.goto(`${BASE}/rfc3/unit13hw.html#hw-b`, { waitUntil: 'load' });
   await page.waitForTimeout(600);
   ok(await page.locator('#hw-b').isVisible(), 'student opens shared Homework 2 via deep link');
@@ -421,6 +432,7 @@ console.log('browser · Kid 11 card — per-homework switches');
     }
     return route.fulfill({ status: 200, contentType: 'application/json', body: docBody(`hw-kid11-u13-${m[1]}`, sharedState[m[1]]) });
   });
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.route(DF_ROUTE, routeDF(false));
   await page.goto(`${BASE}/`, { waitUntil: 'load' });
   await page.waitForFunction(() => {
@@ -439,7 +451,7 @@ console.log('browser · Kid 11 card — per-homework switches');
   const moreBtn = kid11card.locator('button[aria-expanded]');
   ok(await moreBtn.count() === 1, 'folded card carries exactly one More control');
   ok((await moreBtn.getAttribute('aria-expanded')) === 'false', 'fold starts collapsed (aria-expanded=false)');
-  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 2 more'), 'fold label counts the two rows still folded away', await moreBtn.textContent());
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 5 more'), 'fold label counts the five rows still folded away (Doctor Fish + HW1 visible; HW2, HW3 and the three Unit 15 rows folded)', await moreBtn.textContent());
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 1"][aria-label*="with students"]').count() === 1, 'folded card keeps the Homework 1 switch (first two rows stay visible)');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 0, 'fold hides the Homework 2 switch');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 3"][aria-label*="with students"]').count() === 0, 'fold hides the Homework 3 switch');
@@ -470,7 +482,7 @@ console.log('browser · Kid 11 card — per-homework switches');
   // Fold again — the assigned homework must stay on the folded card.
   await moreBtn.click();
   await page.waitForTimeout(400);
-  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 2 more'), 'Show less folds the list back with the count label', await moreBtn.textContent());
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 5 more'), 'Show less folds the list back with the count label', await moreBtn.textContent());
   ok(await kid11card.locator('a[aria-label*="Unit 13 · Homework 1 — Field Notebook"]').count() === 1, 'assigned Homework 1 stays visible on the folded card');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 0, 'folded card hides the Homework 2 switch again');
   await kid11card.screenshot({ path: join(SHOTS, 'unit13-kid11-card.png') });
@@ -483,6 +495,7 @@ console.log('browser · Kid 11 card — per-homework switches');
   const page = await ctx.newPage();
   const mine = { hw1: true, hw2: false, hw3: false };
   await page.route(U13_ROUTE, routeU13(mine));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.route(DF_ROUTE, routeDF(false));
   await page.goto(`${BASE}/`, { waitUntil: 'load' });
   await page.waitForFunction(() => {
@@ -512,6 +525,7 @@ console.log('browser · Kid 11 card — per-homework switches');
   for (const [k, v] of Object.entries(TEACHER_SEED)) await ctx.addInitScript(([key, val]) => localStorage.setItem(key, val), [k, v]);
   const page = await ctx.newPage();
   await page.route(U13_ROUTE, routeU13({ hw1: false, hw2: false, hw3: true }));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.route(DF_ROUTE, routeDF(false));
   await page.goto(`${BASE}/`, { waitUntil: 'load' });
   await page.waitForFunction(() => {
@@ -524,7 +538,7 @@ console.log('browser · Kid 11 card — per-homework switches');
   await page.waitForTimeout(600);
   const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
   const moreBtn = kid11card.locator('button[aria-expanded]');
-  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 1 more'), 'fold label counts only the one still-hidden row', await moreBtn.textContent());
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 4 more'), 'fold label counts the four still-hidden rows (HW2 + the three Unit 15 rows)', await moreBtn.textContent());
   ok(await kid11card.locator('a[aria-label*="Unit 13 · Homework 3 — Campaign Studio"]').count() === 1, 'open Homework 3 shows on the folded card without expanding');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 0, 'the still-locked Homework 2 stays folded away');
   await ctx.close();
@@ -536,6 +550,7 @@ console.log('browser · Kid 11 card — per-homework switches');
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   await page.route(U13_ROUTE, routeU13({ hw1: false, hw2: false, hw3: true }));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.route(DF_ROUTE, routeDF(false));
   await page.goto(`${BASE}/`, { waitUntil: 'load' });
   await page.waitForFunction(() => {
@@ -561,6 +576,7 @@ console.log('browser · mobile worksheet');
   const page = await ctx.newPage();
   const mine = { hw1: true, hw2: false, hw3: false };
   await page.route(U13_ROUTE, routeU13(mine));
+  await page.route(U15_ROUTE, routeU15Closed);
   await page.goto(`${BASE}/rfc3/unit13hw.html`, { waitUntil: 'load' });
   await page.waitForTimeout(600);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

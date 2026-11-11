@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 15 · DNA Bank · Homeworks 1–3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ================= FOUNDATION ================= */
+:root{
+  --head:66px;
+  --d0:#04091a; --d1:#08142c; --d2:#0c2145;
+  --helixred:#ff4d6d; --helixblue:#4d9dff; --biogreen:#2dd4a7; --amber:#ffc857;
+  --ok:#34d399; --bad:#fb7185; --warn:#ffc857; --info:#60a5fa;
+  --glass:rgba(5,11,26,.9);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scrollbar-color:#4d9dff #04091a;scrollbar-width:thin}
+body{font-family:'Space Grotesk',system-ui,sans-serif;color:#e8eefb;
+  background:linear-gradient(170deg,var(--d0),var(--d1) 52%,var(--d2)) fixed;min-height:100vh}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#04091a}
+::-webkit-scrollbar-thumb{background:linear-gradient(#ff4d6d,#4d9dff);border-radius:8px;border:2px solid #04091a}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(#ff7d94,#7db8ff)}
+
+/* ================= LAB / HELIX BACKGROUND ================= */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aura{position:absolute;border-radius:50%;filter:blur(95px);opacity:.32;animation:drift 28s ease-in-out infinite alternate}
+.aura.a1{width:48vw;height:48vw;left:-14vw;top:-12vw;background:radial-gradient(circle,#4d9dff,transparent 70%)}
+.aura.a2{width:42vw;height:42vw;right:-12vw;top:22vh;background:radial-gradient(circle,#ff4d6d,transparent 70%);animation-delay:-12s;opacity:.24}
+.aura.a3{width:40vw;height:40vw;left:30vw;bottom:-18vw;background:radial-gradient(circle,#2dd4a7,transparent 70%);animation-delay:-20s;opacity:.22}
+@keyframes drift{to{transform:translate(5vw,-4vh) scale(1.13)}}
+.hexgrid{position:absolute;inset:0;opacity:.05;
+  background-image:radial-gradient(circle,#9fd0ff 1.6px,transparent 2px);background-size:30px 30px}
+.grain{position:absolute;inset:0;opacity:.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
+.helix{position:absolute;top:0;bottom:0;width:80px;overflow:hidden;opacity:.22}
+.helix.left{left:2%}.helix.right{right:3%}
+.helix svg{position:absolute;top:-800px;left:0;animation:helixflow 22s linear infinite;
+  filter:drop-shadow(0 0 6px rgba(77,157,255,.5))}
+.helix.right svg{animation-duration:30s;animation-direction:reverse}
+@keyframes helixflow{to{transform:translateY(800px)}}
+.mol{position:absolute;opacity:.2;animation:tumble linear infinite}
+.mol svg{display:block;filter:drop-shadow(0 0 6px currentColor)}
+@keyframes tumble{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(3vw,-5vh) rotate(180deg)}100%{transform:translate(0,0) rotate(360deg)}}
+
+/* ================= HEADER ================= */
+.site-head{position:fixed;top:0;left:0;right:0;height:var(--head);z-index:50;background:var(--glass);
+  backdrop-filter:blur(12px);border-bottom:1px solid rgba(77,157,255,.32);
+  display:flex;align-items:center;gap:14px;padding:0 18px}
+.brand{display:flex;align-items:center;gap:11px;font-family:'Chakra Petch',sans-serif;font-weight:700;
+  letter-spacing:1.2px;font-size:15px;white-space:nowrap;color:#dbe9ff}
+.brand svg{width:26px;height:32px;filter:drop-shadow(0 0 6px rgba(255,77,109,.6))}
+.brand small{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.6px;color:#8ba4c6;font-weight:400}
+.tabs{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.switch-btn{border:1px solid rgba(77,157,255,.3);background:rgba(255,255,255,.03);color:#cfe0f7;border-radius:6px;
+  padding:8px 15px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.18s}
+.switch-btn .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor}
+.switch-btn[data-mode="a"] .dot{background:var(--helixblue);color:var(--helixblue)}
+.switch-btn[data-mode="b"] .dot{background:var(--helixred);color:var(--helixred)}
+.switch-btn[data-mode="c"] .dot{background:var(--biogreen);color:var(--biogreen)}
+.switch-btn:hover{border-color:#4d9dff;box-shadow:0 0 14px rgba(77,157,255,.3);transform:translateY(-1px)}
+body[data-mode="a"] .switch-btn[data-mode="a"]{background:var(--helixblue);color:#04162e;border-color:var(--helixblue);box-shadow:0 0 18px rgba(77,157,255,.5)}
+body[data-mode="b"] .switch-btn[data-mode="b"]{background:var(--helixred);color:#2b0410;border-color:var(--helixred);box-shadow:0 0 18px rgba(255,77,109,.5)}
+body[data-mode="c"] .switch-btn[data-mode="c"]{background:var(--biogreen);color:#04241c;border-color:var(--biogreen);box-shadow:0 0 18px rgba(45,212,167,.5)}
+
+/* ================= THEMES ================= */
+.assignment{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:calc(var(--head) + 22px) 16px 80px}
+#hw-a{--acc:#4d9dff;--btn:#4d9dff;--on-btn:#04162e;--acc-ink:#a8ccff;--paper:#0a1226;--panel:#0e1a33;--ink:#e8eefb;
+  --line:rgba(77,157,255,.26);--soft:rgba(77,157,255,.09);--glow:rgba(77,157,255,.35)}
+#hw-b{--acc:#ff4d6d;--btn:#ff4d6d;--on-btn:#2b0410;--acc-ink:#ffa8b8;--paper:#150c1a;--panel:#1e1024;--ink:#fbe9ee;
+  --line:rgba(255,77,109,.26);--soft:rgba(255,77,109,.09);--glow:rgba(255,77,109,.35)}
+#hw-c{--acc:#2dd4a7;--btn:#2dd4a7;--on-btn:#04241c;--acc-ink:#8fe9d0;--paper:#07161a;--panel:#0b2028;--ink:#e6f7f2;
+  --line:rgba(45,212,167,.26);--soft:rgba(45,212,167,.09);--glow:rgba(45,212,167,.35)}
+
+/* ================= HERO ================= */
+.hero{background:linear-gradient(150deg,var(--paper),var(--panel));color:var(--ink);border-radius:12px;
+  padding:32px 30px 26px;margin-bottom:18px;border:1px solid var(--line);position:relative;overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 0 60px var(--soft)}
+.hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--acc),transparent);box-shadow:0 0 18px var(--glow)}
+.hero::after{content:"";position:absolute;right:-70px;bottom:-70px;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,var(--soft),transparent 70%)}
+.kicker{display:inline-block;border:1px solid var(--acc);color:var(--acc-ink);font-family:'IBM Plex Mono',monospace;
+  font-size:10px;font-weight:600;letter-spacing:2px;padding:6px 14px;border-radius:4px;margin-bottom:14px;background:var(--soft)}
+.hero h1{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:clamp(27px,4.8vw,46px);line-height:1.08;
+  margin-bottom:12px;letter-spacing:-.3px}
+.hero h1 em{font-style:normal;color:var(--acc);text-shadow:0 0 22px var(--glow)}
+.brief{max-width:670px;line-height:1.68;color:#b0c0d8;font-size:15px;position:relative}
+.stamp{position:absolute;right:26px;top:28px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1.6px;
+  color:var(--acc);border:1px dashed var(--line);padding:8px 12px;border-radius:4px;background:var(--soft)}
+.meta{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;position:relative}
+.meta input{border:1px solid var(--line);background:rgba(0,0,0,.35);border-radius:6px;padding:9px 12px;font:inherit;color:var(--ink);width:auto}
+.meta input::placeholder{color:#7b8ca8}
+.hero-stats{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;position:relative}
+.hero-stats span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px;font-weight:600;padding:6px 12px;border-radius:4px}
+
+/* ================= TOOLBAR ================= */
+.toolbar{position:sticky;top:var(--head);z-index:40;display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+  background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line);
+  border-radius:10px;padding:10px 16px;margin-bottom:20px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.progress{flex:1;min-width:160px}
+.progress-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.4px;color:var(--acc-ink);font-weight:600;margin-bottom:6px}
+.progress-track{height:9px;background:rgba(255,255,255,.09);border-radius:3px;overflow:hidden;border:1px solid rgba(255,255,255,.06);
+  background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,transparent 1px 12px)}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--acc),color-mix(in srgb,var(--acc) 55%,#fff));
+  box-shadow:0 0 14px var(--glow);transition:width .4s ease}
+.btn{border:none;border-radius:6px;padding:10px 22px;font:inherit;font-weight:700;font-size:13.5px;cursor:pointer;
+  background:var(--btn);color:var(--on-btn);transition:.16s;letter-spacing:.4px;box-shadow:0 0 18px var(--glow)}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 0 26px var(--glow)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--acc-ink);box-shadow:none}
+.btn.ghost:hover{border-color:var(--acc);background:var(--soft)}
+.btn.small{padding:8px 16px;font-size:12.5px}
+.btn.paper{background:var(--soft);color:var(--acc-ink);border:1px solid var(--line);box-shadow:none}
+
+/* ================= LAB PANELS ================= */
+.task{background:linear-gradient(160deg,var(--paper),var(--panel));color:var(--ink);border-radius:10px;
+  padding:26px 26px 24px 30px;margin-bottom:20px;border:1px solid var(--line);position:relative;overflow:hidden;
+  box-shadow:0 14px 40px rgba(0,0,0,.55),inset 0 0 50px var(--soft);
+  scroll-margin-top:calc(var(--head) + 86px)}
+.task::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc);opacity:.85;box-shadow:0 0 16px var(--glow)}
+.task-head{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.tnum{font-family:'IBM Plex Mono',monospace;border:1px solid var(--acc);color:var(--acc);background:var(--soft);
+  font-size:12.5px;font-weight:600;min-width:46px;height:34px;display:grid;place-items:center;border-radius:17px;
+  letter-spacing:.5px;box-shadow:0 0 12px var(--glow) inset}
+.task-head h2{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:18px;letter-spacing:.2px}
+.pts{margin-left:auto;background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.2px;padding:4px 11px;border-radius:4px}
+.hint{color:#98a8c2;font-size:13px;margin-bottom:16px;line-height:1.6}
+.hl{background:var(--soft);border-bottom:2px solid var(--acc);padding:0 4px;font-weight:700;color:var(--acc-ink)}
+.fb{display:block;font-size:12.5px;font-weight:700;margin-top:10px;min-height:1em}
+.correct .fb{color:var(--ok)}.wrong .fb{color:var(--bad)}
+.g-item.correct,.write-task.correct{background:rgba(52,211,153,.1);border-radius:8px}
+.g-item.wrong,.write-task.wrong{background:rgba(251,113,133,.1);border-radius:8px}
+
+input[type=text],select,textarea{border:1px solid var(--line);border-radius:6px;padding:9px 12px;font:inherit;
+  font-size:14px;background:rgba(0,0,0,.4);color:var(--ink);width:100%}
+input::placeholder,textarea::placeholder{color:#78889f}
+select option{background:#0a1226;color:#e8eefb}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--soft),0 0 16px var(--glow)}
+.correct input,.correct select{border-color:var(--ok)}
+.wrong input,.wrong select{border-color:var(--bad)}
+textarea{min-height:104px;resize:vertical;line-height:1.65}
+.field-row{display:grid;grid-template-columns:1fr minmax(190px,300px);gap:6px 16px;align-items:center;padding:11px 12px;border-radius:8px;margin-bottom:4px}
+.field-row label{font-size:14.5px;line-height:1.55;color:#dae3f2}
+.field-row label b{color:var(--acc-ink)}
+.field-row .fb{grid-column:1/-1;margin-top:2px}
+
+.q{padding:13px 14px;margin-bottom:6px}
+.q p{font-size:14.5px;line-height:1.6;color:#dae3f2}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.opt{border:1px solid var(--line);background:rgba(0,0,0,.3);border-radius:6px;padding:9px 16px;cursor:pointer;font:inherit;
+  font-size:13.5px;color:#dae3f2;transition:.15s;text-align:left}
+.opt:hover{border-color:var(--acc);box-shadow:0 0 14px var(--glow);transform:translateY(-1px)}
+.opt.picked{background:var(--btn);border-color:var(--btn);color:var(--on-btn);font-weight:700;box-shadow:0 0 18px var(--glow)}
+.correct .opt.picked{background:var(--ok);border-color:var(--ok);color:#04241a}
+.wrong .opt.picked{background:var(--bad);border-color:var(--bad);color:#2b0710}
+
+.tray{display:flex;flex-wrap:wrap;gap:9px;padding:14px;background:rgba(0,0,0,.28);border:1px dashed var(--line);
+  border-radius:10px;margin-bottom:14px;min-height:64px}
+.tray-label,.bin-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.4px;font-weight:600;color:#8896ae}
+.tray-label{width:100%}
+.sort-card{border:1px solid var(--line);border-left:4px solid var(--acc);background:rgba(0,0,0,.35);border-radius:6px;
+  padding:9px 14px;font:inherit;font-size:13px;color:#dae3f2;cursor:pointer;transition:.15s;text-align:left}
+.sort-card:hover{transform:translateY(-2px);box-shadow:0 0 16px var(--glow);border-color:var(--acc)}
+.sort-card.selected{border-color:var(--acc);box-shadow:0 0 0 2px var(--soft),0 0 20px var(--glow);transform:translateY(-2px)}
+.sort-card.correct{border-color:var(--ok);border-left-color:var(--ok);background:rgba(52,211,153,.12)}
+.sort-card.wrong{border-color:var(--bad);border-left-color:var(--bad);background:rgba(251,113,133,.12)}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bin{border:1px dashed var(--line);border-radius:10px;padding:14px;cursor:pointer;transition:.15s;min-height:132px;background:rgba(0,0,0,.2)}
+.bin:hover,.bin:focus-visible{border-color:var(--acc);background:var(--soft);outline:none;box-shadow:0 0 20px var(--glow) inset}
+.bin h4{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:14px;letter-spacing:.8px;margin-bottom:3px}
+.bin-a h4{color:var(--info)}.bin-b h4{color:var(--acc)}
+.bin-body{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.bin-body .sort-card{font-size:12.5px;padding:7px 11px}
+
+.order-list{list:none;counter-reset:ord;display:flex;flex-direction:column;gap:9px}
+.order-list li{counter-increment:ord;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.32);
+  border:1px solid var(--line);border-radius:8px;padding:11px 14px;transition:.15s}
+.order-list li::before{content:counter(ord);font-family:'IBM Plex Mono',monospace;background:var(--btn);color:var(--on-btn);
+  font-weight:600;min-width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;box-shadow:0 0 12px var(--glow)}
+.order-list li.correct{border-color:var(--ok);background:rgba(52,211,153,.1)}
+.order-list li.wrong{border-color:var(--bad);background:rgba(251,113,133,.1)}
+.ord-text{flex:1;font-size:13.5px;line-height:1.55;color:#dae3f2}
+.ord-ctl{display:flex;gap:5px}
+.ord-btn{border:1px solid var(--line);background:rgba(0,0,0,.3);width:32px;height:32px;border-radius:6px;cursor:pointer;
+  font-size:14px;color:var(--acc-ink);transition:.15s}
+.ord-btn:hover{border-color:var(--acc);background:var(--soft);box-shadow:0 0 12px var(--glow)}
+
+.write-meta{display:flex;align-items:center;gap:10px;margin:8px 0}
+.wc{font-family:'IBM Plex Mono',monospace;background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-size:11px;font-weight:600;padding:5px 12px;border-radius:4px}
+.checks{list:none;display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.checks li{display:flex;align-items:center;gap:9px;font-size:13px;color:#98a8c2;transition:.2s}
+.checks .dot{width:18px;height:18px;border-radius:50%;border:1px solid #4a5a76;display:grid;place-items:center;
+  font-size:11px;color:#04241a;flex-shrink:0;transition:.2s}
+.checks li.ok{color:var(--ok);font-weight:600}
+.checks li.ok .dot{background:var(--ok);border-color:var(--ok);box-shadow:0 0 10px rgba(52,211,153,.6)}
+.checks li.ok .dot::after{content:"✓"}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.chips span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-size:12px;font-weight:600;padding:4px 11px;border-radius:4px}
+.bank span{display:inline-block;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:5px 13px;
+  margin:3px;font-weight:700;font-size:13px;color:var(--acc-ink)}
+.client{display:flex;gap:14px;align-items:center;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.client .avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--btn));
+  display:grid;place-items:center;font-size:22px;flex-shrink:0;box-shadow:0 0 18px var(--glow)}
+.client p{font-size:13.5px;line-height:1.55;color:#c2cee0}
+details.model,details.passage{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+details.passage{margin-top:0;border-top:none;padding-top:0}
+details summary{cursor:pointer;font-size:13.5px;font-weight:700;color:var(--acc-ink)}
+details summary:hover{color:var(--acc)}
+details p{font-size:13.5px;line-height:1.75;color:#b0c0d8;margin-top:9px}
+details.passage p{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.sub-q{margin-bottom:20px}
+.sub-q>label{display:block;font-size:14.5px;font-weight:600;margin-bottom:8px;line-height:1.55;color:#dae3f2}
+.ready-list{list:none;display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.ready-list label{display:flex;gap:11px;align-items:flex-start;font-size:14px;line-height:1.55;cursor:pointer;color:#dae3f2}
+.ready-list input{width:19px;height:19px;margin-top:2px;accent-color:var(--acc);flex-shrink:0}
+.ready-count{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--acc-ink);font-size:12px}
+
+.results{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.ring{width:120px;height:120px;flex-shrink:0}
+.ring circle{fill:none;stroke-width:10;stroke-linecap:round}
+.ring .ring-bg{stroke:rgba(255,255,255,.1)}
+.ring .ring-fg{stroke:var(--acc);stroke-dasharray:326.73;stroke-dashoffset:326.73;transform:rotate(-90deg);
+  transform-origin:center;transition:stroke-dashoffset 1s ease;filter:drop-shadow(0 0 8px var(--glow))}
+.ring-wrap{position:relative}
+.ring-pct{position:absolute;inset:0;display:grid;place-items:center;font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:22px;color:var(--acc)}
+.results-body{flex:1;min-width:230px}
+.results-body h2{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:20px;margin-bottom:6px}
+.score-line{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;color:var(--acc-ink);margin-bottom:8px}
+.results-body p{font-size:14px;color:#b0c0d8;line-height:1.6;margin-bottom:14px}
+.results-actions{display:flex;gap:9px;flex-wrap:wrap}
+.confetti{position:absolute;bottom:-10px;border-radius:50%;animation:pop 2.1s ease-out forwards;pointer-events:none}
+@keyframes pop{to{transform:translateY(-300px) scale(.3);opacity:0}}
+
+.js .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.js .reveal.in{opacity:1;transform:none}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+@media(max-width:700px){
+  .brand small{display:none}.brand{font-size:13px}
+  .switch-btn{padding:7px 10px;font-size:11px}
+  .field-row,.bins{grid-template-columns:1fr}
+  .stamp{display:none}.task{padding:22px 17px 20px 21px}.hero{padding:26px 19px}
+  .helix.right{display:none}.helix.left{opacity:.14}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .js .reveal{opacity:1;transform:none}
+}
+/* ── CMC site furniture (Kid 11 online homework) — namespaced hw-/cmc- ── */
+#cmc-back-btn{position:fixed;top:14px;right:14px;z-index:60;display:flex;align-items:center;
+  gap:8px;padding:9px 16px;border-radius:999px;background:rgba(20,12,10,.9);
+  border:1px solid rgba(232,163,61,.45);color:#f6ece2;font-family:'Space Grotesk',system-ui,sans-serif;
+  font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
+#cmc-back-btn:hover{background:rgba(232,163,61,.16);transform:translateY(-1px)}
+/* the fixed worksheet header owns the top edge — leave room for the back pill */
+.site-head{padding-right:170px}
+@media(max-width:680px){
+  .site-head{padding-right:58px}
+  #cmc-back-btn{font-size:0;padding:9px;gap:0;top:10px;right:10px}
+  #cmc-back-btn svg{width:15px;height:15px}
+}
+/* The teacher's living background uses fixed glows that intentionally bleed
+   past the edges. `overflow-x:clip` stops the sideways scroll WITHOUT creating
+   a scroll container, so the sticky toolbars of the three homeworks keep
+   working (overflow-x:hidden would break them). */
+html,body{overflow-x:clip}
+
+/* Name/date fields stay readable on the white hero boxes — pinned like the
+   Doctor Fish fix so a later generic input rule can never flip them again. */
+.meta input{color:var(--ink)!important;caret-color:var(--ink)!important;font-weight:600}
+.meta input::placeholder{color:#6d7a72;opacity:1;font-weight:600}
+.meta input:-webkit-autofill{-webkit-text-fill-color:var(--ink);
+  -webkit-box-shadow:0 0 0 1000px #fff inset;transition:background-color 99999s}
+
+/* Teacher preview banner (teacher + at least one homework still unshared) */
+#hwBanner{display:none;position:relative;z-index:1;max-width:930px;margin:calc(var(--head) + 16px) auto -6px;
+  background:rgba(255,179,0,.12);border:1px solid rgba(255,179,0,.45);color:#ffd54f;
+  border-radius:12px;padding:10px 16px;font-size:13px;line-height:1.55}
+html.hw-teacher-locked #hwBanner{display:block}
+
+/* Bottom action bar: Submit to Teacher + Share */
+.hw-bar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(20,12,10,.94);
+  backdrop-filter:blur(8px);border-top:1px solid rgba(232,163,61,.25);
+  padding:12px 16px;display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}
+.hw-btn{border:none;border-radius:999px;padding:11px 24px;font:inherit;font-weight:700;font-size:14px;
+  cursor:pointer;transition:.18s}
+.hw-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.hw-btn-submit{background:linear-gradient(90deg,#4fb060,#2f7d43);color:#fff}
+.hw-btn-submit:disabled{opacity:.7;cursor:progress;filter:none}
+.hw-btn-submit.done{background:linear-gradient(90deg,#2c6b39,#4fb060)}
+.hw-btn-ghost{background:transparent;border:2px solid rgba(240,220,200,.5);color:#f0dcc8}
+.hw-btn-ghost:hover{border-color:#fff}
+.assignment{padding-bottom:130px!important}
+
+.needs-name{animation:needPulse 1.8s ease}
+@keyframes needPulse{0%,100%{box-shadow:none}25%,75%{box-shadow:0 0 0 4px rgba(63,168,96,.35);border-color:#e05252}}
+.cmc-toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(14px);
+  z-index:70;background:#fff;border:2px solid #2f7d43;color:#2c6b39;
+  padding:10px 18px;border-radius:999px;font-weight:700;font-size:13.5px;font-family:'Space Grotesk',system-ui,sans-serif;
+  box-shadow:0 12px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:all .3s;
+  max-width:88vw;text-align:center}
+.cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.cmc-toast.err{border-color:var(--bad);color:var(--bad)}
+.cmc-share{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:70;
+  background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.5);
+  padding:14px 16px;display:none;gap:8px;flex-wrap:wrap;justify-content:center;
+  align-items:center;max-width:92vw}
+.cmc-share.open{display:flex}
+.cmc-share button{border:2px solid #cfd8dc;background:#fff;border-radius:999px;
+  padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+.cmc-share button:hover{border-color:#2f7d43;color:#2c6b39}
+.cmc-share .close{border-color:transparent;color:#607d8b}
+
+/* ── Share gate: each homework opens only when the teacher shares it ────── */
+.tabs .switch-btn[hidden]{display:none!important}
+html.hw-pending body>*:not(#hwGate){display:none!important}
+html.hw-pending body{overflow:hidden!important}
+#hwGate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:linear-gradient(165deg,#1b1030,#3a2033 55%,#5b2a45)}
+#hwGate .hw-gate-card{max-width:430px;width:100%;text-align:center;background:#fffdf6;color:#26313a;
+  border-radius:18px;padding:34px 28px;border-top:6px solid #e8a33d;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+#hwGate .hw-gate-icon{width:58px;height:58px;margin:0 auto;border-radius:16px;display:grid;place-items:center;
+  font-size:26px;background:linear-gradient(135deg,#b8563f,#e8a33d);color:#fff}
+#hwGate h1{font-family:'Chakra Petch',sans-serif;font-size:23px;margin:16px 0 0}
+#hwGate p{font-size:13.5px;line-height:1.65;color:#45565f;margin:12px auto 0;max-width:340px}
+#hwGate a{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;text-decoration:none;
+  background:linear-gradient(90deg,#b8563f,#e8a33d);color:#fff;font-weight:700;font-size:13px}
+#hwGate .hw-gate-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+#hwGate .hw-gate-actions a{margin-top:20px}
+#hwGate button#hwGateCheck{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;cursor:pointer;
+  border:2px solid #b8563f;background:#fff;color:#b8563f;font-weight:700;font-size:13px;font-family:inherit}
+#hwGate button#hwGateCheck:hover{background:#fdf3ea}
+#hwGate button#hwGateCheck:disabled{opacity:.6;cursor:wait}
+
+
+@media print{
+  .hw-bar,#cmc-back-btn,#hwBanner,.cmc-share,.cmc-toast,#hwGate{display:none!important}
+}
+@media print{
+  .bg,.site-head,.toolbar,.results,.no-print,details.model,.fb{display:none!important}
+  body{background:#fff;color:#000}
+  .assignment{padding:0;max-width:100%}
+  .hero,.task{background:#fff!important;color:#000!important;box-shadow:none;border:1px solid #bbb;break-inside:avoid;opacity:1!important;transform:none!important}
+  .hero h1,.task-head h2,.hero h1 em,.results-body h2{color:#000!important;text-shadow:none!important}
+  .brief,.hint,details p,.sub-q>label,.field-row label,.q p,.ord-text,.client p,.ready-list label{color:#222!important}
+  input,select,textarea,.opt,.sort-card,.order-list li,.bin,.tray{background:#fff!important;color:#000!important;border-color:#999!important;box-shadow:none!important}
+  .tnum,.pts,.kicker,.hero-stats span,.bank span,.chips span,.wc{color:#000!important;background:#f2f2f2!important;border-color:#999!important}
+  .hl{color:#000!important;background:#eee!important}
+  textarea{min-height:70px}
+}
+</style>
+<script>
+/* ── Kid 11 homework share gate — ONE switch per homework ────────────────
+   Owner request: "make sure when teacher assigns 1 homework, only that one
+   can be completed. this keeps students from seeing the others till teacher
+   shares it." Each of the three homeworks is gated by its own Firestore doc
+   (biweekly_tests/hw-kid11-u15-hw1|2|3 — public read, teacher-only write,
+   same collection the bi-weekly tests use, so NO rules change):
+     · students see ONLY the homeworks the teacher has shared — the other
+       tabs do not exist for them (hidden, not merely locked);
+     · no homework shared → a full-page locked overlay;
+     · teachers (same heuristic as teacher-gate.js / RoleGate) always get in
+       with a preview banner, and can preview any homework by deep link;
+     · a deep link to an unshared homework (#hw-b) falls back to the first
+       shared one instead of revealing content;
+   The gate RE-CHECKS by itself — every 15s, on tab focus/visibility, and via
+   a Check-again button — so sharing (or closing) a homework in another
+   tab/device updates this page without a reload. */
+(function () {
+  'use strict';
+  var FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/biweekly_tests/';
+  var HW_DOCS = [
+    { mode: 'a', doc: 'hw-kid11-u15-hw1' },
+    { mode: 'b', doc: 'hw-kid11-u15-hw2' },
+    { mode: 'c', doc: 'hw-kid11-u15-hw3' }
+  ];
+  var known = { a: null, b: null, c: null }; // null = share state not read yet
+  function ls(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function isTeacher() {
+    if (!ls('cmc-student-token')) return false;
+    var role = ls('cmc-student-role');
+    var email = ls('cmc-student-email').toLowerCase();
+    var uid = ls('cmc-student-uid');
+    return role === 'teacher' || email.indexOf('edu') !== -1 || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+  }
+  // Lock BEFORE first paint for everyone who is not a teacher — applyState()
+  // below lifts it (at least one homework shared) or builds the overlay.
+  window.CMC_HW_TEACHER = isTeacher();
+  if (!window.CMC_HW_TEACHER) document.documentElement.classList.add('hw-pending');
+
+  function buildGate() {
+    if (document.getElementById('hwGate')) return;
+    var g = document.createElement('div');
+    g.id = 'hwGate';
+    g.setAttribute('role', 'dialog');
+    g.setAttribute('aria-modal', 'true');
+    g.setAttribute('aria-label', 'Homework not shared yet');
+    g.innerHTML =
+      '<div class="hw-gate-card">' +
+      '<div class="hw-gate-icon" aria-hidden="true">🔒</div>' +
+      '<h1>Homework not shared yet</h1>' +
+      '<p>Your teacher hasn\u2019t opened the <b>Unit 15 homework</b> (DNA Bank) for the class yet. ' +
+      'Ask your teacher to share it from the <b>Kid 11 card</b> on the CMC homepage — this page unlocks by itself, no refresh needed.</p>' +
+      '<div class="hw-gate-actions">' +
+      '<button type="button" id="hwGateCheck">Check again</button>' +
+      '<a href="https://cmckhmer.github.io/Creative-Minds-/">Back to CMC home</a>' +
+      '</div>' +
+      '</div>';
+    document.body.appendChild(g);
+    var btn = document.getElementById('hwGateCheck');
+    if (btn) btn.addEventListener('click', function () {
+      btn.disabled = true; btn.textContent = 'Checking…';
+      check();
+      window.setTimeout(function () { btn.disabled = false; btn.textContent = 'Check again'; }, 1200);
+    });
+  }
+
+  function dropGate() {
+    var g = document.getElementById('hwGate');
+    if (g) g.remove();
+  }
+
+  // Students only get tab buttons for homeworks the teacher has shared —
+  // the unshared ones are hidden entirely (owner request), never shown locked.
+  function setTabs() {
+    var teacher = window.CMC_HW_TEACHER;
+    HW_DOCS.forEach(function (h) {
+      var btn = document.querySelector('.switch-btn[data-mode="' + h.mode + '"]');
+      if (btn) btn.hidden = !teacher && known[h.mode] !== true;
+    });
+  }
+
+  function firstSharedMode() {
+    for (var i = 0; i < HW_DOCS.length; i++) {
+      if (known[HW_DOCS[i].mode] === true) return HW_DOCS[i].mode;
+    }
+    return null;
+  }
+
+  function applyState() {
+    var root = document.documentElement;
+    // Re-read the teacher heuristic EVERY check — the session may appear
+    // after this page loaded (sign-in in another tab, token refresh).
+    window.CMC_HW_TEACHER = isTeacher();
+    var want = (location.hash.match(/^#hw-([abc])$/) || [])[1] || '';
+    if (window.CMC_HW_TEACHER) {
+      root.classList.remove('hw-pending');
+      root.classList.toggle('hw-teacher-locked', !(known.a === true && known.b === true && known.c === true));
+      dropGate();
+      setTabs();
+      if (want && typeof setMode === 'function') setMode(want); // teachers may preview any homework
+      return;
+    }
+    var anyShared = known.a === true || known.b === true || known.c === true;
+    if (anyShared) {
+      root.classList.remove('hw-pending', 'hw-teacher-locked');
+      root.classList.add('hw-open');
+      dropGate();
+      setTabs();
+      var m = document.body.dataset.mode || 'a';
+      if (want && known[want] === true) {
+        if (want !== m && typeof setMode === 'function') setMode(want);
+      } else if (known[m] !== true) {
+        var f = firstSharedMode();
+        if (f && f !== m && typeof setMode === 'function') setMode(f);
+      }
+    } else {
+      // Everything closed again (or still nothing shared) → full lock.
+      root.classList.remove('hw-open', 'hw-teacher-locked');
+      root.classList.add('hw-pending');
+      buildGate();
+    }
+  }
+
+  function shareState(d) {
+    return !!(d && d.fields && d.fields.shared && d.fields.shared.booleanValue === true);
+  }
+
+  var checking = false;
+  function check() {
+    if (checking) return;
+    checking = true;
+    // Each doc settles INDEPENDENTLY — one slow/failed read must never hold
+    // the other homeworks' state hostage. The checking flag releases as soon
+    // as this round's docs have settled, with a fixed timer as hang safety
+    // so a hanging request can never stop future re-checks.
+    var pending = HW_DOCS.length;
+    function done() { pending--; if (pending <= 0) checking = false; }
+    window.setTimeout(function () { checking = false; }, 8000);
+    HW_DOCS.forEach(function (h) {
+      function settle(v) {
+        // A network blip must not re-lock a homework the student already
+        // saw open — keep the last known state; only the very first read
+        // fails closed (locked) so a blip can never open the homework.
+        if (v === null) { if (known[h.mode] === null) known[h.mode] = false; }
+        else known[h.mode] = v;
+        applyState();
+        done();
+      }
+      fetch(FS + h.doc)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { settle(shareState(d)); })
+        .catch(function () { settle(null); });
+    });
+  }
+
+  function startPolling() {
+    window.setInterval(check, 15000);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') check();
+    });
+    window.addEventListener('focus', check);
+    window.addEventListener('pageshow', check);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { check(); startPolling(); });
+  } else {
+    check();
+    startPolling();
+  }
+})();
+</script>
+</head>
+<body data-mode="a">
+
+<!-- Back to CMC home (same fixture as the other Reading Future worksheets) -->
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" aria-label="Back to CMC home">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" stroke="#f6d8ad" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Back to CMC
+</a>
+
+<!-- Teacher preview banner (only shown to a teacher while at least one homework is still locked) -->
+<div id="hwBanner">👩‍🏫 <b>Teacher preview</b> — homeworks you haven't shared stay invisible to students. Flip the <b>Share with students</b> switches on the Kid&nbsp;11 card (CMC homepage, Kid Program section) to open Homework 1, 2 or 3 for the class.</div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <g id="helixUnit">
+    <path fill="none" stroke="#ff4d6d" stroke-width="3" d="M40 0 Q90 50 40 100 Q-10 150 40 200 Q90 250 40 300 Q-10 350 40 400 Q90 450 40 500 Q-10 550 40 600 Q90 650 40 700 Q-10 750 40 800"/>
+    <path fill="none" stroke="#4d9dff" stroke-width="3" d="M40 0 Q-10 50 40 100 Q90 150 40 200 Q-10 250 40 300 Q90 350 40 400 Q-10 450 40 500 Q90 550 40 600 Q-10 650 40 700 Q90 750 40 800"/>
+    <g stroke="#9fd0ff" stroke-width="2" opacity=".75">
+      <line x1="57" y1="25" x2="23" y2="25"/><line x1="65" y1="50" x2="15" y2="50"/><line x1="57" y1="75" x2="23" y2="75"/>
+      <line x1="23" y1="125" x2="57" y2="125"/><line x1="15" y1="150" x2="65" y2="150"/><line x1="23" y1="175" x2="57" y2="175"/>
+      <line x1="57" y1="225" x2="23" y2="225"/><line x1="65" y1="250" x2="15" y2="250"/><line x1="57" y1="275" x2="23" y2="275"/>
+      <line x1="23" y1="325" x2="57" y2="325"/><line x1="15" y1="350" x2="65" y2="350"/><line x1="23" y1="375" x2="57" y2="375"/>
+      <line x1="57" y1="425" x2="23" y2="425"/><line x1="65" y1="450" x2="15" y2="450"/><line x1="57" y1="475" x2="23" y2="475"/>
+      <line x1="23" y1="525" x2="57" y2="525"/><line x1="15" y1="550" x2="65" y2="550"/><line x1="23" y1="575" x2="57" y2="575"/>
+      <line x1="57" y1="625" x2="23" y2="625"/><line x1="65" y1="650" x2="15" y2="650"/><line x1="57" y1="675" x2="23" y2="675"/>
+      <line x1="23" y1="725" x2="57" y2="725"/><line x1="15" y1="750" x2="65" y2="750"/><line x1="23" y1="775" x2="57" y2="775"/>
+    </g>
+    <g>
+      <circle cx="65" cy="50" r="5" fill="#ff4d6d"/><circle cx="15" cy="150" r="5" fill="#4d9dff"/>
+      <circle cx="65" cy="250" r="5" fill="#ff4d6d"/><circle cx="15" cy="350" r="5" fill="#4d9dff"/>
+      <circle cx="65" cy="450" r="5" fill="#ff4d6d"/><circle cx="15" cy="550" r="5" fill="#4d9dff"/>
+      <circle cx="65" cy="650" r="5" fill="#ff4d6d"/><circle cx="15" cy="750" r="5" fill="#4d9dff"/>
+    </g>
+  </g>
+  <symbol id="molecule" viewBox="0 0 100 100">
+    <g stroke="currentColor" stroke-width="3" opacity=".8">
+      <line x1="30" y1="35" x2="62" y2="24"/><line x1="30" y1="35" x2="42" y2="70"/><line x1="62" y1="24" x2="80" y2="55"/>
+    </g>
+    <circle cx="30" cy="35" r="13" fill="currentColor"/><circle cx="62" cy="24" r="9" fill="currentColor" opacity=".8"/>
+    <circle cx="42" cy="70" r="8" fill="currentColor" opacity=".7"/><circle cx="80" cy="55" r="11" fill="currentColor" opacity=".85"/>
+  </symbol>
+  <symbol id="dnalogo" viewBox="0 0 40 60">
+    <path fill="none" stroke="#ff4d6d" stroke-width="4" d="M12 4 Q34 18 12 30 Q-10 42 12 56"/>
+    <path fill="none" stroke="#4d9dff" stroke-width="4" d="M28 4 Q6 18 28 30 Q50 42 28 56"/>
+    <g stroke="#9fd0ff" stroke-width="2.5"><line x1="17" y1="12" x2="23" y2="12"/><line x1="17" y1="48" x2="23" y2="48"/><line x1="14" y1="30" x2="26" y2="30"/></g>
+  </symbol>
+</defs></svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="aura a1"></div><div class="aura a2"></div><div class="aura a3"></div>
+  <div class="hexgrid"></div><div class="grain"></div>
+  <div class="helix left"><svg width="80" height="2400" viewBox="0 0 80 2400"><use href="#helixUnit"/><use href="#helixUnit" y="800"/><use href="#helixUnit" y="1600"/></svg></div>
+  <div class="helix right"><svg width="80" height="2400" viewBox="0 0 80 2400"><use href="#helixUnit"/><use href="#helixUnit" y="800"/><use href="#helixUnit" y="1600"/></svg></div>
+  <div class="mol" style="left:16%;top:20vh;width:90px;color:#ff4d6d;animation-duration:40s"><svg viewBox="0 0 100 100"><use href="#molecule"/></svg></div>
+  <div class="mol" style="left:72%;top:62vh;width:110px;color:#4d9dff;animation-duration:56s;animation-delay:-16s"><svg viewBox="0 0 100 100"><use href="#molecule"/></svg></div>
+  <div class="mol" style="left:44%;top:84vh;width:70px;color:#2dd4a7;animation-duration:48s;animation-delay:-28s"><svg viewBox="0 0 100 100"><use href="#molecule"/></svg></div>
+</div>
+
+<header class="site-head">
+  <div class="brand">
+    <svg viewBox="0 0 40 60"><use href="#dnalogo"/></svg>
+    <span>DNA BANK<small>UNIT 15 · SCIENCE · HOMEWORKS 1–3</small></span>
+  </div>
+  <nav class="tabs" aria-label="Choose homework">
+    <button class="switch-btn" data-mode="a"><span class="dot"></span>01 Induction</button>
+    <button class="switch-btn" data-mode="b"><span class="dot"></span>02 Analyst</button>
+    <button class="switch-btn" data-mode="c"><span class="dot"></span>03 Campaign</button>
+  </nav>
+</header>
+
+<!-- ============ HOMEWORK 1 · LAB INDUCTION ============ -->
+<main class="assignment" id="hw-a">
+  <section class="hero reveal">
+    <span class="stamp">LAB-ID 15/A</span>
+    <span class="kicker">HOMEWORK 1 · VOCABULARY &amp; COMPREHENSION</span>
+    <h1>DNA Bank <em>Lab Induction</em> 🧬</h1>
+    <p class="brief">You are joining the team that is building a global DNA bank. Before you enter the lab you must learn the scientific vocabulary and understand the project. Complete all five modules — <b>30 points</b>. Estimated time: 35–45 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Student name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>8 word meanings</span><span>8 gap fills</span><span>5 comprehension</span><span>5 true / false</span><span>4 acronyms</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 30 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button class="btn small" data-action="check">Run Lab Check</button>
+    <button class="btn ghost small" data-action="reset">Reset</button>
+    <button class="btn ghost small no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Reading passage — DNA Bank (221 words) · tap to open</summary>
+      <p>An endangered species is a plant or animal that is in danger of becoming extinct. Although many countries have created <span class="hl">laws</span> to protect endangered species, they are disappearing quickly. To solve this serious <span class="hl">issue</span>, a team of scientists is building a <span class="hl">global</span> DNA bank.</p>
+      <p>These scientists are freezing DNA <span class="hl">samples</span> from endangered species and keeping them safe in a DNA bank. Scientists are not only saving samples but also studying them. Scientists can learn more about the species. They can understand how they have <span class="hl">evolved</span>. They can learn about the animals' behavior and what diseases they can get. With this <span class="hl">knowledge</span>, scientists can help and <span class="hl">support</span> endangered animals so they live in ideal conditions.</p>
+      <p>The DNA bank is important because endangered animals must be protected. This is because everything in nature is connected. If one species goes extinct, it will affect other species and the environment they live in. For example, bees have a <span class="hl">crucial</span> role in keeping the Earth healthy. They are needed to help plants grow. If bees were to go extinct, many plant species would go extinct. And the animals that eat the plants will begin to die. As these animals die, other animals will lose their food source.</p>
+      <p>Scientists are working hard to build this DNA bank to protect endangered species and to keep the Earth healthy.</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.1</span><h2>Word Meanings</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Match each highlighted unit word with its meaning (a–h).</p>
+    <div class="g-item field-row" data-answer="h"><label>1. There is a <span class="hl">law</span> that requires people to wear seatbelts.</label><select><option value="">— meaning —</option><option value="a">a. involving the entire world</option><option value="b">b. extremely important</option><option value="c">c. to change or develop slowly, usually into a better state</option><option value="d">d. to give help or assistance to someone or something</option><option value="e">e. an important subject or topic</option><option value="f">f. information, understanding, or skill you get from education or experience</option><option value="g">g. a small amount of something that gives information about the thing it was taken from</option><option value="h">h. a rule made by the government</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="e"><label>2. Water shortage is a serious <span class="hl">issue</span>.</label><select><option value="">— meaning —</option><option value="a">a. involving the entire world</option><option value="b">b. extremely important</option><option value="c">c. to change or develop slowly, usually into a better state</option><option value="d">d. to give help or assistance to someone or something</option><option value="e">e. an important subject or topic</option><option value="f">f. information, understanding, or skill you get from education or experience</option><option value="g">g. a small amount of something that gives information about the thing it was taken from</option><option value="h">h. a rule made by the government</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label>3. English is considered a <span class="hl">global</span> language.</label><select><option value="">— meaning —</option><option value="a">a. involving the entire world</option><option value="b">b. extremely important</option><option value="c">c. to change or develop slowly, usually into a better state</option><option value="d">d. to give help or assistance to someone or something</option><option value="e">e. an important subject or topic</option><option value="f">f. information, understanding, or skill you get from education or experience</option><option value="g">g. a small amount of something that gives information about the thing it was taken from</option><option value="h">h. a rule made by the government</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="g"><label>4. The doctor took a blood <span class="hl">sample</span> from the patient.</label><select><option value="">— meaning —</option><option value="a">a. involving the entire world</option><option value="b">b. extremely important</option><option value="c">c. to change or develop slowly, usually into a better state</option><option value="d">d. to give help or assistance to someone or something</option><option value="e">e. an important subject or topic</option><option value="f">f. information, understanding, or skill you get from education or experience</option><option value="g">g. a small amount of something that gives information about the thing it was taken from</option><option value="h">h. a rule made by the government</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="c"><label>5. People grow and <span class="hl">evolve</span> their whole lives.</label><select><option value="">— meaning —</option><option value="a">a. involving the entire world</option><option value="b">b. extremely important</option><option value="c">c. to change or develop slowly, usually into a better state</option><option value="d">d. to give help or assistance to someone or something</option><option value="e">e. an important subject or topic</option><option value="f">f. information, understanding, or skill you get from education or experience</option><option value="g">g. a small amount of something that gives information about the thing it was taken from</option><option value="h">h. a rule made by the government</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="f"><label>6. You can gain <span class="hl">knowledge</span> by reading the news.</label><select><option value="">— meaning —</option><option value="a">a. involving the entire world</option><option value="b">b. extremely important</option><option value="c">c. to change or develop slowly, usually into a better state</option><option value="d">d. to give help or assistance to someone or something</option><option value="e">e. an important subject or topic</option><option value="f">f. information, understanding, or skill you get from education or experience</option><option value="g">g. a small amount of something that gives information about the thing it was taken from</option><option value="h">h. a rule made by the government</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="d"><label>7. The donations will be used to <span class="hl">support</span> the hurricane victims.</label><select><option value="">— meaning —</option><option value="a">a. involving the entire world</option><option value="b">b. extremely important</option><option value="c">c. to change or develop slowly, usually into a better state</option><option value="d">d. to give help or assistance to someone or something</option><option value="e">e. an important subject or topic</option><option value="f">f. information, understanding, or skill you get from education or experience</option><option value="g">g. a small amount of something that gives information about the thing it was taken from</option><option value="h">h. a rule made by the government</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label>8. The principal plays a <span class="hl">crucial</span> role at school.</label><select><option value="">— meaning —</option><option value="a">a. involving the entire world</option><option value="b">b. extremely important</option><option value="c">c. to change or develop slowly, usually into a better state</option><option value="d">d. to give help or assistance to someone or something</option><option value="e">e. an important subject or topic</option><option value="f">f. information, understanding, or skill you get from education or experience</option><option value="g">g. a small amount of something that gives information about the thing it was taken from</option><option value="h">h. a rule made by the government</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.2</span><h2>Lab Notes — Gap Fill</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Complete the notes with the word bank. Type your answers.</p>
+    <div class="bank"><span>laws</span><span>issue</span><span>global</span><span>samples</span><span>evolved</span><span>knowledge</span><span>support</span><span>crucial</span></div>
+    <div class="g-item field-row" data-answer="laws|law"><label>1. Governments make ______ to protect endangered species.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="issue"><label>2. Species disappearing quickly is a serious ______.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="global"><label>3. A ______ DNA bank involves the whole world.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="samples|sample"><label>4. Scientists freeze DNA ______ from endangered animals.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="evolved|evolve"><label>5. By studying DNA, scientists learn how species have ______.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="knowledge"><label>6. Reading and study give you ______.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="support"><label>7. The donations will ______ the hurricane victims.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="crucial"><label>8. Bees play a ______ role in keeping the Earth healthy.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.3</span><h2>Understanding the Reading</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Choose the best answer.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> What is an endangered species?</p><div class="opts"><button type="button" class="opt" data-val="a">A species that lives in a zoo</button><button type="button" class="opt" data-val="b">A plant or animal in danger of becoming extinct</button><button type="button" class="opt" data-val="c">A species that has already disappeared</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>2.</b> What are scientists building to solve this issue?</p><div class="opts"><button type="button" class="opt" data-val="a">A new law</button><button type="button" class="opt" data-val="b">A bigger zoo</button><button type="button" class="opt" data-val="c">A global DNA bank</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>3.</b> What do scientists do with the DNA samples?</p><div class="opts"><button type="button" class="opt" data-val="a">Freeze them, keep them safe, and study them</button><button type="button" class="opt" data-val="b">Sell them to museums</button><button type="button" class="opt" data-val="c">Throw them away after one year</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>4.</b> What can scientists learn from studying the samples?</p><div class="opts"><button type="button" class="opt" data-val="a">Only the animals' names</button><button type="button" class="opt" data-val="b">How species evolved, their behavior, and what diseases they can get</button><button type="button" class="opt" data-val="c">How to build new laws</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>5.</b> Why must endangered animals be protected?</p><div class="opts"><button type="button" class="opt" data-val="a">Because they are beautiful</button><button type="button" class="opt" data-val="b">Because zoos need them</button><button type="button" class="opt" data-val="c">Because everything in nature is connected</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.4</span><h2>True or False</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Check every statement against the passage.</p>
+    <div class="g-item q" data-answer="F"><p><b>1.</b> Laws alone have stopped species from disappearing.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="F"><p><b>2.</b> Scientists only save the samples; they never study them.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>3.</b> DNA knowledge helps scientists support animals so they live in ideal conditions.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>4.</b> Bees are needed to help plants grow.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="F"><p><b>5.</b> If one species goes extinct, nothing else is affected.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.5</span><h2>Vocabulary Skills — Acronyms</h2><span class="pts">4 PTS</span></div>
+    <p class="hint">An <b>acronym</b> is formed from the first letters of each word in a phrase. Match each acronym with its full form.</p>
+    <div class="g-item field-row" data-answer="d"><label>1. <span class="hl">DNA</span></label><select><option value="">— full form —</option><option value="a">a. Doctor of Medicine; Managing Director</option><option value="b">b. Also Known As</option><option value="c">c. National Aeronautics and Space Administration</option><option value="d">d. deoxyribonucleic acid</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label>2. <span class="hl">MD</span></label><select><option value="">— full form —</option><option value="a">a. Doctor of Medicine; Managing Director</option><option value="b">b. Also Known As</option><option value="c">c. National Aeronautics and Space Administration</option><option value="d">d. deoxyribonucleic acid</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label>3. <span class="hl">AKA</span></label><select><option value="">— full form —</option><option value="a">a. Doctor of Medicine; Managing Director</option><option value="b">b. Also Known As</option><option value="c">c. National Aeronautics and Space Administration</option><option value="d">d. deoxyribonucleic acid</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="c"><label>4. <span class="hl">NASA</span></label><select><option value="">— full form —</option><option value="a">a. Doctor of Medicine; Managing Director</option><option value="b">b. Also Known As</option><option value="c">c. National Aeronautics and Space Administration</option><option value="d">d. deoxyribonucleic acid</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Induction Result</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button class="btn small" data-action="review">Review mistakes</button><button class="btn paper small" data-action="print">🖨 Print / PDF</button><button class="btn paper small" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- ============ HOMEWORK 2 · CHAIN-REACTION ANALYST ============ -->
+<main class="assignment" id="hw-b" hidden>
+  <section class="hero reveal">
+    <span class="stamp">LAB-ID 15/B</span>
+    <span class="kicker">HOMEWORK 2 · CAUSE &amp; EFFECT ANALYSIS</span>
+    <h1>You are the <em>Chain-Reaction Analyst</em> 🔗</h1>
+    <p class="brief">Everything in nature is connected. Your job is to trace what happens and <b>why</b> it happens: order the extinction cascade, link causes to effects, predict the next step, verify the claims, and file your analysis. <b>28 points</b>. Estimated time: 40–50 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Analyst name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>5 cascade steps</span><span>6 cause–effect links</span><span>8 chain cards</span><span>4 predictions</span><span>4 claim checks</span><span>1 analysis report</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 28 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button class="btn small" data-action="check">File Analysis</button>
+    <button class="btn ghost small" data-action="reset">Reset</button>
+    <button class="btn ghost small no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Case data — the reading passage (221 words) · tap to open</summary>
+      <p>An endangered species is a plant or animal that is in danger of becoming extinct. Although many countries have created <span class="hl">laws</span> to protect endangered species, they are disappearing quickly. To solve this serious <span class="hl">issue</span>, a team of scientists is building a <span class="hl">global</span> DNA bank.</p>
+      <p>These scientists are freezing DNA <span class="hl">samples</span> from endangered species and keeping them safe in a DNA bank. Scientists are not only saving samples but also studying them. Scientists can learn more about the species. They can understand how they have <span class="hl">evolved</span>. They can learn about the animals' behavior and what diseases they can get. With this <span class="hl">knowledge</span>, scientists can help and <span class="hl">support</span> endangered animals so they live in ideal conditions.</p>
+      <p>The DNA bank is important because endangered animals must be protected. This is because everything in nature is connected. If one species goes extinct, it will affect other species and the environment they live in. For example, bees have a <span class="hl">crucial</span> role in keeping the Earth healthy. They are needed to help plants grow. If bees were to go extinct, many plant species would go extinct. And the animals that eat the plants will begin to die. As these animals die, other animals will lose their food source.</p>
+      <p>Scientists are working hard to build this DNA bank to protect endangered species and to keep the Earth healthy.</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.1</span><h2>Order the Extinction Cascade</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">The reading asks: <b>what would happen if bees were to go extinct?</b> Use ↑ and ↓ to build the chain reaction in the correct order.</p>
+    <div class="order-task" data-solution="bees,plants,eaters,food,environment">
+      <ol class="order-list">
+        <li data-key="eaters"><span class="ord-text">The animals that eat those plants begin to die.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="environment"><span class="ord-text">The whole connected environment is affected.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="bees"><span class="ord-text">Bees go extinct.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="food"><span class="ord-text">Other animals lose their food source.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="plants"><span class="ord-text">Many plant species go extinct.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+      </ol><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.2</span><h2>Cause → Effect</h2><span class="pts">6 PTS</span></div>
+    <p class="hint">Match each cause (1–6) with its effect (a–f).</p>
+    <div class="g-item field-row" data-answer="c"><label><b>1.</b> Species are disappearing quickly.</label><select><option value="">— effect —</option><option value="a">a. the samples are kept safe in a DNA bank</option><option value="b">b. they learn how species evolved and what diseases they get</option><option value="c">c. scientists are building a global DNA bank</option><option value="d">d. they can support animals so they live in ideal conditions</option><option value="e">e. bees have a crucial role in keeping the Earth healthy</option><option value="f">f. other species and their environment are affected</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label><b>2.</b> Scientists freeze DNA samples.</label><select><option value="">— effect —</option><option value="a">a. the samples are kept safe in a DNA bank</option><option value="b">b. they learn how species evolved and what diseases they get</option><option value="c">c. scientists are building a global DNA bank</option><option value="d">d. they can support animals so they live in ideal conditions</option><option value="e">e. bees have a crucial role in keeping the Earth healthy</option><option value="f">f. other species and their environment are affected</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label><b>3.</b> Scientists study the samples.</label><select><option value="">— effect —</option><option value="a">a. the samples are kept safe in a DNA bank</option><option value="b">b. they learn how species evolved and what diseases they get</option><option value="c">c. scientists are building a global DNA bank</option><option value="d">d. they can support animals so they live in ideal conditions</option><option value="e">e. bees have a crucial role in keeping the Earth healthy</option><option value="f">f. other species and their environment are affected</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="d"><label><b>4.</b> Scientists gain this knowledge.</label><select><option value="">— effect —</option><option value="a">a. the samples are kept safe in a DNA bank</option><option value="b">b. they learn how species evolved and what diseases they get</option><option value="c">c. scientists are building a global DNA bank</option><option value="d">d. they can support animals so they live in ideal conditions</option><option value="e">e. bees have a crucial role in keeping the Earth healthy</option><option value="f">f. other species and their environment are affected</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="e"><label><b>5.</b> Bees help plants grow.</label><select><option value="">— effect —</option><option value="a">a. the samples are kept safe in a DNA bank</option><option value="b">b. they learn how species evolved and what diseases they get</option><option value="c">c. scientists are building a global DNA bank</option><option value="d">d. they can support animals so they live in ideal conditions</option><option value="e">e. bees have a crucial role in keeping the Earth healthy</option><option value="f">f. other species and their environment are affected</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="f"><label><b>6.</b> One species goes extinct.</label><select><option value="">— effect —</option><option value="a">a. the samples are kept safe in a DNA bank</option><option value="b">b. they learn how species evolved and what diseases they get</option><option value="c">c. scientists are building a global DNA bank</option><option value="d">d. they can support animals so they live in ideal conditions</option><option value="e">e. bees have a crucial role in keeping the Earth healthy</option><option value="f">f. other species and their environment are affected</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.3</span><h2>Cause or Effect?</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Does the statement <b>make something happen</b> (cause), or does it <b>happen because of something else</b> (effect)? <b>Tap a card, then tap a column.</b></p>
+    <div class="sort-task">
+      <div class="tray"><span class="tray-label">CHAIN CARDS — CLASSIFY ALL 8</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="cause">Bees go extinct.</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="effect">Many plant species go extinct.</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="cause">Scientists freeze and study DNA samples.</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="effect">Other animals lose their food source.</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="cause">Everything in nature is connected.</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="effect">Scientists learn how species evolved.</button>
+        <button type="button" class="sort-card" data-idx="6" data-correct="cause">Species are disappearing quickly.</button>
+        <button type="button" class="sort-card" data-idx="7" data-correct="effect">A global DNA bank is being built.</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="cause" tabindex="0" role="button" aria-label="Place card in CAUSE"><h4>◀ CAUSE</h4><p class="bin-sub">WHY IT HAPPENS</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="effect" tabindex="0" role="button" aria-label="Place card in EFFECT"><h4>▶ EFFECT</h4><p class="bin-sub">WHAT HAPPENS</p><div class="bin-body"></div></div>
+      </div><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.4</span><h2>The Prediction Desk</h2><span class="pts">4 PTS</span></div>
+    <p class="hint">Use the chain reaction to predict the next step.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> If bees were to go extinct, what would happen <b>first</b>?</p><div class="opts"><button type="button" class="opt" data-val="a">All animals would immediately die</button><button type="button" class="opt" data-val="b">Many plant species would go extinct</button><button type="button" class="opt" data-val="c">New bees would appear</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>2.</b> After the plant-eating animals begin to die, what happens next?</p><div class="opts"><button type="button" class="opt" data-val="a">Plants grow faster</button><button type="button" class="opt" data-val="b">Bees return</button><button type="button" class="opt" data-val="c">Other animals lose their food source</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>3.</b> Why is the DNA bank described as <b>global</b>?</p><div class="opts"><button type="button" class="opt" data-val="a">Because the issue involves the entire world</button><button type="button" class="opt" data-val="b">Because it is built in one city</button><button type="button" class="opt" data-val="c">Because only bees are stored there</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>4.</b> What is the final purpose of the DNA bank?</p><div class="opts"><button type="button" class="opt" data-val="a">To create new laws</button><button type="button" class="opt" data-val="b">To protect endangered species and keep the Earth healthy</button><button type="button" class="opt" data-val="c">To replace all zoos</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.5</span><h2>The Claim Check</h2><span class="pts">4 PTS</span></div>
+    <p class="hint">Verify each statement before it enters the report.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> "Laws have completely stopped species from disappearing."</p><div class="opts"><button type="button" class="opt" data-val="a">Correct</button><button type="button" class="opt" data-val="b">Wrong — species are still disappearing quickly</button><button type="button" class="opt" data-val="c">Wrong — there are no laws</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>2.</b> "Scientists only store the samples and never study them."</p><div class="opts"><button type="button" class="opt" data-val="a">Correct</button><button type="button" class="opt" data-val="b">Wrong — they destroy the samples</button><button type="button" class="opt" data-val="c">Wrong — they save and also study them</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>3.</b> "DNA knowledge helps animals live in ideal conditions."</p><div class="opts"><button type="button" class="opt" data-val="a">Correct — it matches the passage</button><button type="button" class="opt" data-val="b">Wrong — knowledge has no use</button><button type="button" class="opt" data-val="c">Wrong — only laws help animals</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>4.</b> "Bees are needed to help plants grow."</p><div class="opts"><button type="button" class="opt" data-val="a">Correct — it matches the passage</button><button type="button" class="opt" data-val="b">Wrong — bees eat plants</button><button type="button" class="opt" data-val="c">Wrong — bees only make honey</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task write-task reveal" id="w-analysis">
+    <div class="task-head"><span class="tnum">2.6</span><h2>Write the Analysis Report</h2><span class="pts">1 PT</span></div>
+    <p class="hint">In 50–80 words, explain the DNA bank project and one chain reaction. The live checklist shows what a complete analysis needs.</p>
+    <div class="client"><span class="avatar">🐝</span><p><b>Case:</b> bee populations are falling. Explain why this matters and how the DNA bank helps.</p></div>
+    <textarea placeholder="Our team is building a global DNA bank because…"></textarea>
+    <div class="write-meta"><span class="wc">0 words</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See a model analysis</summary><p>"Our team is building a global DNA bank because endangered species are disappearing quickly. We freeze DNA samples and study them to gain knowledge about how animals evolved. This is crucial support for their survival. If bees go extinct, many plants die, so the animals that eat them lose their food source. Everything in nature is connected, and one loss affects the whole Earth."</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Analysis Result</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button class="btn small" data-action="review">Review mistakes</button><button class="btn paper small" data-action="print">🖨 Print / PDF</button><button class="btn paper small" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- ============ HOMEWORK 3 · CONSERVATION CAMPAIGNER ============ -->
+<main class="assignment" id="hw-c" hidden>
+  <section class="hero reveal">
+    <span class="stamp">LAB-ID 15/C</span>
+    <span class="kicker">HOMEWORK 3 · WRITING &amp; SPEAKING</span>
+    <h1>You are the <em>Conservation Campaigner</em> 🌍</h1>
+    <p class="brief">Your school is launching a campaign to support the global DNA bank. Separate facts from opinions, write a slogan and a campaign text, and prepare to answer the public's questions about endangered species. <b>16 points</b>. Estimated time: 40–50 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Campaigner name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>8 claims to judge</span><span>1 slogan</span><span>1 campaign text</span><span>3 public answers</span><span>2 acronym tasks</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 16 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button class="btn small" data-action="check">Launch Campaign</button>
+    <button class="btn ghost small" data-action="reset">Reset</button>
+    <button class="btn ghost small no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Source material — the reading passage (221 words) · tap to open</summary>
+      <p>An endangered species is a plant or animal that is in danger of becoming extinct. Although many countries have created <span class="hl">laws</span> to protect endangered species, they are disappearing quickly. To solve this serious <span class="hl">issue</span>, a team of scientists is building a <span class="hl">global</span> DNA bank.</p>
+      <p>These scientists are freezing DNA <span class="hl">samples</span> from endangered species and keeping them safe in a DNA bank. Scientists are not only saving samples but also studying them. Scientists can learn more about the species. They can understand how they have <span class="hl">evolved</span>. They can learn about the animals' behavior and what diseases they can get. With this <span class="hl">knowledge</span>, scientists can help and <span class="hl">support</span> endangered animals so they live in ideal conditions.</p>
+      <p>The DNA bank is important because endangered animals must be protected. This is because everything in nature is connected. If one species goes extinct, it will affect other species and the environment they live in. For example, bees have a <span class="hl">crucial</span> role in keeping the Earth healthy. They are needed to help plants grow. If bees were to go extinct, many plant species would go extinct. And the animals that eat the plants will begin to die. As these animals die, other animals will lose their food source.</p>
+      <p>Scientists are working hard to build this DNA bank to protect endangered species and to keep the Earth healthy.</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.0</span><h2>Warm-Up</h2><span class="pts">REFLECT</span></div>
+    <p class="hint">Not graded. Answer the textbook warm-up before you begin.</p>
+    <div class="sub-q"><label>Every living thing is made of cells, and DNA is a special molecule that tells each cell what to do. <b>Why do scientists study DNA? What do you think the scientist in the picture is holding, and what is it for?</b></label>
+      <textarea placeholder="Scientists study DNA because…"></textarea></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.1</span><h2>Fact or Opinion?</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">A campaign must be honest. <b>Tap a card, then tap a bin.</b> Tap a placed card to return it.</p>
+    <div class="sort-task">
+      <div class="tray"><span class="tray-label">CAMPAIGN CLAIMS — SORT ALL 8</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="fact">An endangered species is in danger of becoming extinct.</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="opinion">Every country should pay for the DNA bank.</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="fact">Scientists are building a global DNA bank.</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="opinion">Saving bees is the most important job on Earth.</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="fact">Bees are needed to help plants grow.</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="opinion">Zoos are better than DNA banks.</button>
+        <button type="button" class="sort-card" data-idx="6" data-correct="fact">Scientists freeze DNA samples and study them.</button>
+        <button type="button" class="sort-card" data-idx="7" data-correct="opinion">Everyone should study science at school.</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="fact" tabindex="0" role="button" aria-label="Place card in FACT"><h4>📌 FACT</h4><p class="bin-sub">SUPPORTED BY THE READING</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="opinion" tabindex="0" role="button" aria-label="Place card in OPINION"><h4>💭 OPINION</h4><p class="bin-sub">A BELIEF OR SUGGESTION</p><div class="bin-body"></div></div>
+      </div><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task write-task reveal" id="w-slogan">
+    <div class="task-head"><span class="tnum">3.2</span><h2>The Campaign Slogan</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Write a short slogan for the campaign poster. The checklist turns green as you meet the rules.</p>
+    <input type="text" placeholder="Type your slogan here…" aria-label="Your slogan">
+    <div class="write-meta"><span class="wc">0 / 60 characters</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See model slogans</summary><p>"Save the Bees, Save the Chain" · "One DNA Bank, One Healthy Earth" · "Every Species Counts — Protect Them All"</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task write-task reveal" id="w-campaign">
+    <div class="task-head"><span class="tnum">3.3</span><h2>Write the Campaign Text</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Write 70–110 words for the school newsletter. Explain the problem, the science, and what readers should do.</p>
+    <textarea placeholder="Every living thing is connected…"></textarea>
+    <div class="write-meta"><span class="wc">0 words</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See a model campaign text</summary><p>"Every living thing is connected, and right now thousands of species are in danger of becoming extinct. Laws alone are not enough, so scientists are building a global DNA bank. They freeze DNA samples and study them to gain knowledge about how animals evolved and what diseases they get. This knowledge is crucial support for endangered animals. Bees show why this matters: if bees disappear, plants die, and other animals lose their food source. We should support this work and protect the Earth before it is too late."</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.4</span><h2>Answer the Public</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">In class you will run a campaign stand. Prepare at least 12 words for each answer. Use the phrase chips.</p>
+    <div class="sub-q write-task" id="w-q1">
+      <label>1. A visitor asks: <i>"What is a DNA bank?"</i></label>
+      <div class="chips"><span>freezing DNA samples</span><span>endangered species</span><span>keeping them safe</span></div>
+      <textarea placeholder="A DNA bank is…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"A DNA bank is a place where scientists freeze DNA samples from endangered species and keep them safe for the future."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-q2">
+      <label>2. A visitor asks: <i>"Why are bees so crucial?"</i></label>
+      <div class="chips"><span>help plants grow</span><span>animals lose their food source</span><span>everything is connected</span></div>
+      <textarea placeholder="Bees are crucial because…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"Bees are crucial because they help plants grow; if they went extinct, plants would die and other animals would lose their food source."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-q3">
+      <label>3. A visitor asks: <i>"How can ordinary people support endangered species?"</i></label>
+      <div class="chips"><span>support</span><span>protect plants</span><span>learn and share knowledge</span></div>
+      <textarea placeholder="Ordinary people can…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"Ordinary people can support conservation groups, protect local plants and bees, and share knowledge about why every species matters."</p></details><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.5</span><h2>Acronyms in Your Own Words</h2><span class="pts">2 PTS</span></div>
+    <p class="hint">Write one original sentence for each task. At least 8 words each.</p>
+    <div class="sub-q write-task" id="w-a1">
+      <label>1. Write what <span class="hl">DNA</span> stands for and use it in a sentence.</label>
+      <textarea placeholder="DNA stands for…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"DNA stands for deoxyribonucleic acid, and it tells every cell what to do."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-a2">
+      <label>2. Use one of these acronyms correctly: <span class="hl">MD</span>, <span class="hl">AKA</span> or <span class="hl">NASA</span>.</label>
+      <textarea placeholder="My aunt is an MD…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"My aunt is an MD, and she supports the global DNA bank project."</p></details><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.6</span><h2>The Closing Message</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Choose the statement that best matches the whole reading.</p>
+    <div class="g-item q" data-answer="c"><p><b>Which sentence best sums up the passage?</b></p>
+      <div class="opts"><button type="button" class="opt" data-val="a">Only bees need protection; other species are safe.</button><button type="button" class="opt" data-val="b">Laws have already solved the problem of extinction.</button><button type="button" class="opt" data-val="c">Protecting endangered species protects the whole connected environment and keeps the Earth healthy.</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.7</span><h2>Campaigner's Checklist</h2><span class="pts">REFLECT</span></div>
+    <p class="hint">Tick what is true before you launch. <span class="ready-count">Ready: 0 / 4</span></p>
+    <ul class="ready-list">
+      <li><label><input type="checkbox" class="ready-check"> I used at least four unit words in my writing.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> I can explain what a DNA bank is in one sentence.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> I can describe the bee chain reaction with three effects.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> Every fact in my campaign comes from the reading.</label></li>
+    </ul>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Campaign Result</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button class="btn small" data-action="review">Review mistakes</button><button class="btn paper small" data-action="print">🖨 Print / PDF</button><button class="btn paper small" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- Bottom action bar: completion submit + share -->
+<div class="hw-bar no-print">
+  <button type="button" class="hw-btn hw-btn-submit" id="submitBtn">Submit to Teacher ✓</button>
+  <button type="button" class="hw-btn hw-btn-ghost" data-cmc-share aria-haspopup="true">Share homework ▾</button>
+</div>
+<div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
+<div class="cmc-share" id="cmcShare">
+  <button type="button" data-cmc-copy>🔗 Copy Link</button>
+  <button type="button" data-cmc-wa>💬 WhatsApp</button>
+  <button type="button" data-cmc-tg>✈️ Telegram</button>
+  <button type="button" data-cmc-email>✉️ Email</button>
+  <button type="button" class="close" data-cmc-close>✕ Close</button>
+</div>
+
+<noscript><p style="position:relative;z-index:2;text-align:center;padding:20px">Please enable JavaScript to use the interactive homeworks.</p></noscript>
+
+<script>
+document.documentElement.classList.add('js');
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const norm=s=>String(s).toLowerCase().replace(/[.!?]+$/,'').trim().replace(/\s+/g,' ');
+const wc=s=>(String(s).trim().match(/\S+/g)||[]).length;
+const UNIT=['law','issue','global','sample','evolve','knowledge','support','crucial','endangered','extinct','species','dna'];
+const unitCount=t=>UNIT.filter(v=>new RegExp('\\b'+v,'i').test(t)).length;
+
+const WRITE={
+  'w-analysis':{checks:[
+    {label:'50–80 words',test:t=>{const n=wc(t);return n>=50&&n<=80;}},
+    {label:'3+ unit words (global, sample, knowledge, crucial, support…)',test:t=>unitCount(t)>=3},
+    {label:'Mentions DNA',test:t=>/\bdna\b/i.test(t)},
+    {label:'A conditional "if"',test:t=>/\bif\b/i.test(t)},
+    {label:'A result link: so / because / therefore / as a result',test:t=>/\b(so|because|therefore)\b|as a result/i.test(t)}]},
+  'w-slogan':{unit:'chars',checks:[
+    {label:'Between 15 and 60 characters',test:t=>{const n=t.trim().length;return n>=15&&n<=60;}},
+    {label:'Mentions DNA, species, bees, Earth, save or protect',test:t=>/dna|species|bees?|earth|save|protect/i.test(t)},
+    {label:'No full stop at the end',test:t=>t.trim().length>0&&!/\.$/.test(t.trim())}]},
+  'w-campaign':{checks:[
+    {label:'70–110 words',test:t=>{const n=wc(t);return n>=70&&n<=110;}},
+    {label:'3+ unit words',test:t=>unitCount(t)>=3},
+    {label:'Mentions DNA',test:t=>/\bdna\b/i.test(t)},
+    {label:'A cause–effect link: because / so / if / as a result',test:t=>/\b(because|so|if)\b|as a result/i.test(t)},
+    {label:'A call to action: should / must / join / help / let us',test:t=>/\b(should|must|join|help)\b|let us|let's/i.test(t)}]},
+  'w-q1':{checks:[{label:'At least 12 words',test:t=>wc(t)>=12}]},
+  'w-q2':{checks:[{label:'At least 12 words',test:t=>wc(t)>=12}]},
+  'w-q3':{checks:[{label:'At least 12 words',test:t=>wc(t)>=12}]},
+  'w-a1':{checks:[
+    {label:'Writes the full form (deoxyribonucleic…)',test:t=>/deoxyribo/i.test(t)},
+    {label:'At least 8 words',test:t=>wc(t)>=8}]},
+  'w-a2':{checks:[
+    {label:'Uses MD, AKA or NASA',test:t=>/\b(md|aka|nasa)\b/i.test(t)},
+    {label:'At least 8 words',test:t=>wc(t)>=8}]}
+};
+
+$$('.write-task').forEach(t=>{
+  const cfg=WRITE[t.id];if(!cfg)return;
+  const field=$('textarea,input',t),list=$('.checks',t);
+  cfg.checks.forEach(c=>{const li=document.createElement('li');li.innerHTML='<span class="dot"></span><span>'+c.label+'</span>';list.appendChild(li);});
+  const update=()=>{
+    const v=field.value;let pass=true;
+    cfg.checks.forEach((c,i)=>{const ok=c.test(v);list.children[i].classList.toggle('ok',ok);if(!ok)pass=false;});
+    t.dataset.pass=pass?'1':'0';
+    $('.wc',t).textContent=cfg.unit==='chars'?v.trim().length+' / 60 characters':wc(v)+' words';
+    refreshProgress(t.closest('.assignment'));
+  };
+  field.addEventListener('input',update);t._update=update;update();
+});
+
+function hasResponse(q){
+  const sel=$('select',q),inp=$('input',q);
+  if(sel)return sel.value!=='';
+  if(inp)return inp.value.trim()!=='';
+  return !!q.dataset.picked;
+}
+function refreshProgress(root){
+  if(!root)return;
+  let done=0,total=0;
+  $$('.g-item',root).forEach(q=>{total++;if(hasResponse(q))done++;});
+  $$('.sort-task',root).forEach(t=>{const c=$$('.sort-card',t);total+=c.length;done+=c.filter(x=>x.closest('.bin')).length;});
+  $$('.order-task',root).forEach(t=>{const n=$$('li',t).length;total+=n;if(t.dataset.touched)done+=n;});
+  $$('.write-task',root).forEach(t=>{total++;if($('textarea,input',t).value.trim())done++;});
+  $('.progress-fill',root).style.width=(total?Math.round(done/total*100):0)+'%';
+  $('.progress-label-text',root).textContent=done+' / '+total+' answered';
+}
+
+$$('.assignment').forEach(root=>{
+  root.addEventListener('click',e=>{
+    const act=e.target.closest('[data-action]');
+    if(act){doAction(act.dataset.action,root);return;}
+    const opt=e.target.closest('.opt');
+    if(opt){
+      const q=opt.closest('.g-item');
+      $$('.opt',q).forEach(b=>b.classList.remove('picked'));
+      opt.classList.add('picked');q.dataset.picked=opt.dataset.val;
+      q.classList.remove('correct','wrong');$('.fb',q).textContent='';
+      refreshProgress(root);return;
+    }
+    const card=e.target.closest('.sort-card');
+    if(card){
+      const task=card.closest('.sort-task');
+      if(card.closest('.bin'))$('.tray',task).appendChild(card);
+      else{
+        const sel=$('.sort-card.selected',task);
+        if(sel===card)card.classList.remove('selected');
+        else{if(sel)sel.classList.remove('selected');card.classList.add('selected');}
+      }
+      card.classList.remove('correct','wrong');$('.fb',task).textContent='';
+      refreshProgress(root);return;
+    }
+    const bin=e.target.closest('.bin');
+    if(bin){placeCard(bin);return;}
+    const ob=e.target.closest('.ord-btn');
+    if(ob){
+      const li=ob.closest('li'),dir=+ob.dataset.dir;
+      const sib=dir<0?li.previousElementSibling:li.nextElementSibling;
+      if(!sib)return;
+      if(dir<0)li.parentNode.insertBefore(li,sib);else li.parentNode.insertBefore(sib,li);
+      const task=li.closest('.order-task');task.dataset.touched='1';
+      $$('li',task).forEach(x=>x.classList.remove('correct','wrong'));
+      $('.fb',task).textContent='';refreshProgress(root);
+    }
+  });
+  root.addEventListener('keydown',e=>{
+    const bin=e.target.closest('.bin');
+    if(bin&&(e.key==='Enter'||e.key===' ')){e.preventDefault();placeCard(bin);}
+  });
+  const onChange=e=>{
+    const q=e.target.closest('.g-item');
+    if(q&&e.target.matches('input,select')){q.classList.remove('correct','wrong');$('.fb',q).textContent='';refreshProgress(root);}
+    if(e.target.matches('.ready-check')){
+      const lbl=$('.ready-count',root);
+      if(lbl)lbl.textContent='Ready: '+$$('.ready-check:checked',root).length+' / 4';
+    }
+  };
+  root.addEventListener('input',onChange);
+  root.addEventListener('change',onChange);
+});
+
+function placeCard(bin){
+  const task=bin.closest('.sort-task'),root=bin.closest('.assignment');
+  const sel=$('.sort-card.selected',task);
+  if(!sel){$('.fb',task).textContent='👆 Select a card first, then tap a column.';return;}
+  $('.bin-body',bin).appendChild(sel);
+  sel.classList.remove('selected','correct','wrong');
+  $('.fb',task).textContent='';refreshProgress(root);
+}
+
+function grade(root){
+  let earned=0,total=0;
+  $$('.g-item',root).forEach(q=>{
+    total++;
+    const key=q.dataset.answer,acc=key.split('|').map(norm);
+    const sel=$('select',q),inp=$('input',q);
+    let val='',shown='';
+    if(sel){val=sel.value;const o=sel.querySelector('option[value="'+key+'"]');shown=o?o.textContent:key;}
+    else if(inp){val=inp.value;shown=key.split('|')[0];}
+    else{val=q.dataset.picked||'';const b=q.querySelector('.opt[data-val="'+key+'"]');shown=b?b.textContent:key;}
+    const ok=norm(val)!==''&&acc.includes(norm(val));
+    q.classList.toggle('correct',ok);q.classList.toggle('wrong',!ok);
+    $('.fb',q).textContent=ok?'✔ Correct':'✘ Answer: '+shown;
+    if(ok)earned++;
+  });
+  $$('.sort-task',root).forEach(t=>{
+    const cards=$$('.sort-card',t);let c=0;
+    cards.forEach(card=>{
+      const bin=card.closest('.bin');
+      const ok=!!bin&&bin.dataset.bin===card.dataset.correct;
+      card.classList.toggle('correct',ok);card.classList.toggle('wrong',!ok);
+      if(ok)c++;
+    });
+    total+=cards.length;earned+=c;
+    $('.fb',t).textContent=c+' / '+cards.length+' in the right column.'+(c===cards.length?' ✔':' — tap a card to move it.');
+  });
+  $$('.order-task',root).forEach(t=>{
+    const sol=t.dataset.solution.split(','),lis=$$('li',t);let c=0;
+    lis.forEach((li,i)=>{const ok=li.dataset.key===sol[i];li.classList.toggle('correct',ok);li.classList.toggle('wrong',!ok);if(ok)c++;});
+    total+=lis.length;earned+=c;
+    $('.fb',t).textContent=c+' / '+lis.length+' in the right position.'+(c===lis.length?' ✔':' Hint: bees → plants → plant-eaters → food source → whole environment.');
+  });
+  $$('.write-task',root).forEach(t=>{
+    total++;
+    const ok=t.dataset.pass==='1';
+    t.classList.toggle('correct',ok);t.classList.toggle('wrong',!ok);
+    $('.fb',t).textContent=ok?'✔ Requirements met — well done.':'✘ Finish the live checklist above to earn this point.';
+    if(ok)earned++;
+  });
+  showResults(root,earned,total);
+}
+
+function showResults(root,earned,total){
+  const pct=Math.round(earned/total*100),panel=$('.results',root);
+  $('.score-line',panel).textContent=earned+' / '+total+' points';
+  $('.ring-pct',panel).textContent=pct+'%';
+  const msgs={
+    'hw-a':['🏆 Induction passed! You are cleared to enter the DNA bank.','🌟 Strong result — review the marked modules.','👍 A good start. Reread the passage and retry.','📖 Open the reading passage above, then run the lab check again.'],
+    'hw-b':['🏆 Analysis complete! Your chain reaction is accurate.','🌟 A solid analysis — fix the marked links.','👍 Reasonable start. Recheck the cascade order.','📖 Study the case data above, then analyse again.'],
+    'hw-c':['🏆 Campaign launched! Your message is clear and well supported.','🌟 A strong campaign — polish the marked parts.','👍 Good ideas. Add more facts from the reading.','📖 Reread the source material, then build your campaign again.']
+  }[root.id];
+  $('.score-msg',panel).textContent=pct>=90?msgs[0]:pct>=70?msgs[1]:pct>=50?msgs[2]:msgs[3];
+  panel.hidden=false;
+  requestAnimationFrame(()=>{$('.ring-fg',panel).style.strokeDashoffset=326.73*(1-pct/100);});
+  if(pct>=90)celebrate(panel);
+  panel.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function celebrate(panel){
+  const colors=['#ff4d6d','#4d9dff','#2dd4a7','#ffc857','#9fd0ff'];
+  for(let i=0;i<30;i++){
+    const s=document.createElement('span');s.className='confetti';
+    s.style.left=Math.random()*100+'%';s.style.animationDelay=(Math.random()*.6)+'s';
+    s.style.background=colors[i%5];s.style.boxShadow='0 0 10px '+colors[i%5];
+    const sz=5+Math.random()*9;s.style.width=s.style.height=sz+'px';
+    panel.appendChild(s);setTimeout(()=>s.remove(),2800);
+  }
+}
+
+function doAction(a,root){
+  if(a==='check')grade(root);
+  else if(a==='reset')resetAll(root);
+  else if(a==='print')window.print();
+  else if(a==='review'){
+    const first=$('.wrong',root);
+    if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+    else $('.results',root).scrollIntoView({behavior:'smooth'});
+  }
+}
+function resetAll(root){
+  $$('.g-item',root).forEach(q=>{
+    q.classList.remove('correct','wrong');delete q.dataset.picked;
+    const sel=$('select',q);if(sel)sel.value='';
+    const inp=$('input',q);if(inp)inp.value='';
+    $$('.opt',q).forEach(b=>b.classList.remove('picked'));
+    $('.fb',q).textContent='';
+  });
+  $$('.sort-task',root).forEach(t=>{
+    const tray=$('.tray',t);
+    $$('.sort-card',t).sort((a,b)=>a.dataset.idx-b.dataset.idx).forEach(c=>{
+      c.classList.remove('selected','correct','wrong');tray.appendChild(c);
+    });
+    $('.fb',t).textContent='';
+  });
+  $$('.order-task',root).forEach(t=>{
+    const list=$('.order-list',t);
+    t.dataset.initial.split(',').forEach(k=>list.appendChild($('li[data-key="'+k+'"]',t)));
+    delete t.dataset.touched;
+    $$('li',t).forEach(li=>li.classList.remove('correct','wrong'));
+    $('.fb',t).textContent='';
+  });
+  $$('.write-task',root).forEach(t=>{
+    $('textarea,input',t).value='';
+    t.classList.remove('correct','wrong');$('.fb',t).textContent='';
+    if(t._update)t._update();
+  });
+  $$('.ready-check',root).forEach(c=>c.checked=false);
+  const lbl=$('.ready-count',root);if(lbl)lbl.textContent='Ready: 0 / 4';
+  const panel=$('.results',root);panel.hidden=true;
+  $('.ring-fg',panel).style.strokeDashoffset=326.73;
+  refreshProgress(root);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+$$('.order-task').forEach(t=>{t.dataset.initial=$$('li',t).map(li=>li.dataset.key).join(',');});
+
+function setMode(m){
+  document.body.dataset.mode=m;
+  $$('.assignment').forEach(a=>a.hidden=a.id!=='hw-'+m);
+  window.scrollTo({top:0});
+}
+$$('.switch-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+
+const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}}),{threshold:.08});
+$$('.reveal').forEach(el=>io.observe(el));
+
+$$('.assignment').forEach(refreshProgress);
+</script>
+<script>
+/* ── Kid 11 online homework: hero name/date sync + completion submit + share ──
+   Name and date typed in any homework hero mirror into the other two, so a
+   student who does Homework 1 today and Homework 2 tomorrow keeps their
+   details. Submit-to-Teacher reuses the site-wide drill_attempts pipeline:
+   signed-in students post under their own localStorage session token (with
+   securetoken refresh), visitors through the validated guest branch (empty
+   studentUid, 1-40 char name, classId null) — append-only, no rules change,
+   lands in the teacher dashboard feed and the homepage ticker. The payload
+   names the ACTIVE homework (1 Field Notebook / 2 Relocation Mission /
+   3 Campaign Studio) so the teacher can tell the three apart. */
+
+(function () {
+  var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+  var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+
+  var HW_LABELS = {
+    a: 'Homework 1 · Lab Induction',
+    b: 'Homework 2 · Chain-Reaction Analyst',
+    c: 'Homework 3 · Conservation Campaigner'
+  };
+
+  function cmcToast(msg, err) {
+    var t = document.getElementById('cmcToast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!err);
+    t.classList.add('show');
+    clearTimeout(cmcToast._tm);
+    cmcToast._tm = setTimeout(function () { t.classList.remove('show'); }, 3600);
+  }
+
+  function cmcSession() {
+    var tok = '', uid = '', name = '';
+    try {
+      tok = localStorage.getItem('cmc-student-token') || '';
+      uid = localStorage.getItem('cmc-student-uid') || '';
+      name = localStorage.getItem('cmc-student-name') || '';
+    } catch (e) {}
+    return { tok: tok, uid: uid, name: name, authed: !!(tok && uid) };
+  }
+
+  // Mirror the Name/Date typed in any hero into every other hero (same role
+  // by aria-label), and prefill the Name for signed-in students.
+  function cmcSyncNameDate(from) {
+    var name = '', date = '';
+    document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+      var label = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (label.indexOf('date') !== -1) { if (inp.value) date = inp.value; }
+      else { if (inp.value) name = inp.value; }
+    });
+    if (from) {
+      var fl = (from.getAttribute('aria-label') || '').toLowerCase();
+      if (fl.indexOf('date') !== -1) date = from.value; else name = from.value;
+    }
+    document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+      if (inp === from) return;
+      var label = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (label.indexOf('date') !== -1) { if (date) inp.value = date; }
+      else { if (name) inp.value = name; }
+    });
+  }
+  document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+    inp.addEventListener('input', function () { cmcSyncNameDate(inp); });
+  });
+  try {
+    var pre = (localStorage.getItem('cmc-student-name') || '').trim();
+    if (pre) {
+      document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+        if (((inp.getAttribute('aria-label') || '').toLowerCase().indexOf('date')) === -1) inp.value = pre.slice(0, 40);
+      });
+    }
+  } catch (e) {}
+
+  function cmcRefreshToken(cb) {
+    // Same securetoken grant flow as the rfc2/rfc3 worksheets and cmc-shared.js.
+    try {
+      var rt = localStorage.getItem('cmc-student-refresh-token');
+      if (!rt) return cb(null);
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.id_token) {
+          try {
+            localStorage.setItem('cmc-student-token', d.id_token);
+            localStorage.setItem('cmc-student-token-expires', String(Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000));
+            if (d.refresh_token) localStorage.setItem('cmc-student-refresh-token', d.refresh_token);
+          } catch (e) {}
+          cb(d.id_token);
+        } else cb(null);
+      }).catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+
+  function cmcPost(body, token) {
+    var h = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return fetch(CMC_FS, { method: 'POST', headers: h, body: JSON.stringify({ fields: body }) });
+  }
+
+  function cmcActiveRoot() {
+    return document.getElementById('hw-' + (document.body.dataset.mode || 'a'));
+  }
+
+  function cmcActiveNameInput(root) {
+    // The heroes keep the teacher's markup order: name first, date second.
+    var inputs = root.querySelectorAll('.meta input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (((inputs[i].getAttribute('aria-label') || '').toLowerCase().indexOf('date')) === -1) return inputs[i];
+    }
+    return inputs[0] || null;
+  }
+
+  function cmcCurrentScore(root) {
+    // Reuse the homework's own grading — the score line reads "E / T points".
+    var line = root.querySelector('.score-line');
+    var panel = root.querySelector('.results');
+    var m = line && /^(\d+) \/ (\d+) points$/.exec((line.textContent || '').trim());
+    if (!(panel && !panel.hidden && m)) grade(root);
+    var txt = (root.querySelector('.score-line').textContent || '').trim();
+    var m2 = /^(\d+) \/ (\d+) points$/.exec(txt);
+    return { correct: m2 ? Number(m2[1]) : 0, total: m2 ? Number(m2[2]) : 0 };
+  }
+
+  function cmcBuildBody(name, uid, score, mode) {
+    // Field set matches the drill_attempts rules: guest branch requires
+    // studentUid == '', name 1-40 chars, ints in range, classId null.
+    var pct = score.total > 0 ? Math.round(score.correct / score.total * 100) : 0;
+    return {
+      drillSlug:   { stringValue: 'unit15hw.html' },
+      drillTitle:  { stringValue: 'Unit 15 · DNA Bank — ' + (HW_LABELS[mode] || HW_LABELS.a) },
+      drillSource: { stringValue: 'rfc3' },
+      studentName: { stringValue: name },
+      studentUid:  { stringValue: uid },
+      scorePct:      { integerValue: String(pct) },
+      correctCount:  { integerValue: String(score.correct) },
+      totalCount:    { integerValue: String(score.total) },
+      classId:       { nullValue: null },
+      submittedAt:   { timestampValue: new Date().toISOString() }
+    };
+  }
+
+  function submitCompletion() {
+    var btn = document.getElementById('submitBtn');
+    var root = cmcActiveRoot();
+    var mode = document.body.dataset.mode || 'a';
+    var nameEl = cmcActiveNameInput(root);
+
+    var sess = cmcSession();
+    var name = (((nameEl && nameEl.value) || '').trim() || sess.name).slice(0, 40);
+    if (!name) {
+      cmcToast('Add your name first — your teacher needs to know who finished the homework.', true);
+      btn.textContent = '⚠ Add your name first';
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 2600);
+      if (nameEl) {
+        nameEl.focus();
+        nameEl.classList.add('needs-name');
+        setTimeout(function () { nameEl.classList.remove('needs-name'); }, 1900);
+      }
+      var hero = root.querySelector('.hero');
+      if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.remove('done');
+    btn.textContent = 'Submitting…';
+    var score = cmcCurrentScore(root);
+    var body = cmcBuildBody(name, sess.authed ? sess.uid : '', score, mode);
+    var okMsg = '✓ Submitted! ' + name + ' — ' + score.correct + '/' + score.total + ' sent to your teacher.';
+
+    var done = function (ok, msg) {
+      btn.disabled = false;
+      btn.classList.toggle('done', ok);
+      btn.textContent = ok ? '✓ Submitted to teacher' : '⚠ Try again';
+      cmcToast(msg, !ok);
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 4200);
+    };
+
+    cmcPost(body, sess.authed ? sess.tok : '')
+      .then(function (r) {
+        if (r.ok) return done(true, okMsg);
+        if (r.status === 401 && sess.authed) {
+          cmcRefreshToken(function (t) {
+            if (t) {
+              cmcPost(body, t).then(function (r2) { done(r2.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+            } else {
+              // Session unrecoverable → validated guest branch.
+              cmcPost(cmcBuildBody(name, '', score, mode), '')
+                .then(function (r3) { done(r3.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+            }
+          });
+          return;
+        }
+        // Permission or server error → guest branch fallback (uid must be '').
+        cmcPost(cmcBuildBody(name, '', score, mode), '')
+          .then(function (r3) { done(r3.ok, okMsg); })
+          .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+      })
+      .catch(function () { done(false, 'Could not reach the teacher console — check your connection and try again.'); });
+  }
+  document.getElementById('submitBtn').addEventListener('click', submitCompletion);
+
+  /* ── Share (native sheet when available, fallback options otherwise) ── */
+  function cmcHomeworkUrl() {
+    return location.origin === 'null'
+      ? 'https://cmckhmer.github.io/Creative-Minds-/rfc3/unit15hw.html'
+      : location.href.split('#')[0];
+  }
+  function cmcShareText() {
+    return 'Kid 11 Online Homework — Unit 15 · DNA Bank · Homeworks 1–3 (auto-graded)';
+  }
+  function cmcToggleShare(force) {
+    var p = document.getElementById('cmcShare');
+    var open = typeof force === 'boolean' ? force : !p.classList.contains('open');
+    p.classList.toggle('open', open);
+  }
+  document.addEventListener('click', function (e) {
+    var p = document.getElementById('cmcShare');
+    if (p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('[data-cmc-share]')) cmcToggleShare(false);
+  });
+  function cmcNativeShare() {
+    if (navigator.share) {
+      navigator.share({ title: 'Unit 15 · DNA Bank', text: cmcShareText(), url: cmcHomeworkUrl() }).catch(function () {});
+      return true;
+    }
+    return false;
+  }
+  document.querySelector('[data-cmc-share]').addEventListener('click', function () { if (!cmcNativeShare()) cmcToggleShare(); });
+  function cmcCopyLink() {
+    var url = cmcHomeworkUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { cmcToast('Homework link copied — paste it into your class chat'); });
+    } else {
+      var t = document.createElement('textarea'); t.value = url; document.body.appendChild(t);
+      t.select(); document.execCommand('copy'); t.remove();
+      cmcToast('Homework link copied — paste it into your class chat');
+    }
+    cmcToggleShare(false);
+  }
+  document.querySelector('[data-cmc-copy]').addEventListener('click', cmcCopyLink);
+  document.querySelector('[data-cmc-wa]').addEventListener('click', function () {
+    window.open('https://wa.me/?text=' + encodeURIComponent(cmcShareText() + ' ' + cmcHomeworkUrl()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-tg]').addEventListener('click', function () {
+    window.open('https://t.me/share/url?url=' + encodeURIComponent(cmcHomeworkUrl()) + '&text=' + encodeURIComponent(cmcShareText()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-email]').addEventListener('click', function () {
+    location.href = 'mailto:?subject=' + encodeURIComponent('Unit 15 · DNA Bank — Kid 11 Online Homework') + '&body=' + encodeURIComponent(cmcShareText() + '\n' + cmcHomeworkUrl());
+    cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-close]').addEventListener('click', function () { cmcToggleShare(false); });
+})();
+</script>
+</body>
+</html>

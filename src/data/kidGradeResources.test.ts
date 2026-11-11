@@ -31,8 +31,8 @@ describe('Kid Program grade resource pathway', () => {
     // Kid 11 worksheets are served from this site's public/rfc3/ directory
     // (absolute URLs so the links also work from the static HTML worksheets),
     // plus the shareable online-homework worksheets (relative URLs, deep
-    // links into the Unit 13 file) whose pages carry the student
-    // "Submit to Teacher" completion button.
+    // links into the Unit 13 and Unit 15 files) whose pages carry the
+    // student "Submit to Teacher" completion button.
     expect(kid11?.materials.map((material) => material.href)).toEqual([
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/word-list.html',
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/dictation.html',
@@ -42,28 +42,38 @@ describe('Kid Program grade resource pathway', () => {
       './rfc3/unit13hw.html#hw-a',
       './rfc3/unit13hw.html#hw-b',
       './rfc3/unit13hw.html#hw-c',
+      './rfc3/unit15hw.html#hw-a',
+      './rfc3/unit15hw.html#hw-b',
+      './rfc3/unit15hw.html#hw-c',
     ]);
     // The online-homework entries are the Doctor Fish live worksheet plus the
-    // teacher's Unit 13 three-homework file (one row per homework) — the only
-    // materials allowed outside the grade's Reading Future book naming.
+    // teacher's Unit 13 and Unit 15 three-homework files (one row per
+    // homework) — the only materials allowed outside the grade's Reading
+    // Future book naming.
     const kid11Homework = kid11?.materials.filter((material) => material.kind === 'Online homework') ?? [];
     expect(kid11Homework.map((material) => material.id)).toEqual([
       'kid-11-homework-doctor-fish',
       'kid-11-homework-u13-hw1',
       'kid-11-homework-u13-hw2',
       'kid-11-homework-u13-hw3',
+      'kid-11-homework-u15-hw1',
+      'kid-11-homework-u15-hw2',
+      'kid-11-homework-u15-hw3',
     ]);
     expect(kid11Homework[0]?.title).toContain('Doctor Fish');
-    // Each homework is gated by its own share doc; the Unit 13 homeworks stay
-    // completely invisible to students until the teacher shares them, so the
-    // teacher can assign ONE homework at a time.
+    // Each homework is gated by its own share doc; the Unit 13 and Unit 15
+    // homeworks stay completely invisible to students until the teacher
+    // shares them, so the teacher can assign ONE homework at a time.
     expect(kid11Homework.map((material) => material.shareDoc)).toEqual([
       'hw-kid11-doctor-fish',
       'hw-kid11-u13-hw1',
       'hw-kid11-u13-hw2',
       'hw-kid11-u13-hw3',
+      'hw-kid11-u15-hw1',
+      'hw-kid11-u15-hw2',
+      'hw-kid11-u15-hw3',
     ]);
-    expect(kid11Homework.slice(1).map((material) => material.hideUntilShared)).toEqual([true, true, true]);
+    expect(kid11Homework.slice(1).map((material) => material.hideUntilShared)).toEqual([true, true, true, true, true, true]);
     expect(kid11Homework[0]?.hideUntilShared).toBeUndefined();
     expect(KID_GRADE_RESOURCES.filter((grade) => grade.grade !== 6 && grade.grade !== 7 && grade.grade !== 11).every((grade) => grade.status === 'planned' && grade.materials.length === 0)).toBe(true);
   });
