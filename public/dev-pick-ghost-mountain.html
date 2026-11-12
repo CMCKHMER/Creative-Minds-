@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost Mountain · Reading &amp; Quiz — CMC Developer's Picks</title>
+<meta name="description" content="The CMC Developer's Pick: Ghost Mountain (Phnom Khmaoch) — a respectful reading and quiz on memory, history and human courage, built from the Creativeminds Canva worksheet.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c1117; --bg2:#111926; --card:#151d2a; --card2:#182232;
+  --line:rgba(201,164,92,.28); --line-soft:rgba(201,164,92,.16);
+  --amber:#c9a45c; --amber-b:#e3c07f; --ink:#ece5d8; --muted:#a9a294; --dim:#7f7a6e;
+  --good:#7fce9a; --good-bg:rgba(127,206,154,.1); --bad:#e0908f; --bad-bg:rgba(224,144,143,.1);
+  --serif:'Source Serif 4',Georgia,'Times New Roman',serif; --sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--ink);min-height:100vh;overflow-x:hidden;
+  background:linear-gradient(175deg,#0c1117,#111926 55%,#0d141d);background-attachment:fixed;line-height:1.65}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.wrap{max-width:880px;margin:0 auto;padding:34px 20px 150px}
+/* header */
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.22em;color:var(--amber);text-transform:uppercase}
+h1{font-family:var(--serif);font-size:clamp(26px,4.6vw,40px);line-height:1.18;margin:12px 0 10px;color:#f4efe4}
+.lede{color:var(--muted);font-size:15.5px;max-width:700px}
+.note{margin-top:18px;border:1px solid var(--line-soft);border-left:3px solid var(--amber);border-radius:12px;
+  background:rgba(201,164,92,.06);padding:14px 16px;font-size:13.5px;color:var(--muted)}
+.note b{color:var(--amber-b)}
+.hero-rule{margin-top:24px;border:none;border-top:1px solid var(--line-soft)}
+/* identity */
+.idcard{margin-top:22px;background:var(--card);border:1px solid var(--line-soft);border-radius:14px;padding:16px 18px}
+.idcard b{display:block;font-size:10.5px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.idcard .row{display:flex;gap:10px;flex-wrap:wrap}
+.idcard input{flex:1;min-width:160px;padding:11px 13px;border-radius:10px;border:1px solid var(--line-soft);
+  background:#0d141d;color:var(--ink);font-size:14.5px}
+.idcard input::placeholder{color:var(--dim);opacity:1}
+.idcard input:focus{outline:none;border-color:var(--amber)}
+.idcard small{display:block;margin-top:8px;font-size:11.5px;color:var(--dim)}
+/* sections */
+section{margin-top:52px}
+.secno{font-size:10.5px;font-weight:700;letter-spacing:.22em;color:var(--amber);text-transform:uppercase}
+h2{font-family:var(--serif);font-size:clamp(21px,3vw,27px);margin:8px 0 6px;color:#f1ebdd}
+.secnote{color:var(--muted);font-size:14px;max-width:680px}
+article{margin-top:18px;background:var(--card);border:1px solid var(--line-soft);border-radius:14px;padding:18px 20px}
+article h3{font-family:var(--serif);font-size:17.5px;color:var(--amber-b);margin-bottom:6px}
+article p{font-size:14.5px;color:var(--ink)}
+article p strong{color:var(--amber-b);font-weight:600}
+article p em{color:var(--amber-b);font-style:normal;font-weight:600}
+/* timeline */
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;position:relative}
+.tl::before{content:"";position:absolute;top:7px;left:4%;right:4%;height:2px;background:var(--line-soft)}
+.tl .ev{position:relative;padding-top:22px}
+.tl .ev::before{content:"";position:absolute;top:0;left:0;width:14px;height:14px;border-radius:50%;
+  background:var(--bg);border:3px solid var(--amber)}
+.tl time{display:block;font-weight:700;font-size:13px;color:var(--amber-b);letter-spacing:.04em}
+.tl .ev p{font-size:13px;color:var(--muted);margin-top:3px}
+@media(max-width:640px){.tl{grid-template-columns:1fr 1fr}}
+/* schematic map */
+.map{margin-top:20px;border:1px solid var(--line-soft);border-radius:14px;background:var(--card);padding:18px}
+.map .zone{border:1px dashed rgba(169,162,148,.4);border-radius:10px;padding:13px 15px;text-align:center}
+.map .zone small{display:block;font-size:10px;letter-spacing:.2em;color:var(--dim);margin-top:4px}
+.map .zone b{font-size:14px;letter-spacing:.14em}
+.map .border-line{display:flex;align-items:center;gap:10px;margin:10px 0;color:var(--dim);font-size:10.5px;letter-spacing:.14em}
+.map .border-line::before,.map .border-line::after{content:"";flex:1;border-top:2px dashed rgba(201,164,92,.5)}
+.map .pv{margin-top:10px;text-align:center;font-size:13px;color:var(--amber-b);font-weight:600}
+.map .pv small{display:block;color:var(--muted);font-weight:400;letter-spacing:.05em;margin-top:2px}
+.hazard{margin-top:14px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(201,164,92,.05);
+  padding:12px 15px;display:flex;gap:12px;align-items:flex-start}
+.hazard .bang{flex-shrink:0;width:26px;height:26px;border-radius:50%;border:2px solid var(--amber);
+  color:var(--amber-b);display:grid;place-items:center;font-weight:800}
+.hazard p{font-size:13px;color:var(--muted)}
+.hazard p b{color:var(--amber-b)}
+.illusnote{margin-top:8px;font-size:10px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+/* vocabulary */
+.voc{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+@media(max-width:640px){.voc{grid-template-columns:1fr}}
+.voc .term{background:var(--card);border:1px solid var(--line-soft);border-radius:12px;padding:13px 15px}
+.voc dt{font-weight:700;font-size:14px;color:var(--amber-b)}
+.voc dd{font-size:13px;color:var(--muted);margin-top:3px}
+/* quiz */
+.quiz{margin-top:20px}
+.q{background:var(--card);border:1px solid var(--line-soft);border-radius:14px;padding:18px 20px;margin-top:14px}
+.q legend,.q .qt{font-weight:600;font-size:15px;color:var(--ink);padding:0}
+.q fieldset{border:none;margin-top:14px}
+.q fieldset .qt{display:block;margin-bottom:4px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line-soft);border-radius:10px;
+  margin-top:8px;cursor:pointer;transition:.15s;font-size:14px}
+.opt:hover{border-color:var(--line);background:rgba(201,164,92,.05)}
+.opt input{margin-top:3px;accent-color:var(--amber);flex-shrink:0}
+.q.locked .opt{cursor:default;pointer-events:none}
+.q.locked .opt.correct{border-color:var(--good);background:var(--good-bg)}
+.q.locked .opt.picked.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.fb{margin-top:10px;border-radius:10px;padding:11px 13px;font-size:13px;display:none}
+.fb.good{display:block;background:var(--good-bg);border:1px solid rgba(127,206,154,.35);color:var(--good)}
+.fb.bad{display:block;background:var(--bad-bg);border:1px solid rgba(224,144,143,.35);color:var(--bad)}
+.scorebar{position:sticky;top:10px;z-index:30;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-top:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.scorebar b{font-size:14px;color:var(--amber-b)}
+.scorebar span{font-size:12.5px;color:var(--muted)}
+.reset{margin-left:auto;border:1px solid var(--line-soft);background:transparent;color:var(--muted);
+  border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600}
+.reset:hover{border-color:var(--amber);color:var(--amber-b)}
+/* writing */
+.write{background:var(--card);border:1px solid var(--line-soft);border-radius:14px;padding:18px 20px;margin-top:14px}
+.write label{display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.write textarea{width:100%;min-height:96px;background:#0d141d;border:1px solid var(--line-soft);border-radius:10px;
+  color:var(--ink);padding:12px 14px;font-size:14px;resize:vertical}
+.write textarea:focus{outline:none;border-color:var(--amber)}
+.write .hint{display:flex;justify-content:space-between;gap:10px;margin-top:7px;font-size:11.5px;color:var(--dim);flex-wrap:wrap}
+.tagline{display:inline-block;margin-left:8px;font-size:10px;letter-spacing:.14em;color:var(--dim);
+  border:1px solid var(--line-soft);border-radius:99px;padding:2px 9px;text-transform:uppercase;vertical-align:2px}
+/* submit */
+.sendbox{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.sendbox .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sendbtn{border:none;border-radius:10px;padding:12px 22px;font-weight:700;font-size:14px;
+  background:linear-gradient(100deg,var(--amber),var(--amber-b));color:#241a08;transition:.15s}
+.sendbtn:hover{filter:brightness(1.08)}
+.sendbtn:disabled{opacity:.55;cursor:progress}
+.status{margin-top:10px;font-size:13px;color:var(--muted)}
+.status.good{color:var(--good)}
+.status.bad{color:var(--bad)}
+/* sources */
+.srcs{margin-top:18px;background:var(--card);border:1px solid var(--line-soft);border-radius:14px;padding:18px 20px}
+.srcs ol{margin-left:20px}
+.srcs li{font-size:13.5px;color:var(--muted);margin-top:9px}
+.srcs a{color:var(--amber-b);font-weight:600;text-decoration:none;border-bottom:1px dotted var(--line)}
+.srcs a:hover{border-bottom-style:solid}
+footer{margin-top:52px;border-top:1px solid var(--line-soft);padding-top:18px;text-align:center;
+  font-size:12.5px;color:var(--dim)}
+/* back pill */
+#cmc-back-btn{position:fixed;top:14px;right:14px;z-index:60;display:flex;align-items:center;gap:8px;padding:9px 16px;
+  border-radius:999px;background:rgba(12,17,23,.9);border:1px solid var(--line);color:var(--ink);
+  font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
+#cmc-back-btn:hover{background:rgba(201,164,92,.14);transform:translateY(-1px)}
+@media(max-width:680px){#cmc-back-btn{font-size:0;padding:9px;gap:0;top:10px;right:10px}#cmc-back-btn svg{width:15px;height:15px}}
+/* bottom bar / share / toast (same fixtures as the other game pages) */
+.cmc-bar{position:fixed;left:0;right:0;bottom:0;z-index:55;background:rgba(12,17,23,.94);backdrop-filter:blur(8px);
+  border-top:1px solid var(--line);padding:11px 16px;display:flex;gap:11px;justify-content:center;align-items:center;flex-wrap:wrap}
+.cmc-btn{border:none;border-radius:999px;padding:10px 22px;font:inherit;font-weight:700;font-size:13px;cursor:pointer;
+  transition:.18s;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.cmc-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.cmc-btn-lb{background:linear-gradient(90deg,var(--amber),var(--amber-b));color:#241a08}
+.cmc-btn-share{background:transparent;border:2px solid var(--line);color:var(--amber-b)}
+.cmc-toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(14px);z-index:95;background:#1a2330;
+  border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:9px 20px;font-size:13px;font-weight:600;
+  opacity:0;pointer-events:none;transition:.25s;max-width:92vw}
+.cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.cmc-toast.err{border-color:rgba(224,144,143,.6);color:var(--bad)}
+.cmc-share{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(10px);z-index:94;display:flex;
+  flex-direction:column;gap:7px;background:#1a2330;border:1px solid var(--line);border-radius:14px;padding:12px;
+  min-width:230px;box-shadow:0 24px 70px rgba(0,0,0,.7);opacity:0;pointer-events:none;transition:.2s}
+.cmc-share.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.cmc-share button{border:1px solid var(--line-soft);background:rgba(0,0,0,.3);color:var(--ink);border-radius:8px;
+  padding:10px 14px;font-size:13px;font-weight:600;text-align:left;transition:.15s}
+.cmc-share button:hover{border-color:var(--amber)}
+.cmc-share button.close{border-color:rgba(224,144,143,.4);color:var(--bad)}
+@media print{.cmc-bar,#cmc-back-btn,.cmc-share,.cmc-toast{display:none!important}body{background:#fff;color:#111}}
+</style>
+</head>
+<body>
+
+<!-- Back to CMC home (same fixture as the other standalone games) -->
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" aria-label="Back to CMC home">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" stroke="#c9a45c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Back to CMC
+</a>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">History · Reading &amp; Response Worksheet · Developer's Picks</p>
+    <h1>Ghost Mountain: A Reading on Memory, History, and Human Courage</h1>
+    <p class="lede">Read the account, study the evidence, and answer in your own words. You can work through the sections at your own pace.</p>
+    <div class="note"><b>Content note:</b> This reading discusses displacement, violence, landmines, death, and grief. It does not include graphic descriptions or images. Pause and speak with your teacher if you need support.</div>
+    <hr class="hero-rule">
+  </header>
+
+  <section id="s1" aria-labelledby="h-details">
+    <p class="secno">01 / Begin here</p>
+    <h2 id="h-details">Your details</h2>
+    <p class="secnote">Fill in both fields — they ride with your quiz score when you post it to the class leaderboard.</p>
+    <div class="idcard">
+      <b>Your name &amp; ID</b>
+      <div class="row">
+        <input type="text" id="cmcNameIn" maxlength="24" placeholder="Student name" autocomplete="name" spellcheck="false">
+        <input type="text" id="cmcIdIn" maxlength="14" placeholder="Class / group (e.g. 9B)" spellcheck="false">
+      </div>
+      <small>Saved on this device. Your name and ID appear together on the leaderboard, e.g. “Dara · 9B”.</small>
+    </div>
+  </section>
+
+  <section id="s2" aria-labelledby="h-read">
+    <p class="secno">02 / Read</p>
+    <h2 id="h-read">The reading</h2>
+    <p class="secnote">Read each short section carefully. Notice when a source gives an estimate rather than a certain number.</p>
+    <article>
+      <h3>Where Ghost Mountain is</h3>
+      <p>Ghost Mountain, also called <strong>Phnom Khmaoch</strong>, is an area near Preah Vihear Temple in Cambodia’s northern Dangrêk Mountains, close to the Cambodia–Thailand border.</p>
+    </article>
+    <article>
+      <h3>Before the tragedy</h3>
+      <p>From 1975 to 1979, Cambodians suffered under the Khmer Rouge. People faced executions, forced labour, starvation, and disease. Many families had already experienced profound loss.</p>
+    </article>
+    <article>
+      <h3>1979 and displacement</h3>
+      <p>Early in 1979, Vietnamese forces overthrew the Khmer Rouge government. Conflict and food shortages continued. Many Cambodians fled toward Thailand. This movement away from home is called <strong>displacement</strong>.</p>
+    </article>
+    <article>
+      <h3>The forced return</h3>
+      <p>In June 1979, Thai authorities collected refugees from border camps and transported them to Preah Vihear. UNHCR records that <strong>more than 42,000 people</strong> were forced down the mountainside into Cambodia. A <strong>refugee</strong> is someone who flees danger and seeks safety elsewhere.</p>
+    </article>
+    <article>
+      <h3>The descent</h3>
+      <p>The refugees faced steep terrain and landmines, which are explosive devices hidden in or on the ground. Historical accounts report that some people were shot when they tried to return to Thailand. Others died from exhaustion, malaria, or starvation.</p>
+    </article>
+    <article>
+      <h3>International response and change</h3>
+      <p>The International Committee of the Red Cross appealed publicly for the pushbacks to stop. UNHCR later acknowledged that it had failed to publicly protest the mass expulsions. On <strong>19 October 1979</strong>, Thailand announced that Cambodian refugees would receive temporary <strong>asylum</strong>—permission to stay for safety—and would not be forcibly returned.</p>
+    </article>
+    <article>
+      <h3>What is known and what is uncertain</h3>
+      <p>The death toll is <strong>not known with certainty</strong>. UNHCR describes at least several hundred and possibly several thousand killed in the minefields. Documentation Center of Cambodia research gives estimates of up to <strong>3,000 killed</strong> and <strong>7,000 unaccounted for</strong>. “Unaccounted for” means a person’s fate was not established; it does <em>not</em> confirm that the person died. Estimates differ between sources, and people reported missing must not be counted as confirmed deaths.</p>
+    </article>
+    <article>
+      <h3>Why it is remembered as Ghost Mountain</h3>
+      <p>Survivor memories describe cries for help and the deaths of people who had already escaped years of terror. “Ghost Mountain” is a remembered name that reflects grief and memory. It is an interpretation of what happened there, not a single undisputed explanation of the name.</p>
+    </article>
+  </section>
+
+  <section id="s3" aria-labelledby="h-time">
+    <p class="secno">03 / Place events in time</p>
+    <h2 id="h-time">Key moments</h2>
+    <div class="tl">
+      <div class="ev"><time>1975</time><p>Khmer Rouge rule begins in Cambodia (1975–1979).</p></div>
+      <div class="ev"><time>Early 1979</time><p>Vietnamese forces overthrow the Khmer Rouge government.</p></div>
+      <div class="ev"><time>June 1979</time><p>The forced descent at Preah Vihear.</p></div>
+      <div class="ev"><time>19 October 1979</time><p>Thailand announces temporary asylum and an end to forced returns.</p></div>
+    </div>
+    <p class="illusnote">1975–1979 at a glance · dates from the reading · spacing not to scale</p>
+  </section>
+
+  <section id="s4" aria-labelledby="h-vis">
+    <p class="secno">04 / Read visuals carefully</p>
+    <h2 id="h-vis">Visual history</h2>
+    <p class="secnote">These are labelled learning diagrams, not photographs of the 1979 event. Their shapes and distances are illustrative.</p>
+    <div class="map">
+      <div class="zone"><b>THAILAND</b><small>North of the border</small></div>
+      <div class="border-line">CAMBODIA–THAILAND BORDER</div>
+      <div class="zone"><b>CAMBODIA</b><small>South of the border · Dangrêk Mountains along the frontier</small></div>
+      <div class="pv">Preah Vihear · Temple area<small>Ghost Mountain (Phnom Khmaoch) — near the temple, in the northern Dangrêk Mountains</small></div>
+      <p class="illusnote">Schematic • not to scale • not an exact route</p>
+    </div>
+    <div class="hazard">
+      <span class="bang">!</span>
+      <p><b>Reported hazards:</b> steep terrain · landmines. The descent section of the reading names these as the risks refugees faced.</p>
+    </div>
+    <p class="illusnote">Illustration • not the historical route</p>
+    <p class="secnote" style="margin-top:12px">No unverified photograph is presented as evidence of the June 1979 forced descent.</p>
+  </section>
+
+  <section id="s5" aria-labelledby="h-voc">
+    <p class="secno">05 / Useful words</p>
+    <h2 id="h-voc">Vocabulary box</h2>
+    <dl class="voc">
+      <div class="term"><dt>Refugee</dt><dd>A person who flees danger and seeks safety elsewhere.</dd></div>
+      <div class="term"><dt>Forced return</dt><dd>Sending a person back when they do not choose to go.</dd></div>
+      <div class="term"><dt>Asylum</dt><dd>Permission to stay in a country for protection.</dd></div>
+      <div class="term"><dt>Landmine</dt><dd>An explosive device hidden in or on the ground.</dd></div>
+      <div class="term"><dt>Displacement</dt><dd>Being forced to leave one’s home or community.</dd></div>
+      <div class="term"><dt>Survivor</dt><dd>A person who lived through a dangerous event.</dd></div>
+      <div class="term"><dt>Unaccounted for</dt><dd>Someone whose fate has not been established; not a confirmed death.</dd></div>
+      <div class="term"><dt>Estimate</dt><dd>A careful approximate number when an exact number is not known.</dd></div>
+    </dl>
+  </section>
+
+  <section id="s6" aria-labelledby="h-quiz">
+    <p class="secno">06 / Show your learning</p>
+    <h2 id="h-quiz">Part A · Test your knowledge</h2>
+    <p class="secnote">Choose one answer for each question. Feedback appears as soon as you choose — and you can retake the quiz anytime.</p>
+    <div class="scorebar"><b id="scoreText">Score: 0 / 8</b><span id="answeredText">0 of 8 answered</span><button type="button" class="reset" id="resetBtn">↻ Retake</button></div>
+    <div class="quiz" id="quiz"></div>
+
+    <h2 style="margin-top:34px">Part B · Think and write<span class="tagline">Teacher review · not auto-graded</span></h2>
+    <p class="secnote">Explain your reasoning. You may refer back to the reading. Your writing autosaves on this device — show it to your teacher.</p>
+    <div class="write">
+      <label for="w1">1. Why does it matter that sources give different estimates of deaths and people unaccounted for? How should a careful reader describe those numbers?</label>
+      <textarea id="w1" placeholder="Write your answer…"></textarea>
+      <span class="hint"><span>Saved on this device automatically.</span></span>
+    </div>
+    <div class="write">
+      <label for="w2">2. What responsibilities might governments and international organisations have toward refugees? Use at least one moment from the reading to support your view.</label>
+      <textarea id="w2" placeholder="Write your answer…"></textarea>
+      <span class="hint"><span>Saved on this device automatically.</span></span>
+    </div>
+    <div class="write">
+      <label for="w3">3. How might the remembered name “Ghost Mountain” shape the way people understand this history? What can the name communicate, and what might it leave out?</label>
+      <textarea id="w3" placeholder="Write your answer…"></textarea>
+      <span class="hint"><span>Saved on this device automatically.</span></span>
+    </div>
+
+    <h2 style="margin-top:34px">Part C · Short written response<span class="tagline">Teacher review · not auto-graded</span></h2>
+    <div class="write">
+      <label for="wc">Write one evidence-based paragraph: What key moments turned displacement into a second tragedy at Ghost Mountain? Include at least three facts from the reading.</label>
+      <textarea id="wc" placeholder="Your paragraph…"></textarea>
+      <span class="hint"><span>Saved on this device automatically.</span><span id="wcCount">0 words</span></span>
+    </div>
+  </section>
+
+  <section id="s7" aria-labelledby="h-finish">
+    <p class="secno">07 / Finish</p>
+    <h2 id="h-finish">Submit your work</h2>
+    <p class="secnote">Check your name, ID, and eight answers. Your quiz score goes to the class leaderboard; your writing is saved on this device for teacher review.</p>
+    <div class="sendbox">
+      <div class="row">
+        <button type="button" class="sendbtn" id="cmcLbSend">📡 SEND QUIZ SCORE</button>
+      </div>
+      <p class="status" id="cmcLbStatus">Answer all 8 questions, add your name and ID above, then send your score.</p>
+    </div>
+  </section>
+
+  <section id="s8" aria-labelledby="h-src">
+    <p class="secno">08 / Check the evidence</p>
+    <h2 id="h-src">Sources &amp; further reading</h2>
+    <p class="secnote">The reading synthesizes these sources. Compare accounts: casualty estimates and survivor memories vary.</p>
+    <div class="srcs">
+      <ol>
+        <li><a href="https://www.unhcr.org/africa/sites/afr/files/legacy-pdf/3ebf9bad0.pdf" target="_blank" rel="noopener noreferrer">UNHCR historical account (PDF)</a> — historical refugee-protection account.</li>
+        <li><a href="https://www.dccam.org/hill-tribes-memory-community-center/hill-tribes-memory-community-center-refugee-camps-a-cambodian-perspective-august-6-2025/" target="_blank" rel="noopener noreferrer">Documentation Center of Cambodia article</a> — Cambodian perspective and research.</li>
+        <li><a href="https://data.unhcr.org/fr/documents/download/91169" target="_blank" rel="noopener noreferrer">UNHCR data portal document</a> — further historical documentation.</li>
+        <li><a href="https://www.refworld.org/reference/themreport/unga/1979/91472" target="_blank" rel="noopener noreferrer">1979 UN/refugee protection record</a> — contemporary protection context.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>A respectful learning activity about history, evidence, and remembrance. Built from the Creativeminds Canva worksheet · CMC Developer's Picks.</footer>
+</div>
+
+<!-- Bottom action bar: class leaderboard link + teacher share kit -->
+<div class="cmc-bar no-print">
+  <a class="cmc-btn cmc-btn-lb" href="https://cmckhmer.github.io/Creative-Minds-/#games" aria-label="Open the class leaderboard on the CMC games page">🏆 Class leaderboard</a>
+  <button type="button" class="cmc-btn cmc-btn-share" data-cmc-share aria-haspopup="true">📣 Share with class ▾</button>
+</div>
+<div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
+<div class="cmc-share" id="cmcShare">
+  <button type="button" data-cmc-copy>🔗 Copy assignment link</button>
+  <button type="button" data-cmc-wa>💬 WhatsApp</button>
+  <button type="button" data-cmc-tg>✈️ Telegram</button>
+  <button type="button" data-cmc-email>✉️ Email</button>
+  <button type="button" class="close" data-cmc-close>✕ Close</button>
+</div>
+
+<script>
+/* ── CMC integration: quiz + operative identity + class leaderboard POST + share ──
+   Developer's Picks (owner request, Nov 2026): the Creativeminds Canva worksheet
+   "Ghost Mountain" rebuilt as a reading + quiz page. The quiz grades instantly;
+   a finished run POSTs one drill_attempts doc through the SAME pipeline as
+   Cryo-Vault Lockdown / Word Forge / Syntax Clash (drillSource 'learning-games',
+   guest branch with checked name + classId null, or the signed-in session token
+   with securetoken refresh). Name and ID ride together in the public identity.
+   Part B/C writing never leaves the device. */
+(function () {
+  'use strict';
+  var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+  var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+  var PAGE_URL = 'https://cmckhmer.github.io/Creative-Minds-/dev-pick-ghost-mountain.html';
+  var ASSIGN_TEXT = '📖 CMC Developer\'s Pick — Ghost Mountain: A Reading on Memory, History, and Human Courage. Read the account, study the evidence (timeline, map, vocabulary), take the 8-question quiz with instant feedback, and post your score to the class leaderboard!';
+
+  /* ── quiz data: transcribed 1:1 from the Canva worksheet (Part A · 8 questions) ── */
+  var QUIZ = [
+    { q: '1. Where is Ghost Mountain (Phnom Khmaoch)?',
+      opts: ['Near Preah Vihear Temple in Cambodia’s northern Dangrêk Mountains', 'In southern Cambodia beside the sea', 'In central Thailand, far from the border', 'Inside the city of Phnom Penh'],
+      a: 0, why: 'The reading places Ghost Mountain (Phnom Khmaoch) near Preah Vihear Temple in Cambodia’s northern Dangrêk Mountains, close to the Cambodia–Thailand border.' },
+    { q: '2. Which period was Khmer Rouge rule described in the reading?',
+      opts: ['1965–1969', '1975–1979', '1985–1989', '1995–1999'],
+      a: 1, why: 'The reading dates Khmer Rouge rule from 1975 to 1979 — executions, forced labour, starvation, and disease.' },
+    { q: '3. What happened early in 1979?',
+      opts: ['Thailand announced temporary asylum', 'The forced descent began in June', 'Vietnamese forces overthrew the Khmer Rouge government', 'The death toll became certain'],
+      a: 2, why: 'Early in 1979, Vietnamese forces overthrew the Khmer Rouge government; conflict and food shortages continued, and many Cambodians fled toward Thailand.' },
+    { q: '4. According to UNHCR, how many people were forced down the mountainside in June 1979?',
+      opts: ['Exactly 3,000', 'More than 42,000', '7,000 confirmed deaths', 'Several hundred in total'],
+      a: 1, why: 'UNHCR records that more than 42,000 people were forced down the mountainside. (3,000 is an estimate of deaths — and 7,000 are unaccounted for, not confirmed deaths.)' },
+    { q: '5. Which pair names risks refugees faced during the descent?',
+      opts: ['Snowstorms and avalanches', 'Steep terrain and landmines', 'Flooding and earthquakes', 'A lack of roads and ships'],
+      a: 1, why: 'The descent section names steep terrain and landmines as the reported hazards; some were shot trying to return, and others died from exhaustion, malaria, or starvation.' },
+    { q: '6. What did Thailand announce on 19 October 1979?',
+      opts: ['All refugees would be sent back immediately', 'The border camps had never existed', 'Cambodian refugees would receive temporary asylum and would not be forcibly returned', 'An exact death toll had been established'],
+      a: 2, why: 'On 19 October 1979 Thailand announced temporary asylum — permission to stay for safety — and that refugees would not be forcibly returned.' },
+    { q: '7. Which statement describes the sources most carefully?',
+      opts: ['Everyone unaccounted for is a confirmed death', 'All sources give the same exact death toll', 'The death toll is uncertain; estimates differ, and missing people are not confirmed deaths', 'The reading reports no deaths'],
+      a: 2, why: 'The reading is explicit: the toll is not known with certainty — UNHCR says at least several hundred and possibly several thousand; DC-Cam research gives up to 3,000 killed and 7,000 unaccounted for — and “unaccounted for” does not confirm a death.' },
+    { q: '8. Why is the place remembered as Ghost Mountain?',
+      opts: ['The reading presents one undisputed official explanation', 'Survivor memories of cries for help and deaths helped shape a remembered name expressing grief', 'The mountain was named for a weather event', 'It was the title of an official map from 1975'],
+      a: 1, why: 'Survivor memories — cries for help, the deaths of people who had already escaped years of terror — shaped a remembered name that reflects grief and memory; an interpretation, not a single undisputed explanation.' }
+  ];
+  var TOTAL = QUIZ.length;
+
+  /* ── an email is NEVER a display name (same rule as the site) ── */
+  function looksEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim()); }
+  function friendlyFromEmail(email) {
+    var local = String(email || '').split('@')[0].trim();
+    if (!local) return '';
+    var words = local.split(/[._+\-]+/).map(function (w) { return w.trim(); }).filter(Boolean);
+    if (!words.length) return local.slice(0, 40);
+    return words.map(function (w) { return (w.charAt(0).toUpperCase() + w.slice(1)).slice(0, 40); }).join(' ').trim().slice(0, 40);
+  }
+  function nameOf(v) {
+    var s = String(v || '').trim();
+    if (!s || !looksEmail(s)) return s;
+    return friendlyFromEmail(s) || s;
+  }
+  (function heal() {
+    try {
+      var stored = localStorage.getItem('cmc-student-name') || '';
+      if (!looksEmail(stored)) return;
+      var healed = friendlyFromEmail(stored);
+      if (healed) localStorage.setItem('cmc-student-name', healed);
+      else localStorage.removeItem('cmc-student-name');
+    } catch (e) {}
+  })();
+
+  function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  function toast(msg, err) {
+    var t = document.getElementById('cmcToast');
+    t.textContent = msg; t.classList.toggle('err', !!err); t.classList.add('show');
+    clearTimeout(toast._tm); toast._tm = setTimeout(function () { t.classList.remove('show'); }, 3600);
+  }
+  function setStatus(msg, cls) {
+    var el = document.getElementById('cmcLbStatus');
+    el.textContent = msg; el.className = 'status' + (cls ? ' ' + cls : '');
+  }
+
+  /* ── identity (name + ID), prefilled like the other games ── */
+  var nameIn = document.getElementById('cmcNameIn');
+  var idIn = document.getElementById('cmcIdIn');
+  var player = { name: '', id: '' };
+  try {
+    var pn = JSON.parse(ls('cmc-player-name') || 'null');
+    player.name = (pn && pn.name ? nameOf(pn.name) : '');
+  } catch (e) { player.name = ''; }
+  if (!player.name) player.name = nameOf(ls('cmc-student-name') || '');
+  player.id = (ls('cmc-player-id') || '').trim();
+  nameIn.value = player.name; idIn.value = player.id;
+  function persistIdentity() {
+    var n = nameOf(nameIn.value).trim(), id = idIn.value.trim();
+    if (n) { try { localStorage.setItem('cmc-player-name', JSON.stringify({ name: n, at: Date.now() })); } catch (e) {} }
+    if (id) lsSet('cmc-player-id', id);
+  }
+  [nameIn, idIn].forEach(function (inp) { inp.addEventListener('input', persistIdentity); });
+  function publicIdentity() {
+    var n = nameOf(nameIn.value).trim(), id = idIn.value.trim();
+    var full = n + (id ? ' · ' + id : '');
+    return { name: n, full: full.slice(0, 40) };
+  }
+
+  /* ── quiz render + scoring ── */
+  var answers = new Array(TOTAL).fill(null); // chosen index per question, null = unanswered
+  var runId = null;
+  var autoSentFor = null;
+  var quizEl = document.getElementById('quiz');
+  var scoreText = document.getElementById('scoreText');
+  var answeredText = document.getElementById('answeredText');
+
+  function renderQuiz() {
+    quizEl.innerHTML = '';
+    QUIZ.forEach(function (item, qi) {
+      var box = document.createElement('div');
+      box.className = 'q'; box.setAttribute('data-qi', String(qi));
+      var qt = document.createElement('span'); qt.className = 'qt'; qt.textContent = item.q; box.appendChild(qt);
+      var fs = document.createElement('div');
+      item.opts.forEach(function (opt, oi) {
+        var lab = document.createElement('label'); lab.className = 'opt';
+        var inp = document.createElement('input'); inp.type = 'radio'; inp.name = 'q' + qi; inp.value = String(oi);
+        inp.addEventListener('change', function () { pick(qi, oi); });
+        lab.appendChild(inp); lab.appendChild(document.createTextNode(opt)); fs.appendChild(lab);
+      });
+      box.appendChild(fs);
+      var fb = document.createElement('p'); fb.className = 'fb'; fb.setAttribute('data-fb', String(qi)); box.appendChild(fb);
+      quizEl.appendChild(box);
+    });
+  }
+  function correctCount() { return answers.reduce(function (n, a, i) { return n + (a === QUIZ[i].a ? 1 : 0); }, 0); }
+  function answeredCount() { return answers.reduce(function (n, a) { return n + (a !== null ? 1 : 0); }, 0); }
+  function refreshScore() {
+    scoreText.textContent = 'Score: ' + correctCount() + ' / ' + TOTAL;
+    answeredText.textContent = answeredCount() + ' of ' + TOTAL + ' answered';
+  }
+  function pick(qi, oi) {
+    if (answers[qi] !== null) return;
+    answers[qi] = oi;
+    var box = quizEl.querySelector('.q[data-qi="' + qi + '"]');
+    box.classList.add('locked');
+    box.querySelectorAll('.opt').forEach(function (lab, li) {
+      if (li === QUIZ[qi].a) lab.classList.add('correct');
+      if (li === oi && oi !== QUIZ[qi].a) lab.classList.add('picked', 'wrong');
+      var inp = lab.querySelector('input'); if (inp) inp.disabled = true;
+    });
+    var fb = box.querySelector('.fb');
+    var right = oi === QUIZ[qi].a;
+    fb.className = 'fb ' + (right ? 'good' : 'bad');
+    fb.textContent = (right ? '✓ Correct. ' : '✗ Not quite. ') + QUIZ[qi].why;
+    refreshScore();
+    if (answeredCount() === TOTAL) onQuizComplete();
+  }
+  function onQuizComplete() {
+    runId = 'quiz:' + Date.now();
+    var c = correctCount();
+    var pub = publicIdentity();
+    if (pub.name) {
+      if (autoSentFor !== runId) { autoSentFor = runId; sendScore(); }
+    } else {
+      setStatus('Quiz complete — ' + c + ' / ' + TOTAL + '. Add your name and ID above, then send the score.', '');
+      document.getElementById('s7').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    answers = new Array(TOTAL).fill(null); runId = null; autoSentFor = null;
+    renderQuiz(); refreshScore();
+    setStatus('Quiz retaken — answer all 8 questions, then send your score.', '');
+  });
+
+  /* ── leaderboard POST (same pipeline as the other games) ── */
+  function sendScore() {
+    var pub = publicIdentity();
+    if (!pub.name) { setStatus('Key in your name (and ID) first — they ride with your score.', 'bad'); nameIn.focus(); return; }
+    if (answeredCount() < TOTAL) { setStatus('Answer all ' + TOTAL + ' questions first — ' + answeredCount() + ' so far.', 'bad'); return; }
+    persistIdentity();
+    var btn = document.getElementById('cmcLbSend');
+    btn.disabled = true;
+    var c = correctCount();
+    var pct = Math.max(0, Math.min(100, Math.round(c / TOTAL * 100)));
+    var go = function (tok) {
+      var uid = ls('cmc-student-uid') || '';
+      fetch(CMC_FS, {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, tok ? { 'Authorization': 'Bearer ' + tok } : {}),
+        body: JSON.stringify({ fields: {
+          drillSlug: { stringValue: 'dev-pick-ghost-mountain.html' },
+          drillTitle: { stringValue: 'Ghost Mountain · Reading & Quiz' },
+          drillSource: { stringValue: 'learning-games' },
+          studentName: { stringValue: pub.full },
+          studentUid: { stringValue: uid },
+          classId: (function () { var cl = ls('cmc-student-classId'); return cl ? { stringValue: cl } : { nullValue: null }; })(),
+          scorePct: { integerValue: String(pct) },
+          correctCount: { integerValue: String(c) },
+          totalCount: { integerValue: String(TOTAL) },
+          submittedAt: { timestampValue: new Date().toISOString() }
+        } })
+      }).then(function (r) {
+        btn.disabled = false;
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        setStatus('✓ Sent — ' + c + ' / ' + TOTAL + ' (' + pct + '%). Open the class leaderboard to compare.', 'good');
+        toast('Quiz score sent to the class leaderboard ✓');
+      }).catch(function () {
+        btn.disabled = false;
+        setStatus('Could not reach the leaderboard (offline?). Press SEND again — your answers are kept.', 'bad');
+      });
+    };
+    var tok = ls('cmc-student-token');
+    var exp = Number(ls('cmc-student-token-expires') || '0');
+    if (tok && exp && exp <= Date.now()) {
+      var rt = ls('cmc-student-refresh-token');
+      if (!rt) { go(tok); return; }
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
+        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(function (r) { return r.ok ? r.json() : null; }).then(function (dd) {
+        if (dd && dd.id_token) {
+          try {
+            localStorage.setItem('cmc-student-token', dd.id_token);
+            localStorage.setItem('cmc-student-token-expires', String(Date.now() + (Number(dd.expires_in) || 3600) * 1000 - 60000));
+            if (dd.refresh_token) localStorage.setItem('cmc-student-refresh-token', dd.refresh_token);
+          } catch (e) {}
+          go(dd.id_token);
+        } else go('');
+      }).catch(function () { go(''); });
+    } else { go(tok || ''); }
+  }
+  document.getElementById('cmcLbSend').addEventListener('click', sendScore);
+
+  /* ── Part B/C writing autosave (device-local, teacher review) ── */
+  [['w1', 'gmp-w1'], ['w2', 'gmp-w2'], ['w3', 'gmp-w3'], ['wc', 'gmp-wc']].forEach(function (pair) {
+    var el = document.getElementById(pair[0]);
+    el.value = ls(pair[1]) || '';
+    el.addEventListener('input', function () {
+      lsSet(pair[1], el.value);
+      if (pair[0] === 'wc') {
+        var words = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+        document.getElementById('wcCount').textContent = words + ' words';
+      }
+    });
+    if (pair[0] === 'wc') {
+      var words = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+      document.getElementById('wcCount').textContent = words + ' words';
+    }
+  });
+
+  /* ── share-with-class kit (same fixtures as the other games) ── */
+  var share = document.getElementById('cmcShare');
+  document.querySelectorAll('[data-cmc-share]').forEach(function (b) { b.addEventListener('click', function () { share.classList.add('show'); }); });
+  share.addEventListener('click', function (e) {
+    var act = e.target.closest('[data-cmc-copy],[data-cmc-wa],[data-cmc-tg],[data-cmc-email],[data-cmc-close]');
+    if (!act) return;
+    if (act.hasAttribute('data-cmc-close')) { share.classList.remove('show'); return; }
+    if (act.hasAttribute('data-cmc-copy')) {
+      var done = function () { toast('Assignment link copied ✓'); share.classList.remove('show'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(PAGE_URL).then(done, function () {
+          try { var ta = document.createElement('textarea'); ta.value = PAGE_URL; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); } catch (err) { toast('Copy failed — long-press the URL instead', true); }
+        });
+      } else {
+        try { var ta2 = document.createElement('textarea'); ta2.value = PAGE_URL; document.body.appendChild(ta2); ta2.select(); document.execCommand('copy'); document.body.removeChild(ta2); done(); } catch (err2) { toast('Copy failed — long-press the URL instead', true); }
+      }
+    } else if (act.hasAttribute('data-cmc-wa')) {
+      window.open('https://wa.me/?text=' + encodeURIComponent(ASSIGN_TEXT + ' ' + PAGE_URL), '_blank', 'noopener'); share.classList.remove('show');
+    } else if (act.hasAttribute('data-cmc-tg')) {
+      window.open('https://t.me/share/url?url=' + encodeURIComponent(PAGE_URL) + '&text=' + encodeURIComponent(ASSIGN_TEXT), '_blank', 'noopener'); share.classList.remove('show');
+    } else if (act.hasAttribute('data-cmc-email')) {
+      location.href = 'mailto:?subject=' + encodeURIComponent('Ghost Mountain — CMC Developer\'s Pick (reading & quiz)') + '&body=' + encodeURIComponent(ASSIGN_TEXT + '\n' + PAGE_URL); share.classList.remove('show');
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') share.classList.remove('show'); });
+
+  renderQuiz(); refreshScore();
+})();
+</script>
+</body>
+</html>
