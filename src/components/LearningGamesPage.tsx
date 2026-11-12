@@ -219,10 +219,17 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
                     <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-400">{game.description}</p>
                     <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>{game.level}</span><span aria-hidden="true">·</span><span>{game.duration}</span></div>
                                    {game.externalUrl ? (
-                      <a href={game.externalUrl} className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
-                        Open game
-                        <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
-                      </a>
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <a href={game.externalUrl} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+                          Open game
+                          <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
+                        </a>
+                        {game.leaderboardLink && (
+                          <button type="button" onClick={() => { const panels = document.querySelectorAll('.cmc-game-leaderboard'); const target = Array.prototype.find.call(panels, (n) => n.offsetParent !== null) || panels[0]; if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-cyan-200/25 bg-cyan-200/[0.07] px-3 py-2.5 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-200/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300" aria-label="Scroll to the class leaderboard">
+                            🏆 Class leaderboard
+                          </button>
+                        )}
+                      </div>
                     ) : (
                       <button type="button" onClick={() => chooseGame(game)} className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">Read &amp; play <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" /></button>
                     )}
@@ -240,7 +247,7 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
               Hidden on small screens (would push the grid down) — appears
               from lg breakpoint up. */}
           <div className="hidden lg:block">
-            <div className="sticky top-20">
+            <div className="sticky top-20 cmc-game-leaderboard">
               <GameLeaderboard highlightPlayer={signedInPlayer} />
             </div>
           </div>
@@ -248,7 +255,7 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
 
         {/* Mobile / tablet fallback: leaderboard panel rendered below the
             grid so users on small screens still see the live activity. */}
-        <div className="mt-8 lg:hidden">
+        <div className="mt-8 lg:hidden cmc-game-leaderboard">
           <GameLeaderboard highlightPlayer={signedInPlayer} />
         </div>
       </section>

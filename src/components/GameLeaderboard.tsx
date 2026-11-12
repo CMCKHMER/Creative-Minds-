@@ -67,6 +67,7 @@ function gameNameFromSlug(slug: string): string {
     'writequest-home': 'WriteQuest · Home',
     'word-forge-quiz': 'Word Forge · Quiz',
     'word-forge-match': 'Word Forge · Match',
+    'cryo-lockdown.html': 'Cryo-Vault Lockdown',
     'voice-quest-l1': 'Talk to me · Level 1',
     'voice-quest-l2': 'Talk to me · Level 2',
     'voice-quest-l3': 'Talk to me · Level 3',
@@ -118,16 +119,18 @@ async function fetchGameAttempts(): Promise<Attempt[]> {
     };
   });
   // Filter to learning-games only (syntax-clash + writequest + word-forge +
-  // the voice-quest standalone game + future React games)
+  // the voice-quest standalone game + cryo-lockdown + future React games)
   return all.filter(a =>
     a.drillSlug.startsWith('syntax-clash') ||
     a.drillSlug.startsWith('writequest') ||
     a.drillSlug.startsWith('word-forge') ||
     a.drillSlug.startsWith('voice-quest') ||
+    a.drillSlug.startsWith('cryo-lockdown') ||
     a.drillTitle.toLowerCase().includes('syntax clash') ||
     a.drillTitle.toLowerCase().includes('writequest') ||
     a.drillTitle.toLowerCase().includes('word forge') ||
-    a.drillTitle.toLowerCase().includes('talk to me')
+    a.drillTitle.toLowerCase().includes('talk to me') ||
+    a.drillTitle.toLowerCase().includes('cryo-vault')
   );
 }
 

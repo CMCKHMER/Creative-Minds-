@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cryo-Vault Lockdown · DNA Bank — CMC Learning Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ PALETTE / FOUNDATION ============ */
+:root{
+  --deep:#030814; --deep2:#061225; --deep3:#0a1f3a;
+  --ice:#38d9ff; --ice-soft:#8feaff; --helix:#ff4d6d; --bio:#2dd4a7;
+  --amber:#ffc857; --danger:#ff5470; --info:#4d9dff;
+  --surface:rgba(9,20,38,.86); --line:rgba(56,217,255,.24); --line2:rgba(56,217,255,.42);
+  --text:#e9f4ff; --muted:#93aec8; --scrim:rgba(2,6,14,.88);
+  --hud:74px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{scrollbar-color:var(--ice) var(--deep);scrollbar-width:thin}
+body{
+  font-family:'Space Grotesk',system-ui,sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;
+  background:
+    radial-gradient(1100px 700px at 12% -10%,rgba(56,217,255,.16),transparent 60%),
+    radial-gradient(900px 620px at 92% 12%,rgba(255,77,109,.13),transparent 62%),
+    radial-gradient(1000px 800px at 50% 118%,rgba(45,212,167,.14),transparent 60%),
+    linear-gradient(168deg,var(--deep),var(--deep2) 48%,var(--deep3));
+  background-attachment:fixed;
+}
+body.locked{overflow:hidden}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:#04101f}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--ice),var(--info));border-radius:8px;border:2px solid #04101f}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(var(--ice-soft),var(--helix))}
+button,select,input{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* ============ BACKGROUND ============ */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.gridfloor{position:absolute;left:-30%;right:-30%;bottom:-10vh;height:52vh;opacity:.4;
+  background-image:linear-gradient(rgba(56,217,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(77,157,255,.16) 1px,transparent 1px);
+  background-size:70px 70px;transform:perspective(360px) rotateX(66deg);transform-origin:bottom center;
+  animation:floor 9s linear infinite;
+  -webkit-mask-image:linear-gradient(to top,#000 6%,transparent 88%);mask-image:linear-gradient(to top,#000 6%,transparent 88%)}
+@keyframes floor{to{background-position:0 70px,0 0}}
+.scan{position:absolute;inset:0;opacity:.45;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.026) 0 1px,transparent 1px 4px)}
+.grain{position:absolute;inset:0;opacity:.06;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
+.vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(1,4,10,.72) 100%)}
+.helix{position:absolute;top:0;bottom:0;width:74px;overflow:hidden;opacity:.2}
+.helix.l{left:1.5%}.helix.r{right:2%}
+.helix svg{position:absolute;top:-800px;left:0;animation:flow 24s linear infinite;filter:drop-shadow(0 0 6px rgba(56,217,255,.5))}
+.helix.r svg{animation-duration:32s;animation-direction:reverse}
+@keyframes flow{to{transform:translateY(800px)}}
+#fx{position:absolute;inset:0;width:100%;height:100%}
+
+/* ============ HUD ============ */
+.hud{position:fixed;top:0;left:0;right:0;height:var(--hud);z-index:60;display:flex;align-items:center;gap:14px;
+  padding:0 16px;background:linear-gradient(180deg,rgba(3,8,20,.96),rgba(3,8,20,.84));
+  backdrop-filter:blur(14px);border-bottom:1px solid var(--line2);box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.logo{display:flex;align-items:center;gap:11px;min-width:0}
+.logo svg{width:26px;height:32px;flex-shrink:0;filter:drop-shadow(0 0 7px rgba(255,77,109,.7))}
+.logo b{font-family:'Chakra Petch',sans-serif;font-size:15px;letter-spacing:1.1px;display:block;white-space:nowrap}
+.logo small{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);display:block}
+.timerbox{margin-left:auto;text-align:center;min-width:128px;flex-shrink:0}
+.timerbox .lab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--ice-soft)}
+.timerbox .val{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:27px;line-height:1.05;
+  color:var(--ice);text-shadow:0 0 18px rgba(56,217,255,.6);font-variant-numeric:tabular-nums}
+.timerbox.warn .val{color:var(--amber);text-shadow:0 0 18px rgba(255,200,87,.7);animation:pulse .9s ease-in-out infinite}
+.timerbox.crit .val{color:var(--danger);text-shadow:0 0 20px rgba(255,84,112,.8);animation:pulse .5s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45}}
+.integrity{width:128px;height:5px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-top:3px}
+.integrity i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--bio),var(--ice));transition:width .3s linear,background .4s}
+.timerbox.warn .integrity i{background:linear-gradient(90deg,var(--amber),#ff9d4d)}
+.timerbox.crit .integrity i{background:linear-gradient(90deg,var(--danger),var(--helix))}
+.hudstats{display:flex;gap:8px}
+.stat{background:rgba(56,217,255,.07);border:1px solid var(--line);border-radius:7px;padding:5px 10px;text-align:center;min-width:60px}
+.stat b{font-family:'IBM Plex Mono',monospace;font-size:15px;display:block;color:var(--ice-soft)}
+.stat span{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.2px;color:var(--muted)}
+.hudctl{display:flex;gap:7px;align-items:center;flex-shrink:0}
+.ctl{border:1px solid var(--line);background:rgba(56,217,255,.06);color:var(--ice-soft);border-radius:7px;
+  padding:8px 12px;font-size:11.5px;font-weight:700;letter-spacing:.6px;transition:.16s;white-space:nowrap;
+  display:flex;align-items:center;gap:6px}
+.ctl:hover{border-color:var(--ice);background:rgba(56,217,255,.16);box-shadow:0 0 14px rgba(56,217,255,.3)}
+.ctl.on{background:var(--bio);border-color:var(--bio);color:#04241c}
+.ctl.danger:hover{border-color:var(--danger);color:#ffd7de;background:rgba(255,84,112,.14)}
+select.ctl{padding:8px 9px;background:#0a1a30;color:var(--ice-soft);display:block}
+select.ctl option{background:#0a1a30}
+
+/* ============ STAGE ============ */
+.stage{position:relative;z-index:10;max-width:1240px;margin:0 auto;padding:calc(var(--hud) + 22px) 18px 44px;
+  display:grid;grid-template-columns:minmax(320px,392px) 1fr;gap:22px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;
+  box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 0 60px rgba(56,217,255,.05);position:relative;overflow:hidden}
+.panel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--ice),transparent);box-shadow:0 0 16px rgba(56,217,255,.6)}
+.panel-title{font-family:'Chakra Petch',sans-serif;font-size:14px;letter-spacing:1.6px;color:var(--ice-soft);
+  display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.panel-title::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ice);box-shadow:0 0 10px var(--ice)}
+.panel-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:18px;line-height:1.5}
+
+/* ============ VAULT ============ */
+.vault-panel{position:sticky;top:calc(var(--hud) + 22px)}
+.vault{position:relative;width:min(324px,72vw);aspect-ratio:1;margin:6px auto 20px}
+.vring{position:absolute;border-radius:50%;border:2px dashed rgba(56,217,255,.3)}
+.vring.r1{inset:0;animation:spin 44s linear infinite}
+.vring.r2{inset:9%;border-style:solid;border-color:rgba(77,157,255,.28);animation:spin 30s linear infinite reverse}
+.vring.r3{inset:18%;border-color:rgba(255,77,109,.24);animation:spin 22s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.vault.open .vring{animation-duration:1.4s!important;border-color:var(--bio)}
+.vcore{position:absolute;inset:27%;border-radius:50%;display:grid;place-items:center;text-align:center;
+  background:radial-gradient(circle at 40% 32%,rgba(56,217,255,.24),rgba(4,14,28,.96) 68%);
+  border:1px solid var(--line2);box-shadow:inset 0 0 40px rgba(56,217,255,.24),0 0 40px rgba(56,217,255,.18);transition:.6s}
+.vault.open .vcore{background:radial-gradient(circle,rgba(45,212,167,.6),rgba(4,20,18,.9) 70%);border-color:var(--bio);
+  box-shadow:inset 0 0 60px rgba(45,212,167,.5),0 0 70px rgba(45,212,167,.5);transform:scale(1.06)}
+.vcore .big{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:29px;color:var(--ice);line-height:1;
+  text-shadow:0 0 18px rgba(56,217,255,.7)}
+.vault.open .vcore .big{color:var(--bio)}
+.vcore .sm{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.6px;color:var(--muted);margin-top:5px}
+.locknode{position:absolute;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;display:grid;place-items:center;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;border:2px solid rgba(255,84,112,.5);
+  background:rgba(20,6,16,.92);color:#ff9db0;transition:.35s;box-shadow:0 0 14px rgba(255,84,112,.25)}
+.locknode.done{border-color:var(--bio);background:rgba(6,32,26,.95);color:var(--bio);box-shadow:0 0 20px rgba(45,212,167,.6);font-size:15px}
+.codeslots{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.slot{aspect-ratio:.78;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.4);display:grid;place-items:center;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:21px;color:#3d5872;transition:.3s}
+.slot.filled{border-color:var(--bio);color:var(--bio);background:rgba(45,212,167,.1);box-shadow:0 0 16px rgba(45,212,167,.35);animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.14)}100%{transform:scale(1)}}
+.slotlab{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:5px 0 15px}
+.slotlab span{font-family:'IBM Plex Mono',monospace;font-size:8px;text-align:center;color:var(--muted);letter-spacing:.5px}
+.entry{font-family:'IBM Plex Mono',monospace;font-size:15px;letter-spacing:5px;text-align:center;color:var(--amber);
+  background:rgba(0,0,0,.45);border:1px solid rgba(255,200,87,.3);border-radius:8px;padding:9px;margin-bottom:9px;min-height:38px}
+.entry.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.key{border:1px solid var(--line);background:rgba(56,217,255,.06);color:var(--ice-soft);border-radius:8px;padding:12px 0;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:16px;transition:.14s}
+.key:hover:not(:disabled){background:rgba(56,217,255,.2);border-color:var(--ice);box-shadow:0 0 14px rgba(56,217,255,.35);transform:translateY(-1px)}
+.key:active:not(:disabled){transform:translateY(1px)}
+.key:disabled{opacity:.3;cursor:not-allowed}
+.key.enter{background:rgba(45,212,167,.16);border-color:rgba(45,212,167,.5);color:var(--bio);font-size:13px}
+.key.clear{background:rgba(255,84,112,.12);border-color:rgba(255,84,112,.4);color:#ff9db0;font-size:13px}
+.keymsg{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--muted);text-align:center;margin-top:10px;letter-spacing:.7px;min-height:26px;line-height:1.5}
+
+/* ============ TERMINALS ============ */
+.termgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:12px}
+.term{display:block;border:1px solid var(--line);background:linear-gradient(150deg,rgba(10,24,44,.9),rgba(6,16,32,.9));border-radius:11px;
+  padding:15px;text-align:left;color:var(--text);transition:.18s;position:relative;overflow:hidden;width:100%}
+.term::after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;
+  background:radial-gradient(circle,rgba(56,217,255,.14),transparent 70%);transition:.3s;pointer-events:none}
+.term:hover:not(.solved){border-color:var(--ice);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 24px rgba(56,217,255,.24)}
+.term.solved{border-color:rgba(45,212,167,.55);background:linear-gradient(150deg,rgba(8,34,28,.9),rgba(5,20,18,.9));cursor:default}
+.term .tno{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.6px;color:var(--ice);display:block;margin-bottom:6px}
+.term.solved .tno{color:var(--bio)}
+.term .tname{display:block;font-family:'Chakra Petch',sans-serif;font-size:15.5px;font-weight:700;margin-bottom:5px;letter-spacing:.3px}
+.term .tag{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:11px}
+.term .status{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.term .badge{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;padding:4px 9px;border-radius:5px;
+  border:1px solid rgba(255,84,112,.4);color:#ff9db0;background:rgba(255,84,112,.1)}
+.term.solved .badge{border-color:rgba(45,212,167,.5);color:var(--bio);background:rgba(45,212,167,.12)}
+.term .digit{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:24px;color:#3d5872;line-height:1}
+.term.solved .digit{color:var(--bio);text-shadow:0 0 14px rgba(45,212,167,.7)}
+.log{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.log h4{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.6px;color:var(--muted);margin-bottom:9px}
+.loglist{max-height:170px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:5px}
+.logline{font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.5;color:#a9c4dc;display:flex;gap:9px;
+  padding:5px 8px;border-radius:5px;background:rgba(0,0,0,.25);border-left:2px solid var(--line2);animation:slidein .3s ease}
+@keyframes slidein{from{opacity:0;transform:translateX(-8px)}}
+.logline .t{color:var(--ice);flex-shrink:0}
+.logline.good{border-left-color:var(--bio);color:#b6f0dd}
+.logline.bad{border-left-color:var(--danger);color:#ffc2cc}
+.logline.warn{border-left-color:var(--amber);color:#ffe4b0}
+
+/* ============ MODAL ============ */
+.modal-wrap{position:fixed;inset:0;z-index:80;background:var(--scrim);backdrop-filter:blur(7px);
+  display:grid;place-items:center;padding:calc(var(--hud) + 14px) 16px 20px;animation:fade .22s ease}
+@keyframes fade{from{opacity:0}}
+.modal{width:min(760px,100%);max-height:100%;display:flex;flex-direction:column;background:linear-gradient(160deg,#0a1c34,#061223);
+  border:1px solid var(--line2);border-radius:14px;box-shadow:0 30px 90px rgba(0,0,0,.8),0 0 60px rgba(56,217,255,.14);
+  overflow:hidden;animation:rise .28s cubic-bezier(.2,.9,.3,1)}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.97)}}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:linear-gradient(90deg,rgba(56,217,255,.1),transparent)}
+.modal-head .id{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.6px;color:var(--ice);
+  border:1px solid var(--line2);padding:5px 10px;border-radius:5px;background:rgba(56,217,255,.08)}
+.modal-head h2{font-family:'Chakra Petch',sans-serif;font-size:19px;font-weight:700;letter-spacing:.4px}
+.modal-head .close{margin-left:auto;border:1px solid var(--line);background:transparent;color:var(--muted);
+  width:32px;height:32px;border-radius:7px;font-size:15px;transition:.15s;flex-shrink:0}
+.modal-head .close:hover{border-color:var(--danger);color:#ffd7de;background:rgba(255,84,112,.12)}
+.modal-body{padding:20px;overflow-y:auto;flex:1;min-height:0}
+.modal-foot{padding:13px 20px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  background:rgba(0,0,0,.28)}
+.btn{border:none;border-radius:8px;padding:11px 22px;font-weight:700;font-size:13px;letter-spacing:.6px;transition:.16s}
+.btn.primary{background:linear-gradient(100deg,var(--ice),var(--info));color:#03121f;box-shadow:0 0 22px rgba(56,217,255,.4)}
+.btn.primary:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 0 30px rgba(56,217,255,.6)}
+.btn.hint{background:rgba(255,200,87,.14);border:1px solid rgba(255,200,87,.45);color:var(--amber)}
+.btn.hint:hover:not(:disabled){background:rgba(255,200,87,.24);box-shadow:0 0 16px rgba(255,200,87,.3)}
+.btn.hint:disabled{opacity:.35;cursor:not-allowed}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ice-soft)}
+.btn.ghost:hover{border-color:var(--ice);background:rgba(56,217,255,.1)}
+.foot-msg{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);margin-left:auto;letter-spacing:.6px;text-align:right}
+.hintbox{margin-top:14px;padding:12px 14px;border-radius:9px;background:rgba(255,200,87,.09);
+  border:1px solid rgba(255,200,87,.35);font-size:13px;line-height:1.6;color:#ffe4b0}
+.hintbox b{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.4px;display:block;margin-bottom:5px}
+
+/* ============ PUZZLES ============ */
+.pz-intro{font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+.pz-row{display:grid;grid-template-columns:1fr minmax(180px,268px);gap:8px 15px;align-items:center;
+  padding:11px 13px;border-radius:9px;margin-bottom:6px;border:1px solid transparent;transition:.2s}
+.pz-row label{font-size:14px;line-height:1.5}
+.pz-row .fb{grid-column:1/-1;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;min-height:12px}
+.pz-row.ok{background:rgba(45,212,167,.1);border-color:rgba(45,212,167,.35)}
+.pz-row.ok .fb{color:var(--bio)}
+.pz-row.bad{background:rgba(255,84,112,.09);border-color:rgba(255,84,112,.35)}
+.pz-row.bad .fb{color:#ff9db0}
+.pz select,.pz input[type=text]{width:100%;padding:9px 11px;border-radius:7px;border:1px solid var(--line);
+  background:rgba(0,0,0,.45);color:var(--text);font-size:13.5px}
+.pz select option{background:#0a1c34}
+.pz select:focus,.pz input:focus{outline:none;border-color:var(--ice);box-shadow:0 0 0 3px rgba(56,217,255,.16)}
+.pz .opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.pz .opt{border:1px solid var(--line);background:rgba(0,0,0,.32);color:var(--text);border-radius:7px;padding:9px 15px;
+  font-size:13px;text-align:left;transition:.15s}
+.pz .opt:hover{border-color:var(--ice);background:rgba(56,217,255,.12);transform:translateY(-1px)}
+.pz .opt.picked{background:var(--ice);border-color:var(--ice);color:#03121f;font-weight:700;box-shadow:0 0 16px rgba(56,217,255,.4)}
+.pz-q{padding:12px 13px;border-radius:9px;margin-bottom:8px;border:1px solid transparent}
+.pz-q p{font-size:14px;line-height:1.55}
+.pz-q.ok{background:rgba(45,212,167,.1);border-color:rgba(45,212,167,.35)}
+.pz-q.bad{background:rgba(255,84,112,.09);border-color:rgba(255,84,112,.35)}
+.pz-q .fb{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;margin-top:8px;min-height:12px}
+.pz-q.ok .fb{color:var(--bio)}.pz-q.bad .fb{color:#ff9db0}
+.pz ol{list-style:none;counter-reset:o;display:flex;flex-direction:column;gap:8px}
+.pz ol li{counter-increment:o;display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:9px;
+  background:rgba(0,0,0,.32);border:1px solid var(--line);transition:.2s}
+.pz ol li::before{content:counter(o);font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;
+  min-width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:var(--ice);color:#03121f;flex-shrink:0}
+.pz ol li.ok{border-color:rgba(45,212,167,.5);background:rgba(45,212,167,.1)}
+.pz ol li.bad{border-color:rgba(255,84,112,.45);background:rgba(255,84,112,.08)}
+.pz ol li .txt{flex:1;font-size:13.5px;line-height:1.5}
+.pz .mv{display:flex;gap:5px;flex-shrink:0}
+.pz .mv button{width:31px;height:31px;border-radius:6px;border:1px solid var(--line);background:rgba(0,0,0,.3);
+  color:var(--ice-soft);font-size:13px;transition:.14s}
+.pz .mv button:hover{border-color:var(--ice);background:rgba(56,217,255,.16)}
+.pz .tray{display:flex;flex-wrap:wrap;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:10px;
+  background:rgba(0,0,0,.28);margin-bottom:12px;min-height:60px}
+.pz .traylab{width:100%;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.4px;color:var(--muted)}
+.pz .card{border:1px solid var(--line);border-left:3px solid var(--ice);background:rgba(0,0,0,.4);color:var(--text);
+  border-radius:7px;padding:9px 13px;font-size:12.5px;text-align:left;transition:.15s}
+.pz .card:hover{border-color:var(--ice);transform:translateY(-2px);box-shadow:0 0 14px rgba(56,217,255,.28)}
+.pz .card.sel{border-color:var(--amber);box-shadow:0 0 0 2px rgba(255,200,87,.3);transform:translateY(-2px)}
+.pz .card.ok{border-color:var(--bio);border-left-color:var(--bio);background:rgba(45,212,167,.12)}
+.pz .card.bad{border-color:var(--danger);border-left-color:var(--danger);background:rgba(255,84,112,.1)}
+.pz .bins{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.pz .bin{border:1px dashed var(--line);border-radius:10px;padding:13px;min-height:120px;background:rgba(0,0,0,.2);transition:.15s;cursor:pointer}
+.pz .bin:hover,.pz .bin:focus-visible{border-color:var(--ice);background:rgba(56,217,255,.07);outline:none}
+.pz .bin h5{font-family:'Chakra Petch',sans-serif;font-size:13px;letter-spacing:1px;margin-bottom:3px}
+.pz .bin.cause h5{color:var(--info)}.pz .bin.effect h5{color:var(--helix)}
+.pz .bin small{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1px;color:var(--muted)}
+.pz .binbody{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.pz .bank{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.pz .bank span{font-family:'IBM Plex Mono',monospace;font-size:11.5px;padding:5px 12px;border-radius:6px;
+  background:rgba(56,217,255,.1);border:1px solid var(--line);color:var(--ice-soft)}
+.pz .cloze{font-size:14.5px;line-height:2.6}
+.pz .cloze input{width:132px;display:inline-block;text-align:center;padding:6px 9px;font-size:13.5px}
+.pz .cloze input.ok{border-color:var(--bio);background:rgba(45,212,167,.12)}
+.pz .cloze input.bad{border-color:var(--danger);background:rgba(255,84,112,.1)}
+
+/* ============ OVERLAYS ============ */
+.overlay{position:fixed;inset:0;z-index:90;background:var(--scrim);backdrop-filter:blur(10px);
+  display:grid;place-items:center;padding:22px 16px;overflow-y:auto;animation:fade .3s ease}
+.sheet{width:min(720px,100%);background:linear-gradient(160deg,#0a1c34,#050e1e);border:1px solid var(--line2);
+  border-radius:16px;padding:34px;box-shadow:0 40px 110px rgba(0,0,0,.85),0 0 70px rgba(56,217,255,.14);
+  animation:rise .4s cubic-bezier(.2,.9,.3,1);position:relative;overflow:hidden;margin:auto}
+.sheet::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;
+  background:linear-gradient(90deg,var(--helix),var(--ice),var(--bio));box-shadow:0 0 20px rgba(56,217,255,.6)}
+.sheet .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2.6px;color:var(--ice);margin-bottom:12px}
+.sheet h1{font-family:'Chakra Petch',sans-serif;font-size:clamp(28px,5vw,44px);font-weight:700;line-height:1.06;margin-bottom:14px}
+.sheet h1 em{font-style:normal;color:var(--ice);text-shadow:0 0 24px rgba(56,217,255,.6)}
+.sheet .story{font-size:14.5px;line-height:1.75;color:#b8cee2;margin-bottom:20px;max-width:600px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:11px;margin-bottom:22px}
+.rule{background:rgba(56,217,255,.06);border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+.rule b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.4px;color:var(--ice);display:block;margin-bottom:6px}
+.rule span{font-size:12.5px;line-height:1.55;color:#a9c4dc}
+.diffs{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px;margin-bottom:20px}
+.diff{border:1px solid var(--line);background:rgba(0,0,0,.3);border-radius:11px;padding:15px;text-align:left;color:var(--text);transition:.18s}
+.diff:hover{border-color:var(--ice);transform:translateY(-2px)}
+.diff.active{border-color:var(--ice);background:rgba(56,217,255,.14);box-shadow:0 0 24px rgba(56,217,255,.28)}
+.diff b{font-family:'Chakra Petch',sans-serif;font-size:15px;display:block;margin-bottom:7px;letter-spacing:.5px}
+.diff span{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);display:block;line-height:1.7}
+.diff.active span{color:var(--ice-soft)}
+.best{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber);margin-bottom:18px;letter-spacing:.8px}
+.result-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:11px;margin:20px 0}
+.rstat{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center}
+.rstat b{font-family:'IBM Plex Mono',monospace;font-size:21px;color:var(--ice);display:block;line-height:1.2}
+.rstat span{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.3px;color:var(--muted)}
+.rank{font-family:'Chakra Petch',sans-serif;font-size:62px;font-weight:700;line-height:1;text-align:center;margin:8px 0 4px}
+.rank.S{color:var(--amber);text-shadow:0 0 34px rgba(255,200,87,.7)}
+.rank.A{color:var(--bio);text-shadow:0 0 30px rgba(45,212,167,.6)}
+.rank.B{color:var(--ice);text-shadow:0 0 30px rgba(56,217,255,.6)}
+.rank.C{color:var(--info)}
+.sheet-actions{display:flex;gap:11px;flex-wrap:wrap;margin-top:8px}
+.btn.big{padding:14px 30px;font-size:14px}
+.pauseicon{font-family:'IBM Plex Mono',monospace;font-size:50px;color:var(--ice);text-align:center;margin-bottom:10px;letter-spacing:8px}
+
+@media(max-width:1040px){
+  .stage{grid-template-columns:1fr}
+  .vault-panel{position:static}
+  .hudstats{display:none}
+}
+@media(max-width:780px){
+  .ctl .txt{display:none}
+  .ctl{padding:8px 10px}
+  select.ctl{max-width:96px;font-size:10px;padding:8px 6px}
+}
+@media(max-width:620px){
+  :root{--hud:64px}
+  .logo div{display:none}
+  .hud{gap:9px;padding:0 11px}
+  .timerbox{min-width:86px}.timerbox .val{font-size:20px}.integrity{width:86px}
+  .stage{padding:calc(var(--hud) + 16px) 12px 34px;gap:16px}
+  .panel{padding:17px}
+  .pz-row{grid-template-columns:1fr}
+  .pz .bins{grid-template-columns:1fr}
+  .sheet{padding:24px 19px}
+  .helix.r{display:none}
+  .modal-head{padding:14px 16px}
+  .modal-head h2{font-size:16px}
+  .modal-body{padding:16px}
+  .modal-foot{padding:12px 16px}
+  .foot-msg{margin-left:0;width:100%;text-align:left}
+  .termgrid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ============ CMC SITE FURNITURE (namespaced cmc-) ============ */
+html,body{overflow-x:clip}
+/* Back-to-CMC pill shares the top edge with the game HUD — the HUD drops to
+   z-index 50 (still above every in-game overlay trigger) and leaves room so
+   the pill stays clickable, same fixture as syntax-clash-pro/writequest. */
+#cmc-back-btn{position:fixed;top:14px;right:14px;z-index:60;display:flex;align-items:center;
+  gap:8px;padding:9px 16px;border-radius:999px;background:rgba(3,20,24,.9);
+  border:1px solid rgba(56,217,255,.45);color:#e9f4ff;font-family:'Space Grotesk',system-ui,sans-serif;
+  font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
+#cmc-back-btn:hover{background:rgba(56,217,255,.16);transform:translateY(-1px)}
+.hud{padding-right:170px}
+@media(max-width:680px){
+  .hud{padding-right:58px}
+  #cmc-back-btn{font-size:0;padding:9px;gap:0;top:10px;right:10px}
+  #cmc-back-btn svg{width:15px;height:15px}
+}
+/* Bottom action bar: class leaderboard link + Share-with-class menu */
+.cmc-bar{position:fixed;left:0;right:0;bottom:0;z-index:55;background:rgba(3,8,20,.94);
+  backdrop-filter:blur(8px);border-top:1px solid rgba(56,217,255,.28);
+  padding:11px 16px;display:flex;gap:11px;justify-content:center;align-items:center;flex-wrap:wrap}
+.cmc-btn{border:none;border-radius:999px;padding:10px 22px;font:inherit;font-weight:700;font-size:13px;
+  cursor:pointer;transition:.18s;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.cmc-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.cmc-btn-lb{background:linear-gradient(90deg,#38d9ff,#4d9dff);color:#03121f}
+.cmc-btn-share{background:transparent;border:2px solid rgba(56,217,255,.5);color:#8feaff}
+.cmc-btn-share:hover{border-color:#38d9ff}
+.cmc-toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(14px);z-index:95;
+  background:#0a1c34;border:1px solid rgba(56,217,255,.45);color:#e9f4ff;border-radius:999px;
+  padding:9px 20px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;max-width:92vw}
+.cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.cmc-toast.err{border-color:rgba(255,84,112,.6);color:#ffc2cc}
+.cmc-share{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(10px);z-index:94;
+  display:flex;flex-direction:column;gap:7px;background:#0a1c34;border:1px solid rgba(56,217,255,.45);
+  border-radius:14px;padding:12px;min-width:230px;box-shadow:0 24px 70px rgba(0,0,0,.7);
+  opacity:0;pointer-events:none;transition:.2s}
+.cmc-share.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.cmc-share button{border:1px solid rgba(56,217,255,.3);background:rgba(0,0,0,.35);color:#e9f4ff;
+  border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;text-align:left;transition:.15s}
+.cmc-share button:hover{border-color:#38d9ff;background:rgba(56,217,255,.12)}
+.cmc-share button.close{border-color:rgba(255,84,112,.4);color:#ff9db0}
+/* Operative identity inputs (briefing sheet + result sheet) */
+.cmc-id{background:rgba(0,0,0,.3);border:1px solid rgba(56,217,255,.28);border-radius:10px;padding:13px 15px;margin-bottom:20px}
+.cmc-id b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.4px;color:#38d9ff;display:block;margin-bottom:9px}
+.cmc-id .row{display:flex;gap:9px;flex-wrap:wrap}
+.cmc-id input{flex:1;min-width:150px;padding:10px 12px;border-radius:8px;border:1px solid rgba(56,217,255,.3);
+  background:rgba(0,0,0,.45);color:#e9f4ff;font-size:14px}
+.cmc-id input::placeholder{color:#5a7690;opacity:1}
+.cmc-id input:focus{outline:none;border-color:#38d9ff;box-shadow:0 0 0 3px rgba(56,217,255,.16)}
+.cmc-id small{display:block;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#93aec8;letter-spacing:.6px;line-height:1.6}
+/* Leaderboard post block (result sheet) */
+.cmc-lb{border:1px solid rgba(45,212,167,.35);background:rgba(45,212,167,.07);border-radius:10px;
+  padding:14px 15px;margin-top:6px}
+.cmc-lb b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.4px;color:#2dd4a7;display:block;margin-bottom:9px}
+.cmc-lb .row{display:flex;gap:8px;flex-wrap:wrap}
+.cmc-lb input{flex:1;min-width:140px;padding:10px 12px;border-radius:8px;border:1px solid rgba(56,217,255,.3);
+  background:rgba(0,0,0,.45);color:#e9f4ff;font-size:13.5px}
+.cmc-lb input:focus{outline:none;border-color:#38d9ff;box-shadow:0 0 0 3px rgba(56,217,255,.16)}
+.cmc-lb .send{flex-shrink:0;border:none;border-radius:8px;padding:10px 18px;font-weight:700;font-size:12.5px;
+  background:linear-gradient(100deg,#2dd4a7,#38d9ff);color:#03121f;cursor:pointer;transition:.16s}
+.cmc-lb .send:hover{filter:brightness(1.12)}
+.cmc-lb .send:disabled{opacity:.6;cursor:progress}
+.cmc-lb .status{display:block;margin-top:9px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#93aec8;letter-spacing:.5px;line-height:1.6}
+.cmc-lb .status.good{color:#2dd4a7}
+.cmc-lb .status.bad{color:#ff9db0}
+.stage{padding-bottom:132px}
+@media print{
+  .cmc-bar,#cmc-back-btn,.cmc-share,.cmc-toast{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- Back to CMC home (same fixture as the other standalone games) -->
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" aria-label="Back to CMC home">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" stroke="#38d9ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Back to CMC
+</a>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="helixUnit">
+    <path fill="none" stroke="#ff4d6d" stroke-width="3" d="M37 0 Q84 50 37 100 Q-10 150 37 200 Q84 250 37 300 Q-10 350 37 400 Q84 450 37 500 Q-10 550 37 600 Q84 650 37 700 Q-10 750 37 800"/>
+    <path fill="none" stroke="#38d9ff" stroke-width="3" d="M37 0 Q-10 50 37 100 Q84 150 37 200 Q-10 250 37 300 Q84 350 37 400 Q-10 450 37 500 Q84 550 37 600 Q-10 650 37 700 Q84 750 37 800"/>
+    <g stroke="#8feaff" stroke-width="2" opacity=".7">
+      <line x1="53" y1="25" x2="21" y2="25"/><line x1="61" y1="50" x2="13" y2="50"/><line x1="53" y1="75" x2="21" y2="75"/>
+      <line x1="21" y1="125" x2="53" y2="125"/><line x1="13" y1="150" x2="61" y2="150"/><line x1="21" y1="175" x2="53" y2="175"/>
+      <line x1="53" y1="225" x2="21" y2="225"/><line x1="61" y1="250" x2="13" y2="250"/><line x1="53" y1="275" x2="21" y2="275"/>
+      <line x1="21" y1="325" x2="53" y2="325"/><line x1="13" y1="350" x2="61" y2="350"/><line x1="21" y1="375" x2="53" y2="375"/>
+      <line x1="53" y1="425" x2="21" y2="425"/><line x1="61" y1="450" x2="13" y2="450"/><line x1="53" y1="475" x2="21" y2="475"/>
+      <line x1="21" y1="525" x2="53" y2="525"/><line x1="13" y1="550" x2="61" y2="550"/><line x1="21" y1="575" x2="53" y2="575"/>
+      <line x1="53" y1="625" x2="21" y2="625"/><line x1="61" y1="650" x2="13" y2="650"/><line x1="53" y1="675" x2="21" y2="675"/>
+      <line x1="21" y1="725" x2="53" y2="725"/><line x1="13" y1="750" x2="61" y2="750"/><line x1="21" y1="775" x2="53" y2="775"/>
+    </g>
+  </g>
+  <symbol id="dnalogo" viewBox="0 0 40 60">
+    <path fill="none" stroke="#ff4d6d" stroke-width="4" d="M12 4 Q34 18 12 30 Q-10 42 12 56"/>
+    <path fill="none" stroke="#38d9ff" stroke-width="4" d="M28 4 Q6 18 28 30 Q50 42 28 56"/>
+    <g stroke="#8feaff" stroke-width="2.5"><line x1="17" y1="12" x2="23" y2="12"/><line x1="17" y1="48" x2="23" y2="48"/><line x1="14" y1="30" x2="26" y2="30"/></g>
+  </symbol>
+</defs></svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="gridfloor"></div>
+  <div class="helix l"><svg width="74" height="2400" viewBox="0 0 74 2400"><use href="#helixUnit"/><use href="#helixUnit" y="800"/><use href="#helixUnit" y="1600"/></svg></div>
+  <div class="helix r"><svg width="74" height="2400" viewBox="0 0 74 2400"><use href="#helixUnit"/><use href="#helixUnit" y="800"/><use href="#helixUnit" y="1600"/></svg></div>
+  <canvas id="fx"></canvas>
+  <div class="scan"></div><div class="grain"></div><div class="vignette"></div>
+</div>
+
+<header class="hud">
+  <div class="logo">
+    <svg viewBox="0 0 40 60"><use href="#dnalogo"/></svg>
+    <div><b>CRYO-VAULT LOCKDOWN</b><small>UNIT 15 · DNA BANK</small></div>
+  </div>
+  <div class="timerbox" id="timerBox">
+    <div class="lab">COOLANT</div>
+    <div class="val" id="timerVal">--:--</div>
+    <div class="integrity"><i id="integrityBar"></i></div>
+  </div>
+  <div class="hudstats">
+    <div class="stat"><b id="statDigits">0/6</b><span>DIGITS</span></div>
+    <div class="stat"><b id="statHints">3</b><span>HINTS</span></div>
+    <div class="stat"><b id="statErr">0</b><span>ERRORS</span></div>
+  </div>
+  <div class="hudctl">
+    <select class="ctl" id="diffSelect" aria-label="Difficulty">
+      <option value="easy">TRAINEE</option>
+      <option value="normal" selected>TECHNICIAN</option>
+      <option value="hard">SPECIALIST</option>
+    </select>
+    <button type="button" class="ctl on" id="soundBtn" aria-pressed="true" title="Toggle sound"><span class="ico">🔊</span><span class="txt">SOUND ON</span></button>
+    <button type="button" class="ctl" id="pauseBtn" title="Pause"><span class="ico">⏸</span><span class="txt">PAUSE</span></button>
+    <button type="button" class="ctl danger" id="restartBtn" title="Restart"><span class="ico">↻</span><span class="txt">RESTART</span></button>
+  </div>
+</header>
+
+<main class="stage">
+  <section class="panel vault-panel">
+    <div class="panel-title">CRYO-VAULT DOOR</div>
+    <div class="panel-sub">SECURITY LEVEL 6 · SAMPLE INTEGRITY AT RISK</div>
+    <div class="vault" id="vault">
+      <div class="vring r1"></div><div class="vring r2"></div><div class="vring r3"></div>
+      <div class="vcore"><div><div class="big" id="vaultCount">0/6</div><div class="sm" id="vaultStatus">LOCKED</div></div></div>
+    </div>
+    <div class="codeslots" id="codeSlots"></div>
+    <div class="slotlab"><span>T1</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span></div>
+    <div class="entry" id="entryDisplay">_ _ _ _ _ _</div>
+    <div class="keypad" id="keypad"></div>
+    <div class="keymsg" id="keyMsg">AUTHENTICATE ALL 6 TERMINALS TO ENABLE THE KEYPAD</div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-title">SECURITY TERMINALS</div>
+    <div class="panel-sub">EACH TERMINAL RELEASES ONE DIGIT · SLOT ORDER IS T1 → T6</div>
+    <div class="termgrid" id="termGrid"></div>
+    <div class="log">
+      <h4>MISSION LOG</h4>
+      <div class="loglist" id="logList" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<div class="overlay" id="briefing">
+  <div class="sheet">
+    <div class="eyebrow">EMERGENCY PROTOCOL · DNA BANK FACILITY</div>
+    <h1>Cryo-Vault <em>Lockdown</em></h1>
+    <p class="story">A power surge has sealed the cryo-vault. Inside are frozen DNA samples from endangered species — the global DNA bank. The coolant is failing. Six security terminals must be re-authenticated before the samples thaw. Each terminal releases one digit of the release code. Authenticate all six, enter the code in slot order, and open the vault.</p>
+    <div class="rules">
+      <div class="rule"><b>OBJECTIVE</b><span>Solve 6 terminals, collect 6 digits, enter the release code.</span></div>
+      <div class="rule"><b>PRESSURE</b><span>The coolant timer never stops. Wrong answers cost time.</span></div>
+      <div class="rule"><b>HINTS</b><span>Limited hint tokens. Each one burns coolant seconds.</span></div>
+      <div class="rule"><b>REPLAY</b><span>The code, terminal layout and puzzle order change every run.</span></div>
+    </div>
+
+    <div class="cmc-id" id="cmcBriefId">
+      <b>OPERATIVE IDENTITY — NAME &amp; ID</b>
+      <div class="row">
+        <input type="text" id="cmcNameIn" maxlength="24" placeholder="Your name" autocomplete="name" spellcheck="false">
+        <input type="text" id="cmcIdIn" maxlength="14" placeholder="ID / class (e.g. 7A · No. 12)" spellcheck="false">
+      </div>
+      <small>Both ride along when your score is posted to the class leaderboard. Saved on this device.</small>
+    </div>
+
+    <div class="diffs" id="diffCards"></div>
+    <div class="best" id="bestLine"></div>
+    <div class="sheet-actions">
+      <button type="button" class="btn primary big" id="startBtn">▶ INITIATE LOCKDOWN</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="pauseOverlay" hidden>
+  <div class="sheet" style="max-width:420px;text-align:center">
+    <div class="pauseicon">❚❚</div>
+    <h1 style="font-size:30px">System <em>Paused</em></h1>
+    <p class="story" style="margin:0 auto 20px">Coolant countdown suspended. Resume when ready.</p>
+    <div class="sheet-actions" style="justify-content:center">
+      <button type="button" class="btn primary big" id="resumeBtn">▶ RESUME</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="resultOverlay" hidden>
+  <div class="sheet">
+    <div class="eyebrow" id="resultEyebrow">MISSION REPORT</div>
+    <h1 id="resultTitle">Vault <em>Opened</em></h1>
+    <div class="rank" id="resultRank">A</div>
+    <p class="story" id="resultMsg" style="text-align:center;margin:0 auto 6px"></p>
+    <div class="result-stats" id="resultStats"></div>
+    <div class="best" id="resultBest"></div>
+
+    <div class="cmc-lb" id="cmcLb">
+      <b>CLASS LEADERBOARD — POST THIS RUN</b>
+      <div class="row">
+        <input type="text" id="cmcLbName" maxlength="24" placeholder="Your name" autocomplete="name" spellcheck="false">
+        <input type="text" id="cmcLbId" maxlength="14" placeholder="ID / class" spellcheck="false">
+        <button type="button" class="send" id="cmcLbSend">📡 SEND SCORE</button>
+      </div>
+      <span class="status" id="cmcLbStatus">Add your name, then send the run to the class leaderboard.</span>
+    </div>
+
+    <div class="sheet-actions">
+      <button type="button" class="btn primary big" id="againBtn">↻ RUN AGAIN</button>
+      <button type="button" class="btn ghost big" id="briefBtn">CHANGE DIFFICULTY</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="modalWrap" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <span class="id" id="modalId">TERMINAL 01</span>
+      <h2 id="modalTitle">Terminal</h2>
+      <button type="button" class="close" id="modalClose" aria-label="Close terminal">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button type="button" class="btn hint" id="hintBtn">💡 USE HINT</button>
+      <button type="button" class="btn primary" id="submitBtn">AUTHENTICATE</button>
+      <span class="foot-msg" id="footMsg"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+/* ================= UTIL ================= */
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+var norm=function(s){return String(s==null?'':s).toLowerCase().replace(/[.!?]+$/,'').trim().replace(/\s+/g,' ');};
+var shuffle=function(a){var b=a.slice(),i,j,t;for(i=b.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=b[i];b[i]=b[j];b[j]=t;}return b;};
+var fmt=function(s){s=Math.max(0,Math.ceil(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');};
+var pad2=function(n){return String(n).padStart(2,'0');};
+
+/* ================= AUDIO ================= */
+var Sound={
+  ctx:null,master:null,on:true,ready:false,
+  init:function(){
+    if(this.ready){ if(this.ctx&&this.ctx.state==='suspended'){this.ctx.resume();} return; }
+    var AC=window.AudioContext||window.webkitAudioContext; if(!AC)return;
+    try{
+      this.ctx=new AC();
+      this.master=this.ctx.createGain();
+      this.master.gain.value=this.on?0.5:0;
+      this.master.connect(this.ctx.destination);
+      var g=this.ctx.createGain(); g.gain.value=0.05;
+      var f=this.ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=340;
+      var o1=this.ctx.createOscillator(); o1.type='sine'; o1.frequency.value=55;
+      var o2=this.ctx.createOscillator(); o2.type='sine'; o2.frequency.value=82.4;
+      var o3=this.ctx.createOscillator(); o3.type='triangle'; o3.frequency.value=110;
+      var g3=this.ctx.createGain(); g3.gain.value=0.25;
+      o1.connect(g); o2.connect(g); o3.connect(g3); g3.connect(g); g.connect(f); f.connect(this.master);
+      o1.start(); o2.start(); o3.start();
+      this.ready=true;
+      if(this.ctx.state==='suspended'){this.ctx.resume();}
+    }catch(e){this.ready=false;}
+  },
+  setOn:function(v){ this.on=v; if(this.master&&this.ctx){ this.master.gain.setTargetAtTime(v?0.5:0,this.ctx.currentTime,0.05); } },
+  tone:function(freq,dur,type,vol,slide){
+    if(!this.ready||!this.on||!this.ctx)return;
+    dur=dur||0.12; type=type||'sine'; vol=vol||0.2; slide=slide||0;
+    try{
+      var t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
+      o.type=type; o.frequency.setValueAtTime(freq,t);
+      if(slide){ o.frequency.exponentialRampToValueAtTime(Math.max(40,freq+slide),t+dur); }
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(vol,t+0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.connect(g); g.connect(this.master); o.start(t); o.stop(t+dur+0.03);
+    }catch(e){}
+  },
+  click:function(){this.tone(660,0.06,'square',0.09);},
+  place:function(){this.tone(420,0.08,'triangle',0.12);},
+  good:function(){var s=this;s.tone(523,0.13,'sine',0.2);setTimeout(function(){s.tone(784,0.2,'sine',0.2);},100);},
+  bad:function(){this.tone(180,0.22,'sawtooth',0.15,-70);},
+  digit:function(){var s=this;s.tone(880,0.1,'triangle',0.17);setTimeout(function(){s.tone(1318,0.22,'sine',0.15);},90);},
+  hint:function(){this.tone(392,0.14,'triangle',0.13);},
+  unlock:function(){var s=this;[261,329,392,523].forEach(function(f,i){setTimeout(function(){s.tone(f,0.5,'sine',0.17);},i*90);});},
+  win:function(){var s=this;[523,659,784,1046,1318].forEach(function(f,i){setTimeout(function(){s.tone(f,0.42,'triangle',0.19);},i*110);});},
+  lose:function(){var s=this;[330,262,196,131].forEach(function(f,i){setTimeout(function(){s.tone(f,0.5,'sawtooth',0.15);},i*150);});},
+  tick:function(){this.tone(1000,0.04,'square',0.06);}
+};
+
+/* ================= PARTICLES ================= */
+var FX={
+  cv:null,ctx:null,w:0,h:0,motes:[],bursts:[],ok:false,
+  init:function(){
+    this.cv=$('#fx'); if(!this.cv||!this.cv.getContext)return;
+    this.ctx=this.cv.getContext('2d'); if(!this.ctx)return;
+    this.ok=true; this.resize();
+    this.motes=[]; for(var i=0;i<60;i++){this.motes.push(this.mote(true));}
+    var self=this; window.addEventListener('resize',function(){self.resize();});
+  },
+  resize:function(){
+    if(!this.ok)return;
+    var dpr=Math.min(2,window.devicePixelRatio||1);
+    this.w=window.innerWidth; this.h=window.innerHeight;
+    this.cv.width=Math.floor(this.w*dpr); this.cv.height=Math.floor(this.h*dpr);
+    this.cv.style.width=this.w+'px'; this.cv.style.height=this.h+'px';
+    this.ctx.setTransform(dpr,0,0,dpr,0,0);
+  },
+  mote:function(any){
+    return {x:Math.random()*this.w,y:any?Math.random()*this.h:this.h+12,r:Math.random()*2.1+0.6,
+      v:Math.random()*16+7,sway:Math.random()*6.28,sw:Math.random()*0.5+0.2,a:Math.random()*0.4+0.15};
+  },
+  burst:function(x,y,color,n){
+    if(!this.ok)return; n=n||26;
+    for(var i=0;i<n;i++){
+      var a=Math.random()*6.283,s=Math.random()*180+50;
+      this.bursts.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,life:1,r:Math.random()*3+1.4,color:color});
+    }
+    if(this.bursts.length>420){this.bursts.splice(0,this.bursts.length-420);}
+  },
+  step:function(dt){
+    if(!this.ok)return;
+    var c=this.ctx,i,m,p;
+    c.clearRect(0,0,this.w,this.h);
+    for(i=0;i<this.motes.length;i++){
+      m=this.motes[i]; m.y-=m.v*dt; m.sway+=m.sw*dt; m.x+=Math.sin(m.sway)*0.35;
+      if(m.y<-12){this.motes[i]=this.mote(false);continue;}
+      c.beginPath(); c.arc(m.x,m.y,m.r,0,6.283); c.fillStyle='rgba(143,234,255,'+m.a+')'; c.fill();
+    }
+    for(i=this.bursts.length-1;i>=0;i--){
+      p=this.bursts[i]; p.life-=dt*1.15;
+      if(p.life<=0){this.bursts.splice(i,1);continue;}
+      p.vy+=210*dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
+      c.globalAlpha=Math.max(0,p.life); c.beginPath(); c.arc(p.x,p.y,p.r,0,6.283); c.fillStyle=p.color; c.fill();
+    }
+    c.globalAlpha=1;
+  }
+};
+
+/* ================= DIFFICULTY ================= */
+var DIFF={
+  easy:{label:'TRAINEE',time:720,hints:4,penalty:0,hintCost:10,desc:'12:00 coolant · 4 hints · no error penalty'},
+  normal:{label:'TECHNICIAN',time:540,hints:3,penalty:10,hintCost:20,desc:'09:00 coolant · 3 hints · −10s per error'},
+  hard:{label:'SPECIALIST',time:390,hints:2,penalty:20,hintCost:30,desc:'06:30 coolant · 2 hints · −20s per error'}
+};
+
+/* ================= PUZZLES ================= */
+var PUZZLES=[
+  {id:1,name:'WORD LOCK',tag:'VOCABULARY MATCH',kind:'match',
+   hint:'Law = a government rule. Sample = a small amount taken for information. Knowledge = what you gain from study. Crucial = extremely important.',
+   items:[
+     {q:'law',a:'h',m:'a rule made by the government'},
+     {q:'sample',a:'g',m:'a small amount that gives information about the whole'},
+     {q:'knowledge',a:'f',m:'information you get from education or experience'},
+     {q:'crucial',a:'b',m:'extremely important'}
+   ]},
+  {id:2,name:'SEQUENCE RELAY',tag:'CAUSE & EFFECT ORDER',kind:'order',
+   hint:'Start with the bees. Plants depend on bees; plant-eaters depend on plants; other animals depend on plant-eaters.',
+   solution:['bees','plants','eaters','food','env'],
+   items:[
+     {k:'bees',t:'Bees go extinct.'},
+     {k:'plants',t:'Many plant species go extinct.'},
+     {k:'eaters',t:'The animals that eat those plants begin to die.'},
+     {k:'food',t:'Other animals lose their food source.'},
+     {k:'env',t:'The whole connected environment is affected.'}
+   ]},
+  {id:3,name:'SAMPLE SORT',tag:'CAUSE / EFFECT CLASSIFY',kind:'sort',
+   hint:'A cause makes something happen. An effect is the result. "Scientists freeze samples" is an action; "they learn how species evolved" is a result.',
+   bins:[{k:'cause',t:'CAUSE',s:'WHY IT HAPPENS'},{k:'effect',t:'EFFECT',s:'WHAT HAPPENS'}],
+   items:[
+     {t:'Species are disappearing quickly.',c:'cause'},
+     {t:'A global DNA bank is being built.',c:'effect'},
+     {t:'Scientists freeze and study DNA samples.',c:'cause'},
+     {t:'Scientists learn how species evolved.',c:'effect'},
+     {t:'Bees go extinct.',c:'cause'},
+     {t:'Many plant species go extinct.',c:'effect'}
+   ]},
+  {id:4,name:'CLOZE SEAL',tag:'CONTEXT GAP FILL',kind:'cloze',
+   hint:'Read the whole sentence first. The four words are: extinct, global, samples, support — one per gap.',
+   bank:['extinct','global','samples','support'],
+   parts:['An endangered species is in danger of becoming ',' . Scientists are building a ',' DNA bank. They freeze DNA ',' and study them. With this knowledge they can ',' endangered animals.'],
+   answers:[['extinct'],['global'],['samples','sample'],['support']]},
+  {id:5,name:'TRUTH SCAN',tag:'TRUE / FALSE VERIFY',kind:'tf',
+   hint:'The passage says laws exist BUT species are still disappearing. It also says scientists save AND study the samples.',
+   items:[
+     {t:'Laws alone have stopped species from disappearing.',a:'F'},
+     {t:'Scientists save DNA samples and also study them.',a:'T'},
+     {t:'Bees are needed to help plants grow.',a:'T'},
+     {t:'If one species goes extinct, nothing else is affected.',a:'F'},
+     {t:'DNA knowledge helps animals live in ideal conditions.',a:'T'}
+   ]},
+  {id:6,name:'MAIN SIGNAL',tag:'READING COMPREHENSION',kind:'mcq',
+   hint:'Every answer comes from the passage: the definition, the word "global", what scientists learn, and the final purpose.',
+   items:[
+     {q:'What is an endangered species?',a:'b',opts:[['a','A species that lives in a zoo'],['b','A plant or animal in danger of becoming extinct'],['c','A species that has already disappeared']]},
+     {q:'Why is the DNA bank described as global?',a:'a',opts:[['a','Because the issue involves the entire world'],['b','Because it is built in one city'],['c','Because only bees are stored there']]},
+     {q:'What can scientists learn from the samples?',a:'c',opts:[['a','Only the names of the animals'],['b','How to build new laws'],['c','How species evolved, their behavior, and their diseases']]},
+     {q:'What is the final purpose of the DNA bank?',a:'b',opts:[['a','To create new laws'],['b','To protect endangered species and keep the Earth healthy'],['c','To replace all zoos']]}
+   ]}
+];
+
+/* ================= STATE ================= */
+var S={state:'briefing',diff:'normal',time:0,total:0,hints:0,errors:0,solved:0,
+  digits:[],entry:'',paused:false,active:null,hintShown:{},termOrder:[0,1,2,3,4,5]};
+
+var el={};
+function cacheDom(){
+  el.timerBox=$('#timerBox'); el.timerVal=$('#timerVal'); el.bar=$('#integrityBar');
+  el.digits=$('#statDigits'); el.hints=$('#statHints'); el.errs=$('#statErr');
+  el.vault=$('#vault'); el.vaultCount=$('#vaultCount'); el.vaultStatus=$('#vaultStatus');
+  el.slots=$('#codeSlots'); el.entry=$('#entryDisplay'); el.keypad=$('#keypad'); el.keyMsg=$('#keyMsg');
+  el.grid=$('#termGrid'); el.log=$('#logList');
+  el.briefing=$('#briefing'); el.pauseOv=$('#pauseOverlay'); el.resultOv=$('#resultOverlay');
+  el.modalWrap=$('#modalWrap'); el.modalBody=$('#modalBody'); el.modalId=$('#modalId'); el.modalTitle=$('#modalTitle');
+  el.hintBtn=$('#hintBtn'); el.submitBtn=$('#submitBtn'); el.footMsg=$('#footMsg');
+  el.diffSelect=$('#diffSelect'); el.diffCards=$('#diffCards'); el.bestLine=$('#bestLine');
+  el.pauseBtn=$('#pauseBtn'); el.soundBtn=$('#soundBtn');
+}
+
+function syncLock(){
+  var open=!el.briefing.hidden||!el.pauseOv.hidden||!el.resultOv.hidden||!el.modalWrap.hidden;
+  document.body.classList.toggle('locked',open);
+}
+
+/* ================= LOG ================= */
+function log(msg,type){
+  var d=document.createElement('div'); d.className='logline '+(type||'');
+  var t=document.createElement('span'); t.className='t'; t.textContent=fmt(S.time);
+  var m=document.createElement('span'); m.textContent=msg;
+  d.appendChild(t); d.appendChild(m);
+  el.log.insertBefore(d,el.log.firstChild);
+  while(el.log.children.length>40){el.log.removeChild(el.log.lastChild);}
+}
+
+/* ================= RECORDS ================= */
+function getBest(d){try{return JSON.parse(localStorage.getItem('cryovault_best_'+d)||'null');}catch(e){return null;}}
+function setBest(d,v){try{localStorage.setItem('cryovault_best_'+d,JSON.stringify(v));}catch(e){}}
+function showBest(){
+  var b=getBest(S.diff);
+  el.bestLine.textContent=b?('BEST · '+DIFF[S.diff].label+' · '+b.score+' PTS · '+fmt(b.time)+' REMAINING'):('NO RECORD YET FOR '+DIFF[S.diff].label);
+}
+function buildDiffCards(){
+  el.diffCards.innerHTML='';
+  Object.keys(DIFF).forEach(function(k){
+    var d=DIFF[k], b=document.createElement('button');
+    b.type='button'; b.className='diff'+(k===S.diff?' active':'');
+    b.innerHTML='<b>'+d.label+'</b><span>'+d.desc+'</span>';
+    b.addEventListener('click',function(){S.diff=k;el.diffSelect.value=k;buildDiffCards();showBest();Sound.click();});
+    el.diffCards.appendChild(b);
+  });
+}
+
+/* ================= VAULT / KEYPAD / TERMINALS ================= */
+function buildVault(){
+  $$('.locknode',el.vault).forEach(function(n){n.parentNode.removeChild(n);});
+  for(var i=0;i<6;i++){
+    var n=document.createElement('div'); n.className='locknode'; n.setAttribute('data-i',i); n.textContent='T'+(i+1);
+    el.vault.appendChild(n);
+  }
+  el.slots.innerHTML='';
+  for(var j=0;j<6;j++){var s=document.createElement('div');s.className='slot';s.textContent='•';el.slots.appendChild(s);}
+  layoutVault();
+}
+function layoutVault(){
+  var w=el.vault.clientWidth; if(!w)return;
+  var r=w*0.44;
+  $$('.locknode',el.vault).forEach(function(n,i){
+    var a=(-90+i*60)*Math.PI/180;
+    n.style.left=(w/2+Math.cos(a)*r)+'px';
+    n.style.top=(w/2+Math.sin(a)*r)+'px';
+  });
+}
+function buildKeypad(){
+  el.keypad.innerHTML='';
+  ['1','2','3','4','5','6','7','8','9','CLR','0','ENT'].forEach(function(k){
+    var b=document.createElement('button');
+    b.type='button'; b.className='key'+(k==='ENT'?' enter':(k==='CLR'?' clear':''));
+    b.textContent=k; b.disabled=true;
+    b.addEventListener('click',function(){keyPress(k);});
+    el.keypad.appendChild(b);
+  });
+}
+function setKeypadEnabled(v){$$('.key',el.keypad).forEach(function(b){b.disabled=!v;});}
+function buildTerminals(){
+  el.grid.innerHTML='';
+  S.termOrder.forEach(function(i){
+    var p=PUZZLES[i], b=document.createElement('button');
+    b.type='button'; b.className='term'; b.setAttribute('data-i',i);
+    b.innerHTML='<span class="tno">TERMINAL '+pad2(p.id)+'</span><span class="tname">'+p.name+'</span>'+
+      '<span class="tag">'+p.tag+'</span><span class="status"><span class="badge">LOCKED</span><span class="digit">?</span></span>';
+    b.addEventListener('click',function(){openTerminal(i);});
+    el.grid.appendChild(b);
+  });
+}
+
+/* ================= RENDERERS ================= */
+function renderPuzzle(p){
+  var wrap=document.createElement('div'); wrap.className='pz';
+  var intros={match:'Match each unit word with its meaning to release the digit.',
+    order:'Arrange the extinction cascade in the correct order using the arrows.',
+    sort:'Tap a card, then tap a column. Tap a placed card to send it back.',
+    cloze:'Complete the summary using the word bank. Type one word per gap.',
+    tf:'Verify each statement against the reading.',
+    mcq:'Choose the best answer for each question.'};
+  var intro=document.createElement('p'); intro.className='pz-intro'; intro.textContent=intros[p.kind];
+  wrap.appendChild(intro);
+
+  if(p.kind==='match'){
+    var opts=shuffle(p.items.map(function(i){return {a:i.a,m:i.m};}));
+    shuffle(p.items).forEach(function(it,idx){
+      var row=document.createElement('div'); row.className='pz-row'; row.setAttribute('data-key',it.a);
+      var lab=document.createElement('label'); lab.innerHTML='<b>'+(idx+1)+'.</b> '+it.q;
+      var sel=document.createElement('select');
+      sel.innerHTML='<option value="">— choose —</option>'+opts.map(function(o){return '<option value="'+o.a+'">'+o.m+'</option>';}).join('');
+      var fb=document.createElement('small'); fb.className='fb';
+      row.appendChild(lab); row.appendChild(sel); row.appendChild(fb); wrap.appendChild(row);
+    });
+  } else if(p.kind==='order'){
+    var ol=document.createElement('ol');
+    shuffle(p.items).forEach(function(it){
+      var li=document.createElement('li'); li.setAttribute('data-key',it.k);
+      li.innerHTML='<span class="txt">'+it.t+'</span><span class="mv">'+
+        '<button type="button" data-dir="-1" aria-label="Move up">↑</button>'+
+        '<button type="button" data-dir="1" aria-label="Move down">↓</button></span>';
+      ol.appendChild(li);
+    });
+    wrap.appendChild(ol);
+  } else if(p.kind==='sort'){
+    var tray=document.createElement('div'); tray.className='tray';
+    tray.innerHTML='<span class="traylab">UNSORTED SAMPLES — CLASSIFY ALL 6</span>';
+    shuffle(p.items).forEach(function(it,i){
+      var c=document.createElement('button'); c.type='button'; c.className='card';
+      c.setAttribute('data-correct',it.c); c.setAttribute('data-idx',i); c.textContent=it.t;
+      tray.appendChild(c);
+    });
+    var bins=document.createElement('div'); bins.className='bins';
+    p.bins.forEach(function(b){
+      var d=document.createElement('div'); d.className='bin '+b.k; d.setAttribute('data-bin',b.k);
+      d.tabIndex=0; d.setAttribute('role','button'); d.setAttribute('aria-label','Place selected card in '+b.t);
+      d.innerHTML='<h5>'+b.t+'</h5><small>'+b.s+'</small><div class="binbody"></div>';
+      bins.appendChild(d);
+    });
+    wrap.appendChild(tray); wrap.appendChild(bins);
+  } else if(p.kind==='cloze'){
+    var bank=document.createElement('div'); bank.className='bank';
+    bank.innerHTML=shuffle(p.bank).map(function(w){return '<span>'+w+'</span>';}).join('');
+    var para=document.createElement('p'); para.className='cloze';
+    p.parts.forEach(function(part,i){
+      para.appendChild(document.createTextNode(part));
+      if(i<p.answers.length){
+        var inp=document.createElement('input'); inp.type='text'; inp.setAttribute('data-i',i);
+        inp.placeholder='('+(i+1)+')'; inp.spellcheck=false; inp.autocomplete='off';
+        para.appendChild(inp);
+      }
+    });
+    wrap.appendChild(bank); wrap.appendChild(para);
+  } else if(p.kind==='tf'){
+    shuffle(p.items).forEach(function(it,i){
+      var q=document.createElement('div'); q.className='pz-q'; q.setAttribute('data-key',it.a);
+      q.innerHTML='<p><b>'+(i+1)+'.</b> '+it.t+'</p><div class="opts">'+
+        '<button type="button" class="opt" data-val="T">TRUE</button>'+
+        '<button type="button" class="opt" data-val="F">FALSE</button></div><small class="fb"></small>';
+      wrap.appendChild(q);
+    });
+  } else if(p.kind==='mcq'){
+    shuffle(p.items).forEach(function(it,i){
+      var q=document.createElement('div'); q.className='pz-q'; q.setAttribute('data-key',it.a);
+      q.innerHTML='<p><b>'+(i+1)+'.</b> '+it.q+'</p>';
+      var opts=document.createElement('div'); opts.className='opts';
+      shuffle(it.opts).forEach(function(o){
+        var b=document.createElement('button'); b.type='button'; b.className='opt';
+        b.setAttribute('data-val',o[0]); b.textContent=o[1]; opts.appendChild(b);
+      });
+      var fb=document.createElement('small'); fb.className='fb';
+      q.appendChild(opts); q.appendChild(fb); wrap.appendChild(q);
+    });
+  }
+  var hb=document.createElement('div'); hb.className='hintbox'; hb.hidden=true;
+  hb.innerHTML='<b>DECRYPTED HINT</b>'+p.hint;
+  wrap.appendChild(hb);
+  return wrap;
+}
+
+/* ================= VALIDATION ================= */
+function validate(p,root){
+  var ok=true,correct=0,total=0;
+  if(p.kind==='match'){
+    $$('.pz-row',root).forEach(function(r){
+      total++;
+      var sel=$('select',r), good=sel.value===r.getAttribute('data-key');
+      r.classList.toggle('ok',good); r.classList.toggle('bad',!good);
+      $('.fb',r).textContent=good?'✔ MATCHED':'✘ NOT MATCHED';
+      if(good){correct++;}else{ok=false;}
+    });
+  } else if(p.kind==='order'){
+    var lis=$$('li',root);
+    lis.forEach(function(li,i){
+      total++;
+      var good=li.getAttribute('data-key')===p.solution[i];
+      li.classList.toggle('ok',good); li.classList.toggle('bad',!good);
+      if(good){correct++;}else{ok=false;}
+    });
+  } else if(p.kind==='sort'){
+    $$('.card',root).forEach(function(c){
+      total++;
+      var bin=c.closest('.bin'), good=!!bin&&bin.getAttribute('data-bin')===c.getAttribute('data-correct');
+      c.classList.toggle('ok',good); c.classList.toggle('bad',!good);
+      if(good){correct++;}else{ok=false;}
+    });
+  } else if(p.kind==='cloze'){
+    $$('input',root).forEach(function(inp){
+      total++;
+      var i=parseInt(inp.getAttribute('data-i'),10);
+      var good=p.answers[i].map(norm).indexOf(norm(inp.value))>-1;
+      inp.classList.toggle('ok',good); inp.classList.toggle('bad',!good);
+      if(good){correct++;}else{ok=false;}
+    });
+  } else {
+    $$('.pz-q',root).forEach(function(q){
+      total++;
+      var good=q.getAttribute('data-picked')===q.getAttribute('data-key');
+      q.classList.toggle('ok',good); q.classList.toggle('bad',!good);
+      $('.fb',q).textContent=good?'✔ VERIFIED':'✘ INCORRECT';
+      if(good){correct++;}else{ok=false;}
+    });
+  }
+  return {ok:ok,correct:correct,total:total};
+}
+
+/* ================= FLOW ================= */
+function startGame(){
+  var d=DIFF[S.diff];
+  S.state='playing'; S.total=d.time; S.time=d.time; S.hints=d.hints; S.errors=0; S.solved=0;
+  S.entry=''; S.paused=false; S.active=null; S.hintShown={};
+  S.digits=shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0,6);
+  S.termOrder=shuffle([0,1,2,3,4,5]);
+  PUZZLES.forEach(function(p){p.solved=false;p.el=renderPuzzle(p);});
+  buildVault(); buildKeypad(); buildTerminals();
+  el.log.innerHTML='';
+  el.briefing.hidden=true; el.pauseOv.hidden=true; el.resultOv.hidden=true; el.modalWrap.hidden=true;
+  el.vault.classList.remove('open');
+  el.diffSelect.value=S.diff;
+  el.pauseBtn.innerHTML='<span class="ico">⏸</span><span class="txt">PAUSE</span>';
+  el.keyMsg.textContent='AUTHENTICATE ALL 6 TERMINALS TO ENABLE THE KEYPAD';
+  updateHUD(); updateVault(); updateEntry(); setKeypadEnabled(false); syncLock();
+  log('LOCKDOWN ENGAGED · '+d.label+' PROTOCOL','warn');
+  log('COOLANT AT '+fmt(S.time)+' · AUTHENTICATE 6 TERMINALS');
+  Sound.init(); Sound.unlock();
+  window.scrollTo(0,0);
+}
+function openTerminal(i){
+  if(S.state!=='playing'||S.paused)return;
+  var p=PUZZLES[i];
+  if(p.solved){Sound.click();return;}
+  S.active=i;
+  el.modalId.textContent='TERMINAL '+pad2(p.id);
+  el.modalTitle.textContent=p.name;
+  el.modalBody.innerHTML=''; el.modalBody.appendChild(p.el);
+  el.modalBody.scrollTop=0;
+  el.hintBtn.disabled=S.hints<=0||!!S.hintShown[i];
+  el.hintBtn.textContent=S.hintShown[i]?'💡 HINT USED':'💡 USE HINT ('+S.hints+')';
+  el.footMsg.textContent='ERROR PENALTY −'+DIFF[S.diff].penalty+'s';
+  el.modalWrap.hidden=false; syncLock(); Sound.click();
+  setTimeout(function(){var f=$('select,input,button',p.el);if(f){try{f.focus();}catch(e){}}},60);
+}
+function closeModal(){
+  if(S.active!==null){
+    var p=PUZZLES[S.active];
+    if(p&&p.el&&p.el.parentNode){p.el.parentNode.removeChild(p.el);}
+  }
+  el.modalWrap.hidden=true; S.active=null; syncLock();
+}
+function useHint(){
+  if(S.active===null||S.hints<=0||S.hintShown[S.active])return;
+  var p=PUZZLES[S.active];
+  S.hints--; S.hintShown[S.active]=true;
+  S.time=Math.max(0,S.time-DIFF[S.diff].hintCost);
+  $('.hintbox',p.el).hidden=false;
+  el.hintBtn.disabled=true; el.hintBtn.textContent='💡 HINT USED';
+  log('HINT DECRYPTED · T'+p.id+' · −'+DIFF[S.diff].hintCost+'s COOLANT','warn');
+  Sound.hint(); updateHUD();
+  if(S.time<=0){lose();}
+}
+function submitPuzzle(){
+  if(S.active===null||S.state!=='playing')return;
+  var idx=S.active, p=PUZZLES[idx];
+  var res=validate(p,p.el);
+  if(res.ok){
+    p.solved=true; S.solved++;
+    var digit=S.digits[idx];
+    var card=$('.term[data-i="'+idx+'"]');
+    if(card){card.classList.add('solved');$('.badge',card).textContent='AUTHENTICATED';$('.digit',card).textContent=digit;}
+    var slot=el.slots.children[idx];
+    if(slot){slot.textContent=digit;slot.classList.add('filled');}
+    var node=$('.locknode[data-i="'+idx+'"]');
+    if(node){node.classList.add('done');node.textContent=digit;}
+    log('TERMINAL '+pad2(p.id)+' AUTHENTICATED · DIGIT '+digit+' → SLOT T'+(idx+1),'good');
+    Sound.good(); setTimeout(function(){Sound.digit();},160);
+    if(card){var r=card.getBoundingClientRect();FX.burst(r.left+r.width/2,r.top+r.height/2,'#2dd4a7',30);}
+    closeModal(); updateHUD(); updateVault();
+    if(S.solved===6){
+      setKeypadEnabled(true);
+      el.keyMsg.textContent='ALL DIGITS RELEASED · ENTER THE CODE IN SLOT ORDER T1 → T6';
+      log('ALL TERMINALS AUTHENTICATED · KEYPAD ENABLED','good');
+      Sound.unlock();
+      var vr=el.vault.getBoundingClientRect();
+      FX.burst(vr.left+vr.width/2,vr.top+vr.height/2,'#38d9ff',48);
+      el.entry.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  } else {
+    S.errors++;
+    var pen=DIFF[S.diff].penalty;
+    if(pen){S.time=Math.max(0,S.time-pen);}
+    log('AUTHENTICATION FAILED · T'+p.id+' · '+res.correct+'/'+res.total+' CORRECT'+(pen?' · −'+pen+'s':''),'bad');
+    el.footMsg.textContent=res.correct+'/'+res.total+' CORRECT · FIX THE RED ITEMS';
+    Sound.bad(); updateHUD();
+    if(S.time<=0){lose();}
+  }
+}
+function keyPress(k){
+  if(S.state!=='playing'||S.paused||S.solved<6)return;
+  if(k==='CLR'){S.entry='';Sound.click();}
+  else if(k==='ENT'){
+    if(S.entry.length<6){el.keyMsg.textContent='CODE INCOMPLETE · 6 DIGITS REQUIRED';Sound.bad();return;}
+    if(S.entry===S.digits.join('')){updateEntry();win();return;}
+    S.errors++; S.time=Math.max(0,S.time-DIFF[S.diff].penalty);
+    el.entry.classList.add('shake');
+    setTimeout(function(){el.entry.classList.remove('shake');},420);
+    el.keyMsg.textContent='CODE REJECTED · READ THE SLOTS T1 → T6 · −'+DIFF[S.diff].penalty+'s';
+    log('VAULT CODE REJECTED','bad'); Sound.bad(); S.entry=''; updateHUD();
+    if(S.time<=0){updateEntry();lose();return;}
+  } else {
+    if(S.entry.length<6){S.entry+=k;Sound.place();}
+  }
+  updateEntry();
+}
+function updateEntry(){
+  var chars=S.entry.split('');
+  while(chars.length<6){chars.push('_');}
+  el.entry.textContent=chars.join(' ');
+}
+function updateVault(){
+  el.vaultCount.textContent=S.solved+'/6';
+  el.vaultStatus.textContent=S.solved===6?'CODE READY':'LOCKED';
+}
+function updateHUD(){
+  el.timerVal.textContent=fmt(S.time);
+  var pct=S.total?Math.max(0,Math.min(100,S.time/S.total*100)):0;
+  el.bar.style.width=pct+'%';
+  el.timerBox.classList.toggle('warn',S.time<=90&&S.time>30);
+  el.timerBox.classList.toggle('crit',S.time<=30&&S.state==='playing');
+  el.digits.textContent=S.solved+'/6';
+  el.hints.textContent=S.hints;
+  el.errs.textContent=S.errors;
+}
+function statBox(l,v){return '<div class="rstat"><b>'+v+'</b><span>'+l+'</span></div>';}
+function win(){
+  S.state='won'; closeModal(); setKeypadEnabled(false);
+  el.vault.classList.add('open'); el.vaultStatus.textContent='OPEN';
+  updateHUD(); Sound.win();
+  var vr=el.vault.getBoundingClientRect();
+  FX.burst(vr.left+vr.width/2,vr.top+vr.height/2,'#2dd4a7',70);
+  setTimeout(function(){FX.burst(window.innerWidth/2,window.innerHeight/2,'#ffc857',60);},260);
+  log('VAULT OPENED · SAMPLES SECURED','good');
+  var score=Math.max(0,Math.round(1000+S.time*2+S.hints*100-S.errors*25));
+  var rank=score>=1900?'S':(score>=1550?'A':(score>=1200?'B':'C'));
+  try{document.dispatchEvent(new CustomEvent('cryo:run',{detail:{outcome:'won',diff:S.diff,score:score,rank:rank,time:Math.round(S.time),hints:S.hints,hintsStart:DIFF[S.diff].hints,errors:S.errors,solved:S.solved,total:S.total}}));}catch(e){}
+  var prev=getBest(S.diff), isBest=!prev||score>prev.score;
+  if(isBest){setBest(S.diff,{score:score,time:Math.round(S.time)});}
+  $('#resultEyebrow').textContent='MISSION SUCCESS · '+DIFF[S.diff].label;
+  $('#resultTitle').innerHTML='Vault <em>Opened</em>';
+  $('#resultRank').textContent=rank; $('#resultRank').className='rank '+rank;
+  $('#resultMsg').textContent='The DNA samples are safe. The global DNA bank stays frozen, and the endangered species it protects still have a future.';
+  $('#resultStats').innerHTML=statBox('TIME LEFT',fmt(S.time))+statBox('SCORE',score)+statBox('HINTS LEFT',S.hints)+statBox('ERRORS',S.errors);
+  $('#resultBest').textContent=isBest?'★ NEW FACILITY RECORD':('BEST · '+prev.score+' PTS');
+  setTimeout(function(){el.resultOv.hidden=false;syncLock();},900);
+}
+function lose(){
+  if(S.state!=='playing')return;
+  S.state='lost'; S.time=0; closeModal(); setKeypadEnabled(false); updateHUD();
+  try{document.dispatchEvent(new CustomEvent('cryo:run',{detail:{outcome:'lost',diff:S.diff,score:0,rank:'F',time:0,hints:S.hints,hintsStart:DIFF[S.diff].hints,errors:S.errors,solved:S.solved,total:S.total}}));}catch(e){}
+  Sound.lose();
+  log('COOLANT FAILURE · SAMPLES LOST','bad');
+  $('#resultEyebrow').textContent='MISSION FAILED · '+DIFF[S.diff].label;
+  $('#resultTitle').innerHTML='Coolant <em>Failure</em>';
+  $('#resultRank').textContent='F'; $('#resultRank').className='rank C';
+  $('#resultMsg').textContent='The cryo-vault warmed before the code was entered. Reset the protocol and try a different route through the terminals.';
+  $('#resultStats').innerHTML=statBox('TERMINALS',S.solved+'/6')+statBox('HINTS LEFT',S.hints)+statBox('ERRORS',S.errors)+statBox('TIME','00:00');
+  var b=getBest(S.diff);
+  $('#resultBest').textContent=b?('BEST · '+b.score+' PTS'):'NO RECORD YET';
+  el.resultOv.hidden=false; syncLock();
+}
+function togglePause(){
+  if(S.state!=='playing')return;
+  S.paused=!S.paused;
+  el.pauseOv.hidden=!S.paused;
+  el.pauseBtn.innerHTML=S.paused?'<span class="ico">▶</span><span class="txt">RESUME</span>':'<span class="ico">⏸</span><span class="txt">PAUSE</span>';
+  log(S.paused?'SYSTEM PAUSED':'SYSTEM RESUMED',S.paused?'warn':'');
+  Sound.click(); syncLock();
+}
+
+/* ================= EVENTS ================= */
+function bindEvents(){
+  document.addEventListener('click',function(e){
+    var opt=e.target.closest('.pz .opt');
+    if(opt){
+      var q=opt.closest('.pz-q');
+      $$('.opt',q).forEach(function(b){b.classList.remove('picked');});
+      opt.classList.add('picked');
+      q.setAttribute('data-picked',opt.getAttribute('data-val'));
+      q.classList.remove('ok','bad'); $('.fb',q).textContent='';
+      Sound.click(); return;
+    }
+    var card=e.target.closest('.pz .card');
+    if(card){
+      var root=card.closest('.pz');
+      if(card.closest('.bin')){ $('.tray',root).appendChild(card); }
+      else{
+        var sel=$('.card.sel',root);
+        if(sel===card){card.classList.remove('sel');}
+        else{ if(sel){sel.classList.remove('sel');} card.classList.add('sel'); }
+      }
+      card.classList.remove('ok','bad'); Sound.place(); return;
+    }
+    var bin=e.target.closest('.pz .bin');
+    if(bin){
+      var r2=bin.closest('.pz'), s2=$('.card.sel',r2);
+      if(s2){$('.binbody',bin).appendChild(s2);s2.classList.remove('sel','ok','bad');Sound.place();}
+      return;
+    }
+    var mv=e.target.closest('.pz .mv button');
+    if(mv){
+      var li=mv.closest('li'), dir=parseInt(mv.getAttribute('data-dir'),10);
+      var sib=dir<0?li.previousElementSibling:li.nextElementSibling;
+      if(sib){ if(dir<0){li.parentNode.insertBefore(li,sib);}else{li.parentNode.insertBefore(sib,li);} }
+      $$('li',li.parentNode).forEach(function(x){x.classList.remove('ok','bad');});
+      Sound.place(); return;
+    }
+    if(e.target===el.modalWrap){closeModal();Sound.click();}
+  });
+
+  document.addEventListener('keydown',function(e){
+    var t=e.target;
+    var bin=(t&&t.closest)?t.closest('.pz .bin'):null;
+    if(bin&&(e.key==='Enter'||e.key===' ')){
+      e.preventDefault();
+      var root=bin.closest('.pz'), sel=$('.card.sel',root);
+      if(sel){$('.binbody',bin).appendChild(sel);sel.classList.remove('sel','ok','bad');Sound.place();}
+      return;
+    }
+    if(e.key==='Escape'&&!el.modalWrap.hidden){closeModal();Sound.click();return;}
+    if(S.state==='playing'&&S.solved===6&&!S.paused&&el.modalWrap.hidden&&el.resultOv.hidden){
+      if(/^[0-9]$/.test(e.key)){keyPress(e.key);}
+      else if(e.key==='Enter'){keyPress('ENT');}
+      else if(e.key==='Backspace'){e.preventDefault();S.entry=S.entry.slice(0,-1);updateEntry();Sound.click();}
+    }
+  });
+
+  $('#modalClose').addEventListener('click',function(){closeModal();Sound.click();});
+  el.submitBtn.addEventListener('click',submitPuzzle);
+  el.hintBtn.addEventListener('click',useHint);
+  $('#startBtn').addEventListener('click',function(){Sound.init();startGame();});
+  $('#resumeBtn').addEventListener('click',togglePause);
+  el.pauseBtn.addEventListener('click',togglePause);
+  $('#restartBtn').addEventListener('click',function(){Sound.init();startGame();});
+  $('#againBtn').addEventListener('click',function(){Sound.init();startGame();});
+  $('#briefBtn').addEventListener('click',function(){
+    el.resultOv.hidden=true; el.briefing.hidden=false; S.state='briefing';
+    buildDiffCards(); showBest(); syncLock();
+  });
+  el.soundBtn.addEventListener('click',function(){
+    Sound.init(); Sound.setOn(!Sound.on);
+    this.classList.toggle('on',Sound.on);
+    this.innerHTML=Sound.on?'<span class="ico">🔊</span><span class="txt">SOUND ON</span>':'<span class="ico">🔇</span><span class="txt">MUTED</span>';
+    this.setAttribute('aria-pressed',String(Sound.on));
+    this.title=Sound.on?'Mute sound':'Unmute sound';
+  });
+  el.diffSelect.addEventListener('change',function(){
+    S.diff=this.value;
+    if(S.state==='playing'){startGame();}
+    else{buildDiffCards();showBest();}
+  });
+  window.addEventListener('resize',layoutVault);
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden&&S.state==='playing'&&!S.paused){togglePause();}
+  });
+}
+
+/* ================= LOOP ================= */
+var last=0,lastSec=-1;
+function loop(now){
+  if(!last){last=now;}
+  var dt=Math.min(0.05,(now-last)/1000); last=now;
+  if(S.state==='playing'&&!S.paused){
+    S.time-=dt;
+    var sec=Math.ceil(S.time);
+    if(sec!==lastSec){
+      lastSec=sec; updateHUD();
+      if(sec<=30&&sec>0){Sound.tick();}
+      if(sec===60){log('COOLANT BELOW 60 SECONDS','bad');}
+    }
+    if(S.time<=0){lose();}
+  }
+  FX.step(dt);
+  requestAnimationFrame(loop);
+}
+
+/* ================= INIT ================= */
+function init(){
+  cacheDom(); FX.init(); bindEvents();
+  buildDiffCards(); buildVault(); buildKeypad(); buildTerminals();
+  showBest(); updateEntry(); updateHUD(); syncLock();
+  requestAnimationFrame(loop);
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+})();
+</script>
+<!-- Bottom action bar: class leaderboard link + teacher share kit -->
+<div class="cmc-bar no-print">
+  <a class="cmc-btn cmc-btn-lb" href="https://cmckhmer.github.io/Creative-Minds-/#games" aria-label="Open the class leaderboard on the CMC games page">🏆 Class leaderboard</a>
+  <button type="button" class="cmc-btn cmc-btn-share" data-cmc-share aria-haspopup="true">📣 Share with class ▾</button>
+</div>
+<div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
+<div class="cmc-share" id="cmcShare">
+  <button type="button" data-cmc-copy>🔗 Copy assignment link</button>
+  <button type="button" data-cmc-wa>💬 WhatsApp</button>
+  <button type="button" data-cmc-tg>✈️ Telegram</button>
+  <button type="button" data-cmc-email>✉️ Email</button>
+  <button type="button" class="close" data-cmc-close>✕ Close</button>
+</div>
+
+<script>
+/* ── CMC integration: operative identity + class leaderboard POST + share ──
+   The game engine stays untouched except for two `cryo:run` events it now
+   dispatches when a run ends (win/lose). This script:
+     1. keeps the Operative NAME + ID keyed on the briefing sheet in sync
+        with the result sheet and localStorage (an email is NEVER a name —
+        same guard as the homework pages and cmc-shared.js);
+     2. on demand (auto once per finished run when a name is present, or via
+        the 📡 SEND SCORE button) POSTs one drill_attempts doc through the
+        SAME pipeline as Word Forge / Syntax Clash: guest branch (empty uid,
+        checked name, classId null) or the signed-in session token with
+        securetoken refresh — drillSource 'learning-games', so the run lands
+        on the homepage ticker and the games-page class leaderboard;
+     3. runs the Share-with-class kit (Copy Link / WhatsApp / Telegram /
+        Email) with the competitive class-assignment text for teachers. */
+(function () {
+  'use strict';
+  var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+  var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+  var PAGE_URL = 'https://cmckhmer.github.io/Creative-Minds-/cryo-lockdown.html';
+  var ASSIGN_TEXT = '🧬 CMC class challenge — Cryo-Vault Lockdown (DNA Bank): the coolant is failing. Crack all 6 security terminals, enter the release code and open the vault before the timer dies. Key in your name + ID, post your score and beat the class on the leaderboard!';
+
+  /* ── an email is NEVER a display name (same rule as the site) ── */
+  function looksEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim()); }
+  function friendlyFromEmail(email) {
+    var local = String(email || '').split('@')[0].trim();
+    if (!local) return '';
+    var words = local.split(/[._+\-]+/).map(function (w) { return w.trim(); }).filter(Boolean);
+    if (!words.length) return local.slice(0, 40);
+    return words.map(function (w) { return (w.charAt(0).toUpperCase() + w.slice(1)).slice(0, 40); }).join(' ').trim().slice(0, 40);
+  }
+  function nameOf(v) {
+    var s = String(v || '').trim();
+    if (!s || !looksEmail(s)) return s;
+    return friendlyFromEmail(s) || s;
+  }
+  (function heal() {
+    try {
+      var stored = localStorage.getItem('cmc-student-name') || '';
+      if (!looksEmail(stored)) return;
+      var healed = friendlyFromEmail(stored);
+      if (healed) localStorage.setItem('cmc-student-name', healed);
+      else localStorage.removeItem('cmc-student-name');
+    } catch (e) {}
+  })();
+
+  function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  var DIFF_LABEL = { easy: 'TRAINEE', normal: 'TECHNICIAN', hard: 'SPECIALIST' };
+  var nameIn = document.getElementById('cmcNameIn');
+  var idIn = document.getElementById('cmcIdIn');
+  var lbName = document.getElementById('cmcLbName');
+  var lbId = document.getElementById('cmcLbId');
+  var lbSend = document.getElementById('cmcLbSend');
+  var lbStatus = document.getElementById('cmcLbStatus');
+
+  /* identity: prefilled from the signed-in session or the previous visit */
+  var player = { name: '', id: '' };
+  try {
+    var pn = JSON.parse(ls('cmc-player-name') || 'null');
+    player.name = (pn && pn.name ? nameOf(pn.name) : '');
+  } catch (e) { player.name = ''; }
+  if (!player.name) player.name = nameOf(ls('cmc-student-name') || '');
+  player.id = (ls('cmc-player-id') || '').trim();
+  nameIn.value = player.name; idIn.value = player.id;
+  lbName.value = player.name; lbId.value = player.id;
+
+  function currentIdentity() {
+    var n = nameOf(lbName.value || nameIn.value).trim();
+    var id = (lbId.value || idIn.value).trim();
+    return { name: n, id: id };
+  }
+  function persistIdentity() {
+    var id = currentIdentity();
+    if (id.name) {
+      try { localStorage.setItem('cmc-player-name', JSON.stringify({ name: id.name, at: Date.now() })); } catch (e) {}
+    }
+    if (id.id) lsSet('cmc-player-id', id.id);
+  }
+  [nameIn, idIn, lbName, lbId].forEach(function (inp) {
+    inp.addEventListener('input', function () {
+      if (inp === nameIn) lbName.value = nameIn.value;
+      if (inp === idIn) lbId.value = idIn.value;
+      if (inp === lbName) nameIn.value = lbName.value;
+      if (inp === lbId) idIn.value = lbId.value;
+      persistIdentity();
+    });
+  });
+
+  function toast(msg, err) {
+    var t = document.getElementById('cmcToast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!err);
+    t.classList.add('show');
+    clearTimeout(toast._tm);
+    toast._tm = setTimeout(function () { t.classList.remove('show'); }, 3600);
+  }
+
+  function setStatus(msg, cls) {
+    lbStatus.textContent = msg;
+    lbStatus.className = 'status' + (cls ? ' ' + cls : '');
+  }
+
+  var lastRun = null;
+  var autoSentFor = '';
+
+  function publicIdentity() {
+    var id = currentIdentity();
+    var full = id.name + (id.id ? ' · ' + id.id : '');
+    return { name: id.name, full: full.slice(0, 40) };
+  }
+
+  function sendScore() {
+    var id = currentIdentity();
+    if (!id.name) { setStatus('Key in your name (and ID) first — they ride with your score.', 'bad'); lbName.focus(); return; }
+    if (!lastRun) { setStatus('Finish a run first — the vault decides the score.', 'bad'); return; }
+    persistIdentity();
+    lbSend.disabled = true;
+    var pub = publicIdentity();
+    var d = lastRun;
+    var pct;
+    if (d.outcome === 'won') {
+      var maxScore = 1000 + d.total * 2 + d.hintsStart * 100;
+      pct = Math.max(55, Math.min(100, Math.round(d.score / maxScore * 100)));
+    } else {
+      pct = Math.round(50 * d.solved / 6);
+    }
+    var go = function (tok) {
+      var uid = ls('cmc-student-uid') || '';
+      fetch(CMC_FS, {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, tok ? { 'Authorization': 'Bearer ' + tok } : {}),
+        body: JSON.stringify({ fields: {
+          drillSlug: { stringValue: 'cryo-lockdown.html' },
+          drillTitle: { stringValue: 'Cryo-Vault Lockdown · ' + (DIFF_LABEL[d.diff] || d.diff) },
+          drillSource: { stringValue: 'learning-games' },
+          studentName: { stringValue: pub.full },
+          studentUid: { stringValue: uid },
+          classId: (function () { var c = ls('cmc-student-classId'); return c ? { stringValue: c } : { nullValue: null }; })(),
+          scorePct: { integerValue: String(Math.max(0, Math.min(100, pct))) },
+          correctCount: { integerValue: String(Math.max(0, d.solved)) },
+          totalCount: { integerValue: '6' },
+          submittedAt: { timestampValue: new Date().toISOString() }
+        } })
+      }).then(function (r) {
+        lbSend.disabled = false;
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        autoSentFor = d.runId;
+        setStatus('✓ Sent — ' + (d.outcome === 'won' ? 'Rank ' + d.rank + ' · ' + d.score + ' pts · ' + pct + '%' : 'vault failed · ' + d.solved + '/6 terminals · ' + pct + '%') + '. Open the class leaderboard to compare.', 'good');
+        toast('Score sent to the class leaderboard ✓');
+      }).catch(function () {
+        lbSend.disabled = false;
+        setStatus('Could not reach the leaderboard (offline?). Your run is kept — press SEND again.', 'bad');
+      });
+    };
+    var tok = ls('cmc-student-token');
+    var exp = Number(ls('cmc-student-token-expires') || '0');
+    if (tok && exp && exp <= Date.now()) {
+      var rt = ls('cmc-student-refresh-token');
+      if (!rt) { go(tok); return; }
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
+        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(function (r) { return r.ok ? r.json() : null; }).then(function (dd) {
+        if (dd && dd.id_token) {
+          try {
+            localStorage.setItem('cmc-student-token', dd.id_token);
+            localStorage.setItem('cmc-student-token-expires', String(Date.now() + (Number(dd.expires_in) || 3600) * 1000 - 60000));
+            if (dd.refresh_token) localStorage.setItem('cmc-student-refresh-token', dd.refresh_token);
+          } catch (e) {}
+          go(dd.id_token);
+        } else go('');
+      }).catch(function () { go(''); });
+    } else { go(tok || ''); }
+  }
+  lbSend.addEventListener('click', sendScore);
+
+  document.addEventListener('cryo:run', function (ev) {
+    var d = ev.detail || {};
+    d.runId = d.outcome + ':' + d.score + ':' + d.time + ':' + d.errors + ':' + Date.now();
+    lastRun = d;
+    if (d.outcome === 'won') {
+      var maxScore = 1000 + d.total * 2 + d.hintsStart * 100;
+      var pct = Math.max(55, Math.min(100, Math.round(d.score / maxScore * 100)));
+      setStatus('Rank ' + d.rank + ' · ' + d.score + ' pts · ' + pct + '% ready to post. Add your name + ID if new, then SEND.', '');
+    } else {
+      setStatus('Vault failed at ' + d.solved + '/6 terminals — post it anyway: the class sees who got closest.', '');
+    }
+    var pub = publicIdentity();
+    if (pub.name && pub.full && autoSentFor !== d.runId) { autoSentFor = d.runId; sendScore(); }
+  });
+
+  /* ── share-with-class kit (teacher's competitive assignment text) ── */
+  var share = document.getElementById('cmcShare');
+  function shareText() { return ASSIGN_TEXT; }
+  function openShare() { share.classList.add('show'); }
+  function closeShare() { share.classList.remove('show'); }
+  document.querySelectorAll('[data-cmc-share]').forEach(function (b) { b.addEventListener('click', function () { openShare(); }); });
+  share.addEventListener('click', function (e) {
+    var act = e.target.closest('[data-cmc-copy],[data-cmc-wa],[data-cmc-tg],[data-cmc-email],[data-cmc-close]');
+    if (!act) return;
+    var txt = shareText() + ' ' + PAGE_URL;
+    if (act.hasAttribute('data-cmc-close')) { closeShare(); return; }
+    if (act.hasAttribute('data-cmc-copy')) {
+      var done = function () { toast('Assignment link copied ✓'); closeShare(); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(PAGE_URL).then(done, function () {
+          try { var ta = document.createElement('textarea'); ta.value = PAGE_URL; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); } catch (err) { toast('Copy failed — long-press the URL instead', true); }
+        });
+      } else {
+        try { var ta2 = document.createElement('textarea'); ta2.value = PAGE_URL; document.body.appendChild(ta2); ta2.select(); document.execCommand('copy'); document.body.removeChild(ta2); done(); } catch (err2) { toast('Copy failed — long-press the URL instead', true); }
+      }
+    } else if (act.hasAttribute('data-cmc-wa')) {
+      window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener'); closeShare();
+    } else if (act.hasAttribute('data-cmc-tg')) {
+      window.open('https://t.me/share/url?url=' + encodeURIComponent(PAGE_URL) + '&text=' + encodeURIComponent(shareText()), '_blank', 'noopener'); closeShare();
+    } else if (act.hasAttribute('data-cmc-email')) {
+      location.href = 'mailto:?subject=' + encodeURIComponent('Cryo-Vault Lockdown — CMC class challenge') + '&body=' + encodeURIComponent(shareText() + '\n' + PAGE_URL); closeShare();
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeShare(); });
+})();
+</script>
+</body>
+</html>

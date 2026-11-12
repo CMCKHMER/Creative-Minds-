@@ -28,6 +28,9 @@ export interface LearningGame {
   externalUrl?: string;
   /** Optional badge label for external/featured cards (e.g. "Live", "Featured"). */
   badge?: string;
+  /** Show a "Class leaderboard" link next to the Open-game button — for
+   *  standalone games whose finished runs post to the games-page leaderboard. */
+  leaderboardLink?: boolean;
 }
 
 const courtyardPassage = [
@@ -38,6 +41,19 @@ const courtyardPassage = [
 const listeningGameScript = 'Teacher: The model wind turbine will be ready for the open house next month, but first we need to test the blade shapes. Student: Do we test them outside on the windy day? Teacher: No. Use the classroom fan on the same setting for every trial. Then the wind speed stays more consistent. Student: And should we measure how fast each blade turns? Teacher: Yes. Count the turns for thirty seconds, repeat three times, and write down the average. Student: We have four blade shapes and one afternoon. Teacher: Test two shapes today and two tomorrow, but keep the fan at the same distance. Our goal is to compare the designs fairly, not to finish in a single afternoon.';
 
 export const LEARNING_GAMES: LearningGame[] = [
+  {
+    id: 'cryo-lockdown',
+    title: 'Cryo-Vault Lockdown · DNA Bank Escape',
+    skill: 'Reading',
+    level: 'Grades 5–10',
+    duration: '1 run · 6–12 min',
+    description: 'An escape-room reading challenge built on the Unit 15 DNA Bank lesson: a power surge has sealed the cryo-vault of the global DNA bank and the coolant is failing. Crack the six security terminals — word-meaning matching, cause-and-effect ordering, cause/effect sorting, a word-bank gap fill, true/false verification and reading comprehension — every terminal you authenticate releases one digit of the vault code, then you enter all six digits in slot order on the keypad before the timer dies. Three protocols: Trainee (12:00 coolant, 4 hints, no penalty), Technician (09:00, 3 hints, −10 s per error) and Specialist (06:30, 2 hints, −20 s per error); hint tokens burn coolant seconds too, and the code, terminal layout and puzzle order change every run. A finished run scores 1000 + 2 × seconds left + 100 × hints kept − 25 × errors for an S/A/B/C rank (failed runs post how far you got). Students key in their name and ID, the run is sent to the class leaderboard, and the Share-with-class kit (Copy Link / WhatsApp / Telegram / Email) lets the teacher run it as a competitive class assignment.',
+    instructions: 'Open the game, read the emergency briefing, key in your name and ID, choose a difficulty protocol and press INITIATE LOCKDOWN. Solve the terminals in any order — each releases one code digit — then enter the release code T1→T6 on the keypad. Send the run to the class leaderboard from the mission report.',
+    externalUrl: './cryo-lockdown.html',
+    badge: 'New',
+    leaderboardLink: true,
+    questions: [],
+  },
   {
     id: 'voice-quest',
     title: 'Talk to me · Speak to Play',
