@@ -21,6 +21,42 @@
 
   /* ── 1. Analytics bootstrap ─────────────────────────────────────── */
   var GA_ID = global.CMC_GA_ID || 'G-XXXXXXXXXX';
+
+  /* ── 1b. Student-name self-heal ─────────────────────────────────── */
+  // An email is NEVER a display name (owner report: "students that sign in
+  // with their gmail are not showing names on the completion ticker").
+  // Sessions created before the auth fix may still carry the account
+  // address in cmc-student-name — heal it once here so every static page
+  // (prefill, submissions, toasts) sees a real name. Idempotent: a real
+  // name is never touched, the email stays in cmc-student-email.
+  function cmcLooksLikeEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim());
+  }
+  function cmcFriendlyNameFromEmail(email) {
+    var local = String(email || '').split('@')[0].trim();
+    if (!local) return '';
+    var words = local.split(/[._+\-]+/).map(function (w) { return w.trim(); }).filter(Boolean);
+    if (!words.length) return local.slice(0, 40);
+    return words.map(function (w) { return (w.charAt(0).toUpperCase() + w.slice(1)).slice(0, 40); }).join(' ').trim().slice(0, 40);
+  }
+  function cmcHealStoredName() {
+    try {
+      var stored = localStorage.getItem('cmc-student-name') || '';
+      if (!cmcLooksLikeEmail(stored)) return;
+      var healed = cmcFriendlyNameFromEmail(stored);
+      if (healed) localStorage.setItem('cmc-student-name', healed);
+      else localStorage.removeItem('cmc-student-name');
+    } catch (e) { /* private mode — nothing to heal */ }
+  }
+  cmcHealStoredName();
+  // Exposed for the homework worksheets' inline submit blocks (prefill +
+  // submit-time guard) and for any page that wants the same rule.
+  global.CMC_FNAME = {
+    looksLikeEmail: cmcLooksLikeEmail,
+    friendlyFromEmail: cmcFriendlyNameFromEmail,
+    heal: cmcHealStoredName,
+  };
+
   var gaLoader = document.createElement('script');
   gaLoader.async = true;
   gaLoader.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
@@ -225,11 +261,12 @@
   global.CMC.submitDrill = function (opts) {
     try {
       var token = localStorage.getItem('cmc-student-token');
+      cmcHealStoredName(); // belt-and-braces — never submit an email-as-name
       var name = localStorage.getItem('cmc-student-name') || '';
       var uid = localStorage.getItem('cmc-student-uid') || '';
       var clsId = localStorage.getItem('cmc-student-classId') || '';
       var exp = Number(localStorage.getItem('cmc-student-token-expires') || '0');
-      if (!token || !name) return;
+      if (!token || !name || cmcLooksLikeEmail(name)) return;
 
       var send = function (tok) {
         if (!tok) return;

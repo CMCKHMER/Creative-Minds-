@@ -165,7 +165,13 @@ async function persistSessionFromSdkUser(user: User, displayNameOverride?: strin
   try {
     const idToken = await user.getIdToken();
     localStorage.setItem('cmc-student-token', idToken);
-    localStorage.setItem('cmc-student-name', displayNameOverride || user.displayName || user.email || '');
+    // An email is NEVER a display name: Google/Gmail sign-ins can return an
+    // empty displayName (supervised child accounts, directory privacy), and
+    // the old `|| user.email` fallback made every submission — and the
+    // homepage completion ticker — show raw email addresses instead of
+    // names. With '' stored, submitScore asks once for a name (or derives
+    // "Mam Ry" from the email local part) and self-heals this key.
+    localStorage.setItem('cmc-student-name', displayNameOverride || user.displayName || '');
     localStorage.setItem('cmc-student-uid', user.uid);
     localStorage.setItem('cmc-student-email', user.email || '');
     // Admin accounts are pinned to 'teacher' — an SDK-path sign-in must

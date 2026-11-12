@@ -25,6 +25,7 @@
 // instead of waiting for its next 5-minute poll.
 
 import { FIREBASE_PROJECT_ID, getValidIdToken } from './firebaseAuth';
+import { displayStudentName, friendlyNameFromEmail, looksLikeEmail } from './studentName';
 
 const FIRESTORE_BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
@@ -93,8 +94,10 @@ function storePlayerName(name: string): void {
 
 let nameModalInFlight: Promise<string | null> | null = null;
 
-/** The one-time "Who's playing?" modal. Resolves with the name, or null on skip. */
-function promptForPlayerName(): Promise<string | null> {
+/** The one-time "Who's playing?" modal. Resolves with the name, or null on skip.
+ *  `suggestion` pre-fills the input (e.g. the friendly form of the signed-in
+ *  account's email) so one tap on Save gives a real name. */
+function promptForPlayerName(suggestion = ''): Promise<string | null> {
   if (nameModalInFlight) return nameModalInFlight;
 
   nameModalInFlight = new Promise<string | null>((resolve) => {
@@ -147,6 +150,7 @@ function promptForPlayerName(): Promise<string | null> {
 
     const root = document.body;
     const input = host.querySelector<HTMLInputElement>('.cmc-pn-input')!;
+    if (suggestion) input.value = suggestion.slice(0, 40);
     const done = (value: string | null) => {
       host.remove();
       document.removeEventListener('keydown', onKey, true);
@@ -172,16 +176,48 @@ function promptForPlayerName(): Promise<string | null> {
   return nameModalInFlight;
 }
 
-/** Resolve the display name for an attempt; opens the modal when unknown. */
+/** Resolve the display name for an attempt; opens the modal when unknown.
+ *
+ *  An EMAIL IS NEVER A NAME (owner report: "students that sign in with their
+ *  gmail are not showing names on the completion ticker"). Sessions created
+ *  before the fix may still carry the account address in cmc-student-name —
+ *  such values are treated as unknown here:
+ *    1. any name explicitly passed by the caller wins;
+ *    2. a real stored account name wins;
+ *    3. a remembered guest name (cmc-player-name) wins;
+ *    4. the "Who's playing?" modal asks once — pre-filled with the friendly
+ *       form of the account email so signed-in students get a real name with
+ *       one tap — and the answer self-heals cmc-student-name for good;
+ *    5. signed-in fallback: the friendly form of the account email (a signed-
+ *       in completion is NEVER dropped and NEVER shows a raw email);
+ *    6. guests who skip everything return null — recorded as 'Guest'.
+ */
 async function resolveStudentName(explicit?: string): Promise<string | null> {
   if (explicit && explicit.trim()) return explicit.trim().slice(0, 40);
+  const signedInEmail = localStorage.getItem('cmc-student-email') || '';
+  const signedIn = !!localStorage.getItem('cmc-student-uid');
   const signedInName = localStorage.getItem('cmc-student-name') || '';
-  if (signedInName.trim()) return signedInName.trim().slice(0, 40);
+  if (signedInName.trim() && !looksLikeEmail(signedInName)) return signedInName.trim().slice(0, 40);
   const remembered = readStoredPlayerName();
-  if (remembered) return remembered;
-  const prompted = await promptForPlayerName(); // null = skipped
-  if (prompted) storePlayerName(prompted);
-  return prompted;
+  if (remembered && !looksLikeEmail(remembered)) return remembered;
+  const prompted = await promptForPlayerName(signedIn ? friendlyNameFromEmail(signedInEmail) : ''); // null = skipped
+  if (prompted) {
+    if (signedIn) {
+      // Self-heal the account's display name so later submissions (React or
+      // the static worksheets) never ask — or fall back — again.
+      try { localStorage.setItem('cmc-student-name', prompted.slice(0, 40)); } catch { /* private mode */ }
+    } else {
+      storePlayerName(prompted);
+    }
+    return prompted;
+  }
+  if (signedIn) {
+    // Skipped, but signed in — derive a readable name from the account
+    // instead of dropping the completion (the old code returned null here,
+    // so these students never appeared on the ticker at all).
+    return displayStudentName(signedInEmail) || 'Student';
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------

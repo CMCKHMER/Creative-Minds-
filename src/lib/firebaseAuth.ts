@@ -20,6 +20,7 @@
 // API key or project id.
 
 import { firebaseConfig } from './firebase';
+import { selfHealStoredStudentName } from './studentName';
 
 const API_KEY = (firebaseConfig.apiKey || '').trim();
 export const FIREBASE_PROJECT_ID = (firebaseConfig.projectId || '').trim() || 'creative-minds-cambodia';
@@ -522,7 +523,16 @@ function persistSession(session: FirebaseSession, profile: StoredProfile): void 
         ? profile.role
         : detectRoleFromEmail(session.email);
     localStorage.setItem('cmc-student-token', session.idToken);
-    localStorage.setItem('cmc-student-name', session.displayName || profile.displayName || session.email);
+    // An email is NEVER a display name (Gmail/Google sign-ins can return an
+    // empty displayName — supervised child accounts, Workspace directory
+    // privacy). Storing the email here poisoned every submission and made
+    // the homepage completion ticker show raw emails instead of names.
+    // When no real name is known we store '' — submitScore will ask once
+    // (or derive "Mam Ry" from mam.ry@aii.edu.kh) and self-heal this key.
+    localStorage.setItem(
+      'cmc-student-name',
+      session.displayName || profile.displayName || '',
+    );
     localStorage.setItem('cmc-student-uid', session.localId);
     localStorage.setItem('cmc-student-email', session.email);
     localStorage.setItem('cmc-student-role', role);
@@ -751,10 +761,18 @@ export function tokenEmailVerified(idToken: string): boolean | null {
 
 export function restoreSession(): RestoredSession | null {
   try {
+    // Boot-time self-heal: sessions created before the no-email-as-name fix
+    // may still carry "mam.ry@aii.edu.kh" as the display name — rewrite it
+    // to the friendly form once, in place. Idempotent, cheap regex check.
+    selfHealStoredStudentName();
     const idToken = localStorage.getItem('cmc-student-token');
     if (!idToken) return null;
     const localId = localStorage.getItem('cmc-student-uid') || '';
     const email = localStorage.getItem('cmc-student-email') || '';
+    // restoreSession feeds UI badges/greetings — the email fallback here is
+    // identification-only and never flows into submissions (submitScore and
+    // the worksheet blocks read cmc-student-name directly, which the heal
+    // above keeps email-free).
     const displayName = localStorage.getItem('cmc-student-name') || email;
     // The server-minted token claim is authoritative (a token refreshed
     // after clicking the verification link flips to true); the localStorage

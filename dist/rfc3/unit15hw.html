@@ -1226,6 +1226,39 @@ $$('.assignment').forEach(refreshProgress);
   var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
   var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
 
+  /* ── An email is NEVER a display name ───────────────────────────────
+     Owner report: "students that sign in with their gmail are not showing
+     names on the completion ticker" — Google sign-ins can return an empty
+     displayName and the old auth fallback stored the EMAIL as the name, so
+     submissions carried e.g. "mam.ry@aii.edu.kh". Heals a stored
+     email-as-name once at load and guards every outgoing name ("mam.ry@…"
+     → "Mam Ry"). A real typed name is never touched. */
+  function cmcLooksLikeEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim());
+  }
+  function cmcFriendlyFromEmail(email) {
+    var local = String(email || '').split('@')[0].trim();
+    if (!local) return '';
+    var words = local.split(/[._+\-]+/).map(function (w) { return w.trim(); }).filter(Boolean);
+    if (!words.length) return local.slice(0, 40);
+    return words.map(function (w) { return (w.charAt(0).toUpperCase() + w.slice(1)).slice(0, 40); }).join(' ').trim().slice(0, 40);
+  }
+  function cmcNameOf(v) {
+    var s = String(v || '').trim();
+    if (!s || !cmcLooksLikeEmail(s)) return s;
+    return cmcFriendlyFromEmail(s) || s;
+  }
+  (function () {
+    try {
+      var stored = localStorage.getItem('cmc-student-name') || '';
+      if (!cmcLooksLikeEmail(stored)) return;
+      var healed = cmcFriendlyFromEmail(stored);
+      if (healed) localStorage.setItem('cmc-student-name', healed);
+      else localStorage.removeItem('cmc-student-name');
+    } catch (e) { /* private mode — nothing to heal */ }
+  })();
+
+
   var HW_LABELS = {
     a: 'Homework 1 · Lab Induction',
     b: 'Homework 2 · Chain-Reaction Analyst',
@@ -1248,7 +1281,7 @@ $$('.assignment').forEach(refreshProgress);
       uid = localStorage.getItem('cmc-student-uid') || '';
       name = localStorage.getItem('cmc-student-name') || '';
     } catch (e) {}
-    return { tok: tok, uid: uid, name: name, authed: !!(tok && uid) };
+    return { tok: tok, uid: uid, name: cmcNameOf(name), authed: !!(tok && uid) };
   }
 
   // Mirror the Name/Date typed in any hero into every other hero (same role
@@ -1275,7 +1308,7 @@ $$('.assignment').forEach(refreshProgress);
     inp.addEventListener('input', function () { cmcSyncNameDate(inp); });
   });
   try {
-    var pre = (localStorage.getItem('cmc-student-name') || '').trim();
+    var pre = cmcNameOf(localStorage.getItem('cmc-student-name'));
     if (pre) {
       document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
         if (((inp.getAttribute('aria-label') || '').toLowerCase().indexOf('date')) === -1) inp.value = pre.slice(0, 40);
@@ -1359,7 +1392,7 @@ $$('.assignment').forEach(refreshProgress);
     var nameEl = cmcActiveNameInput(root);
 
     var sess = cmcSession();
-    var name = (((nameEl && nameEl.value) || '').trim() || sess.name).slice(0, 40);
+    var name = cmcNameOf((((nameEl && nameEl.value) || '').trim() || sess.name).slice(0, 40));
     if (!name) {
       cmcToast('Add your name first — your teacher needs to know who finished the homework.', true);
       btn.textContent = '⚠ Add your name first';

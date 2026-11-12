@@ -8,6 +8,7 @@ import { getFirebaseDb } from '../lib/firebase';
 import { listTeacherClasses, listTeacherAttempts, createClass, getClassByCode, enrollStudent, deleteClassTeacher } from '../lib/firebaseDb';
 import { useStudentAttempts } from '../hooks/useDrillAttempts';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
+import { displayStudentName } from '../lib/studentName';
 import { StudentAuthModal } from './StudentAuthModal';
 import { BiWeeklyScoresCard } from './BiWeeklyScoresCard';
 import { BiWeeklyTestsPanel } from './BiWeeklyTestsPanel';
@@ -149,9 +150,11 @@ export function FirebaseDashboard() {
   }, [firebaseReady]);
 
   // Display name + email for the badge — prefer whichever auth source has data.
-  const signedInDisplayName = studentAuth.student?.displayName
-    || firebaseAuth.session?.displayName
-    || firebaseAuth.session?.email
+  // displayStudentName turns a stored email-as-name (pre-fix Gmail sessions)
+  // into a readable name — also used for the class enrollment doc below.
+  const signedInDisplayName = displayStudentName(studentAuth.student?.displayName)
+    || displayStudentName(firebaseAuth.session?.displayName)
+    || displayStudentName(firebaseAuth.session?.email)
     || 'Student';
   const signedInEmail = firebaseAuth.session?.email || studentAuth.student?.email;
 
@@ -473,7 +476,7 @@ export function FirebaseDashboard() {
                   <tbody className="divide-y divide-white/5">
                     {visibleAttempts.map((a: any, i: number) => (
                       <tr key={i} className="hover:bg-white/5">
-                        <td className="px-4 py-3 text-xs font-medium text-slate-200">{a.studentName || 'Unknown'}</td>
+                        <td className="px-4 py-3 text-xs font-medium text-slate-200">{displayStudentName(a.studentName) || 'Unknown'}</td>
                         <td className="px-4 py-3 text-xs text-slate-400">
                           {a.drillTitle || a.drillSlug}
                           {a.drillSource === 'assignment' && (
@@ -700,7 +703,8 @@ function parseCommunityDoc(doc: CommunityDoc): CommunityAttempt | null {
   if (!f) return null;
   const tsRaw = f.submittedAt?.timestampValue;
   return {
-    name: f.studentName?.stringValue || 'Anonymous',
+    // Pre-fix rows may carry the account address — prettify for display.
+    name: displayStudentName(f.studentName?.stringValue) || 'Anonymous',
     drill: f.drillTitle?.stringValue || f.drillSlug?.stringValue || 'Drill',
     drillSource: f.drillSource?.stringValue || 'drill',
     scorePct: Number(f.scorePct?.integerValue || '0'),

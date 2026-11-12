@@ -1143,6 +1143,39 @@ $$('.assignment').forEach(refreshProgress);
   var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
   var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
 
+  /* ── An email is NEVER a display name ───────────────────────────────
+     Owner report: "students that sign in with their gmail are not showing
+     names on the completion ticker" — Google sign-ins can return an empty
+     displayName and the old auth fallback stored the EMAIL as the name, so
+     submissions carried e.g. "mam.ry@aii.edu.kh". Heals a stored
+     email-as-name once at load and guards every outgoing name ("mam.ry@…"
+     → "Mam Ry"). A real typed name is never touched. */
+  function cmcLooksLikeEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim());
+  }
+  function cmcFriendlyFromEmail(email) {
+    var local = String(email || '').split('@')[0].trim();
+    if (!local) return '';
+    var words = local.split(/[._+\-]+/).map(function (w) { return w.trim(); }).filter(Boolean);
+    if (!words.length) return local.slice(0, 40);
+    return words.map(function (w) { return (w.charAt(0).toUpperCase() + w.slice(1)).slice(0, 40); }).join(' ').trim().slice(0, 40);
+  }
+  function cmcNameOf(v) {
+    var s = String(v || '').trim();
+    if (!s || !cmcLooksLikeEmail(s)) return s;
+    return cmcFriendlyFromEmail(s) || s;
+  }
+  (function () {
+    try {
+      var stored = localStorage.getItem('cmc-student-name') || '';
+      if (!cmcLooksLikeEmail(stored)) return;
+      var healed = cmcFriendlyFromEmail(stored);
+      if (healed) localStorage.setItem('cmc-student-name', healed);
+      else localStorage.removeItem('cmc-student-name');
+    } catch (e) { /* private mode — nothing to heal */ }
+  })();
+
+
   function cmcToast(msg, err) {
     var t = document.getElementById('cmcToast');
     t.textContent = msg;
@@ -1159,7 +1192,7 @@ $$('.assignment').forEach(refreshProgress);
       uid = localStorage.getItem('cmc-student-uid') || '';
       name = localStorage.getItem('cmc-student-name') || '';
     } catch (e) {}
-    return { tok: tok, uid: uid, name: name, authed: !!(tok && uid) };
+    return { tok: tok, uid: uid, name: cmcNameOf(name), authed: !!(tok && uid) };
   }
 
   // Pre-fill the hero Name for signed-in students; mirror hero → sheets.
@@ -1175,7 +1208,7 @@ $$('.assignment').forEach(refreshProgress);
   document.getElementById('stuName').addEventListener('input', cmcSyncNameDate);
   document.getElementById('stuDate').addEventListener('input', cmcSyncNameDate);
   try {
-    var pre = (localStorage.getItem('cmc-student-name') || '').trim();
+    var pre = cmcNameOf(localStorage.getItem('cmc-student-name'));
     if (pre) document.getElementById('stuName').value = pre.slice(0, 40);
   } catch (e) {}
   cmcSyncNameDate();
@@ -1247,7 +1280,7 @@ $$('.assignment').forEach(refreshProgress);
     var mode = document.body.dataset.mode || 'a';
 
     var sess = cmcSession();
-    var name = ((document.getElementById('stuName').value || '').trim() || sess.name).slice(0, 40);
+    var name = cmcNameOf(((document.getElementById('stuName').value || '').trim() || sess.name).slice(0, 40));
     var nameEl = document.getElementById('stuName');
     if (!name) {
       cmcToast('Add your name first — your teacher needs to know who finished the homework.', true);

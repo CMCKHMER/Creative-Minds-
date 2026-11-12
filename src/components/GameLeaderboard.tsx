@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { RefreshCw, Trophy, Users, Clock3, Award, TrendingUp } from 'lucide-react';
 import { FIREBASE_PROJECT_ID, restoreSession } from '../lib/firebaseAuth';
 import { submitScore } from '../lib/submitScore';
+import { displayStudentName } from '../lib/studentName';
 
 /**
  * Game leaderboard + recent activity side panel for the Learning Games page.
@@ -106,7 +107,8 @@ async function fetchGameAttempts(): Promise<Attempt[]> {
     const f = doc.fields || {};
     const submittedAtRaw = f.submittedAt?.timestampValue;
     return {
-      studentName: f.studentName?.stringValue || 'Anonymous',
+      // Pre-fix rows may carry the account address — prettify for display.
+      studentName: displayStudentName(f.studentName?.stringValue) || 'Anonymous',
       drillSlug: f.drillSlug?.stringValue || 'unknown',
       drillTitle: f.drillTitle?.stringValue || '',
       scorePct: Number(f.scorePct?.integerValue || '0'),

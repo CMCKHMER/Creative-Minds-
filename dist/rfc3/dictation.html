@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
 <head>
+<script>/* CMC_NG_NO_EMAIL_AS_NAME: an email is never a display name — Gmail sign-ins showed
+   addresses on the completion ticker. Heals cmc-student-name in place
+   ("mam.ry@aii.edu.kh" -> "Mam Ry") and guards every read; real names are
+   never touched. Same rule as assets/js/cmc-shared.js and src/lib/studentName.ts */
+(function(){function isE(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim())}
+function fr(e){var l=String(e||'').split('@')[0].trim();if(!l)return'';var w=l.split(/[._+\-]+/).map(function(x){return x.trim()}).filter(Boolean);if(!w.length)return l.slice(0,40);return w.map(function(x){return (x.charAt(0).toUpperCase()+x.slice(1)).slice(0,40)}).join(' ').trim().slice(0,40)}
+window.CMC_NG={get:function(){try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(!s)return'';if(!isE(s))return s;var h=fr(s);if(h){localStorage.setItem('cmc-student-name',h);return h}localStorage.removeItem('cmc-student-name');return''}catch(e){return''}}};
+try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s);if(h){localStorage.setItem('cmc-student-name',h)}else{localStorage.removeItem('cmc-student-name')}}}catch(e){}})();
+</script>
+
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <script>/* Pre-paint theme restore — synced with the main site "cmc-theme" toggle. */
@@ -423,7 +433,7 @@ function checkAnswers(){
   disp.style.color=score===20?'var(--success)':'var(--cyan-lt)';
   disp.innerHTML=score===20?`✓ Perfect dictation! 20/20 correct.`:`Score: ${score}/20 correct · ${20-answered} blank${20-answered===1?'':'s'} remaining.`;
   /* CMC-FIRESTORE-POST — submit the dictation score (non-blocking). */
-  try{var _st=localStorage.getItem('cmc-student-token');var _sn=localStorage.getItem('cmc-student-name')||'';var _suid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title.split('—')[0].trim()+(unitSelect.value?' · '+unitSelect.value:'')},drillSource:{stringValue:'rfc3'},studentName:{stringValue:_sn},studentUid:{stringValue:_suid},classId:{nullValue:null},scorePct:{integerValue:String(Math.round(score/20*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(20)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+  try{var _st=localStorage.getItem('cmc-student-token');var _sn=(window.CMC_NG?window.CMC_NG.get():localStorage.getItem('cmc-student-name'))||'';var _suid=localStorage.getItem('cmc-student-uid')||'';if(_st&&_sn){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_st},body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title.split('—')[0].trim()+(unitSelect.value?' · '+unitSelect.value:'')},drillSource:{stringValue:'rfc3'},studentName:{stringValue:_sn},studentUid:{stringValue:_suid},classId:{nullValue:null},scorePct:{integerValue:String(Math.round(score/20*100))},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(20)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
 }
 
 

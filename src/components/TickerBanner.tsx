@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ChevronRight, ClipboardList, Sparkles, TrendingUp, Trophy, Users, X } from 'lucide-react';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
+import { displayStudentName } from '../lib/studentName';
 
 interface TickerBannerProps {
   /** Called when the user clicks the "Be the first teacher" CTA in the
@@ -139,7 +140,10 @@ function parseDoc(doc: FirestoreDoc): DrillAttempt | null {
   const submittedAtRaw = f.submittedAt?.timestampValue;
   return {
     drillSource: f.drillSource?.stringValue || 'unknown',
-    studentName: f.studentName?.stringValue || 'Anonymous',
+    // Rows written before the no-email-as-name fix may carry the account
+    // address — prettify for display/leaderboard ("mam.ry@aii.edu.kh" →
+    // "Mam Ry") without touching the stored document.
+    studentName: displayStudentName(f.studentName?.stringValue) || 'Anonymous',
     scorePct: Number(f.scorePct?.integerValue || '0'),
     submittedAt: submittedAtRaw ? Date.parse(submittedAtRaw) : 0,
   };
@@ -250,7 +254,7 @@ async function fetchServerAggregate(): Promise<TickerData | null> {
       const drills = numField(lf.drills);
       const avgScore = numField(lf.avgScore);
       if (Number.isFinite(drills) && Number.isFinite(avgScore)) {
-        leaderboard.push({ name, drills, avgScore, source: 'live' });
+        leaderboard.push({ name: displayStudentName(name), drills, avgScore, source: 'live' });
       }
     }
 
