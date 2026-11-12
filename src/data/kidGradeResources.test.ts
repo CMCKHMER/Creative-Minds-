@@ -31,8 +31,8 @@ describe('Kid Program grade resource pathway', () => {
     // Kid 11 worksheets are served from this site's public/rfc3/ directory
     // (absolute URLs so the links also work from the static HTML worksheets),
     // plus the shareable online-homework worksheets (relative URLs, deep
-    // links into the Unit 13, Unit 14 and Unit 15 files) whose pages carry
-    // the student "Submit to Teacher" completion button.
+    // links into the Unit 2, Unit 13, Unit 14 and Unit 15 files) whose pages
+    // carry the student "Submit to Teacher" completion button.
     expect(kid11?.materials.map((material) => material.href)).toEqual([
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/word-list.html',
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/dictation.html',
@@ -47,10 +47,14 @@ describe('Kid Program grade resource pathway', () => {
       './rfc3/unit15hw.html#hw-a',
       './rfc3/unit15hw.html#hw-b',
       './rfc3/unit15hw.html#hw-c',
+      './rfc3/unit2hw.html#hw-a',
+      './rfc3/unit2hw.html#hw-b',
+      './rfc3/unit2hw.html#hw-c',
     ]);
     // The online-homework entries are the teacher's Unit 14 (Doctor Fish),
-    // Unit 13 and Unit 15 three-homework files (one row per homework) — the
-    // only materials allowed outside the grade's Reading Future book naming.
+    // Unit 13, Unit 15 and Unit 2 (Leonardo da Vinci) three-homework files
+    // (one row per homework) — the only materials allowed outside the
+    // grade's Reading Future book naming.
     const kid11Homework = kid11?.materials.filter((material) => material.kind === 'Online homework') ?? [];
     expect(kid11Homework.map((material) => material.id)).toEqual([
       'kid-11-homework-u14-hw1',
@@ -62,6 +66,9 @@ describe('Kid Program grade resource pathway', () => {
       'kid-11-homework-u15-hw1',
       'kid-11-homework-u15-hw2',
       'kid-11-homework-u15-hw3',
+      'kid-11-homework-u2-hw1',
+      'kid-11-homework-u2-hw2',
+      'kid-11-homework-u2-hw3',
     ]);
     expect(kid11Homework.slice(0, 3).map((material) => material.title)).toEqual([
       'Unit 14 · Homework 1 — Spa Intake File',
@@ -82,8 +89,11 @@ describe('Kid Program grade resource pathway', () => {
       'hw-kid11-u15-hw1',
       'hw-kid11-u15-hw2',
       'hw-kid11-u15-hw3',
+      'hw-kid11-u2-hw1',
+      'hw-kid11-u2-hw2',
+      'hw-kid11-u2-hw3',
     ]);
-    expect(kid11Homework.map((material) => material.hideUntilShared)).toEqual([true, true, true, true, true, true, true, true, true]);
+    expect(kid11Homework.map((material) => material.hideUntilShared)).toEqual([true, true, true, true, true, true, true, true, true, true, true, true]);
     expect(KID_GRADE_RESOURCES.filter((grade) => grade.grade !== 6 && grade.grade !== 7 && grade.grade !== 11).every((grade) => grade.status === 'planned' && grade.materials.length === 0)).toBe(true);
   });
 

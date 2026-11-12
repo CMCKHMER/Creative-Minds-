@@ -110,16 +110,17 @@ const kid7Resources: KidGradeMaterial[] = [
 
 // Kid 11 — Reading Future Create 3 worksheets, served from public/rfc3/,
 // plus the online-homework worksheets (public/rfc3/doctor-fish.html,
-// public/rfc3/unit13hw.html and public/rfc3/unit15hw.html). The homework
-// pages follow the same self-contained pattern (back-to-CMC button, share
-// menu) and add a "Submit to Teacher" completion button that posts the
-// student's name + score to the drill_attempts Firestore collection via the
-// validated guest branch (or the signed-in localStorage session token) —
-// same pipeline as the rfc2/rfc3 dictation sheets, so completions reach the
-// teacher dashboard with no rules change. Units 13, 14 and 15 are
-// 3-homework files where EACH homework carries its own shareDoc: the
-// teacher assigns one homework at a time, and hideUntilShared keeps every
-// unshared homework completely invisible to students.
+// public/rfc3/unit13hw.html, public/rfc3/unit15hw.html and
+// public/rfc3/unit2hw.html). The homework pages follow the same self-contained
+// pattern (back-to-CMC button, share menu) and add a "Submit to Teacher"
+// completion button that posts the student's name + score to the
+// drill_attempts Firestore collection via the validated guest branch (or the
+// signed-in localStorage session token) — same pipeline as the rfc2/rfc3
+// dictation sheets, so completions reach the teacher dashboard with no rules
+// change. Units 2, 13, 14 and 15 are 3-homework files where EACH homework
+// carries its own shareDoc: the teacher assigns one homework at a time, and
+// hideUntilShared keeps every unshared homework completely invisible to
+// students.
 const kid11Resources: KidGradeMaterial[] = [
   {
     id: 'kid-11-rfc3-word-list',
@@ -242,6 +243,37 @@ const kid11Resources: KidGradeMaterial[] = [
     description: 'DNA Bank writing & speaking: fact vs opinion sort, campaign slogan, campaign text, public Q&A, acronyms in your own words and a closing message — 16 auto-graded points. Only visible once the teacher shares Homework 3.',
     href: './rfc3/unit15hw.html#hw-c',
     shareDoc: 'hw-kid11-u15-hw3',
+    hideUntilShared: true,
+  },
+  // Unit 2 — the teacher's 3-homework file (Leonardo da Vinci). Same
+  // per-homework share-gate pattern as Units 13/14/15: one share doc per
+  // homework, students see only what the teacher has opened, one homework
+  // at a time.
+  {
+    id: 'kid-11-homework-u2-hw1',
+    title: 'Unit 2 · Homework 1 — Museum Docent',
+    kind: 'Online homework',
+    description: 'Leonardo da Vinci vocabulary & comprehension: word meanings, tour-note gap fills, reading comprehension, true/false and the suffix -eer — 30 auto-graded points. Only visible once the teacher shares Homework 1.',
+    href: './rfc3/unit2hw.html#hw-a',
+    shareDoc: 'hw-kid11-u2-hw1',
+    hideUntilShared: true,
+  },
+  {
+    id: 'kid-11-homework-u2-hw2',
+    title: 'Unit 2 · Homework 2 — Timeline Curator',
+    kind: 'Online homework',
+    description: 'Leonardo da Vinci chronology & critical thinking: order the timeline, link causes to effects, sort main ideas vs supporting details, label checks, detail hunt and an exhibition panel — 27 auto-graded points. Only visible once the teacher shares Homework 2.',
+    href: './rfc3/unit2hw.html#hw-b',
+    shareDoc: 'hw-kid11-u2-hw2',
+    hideUntilShared: true,
+  },
+  {
+    id: 'kid-11-homework-u2-hw3',
+    title: 'Unit 2 · Homework 3 — Exhibition Critic',
+    kind: 'Online homework',
+    description: 'Leonardo da Vinci writing & speaking: fact vs opinion sort, exhibition title, magazine review, interview prep, suffix sentences and a balanced verdict — 16 auto-graded points. Only visible once the teacher shares Homework 3.',
+    href: './rfc3/unit2hw.html#hw-c',
+    shareDoc: 'hw-kid11-u2-hw3',
     hideUntilShared: true,
   },
 ];
