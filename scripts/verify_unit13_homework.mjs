@@ -54,7 +54,7 @@ await new Promise(r => server.listen(PORT, r));
 // Mutable share state used by every route below.
 const sharedState = { hw1: false, hw2: false, hw3: false };
 const U13_ROUTE = '**/documents/biweekly_tests/hw-kid11-u13-hw*';
-const DF_ROUTE = '**/documents/biweekly_tests/hw-kid11-doctor-fish*';
+const DF_ROUTE = '**/documents/biweekly_tests/hw-kid11-u14-hw*';
 const U15_ROUTE = '**/documents/biweekly_tests/hw-kid11-u15-hw*';
 // Unit 15 exists in the data file but stays CLOSED for every Unit 13
 // scenario here — closed docs must never leak to the real network.
@@ -71,7 +71,7 @@ function routeU13(shared) {
     return route.fulfill({ status: 200, contentType: 'application/json', body: docBody(`hw-kid11-u13-${m[1]}`, shared[m[1]]) });
   };
 }
-const routeDF = (shared) => (route) => route.fulfill({ status: 200, contentType: 'application/json', body: docBody('hw-kid11-doctor-fish', shared) });
+const routeDF = (shared) => (route) => route.fulfill({ status: 200, contentType: 'application/json', body: docBody('hw-kid11-u14-hw1', shared) });
 
 const TEACHER_JWT = 'eyJhbGciOiJIUzI1NiJ9.' + Buffer.from(JSON.stringify({ email_verified: true, email: 'teacher@school.edu', user_id: 'teacher-uid-1' })).toString('base64url') + '.sig';
 const TEACHER_SEED = {
@@ -170,7 +170,7 @@ if (hubChunk) {
   const hub = await readFile(join(DIST, 'assets', hubChunk), 'utf8');
   ok(hub.includes('Online homework'), 'Online homework section in the Kid 11 card bundle');
   ok(hub.includes('unit13hw.html#hw-a') && hub.includes('unit13hw.html#hw-b') && hub.includes('unit13hw.html#hw-c'), 'Kid 11 card links all three Unit 13 homeworks');
-  ok(hub.includes('hw-kid11-u13-hw1') && hub.includes('hw-kid11-u13-hw2') && hub.includes('hw-kid11-u13-hw3') && hub.includes('hw-kid11-doctor-fish'), 'card polls all four share docs');
+  ok(hub.includes('hw-kid11-u13-hw1') && hub.includes('hw-kid11-u13-hw2') && hub.includes('hw-kid11-u13-hw3') && hub.includes('hw-kid11-u14-hw1') && hub.includes('hw-kid11-u14-hw2') && hub.includes('hw-kid11-u14-hw3'), 'card polls all nine share docs (3 Unit 14 + 3 Unit 13 + 3 Unit 15)');
   ok(hub.includes('hideUntilShared'), 'hide-until-shared rule shipped (students never see unassigned homework)');
   ok(hub.includes('Unit 13 · Homework 1 — Field Notebook'), 'HW1 row title');
   ok(hub.includes('Unit 13 · Homework 2 — Relocation Mission'), 'HW2 row title');
@@ -451,8 +451,8 @@ console.log('browser · Kid 11 card — per-homework switches');
   const moreBtn = kid11card.locator('button[aria-expanded]');
   ok(await moreBtn.count() === 1, 'folded card carries exactly one More control');
   ok((await moreBtn.getAttribute('aria-expanded')) === 'false', 'fold starts collapsed (aria-expanded=false)');
-  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 5 more'), 'fold label counts the five rows still folded away (Doctor Fish + HW1 visible; HW2, HW3 and the three Unit 15 rows folded)', await moreBtn.textContent());
-  ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 1"][aria-label*="with students"]').count() === 1, 'folded card keeps the Homework 1 switch (first two rows stay visible)');
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 7 more'), 'fold label counts the seven rows still folded away (the two Unit 14 rows visible; the third Unit 14 row, all Unit 13 and all Unit 15 rows folded)', await moreBtn.textContent());
+  ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 1"][aria-label*="with students"]').count() === 0, 'Unit 13 rows now sit behind the fold — the two Unit 14 rows open first');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 0, 'fold hides the Homework 2 switch');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 3"][aria-label*="with students"]').count() === 0, 'fold hides the Homework 3 switch');
   await moreBtn.click();
@@ -482,7 +482,7 @@ console.log('browser · Kid 11 card — per-homework switches');
   // Fold again — the assigned homework must stay on the folded card.
   await moreBtn.click();
   await page.waitForTimeout(400);
-  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 5 more'), 'Show less folds the list back with the count label', await moreBtn.textContent());
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 6 more'), 'Show less folds the list back with the count label (assigned Homework 1 rides along)', await moreBtn.textContent());
   ok(await kid11card.locator('a[aria-label*="Unit 13 · Homework 1 — Field Notebook"]').count() === 1, 'assigned Homework 1 stays visible on the folded card');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 0, 'folded card hides the Homework 2 switch again');
   await kid11card.screenshot({ path: join(SHOTS, 'unit13-kid11-card.png') });
@@ -511,7 +511,7 @@ console.log('browser · Kid 11 card — per-homework switches');
   ok(((await kid11card.textContent())?.includes('Unit 13 · Homework 2 — Relocation Mission')) === false, 'student never sees the unshared Homework 2 row');
   ok(((await kid11card.textContent())?.includes('Unit 13 · Homework 3 — Campaign Studio')) === false, 'student never sees the unshared Homework 3 row');
   ok(await kid11card.locator('button[aria-label*="with students"]').count() === 0, 'students never see any teacher key switch');
-  ok(((await kid11card.textContent())?.includes('Locked — your teacher opens this homework')) === true, 'Doctor Fish keeps its locked-row announcement for students');
+  ok(((await kid11card.textContent())?.includes('Locked — your teacher opens this homework')) === false, 'no locked-row announcement for students — every homework (Unit 14 included) hides until shared');
   ok((await kid11card.textContent())?.includes('Your teacher opens each homework here'), 'student-facing caption');
   ok(await kid11card.locator('button[aria-expanded]').count() === 0, 'student with the assigned homework in view: no fold control (nothing more to show them)');
   await kid11card.screenshot({ path: join(SHOTS, 'unit13-kid11-card-student.png') });
@@ -538,7 +538,7 @@ console.log('browser · Kid 11 card — per-homework switches');
   await page.waitForTimeout(600);
   const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
   const moreBtn = kid11card.locator('button[aria-expanded]');
-  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 4 more'), 'fold label counts the four still-hidden rows (HW2 + the three Unit 15 rows)', await moreBtn.textContent());
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 6 more'), 'fold label counts the six still-hidden rows (Unit 13 HW1 + HW2, the third Unit 14 row and the three Unit 15 rows)', await moreBtn.textContent());
   ok(await kid11card.locator('a[aria-label*="Unit 13 · Homework 3 — Campaign Studio"]').count() === 1, 'open Homework 3 shows on the folded card without expanding');
   ok(await kid11card.locator('button[aria-label*="Share Unit 13 · Homework 2"][aria-label*="with students"]').count() === 0, 'the still-locked Homework 2 stays folded away');
   await ctx.close();

@@ -54,9 +54,9 @@ await new Promise(r => server.listen(PORT, r));
 const sharedState = { hw1: false, hw2: false, hw3: false };
 const U15_ROUTE = '**/documents/biweekly_tests/hw-kid11-u15-hw*';
 const U13_ROUTE = '**/documents/biweekly_tests/hw-kid11-u13-hw*';
-const DF_ROUTE = '**/documents/biweekly_tests/hw-kid11-doctor-fish*';
-// Unit 13 and Doctor Fish stay CLOSED for every Unit 15 scenario here —
-// closed docs must never leak to the real network.
+const DF_ROUTE = '**/documents/biweekly_tests/hw-kid11-u14-hw*';
+// Unit 13 and the three Unit 14 (Doctor Fish) docs stay CLOSED for every
+// Unit 15 scenario here — closed docs must never leak to the real network.
 const routeOtherClosed = (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"code":404}}' });
 const docBody = (doc, shared) => JSON.stringify({
   name: `projects/demo/databases/(default)/documents/biweekly_tests/${doc}`,
@@ -452,13 +452,14 @@ console.log('browser · Kid 11 card — Unit 15 switches + fold safety');
   }, null, { timeout: 30000 });
   await page.waitForTimeout(600);
   const kid11card = page.locator('#kid-grades article').filter({ hasText: 'Reading Future Create 3' });
-  ok(((await kid11card.textContent())?.includes('11 resources')), 'Kid 11 badge counts 11 resources (4 sheets + Doctor Fish + 3 + 3 homeworks)');
-  // Folded: teacher sees the first two rows (Doctor Fish + Unit 13 HW1);
-  // the five others — including all three Unit 15 rows — stay folded away.
+  ok(((await kid11card.textContent())?.includes('13 resources')), 'Kid 11 badge counts 13 resources (4 sheets + three Unit 14 + three Unit 13 + three Unit 15 homeworks)');
+  // Folded: teacher sees the first two rows (the two Unit 14 · Doctor Fish
+  // homeworks); the seven others — including all Unit 13 and Unit 15 rows —
+  // stay folded away.
   const moreBtn = kid11card.locator('button[aria-expanded]');
   ok(await moreBtn.count() === 1, 'folded card carries exactly one More control');
   ok((await moreBtn.getAttribute('aria-expanded')) === 'false', 'fold starts collapsed (aria-expanded=false)');
-  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 5 more'), 'fold label counts the five rows still folded away', await moreBtn.textContent());
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 7 more'), 'fold label counts the seven rows still folded away', await moreBtn.textContent());
   ok(await kid11card.locator('button[aria-label*="Share Unit 15 · Homework 1"][aria-label*="with students"]').count() === 0, 'fold hides the Unit 15 Homework 1 switch');
   await moreBtn.click();
   await page.waitForTimeout(400);
@@ -482,10 +483,10 @@ console.log('browser · Kid 11 card — Unit 15 switches + fold safety');
   await page.waitForTimeout(500);
   const clip = await page.evaluate(() => navigator.clipboard.readText().catch(() => ''));
   ok(clip.endsWith('/rfc3/unit15hw.html#hw-a'), 'card Share button copies the absolute Unit 15 homework URL', clip);
-  // Fold again — the assigned Unit 15 homework (row 5 of 7) must stay visible.
+  // Fold again — the assigned Unit 15 homework (row 7 of 9) must stay visible.
   await moreBtn.click();
   await page.waitForTimeout(400);
-  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 4 more'), 'folded label drops to 4 (the assigned Unit 15 row rides along)', await moreBtn.textContent());
+  ok(((await moreBtn.textContent()) || '').includes('More homeworks · 6 more'), 'folded label drops to 6 (the assigned Unit 15 row rides along)', await moreBtn.textContent());
   ok(await kid11card.locator('a[aria-label*="Unit 15 · Homework 1 — Lab Induction"]').count() === 1, 'assigned Unit 15 Homework 1 stays visible on the folded card (fold never hides open work)');
   ok(await kid11card.locator('button[aria-label*="Share Unit 15 · Homework 2"][aria-label*="with students"]').count() === 0, 'folded card hides the Unit 15 Homework 2 switch again');
   await kid11card.screenshot({ path: join(SHOTS, 'unit15-kid11-card.png') });
