@@ -105,6 +105,18 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);
   letter-spacing:.08em;text-transform:uppercase;transition:filter .25s,transform .25s}
 .btn-check{color:#041018;background:linear-gradient(90deg,var(--cyan),var(--violet))}
 .btn-reset{color:var(--muted);background:rgba(148,163,184,.1);border:1px solid var(--border)}
+.btn-share{color:var(--cyan-lt);background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.4)}
+/* Share worksheet panel (same fixture as the rfc1/rfc2 sheets) */
+.share-panel{display:none;position:fixed;left:50%;bottom:84px;transform:translateX(-50%);width:min(340px,calc(100% - 32px));background:rgba(13,19,35,.97);border:1px solid rgba(34,211,238,.3);border-radius:14px;padding:12px;z-index:99990;box-shadow:0 18px 60px rgba(0,0,0,.5)}
+.share-panel.open{display:block}
+.share-panel .share-grid{display:grid;gap:7px}
+.share-panel button{padding:10px 12px;border-radius:9px;border:1px solid rgba(148,163,184,.25);background:rgba(255,255,255,.04);color:#e2e8f0;font:600 13px 'Inter',sans-serif;text-align:left;cursor:pointer}
+.share-panel button:hover{border-color:var(--cyan)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(10px);background:#0d1930;color:#e2e8f0;border:1px solid rgba(34,211,238,.4);border-radius:999px;padding:9px 18px;font:600 13px 'Inter',sans-serif;opacity:0;pointer-events:none;transition:.25s;z-index:99995}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+body.light .share-panel{background:rgba(255,255,255,.97);border-color:rgba(8,145,178,.4)}
+body.light .share-panel button{color:#0f172a;background:rgba(15,23,42,.04)}
+body.light #toast{background:#0f172a}
 .btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
 .score-display{text-align:center;margin-top:16px;font-family:'Space Grotesk',sans-serif;font-size:17px;color:var(--cyan-lt);display:none}
 .placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
@@ -117,7 +129,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);
 .aii-banner img{height:42px;width:auto;max-width:82%;object-fit:contain;background:#fff;border:1px solid rgba(148,163,184,.25);border-radius:9px;padding:6px 18px;box-shadow:0 2px 14px rgba(0,0,0,.22)}
 @media print{.aii-banner{padding:2px 0 8px;background:none!important;border-bottom:1px solid #ddd;box-shadow:none}.aii-banner img{height:54px;box-shadow:none;border-color:#ddd}}
 
-@media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.score-display,.footer{display:none!important}
+@media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.score-display,.footer,.share-panel,#toast{display:none!important}
   .container{box-shadow:none;border:none;background:#fff}
   *{color:#111!important;background:transparent!important;border-color:#ccc!important;text-shadow:none!important}
   .chip{border:1px solid #999!important}}
@@ -475,6 +487,7 @@ function loadUnit(){
     <div class="action-row">
       <button class="btn btn-check" onclick="checkAnswers()">Check Answers</button>
       <button class="btn btn-reset" onclick="loadUnit()">Reset</button>
+      <button class="btn btn-share" onclick="shareWorksheet()">⤴ Share</button>
     </div>
     <div class="score-display" id="scoreDisplay"></div>`;
 
@@ -602,6 +615,27 @@ function checkAnswers(){
   });
 })();
 
+</script>
+<div class="share-panel" id="sharePanel" role="menu" aria-label="Share this worksheet"><div class="share-grid">
+  <button type="button" onclick="copyLink()">🔗 Copy worksheet link</button>
+  <button type="button" onclick="shareWhatsApp()">💬 WhatsApp</button>
+  <button type="button" onclick="shareX()">🐦 X / Twitter</button>
+  <button type="button" onclick="shareEmail()">✉️ Email</button>
+  <button type="button" onclick="document.getElementById('sharePanel').classList.remove('open')">✕ Close</button>
+</div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+/* Share worksheet (owner: a share button for each game or assignment) — same
+   fixture as the rfc1/rfc2 sheets: native share sheet on phones, panel fallback. */
+function shareText(){const u=document.getElementById('unitSelect');return `Reading Future Create 3 — Unscramble Sheet (${u&&u.value?u.value:'all units'})`;}
+function shareWorksheet(){if(navigator.share){navigator.share({title:'Reading Future Create 3 — Unscramble Sheet',text:shareText(),url:location.href}).catch(()=>{});return;}document.getElementById('sharePanel').classList.toggle('open');}
+function copyLink(){const url=location.href;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard'));}else{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}}
+function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Create 3 — Unscramble Sheet')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
+function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}
+function shareX(){window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(location.href)}`,'_blank');}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400);}
+window.addEventListener('beforeprint',()=>document.getElementById('sharePanel').classList.remove('open'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('sharePanel').classList.remove('open');});
 </script>
 </body>
 </html>

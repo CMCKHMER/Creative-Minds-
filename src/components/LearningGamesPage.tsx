@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, Mic, RotateCcw, Sparkles, XCircle, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, Mic, RotateCcw, Share2, Sparkles, XCircle, Volume2, VolumeX } from 'lucide-react';
 import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 import { GameLeaderboard, submitGameScore, useSignedInPlayerName } from './GameLeaderboard';
@@ -28,6 +28,47 @@ function accent(index: number) {
 
 function gameScore(game: LearningGame, answers: Record<number, number>) {
   return game.questions.reduce((sum, question, index) => sum + (answers[index] === question.correctIndex ? 1 : 0), 0);
+}
+
+/** Tiny self-contained toast for the card share buttons (the games page has
+ *  no other toast system). */
+function shareToast(message: string) {
+  const existing = document.querySelector<HTMLElement>('[data-cmc-share-toast]');
+  const el = existing ?? document.createElement('div');
+  if (!existing) {
+    el.setAttribute('data-cmc-share-toast', '');
+    el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(10px);z-index:99995;background:#0d1930;color:#e2e8f0;border:1px solid rgba(34,211,238,.4);border-radius:999px;padding:9px 18px;font:600 13px Inter,sans-serif;opacity:0;pointer-events:none;transition:.25s;max-width:92vw';
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateX(-50%) translateY(0)'; });
+  window.clearTimeout((el as any)._cmcShareToastT);
+  (el as any)._cmcShareToastT = window.setTimeout(() => {
+    el.style.opacity = '0'; el.style.transform = 'translateX(-50%) translateY(10px)';
+  }, 2600);
+}
+
+/** Share one game or assignment (owner: "implement a share button for each
+ *  game or assignment") — native share sheet on phones; clipboard fallback
+ *  with a toast on desktop. Standalone games share their own URL, in-page
+ *  games share this games page. */
+async function shareGame(game: LearningGame): Promise<void> {
+  const url = game.externalUrl
+    ? new URL(game.externalUrl, window.location.href).toString()
+    : `${window.location.href.split('#')[0]}#games`;
+  const text = `${game.title} — play on CMC: ${game.description.slice(0, 180)}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: game.title, text, url });
+      return;
+    } catch { /* cancelled or blocked → fall through to the clipboard */ }
+  }
+  try {
+    await navigator.clipboard.writeText(`${text} ${url}`);
+    shareToast('Game link copied — paste it anywhere ✓');
+  } catch {
+    shareToast('Could not copy — long-press the game link instead');
+  }
 }
 
 function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) {
@@ -214,6 +255,9 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
               <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
             </a>
             <button type="button" onClick={() => { const panels = document.querySelectorAll('.cmc-game-leaderboard'); const target = Array.prototype.find.call(panels, (n) => n.offsetParent !== null) || panels[0]; if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-amber-200/25 bg-amber-200/[0.07] px-3 py-2.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-200/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Scroll to the class leaderboard">🏆 Class leaderboard</button>
+            <button type="button" onClick={() => { const url = new URL('./dev-pick-ghost-mountain.html', window.location.href).toString(); const text = 'Ghost Mountain · A Reading on Memory, History & Human Courage — the Developer\'s Pick reading & quiz on CMC'; if (navigator.share) { navigator.share({ title: 'Ghost Mountain · Reading & Quiz', text, url }).catch(() => {}); return; } navigator.clipboard?.writeText(`${text} ${url}`).then(() => { const t = document.querySelector<HTMLElement>('[data-cmc-share-toast]'); if (t) { t.textContent = 'Reading & quiz link copied ✓'; t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; window.clearTimeout((t as any)._cmcShareToastT); (t as any)._cmcShareToastT = window.setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(10px)'; }, 2600); } }).catch(() => {}); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-amber-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Share the Ghost Mountain reading & quiz">
+              <Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share
+            </button>
           </div>
         </div>
       </section>
@@ -248,9 +292,17 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
                             🏆 Class leaderboard
                           </button>
                         )}
+                        <button type="button" onClick={() => void shareGame(game)} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-cyan-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300" aria-label={`Share ${game.title} with your class`}>
+                          <Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share
+                        </button>
                       </div>
                     ) : (
-                      <button type="button" onClick={() => chooseGame(game)} className="group/button mt-4 inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">Read &amp; play <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" /></button>
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <button type="button" onClick={() => chooseGame(game)} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">Read &amp; play <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" /></button>
+                        <button type="button" onClick={() => void shareGame(game)} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-cyan-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300" aria-label={`Share ${game.title} with your class`}>
+                          <Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share
+                        </button>
+                      </div>
                     )}
                               </article>
                 );

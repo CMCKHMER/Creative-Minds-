@@ -27,6 +27,7 @@ interface Attempt {
   studentName: string;
   drillSlug: string;
   drillTitle: string;
+  drillSource: string;
   scorePct: number;
   correctCount: number;
   totalCount: number;
@@ -85,10 +86,20 @@ function gameNameFromSlug(slug: string): string {
     'voice-quest-l14': 'Talk to me · Level 14',
     'voice-quest-l15': 'Talk to me · Level 15',
     'voice-quest-custom': 'Talk to me · Custom level',
+    'tense-master': 'Tense Master',
+    'galica': 'Galica · Arcade Shooter',
+    'dictation.html': 'Dictation Sheet',
+    'unit-test.html': 'Unit Test',
+    'unscramble.html': 'Unscramble Sheet',
+    'rfc2dic.html': 'RF Connect 2 · Dictation',
+    'rfc2un.html': 'RF Connect 2 · Unscramble',
+    'rfc2unittest.html': 'RF Connect 2 · Unit Test',
+    'review-tests.html': 'Review Tests',
   };
   if (KNOWN[slug]) return KNOWN[slug];
-  // Fall back to title-case of the slug
-  return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  // Fall back to title-case of the slug (bare .html filenames read cleaner
+  // without the extension)
+  return slug.replace(/\.html?$/, '').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
 async function fetchGameAttempts(): Promise<Attempt[]> {
@@ -113,16 +124,25 @@ async function fetchGameAttempts(): Promise<Attempt[]> {
       studentName: displayStudentName(f.studentName?.stringValue) || 'Anonymous',
       drillSlug: f.drillSlug?.stringValue || 'unknown',
       drillTitle: f.drillTitle?.stringValue || '',
+      drillSource: f.drillSource?.stringValue || '',
       scorePct: Number(f.scorePct?.integerValue || '0'),
       correctCount: Number(f.correctCount?.integerValue || '0'),
       totalCount: Number(f.totalCount?.integerValue || '0'),
       submittedAt: submittedAtRaw ? Date.parse(submittedAtRaw) : 0,
     };
   });
-  // Filter to learning-games only (syntax-clash + writequest + word-forge +
-  // the voice-quest standalone game + cryo-lockdown + ghost mountain + future
-  // React games)
+  // Filter to the game surfaces BY SOURCE so every connected game shows up:
+  // 'learning-games' covers all React registry ids (Tense Master, Affix
+  // Architect, Context Clue Sleuth, Main Idea Mission, Verb Relay, Sound
+  // Match Studio, Listening Scout, …) + the standalone games; 'brain-lounge'
+  // is the Galica arcade; 'tense-master' the external Tense Master app;
+  // 'rfc1'/'rfc2'/'rfc3' are the Reading Future dictation / unscramble /
+  // unit-test worksheet games. Legacy slug + title matches kept for old rows.
+  // Teacher-graded 'assignment' rows stay OUT — they belong to the teacher
+  // dashboard feed, not a public games leaderboard.
+  const GAME_SOURCES = ['learning-games', 'brain-lounge', 'tense-master', 'rfc1', 'rfc2', 'rfc3'];
   return all.filter(a =>
+    GAME_SOURCES.includes(a.drillSource) ||
     a.drillSlug.startsWith('syntax-clash') ||
     a.drillSlug.startsWith('writequest') ||
     a.drillSlug.startsWith('word-forge') ||
@@ -356,7 +376,7 @@ export function GameLeaderboard({ highlightPlayer }: GameLeaderboardProps) {
                   <p className="truncate text-slate-300">
                     <span className="font-semibold text-white">{a.studentName}</span>{' '}
                     <span className="text-slate-500">played</span>{' '}
-                    <span className="text-slate-300">{gameNameFromSlug(a.drillSlug)}</span>
+                    <span className="text-slate-300">{a.drillTitle || gameNameFromSlug(a.drillSlug)}</span>
                   </p>
                   <p className="text-[9px] text-slate-600">
                     {a.correctCount}/{a.totalCount} correct ({a.scorePct}%) · {timeAgo(a.submittedAt)}

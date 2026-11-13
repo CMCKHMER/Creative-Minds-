@@ -318,6 +318,13 @@ function checkAnswers(){
  const perfect=(gapCorrect===4&&solvedCount===4);
  disp.style.color=perfect?'var(--ok)':'var(--cyl)';
  disp.innerHTML=perfect?`✓ Perfect! Sentences rebuilt 4/4 · Gaps placed 4/4.`:`Sentences rebuilt: ${solvedCount}/4 · Gaps placed correctly: ${gapCorrect}/4 — keep going!`;
+ /* CMC leaderboard (owner: connect all games) — same drill_attempts schema as rfc2/rfc3:
+    signed-in runs POST under the session token, guests under the validated guest branch. */
+ try{var _sn='';var _suid='';var _tok=localStorage.getItem('cmc-student-token');var _raw=(localStorage.getItem('cmc-student-name')||'').trim();var _ok=gapCorrect+solvedCount,_tot=8;
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(_raw)){var _w=_raw.split('@')[0].split(/[._+\-]+/).filter(Boolean);_raw=_w.length?_w.map(function(x){return x.charAt(0).toUpperCase()+x.slice(1)}).join(' '):'';}
+  if(_raw&&_tok){_sn=_raw;_suid=localStorage.getItem('cmc-student-uid')||'';}
+  else{try{var _pn=JSON.parse(localStorage.getItem('cmc-player-name')||'null');if(_pn&&_pn.name&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(_pn.name))_sn=String(_pn.name).slice(0,40);}catch(e){}}
+  if(_sn){fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},_tok?{'Authorization':'Bearer '+_tok}:{}),body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title.split('—')[0].trim()+' · Unscramble'},drillSource:{stringValue:'rfc1'},studentName:{stringValue:_sn.slice(0,40)},studentUid:{stringValue:_suid},classId:(function(){var c=localStorage.getItem('cmc-student-classId');return c?{stringValue:c}:{nullValue:null}})(),scorePct:{integerValue:String(Math.max(0,Math.min(100,Math.round(_ok/_tot*100))))},correctCount:{integerValue:String(_ok)},totalCount:{integerValue:String(_tot)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){});}}catch(e){}
 }
 function shareText(){const n=document.getElementById('studentName').value.trim();return `Reading Future Change 1 — Unscramble Sheet (${unitSelect.value||'all units'})${n?' · '+n:''}`;}
 function shareWorksheet(){if(navigator.share){navigator.share({title:'Reading Future Change 1 — Unscramble Sheet',text:shareText(),url:location.href}).catch(()=>{});return;}document.getElementById('sharePanel').classList.toggle('open');}

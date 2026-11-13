@@ -226,6 +226,14 @@ function checkAnswers(){
  const disp=document.getElementById('scoreDisplay');disp.style.display='block';
  disp.style.color=score===total?'var(--ok)':'var(--cyl)';
  disp.innerHTML=score===total?`✓ Perfect dictation! ${total}/${total} correct.`:`Score: ${score}/${total} correct · ${total-answered} blank${total-answered===1?'':'s'} remaining.`;
+ /* CMC leaderboard (owner: connect all games) — same drill_attempts schema as rfc2/rfc3:
+    signed-in runs POST under the session token, guests under the validated guest branch
+    (empty studentUid, classId null); an email is never a display name. */
+ try{var _sn='';var _suid='';var _tok=localStorage.getItem('cmc-student-token');var _raw=(localStorage.getItem('cmc-student-name')||'').trim();
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(_raw)){var _w=_raw.split('@')[0].split(/[._+\-]+/).filter(Boolean);_raw=_w.length?_w.map(function(x){return x.charAt(0).toUpperCase()+x.slice(1)}).join(' '):'';}
+  if(_raw&&_tok){_sn=_raw;_suid=localStorage.getItem('cmc-student-uid')||'';}
+  else{try{var _pn=JSON.parse(localStorage.getItem('cmc-player-name')||'null');if(_pn&&_pn.name&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(_pn.name))_sn=String(_pn.name).slice(0,40);}catch(e){}}
+  if(_sn){fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},_tok?{'Authorization':'Bearer '+_tok}:{}),body:JSON.stringify({fields:{drillSlug:{stringValue:window.location.pathname.split('/').pop()},drillTitle:{stringValue:document.title.split('—')[0].trim()+' · Dictation'},drillSource:{stringValue:'rfc1'},studentName:{stringValue:_sn.slice(0,40)},studentUid:{stringValue:_suid},classId:(function(){var c=localStorage.getItem('cmc-student-classId');return c?{stringValue:c}:{nullValue:null}})(),scorePct:{integerValue:String(total?Math.max(0,Math.min(100,Math.round(score/total*100))):0)},correctCount:{integerValue:String(score)},totalCount:{integerValue:String(total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){});}}catch(e){}
 }
 function showKey(){
  const U=UNITS[unitSelect.value];const total=U.ans.length;

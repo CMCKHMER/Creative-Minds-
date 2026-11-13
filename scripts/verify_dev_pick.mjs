@@ -106,7 +106,16 @@ for (const [needle, label] of [
   ['https://cmckhmer.github.io/Creative-Minds-/#games', 'bottom-bar Class leaderboard link'],
   ['data-cmc-copy', 'share: copy link'], ['wa.me', 'share: WhatsApp'], ['t.me/share', 'share: Telegram'], ['mailto:', 'share: Email'],
   ['Developer\'s Pick', 'page carries the Developer\'s Pick eyebrow'],
+  // AI illustrations woven into the reading (Nov 2026 owner request)
+  ['./images/ghost-mountain/gm-temple.jpg', 'figure: temple landscape illustration'],
+  ['./images/ghost-mountain/gm-terrain.jpg', 'figure: terrain + caution learning aid'],
+  ['./images/ghost-mountain/gm-remembrance.jpg', 'figure: lotus remembrance illustration'],
+  ['AI illustration, not an archival photograph', 'caption discipline kept on all figures'],
+  ['not a reconstruction of any event', 'temple caption neutrality label'],
+  ['a moment of reflection, not a depiction of the event', 'remembrance caption neutrality label'],
 ]) ok(ws.includes(needle), label);
+ok((ws.match(/<figure class="gm-fig">/g) || []).length === 3, 'all 3 AI illustrations present');
+ok((ws.match(/loading="lazy"/g) || []).length === 3, 'all illustrations lazy-loaded');
 ok(!ws.includes('inviteMode'), 'no inviteMode key (rules guard satisfied)');
 ok(!/TODO|XXX|【/.test(ws), 'no leftover placeholders');
 ok((ws.match(/opts: \[/g) || []).length === 8, 'all 8 Part A questions present');
