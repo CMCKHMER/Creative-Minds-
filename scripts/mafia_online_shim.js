@@ -453,8 +453,13 @@ const MN_FS = (function () {
     });
   }
   function feedMsg(m) {
+    // chat entries in the engine log carry their payload in .msg (the
+    // broadcast's Firestore write maps the same way) — reading .text alone
+    // made the HOST's own feed render every chat as an empty bubble (v67 fix;
+    // guests were fine because their poll reads the Firestore doc, where the
+    // text was already written from m.msg)
     if (m.channel === 'system' || m.channel === 'private') return { channel: m.channel, text: m.text };
-    return { channel: m.channel, text: m.text, from: { id: m.fromId, name: m.fromName, color: m.fromColor } };
+    return { channel: m.channel, text: m.msg !== undefined ? m.msg : m.text, from: { id: m.fromId, name: m.fromName, color: m.fromColor } };
   }
   async function poll() {
     if (!C.code || C.busy || C.gone) return;

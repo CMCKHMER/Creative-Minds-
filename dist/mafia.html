@@ -644,7 +644,7 @@ function saveO(s){O.session=s;try{localStorage.setItem("mnSession",JSON.stringif
 function clearO(){O.session=null;try{localStorage.removeItem("mnSession")}catch(e){}}
 function sendO(o){MN_FS.send(o)}
 function setConn(s){$("#connDot").className="dot "+(s==="live"?"live":s==="off"?"off":"");$("#connText").textContent=s==="live"?"LIVE":s==="off"?"RECONNECTING":"CONNECTING"}
-function connectO(){MN_FS.connect()}
+function connectO(){O._cfgKey=null;MN_FS.connect()}
 function handleO(m){
  if(m.type==="joined"){saveO({token:m.token,playerId:m.playerId,roomCode:m.roomCode});O.sel=null;O.prevPhase=null;O.hadState=false;O.lastResultKey="";O.revealedGame=null;O.endKey="";app.mode="online";clearFeed();return}
  if(m.type==="log"){clearFeed();m.messages.forEach(appendChat);return}
@@ -689,7 +689,7 @@ function render(){
  else if(app.screen==="game"){$("#lobbyPanel").hidden=true;$("#tableWrap").hidden=false;renderTable();renderRolePanel();renderActionBar();renderChatInput()}
  else{$("#actionBar").hidden=true}
 }
-function renderOnlineLobby(){const V=app.V,host=V.room.hostId===O.session?.playerId;$("#roomCode").textContent=V.room.code;
+function renderOnlineLobby(){const V=app.V,host=V.room.hostId===O.session?.playerId;if(host&&V.room.phase==="lobby"){const ck=["night","day","vote"].map(k=>$("#cfg"+k.charAt(0).toUpperCase()+k.slice(1))).map(el=>el?el.value:"").join("|");if(O._cfgKey!==ck){O._cfgKey=ck;["night","day","vote"].forEach((k,i)=>{const v=ck.split("|")[i];if(v)sendO({type:"config",key:k,value:+v})})}}$("#roomCode").textContent=V.room.code;
  $("#lobbyPlayers").innerHTML=V.players.map(p=>`<div class="pcard"><span class="crown">${p.isHost?"♛":""}</span><span class="conn dot ${p.connected?"live":"off"}"></span><div class="av">${avatarSVG(p)}</div><b>${esc(p.name)}</b><div class="sub">${p.id===V.you.id?"YOU":""} ${p.connected?"":"· OFFLINE"}</div></div>`).join("");
  ["Night","Day","Vote"].forEach(k=>{const e=$("#cfg"+k);e.value=V.room.config[k.toLowerCase()];e.disabled=!host});
  const n=V.players.length,m=mafiaCount(n);$("#onlinePreview").innerHTML=`${n}/${V.room.max} players → <b style="color:var(--red2)">${m} Mafia</b> · <b style="color:var(--blue2)">1 Detective</b> · <b style="color:var(--green)">1 Doctor</b> · <b style="color:var(--gold2)">${Math.max(0,n-m-2)} Citizens</b>`;
@@ -1524,8 +1524,13 @@ const MN_FS = (function () {
     });
   }
   function feedMsg(m) {
+    // chat entries in the engine log carry their payload in .msg (the
+    // broadcast's Firestore write maps the same way) — reading .text alone
+    // made the HOST's own feed render every chat as an empty bubble (v67 fix;
+    // guests were fine because their poll reads the Firestore doc, where the
+    // text was already written from m.msg)
     if (m.channel === 'system' || m.channel === 'private') return { channel: m.channel, text: m.text };
-    return { channel: m.channel, text: m.text, from: { id: m.fromId, name: m.fromName, color: m.fromColor } };
+    return { channel: m.channel, text: m.msg !== undefined ? m.msg : m.text, from: { id: m.fromId, name: m.fromName, color: m.fromColor } };
   }
   async function poll() {
     if (!C.code || C.busy || C.gone) return;

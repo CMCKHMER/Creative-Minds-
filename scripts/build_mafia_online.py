@@ -79,6 +79,23 @@ shim = open(SHIM, encoding='utf-8').read().strip()
 shim_block = '<script>\n' + shim + '\n</script>\n</body>'
 swap('</body>', shim_block, label='W4 shim injected')
 
+# ── W6: the host pace selects were DEAD (audit find, v67) ───────────────
+# The create form's Night/Discussion/Ballot selects (cfgNight/cfgDay/cfgVote)
+# were never read by the engine — every room ran the shim defaults
+# (night 90s / day 150s / vote 45s) no matter what the host picked. The shim
+# already accepts {type:'config', key, value} from the host during the lobby
+# (clamped 10-300s); this wires the UI to it: on entering the lobby the host
+# pushes the three select values once, and again whenever a select changes.
+# connectO clears the memo so a NEW room re-pushes even with unchanged picks.
+swap('function connectO(){MN_FS.connect()}',
+     'function connectO(){O._cfgKey=null;MN_FS.connect()}',
+     label='W6a config memo reset on connect')
+swap('function renderOnlineLobby(){const V=app.V,host=V.room.hostId===O.session?.playerId;',
+     'function renderOnlineLobby(){const V=app.V,host=V.room.hostId===O.session?.playerId;'
+     'if(host&&V.room.phase==="lobby"){const ck=["night","day","vote"].map(k=>$("#cfg"+k.charAt(0).toUpperCase()+k.slice(1))).map(el=>el?el.value:"").join("|");'
+     'if(O._cfgKey!==ck){O._cfgKey=ck;["night","day","vote"].forEach((k,i)=>{const v=ck.split("|")[i];if(v)sendO({type:"config",key:k,value:+v})})}}',
+     label='W6b pace selects → shim config')
+
 open(OUT, 'w', encoding='utf-8').write(html)
 print(f'total swaps: {len(swaps)}')
 for s in swaps: print('  •', s)

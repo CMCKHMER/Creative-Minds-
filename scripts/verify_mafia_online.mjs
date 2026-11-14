@@ -174,6 +174,19 @@ for (const p of pages) {
   p.on('requestfailed', r => { if (r.url().includes('firestore')) console.log('DEBUG reqfailed:', r.method(), r.url().slice(-70), r.failure()?.errorText); });
   p.on('console', m => { if (m.text().startsWith('MN_FS')) console.log(`PAGE[${pages.indexOf(p)}]:`, m.text().slice(0, 160)); });
 }
+// instrument the chat routing on every screen: which texts reach handleO?
+for (const p of pages) {
+  await p.evaluate(() => {
+    try {
+      window._chatCalls = [];
+      const orig = window.handleO;
+      if (typeof orig === 'function') window.handleO = function (m) {
+        try { if (m && m.type === 'chat') window._chatCalls.push((m.message?.channel || '') + ':' + String(m.message?.text || '').slice(0, 26)); } catch (e) {}
+        return orig(m);
+      };
+    } catch (e) {}
+  });
+}
 await pages[0].click('#onlineMode');
 await pages[0].click('#createBtn');
 await pages[0].waitForSelector('#roomChip:has-text("CODE · ")', { timeout: 30000 }).catch(async () => {
@@ -201,6 +214,25 @@ for (let t = 0; t < 40 && lobby < 4; t++) {
 ok('lobby: all four screens in the lobby', lobby === 4, `${lobby}/4`);
 let pcards = await pages[0].locator('#lobbyPlayers .pcard').count();
 ok('lobby: host table shows 4 seats', pcards === 4, `${pcards} seats`);
+
+// W6: the pace selects live in the lobby panel — the host picks the fastest
+// pace (their first render already pushed the 30/60/30 defaults to the shim;
+// the selectOptions below pin the same values explicitly). The v66 build
+// never read these selects — rooms always ran the 90/150/45 defaults.
+await pages[0].waitForSelector('#cfgNight', { state: 'visible', timeout: 20000 });
+await pages[0].selectOption('#cfgNight', '30');
+await pages[0].selectOption('#cfgDay', '60');
+await pages[0].selectOption('#cfgVote', '30');
+
+// W6 pin: the host's pace picks ride to the host engine and back into every
+// player's view (night 30 / day 60 / vote 30)
+let cfg = null;
+for (let t = 0; t < 15 && !cfg; t++) {
+  await pages[0].waitForTimeout(1000);
+  cfg = await pages[1].evaluate(() => app.V && app.V.room && app.V.room.config
+    ? { night: Number(app.V.room.config.night), day: Number(app.V.room.config.day), vote: Number(app.V.room.config.vote) } : null).catch(() => null);
+}
+ok('lobby: host pace config reaches every seat (30/60/30)', !!cfg && cfg.night === 30 && cfg.day === 60 && cfg.vote === 30, cfg ? JSON.stringify(cfg) : 'no config in view');
 
 // start the case (host)
 await pages[0].waitForFunction(() => { const b = document.querySelector('#startBtn'); return b && !b.disabled; }, { timeout: 30000 }).catch(() => {
@@ -256,19 +288,36 @@ for (let i = 0; i < 4; i++) {
 ok('deal: one Mafia dealt across four seats', roles.filter(r => r === 'mafia').length === 1, roles.join(', '));
 const mafiaIdx = roles.indexOf('mafia');
 
-// the Mafia whispers during the night — only their own view may carry it
-async function nightAct(p, role) {
-  if (await p.locator('.seat.selectable').count()) {
-    await p.locator('.seat.selectable').first().click();
-    await p.click('#confirmOnline');
-    return true;
+// the Mafia whispers during the night — only their own view may carry it.
+// HARDENED (the v66 flake): the driver used to click seat+confirm blindly —
+// if the view hadn't synced yet the confirm click no-oped, no action doc was
+// posted and the host waited out the full phase timer while the chat-wait
+// died at 45s. Now: poll for a selectable seat (≤10s), wait for the confirm
+// button to be ENABLED before clicking (≤4s), fall back to the abstain
+// button, and settle before moving on.
+async function actOn(p) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      for (let t = 0; t < 20 && !(await p.locator('.seat.selectable').count()); t++) await p.waitForTimeout(500);
+      if (!(await p.locator('.seat.selectable').count())) return false;
+      await p.locator('.seat.selectable').first().click({ timeout: 5000 });
+      const c = p.locator('#confirmOnline');
+      let clicked = false;
+      for (let t = 0; t < 10; t++) {
+        if (await c.count() && await c.isEnabled()) { await c.click({ timeout: 5000 }); clicked = true; break; }
+        await p.waitForTimeout(400);
+      }
+      if (!clicked) { const ab = p.locator('#abstainOnline'); if (await ab.count()) { await ab.click({ timeout: 5000 }).catch(() => {}); return true; } return false; }
+      await p.waitForTimeout(600);
+      return true;
+    } catch (e) { await p.waitForTimeout(600); } // a re-render detached the element — retry
   }
   return false;
 }
 await pages[mafiaIdx].waitForFunction(() => { const i = document.querySelector('#chatInput'); return i && !i.disabled; }, { timeout: 30000 });
 await pages[mafiaIdx].fill('#chatInput', 'whisper-the-night-owns-this');
 await pages[mafiaIdx].press('#chatInput', 'Enter');
-for (let i = 0; i < 4; i++) await nightAct(pages[i], roles[i]);
+for (let i = 0; i < 4; i++) await actOn(pages[i]);
 // wait for dawn (day phase) on all screens
 let day = 0;
 for (let t = 0; t < 40 && day < 4; t++) {
@@ -279,6 +328,17 @@ for (let t = 0; t < 40 && day < 4; t++) {
   for (const p of pages) if ((await p.locator('#phaseChip').textContent()).includes('DAY')) day++;
 }
 ok('night resolved to day on all screens', day === 4, `${day}/4`);
+if (day !== 4 || !(await pages[mafiaIdx].locator('.msg.mafia:has-text("whisper-the-night-owns-this")').count())) {
+  console.log('DEBUG whisper-miss dump: mafiaIdx=', mafiaIdx);
+  const roomKey = [...DB.keys()][0];
+  if (roomKey) {
+    const views = DB.get(roomKey).views;
+    for (const [u, f] of views) {
+      const feed = f.feed?.arrayValue?.values || [];
+      console.log(`DEBUG view ${u} seq=${f.seq?.integerValue} len=${feed.length} mafia-tail=`, JSON.stringify(feed.slice(-4).map(v => (v.mapValue.fields.channel?.stringValue || '') + ':' + (v.mapValue.fields.text?.stringValue || '').slice(0, 30))));
+    }
+  }
+}
 ok('secrecy: mafia whisper only in their own feed', (await pages[mafiaIdx].locator('.msg.mafia:has-text("whisper-the-night-owns-this")').count()) >= 1
   && (await Promise.all(pages.filter((_, i) => i !== mafiaIdx).map(p => p.locator('.msg.mafia:has-text("whisper-the-night-owns-this")').count()))).every(c => c === 0));
 
@@ -321,26 +381,35 @@ for (let t = 0; t < 30 && chatOk < aliveIdx.length; t++) {
   for (const i of aliveIdx) per.push([i, await pages[i].locator(`.msg:has-text("${probe}")`).count()]);
   chatOk = per.filter(([, c]) => c > 0).length;
 }
+if (chatOk < aliveIdx.length) {
+  console.log('DEBUG chat-miss dump:');
+  const roomKey = [...DB.keys()][0];
+  if (roomKey) {
+    const acts = DB.get(roomKey).actions;
+    console.log('DEBUG action docs=', [...acts].map(([u, f]) => `${u}:${f.action?.stringValue}@${(f.at?.timestampValue || '').slice(11, 19)} text=${(f.text?.stringValue || '').slice(0, 24)}`).join(' | '));
+    const views = DB.get(roomKey).views;
+    for (const [u, f] of views) {
+      const feed = f.feed?.arrayValue?.values || [];
+      console.log(`DEBUG view ${u} seq=${f.seq?.integerValue} len=${feed.length} tail=`, JSON.stringify(feed.slice(-3).map(v => (v.mapValue.fields.fromId?.stringValue || '') + ':' + (v.mapValue.fields.text?.stringValue || '').slice(0, 24))));
+    }
+  }
+  for (const j of aliveIdx) console.log(`DEBUG p${j} chatCalls=`, await pages[j].evaluate(() => (window._chatCalls || []).slice(-6)).catch(e => 'err'), 'domMsgs=', await pages[j].evaluate(() => document.querySelectorAll('#feed .msg').length).catch(() => '?'));
+}
 ok('day chat: public messages reach every living screen', chatOk === aliveIdx.length, per.map(([i, c]) => `p${i}:${c}`).join(' '));
 const ghostLeak = aliveIdx.length < 4 ? (await Promise.all(aliveIdx.map(i => pages[i].locator('.msg.ghost').count()))).every(c => c === 0) : true;
 ok('day chat: no ghost chatter leaks to the living', ghostLeak, '');
 
-// play until the end modal (host calls the vote each day)
+// play until the end modal (host calls the vote each day; 80 rounds ≈ the
+// full case with headroom at the 30/60/30 pace)
 let ended = false, rounds = 0;
-while (!ended && rounds++ < 40) {
+while (!ended && rounds++ < 80) {
   await pages[0].waitForTimeout(800);
   if (await pages[0].locator('#modalBox .reveal-grid').count()) { ended = true; break; }
   for (let i = 0; i < 4; i++) {
     const p = pages[i];
-    if (await p.locator('#modalBox .m-actions button').count()) { await p.click('#modalBox .m-actions button'); await p.waitForTimeout(300); continue; }
-    if (await p.locator('#callOnline').count()) { await p.click('#callOnline'); continue; }
-    if (await p.locator('.seat.selectable').count()) {
-      await p.locator('.seat.selectable').first().click();
-      const c = p.locator('#confirmOnline');
-      if (await c.count() && await c.isEnabled()) await c.click();
-      else { const ab = p.locator('#abstainOnline'); if (await ab.count()) await ab.click(); }
-      continue;
-    }
+    if (await p.locator('#modalBox .m-actions button').count()) { await p.click('#modalBox .m-actions button', { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(300); continue; }
+    if (await p.locator('#callOnline').count()) { await p.click('#callOnline', { timeout: 5000 }).catch(() => {}); continue; }
+    if (await p.locator('.seat.selectable').count()) await actOn(p);
   }
 }
 ok(`online case reached the end modal (${rounds} rounds)`, ended, '');
@@ -353,10 +422,11 @@ await pages[0].waitForTimeout(2500);
 ok('leaderboard: one POST per player', posts.length === 4, `${posts.length} POST(s)`);
 const titles = posts.map(p => p.fields?.drillTitle?.stringValue || '');
 ok('leaderboard: Online title on every POST', posts.length === 4 && titles.every(t => t === 'Mafia Noir · Online'), titles.join(', '));
-// each player's POST matches THEIR team: the mafia's loss posts 0, town wins post 1
+// each player's POST matches THEIR team (whatever the verdict): team won →
+// 1/1, team lost → 0/1 — the mafia wins when the town doesn't
 const townWon = (await pages[0].locator('#modalBox').textContent()).includes('THE CITY ENDURES');
 const bySeat = posts.map(p => ({ seat: Number(((p.fields?.studentName?.stringValue || '').match(/Student (\d)/) || [])[1] ?? -1), cc: Number(p.fields?.correctCount?.integerValue || '0') }));
-const outcomesOk = posts.length === 4 && bySeat.every(({ seat, cc }) => cc === (roles[seat] === 'mafia' ? 0 : 1));
+const outcomesOk = posts.length === 4 && bySeat.every(({ seat, cc }) => cc === (((roles[seat] === 'mafia') !== townWon) ? 1 : 0));
 ok('leaderboard: outcome matches each player’s team', outcomesOk,
   `verdict=town:${townWon} · ${bySeat.map(b => 'p' + b.seat + '(=' + roles[b.seat] + '):' + b.cc).join(' ')}`);
 

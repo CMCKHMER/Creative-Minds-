@@ -60,16 +60,15 @@ const narrReqs = [];
   await page.click('#rulesBtn');
   ok('rules modal', (await page.locator('#modalBox').textContent()).includes('How to Play'));
   await page.click('#modalBox .m-actions button');
-  // online mode without a game server → explains itself, parks the buttons
+  // online mode without a CMC session → the sign-in gate explains itself
+  // (v66+: the transport is Firestore-backed; rooms need a signed-in CMC
+  // account — the v65 parked-table modal is gone)
   await page.click('#onlineMode');
-  await page.waitForSelector('#modalBox:has-text("No game server here")', { timeout: 20000 }).catch(() => {});
+  await page.waitForSelector('#modalBox:has-text("Sign in to play online")', { timeout: 20000 }).catch(() => {});
   const modalText = await page.locator('#modalBox').textContent().catch(() => '');
-  ok('online guard: dead-end explained (F3)', modalText.includes('No game server here'), modalText.slice(0, 60));
+  ok('online gate: no session → honest modal + CMC link (F3)', modalText.includes('Sign in to play online') && modalText.includes('SIGN IN ON CMC'), modalText.slice(0, 60));
   await page.click('#ouBack').catch(() => {});
-  ok('online guard: create/join parked', await page.evaluate(() => {
-    const c = document.getElementById('createBtn'), j = document.getElementById('joinBtn');
-    return !!c && c.disabled && !!j && j.disabled;
-  }));
+  ok('online gate: back to modes, no dead-end', await page.evaluate(() => !!document.getElementById('hub') && !document.getElementById('hub').hidden));
   // mobile overflow
   await page.setViewportSize({ width: 393, height: 852 });
   await page.goto(BASE + '/mafia.html');
