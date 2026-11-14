@@ -3,9 +3,10 @@ import { useEffect, useState } from 'react';
 /**
  * Official CMC logo — the spinning coin, cut out of the teacher's 360°
  * spin video (crop scripts/make_spinning_logo.py: 640×640 around the disc
- * at (362, 578), watermarks excluded, audio stripped, 190-frame loop).
- * Renders as a circular medallion (rounded-full mask) at the caller's size.
- * Under prefers-reduced-motion the coin does not spin — the video stays on
+ * at (369, 633) so the black medallion ring is even on all sides,
+ * watermarks excluded, audio stripped, 190-frame loop). Renders as a
+ * circular medallion (rounded-full mask) at the caller's size. Under
+ * prefers-reduced-motion the coin does not spin — the video stays on
  * its face-on poster frame instead.
  */
 export function SpinLogo({ size, className = '' }: { size: number; className?: string }) {

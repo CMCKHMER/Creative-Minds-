@@ -1,10 +1,14 @@
 // Spinning logo verification — the teacher's 360° spin video
 // (upload/spining_360_vertical_60036c59.mp4) cut down to ONLY the coin via
-// scripts/make_spinning_logo.py (640×640 crop at (42,258) around the disc at
-// center (362,578), d≈595 — both "Dola AI" watermarks stay outside; audio
+// scripts/make_spinning_logo.py (640×640 crop at (49,313) around the disc at
+// center (369,633), d≈580, measured from rim-run geometry after the first cut
+// at (42,258)/(362,578) sat 55px too high and left an uneven black ring —
+// owner: "center logo so black back ground looks even with logo center";
+// even ~28px ring on all four sides; the small "Dola AI" watermark's top edge
+// lies outside the 320px circle mask and is blacked out in the encode; audio
 // stripped; 190-frame loop; 288×288 webm+mp4+poster) and swapped in as the
 // official logo everywhere the old cmc-m-logo.png image rendered (Navbar
-// 46px, Footer 42px) through SpinLogo.tsx — a circular medallion that
+// 56px, Footer 46px) through SpinLogo.tsx — a circular medallion that
 // autoplays muted+loop and freezes on the face-on poster frame under
 // prefers-reduced-motion.
 import { chromium } from 'playwright';
@@ -46,18 +50,34 @@ for (const f of ['cmc-spin-logo.webm', 'cmc-spin-logo.mp4']) {
   const dur = Number((stdout.match(/duration=([\d.]+)/) || [])[1]);
   ok(`${f}: ~7.9s full spin loop`, dur > 7.8 && dur < 8.0, String(dur));
 }
-// the crop keeps both watermarks out: the output poster's bottom-left corner
-// region (where the big watermark sat in the source) must be dark, and the
-// small right-edge watermark zone (x≈627,y≈939 in source = x 585/640, y 681/640
-// relative) is outside the crop entirely — pin the poster has no bright text
-// blob in its bottom 60px.
+// watermark + centering checks on the poster (288²):
+// (1) the small "Dola AI" watermark's corner (poster x 246-288, y 270-288)
+// is blacked out in the encode AND lies outside the 144px circle mask —
+// pin it fully dark; (2) the disc must be CENTERED in the frame (owner:
+// "center logo so black back ground looks even with logo center") — the
+// bright-mass bbox (>120) center must sit within ±12px of (144,144);
+// the old (42,258) crop failed this with the disc ~25px low.
 {
   const { stdout } = await pexec('ffmpeg', ['-v', 'error', '-i', `${IMG}/cmc-spin-logo-poster.jpg`,
-    '-vf', 'crop=288:60:0:228,format=gray', '-f', 'rawvideo', '-pix_fmt', 'gray', '-']);
-  const buf = stdout;
+    '-vf', 'crop=42:18:246:270,format=gray', '-f', 'rawvideo', '-pix_fmt', 'gray', '-']);
   let bright = 0;
-  for (const b of buf) if (b > 210) bright++;
-  ok('poster bottom band: no watermark text (dark)', bright < 200, `${bright} bright px of ${buf.length}`);
+  for (const b of stdout) if (b > 210) bright++;
+  ok('poster corner: watermark zone blacked out', bright < 20, `${bright} bright px of ${stdout.length}`);
+}
+{
+  const { stdout } = await pexec('ffmpeg', ['-v', 'error', '-i', `${IMG}/cmc-spin-logo-poster.jpg`,
+    '-vf', 'format=gray', '-f', 'rawvideo', '-pix_fmt', 'gray', '-']);
+  const buf = stdout;
+  let x0 = 288, y0 = 288, x1 = 0, y1 = 0;
+  for (let y = 0; y < 288; y++) for (let x = 0; x < 288; x++) {
+    if (buf[y * 288 + x] > 120) {
+      if (x < x0) x0 = x; if (x > x1) x1 = x;
+      if (y < y0) y0 = y; if (y > y1) y1 = y;
+    }
+  }
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  ok('disc centered in the frame (even black ring)', Math.abs(cx - 144) <= 12 && Math.abs(cy - 144) <= 12,
+    `bright bbox center (${cx.toFixed(0)},${cy.toFixed(0)}) — must be (144±12,144±12)`);
 }
 
 /* ---- B. source pins: SpinLogo + swaps ---- */
