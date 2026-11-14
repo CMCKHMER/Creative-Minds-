@@ -14,6 +14,7 @@ import {
   MAX_ENTRIES,
   type ScoreEntry,
 } from '../games/brickforge/highscores';
+import { aggregateMafia } from '../lib/brainLoungeStats';
 
 /** Minimal localStorage stub — vitest runs in a node environment, but the
  * highscore module (and the game itself) touches localStorage everywhere. */
@@ -78,10 +79,10 @@ describe('brain lounge registry', () => {
     expect(reservedBays().length).toBeGreaterThanOrEqual(1);
   });
 
-  it('leads the shelf with BrickForge, Galica in bay 2, Neon Sequence retired', () => {
+  it('leads the shelf with BrickForge, Galica in bay 2, Mafia Noir in bay 4, Neon Sequence retired', () => {
     expect(BRAIN_GAMES[0]?.id).toBe('brickforge');
     expect(BRAIN_GAMES.some((g) => g.id === 'neon-sequence')).toBe(false);
-    expect(liveBrainGames().map((g) => g.id)).toEqual(['brickforge', 'chess3d', 'galica']);
+    expect(liveBrainGames().map((g) => g.id)).toEqual(['brickforge', 'chess3d', 'galica', 'mafia']);
   });
 
   it('react cartridges load a default component', async () => {
@@ -228,5 +229,78 @@ describe('galica standalone cartridge', () => {
     expect(html.match(/CMC_GALICA_SUBMIT\(/g)?.length).toBeGreaterThanOrEqual(2); // …and fired from both game-over sites
     expect(html).toContain("drillSource:{stringValue:'brain-lounge'}");
     expect(html).toContain('</html>');
+  });
+});
+
+/** Mafia Noir cartridge — the lounge's standalone social-deduction game.
+ * Pins the shipped file together with its CMC integration (identity,
+ * leaderboard POST, narrator audio, AI art) and the three bug fixes the
+ * audit made, so none of them can silently regress. */
+describe('mafia noir standalone cartridge', () => {
+  const mafia = BRAIN_GAMES.find((g) => g.id === 'mafia');
+
+  it('is registered as a live standalone cartridge in bay 04', () => {
+    expect(mafia).toBeDefined();
+    expect(mafia!.status).toBe('live');
+    expect(mafia!.mode).toBe('standalone');
+    expect(mafia!.launchUrl).toBe('./mafia.html');
+    expect(mafia!.genre).toBe('Deduction');
+  });
+
+  it('ships the game file with the CMC integration block intact', () => {
+    const html = readFileSync(resolve(process.cwd(), 'public', 'mafia.html'), 'utf8');
+    expect(html).toContain('cmcmafia:game'); // engine result event…
+    expect(html.match(/cmcmafia:phase/g)?.length).toBeGreaterThanOrEqual(4); // …+ phase narrator hooks
+    expect(html).toContain("stringValue: 'brain-lounge'"); // lounge leaderboard source
+    expect(html).toContain("stringValue: 'mafia.html'"); // lounge slug
+    expect(html).toContain('cmcNameIn'); // identity inputs on the hub
+    expect(html).toContain('cmc-student-name'); // email-guard/heal shared keys
+    expect(html).toContain('mafia-audio/narr-night.mp3'); // narrator wired
+    expect(html).toContain('mafia-art/mafia-city.jpg'); // AI hero art wired
+    expect(html).toContain('mafia-art/mafia-${k}.jpg'); // AI fan portraits wired
+    expect(html).toContain('</html>');
+  });
+
+  it('carries the three audit bug fixes', () => {
+    const html = readFileSync(resolve(process.cwd(), 'public', 'mafia.html'), 'utf8');
+    // F1: human influence statements are PUBLIC, not syndicate whispers
+    expect(html).not.toContain('"mafia");applyAccuse');
+    expect(html).not.toContain('"mafia");applyClaim');
+    expect(html).toContain('"public");applyAccuse');
+    expect(html).toContain('"public");applyClaim');
+    // F11: typing a seat name no longer rebuilds the roster (focus loss)
+    expect(html).toContain('renderSetupMeta()');
+    // F3: the online mode explains itself when no game server exists
+    expect(html).toContain('onlineUnavailable');
+  });
+});
+
+/** Mafia lounge aggregation — decodes the case outcome the game posts. */
+describe('mafia lounge aggregation', () => {
+  const attempt = (over: Partial<import('../lib/brainLoungeStats').LoungeAttempt>) => ({
+    studentName: 'Dara', drillSlug: 'mafia.html', drillSource: 'brain-lounge',
+    scorePct: 100, correctCount: 1, totalCount: 1, submittedAt: 1000, ...over,
+  });
+
+  it('decodes team wins and losses from the correct/total pair', () => {
+    const rows = aggregateMafia([
+      attempt({}),                                   // team win
+      attempt({ correctCount: 0, scorePct: 50 }),    // loss but survived
+      attempt({ correctCount: 0, scorePct: 25, submittedAt: 2000 }),
+    ]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ name: 'Dara', cases: 3, wins: 1, losses: 2, lastPlayed: 2000 });
+  });
+
+  it('ignores other cartridges and sorts by wins, then losses, then cases', () => {
+    const rows = aggregateMafia([
+      attempt({ studentName: 'B', correctCount: 0 }),
+      attempt({ studentName: 'A', correctCount: 0, submittedAt: 500 }),
+      attempt({ studentName: 'A', submittedAt: 900 }),
+      attempt({ studentName: 'C', drillSlug: 'galica', correctCount: 5, totalCount: 0 }),
+      attempt({ studentName: 'C', drillSource: 'learning-games' }),
+    ]);
+    expect(rows.map((r) => r.name)).toEqual(['A', 'B']);
+    expect(rows[0]).toMatchObject({ wins: 1, losses: 1, cases: 2 });
   });
 });

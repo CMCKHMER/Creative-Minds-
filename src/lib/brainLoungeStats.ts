@@ -13,6 +13,10 @@
  *  • galica — one arcade run: correctCount carries the RAW score (points),
  *    scorePct = floor(score / 100) capped at 100, totalCount stays 0
  *    (see public/arcade/galica/index.html CMC_GALICA_SUBMIT).
+ *  • mafia.html — one social-deduction case: correctCount = 1 when YOUR
+ *    team won (0 on a loss), totalCount = 1; scorePct carries the margin
+ *    (100 team win, 50 loss-but-survived, 25 eliminated in a loss)
+ *    (see public/mafia.html CMC integration block).
  */
 
 export interface LoungeAttempt {
@@ -64,6 +68,38 @@ export function isChessAttempt(a: LoungeAttempt): boolean {
 
 export function isGalicaAttempt(a: LoungeAttempt): boolean {
   return a.drillSource === "brain-lounge" && a.drillSlug === "galica";
+}
+
+export interface MafiaRecord {
+  name: string;
+  cases: number;
+  wins: number; // your team won the case
+  losses: number;
+  lastPlayed: number;
+}
+
+export function isMafiaAttempt(a: LoungeAttempt): boolean {
+  return a.drillSource === "brain-lounge" && a.drillSlug === "mafia.html";
+}
+
+export function aggregateMafia(attempts: LoungeAttempt[]): MafiaRecord[] {
+  const byName = new Map<string, MafiaRecord>();
+  for (const a of attempts) {
+    if (!isMafiaAttempt(a)) continue;
+    let entry = byName.get(a.studentName);
+    if (!entry) {
+      entry = { name: a.studentName, cases: 0, wins: 0, losses: 0, lastPlayed: 0 };
+      byName.set(a.studentName, entry);
+    }
+    entry.cases += 1;
+    // Decode the outcome from the correct/total pair (team win 1/1, loss 0/1).
+    if (a.totalCount === 1 && a.correctCount === 1) entry.wins += 1;
+    else if (a.totalCount === 1 && a.correctCount === 0) entry.losses += 1;
+    entry.lastPlayed = Math.max(entry.lastPlayed, a.submittedAt);
+  }
+  return [...byName.values()].sort(
+    (x, y) => y.wins - x.wins || x.losses - y.losses || y.cases - x.cases || y.lastPlayed - x.lastPlayed,
+  );
 }
 
 export function aggregateBrickforge(attempts: LoungeAttempt[]): BrickEntry[] {
