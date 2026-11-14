@@ -42,6 +42,19 @@ const listeningGameScript = 'Teacher: The model wind turbine will be ready for t
 
 export const LEARNING_GAMES: LearningGame[] = [
   {
+    id: 'reason-lab',
+    title: 'Reason Lab · Critical Thinking Trainer',
+    skill: 'Reading',
+    level: 'Grades 5–12',
+    duration: '4 modes · 2–6 min per session',
+    description: 'An advanced critical-thinking trainer that separates reasoning into eight trainable skills — Evidence & Sources, Fallacy Detection, Bias & Perspective, Causal Reasoning, Assumptions, Data Literacy, Argument & Steelman and Decision Under Risk — each reported independently with a mastery bar. Four modes: Campaign (a mixed diagnostic across all eight skills), Gauntlet (a 90-second sprint where correct answers add time, errors cost time and streaks multiply points), Drill (one skill on repeat until it is automatic) and Case File (a dossier of conflicting documents followed by five linked decisions about the same evidence). Three item types are graded exactly — single choice, select-all-that-apply and rank-in-order — across three tiers worth 10/15/20 points, and the full review screen explains every item you missed. XP feeds six ranks from Novice to Architect, 13 badges, per-skill mastery tracking, difficulty/session-length controls, pressure timers, sound cues, export and print report, keyboard play (1–4, Enter, Esc). Finished sessions post to the class leaderboard with name + ID, and the Share-with-class kit lets the teacher run it as a competitive class challenge.',
+    instructions: 'Open Reason Lab, key in your name and ID on the briefing, pick a mode (start with Campaign), set difficulty and session length on the right rail, then answer with keys 1–4 and Enter. Send each session report to the class leaderboard with 📡 SEND SCORE.',
+    externalUrl: './reason-lab.html',
+    badge: 'New',
+    leaderboardLink: true,
+    questions: [],
+  },
+  {
     id: 'cryo-lockdown',
     title: 'Cryo-Vault Lockdown · DNA Bank Escape',
     skill: 'Reading',

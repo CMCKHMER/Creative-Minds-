@@ -70,6 +70,7 @@ function gameNameFromSlug(slug: string): string {
     'word-forge-match': 'Word Forge · Match',
     'cryo-lockdown.html': 'Cryo-Vault Lockdown',
     'dev-pick-ghost-mountain.html': 'Ghost Mountain · Reading & Quiz',
+    'reason-lab.html': 'Reason Lab · Critical Thinking Trainer',
     'voice-quest-l1': 'Talk to me · Level 1',
     'voice-quest-l2': 'Talk to me · Level 2',
     'voice-quest-l3': 'Talk to me · Level 3',
@@ -149,12 +150,14 @@ async function fetchGameAttempts(): Promise<Attempt[]> {
     a.drillSlug.startsWith('voice-quest') ||
     a.drillSlug.startsWith('cryo-lockdown') ||
     a.drillSlug.startsWith('dev-pick-ghost-mountain') ||
+    a.drillSlug.startsWith('reason-lab') ||
     a.drillTitle.toLowerCase().includes('syntax clash') ||
     a.drillTitle.toLowerCase().includes('writequest') ||
     a.drillTitle.toLowerCase().includes('word forge') ||
     a.drillTitle.toLowerCase().includes('talk to me') ||
     a.drillTitle.toLowerCase().includes('cryo-vault') ||
-    a.drillTitle.toLowerCase().includes('ghost mountain')
+    a.drillTitle.toLowerCase().includes('ghost mountain') ||
+    a.drillTitle.toLowerCase().includes('reason lab')
   );
 }
 

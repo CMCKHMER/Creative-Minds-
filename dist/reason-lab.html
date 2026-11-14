@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reason Lab · Advanced Critical Thinking Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --bg0:#070b14; --bg1:#0d1424; --bg2:#111d33;
+  --surface:#101a2c; --raised:#16233a; --overlay:#1a2942;
+  --paper:#f4eee0; --paper-ink:#22201c;
+  --amber:#f5a524; --cyan:#22d3ee; --green:#34d399; --red:#fb7185;
+  --violet:#a78bfa; --blue:#60a5fa; --lime:#a3e635; --orange:#fb923c;
+  --text:#e8eefb; --muted:#93a6c4; --dim:#64789a;
+  --line:rgba(245,165,36,.2); --line2:rgba(245,165,36,.42);
+  --scrim:rgba(4,7,14,.9);
+  --head:66px; --rail:290px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{scrollbar-color:var(--amber) var(--bg0);scrollbar-width:thin;scroll-behavior:smooth}
+body{
+  font-family:'Outfit',system-ui,sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;
+  background:linear-gradient(168deg,var(--bg0),var(--bg1) 50%,var(--bg2)) fixed;
+}
+body.locked{overflow:hidden}
+body.nomotion *,body.nomotion *::before,body.nomotion *::after{animation:none!important;transition:none!important}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#080d18;border-left:1px solid rgba(245,165,36,.12)}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--amber),#8a5a12);border-radius:9px;border:3px solid #080d18}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(var(--cyan),var(--violet))}
+::-webkit-scrollbar-corner{background:#080d18}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px;border-radius:5px}
+.mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+
+/* ============ BACKGROUND ============ */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.blueprint{position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(rgba(96,165,250,.055) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(96,165,250,.055) 1px,transparent 1px);
+  background-size:46px 46px}
+.blueprint.fine{background-size:230px 230px;opacity:.7;
+  background-image:linear-gradient(rgba(245,165,36,.07) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(245,165,36,.07) 1px,transparent 1px)}
+.aura{position:absolute;border-radius:50%;filter:blur(100px);opacity:.26;animation:drift 30s ease-in-out infinite alternate}
+.aura.a1{width:46vw;height:46vw;left:-14vw;top:-14vw;background:radial-gradient(circle,var(--amber),transparent 70%)}
+.aura.a2{width:40vw;height:40vw;right:-12vw;top:26vh;background:radial-gradient(circle,var(--cyan),transparent 70%);animation-delay:-12s;opacity:.2}
+.aura.a3{width:42vw;height:42vw;left:30vw;bottom:-20vw;background:radial-gradient(circle,var(--violet),transparent 70%);animation-delay:-22s;opacity:.18}
+@keyframes drift{to{transform:translate(5vw,-5vh) scale(1.14)}}
+.grain{position:absolute;inset:0;opacity:.06;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.65'/%3E%3C/svg%3E")}
+.net{position:absolute;inset:0;opacity:.16}
+.net svg{width:100%;height:100%}
+.node{animation:pulse 4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35;r:5}}
+.scan{position:absolute;inset:0;opacity:.4;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px)}
+.vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(3,5,11,.75) 100%)}
+
+/* ============ HEADER ============ */
+.head{position:fixed;top:0;left:0;right:0;height:var(--head);z-index:70;display:flex;align-items:center;gap:14px;
+  padding:0 18px;background:rgba(6,10,18,.93);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line2);box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand svg{width:32px;height:32px;color:var(--amber);flex-shrink:0;filter:drop-shadow(0 0 9px rgba(245,165,36,.6))}
+.brand b{font-family:'Chakra Petch',sans-serif;font-size:18px;font-weight:700;letter-spacing:1.4px;display:block;line-height:1;white-space:nowrap}
+.brand small{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--dim);display:block;margin-top:3px}
+.rankchip{display:flex;align-items:center;gap:9px;background:rgba(245,165,36,.1);border:1px solid var(--line2);
+  border-radius:9px;padding:6px 13px;margin-left:8px}
+.rankchip .rn{font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--amber)}
+.rankchip .xp{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted)}
+.hctl{margin-left:auto;display:flex;gap:8px;align-items:center}
+.ib{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:rgba(245,165,36,.06);
+  color:var(--amber);display:grid;place-items:center;font-size:15px;transition:.16s;flex-shrink:0}
+.ib:hover{border-color:var(--amber);background:rgba(245,165,36,.18);box-shadow:0 0 14px rgba(245,165,36,.3)}
+.ib.on{background:var(--green);border-color:var(--green);color:#04240f}
+
+/* ============ LAYOUT ============ */
+.layout{position:relative;z-index:10;display:grid;grid-template-columns:1fr var(--rail);gap:22px;
+  max-width:1440px;margin:0 auto;padding:calc(var(--head) + 22px) 20px 124px;align-items:start}
+.main{min-width:0}
+.card{background:linear-gradient(158deg,var(--surface),#0b1322);border:1px solid var(--line);border-radius:15px;
+  position:relative;overflow:hidden;box-shadow:0 20px 56px rgba(0,0,0,.5),inset 0 0 70px rgba(245,165,36,.03)}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--amber),transparent);opacity:.85}
+.pad{padding:26px 28px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2.6px;color:var(--amber);margin-bottom:10px}
+h1{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:clamp(28px,4.4vw,44px);line-height:1.06;letter-spacing:-.3px;margin-bottom:12px}
+h1 em{font-style:normal;color:var(--amber);text-shadow:0 0 26px rgba(245,165,36,.45)}
+h2{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:21px;letter-spacing:.2px;margin-bottom:5px}
+h3{font-size:14px;font-weight:700;letter-spacing:.3px}
+.lede{font-size:14.5px;line-height:1.75;color:var(--muted);max-width:72ch}
+.sec{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:26px 0 14px}
+.sec .tag{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--dim);margin-left:auto}
+
+/* ============ BUTTONS ============ */
+.btn{border-radius:10px;padding:12px 24px;font-weight:700;font-size:13px;letter-spacing:.7px;transition:.16s;
+  display:inline-flex;align-items:center;gap:9px;justify-content:center}
+.btn.primary{background:linear-gradient(100deg,var(--amber),#ffcb6b);color:#241703;box-shadow:0 4px 22px rgba(245,165,36,.4)}
+.btn.primary:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 8px 30px rgba(245,165,36,.55)}
+.btn.cyan{background:linear-gradient(100deg,var(--cyan),var(--blue));color:#04202a;box-shadow:0 4px 22px rgba(34,211,238,.35)}
+.btn.cyan:hover{filter:brightness(1.1);transform:translateY(-2px)}
+.btn.ghost{border:1px solid var(--line);color:var(--amber);background:rgba(245,165,36,.05)}
+.btn.ghost:hover{border-color:var(--amber);background:rgba(245,165,36,.15)}
+.btn.bad{border:1px solid rgba(251,113,133,.4);color:var(--red);background:rgba(251,113,133,.08)}
+.btn.bad:hover{background:rgba(251,113,133,.2)}
+.btn.sm{padding:9px 16px;font-size:12px}
+.btn.big{padding:15px 32px;font-size:14px}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+.row{display:flex;gap:11px;flex-wrap:wrap;margin-top:20px}
+
+/* ============ HOME ============ */
+.rankcard{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+.ring{position:relative;width:132px;height:132px;flex-shrink:0}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-linecap:round}
+.ring .tr{stroke:rgba(255,255,255,.08);stroke-width:11}
+.ring .fl{stroke:url(#rg);stroke-width:11;stroke-dasharray:352;stroke-dashoffset:352;transition:stroke-dashoffset 1.1s cubic-bezier(.2,.9,.3,1);filter:drop-shadow(0 0 9px rgba(245,165,36,.6))}
+.ring .mid{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .mid b{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:var(--amber);display:block;line-height:1}
+.ring .mid span{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:1.6px;color:var(--dim);display:block;margin-top:4px}
+.xpbar{height:9px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;border:1px solid rgba(255,255,255,.06);margin-top:10px}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--cyan));box-shadow:0 0 14px rgba(245,165,36,.5);transition:width .7s}
+.rankmeta{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:7px}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:14px}
+.mode{border:1px solid var(--line);border-radius:14px;padding:20px;text-align:left;transition:.2s;position:relative;overflow:hidden;
+  background:linear-gradient(155deg,var(--raised),#0b1322);width:100%}
+.mode::after{content:"";position:absolute;right:-34px;top:-34px;width:110px;height:110px;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--hue) 26%,transparent),transparent 70%);transition:.3s}
+.mode:hover{transform:translateY(-4px);border-color:var(--hue);box-shadow:0 16px 40px rgba(0,0,0,.5),0 0 26px color-mix(in srgb,var(--hue) 26%,transparent)}
+.mode .ic{font-size:26px;display:block;margin-bottom:11px}
+.mode .nm{font-family:'Chakra Petch',sans-serif;font-size:17px;font-weight:700;color:var(--hue);letter-spacing:.6px;margin-bottom:7px;display:block}
+.mode p{font-size:12.5px;line-height:1.6;color:var(--muted);margin-bottom:12px}
+.mode .meta{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.1px;color:var(--dim);
+  border-top:1px solid rgba(147,166,196,.16);padding-top:10px;display:flex;gap:12px;flex-wrap:wrap}
+.skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:12px}
+.sk{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--hue);border-radius:12px;padding:15px 17px;transition:.18s}
+.sk:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.4)}
+.sk .top{display:flex;align-items:baseline;gap:9px;margin-bottom:9px}
+.sk .top b{font-size:13px}
+.sk .top span{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--hue)}
+.sk .bar{height:7px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+.sk .bar i{display:block;height:100%;background:var(--hue);box-shadow:0 0 10px var(--hue);transition:width .7s}
+.sk small{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--dim);display:block;margin-top:7px;letter-spacing:.8px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:11px;margin:18px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px;position:relative;overflow:hidden}
+.stat::after{content:"";position:absolute;right:-22px;top:-22px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(245,165,36,.14),transparent 70%)}
+.stat b{font-family:'IBM Plex Mono',monospace;font-size:23px;font-weight:600;display:block;line-height:1.1;color:var(--amber)}
+.stat.c b{color:var(--cyan)}.stat.g b{color:var(--green)}.stat.v b{color:var(--violet)}.stat.r b{color:var(--red)}
+.stat span{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.4px;color:var(--dim);display:block;margin-top:5px}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
+.badge{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface);text-align:center;transition:.2s}
+.badge.got{border-color:var(--amber);background:rgba(245,165,36,.08)}
+.badge.got:hover{transform:translateY(-3px)}
+.badge .ic{font-size:24px;display:block;margin-bottom:7px;filter:grayscale(1) opacity(.3)}
+.badge.got .ic{filter:none;animation:shine 3s ease-in-out infinite}
+@keyframes shine{50%{transform:scale(1.14)}}
+.badge b{font-size:11.5px;display:block;margin-bottom:4px}
+.badge span{font-size:10px;color:var(--dim);line-height:1.45;display:block}
+.hist{display:flex;flex-direction:column;gap:8px;max-height:250px;overflow-y:auto;padding-right:5px}
+.hrow{display:flex;gap:12px;align-items:center;padding:11px 13px;border-radius:10px;background:rgba(0,0,0,.28);border-left:3px solid var(--hue)}
+.hrow .d{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dim);flex-shrink:0;width:56px}
+.hrow .t{flex:1;font-size:12.5px;min-width:0}
+.hrow .t small{display:block;font-size:10px;color:var(--dim);margin-top:2px}
+.hrow .s{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--hue);flex-shrink:0}
+.empty{text-align:center;padding:40px 20px;color:var(--dim);font-size:13px;line-height:1.7}
+.empty b{display:block;font-family:'Chakra Petch',sans-serif;font-size:18px;color:var(--muted);margin-bottom:8px}
+
+/* ============ RAIL ============ */
+.rail{position:sticky;top:calc(var(--head) + 22px);display:flex;flex-direction:column;gap:16px}
+.rail .card{padding:20px}
+.rtitle{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2.2px;color:var(--amber);
+  display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.rtitle::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 9px var(--amber)}
+.rsub{font-size:11px;color:var(--dim);margin-bottom:16px;line-height:1.5}
+.ctrl{margin-bottom:14px}
+.ctrl:last-child{margin-bottom:0}
+.clab{display:flex;align-items:baseline;gap:8px;margin-bottom:7px}
+.clab label{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.3px}
+.clab output{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--amber);font-weight:600}
+.seg{display:flex;gap:4px;background:rgba(0,0,0,.34);border:1px solid var(--line);border-radius:9px;padding:3px}
+.seg button{flex:1;padding:7px 3px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.5px;color:var(--dim);transition:.15s}
+.seg button:hover{color:var(--text);background:rgba(245,165,36,.1)}
+.seg button.on{background:var(--amber);color:#241703;font-weight:700}
+.tog{display:flex;align-items:center;gap:11px;padding:8px 0;cursor:pointer}
+.tog .sw{width:38px;height:21px;border-radius:99px;background:rgba(255,255,255,.12);border:1px solid var(--line);position:relative;flex-shrink:0;transition:.2s}
+.tog .sw::after{content:"";position:absolute;left:2px;top:1.5px;width:15px;height:15px;border-radius:50%;background:var(--dim);transition:.2s}
+.tog.on .sw{background:rgba(52,211,153,.28);border-color:var(--green)}
+.tog.on .sw::after{left:19px;background:var(--green);box-shadow:0 0 9px rgba(52,211,153,.7)}
+.tog span{font-size:11.5px;font-weight:600;color:var(--muted)}
+.tog small{display:block;font-size:9.5px;color:var(--dim);font-weight:400;margin-top:2px}
+.mini{width:100%;padding:9px;border-radius:8px;border:1px solid var(--line);background:rgba(245,165,36,.05);
+  color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.9px;transition:.15s;margin-top:8px}
+.mini:hover{border-color:var(--amber);background:rgba(245,165,36,.16)}
+.mini.bad{border-color:rgba(251,113,133,.35);color:var(--red);background:rgba(251,113,133,.07)}
+.mini.bad:hover{background:rgba(251,113,133,.18)}
+
+/* ============ SESSION ============ */
+.shud{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:15px 22px;border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,rgba(245,165,36,.08),transparent)}
+.shud .prog{flex:1;min-width:150px}
+.shud .plab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.4px;color:var(--muted);margin-bottom:5px}
+.shud .ptrack{height:7px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.shud .ptrack i{display:block;height:100%;background:linear-gradient(90deg,var(--amber),var(--cyan));transition:width .35s}
+.hstat{text-align:center;min-width:62px}
+.hstat b{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;display:block;line-height:1;color:var(--amber)}
+.hstat span{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:1.3px;color:var(--dim)}
+.hstat.time b{color:var(--cyan)}
+.hstat.time.warn b{color:var(--red);animation:blink .6s ease-in-out infinite}
+@keyframes blink{50%{opacity:.4}}
+.hstat.streak b{color:var(--orange)}
+.qbody{padding:26px 28px}
+.qtags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+.qtag{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.3px;padding:5px 11px;border-radius:6px;
+  border:1px solid var(--hue);color:var(--hue);background:color-mix(in srgb,var(--hue) 12%,transparent)}
+.qtag.tier{border-color:var(--line2);color:var(--amber);background:rgba(245,165,36,.1)}
+.qtag.type{border-color:rgba(147,166,196,.35);color:var(--muted);background:rgba(147,166,196,.08)}
+.qtext{font-family:'Newsreader',Georgia,serif;font-size:20px;line-height:1.55;margin-bottom:14px}
+.qctx{background:rgba(0,0,0,.3);border-left:3px solid var(--cyan);border-radius:0 10px 10px 0;padding:14px 17px;margin-bottom:18px;
+  font-family:'Newsreader',serif;font-size:14.5px;line-height:1.7;color:#c3d3e8}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{border:1.5px solid rgba(147,166,196,.22);background:rgba(0,0,0,.28);border-radius:11px;padding:14px 17px;
+  font-size:14.5px;text-align:left;transition:.15s;display:flex;gap:13px;align-items:flex-start;line-height:1.55;width:100%}
+.opt .k{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);flex-shrink:0;margin-top:3px;
+  width:22px;height:22px;border-radius:6px;border:1px solid rgba(147,166,196,.3);display:grid;place-items:center;transition:.15s}
+.opt:hover:not(:disabled){border-color:var(--amber);background:rgba(245,165,36,.09);transform:translateX(4px)}
+.opt:hover:not(:disabled) .k{border-color:var(--amber);color:var(--amber)}
+.opt.picked{border-color:var(--amber);background:rgba(245,165,36,.16)}
+.opt.picked .k{background:var(--amber);border-color:var(--amber);color:#241703;font-weight:700}
+.opt.right{border-color:var(--green);background:rgba(52,211,153,.14)}
+.opt.right .k{background:var(--green);border-color:var(--green);color:#04240f}
+.opt.wrong{border-color:var(--red);background:rgba(251,113,133,.12)}
+.opt.wrong .k{background:var(--red);border-color:var(--red);color:#2b0710}
+.opt.dim{opacity:.32}
+.opt:disabled{cursor:default}
+.ordlist{list-style:none;counter-reset:o;display:flex;flex-direction:column;gap:9px}
+.ordlist li{counter-increment:o;display:flex;align-items:center;gap:13px;background:rgba(0,0,0,.3);
+  border:1.5px solid rgba(147,166,196,.22);border-radius:11px;padding:12px 15px;transition:.15s}
+.ordlist li::before{content:counter(o);font-family:'IBM Plex Mono',monospace;background:var(--amber);color:#241703;
+  font-weight:700;min-width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+.ordlist li.right{border-color:var(--green);background:rgba(52,211,153,.12)}
+.ordlist li.wrong{border-color:var(--red);background:rgba(251,113,133,.1)}
+.ordlist li .tx{flex:1;font-size:14px;line-height:1.5}
+.ordlist .mv{display:flex;gap:5px;flex-shrink:0}
+.ordlist .mv button{width:31px;height:31px;border-radius:7px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--amber);font-size:13px;transition:.14s}
+.ordlist .mv button:hover:not(:disabled){border-color:var(--amber);background:rgba(245,165,36,.16)}
+.fb{margin-top:20px;border-radius:12px;padding:17px 19px;border-left:4px solid var(--green);background:rgba(52,211,153,.09);animation:slideup .3s ease}
+.fb.bad{border-left-color:var(--red);background:rgba(251,113,133,.08)}
+@keyframes slideup{from{opacity:0;transform:translateY(12px)}}
+.fb .verdict{font-family:'Chakra Petch',sans-serif;font-size:15px;font-weight:700;letter-spacing:.8px;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:9px}
+.fb.bad .verdict{color:var(--red)}
+.fb .exp{font-family:'Newsreader',serif;font-size:15px;line-height:1.7;color:#cfdcee}
+.fb .pts{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--amber);margin-top:10px;letter-spacing:1px}
+.qfoot{display:flex;gap:11px;align-items:center;flex-wrap:wrap;padding:16px 28px;border-top:1px solid var(--line);background:rgba(0,0,0,.28)}
+.qfoot .hintk{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);margin-left:auto;letter-spacing:.6px}
+kbd{font-family:'IBM Plex Mono',monospace;font-size:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  border-bottom-width:2px;border-radius:5px;padding:2px 6px}
+
+/* ============ DOSSIER ============ */
+.dossier{background:var(--paper);color:var(--paper-ink);border-radius:12px;padding:20px 22px;margin-bottom:20px;
+  box-shadow:0 14px 40px rgba(0,0,0,.5);position:relative;overflow:hidden}
+.dossier::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;
+  background:repeating-linear-gradient(90deg,var(--red) 0 14px,transparent 14px 22px)}
+.dossier h4{font-family:'Chakra Petch',sans-serif;font-size:14px;letter-spacing:1.4px;margin-bottom:4px;color:#7a2f22}
+.dossier .dsub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.3px;color:#8a7f6d;margin-bottom:14px}
+.doc{border-top:1px dashed rgba(34,32,28,.24);padding-top:12px;margin-top:12px}
+.doc:first-of-type{border-top:none;padding-top:0;margin-top:0}
+.doc b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.2px;color:#7a5a34;display:block;margin-bottom:6px}
+.doc p{font-family:'Newsreader',serif;font-size:14.5px;line-height:1.7;color:#3a352d}
+
+/* ============ RESULTS ============ */
+.resgrid{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;margin-bottom:22px}
+.bars{display:flex;flex-direction:column;gap:11px;margin:18px 0}
+.brow{display:grid;grid-template-columns:150px 1fr 52px;gap:12px;align-items:center}
+.brow .nm{font-size:12.5px;color:var(--muted)}
+.brow .tr{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.brow .tr i{display:block;height:100%;background:var(--hue);box-shadow:0 0 10px var(--hue);transition:width .8s}
+.brow .pc{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;color:var(--hue);text-align:right}
+.rankup{display:inline-flex;align-items:center;gap:9px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1.4px;
+  color:var(--amber);border:1px solid var(--line2);background:rgba(245,165,36,.12);padding:8px 15px;border-radius:9px;animation:glow 1.7s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 24px rgba(245,165,36,.5)}}
+.rev{border:1px solid var(--line);border-radius:12px;padding:17px 19px;margin-bottom:12px;background:rgba(0,0,0,.26);border-left:4px solid var(--green)}
+.rev.bad{border-left-color:var(--red)}
+.rev .rq{font-family:'Newsreader',serif;font-size:15.5px;line-height:1.6;margin-bottom:11px}
+.rev .ra{font-size:13px;line-height:1.6;margin-bottom:6px}
+.rev .ra b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.1px;color:var(--dim);display:block;margin-bottom:3px}
+.rev .ra.you{color:#ffb3bf}.rev .ra.cor{color:#9ff0cd}
+.rev .re{font-family:'Newsreader',serif;font-size:14px;line-height:1.7;color:var(--muted);margin-top:10px;
+  border-top:1px dashed var(--line);padding-top:10px}
+
+/* ============ OVERLAY ============ */
+.veil{position:fixed;inset:0;z-index:95;background:var(--scrim);backdrop-filter:blur(11px);display:grid;place-items:center;
+  padding:22px 16px;overflow-y:auto;animation:fade .25s ease}
+@keyframes fade{from{opacity:0}}
+.sheet{width:min(600px,100%);background:linear-gradient(158deg,#16233a,#080e1a);border:1px solid var(--line2);border-radius:17px;
+  padding:30px;box-shadow:0 40px 110px rgba(0,0,0,.85);animation:pop .34s cubic-bezier(.2,.9,.3,1);margin:auto}
+@keyframes pop{from{opacity:0;transform:translateY(22px) scale(.97)}}
+.sheet h2{margin-bottom:12px}
+.sheet p{font-size:13.5px;line-height:1.75;color:var(--muted);margin-bottom:14px}
+.sheet ul{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.sheet li{display:flex;gap:12px;font-size:13px;line-height:1.6;color:var(--muted)}
+.sheet li b{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.2px;flex-shrink:0;width:82px;padding-top:2px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(100px);z-index:99;
+  background:var(--overlay);border:1px solid var(--line2);border-radius:12px;padding:13px 20px;display:flex;align-items:center;gap:14px;
+  box-shadow:0 20px 50px rgba(0,0,0,.7);opacity:0;transition:.32s cubic-bezier(.2,.9,.3,1);font-size:13px;max-width:min(480px,92vw)}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.confetti{position:absolute;bottom:-10px;border-radius:2px;animation:cf 2.1s ease-out forwards;pointer-events:none}
+@keyframes cf{to{transform:translateY(-320px) rotate(260deg);opacity:0}}
+
+@media(max-width:1120px){
+  .layout{grid-template-columns:1fr}
+  .rail{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));align-items:start}
+  .resgrid,.rankcard{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .brow{grid-template-columns:110px 1fr 46px}
+}
+@media(max-width:700px){
+  :root{--head:60px}
+  .brand small{display:none}.brand b{font-size:15px}
+  .rankchip{display:none}
+  .head{padding:0 11px;gap:9px}
+  .layout{padding:calc(var(--head) + 16px) 12px 50px;gap:16px}
+  .pad,.qbody{padding:20px 17px}
+  .shud,.qfoot{padding:13px 17px}
+  .qtext{font-size:17.5px}
+  .rail{grid-template-columns:1fr}
+  .sheet{padding:24px 19px}
+  .qfoot .hintk{display:none}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media print{
+  .bg,.head,.rail,.veil,.toast,.qfoot,.row,.no-print{display:none!important}
+  body{background:#fff;color:#000}
+  .layout{display:block;padding:0;max-width:100%}
+  .card,.stat,.sk,.badge,.rev{background:#fff!important;border:1px solid #bbb!important;box-shadow:none!important;break-inside:avoid}
+  .card::before{display:none}
+  h1,h2,h3,.stat b,.ring .mid b{color:#000!important;text-shadow:none!important}
+  .lede,.stat span,.eyebrow,.rev .re{color:#444!important}
+}
+
+/* ═══ CMC furniture (added) — identity, leaderboard post, back pill, bar ═══ */
+.ib.cmcback{width:auto;padding:0 13px;font-size:12px;font-weight:700;text-decoration:none;letter-spacing:.5px}
+.cmc-id{background:rgba(4,8,16,.45);border:1px solid rgba(245,165,36,.28);border-radius:10px;padding:13px 15px;margin:18px 0 4px}
+.cmc-id b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.4px;color:var(--amber);display:block;margin-bottom:9px}
+.cmc-id .row{display:flex;gap:9px;flex-wrap:wrap}
+.cmc-id input{flex:1;min-width:150px;padding:10px 12px;border-radius:8px;border:1px solid rgba(245,165,36,.3);background:rgba(4,8,16,.5);color:var(--text);font-size:14px;font-family:inherit}
+.cmc-id input::placeholder{color:var(--dim);opacity:1}
+.cmc-id input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,165,36,.14)}
+.cmc-id small{display:block;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--muted);letter-spacing:.6px;line-height:1.6}
+.cmc-lb{border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.06);border-radius:10px;padding:14px 15px;margin-top:18px}
+.cmc-lb b{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.4px;color:var(--green);display:block;margin-bottom:9px}
+.cmc-lb .row{display:flex;gap:8px;flex-wrap:wrap}
+.cmc-lb input{flex:1;min-width:140px;padding:10px 12px;border-radius:8px;border:1px solid rgba(245,165,36,.3);background:rgba(4,8,16,.5);color:var(--text);font-size:13.5px;font-family:inherit}
+.cmc-lb input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,165,36,.14)}
+.cmc-lb .send{flex-shrink:0;border:none;border-radius:8px;padding:10px 18px;font-weight:700;font-size:12.5px;font-family:inherit;background:linear-gradient(100deg,var(--green),var(--cyan));color:#04240f;cursor:pointer;transition:.16s}
+.cmc-lb .send:hover{filter:brightness(1.12)}
+.cmc-lb .send:disabled{opacity:.6;cursor:progress}
+.cmc-lb .status{display:block;margin-top:9px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.5px;line-height:1.6}
+.cmc-lb .status.good{color:var(--green)}
+.cmc-lb .status.bad{color:var(--red)}
+.cmc-bar{position:fixed;left:0;right:0;bottom:0;z-index:55;background:rgba(5,9,17,.94);backdrop-filter:blur(8px);
+  border-top:1px solid rgba(245,165,36,.3);padding:11px 16px;display:flex;gap:11px;justify-content:center;align-items:center;flex-wrap:wrap}
+.cmc-btn{border:none;border-radius:999px;padding:10px 22px;font:inherit;font-weight:700;font-size:13px;
+  cursor:pointer;transition:.18s;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.cmc-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.cmc-btn-lb{background:linear-gradient(100deg,var(--amber),#ffcb6b);color:#241703}
+.cmc-btn-share{background:transparent;border:2px solid rgba(245,165,36,.5);color:var(--amber)}
+.cmc-btn-share:hover{border-color:var(--amber)}
+.cmc-toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(14px);z-index:95;
+  background:var(--overlay);border:1px solid rgba(245,165,36,.45);color:var(--text);border-radius:999px;
+  padding:9px 20px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;max-width:92vw}
+.cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.cmc-toast.err{border-color:rgba(251,113,133,.6);color:var(--red)}
+.cmc-share{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(10px);z-index:94;
+  display:flex;flex-direction:column;gap:7px;background:var(--overlay);border:1px solid rgba(245,165,36,.45);
+  border-radius:14px;padding:12px;min-width:230px;box-shadow:0 24px 70px rgba(0,0,0,.7);
+  opacity:0;pointer-events:none;transition:.2s}
+.cmc-share.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.cmc-share button{border:1px solid rgba(245,165,36,.3);background:rgba(4,8,16,.35);color:var(--text);
+  border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;text-align:left;transition:.15s;font-family:inherit}
+.cmc-share button:hover{border-color:var(--amber);background:rgba(245,165,36,.12)}
+.cmc-share button.close{border-color:rgba(251,113,133,.4);color:var(--red)}
+@media print{.cmc-bar,.cmc-share,.cmc-toast,.cmc-lb,.cmc-id{display:none!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#f5a524"/><stop offset="55%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#a78bfa"/>
+  </linearGradient>
+  <symbol id="lens" viewBox="0 0 40 40">
+    <circle cx="17" cy="17" r="12" fill="none" stroke="currentColor" stroke-width="2.6"/>
+    <path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" d="M26 26 L36 36"/>
+    <path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 17 L16 21 L23 13"/>
+  </symbol>
+</defs></svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="aura a1"></div><div class="aura a2"></div><div class="aura a3"></div>
+  <div class="blueprint"></div><div class="blueprint fine"></div>
+  <div class="net">
+    <svg viewBox="0 0 1200 800" preserveAspectRatio="none">
+      <g stroke="#22d3ee" stroke-width="1" fill="none" opacity=".5">
+        <path d="M120 160 L340 260 L520 140 L760 300 L980 180"/>
+        <path d="M200 520 L420 420 L640 560 L880 440 L1080 600"/>
+        <path d="M340 260 L420 420 M760 300 L640 560 M520 140 L200 520"/>
+      </g>
+      <g fill="#f5a524">
+        <circle class="node" cx="120" cy="160" r="4"/><circle class="node" cx="340" cy="260" r="4" style="animation-delay:-1s"/>
+        <circle class="node" cx="520" cy="140" r="4" style="animation-delay:-2s"/><circle class="node" cx="760" cy="300" r="4" style="animation-delay:-.5s"/>
+        <circle class="node" cx="980" cy="180" r="4" style="animation-delay:-1.5s"/><circle class="node" cx="200" cy="520" r="4" style="animation-delay:-2.5s"/>
+        <circle class="node" cx="420" cy="420" r="4" style="animation-delay:-3s"/><circle class="node" cx="640" cy="560" r="4" style="animation-delay:-1.2s"/>
+        <circle class="node" cx="880" cy="440" r="4" style="animation-delay:-2.2s"/><circle class="node" cx="1080" cy="600" r="4" style="animation-delay:-.8s"/>
+      </g>
+    </svg>
+  </div>
+  <div class="scan"></div><div class="grain"></div><div class="vignette"></div>
+</div>
+
+<header class="head">
+  <div class="brand">
+    <svg viewBox="0 0 40 40"><use href="#lens"/></svg>
+    <div><b>REASON LAB</b><small>ADVANCED CRITICAL THINKING TRAINER</small></div>
+  </div>
+  <div class="rankchip"><span class="rn" id="hRank">NOVICE</span><span class="xp mono" id="hXp">0 XP</span></div>
+  <div class="hctl">
+    <a class="ib cmcback" id="cmcBackBtn" href="https://cmckhmer.github.io/Creative-Minds-/" aria-label="Back to CMC home" title="Back to CMC home">← CMC</a>
+    <button type="button" class="ib" id="homeBtn" title="Dashboard">⌂</button>
+    <button type="button" class="ib" id="helpBtn" title="How it works">?</button>
+    <button type="button" class="ib on" id="soundBtn" aria-pressed="true" title="Mute cues">🔊</button>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="main">
+    <!-- HOME -->
+    <section id="vHome">
+      <div class="card pad">
+        <div class="eyebrow">REASONING DIAGNOSTIC · EIGHT SKILL TRACKS · THREE TIERS</div>
+        <h1>Think slower. <em>Decide better.</em></h1>
+        <p class="lede">A ten-question sprint tells you whether you picked the sensible option. This lab tells you <b>which part of your reasoning failed</b> — evidence quality, hidden assumptions, causal logic, bias, statistics, argument structure or risk. Train each one separately, then face timed pressure and full case files.</p>
+        <div class="rankcard" style="margin-top:24px">
+          <div class="ring">
+            <svg viewBox="0 0 132 132"><circle class="tr" cx="66" cy="66" r="56"/><circle class="fl" id="homeRing" cx="66" cy="66" r="56"/></svg>
+            <div class="mid"><div><b class="mono" id="homeAcc">—</b><span>ACCURACY</span></div></div>
+          </div>
+          <div style="width:100%">
+            <h2 id="homeRank">Novice</h2>
+            <p class="lede" id="homeRankDesc" style="font-size:13.5px">Complete a session to begin your diagnostic profile.</p>
+            <div class="xpbar"><i id="homeXpBar" style="width:0%"></i></div>
+            <div class="rankmeta"><span id="homeXpNow">0 XP</span><span id="homeXpNext">NEXT: OBSERVER · 300</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec"><h2>Choose a training mode</h2><span class="tag">FOUR WAYS TO USE THE SKILL</span></div>
+      <div class="modes" id="modeGrid"></div>
+
+      <div class="sec"><h2>Skill mastery</h2><span class="tag">WEIGHTED BY DIFFICULTY TIER</span></div>
+      <div class="skills" id="skillGrid"></div>
+
+      <div class="sec"><h2>Performance</h2><span class="tag">SAVED ON THIS DEVICE</span></div>
+      <div class="stats" id="statGrid"></div>
+
+      <div class="sec"><h2>Achievements</h2><span class="tag" id="badgeCount"></span></div>
+      <div class="badges" id="badgeGrid"></div>
+
+      <div class="sec"><h2>Session log</h2><span class="tag">NEWEST FIRST</span></div>
+      <div class="card pad"><div class="hist" id="histList"></div>
+        <div class="row no-print">
+          <button type="button" class="btn ghost sm" id="exportBtn">⭳ EXPORT JSON</button>
+          <button type="button" class="btn ghost sm" id="printBtn">🖨 PRINT REPORT</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETUP -->
+    <section id="vSetup" hidden>
+      <div class="card pad">
+        <div class="eyebrow" id="setEyebrow">MISSION BRIEFING</div>
+        <h1 id="setTitle">Mode</h1>
+        <p class="lede" id="setDesc"></p>
+        <div class="stats" id="setStats" style="margin-top:22px"></div>
+        <div id="setSkills"></div>
+        <div id="setCases"></div>
+        <div class="cmc-id" id="cmcBriefId">
+          <b>THINKER IDENTITY — NAME &amp; ID</b>
+          <div class="row">
+            <input type="text" id="cmcNameIn" maxlength="24" placeholder="Your name" autocomplete="name" spellcheck="false">
+            <input type="text" id="cmcIdIn" maxlength="14" placeholder="ID / class (e.g. 7A · No. 12)" spellcheck="false">
+          </div>
+          <small>Both ride along when your session is posted to the class leaderboard. Saved on this device.</small>
+        </div>
+        <div class="row">
+          <button type="button" class="btn primary big" id="startBtn">▶ BEGIN SESSION</button>
+          <button type="button" class="btn ghost big" id="setBack">← DASHBOARD</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SESSION -->
+    <section id="vSession" hidden>
+      <div class="card">
+        <div class="shud">
+          <div class="prog">
+            <div class="plab" id="sProgLab">ITEM 1 / 10</div>
+            <div class="ptrack"><i id="sProgBar" style="width:0%"></i></div>
+          </div>
+          <div class="hstat"><b class="mono" id="sScore">0</b><span>SCORE</span></div>
+          <div class="hstat streak"><b class="mono" id="sStreak">0</b><span>STREAK</span></div>
+          <div class="hstat time" id="sTimeWrap" hidden><b class="mono" id="sTime">90</b><span>SECONDS</span></div>
+        </div>
+        <div class="qbody">
+          <div id="sDossier"></div>
+          <div class="qtags" id="sTags"></div>
+          <p class="qtext" id="sQ"></p>
+          <div class="qctx" id="sCtx" hidden></div>
+          <div id="sAnswer"></div>
+          <div class="fb" id="sFb" hidden></div>
+        </div>
+        <div class="qfoot">
+          <button type="button" class="btn primary" id="submitBtn">SUBMIT</button>
+          <button type="button" class="btn cyan" id="nextBtn" hidden>NEXT →</button>
+          <button type="button" class="btn ghost sm" id="hintBtn">💡 ELIMINATE ONE</button>
+          <button type="button" class="btn ghost sm" id="abortBtn">ABORT</button>
+          <span class="hintk"><kbd>1</kbd>–<kbd>4</kbd> select · <kbd>Enter</kbd> submit / next · <kbd>Esc</kbd> abort</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="vResults" hidden>
+      <div class="card pad">
+        <div class="eyebrow" id="rEyebrow">SESSION REPORT</div>
+        <div class="resgrid">
+          <div class="ring">
+            <svg viewBox="0 0 132 132"><circle class="tr" cx="66" cy="66" r="56"/><circle class="fl" id="rRing" cx="66" cy="66" r="56"/></svg>
+            <div class="mid"><div><b class="mono" id="rAcc">0%</b><span>ACCURACY</span></div></div>
+          </div>
+          <div>
+            <h1 style="font-size:clamp(24px,3.4vw,34px);margin-bottom:8px" id="rTitle">Session complete</h1>
+            <p class="lede" id="rLine"></p>
+            <div style="margin-top:12px" id="rRankUp"></div>
+          </div>
+        </div>
+        <div class="stats" id="rStats"></div>
+        <div class="sec"><h2>Where your reasoning held — and where it slipped</h2><span class="tag">THIS SESSION</span></div>
+        <div class="bars" id="rBars"></div>
+        <div class="cmc-lb" id="cmcLb">
+          <b>CLASS LEADERBOARD — POST THIS SESSION</b>
+          <div class="row">
+            <input type="text" id="cmcLbName" maxlength="24" placeholder="Your name" autocomplete="name" spellcheck="false">
+            <input type="text" id="cmcLbId" maxlength="14" placeholder="ID / class" spellcheck="false">
+            <button type="button" class="send" id="cmcLbSend">📡 SEND SCORE</button>
+          </div>
+          <span class="status" id="cmcLbStatus">Finish a session, add your name, then send it to the class leaderboard.</span>
+        </div>
+        <div class="row">
+          <button type="button" class="btn primary big" id="rAgain">↻ RUN AGAIN</button>
+          <button type="button" class="btn cyan big" id="rReview">REVIEW EVERY ITEM</button>
+          <button type="button" class="btn ghost big" id="rHome">DASHBOARD</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- REVIEW -->
+    <section id="vReview" hidden>
+      <div class="card pad">
+        <div class="eyebrow">FULL ITEM REVIEW · ANSWER KEY AND REASONING</div>
+        <h1>Every decision, <em>explained.</em></h1>
+        <p class="lede" style="margin-bottom:22px">Read the explanation for the items you missed, then re-run the same mode. Understanding the failure is the training.</p>
+        <div id="revList"></div>
+        <div class="row">
+          <button type="button" class="btn primary" id="revBack">← BACK TO REPORT</button>
+          <button type="button" class="btn ghost" id="revHome">DASHBOARD</button>
+          <button type="button" class="btn ghost no-print" id="revPrint">🖨 PRINT</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- RAIL -->
+  <aside class="rail">
+    <section class="card">
+      <div class="rtitle">SESSION CONTROLS</div>
+      <p class="rsub">Applied to your next session. Live during play where relevant.</p>
+      <div class="ctrl">
+        <div class="clab"><label>Difficulty</label><output id="diffOut">STANDARD</output></div>
+        <div class="seg" id="diffSeg">
+          <button type="button" data-v="1">CORE</button>
+          <button type="button" data-v="2" class="on">STD</button>
+          <button type="button" data-v="3">EXPERT</button>
+          <button type="button" data-v="0">ADAPT</button>
+        </div>
+      </div>
+      <div class="ctrl">
+        <div class="clab"><label>Session length</label><output id="lenOut">10 items</output></div>
+        <div class="seg" id="lenSeg">
+          <button type="button" data-v="6">6</button>
+          <button type="button" data-v="10" class="on">10</button>
+          <button type="button" data-v="15">15</button>
+        </div>
+      </div>
+      <div class="tog on" id="timerTog" role="switch" tabindex="0" aria-checked="true"><span class="sw"></span><span>Pressure timer<small>90s sprint in Gauntlet; 40s per item elsewhere</small></span></div>
+      <div class="tog on" id="hintTog" role="switch" tabindex="0" aria-checked="true"><span class="sw"></span><span>Allow hints<small>Eliminate one option, costs 40% of the item</small></span></div>
+      <div class="tog on" id="soundTog" role="switch" tabindex="0" aria-checked="true"><span class="sw"></span><span>Sound cues</span></div>
+      <div class="tog on" id="motionTog" role="switch" tabindex="0" aria-checked="true"><span class="sw"></span><span>Motion</span></div>
+      <button type="button" class="mini" id="resetCfg">RESET CONTROLS</button>
+      <button type="button" class="mini bad" id="wipeBtn">ERASE ALL PROGRESS</button>
+    </section>
+    <section class="card">
+      <div class="rtitle">TIER GUIDE</div>
+      <p class="rsub" style="margin-bottom:12px">Every item is tagged. Higher tiers carry more points and more XP.</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:10px;align-items:flex-start"><span class="qtag tier" style="--hue:var(--amber)">T1</span><span style="font-size:11.5px;color:var(--muted);line-height:1.5">Core — recognise the principle · 10 pts</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start"><span class="qtag tier">T2</span><span style="font-size:11.5px;color:var(--muted);line-height:1.5">Applied — use it in a messy situation · 15 pts</span></div>
+        <div style="display:flex;gap:10px;align-items:flex-start"><span class="qtag tier">T3</span><span style="font-size:11.5px;color:var(--muted);line-height:1.5">Expert — competing explanations, trade-offs · 20 pts</span></div>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<div class="veil" id="helpVeil" hidden>
+  <div class="sheet">
+    <div class="eyebrow">HOW THE LAB WORKS</div>
+    <h2>Eight skills, three tiers, four modes</h2>
+    <p>The original challenge asks one question: did you pick the sensible option? This lab separates reasoning into eight trainable skills and reports each one independently.</p>
+    <ul>
+      <li><b>CAMPAIGN</b><span>Mixed items across all eight skills. The default diagnostic.</span></li>
+      <li><b>GAUNTLET</b><span>90-second sprint. Correct answers add time, errors cost time, streaks multiply points.</span></li>
+      <li><b>DRILL</b><span>One skill only, until it is automatic. Choose the track on the briefing screen.</span></li>
+      <li><b>CASE FILE</b><span>A dossier of conflicting documents, then five linked decisions about the same evidence.</span></li>
+      <li><b>ITEM TYPES</b><span>Single choice, select-all-that-apply, and rank-in-order. All are graded exactly.</span></li>
+      <li><b>KEYS</b><span><kbd>1</kbd>–<kbd>4</kbd> select · <kbd>Enter</kbd> submit or continue · <kbd>Esc</kbd> abort</span></li>
+      <li><b>STORAGE</b><span>Everything stays in this browser. Export JSON to keep a copy.</span></li>
+    </ul>
+    <div class="row" style="margin-top:0"><button type="button" class="btn primary" id="helpClose">GOT IT</button></div>
+  </div>
+</div>
+
+<div class="veil" id="confirmVeil" hidden>
+  <div class="sheet" style="max-width:440px">
+    <div class="eyebrow">CONFIRM</div>
+    <h2 id="cfTitle">Erase all progress?</h2>
+    <p id="cfBody">This removes XP, mastery, badges and the session log from this browser.</p>
+    <div class="row" style="margin-top:0">
+      <button type="button" class="btn bad" id="cfYes">YES, CONTINUE</button>
+      <button type="button" class="btn ghost" id="cfNo">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v));};
+var shuffle=function(a){var b=a.slice(),i,j,t;for(i=b.length-1;i>0;i--){j=Math.floor(Math.random()*(i+1));t=b[i];b[j];b[i]=b[j];b[j]=t;}return b;};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+var pad=function(n){return String(n).padStart(2,'0');};
+
+/* ================= SKILLS ================= */
+var SKILLS=[
+ {id:'ev',name:'Evidence & Sources',hue:'#22d3ee',ic:'🔍',desc:'Weigh quality, independence and provenance.'},
+ {id:'fa',name:'Fallacy Detection',hue:'#fb7185',ic:'⚠️',desc:'Name the broken step in an argument.'},
+ {id:'bi',name:'Bias & Perspective',hue:'#a78bfa',ic:'🧠',desc:'Catch the distortion before it decides for you.'},
+ {id:'ca',name:'Causal Reasoning',hue:'#34d399',ic:'🔗',desc:'Separate cause from coincidence and confounder.'},
+ {id:'as',name:'Assumptions',hue:'#f5a524',ic:'🧩',desc:'Surface the unstated premise holding it up.'},
+ {id:'da',name:'Data Literacy',hue:'#60a5fa',ic:'📊',desc:'Read samples, base rates and axes honestly.'},
+ {id:'ar',name:'Argument & Steelman',hue:'#a3e635',ic:'⚖️',desc:'Build the strongest version, then test it.'},
+ {id:'de',name:'Decision Under Risk',hue:'#fb923c',ic:'🎯',desc:'Act well with incomplete information.'}
+];
+var SK=function(id){for(var i=0;i<SKILLS.length;i++)if(SKILLS[i].id===id)return SKILLS[i];return SKILLS[0];};
+
+/* ================= ITEM BANK ================= */
+/* ty: mcq | multi | order */
+var ITEMS=[
+/* --- EVIDENCE --- */
+{sk:'ev',t:1,ty:'mcq',q:'A video claims a juice guarantees higher test scores. It has 200,000 likes and no sources. What is the strongest next step?',
+ o:['Try it because so many people liked it','Share it so friends can decide for themselves','Look for independent studies and check who funded them','Assume every social post is false'],a:2,
+ e:'Popularity is not evidence. The useful move is to seek independent, checkable studies and look at who paid for them. Blanket disbelief is as lazy as blanket belief.'},
+{sk:'ev',t:1,ty:'mcq',q:'Two articles disagree about phones in class. One cites three peer-reviewed studies; the other uses one anonymous quote. What should decide your view?',
+ o:['Whichever headline is more dramatic','The quality, size and independence of the evidence','Treat both as equally reliable to be fair','Whichever matches what you already think'],a:1,
+ e:'Fairness does not mean equal weight. Weigh method, sample and independence — not tone, drama or agreement with your prior.'},
+{sk:'ev',t:2,ty:'multi',q:'Which features genuinely raise a source\u2019s credibility? Select all that apply.',
+ o:['A named author with relevant expertise','A disclosed funding source and conflict-of-interest statement','A methods section someone else could repeat','A very confident, certain tone'],a:[0,1,2],
+ e:'Expertise, transparency and reproducibility are checkable. Confidence is a style, not evidence — the most certain voices are often the least careful.'},
+{sk:'ev',t:2,ty:'mcq',q:'A supplement company publishes its own trial showing its product works. The trial looks well run. What is the strongest remaining concern?',
+ o:['The trial is too recent to trust','Companies cannot run valid trials','The sponsor benefits from a positive result, so independent replication is needed','Peer-reviewed company trials are always fraudulent'],a:2,
+ e:'A funded trial can be methodologically sound and still be selectively reported. The remedy is independent replication, not automatic rejection.'},
+{sk:'ev',t:3,ty:'order',q:'Rank this evidence from WEAKEST to STRONGEST for the claim "tutoring raises grades".',
+ o:['One student says their grades improved','A single school reports higher grades among tutored pupils','A randomised controlled trial across 40 schools','A systematic review pooling 60 randomised trials'],a:[0,1,2,3],
+ e:'Anecdote → uncontrolled observation → randomised trial → pooled randomised trials. Each step removes more alternative explanations and more chance.'},
+{sk:'ev',t:3,ty:'mcq',q:'A peer-reviewed paper is later retracted for a data error. What does peer review actually guarantee?',
+ o:['That the findings are true','That reviewers found no obvious flaw at the time','That the data were independently re-collected','That the result will replicate'],a:1,
+ e:'Peer review is a filter for obvious problems, not a certificate of truth. Retraction is the system working, not proof the system is worthless.'},
+/* --- FALLACY --- */
+{sk:'fa',t:1,ty:'mcq',q:'"Nobody has proven ghosts don\u2019t exist, so they must exist." Which fallacy is this?',
+ o:['Appeal to ignorance','False dilemma','Circular reasoning','Straw man'],a:0,
+ e:'Absence of disproof is not proof. The burden of evidence sits with the person making the claim.'},
+{sk:'fa',t:1,ty:'mcq',q:'"Either we ban every phone in school, or education collapses." Which fallacy?',
+ o:['Ad hominem','False dilemma','Slippery slope','Appeal to authority'],a:1,
+ e:'Only two extreme options are offered when many middle policies exist. Naming a third option dissolves the trap.'},
+{sk:'fa',t:2,ty:'mcq',q:'"Ignore her argument about air quality — she failed maths." Which fallacy?',
+ o:['Straw man','Circular reasoning','Ad hominem','Hasty generalisation'],a:2,
+ e:'The attack targets the person, not the argument. A claim stands or falls on its own evidence regardless of who says it.'},
+{sk:'fa',t:2,ty:'mcq',q:'"Allow one late assignment and soon nobody will meet any deadline." Which fallacy?',
+ o:['Slippery slope','False dilemma','Appeal to popularity','Begging the question'],a:0,
+ e:'A chain of inevitable disasters is asserted without evidence for any link. Ask what mechanism forces each step.'},
+{sk:'fa',t:3,ty:'mcq',q:'"This policy is right because it is the correct thing to do, and it is correct because it is right." Which flaw?',
+ o:['Equivocation','Circular reasoning','Composition','Post hoc'],a:1,
+ e:'The conclusion is smuggled into the premise. Restating a claim in new words adds no support.'},
+{sk:'fa',t:3,ty:'multi',q:'"My opponent wants reform, so clearly he hates this country — and anyway, everyone I asked agrees with me." Which flaws appear? Select all.',
+ o:['Straw man','Appeal to popularity','Biased / unrepresentative sample','Appeal to ignorance'],a:[0,1,2],
+ e:'The position is distorted into an extreme, agreement is treated as proof, and "everyone I asked" is a sample chosen by the speaker. No appeal to ignorance appears.'},
+/* --- BIAS --- */
+{sk:'bi',t:1,ty:'mcq',q:'You only read articles that already agree with your view. Which bias is operating?',
+ o:['Confirmation bias','Sunk cost','Anchoring','Hindsight bias'],a:0,
+ e:'Confirmation bias selects evidence that fits and filters out what does not. The counter-move is to actively seek the strongest disconfirming case.'},
+{sk:'bi',t:1,ty:'mcq',q:'After a widely reported plane crash you judge flying to be far more dangerous than the statistics show. Which effect?',
+ o:['Availability heuristic','Framing effect','Sunk cost','Dunning–Kruger'],a:0,
+ e:'Vivid, easily recalled events feel more probable than they are. Frequency in memory is not frequency in the world.'},
+{sk:'bi',t:2,ty:'mcq',q:'An interviewer forms a firm impression in the first 30 seconds, then spends the hour gathering support for it. Which bias dominates?',
+ o:['Anchoring, reinforced by confirmation bias','Survivorship bias','Base-rate neglect','Optimism bias'],a:0,
+ e:'The first impression becomes an anchor; everything after is filtered to protect it. Structured, identical questions for every candidate reduce both.'},
+{sk:'bi',t:2,ty:'mcq',q:'You are certain your own reasoning is objective, but you assume everyone who disagrees is biased. This is:',
+ o:['The bias blind spot','The halo effect','Recency bias','The planning fallacy'],a:0,
+ e:'We detect bias by observing behaviour in others but by inspecting intentions in ourselves. Assume you are equally exposed.'},
+{sk:'bi',t:3,ty:'order',q:'Put these debiasing steps in the most defensible order.',
+ o:['State the question and your current estimate','Actively seek disconfirming evidence','Generate the strongest opposite explanation','Update your estimate and record your confidence'],a:[0,1,2,3],
+ e:'Commit to a prior before you look, or you will retrofit it. Then hunt against yourself, consider the alternative, and only then update — in writing.'},
+{sk:'bi',t:3,ty:'mcq',q:'A committee writes its scoring criteria before it reads any proposals. Which failure does this mainly prevent?',
+ o:['Post-hoc rationalisation of a favourite','Sampling error','Regression to the mean','The gambler\u2019s fallacy'],a:0,
+ e:'Criteria invented after seeing the options get bent toward the preferred winner. Pre-commitment removes the wiggle room.'},
+/* --- CAUSAL --- */
+{sk:'ca',t:1,ty:'mcq',q:'Ice cream sales and drowning deaths rise together every summer. What is the best explanation?',
+ o:['Ice cream causes drowning','Drowning reports drive ice cream sales','A third factor — hot weather — drives both','The correlation must be a data error'],a:2,
+ e:'A confounder produces both. Correlation is a clue to look for a mechanism, never the mechanism itself.'},
+{sk:'ca',t:1,ty:'mcq',q:'Library visits rise after quiet reading time begins. A student says reading time definitely caused it. Best response?',
+ o:['Agree, because they happened together','Disagree, because visits cannot be measured','Assume the librarian caused it instead','Consider other causes and gather more data'],a:3,
+ e:'Temporal order is necessary but not sufficient. A new book stock, a timetable change or a display could produce the same pattern.'},
+{sk:'ca',t:2,ty:'mcq',q:'Students who use a study app score higher. Apart from the app working, what is the strongest alternative explanation?',
+ o:['Self-selection: motivated students choose to use it','The app must be cheating','Higher scores cause lower app use','There is no possible alternative'],a:0,
+ e:'The users differ from non-users before the app ever runs. Random assignment is what breaks this link.'},
+{sk:'ca',t:2,ty:'mcq',q:'Cities with more firefighters report more fire damage. What is the most likely structure?',
+ o:['Firefighters cause damage','Bigger fires attract more firefighters — severity drives both','Damage is measured incorrectly everywhere','Firefighters are poorly trained'],a:1,
+ e:'The apparent cause is driven by the outcome\u2019s scale. Always ask what determines the "cause" variable before believing the arrow.'},
+{sk:'ca',t:3,ty:'multi',q:'Which would genuinely strengthen a causal claim? Select all that apply.',
+ o:['Random assignment to treatment and control','A dose–response relationship','Clear temporal precedence with confounders measured and controlled','A larger correlation coefficient on its own'],a:[0,1,2],
+ e:'Randomisation, dose–response and controlled timing each remove rival explanations. A bigger r simply means a tighter association — it says nothing about direction or confounding.'},
+{sk:'ca',t:3,ty:'mcq',q:'An A/B test reports +2% conversion after two days with 40 users. What is the sound reading?',
+ o:['Ship it — the direction is positive','The test is underpowered and short; the result is consistent with noise','A/B tests cannot detect small effects','The control group must be broken'],a:1,
+ e:'Small samples over short windows produce large swings by chance. Ask for the confidence interval and the pre-planned sample size.'},
+/* --- ASSUMPTIONS --- */
+{sk:'as',t:1,ty:'mcq',q:'"We should extend library hours, because students want to study more." What is the hidden assumption?',
+ o:['That students dislike the library','That extra study would happen in the library rather than elsewhere','That libraries are expensive','That students never study'],a:1,
+ e:'The reason supports "more study", not "more library". The argument needs a bridge premise linking the two.'},
+{sk:'as',t:1,ty:'mcq',q:'"Hire her — she went to a top university." What must be true for this to work?',
+ o:['That university prestige predicts performance in this specific role','That all universities are equal','That she has no experience','That hiring is random'],a:0,
+ e:'Prestige is being used as a proxy. State the proxy out loud and ask how well it actually predicts the thing you care about.'},
+{sk:'as',t:2,ty:'mcq',q:'"Ban phones and grades will rise." Which assumption carries the most weight?',
+ o:['That phones are a major cause of the current low grades','That students own phones','That grades can be measured','That teachers dislike phones'],a:0,
+ e:'If phones are a minor factor, removing them changes little. The causal premise is load-bearing and untested.'},
+{sk:'as',t:2,ty:'mcq',q:'"Our survey shows 90% satisfaction, so nothing needs to change." Which assumption is weakest?',
+ o:['That satisfaction was measured','That the respondents represent all users, including those who left','That 90% is a high number','That change costs money'],a:1,
+ e:'Unhappy users often stop responding before they are counted. Survivorship in the sample makes the result look better than reality.'},
+{sk:'as',t:3,ty:'order',q:'Order the steps of a rigorous assumption audit.',
+ o:['Identify the conclusion being argued for','List the reasons actually stated','Surface the unstated premises that connect them','Test the weakest premise against evidence'],a:[0,1,2,3],
+ e:'You cannot find a gap until you know what is being bridged. Map first, then attack the weakest link — not the easiest one.'},
+{sk:'as',t:3,ty:'mcq',q:'"This app is free, so it costs users nothing." What is the load-bearing assumption?',
+ o:['That the app works offline','That cost is only monetary — ignoring data, attention and time','That users enjoy the app','That free apps are rare'],a:1,
+ e:'Redefining "cost" to mean money only is what makes the conclusion follow. Widen the definition and the argument collapses.'},
+/* --- DATA --- */
+{sk:'da',t:1,ty:'mcq',q:'A survey says 95% want a later lunch. Twenty students answered, all from one class. Best conclusion?',
+ o:['Change lunch immediately','Ignore all surveys permanently','Collect a larger, more representative sample','Ask only your friends to confirm'],a:2,
+ e:'A narrow sample estimates the views of that class, not the school. The fix is sampling, not abandoning measurement.'},
+{sk:'da',t:1,ty:'mcq',q:'A headline says incidents "doubled" — from one to two. What is missing?',
+ o:['The absolute numbers and the base rate','The font size','The author\u2019s name','The publication date'],a:0,
+ e:'Relative change on a tiny base is dramatic but nearly meaningless. Always ask "from what to what, over what period?"'},
+{sk:'da',t:2,ty:'mcq',q:'Mean salary is £60,000; median is £32,000. What does this tell you?',
+ o:['The data must be wrong','A few very high salaries skew the mean; the median is more typical','Most people earn £60,000','The median is always the wrong measure'],a:1,
+ e:'A large mean–median gap signals a skewed distribution. Report both, and say which question each answers.'},
+{sk:'da',t:2,ty:'mcq',q:'A chart\u2019s y-axis starts at 90 and shows a "huge" rise from 92 to 95. What is the problem?',
+ o:['Nothing — axes are arbitrary','A truncated axis exaggerates a small change','The numbers should be percentages','Charts should never show change'],a:1,
+ e:'Truncation is legitimate when labelled and justified, but here it inflates a 3-point move into a visual cliff. Check the axis before the story.'},
+{sk:'da',t:3,ty:'multi',q:'A report says a treatment "doubles your risk". What do you need before that means anything? Select all.',
+ o:['The baseline absolute risk','The time period the risk covers','The population studied','Whether the headline sounds alarming'],a:[0,1,2],
+ e:'Doubling 1-in-10,000 and doubling 1-in-10 are wildly different. Relative risk without baseline, window and population is rhetoric.'},
+{sk:'da',t:3,ty:'mcq',q:'A test is 99% accurate. The condition affects 1 in 10,000 people. You test positive with no symptoms. What is most likely?',
+ o:['You almost certainly have the condition','It is more likely a false positive, because the condition is so rare','The test is useless for everyone','Accuracy is irrelevant to interpretation'],a:1,
+ e:'Out of 10,000 people, roughly 1 true positive and about 100 false positives appear. The base rate dominates the result.'},
+/* --- ARGUMENT --- */
+{sk:'ar',t:1,ty:'mcq',q:'What is the strongest way to disagree with a proposal?',
+ o:['Point out that the proposer is inexperienced','State the proposal\u2019s strongest version, then give a specific reason against it','Repeat your own position more loudly','Find one typo in the document'],a:1,
+ e:'Attacking the best version means your objection, if it lands, actually defeats the idea rather than a caricature of it.'},
+{sk:'ar',t:1,ty:'mcq',q:'Two teammates disagree and the discussion is tense. Best next move?',
+ o:['Back the first idea mentioned','Tell both to stop talking','Agree shared criteria, then score each idea against them','Let a random person decide'],a:2,
+ e:'Shared criteria convert a contest of personalities into a comparison anyone can audit — and often reveal the ideas are compatible.'},
+{sk:'ar',t:2,ty:'mcq',q:'Which is the strongest steelman of "ban homework in primary school"?',
+ o:['Homework is boring and kids hate it','Teachers are lazy and want less marking','At primary level the measured benefit is small, while it widens gaps between supported and unsupported pupils — so that time may be better spent on reading','Nobody has ever proven homework works'],a:2,
+ e:'A steelman uses the best available evidence and concedes scope. The other options are emotional, hostile or overclaim.'},
+{sk:'ar',t:2,ty:'mcq',q:'A claim is framed so that no possible observation could count against it. Why is that a problem?',
+ o:['It is too complicated','It cannot be tested, so it carries no information about the world','It must be false','It is unfalsifiable and therefore true'],a:1,
+ e:'Unfalsifiable claims are not automatically false — they are empty. Ask "what would change your mind?" and expect a concrete answer.'},
+{sk:'ar',t:3,ty:'order',q:'Order the stages of a proper argument audit.',
+ o:['Identify the conclusion','Map the stated premises','Check validity: does the conclusion follow?','Check soundness: are the premises actually true?'],a:[0,1,2,3],
+ e:'Structure before content. An argument can be valid but unsound, or sound-looking but invalid — you must test them separately, in that order.'},
+{sk:'ar',t:3,ty:'mcq',q:'Someone lands a genuinely strong counterargument against your position. What is the best response?',
+ o:['Change the subject to a weaker part of their case','Concede the valid part and specify the narrower boundary where your claim still holds','Insist they are biased','Restate your original claim with more confidence'],a:1,
+ e:'Updating a claim\u2019s scope is intellectual progress, not defeat. A narrowed claim you can defend beats a broad one you cannot.'},
+/* --- DECISION --- */
+{sk:'de',t:1,ty:'mcq',q:'The art club has no paint, an event tomorrow and a small budget. Most practical first response?',
+ o:['Cancel without checking alternatives','List what is needed, check what exists, compare realistic options','Buy the most expensive paint available','Blame whoever used the room last'],a:1,
+ e:'Define the need before spending. Borrowing, substituting or rescheduling may solve it for nothing.'},
+{sk:'de',t:1,ty:'mcq',q:'A club wants to spend its entire budget on one large event. Strongest question to ask first?',
+ o:['Which idea sounds most exciting?','What costs, risks and benefits should we compare — and what reserve do we keep?','Who can decide fastest?','Can we spend it all today?'],a:1,
+ e:'Concentration risk is the issue. Comparing downside and keeping a reserve preserves the ability to act again later.'},
+{sk:'de',t:2,ty:'mcq',q:'£2m is already spent on a failing project. Finishing costs £1m more and is expected to return £0.5m. What should drive the decision?',
+ o:['The £2m already spent must not be wasted','Only future costs and benefits: £1m for £0.5m is a bad trade','Finish because quitting looks weak','Split the difference and spend £0.5m'],a:1,
+ e:'Sunk cost is gone under every option. The only live comparison is £1m out versus £0.5m back.'},
+{sk:'de',t:2,ty:'mcq',q:'Option A: a certain £50. Option B: a 10% chance of £1,000. What is the sound analysis?',
+ o:['A is always better because it is certain','B has higher expected value (£100), but the right choice depends on whether you can absorb repeated losses','B is always better because 100 > 50','Expected value is irrelevant to real decisions'],a:1,
+ e:'Expected value favours B; risk of ruin favours A for a one-off with money you need. Name both, then choose deliberately.'},
+{sk:'de',t:3,ty:'multi',q:'Which practices genuinely improve decisions under uncertainty? Select all.',
+ o:['Run a pre-mortem: assume it failed, explain why','Write explicit probabilities before you see outcomes','Take the smallest reversible step that generates information','Commit fully and publicly so you cannot back down'],a:[0,1,2],
+ e:'Pre-mortems surface hidden risks, written probabilities prevent hindsight editing, and reversible steps buy information cheaply. Public commitment mainly increases sunk-cost pressure.'},
+{sk:'de',t:3,ty:'mcq',q:'You must act now with roughly 60% of the information you would like. Best approach?',
+ o:['Wait until you are certain','Take the smallest reversible action that produces new information','Pick randomly to save time','Delegate so the responsibility is shared'],a:1,
+ e:'Under uncertainty the goal is to buy information at the lowest irreversible cost. Waiting for certainty is itself a decision — usually a costly one.'}
+];
+
+/* ================= CASE FILES ================= */
+var CASES=[
+{id:'c1',title:'The Miracle Study App',hue:'#22d3ee',
+ sub:'CASE 01 · FOUR DOCUMENTS · FIVE DECISIONS',
+ docs:[
+  {t:'DOCUMENT A · PRESS RELEASE',p:'LearnFast announces that its app "doubles learning speed for every user". The claim appears on the company\u2019s own website and in a paid post.'},
+  {t:'DOCUMENT B · TEACHER EMAIL',p:'"Three pupils in my class used it and their marks went up. I am convinced."'},
+  {t:'DOCUMENT C · COMPANY TRIAL',p:'A 6-week study of 24 volunteers who already used the app daily. Average marks rose 8%. No control group. Funded by LearnFast.'},
+  {t:'DOCUMENT D · INDEPENDENT REVIEW',p:'An education journal notes the design cannot separate the app\u2019s effect from the users\u2019 existing motivation, and asks for a randomised trial.'}],
+ steps:[
+ {sk:'ev',t:2,ty:'mcq',q:'Document A claims "doubles learning speed for every user". What is the first problem to flag?',
+  o:['The claim is too short','A universal claim from the seller, with no independent evidence','The website is not peer-reviewed','Nothing — companies know their products'],a:1,
+  e:'Two flags at once: the source benefits from the claim, and "every user" is a universal that a single counterexample defeats.'},
+ {sk:'ca',t:2,ty:'mcq',q:'Document C used 24 volunteers who already used the app daily. What most limits the conclusion?',
+  o:['Six weeks is too long','Self-selection with no control group','Marks are not measurable','24 is a suspicious number'],a:1,
+  e:'Motivated daily users would likely improve anyway. Without random assignment and a control, the app\u2019s contribution is unidentifiable.'},
+ {sk:'da',t:2,ty:'mcq',q:'The trial reports an 8% average rise. What must you ask before treating that as meaningful?',
+  o:['Whether 8% sounds impressive','The spread, the comparison baseline, and whether it exceeds normal variation','Whether the app is expensive','Whether the teacher agrees'],a:1,
+  e:'An average without spread or comparator can hide anything. Marks fluctuate; you need to know if 8% is outside ordinary noise.'},
+ {sk:'bi',t:2,ty:'mcq',q:'The teacher is convinced after three pupils improved. Which pattern best describes this?',
+  o:['A randomised sample','Confirmation-driven anecdote: noticing the successes among pupils already inclined to improve','A base-rate calculation','A double-blind result'],a:1,
+  e:'Three cases chosen by memory, with no record of pupils who used it and did not improve. The failures are invisible.'},
+ {sk:'de',t:3,ty:'mcq',q:'Your school must decide whether to buy licences for everyone now. Strongest recommendation?',
+  o:['Buy for all — three pupils improved','Reject permanently — the company is dishonest','Run a small randomised pilot with a control group and a pre-agreed success threshold','Wait until an independent review is universally positive'],a:2,
+  e:'A reversible, information-generating pilot with a threshold set in advance beats both blanket adoption and blanket rejection.'}]},
+{id:'c2',title:'The Lunch Survey',hue:'#60a5fa',
+ sub:'CASE 02 · FOUR DOCUMENTS · FIVE DECISIONS',
+ docs:[
+  {t:'DOCUMENT A · RESULT',p:'"95% of students want a later lunch." Posted on the school noticeboard.'},
+  {t:'DOCUMENT B · METHOD',p:'Twenty students completed the form. All were from one Year 9 class. The form was handed out during that class\u2019s lunch break.'},
+  {t:'DOCUMENT C · CHART',p:'A bar chart of satisfaction runs from 90% to 100% on the vertical axis, making the 95% bar look almost full.'},
+  {t:'DOCUMENT D · PROPOSAL',p:'The principal proposes moving lunch for the whole school next term, citing the survey as the mandate.'}],
+ steps:[
+ {sk:'da',t:1,ty:'mcq',q:'What is the most serious flaw in Document B?',
+  o:['Twenty is an odd number','The sample is small and drawn from a single class at a single time','Lunch breaks are too short for surveys','Students cannot answer forms honestly'],a:1,
+  e:'One class at one moment cannot represent the school. Size and coverage are separate problems and both are present.'},
+ {sk:'da',t:2,ty:'mcq',q:'What does the chart in Document C do?',
+  o:['Nothing wrong — axes are a free choice','A truncated axis exaggerates how close 95% is to unanimity','It should be a pie chart','It hides the sample size, which is the only issue'],a:1,
+  e:'Starting at 90 turns a 5-point gap into a visual near-certainty. The axis is a rhetorical choice, not a neutral one.'},
+ {sk:'as',t:2,ty:'mcq',q:'The principal treats the survey as a mandate. Which assumption is doing the work?',
+  o:['That lunch exists','That this sample speaks for the whole school','That students like food','That terms can be changed'],a:1,
+  e:'The leap from "20 students in one class" to "the school wants" is the entire argument. Everything else rests on it.'},
+ {sk:'ca',t:2,ty:'mcq',q:'Suppose a proper survey later shows 60% support. Which alternative explanation for the original 95% is strongest?',
+  o:['Students lied deliberately','The sampled class had a timetable that made its lunch unusually short','Percentages cannot change','The chart was misprinted'],a:1,
+  e:'A local condition explains the local result without assuming dishonesty. Look for situational causes before moral ones.'},
+ {sk:'de',t:3,ty:'mcq',q:'What is the strongest recommendation to the principal?',
+  o:['Move lunch now — 95% is decisive','Never survey students again','Re-survey with a stratified sample across year groups, then trial the change in one year group','Let the loudest class decide'],a:2,
+  e:'Fix the measurement, then test the intervention at a reversible scale. Both steps generate information the current plan lacks.'}]},
+{id:'c3',title:'The Group Project Dispute',hue:'#a78bfa',
+ sub:'CASE 03 · FOUR DOCUMENTS · FIVE DECISIONS',
+ docs:[
+  {t:'DOCUMENT A · COMPLAINT',p:'Three group members say Jordan "did nothing" and ask that Jordan\u2019s name be removed from the submission.'},
+  {t:'DOCUMENT B · JORDAN\u2019S REPLY',p:'"I wrote the research section. It was never added to the shared file. I have my drafts."'},
+  {t:'DOCUMENT C · FILE HISTORY',p:'The shared document shows 41 edits by three members and none by Jordan. A separate folder contains four dated drafts authored by Jordan.'},
+  {t:'DOCUMENT D · TIMELINE',p:'Jordan\u2019s drafts are dated before the group\u2019s final meeting. Nobody mentioned the folder in the meeting notes.'}],
+ steps:[
+ {sk:'ev',t:1,ty:'mcq',q:'What should happen first?',
+  o:['Remove Jordan\u2019s name immediately','Examine Jordan\u2019s drafts and compare them with the submitted work','Let the loudest member decide','Ignore it — the project is finished'],a:1,
+  e:'Two claims conflict and physical evidence exists. Look at the artefacts before judging either party.'},
+ {sk:'bi',t:2,ty:'mcq',q:'The group concluded "did nothing" from "no edits in the shared file". Which error is this?',
+  o:['Treating one visible trace as the whole of the contribution','Base-rate neglect','The gambler\u2019s fallacy','Regression to the mean'],a:0,
+  e:'Absence of evidence in one channel was read as evidence of absence overall. The drafts were in a channel nobody checked.'},
+ {sk:'as',t:2,ty:'mcq',q:'Which unstated premise made the group\u2019s conclusion feel obvious?',
+  o:['That Jordan is unpopular','That all contribution must appear as edits in the shared file','That files cannot be dated','That meetings are useless'],a:1,
+  e:'Name the premise and it visibly fails: work can exist outside the shared document.'},
+ {sk:'ar',t:2,ty:'mcq',q:'Which criterion would make the final judgement fair to everyone?',
+  o:['Who speaks most confidently','Whether each person\u2019s dated work is traceable in the final submission, judged by the same rule for all','Who has the best reputation','Who apologised first'],a:1,
+  e:'One auditable rule applied identically to every member. Confidence and reputation are not evidence of contribution.'},
+ {sk:'de',t:3,ty:'mcq',q:'The drafts are genuine but were never integrated. Strongest resolution?',
+  o:['Penalise Jordan for not editing the file','Penalise the group for ignoring the folder','Credit the work, and fix the process so contributions have one agreed channel and a check before submission','Split the mark equally and say nothing'],a:2,
+  e:'The failure is a process failure with shared responsibility. Credit the evidence, then remove the condition that caused it.'}]},
+{id:'c4',title:'The 5AM Success Claim',hue:'#fb923c',
+ sub:'CASE 04 · FOUR DOCUMENTS · FIVE DECISIONS',
+ docs:[
+  {t:'DOCUMENT A · VIRAL THREAD',p:'"Every successful founder I know wakes at 5am. Wake at 5am and you will succeed." 1.2 million views.'},
+  {t:'DOCUMENT B · THE SAMPLE',p:'The author lists 14 founders. All were selected from a list of award winners. No unsuccessful founders were examined.'},
+  {t:'DOCUMENT C · COUNTER-DATA',p:'A survey of 900 founders finds early rising is common but so is late rising; sleep duration varies widely with no clear pattern in outcomes.'},
+  {t:'DOCUMENT D · COMMENT',p:'"My cousin wakes at 5am and is still broke, so the whole idea is stupid."'}],
+ steps:[
+ {sk:'bi',t:2,ty:'mcq',q:'What is the structural flaw in Document B?',
+  o:['Fourteen is too small a number to count','Survivorship bias: only successes were sampled','Founders cannot be surveyed','Award lists are always fake'],a:1,
+  e:'Selecting on the outcome guarantees you will find shared traits. You must also examine people who had the trait and failed.'},
+ {sk:'ca',t:2,ty:'mcq',q:'Even if early rising and success correlate, what is the most plausible confounder?',
+  o:['Waking early causes wealth directly','Underlying factors such as schedule control, resources and workload drive both','Success causes people to lie about waking times','There is no possible confounder'],a:1,
+  e:'Autonomy over one\u2019s day and the demands of the role plausibly produce both the habit and the outcome.'},
+ {sk:'ar',t:2,ty:'mcq',q:'Which is the fairest steelman of the original claim?',
+  o:['Waking at 5am magically creates money','A protected early block can give uninterrupted focused work, which may help some people — the hour itself is not the mechanism','Everyone who fails is lazy','All founders are identical'],a:1,
+  e:'The defensible core is protected focus time. Steelmanning locates the plausible mechanism and drops the mystical hour.'},
+ {sk:'fa',t:2,ty:'mcq',q:'What is wrong with Document D\u2019s reasoning?',
+  o:['Nothing — one counterexample settles it','A single anecdote is used to dismiss a population-level pattern; it refutes "always", not "sometimes helps"','The cousin does not exist','Anecdotes are never relevant'],a:1,
+  e:'One case defeats a universal claim but cannot establish the opposite general rule. Match the strength of your rebuttal to the strength of the claim.'},
+ {sk:'de',t:3,ty:'mcq',q:'What is the most useful personal takeaway?',
+  o:['Adopt 5am because successful people do it','Reject all morning routines permanently','Test whether a protected focus block improves your own output, at whatever hour fits your life','Wait for a randomised trial of waking times'],a:2,
+  e:'Isolate the plausible mechanism, run a cheap personal experiment, and keep the variable that actually matters — protected attention.'}]}
+];
+
+/* ================= RANKS / BADGES ================= */
+var RANKS=[
+ {n:'Novice',xp:0,d:'Complete a session to begin your diagnostic profile.'},
+ {n:'Observer',xp:300,d:'You can name the common traps when they are pointed out.'},
+ {n:'Questioner',xp:800,d:'You now ask for evidence before accepting a claim.'},
+ {n:'Analyst',xp:1600,d:'You separate structure from content and cause from coincidence.'},
+ {n:'Strategist',xp:2800,d:'You reason well under time pressure and incomplete information.'},
+ {n:'Architect',xp:4500,d:'You build arguments that survive their strongest counterargument.'}
+];
+var BADGES=[
+ {id:'first',ic:'🔬',n:'First Session',d:'Complete any session',t:function(p){return p.sessions.length>=1;}},
+ {id:'perfect',ic:'💯',n:'Flawless',d:'100% in a session of 6+',t:function(p){return p.sessions.some(function(s){return s.total>=6&&s.correct===s.total;});}},
+ {id:'streak5',ic:'🔥',n:'Five in a Row',d:'Reach a streak of 5',t:function(p){return p.bestStreak>=5;}},
+ {id:'streak10',ic:'⚡',n:'Ten in a Row',d:'Reach a streak of 10',t:function(p){return p.bestStreak>=10;}},
+ {id:'allsk',ic:'🧭',n:'Full Spectrum',d:'Attempt all eight skills',t:function(p){return SKILLS.every(function(s){return (p.sk[s.id]||{}).n>0;});}},
+ {id:'t3',ic:'🎓',n:'Expert Tier',d:'Answer 10 tier-3 items correctly',t:function(p){return p.t3>=10;}},
+ {id:'case',ic:'📁',n:'Case Closed',d:'Finish a case file',t:function(p){return p.sessions.some(function(s){return s.mode==='case';});}},
+ {id:'gaunt',ic:'⏱️',n:'Pressure Tested',d:'Score 300+ in a Gauntlet',t:function(p){return p.sessions.some(function(s){return s.mode==='gauntlet'&&s.score>=300;});}},
+ {id:'century',ic:'📚',n:'Century',d:'Answer 100 items',t:function(p){return p.answered>=100;}},
+ {id:'analyst',ic:'🏛️',n:'Analyst Rank',d:'Reach 1,600 XP',t:function(p){return p.xp>=1600;}},
+ {id:'drill',ic:'🎯',n:'Specialist',d:'Reach 80% mastery in any skill',t:function(p){return SKILLS.some(function(s){var k=p.sk[s.id]||{n:0,w:0};return k.n>=5&&k.w/k.n>=0.8;});}},
+ {id:'allcase',ic:'🗄️',n:'Archivist',d:'Complete all four case files',t:function(p){return CASES.every(function(c){return p.sessions.some(function(s){return s.caseId===c.id;});});}}
+];
+
+/* ================= STORE ================= */
+var KEY='reasonlab.v1';
+var DEF={diff:2,len:10,timer:true,hints:true,sound:true,motion:true};
+var P={xp:0,answered:0,correct:0,bestStreak:0,t3:0,sk:{},sessions:[],badges:{},cfg:Object.assign({},DEF)};
+function load(){
+ try{var raw=localStorage.getItem(KEY);if(!raw)return;var d=JSON.parse(raw);
+  if(d){P.xp=d.xp||0;P.answered=d.answered||0;P.correct=d.correct||0;P.bestStreak=d.bestStreak||0;P.t3=d.t3||0;
+   P.sk=d.sk||{};P.sessions=Array.isArray(d.sessions)?d.sessions.slice(-40):[];P.badges=d.badges||{};
+   P.cfg=Object.assign({},DEF,d.cfg||{});}
+ }catch(e){}
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P));}catch(e){}}
+function rankOf(xp){var r=RANKS[0];RANKS.forEach(function(k){if(xp>=k.xp)r=k;});return r;}
+function nextRank(xp){for(var i=0;i<RANKS.length;i++)if(RANKS[i].xp>xp)return RANKS[i];return null;}
+function mastery(id){var k=P.sk[id]||{n:0,w:0};return k.n?Math.round(k.w/k.n*100):0;}
+
+/* ================= SOUND ================= */
+var Snd={ctx:null,g:null,on:true,ready:false,
+ init:function(){if(this.ready){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();return;}
+  var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  try{this.ctx=new AC();this.g=this.ctx.createGain();this.g.gain.value=this.on?.3:0;this.g.connect(this.ctx.destination);this.ready=true;
+   if(this.ctx.state==='suspended')this.ctx.resume();}catch(e){}},
+ mute:function(v){this.on=v;if(this.g&&this.ctx)this.g.gain.setTargetAtTime(v?.3:0,this.ctx.currentTime,.04);},
+ t:function(f,d,ty,v){if(!this.ready||!this.on)return;d=d||.1;ty=ty||'sine';v=v||.15;
+  try{var t=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();
+   o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);
+   g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+   o.connect(g);g.connect(this.g);o.start(t);o.stop(t+d+.02);}catch(e){}},
+ click:function(){this.t(620,.05,'triangle',.08);},
+ pick:function(){this.t(440,.06,'sine',.1);},
+ good:function(){var s=this;s.t(587,.12,'sine',.15);setTimeout(function(){s.t(880,.2,'sine',.14);},95);},
+ bad:function(){this.t(180,.22,'sawtooth',.12);},
+ streak:function(n){this.t(523+n*60,.16,'triangle',.14);},
+ up:function(){var s=this;[523,659,784,1046,1318].forEach(function(f,i){setTimeout(function(){s.t(f,.36,'triangle',.16);},i*90);});},
+ tick:function(){this.t(1000,.04,'square',.06);},
+ end:function(){var s=this;[784,587,392].forEach(function(f,i){setTimeout(function(){s.t(f,.3,'sine',.14);},i*120);});}
+};
+
+/* ================= STATE ================= */
+var S={view:'home',mode:'campaign',skill:null,caseId:null,queue:[],idx:0,score:0,streak:0,best:0,
+ correct:0,logs:[],answered:false,picked:null,picks:[],order:[],hintUsed:false,eliminated:[],
+ time:0,timerId:null,perItem:false,started:0,rankBefore:null};
+var el={};
+function cache(){['hRank','hXp','homeBtn','helpBtn','soundBtn','vHome','vSetup','vSession','vResults','vReview',
+ 'homeRing','homeAcc','homeRank','homeRankDesc','homeXpBar','homeXpNow','homeXpNext','modeGrid','skillGrid','statGrid',
+ 'badgeCount','badgeGrid','histList','exportBtn','printBtn','setEyebrow','setTitle','setDesc','setStats','setSkills','setCases',
+ 'startBtn','setBack','sProgLab','sProgBar','sScore','sStreak','sTimeWrap','sTime','sDossier','sTags','sQ','sCtx','sAnswer',
+ 'sFb','submitBtn','nextBtn','hintBtn','abortBtn','rEyebrow','rRing','rAcc','rTitle','rLine','rRankUp','rStats','rBars',
+ 'rAgain','rReview','rHome','revList','revBack','revHome','revPrint','diffSeg','diffOut','lenSeg','lenOut','timerTog','hintTog',
+ 'soundTog','motionTog','resetCfg','wipeBtn','helpVeil','helpClose','confirmVeil','cfTitle','cfBody','cfYes','cfNo','toast','toastMsg']
+ .forEach(function(id){el[id]=document.getElementById(id);});}
+function toast(m){el.toastMsg.textContent=m;el.toast.classList.add('show');clearTimeout(toast._t);
+ toast._t=setTimeout(function(){el.toast.classList.remove('show');},4200);}
+var VIEWS=['vHome','vSetup','vSession','vResults','vReview'];
+function show(v){S.view=v;VIEWS.forEach(function(k){el[k].hidden=(k!==v);});window.scrollTo({top:0,behavior:P.cfg.motion?'smooth':'auto'});}
+
+/* ================= CONFIG UI ================= */
+function applyCfg(){
+ var c=P.cfg;
+ $$('#diffSeg button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-v')===String(c.diff));});
+ $$('#lenSeg button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-v')===String(c.len));});
+ el.diffOut.textContent={1:'CORE',2:'STANDARD',3:'EXPERT',0:'ADAPTIVE'}[c.diff];
+ el.lenOut.textContent=c.len+' items';
+ tog(el.timerTog,c.timer);tog(el.hintTog,c.hints);tog(el.soundTog,c.sound);tog(el.motionTog,c.motion);
+ el.soundBtn.className='ib'+(c.sound?' on':'');el.soundBtn.textContent=c.sound?'🔊':'🔇';
+ el.soundBtn.setAttribute('aria-pressed',String(c.sound));
+ document.body.classList.toggle('nomotion',!c.motion);
+ Snd.on=c.sound;Snd.mute(c.sound);
+}
+function tog(n,on){n.classList.toggle('on',on);n.setAttribute('aria-checked',String(on));}
+function setCfg(k,v){P.cfg[k]=v;save();applyCfg();}
+
+/* ================= HOME ================= */
+var MODES=[
+ {id:'campaign',ic:'🧭',n:'CAMPAIGN',hue:'#f5a524',d:'Mixed items across all eight skills. The standard diagnostic — find out which part of your reasoning is weakest.',m:'ALL SKILLS · UNTIMED OR 40s/ITEM'},
+ {id:'gauntlet',ic:'⏱️',n:'GAUNTLET',hue:'#fb7185',d:'A 90-second sprint. Correct answers add time, errors cost time, and consecutive correct answers multiply your points.',m:'90s · STREAK MULTIPLIER'},
+ {id:'drill',ic:'🎯',n:'DRILL',hue:'#22d3ee',d:'One skill, repeatedly, until recognising it is automatic. Choose the track on the briefing screen.',m:'SINGLE SKILL · MASTERY'},
+ {id:'case',ic:'📁',n:'CASE FILE',hue:'#a78bfa',d:'A dossier of conflicting documents, then five linked decisions about the same evidence. The closest thing to real reasoning.',m:'4 DOCUMENTS · 5 DECISIONS'}
+];
+function renderHome(){
+ var r=rankOf(P.xp),nx=nextRank(P.xp);
+ el.hRank.textContent=r.n.toUpperCase();el.hXp.textContent=P.xp+' XP';
+ el.homeRank.textContent=r.n;el.homeRankDesc.textContent=r.d;
+ var acc=P.answered?Math.round(P.correct/P.answered*100):0;
+ el.homeAcc.textContent=P.answered?acc+'%':'—';
+ el.homeRing.style.strokeDashoffset='352';
+ requestAnimationFrame(function(){requestAnimationFrame(function(){el.homeRing.style.strokeDashoffset=String(352*(1-acc/100));});});
+ var span=nx?(nx.xp-r.xp):1,into=nx?(P.xp-r.xp):1;
+ el.homeXpBar.style.width=(nx?clamp(into/span*100,0,100):100)+'%';
+ el.homeXpNow.textContent=P.xp+' XP';
+ el.homeXpNext.textContent=nx?('NEXT: '+nx.n.toUpperCase()+' · '+nx.xp):'MAXIMUM RANK REACHED';
+ el.modeGrid.innerHTML='';
+ MODES.forEach(function(m){
+  var b=document.createElement('button');b.type='button';b.className='mode';b.style.setProperty('--hue',m.hue);
+  b.innerHTML='<span class="ic">'+m.ic+'</span><span class="nm">'+m.n+'</span><p>'+esc(m.d)+'</p><div class="meta"><span>'+m.m+'</span></div>';
+  b.addEventListener('click',function(){Snd.init();Snd.click();openSetup(m.id);});
+  el.modeGrid.appendChild(b);
+ });
+ el.skillGrid.innerHTML='';
+ SKILLS.forEach(function(s){
+  var k=P.sk[s.id]||{n:0,w:0},pc=mastery(s.id);
+  var d=document.createElement('div');d.className='sk';d.style.setProperty('--hue',s.hue);
+  d.innerHTML='<div class="top"><b>'+s.ic+' '+esc(s.name)+'</b><span>'+(k.n?pc+'%':'—')+'</span></div>'+
+   '<div class="bar"><i style="width:'+pc+'%"></i></div><small>'+(k.n?k.n+' ITEMS ATTEMPTED':'NOT YET ATTEMPTED')+' · '+esc(s.desc)+'</small>';
+  el.skillGrid.appendChild(d);
+ });
+ var best=0;P.sessions.forEach(function(s){if(s.mode==='gauntlet'&&s.score>best)best=s.score;});
+ el.statGrid.innerHTML=st('',''+P.sessions.length,'SESSIONS')+st('c',''+P.answered,'ITEMS ANSWERED')+
+  st('g',P.answered?acc+'%':'—','LIFETIME ACCURACY')+st('v',''+P.bestStreak,'BEST STREAK')+
+  st('r',''+P.t3,'EXPERT ITEMS SOLVED')+st('',best||'—','BEST GAUNTLET');
+ var got=0;el.badgeGrid.innerHTML='';
+ BADGES.forEach(function(b){
+  var ok=false;try{ok=b.t(P);}catch(e){}
+  if(ok){got++;P.badges[b.id]=1;}
+  var d=document.createElement('div');d.className='badge'+(ok?' got':'');
+  d.innerHTML='<span class="ic">'+b.ic+'</span><b>'+esc(b.n)+'</b><span>'+esc(b.d)+'</span>';
+  el.badgeGrid.appendChild(d);
+ });
+ el.badgeCount.textContent=got+' OF '+BADGES.length+' EARNED';
+ el.histList.innerHTML='';
+ if(!P.sessions.length){el.histList.innerHTML='<div class="empty"><b>No sessions yet</b>Run a Campaign to build your first diagnostic profile.</div>';}
+ else{
+  P.sessions.slice().reverse().slice(0,12).forEach(function(s){
+   var hue=s.mode==='gauntlet'?'#fb7185':(s.mode==='case'?'#a78bfa':(s.mode==='drill'?'#22d3ee':'#f5a524'));
+   var d=new Date(s.ts),row=document.createElement('div');row.className='hrow';row.style.setProperty('--hue',hue);
+   row.innerHTML='<span class="d">'+pad(d.getDate())+'/'+pad(d.getMonth()+1)+'</span>'+
+    '<span class="t"><b>'+esc(s.label)+'</b><small>'+s.correct+'/'+s.total+' correct · '+s.score+' pts · streak '+s.streak+'</small></span>'+
+    '<span class="s">'+Math.round(s.correct/s.total*100)+'%</span>';
+   el.histList.appendChild(row);
+  });
+ }
+ save();
+}
+function st(c,v,l){return '<div class="stat '+c+'"><b>'+v+'</b><span>'+l+'</span></div>';}
+
+/* ================= SETUP ================= */
+function openSetup(mode){
+ S.mode=mode;S.skill=null;S.caseId=null;
+ var m=MODES.filter(function(x){return x.id===mode;})[0];
+ el.setEyebrow.textContent='BRIEFING · '+m.n;
+ el.setTitle.textContent=m.n.charAt(0)+m.n.slice(1).toLowerCase();
+ el.setDesc.textContent=m.d;
+ el.setSkills.innerHTML='';el.setCases.innerHTML='';
+ var len=P.cfg.len,timed=P.cfg.timer;
+ if(mode==='gauntlet'){el.setStats.innerHTML=st('r','90s','TOTAL CLOCK')+st('','+5s','PER CORRECT')+st('','−4s','PER ERROR')+st('v','×2','MAX STREAK MULTIPLIER');}
+ else if(mode==='case'){el.setStats.innerHTML=st('v','4','DOCUMENTS')+st('','5','LINKED DECISIONS')+st('c','0','TIME LIMIT')+st('g','20','POINTS PER ITEM');}
+ else if(mode==='drill'){el.setStats.innerHTML=st('c',len,'ITEMS')+st('',{1:'CORE',2:'STANDARD',3:'EXPERT',0:'ADAPTIVE'}[P.cfg.diff],'DIFFICULTY')+st('g',timed?'40s':'OFF','PER-ITEM TIMER')+st('v','1','SKILL TRACK');}
+ else{el.setStats.innerHTML=st('',len,'ITEMS')+st('c','8','SKILL TRACKS')+st('',{1:'CORE',2:'STANDARD',3:'EXPERT',0:'ADAPTIVE'}[P.cfg.diff],'DIFFICULTY')+st('g',timed?'40s':'OFF','PER-ITEM TIMER');}
+ if(mode==='drill'){
+  var h=document.createElement('div');h.className='sec';h.innerHTML='<h2>Choose a skill track</h2><span class="tag">CLICK TO SELECT</span>';
+  el.setSkills.appendChild(h);
+  var g=document.createElement('div');g.className='skills';
+  SKILLS.forEach(function(s){
+   var k=P.sk[s.id]||{n:0};
+   var b=document.createElement('button');b.type='button';b.className='sk';b.style.setProperty('--hue',s.hue);
+   b.style.textAlign='left';b.style.cursor='pointer';b.style.width='100%';
+   b.innerHTML='<div class="top"><b>'+s.ic+' '+esc(s.name)+'</b><span>'+(k.n?mastery(s.id)+'%':'NEW')+'</span></div>'+
+    '<div class="bar"><i style="width:'+mastery(s.id)+'%"></i></div><small>'+esc(s.desc)+'</small>';
+   b.addEventListener('click',function(){
+    S.skill=s.id;Snd.pick();
+    $$('.sk',g).forEach(function(x){x.style.borderColor='';x.style.boxShadow='';});
+    b.style.borderColor=s.hue;b.style.boxShadow='0 0 0 2px '+s.hue+'55';
+    el.startBtn.disabled=false;
+   });
+   g.appendChild(b);
+  });
+  el.setSkills.appendChild(g);
+  el.startBtn.disabled=true;
+ }else if(mode==='case'){
+  var h2=document.createElement('div');h2.className='sec';h2.innerHTML='<h2>Choose a case file</h2><span class="tag">CLICK TO SELECT</span>';
+  el.setCases.appendChild(h2);
+  var g2=document.createElement('div');g2.className='modes';
+  CASES.forEach(function(c){
+   var done=P.sessions.some(function(s){return s.caseId===c.id;});
+   var b=document.createElement('button');b.type='button';b.className='mode';b.style.setProperty('--hue',c.hue);
+   b.innerHTML='<span class="ic">📁</span><span class="nm">'+esc(c.title.toUpperCase())+'</span><p>'+esc(c.sub)+'</p>'+
+    '<div class="meta"><span>'+(done?'✔ COMPLETED':'NOT ATTEMPTED')+'</span><span>5 DECISIONS</span></div>';
+   b.addEventListener('click',function(){
+    S.caseId=c.id;Snd.pick();
+    $$('.mode',g2).forEach(function(x){x.style.borderColor='';x.style.boxShadow='';});
+    b.style.borderColor=c.hue;b.style.boxShadow='0 0 0 2px '+c.hue+'55';
+    el.startBtn.disabled=false;
+   });
+   g2.appendChild(b);
+  });
+  el.setCases.appendChild(g2);
+  el.startBtn.disabled=true;
+ }else{el.startBtn.disabled=false;}
+ show('vSetup');
+}
+
+/* ================= SESSION BUILD ================= */
+function poolFor(mode,skill,diff){
+ var pool=ITEMS.slice();
+ if(mode==='drill'&&skill)pool=pool.filter(function(i){return i.sk===skill;});
+ if(diff>0){
+  var exact=pool.filter(function(i){return i.t===diff;});
+  if(exact.length>=4)pool=exact;
+  else pool=pool.filter(function(i){return Math.abs(i.t-diff)<=1;});
+ }
+ return pool;
+}
+function buildQueue(){
+ var q=[],i;
+ if(S.mode==='case'){
+  var c=CASES.filter(function(x){return x.id===S.caseId;})[0];
+  q=c.steps.map(function(s){return Object.assign({},s,{caseId:c.id});});
+  return q;
+ }
+ var diff=P.cfg.diff,len=P.cfg.len;
+ if(S.mode==='gauntlet'){
+  var pool=ITEMS.slice();
+  var t1=shuffle(pool.filter(function(x){return x.t===1;}));
+  var t2=shuffle(pool.filter(function(x){return x.t===2;}));
+  var t3=shuffle(pool.filter(function(x){return x.t===3;}));
+  q=t1.slice(0,4).concat(t2.slice(0,5)).concat(t3.slice(0,9));
+  return q.map(function(x){return Object.assign({},x);});
+ }
+ if(S.mode==='drill'){
+  var p=poolFor('drill',S.skill,diff);
+  var out=[];while(out.length<len){out=out.concat(shuffle(p));}
+  return out.slice(0,len).map(function(x){return Object.assign({},x);});
+ }
+ /* campaign: cover all skills, then fill */
+ var bySk={};SKILLS.forEach(function(s){bySk[s.id]=[];});
+ poolFor('campaign',null,diff).forEach(function(x){bySk[x.sk].push(x);});
+ SKILLS.forEach(function(s){var a=shuffle(bySk[s.id]);if(a.length)q.push(a[0]);});
+ var rest=shuffle(poolFor('campaign',null,diff).filter(function(x){return q.indexOf(x)<0;}));
+ while(q.length<len&&rest.length)q.push(rest.shift());
+ q=shuffle(q).slice(0,len);
+ return q.map(function(x){return Object.assign({},x);});
+}
+function startSession(){
+ S.queue=buildQueue();
+ if(!S.queue.length){toast('No items match those settings. Try a different difficulty.');return;}
+ S.idx=0;S.score=0;S.streak=0;S.best=0;S.correct=0;S.logs=[];S.started=Date.now();
+ S.rankBefore=rankOf(P.xp).n;
+ S.perItem=(S.mode!=='gauntlet'&&S.mode!=='case'&&P.cfg.timer);
+ if(S.mode==='gauntlet'){S.time=90;el.sTimeWrap.hidden=false;startClock(true);}
+ else if(S.perItem){S.time=40;el.sTimeWrap.hidden=false;}
+ else{el.sTimeWrap.hidden=true;stopClock();}
+ show('vSession');renderItem();
+}
+function startClock(global){
+ stopClock();
+ S.timerId=setInterval(function(){
+  if(S.answered&&!global)return;
+  S.time--;
+  el.sTime.textContent=Math.max(0,S.time);
+  el.sTimeWrap.classList.toggle('warn',S.time<=10);
+  if(S.time<=10&&S.time>0)Snd.tick();
+  if(S.time<=0){
+   if(global){stopClock();finish();}
+   else{stopClock();if(!S.answered)autoFail();}
+  }
+ },1000);
+}
+function stopClock(){if(S.timerId){clearInterval(S.timerId);S.timerId=null;}}
+function autoFail(){
+ S.answered=true;S.picked=null;S.picks=[];
+ gradeCurrent(true);
+}
+
+/* ================= RENDER ITEM ================= */
+function currentItem(){return S.queue[S.idx];}
+function renderItem(){
+ var it=currentItem();if(!it){finish();return;}
+ S.answered=false;S.picked=null;S.picks=[];S.hintUsed=false;S.eliminated=[];
+ var total=S.mode==='gauntlet'?'∞':S.queue.length;
+ el.sProgLab.textContent='ITEM '+(S.idx+1)+' / '+total;
+ el.sProgBar.style.width=(S.mode==='gauntlet'?clamp(S.idx/18*100,0,100):(S.idx/S.queue.length*100))+'%';
+ el.sScore.textContent=S.score;el.sStreak.textContent=S.streak;
+ el.sFb.hidden=true;el.nextBtn.hidden=true;el.submitBtn.hidden=false;el.submitBtn.disabled=false;
+ el.hintBtn.hidden=!P.cfg.hints||it.ty!=='mcq';el.hintBtn.disabled=false;
+ var sk=SK(it.sk);
+ el.sTags.innerHTML='<span class="qtag" style="--hue:'+sk.hue+'">'+sk.ic+' '+esc(sk.name.toUpperCase())+'</span>'+
+  '<span class="qtag tier">TIER '+it.t+'</span>'+
+  '<span class="qtag type">'+({mcq:'SINGLE CHOICE',multi:'SELECT ALL THAT APPLY',order:'RANK IN ORDER'}[it.ty])+'</span>';
+ el.sQ.textContent=it.q;
+ el.sCtx.hidden=true;
+ /* dossier */
+ el.sDossier.innerHTML='';
+ if(it.caseId){
+  var c=CASES.filter(function(x){return x.id===it.caseId;})[0];
+  var d=document.createElement('div');d.className='dossier';
+  d.innerHTML='<h4>'+esc(c.title.toUpperCase())+'</h4><div class="dsub">'+esc(c.sub)+' · DECISION '+(S.idx+1)+' OF 5</div>'+
+   c.docs.map(function(doc){return '<div class="doc"><b>'+esc(doc.t)+'</b><p>'+esc(doc.p)+'</p></div>';}).join('');
+  el.sDossier.appendChild(d);
+ }
+ /* answer area */
+ el.sAnswer.innerHTML='';
+ if(it.ty==='order'){
+  S.order=shuffle(it.o.map(function(_,i){return i;}));
+  if(S.order.join()===it.a.join())S.order.reverse();
+  var ol=document.createElement('ol');ol.className='ordlist';ol.id='ordList';
+  S.order.forEach(function(oi){
+   var li=document.createElement('li');li.setAttribute('data-i',oi);
+   li.innerHTML='<span class="tx">'+esc(it.o[oi])+'</span><span class="mv">'+
+    '<button type="button" data-dir="-1" aria-label="Move up">↑</button><button type="button" data-dir="1" aria-label="Move down">↓</button></span>';
+   ol.appendChild(li);
+  });
+  el.sAnswer.appendChild(ol);
+ }else{
+  var wrap=document.createElement('div');wrap.className='opts';wrap.id='optWrap';
+  it.o.forEach(function(o,i){
+   var b=document.createElement('button');b.type='button';b.className='opt';b.setAttribute('data-i',i);
+   b.innerHTML='<span class="k">'+(it.ty==='multi'?'☐':'ABCD'[i])+'</span><span>'+esc(o)+'</span>';
+   wrap.appendChild(b);
+  });
+  el.sAnswer.appendChild(wrap);
+ }
+ if(S.perItem){S.time=40;el.sTime.textContent=40;el.sTimeWrap.classList.remove('warn');startClock(false);}
+ if(S.mode==='gauntlet'){el.sTime.textContent=Math.max(0,S.time);}
+}
+
+/* ================= GRADING ================= */
+function isCorrect(it){
+ if(it.ty==='mcq')return S.picked===it.a;
+ if(it.ty==='multi'){
+  if(S.picks.length!==it.a.length)return false;
+  var s=S.picks.slice().sort().join(',');return s===it.a.slice().sort().join(',');
+ }
+ return S.order.join(',')===it.a.join(',');
+}
+function gradeCurrent(timedOut){
+ var it=currentItem();
+ if(!timedOut){
+  if(it.ty==='mcq'&&S.picked===null){toast('Select an option first.');return;}
+  if(it.ty==='multi'&&!S.picks.length){toast('Select at least one option.');return;}
+ }
+ S.answered=true;stopClock();
+ var ok=!timedOut&&isCorrect(it);
+ var base={1:10,2:15,3:20}[it.t];
+ var mult=S.mode==='gauntlet'?Math.min(2,1+Math.floor(S.streak/3)*0.25):1;
+ var gained=ok?Math.round(base*mult*(S.hintUsed?0.6:1)):0;
+ S.score+=gained;
+ if(ok){S.correct++;S.streak++;if(S.streak>S.best)S.best=S.streak;
+  if(S.mode==='gauntlet'){S.time+=5;el.sTime.textContent=S.time;}
+  if(S.streak>1)Snd.streak(Math.min(S.streak,8));else Snd.good();
+ }else{S.streak=0;Snd.bad();if(S.mode==='gauntlet'){S.time=Math.max(0,S.time-4);el.sTime.textContent=S.time;}}
+ /* profile */
+ P.answered++;if(ok)P.correct++;
+ if(ok&&it.t===3)P.t3++;
+ if(S.streak>P.bestStreak)P.bestStreak=S.streak;
+ var k=P.sk[it.sk]||{n:0,w:0};k.n++;if(ok)k.w+=1;else if(it.t===1)k.w+=0;
+ P.sk[it.sk]=k;
+ P.xp+=ok?Math.round(base*(S.hintUsed?0.6:1)):2;
+ save();
+ /* visual marks */
+ if(it.ty==='order'){
+  $$('#ordList li').forEach(function(li,i){
+   var want=it.a[i],got=parseInt(li.getAttribute('data-i'),10);
+   li.classList.toggle('right',want===got);li.classList.toggle('wrong',want!==got);
+   $$('button',li).forEach(function(b){b.disabled=true;});
+  });
+ }else{
+  $$('#optWrap .opt').forEach(function(b){
+   var i=parseInt(b.getAttribute('data-i'),10);
+   var right=it.ty==='mcq'?(i===it.a):(it.a.indexOf(i)>=0);
+   var chosen=it.ty==='mcq'?(S.picked===i):(S.picks.indexOf(i)>=0);
+   b.disabled=true;
+   if(right)b.classList.add('right');
+   else if(chosen)b.classList.add('wrong');
+   else b.classList.add('dim');
+   if(it.ty==='multi')$('.k',b).textContent=right?'✓':(chosen?'✗':'☐');
+  });
+ }
+ /* feedback */
+ var sk=SK(it.sk);
+ el.sFb.className='fb'+(ok?'':' bad');
+ var head=timedOut?'⏱ TIME EXPIRED':(ok?'✔ SOUND REASONING':'✘ REASONING SLIPPED');
+ var ansText=it.ty==='mcq'?it.o[it.a]:(it.ty==='multi'?it.a.map(function(i){return it.o[i];}).join(' · '):it.a.map(function(i){return it.o[i];}).join(' → '));
+ el.sFb.innerHTML='<div class="verdict">'+head+'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:var(--dim);letter-spacing:1px">'+sk.name.toUpperCase()+' · TIER '+it.t+'</span></div>'+
+  (ok?'':'<div class="exp" style="margin-bottom:9px"><b style="color:var(--green)">Correct:</b> '+esc(ansText)+'</div>')+
+  '<div class="exp">'+esc(it.e)+'</div>'+
+  '<div class="pts">'+(ok?'+'+gained+' POINTS'+(mult>1?' · ×'+mult.toFixed(2)+' STREAK MULTIPLIER':'')+(S.hintUsed?' · HINT PENALTY APPLIED':''):'0 POINTS · +2 XP FOR ATTEMPTING')+'</div>';
+ el.sFb.hidden=false;
+ el.submitBtn.hidden=true;el.hintBtn.hidden=true;el.nextBtn.hidden=false;
+ el.sScore.textContent=S.score;el.sStreak.textContent=S.streak;
+ S.logs.push({it:it,ok:ok,you:it.ty==='mcq'?(S.picked===null?'—':it.o[S.picked]):
+  (it.ty==='multi'?(S.picks.length?S.picks.map(function(i){return it.o[i];}).join(' · '):'—'):
+   S.order.map(function(i){return it.o[i];}).join(' → ')),
+  correct:ansText,gained:gained});
+ if(S.mode==='gauntlet'&&S.time<=0){setTimeout(finish,900);}
+}
+function nextItem(){
+ S.idx++;
+ if(S.mode!=='gauntlet'&&S.idx>=S.queue.length){finish();return;}
+ if(S.mode==='gauntlet'&&S.idx>=S.queue.length){S.queue=S.queue.concat(shuffle(ITEMS).slice(0,10).map(function(x){return Object.assign({},x);}));}
+ renderItem();
+ if(S.mode==='gauntlet')startClock(true);
+}
+
+/* ================= FINISH ================= */
+function finish(){
+ stopClock();
+ var total=S.logs.length;
+ if(!total){toast('Session aborted — nothing recorded.');show('vHome');renderHome();return;}
+ var acc=Math.round(S.correct/total*100);
+ var label=S.mode==='case'?('Case · '+(CASES.filter(function(c){return c.id===S.caseId;})[0]||{title:''}).title):
+  (S.mode==='drill'?('Drill · '+SK(S.skill).name):(S.mode==='gauntlet'?'Gauntlet':'Campaign'));
+ P.sessions.push({ts:Date.now(),mode:S.mode,caseId:S.caseId,skill:S.skill,label:label,
+  correct:S.correct,total:total,score:S.score,streak:S.best});
+ if(P.sessions.length>40)P.sessions=P.sessions.slice(-40);
+ save();
+ var rAfter=rankOf(P.xp).n;
+ el.rEyebrow.textContent='SESSION REPORT · '+label.toUpperCase();
+ el.rAcc.textContent=acc+'%';
+ el.rRing.style.strokeDashoffset='352';
+ requestAnimationFrame(function(){requestAnimationFrame(function(){el.rRing.style.strokeDashoffset=String(352*(1-acc/100));});});
+ el.rTitle.textContent=acc>=90?'Reasoning held under load.':(acc>=70?'Solid — with identifiable gaps.':(acc>=50?'Mixed. The gaps are specific.':'Foundational gaps — and now they are named.'));
+ el.rLine.textContent='You answered '+S.correct+' of '+total+' correctly for '+S.score+' points, with a best streak of '+S.best+'. The breakdown below shows exactly which reasoning skill needs the next session.';
+ el.rRankUp.innerHTML=(rAfter!==S.rankBefore)?'<span class="rankup">▲ RANK UP · '+rAfter.toUpperCase()+'</span>':'';
+ el.rStats.innerHTML=st('',S.score,'POINTS')+st('g',S.correct+'/'+total,'CORRECT')+st('v',''+S.best,'BEST STREAK')+
+  st('c','+'+(P.xp),'TOTAL XP')+st('r',''+Math.round((Date.now()-S.started)/1000)+'s','ELAPSED');
+ var per={};S.logs.forEach(function(l){var s=l.it.sk;per[s]=per[s]||{n:0,c:0};per[s].n++;if(l.ok)per[s].c++;});
+ el.rBars.innerHTML='';
+ Object.keys(per).forEach(function(id){
+  var s=SK(id),v=per[id],pc=Math.round(v.c/v.n*100);
+  var d=document.createElement('div');d.className='brow';d.style.setProperty('--hue',s.hue);
+  d.innerHTML='<span class="nm">'+s.ic+' '+esc(s.name)+'</span><span class="tr"><i style="width:'+pc+'%"></i></span><span class="pc">'+v.c+'/'+v.n+'</span>';
+  el.rBars.appendChild(d);
+ });
+ try{document.dispatchEvent(new CustomEvent('cmcreason:session',{detail:{sid:Date.now()+':'+total+':'+S.score,
+  mode:S.mode,label:label,acc:acc,correct:S.correct,total:total,score:S.score,best:S.best}}));}catch(e){}
+ show('vResults');
+ if(acc>=90){Snd.up();celebrate(el.vResults);}else Snd.end();
+ renderHome();
+}
+function celebrate(host){
+ var card=$('.card',host)||host;card.style.position='relative';
+ var cols=['#f5a524','#22d3ee','#34d399','#a78bfa','#fb923c'];
+ for(var i=0;i<30;i++){
+  var s=document.createElement('span');s.className='confetti';
+  s.style.left=(Math.random()*100)+'%';s.style.animationDelay=(Math.random()*.6)+'s';
+  s.style.background=cols[i%5];var w=6+Math.random()*9;s.style.width=w+'px';s.style.height=(w*.6)+'px';
+  card.appendChild(s);
+  setTimeout((function(n){return function(){if(n.parentNode)n.parentNode.removeChild(n);};})(s),2800);
+ }
+}
+
+/* ================= REVIEW ================= */
+function renderReview(){
+ el.revList.innerHTML='';
+ S.logs.forEach(function(l,i){
+  var sk=SK(l.it.sk);
+  var d=document.createElement('div');d.className='rev'+(l.ok?'':' bad');
+  d.innerHTML='<div class="qtags"><span class="qtag" style="--hue:'+sk.hue+'">'+sk.ic+' '+esc(sk.name.toUpperCase())+'</span>'+
+   '<span class="qtag tier">TIER '+l.it.t+'</span><span class="qtag type">ITEM '+(i+1)+'</span></div>'+
+   '<p class="rq">'+esc(l.it.q)+'</p>'+
+   (l.ok?'':'<div class="ra you"><b>YOUR ANSWER</b>'+esc(l.you)+'</div>')+
+   '<div class="ra cor"><b>'+(l.ok?'YOUR ANSWER · CORRECT':'CORRECT ANSWER')+'</b>'+esc(l.correct)+'</div>'+
+   '<div class="re">'+esc(l.it.e)+'</div>';
+  el.revList.appendChild(d);
+ });
+ show('vReview');
+}
+
+/* ================= EVENTS ================= */
+function bind(){
+ el.homeBtn.addEventListener('click',function(){if(S.view==='vSession'){toast('Abort the session first.');return;}Snd.click();show('vHome');renderHome();});
+ el.helpBtn.addEventListener('click',function(){el.helpVeil.hidden=false;document.body.classList.add('locked');Snd.init();Snd.click();});
+ el.helpClose.addEventListener('click',function(){el.helpVeil.hidden=true;document.body.classList.remove('locked');});
+ el.helpVeil.addEventListener('click',function(e){if(e.target===el.helpVeil){el.helpVeil.hidden=true;document.body.classList.remove('locked');}});
+ el.soundBtn.addEventListener('click',function(){Snd.init();setCfg('sound',!P.cfg.sound);if(P.cfg.sound)Snd.click();});
+ el.startBtn.addEventListener('click',function(){Snd.init();Snd.click();startSession();});
+ el.setBack.addEventListener('click',function(){Snd.click();show('vHome');renderHome();});
+ el.submitBtn.addEventListener('click',function(){gradeCurrent(false);});
+ el.nextBtn.addEventListener('click',function(){Snd.click();nextItem();});
+ el.abortBtn.addEventListener('click',function(){stopClock();Snd.click();
+  if(S.logs.length)finish();else{show('vHome');renderHome();toast('Session aborted — nothing recorded.');}});
+ el.hintBtn.addEventListener('click',function(){
+  var it=currentItem();if(S.answered||it.ty!=='mcq'||S.hintUsed)return;
+  var wrong=it.o.map(function(_,i){return i;}).filter(function(i){return i!==it.a&&S.eliminated.indexOf(i)<0;});
+  if(!wrong.length)return;
+  var kill=wrong[Math.floor(Math.random()*wrong.length)];
+  S.eliminated.push(kill);S.hintUsed=true;
+  var b=$('#optWrap .opt[data-i="'+kill+'"]');if(b){b.classList.add('dim');b.disabled=true;}
+  el.hintBtn.disabled=true;Snd.pick();toast('One option eliminated. This item now scores 60%.');
+ });
+ el.sAnswer.addEventListener('click',function(e){
+  if(S.answered)return;
+  var it=currentItem();
+  var mv=e.target.closest('.mv button');
+  if(mv){
+   var li=mv.closest('li'),dir=parseInt(mv.getAttribute('data-dir'),10);
+   var sib=dir<0?li.previousElementSibling:li.nextElementSibling;
+   if(!sib)return;
+   if(dir<0)li.parentNode.insertBefore(li,sib);else li.parentNode.insertBefore(sib,li);
+   S.order=$$('#ordList li').map(function(x){return parseInt(x.getAttribute('data-i'),10);});
+   Snd.pick();return;
+  }
+  var op=e.target.closest('.opt');
+  if(!op||op.disabled)return;
+  var i=parseInt(op.getAttribute('data-i'),10);
+  if(it.ty==='mcq'){
+   S.picked=i;$$('#optWrap .opt').forEach(function(b){b.classList.remove('picked');});
+   op.classList.add('picked');
+  }else{
+   var at=S.picks.indexOf(i);
+   if(at>=0){S.picks.splice(at,1);op.classList.remove('picked');$('.k',op).textContent='☐';}
+   else{S.picks.push(i);op.classList.add('picked');$('.k',op).textContent='☑';}
+  }
+  Snd.pick();
+ });
+ el.rAgain.addEventListener('click',function(){Snd.click();startSession();});
+ el.rReview.addEventListener('click',function(){Snd.click();renderReview();});
+ el.rHome.addEventListener('click',function(){Snd.click();show('vHome');renderHome();});
+ el.revBack.addEventListener('click',function(){Snd.click();show('vResults');});
+ el.revHome.addEventListener('click',function(){Snd.click();show('vHome');renderHome();});
+ el.revPrint.addEventListener('click',function(){window.print();});
+ el.printBtn.addEventListener('click',function(){window.print();});
+ el.exportBtn.addEventListener('click',function(){
+  try{var b=new Blob([JSON.stringify(P,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');
+   a.href=u;a.download='reason-lab-progress.json';document.body.appendChild(a);a.click();document.body.removeChild(a);
+   setTimeout(function(){URL.revokeObjectURL(u);},1200);toast('Progress exported as JSON.');}catch(e){toast('Export unavailable in this browser.');}
+ });
+ function segBind(seg,key,cast){seg.addEventListener('click',function(e){
+  var b=e.target.closest('[data-v]');if(!b)return;setCfg(key,cast(b.getAttribute('data-v')));Snd.click();});}
+ segBind(el.diffSeg,'diff',function(v){return parseInt(v,10);});
+ segBind(el.lenSeg,'len',function(v){return parseInt(v,10);});
+ function togBind(n,k){var f=function(){Snd.init();setCfg(k,!P.cfg[k]);Snd.click();};
+  n.addEventListener('click',f);n.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();f();}});}
+ togBind(el.timerTog,'timer');togBind(el.hintTog,'hints');togBind(el.soundTog,'sound');togBind(el.motionTog,'motion');
+ el.resetCfg.addEventListener('click',function(){P.cfg=Object.assign({},DEF);save();applyCfg();toast('Controls reset to defaults.');});
+ el.wipeBtn.addEventListener('click',function(){
+  el.cfTitle.textContent='Erase all progress?';
+  el.cfBody.textContent='This removes XP, mastery, badges and the session log from this browser. Controls are kept.';
+  el.confirmVeil.hidden=false;document.body.classList.add('locked');
+ });
+ el.cfNo.addEventListener('click',function(){el.confirmVeil.hidden=true;document.body.classList.remove('locked');});
+ el.cfYes.addEventListener('click',function(){
+  var backup=JSON.stringify(P);
+  P.xp=0;P.answered=0;P.correct=0;P.bestStreak=0;P.t3=0;P.sk={};P.sessions=[];P.badges={};
+  save();el.confirmVeil.hidden=true;document.body.classList.remove('locked');
+  show('vHome');renderHome();
+  toast('Progress erased.');
+  el.toastMsg.textContent='Progress erased. Tap to undo.';
+  el.toast.style.cursor='pointer';
+  var undo=function(){try{P=JSON.parse(backup);save();applyCfg();renderHome();toast('Progress restored.');}catch(e){}
+   el.toast.removeEventListener('click',undo);el.toast.style.cursor='';};
+  el.toast.addEventListener('click',undo);
+  setTimeout(function(){el.toast.removeEventListener('click',undo);el.toast.style.cursor='';},4200);
+ });
+ document.addEventListener('keydown',function(e){
+  if(!el.helpVeil.hidden||!el.confirmVeil.hidden){if(e.key==='Escape'){el.helpVeil.hidden=true;el.confirmVeil.hidden=true;document.body.classList.remove('locked');}return;}
+  var tag=(e.target&&e.target.tagName)||'';
+  if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;
+  if(S.view!=='vSession')return;
+  if(e.key==='Escape'){e.preventDefault();el.abortBtn.click();return;}
+  if(e.key==='Enter'){e.preventDefault();if(S.answered)el.nextBtn.click();else el.submitBtn.click();return;}
+  if(/^[1-4]$/.test(e.key)&&!S.answered){
+   var it=currentItem();if(it.ty==='order')return;
+   var b=$('#optWrap .opt[data-i="'+(parseInt(e.key,10)-1)+'"]');
+   if(b&&!b.disabled)b.click();
+  }
+ });
+ document.addEventListener('visibilitychange',function(){if(document.hidden&&S.timerId){stopClock();toast('Timer paused — return to the tab and press Next to continue.');}});
+}
+
+/* ================= INIT ================= */
+function init(){
+ cache();load();applyCfg();bind();renderHome();show('vHome');
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+
+<!-- Bottom action bar: class leaderboard link + teacher share kit -->
+<div class="cmc-bar no-print">
+  <a class="cmc-btn cmc-btn-lb" href="https://cmckhmer.github.io/Creative-Minds-/#games" aria-label="Open the class leaderboard on the CMC games page">🏆 Class leaderboard</a>
+  <button type="button" class="cmc-btn cmc-btn-share" data-cmc-share aria-haspopup="true">📣 Share with class ▾</button>
+</div>
+<div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
+<div class="cmc-share" id="cmcShare">
+  <button type="button" data-cmc-copy>🔗 Copy assignment link</button>
+  <button type="button" data-cmc-wa>💬 WhatsApp</button>
+  <button type="button" data-cmc-tg>✈️ Telegram</button>
+  <button type="button" data-cmc-email>✉️ Email</button>
+  <button type="button" class="close" data-cmc-close>✕ Close</button>
+</div>
+
+<script>
+/* ── CMC integration: thinker identity + class leaderboard POST + share ──
+   The Reason Lab engine is untouched except for one 'cmcreason:session'
+   event it dispatches when a session finishes. This block:
+     1. keeps the Thinker NAME + ID synced between the briefing sheet and
+        the session report + localStorage (an email is NEVER a display
+        name — same guard as cmc-shared.js and the homework pages);
+     2. on demand (auto once per finished session when a name is present,
+        or via the 📡 SEND SCORE button) POSTs one drill_attempts doc
+        through the SAME pipeline as the other games: guest branch (empty
+        uid, checked name, classId null) or the signed-in session token
+        with securetoken refresh — drillSource 'learning-games', so the
+        session lands on the homepage ticker and the games-page class
+        leaderboard;
+     3. runs the Share-with-class kit (Copy Link / WhatsApp / Telegram /
+        Email) with the competitive class-assignment text for teachers. */
+(function () {
+  'use strict';
+  var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+  var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+  var PAGE_URL = 'https://cmckhmer.github.io/Creative-Minds-/reason-lab.html';
+  var ASSIGN_TEXT = '🧠 CMC class challenge — Reason Lab: eight critical-thinking skills (evidence, fallacies, bias, causality, assumptions, data literacy, argument, risk decisions) across Campaign, Gauntlet, Drill and Case File modes. Key in your name + ID, post your session to the class leaderboard and show who reasons best under pressure!';
+
+  /* ── an email is NEVER a display name (same rule as the site) ── */
+  function looksEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim()); }
+  function friendlyFromEmail(email) {
+    var local = String(email || '').split('@')[0].trim();
+    if (!local) return '';
+    var words = local.split(/[._+\-]+/).map(function (w) { return w.trim(); }).filter(Boolean);
+    if (!words.length) return local.slice(0, 40);
+    return words.map(function (w) { return (w.charAt(0).toUpperCase() + w.slice(1)).slice(0, 40); }).join(' ').trim().slice(0, 40);
+  }
+  function nameOf(v) {
+    var s = String(v || '').trim();
+    if (!s || !looksEmail(s)) return s;
+    return friendlyFromEmail(s) || s;
+  }
+  (function heal() {
+    try {
+      var stored = localStorage.getItem('cmc-student-name') || '';
+      if (!looksEmail(stored)) return;
+      var healed = friendlyFromEmail(stored);
+      if (healed) localStorage.setItem('cmc-student-name', healed);
+      else localStorage.removeItem('cmc-student-name');
+    } catch (e) {}
+  })();
+
+  function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  var nameIn = document.getElementById('cmcNameIn');
+  var idIn = document.getElementById('cmcIdIn');
+  var lbName = document.getElementById('cmcLbName');
+  var lbId = document.getElementById('cmcLbId');
+  var lbSend = document.getElementById('cmcLbSend');
+  var lbStatus = document.getElementById('cmcLbStatus');
+
+  /* identity: prefilled from the signed-in session or the previous visit */
+  var player = { name: '', id: '' };
+  try {
+    var pn = JSON.parse(ls('cmc-player-name') || 'null');
+    player.name = (pn && pn.name ? nameOf(pn.name) : '');
+  } catch (e) { player.name = ''; }
+  if (!player.name) player.name = nameOf(ls('cmc-student-name') || '');
+  player.id = (ls('cmc-player-id') || '').trim();
+  nameIn.value = player.name; idIn.value = player.id;
+  lbName.value = player.name; lbId.value = player.id;
+
+  function currentIdentity() {
+    var n = nameOf(lbName.value || nameIn.value).trim();
+    var id = (lbId.value || idIn.value).trim();
+    return { name: n, id: id };
+  }
+  function persistIdentity() {
+    var id = currentIdentity();
+    if (id.name) {
+      try { localStorage.setItem('cmc-player-name', JSON.stringify({ name: id.name, at: Date.now() })); } catch (e) {}
+    }
+    if (id.id) lsSet('cmc-player-id', id.id);
+  }
+  [nameIn, idIn, lbName, lbId].forEach(function (inp) {
+    inp.addEventListener('input', function () {
+      if (inp === nameIn) lbName.value = nameIn.value;
+      if (inp === idIn) lbId.value = idIn.value;
+      if (inp === lbName) nameIn.value = lbName.value;
+      if (inp === lbId) idIn.value = lbId.value;
+      persistIdentity();
+    });
+  });
+
+  function toast(msg, err) {
+    var t = document.getElementById('cmcToast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!err);
+    t.classList.add('show');
+    clearTimeout(toast._tm);
+    toast._tm = setTimeout(function () { t.classList.remove('show'); }, 3600);
+  }
+
+  function setStatus(msg, cls) {
+    lbStatus.textContent = msg;
+    lbStatus.className = 'status' + (cls ? ' ' + cls : '');
+  }
+
+  var lastRun = null;
+  var autoSentFor = '';
+
+  function publicIdentity() {
+    var id = currentIdentity();
+    var full = id.name + (id.id ? ' · ' + id.id : '');
+    return { name: id.name, full: full.slice(0, 40) };
+  }
+
+  function sendScore() {
+    var id = currentIdentity();
+    if (!id.name) { setStatus('Key in your name (and ID) first — they ride with your score.', 'bad'); lbName.focus(); return; }
+    if (!lastRun) { setStatus('Finish a session first — the report decides the score.', 'bad'); return; }
+    persistIdentity();
+    lbSend.disabled = true;
+    var pub = publicIdentity();
+    var d = lastRun;
+    var go = function (tok) {
+      var uid = ls('cmc-student-uid') || '';
+      fetch(CMC_FS, {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, tok ? { 'Authorization': 'Bearer ' + tok } : {}),
+        body: JSON.stringify({ fields: {
+          drillSlug: { stringValue: 'reason-lab.html' },
+          drillTitle: { stringValue: 'Reason Lab · ' + d.label },
+          drillSource: { stringValue: 'learning-games' },
+          studentName: { stringValue: pub.full },
+          studentUid: { stringValue: uid },
+          classId: (function () { var c = ls('cmc-student-classId'); return c ? { stringValue: c } : { nullValue: null }; })(),
+          scorePct: { integerValue: String(Math.max(0, Math.min(100, d.acc))) },
+          correctCount: { integerValue: String(Math.max(0, d.correct)) },
+          totalCount: { integerValue: String(Math.max(0, d.total)) },
+          submittedAt: { timestampValue: new Date().toISOString() }
+        } })
+      }).then(function (r) {
+        lbSend.disabled = false;
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        autoSentFor = d.sid;
+        setStatus('✓ Sent — ' + d.label + ' · ' + d.acc + '% · ' + d.correct + '/' + d.total + ' · ' + d.score + ' pts. Open the class leaderboard to compare.', 'good');
+        toast('Session sent to the class leaderboard ✓');
+      }).catch(function () {
+        lbSend.disabled = false;
+        setStatus('Could not reach the leaderboard (offline?). Your session is kept — press SEND again.', 'bad');
+      });
+    };
+    var tok = ls('cmc-student-token');
+    var exp = Number(ls('cmc-student-token-expires') || '0');
+    if (tok && exp && exp <= Date.now()) {
+      var rt = ls('cmc-student-refresh-token');
+      if (!rt) { go(tok); return; }
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
+        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(function (r) { return r.ok ? r.json() : null; }).then(function (dd) {
+        if (dd && dd.id_token) {
+          try {
+            localStorage.setItem('cmc-student-token', dd.id_token);
+            localStorage.setItem('cmc-student-token-expires', String(Date.now() + (Number(dd.expires_in) || 3600) * 1000 - 60000));
+            if (dd.refresh_token) localStorage.setItem('cmc-student-refresh-token', dd.refresh_token);
+          } catch (e) {}
+          go(dd.id_token);
+        } else go('');
+      }).catch(function () { go(''); });
+    } else { go(tok || ''); }
+  }
+  lbSend.addEventListener('click', sendScore);
+
+  document.addEventListener('cmcreason:session', function (ev) {
+    var d = ev.detail || {};
+    lastRun = d;
+    setStatus(d.label + ' — ' + d.acc + '% · ' + d.correct + '/' + d.total + ' · ' + d.score + ' pts ready to post. Add your name + ID if new, then SEND.', '');
+    var pub = publicIdentity();
+    if (pub.name && pub.full && autoSentFor !== d.sid) { autoSentFor = d.sid; sendScore(); }
+  });
+
+  /* ── share-with-class kit (teacher's competitive assignment text) ── */
+  var share = document.getElementById('cmcShare');
+  function openShare() { share.classList.add('show'); }
+  function closeShare() { share.classList.remove('show'); }
+  document.querySelectorAll('[data-cmc-share]').forEach(function (b) { b.addEventListener('click', function () { openShare(); }); });
+  share.addEventListener('click', function (e) {
+    var act = e.target.closest('[data-cmc-copy],[data-cmc-wa],[data-cmc-tg],[data-cmc-email],[data-cmc-close]');
+    if (!act) return;
+    if (act.hasAttribute('data-cmc-close')) { closeShare(); return; }
+    if (act.hasAttribute('data-cmc-copy')) {
+      var done = function () { toast('Assignment link copied ✓'); closeShare(); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(PAGE_URL).then(done, function () {
+          try { var ta = document.createElement('textarea'); ta.value = PAGE_URL; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); } catch (err) { toast('Copy failed — long-press the URL instead', true); }
+        });
+      } else {
+        try { var ta = document.createElement('textarea'); ta.value = PAGE_URL; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); } catch (err) { toast('Copy failed — long-press the URL instead', true); }
+      }
+      return;
+    }
+    var txt = encodeURIComponent(ASSIGN_TEXT + ' ' + PAGE_URL);
+    var url = encodeURIComponent(PAGE_URL);
+    if (act.hasAttribute('data-cmc-wa')) { window.open('https://wa.me/?text=' + txt, '_blank', 'noopener'); closeShare(); }
+    else if (act.hasAttribute('data-cmc-tg')) { window.open('https://t.me/share/url?url=' + url + '&text=' + encodeURIComponent(ASSIGN_TEXT), '_blank', 'noopener'); closeShare(); }
+    else if (act.hasAttribute('data-cmc-email')) { window.location.href = 'mailto:?subject=' + encodeURIComponent('CMC class challenge — Reason Lab') + '&body=' + txt; closeShare(); }
+  });
+})();
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 // POSTs (signed-in + guest branch + email guard), the rfc3/unscramble share
 // button, and the built leaderboard/games-page bundles. Browser: a guest
 // dictation POSTs a rules-compliant drill_attempts row (payload pinned), the
-// share fab opens and copies, the games-page cards carry 12 Share buttons
+// share fab opens and copies, the games-page cards carry 13 Share buttons (Reason Lab joined the library)
 // with a working clipboard round-trip, and the Developer's Picks card shares.
 import { chromium } from 'playwright';
 import { readFile, readdir } from 'node:fs/promises';
@@ -164,7 +164,7 @@ const browser = await chromium.launch();
   await page.goto(`${BASE}/index.html#games`, { waitUntil: 'load' });
   await page.waitForSelector('button[aria-label$="with your class"]', { timeout: 15000 });
   const cardShares = await page.locator('button[aria-label$="with your class"]').count();
-  ok(cardShares === 12, 'games page: all 12 registry cards carry a Share chip', String(cardShares));
+  ok(cardShares === 13, 'games page: all 13 registry cards carry a Share chip', String(cardShares));
   ok(await page.locator('button[aria-label="Share the Ghost Mountain reading & quiz"]').count() === 1, 'Developer\'s Picks card share present');
   await page.locator('button[aria-label$="with your class"]').first().click();
   await page.waitForTimeout(400);
