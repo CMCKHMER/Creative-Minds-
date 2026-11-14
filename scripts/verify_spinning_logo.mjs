@@ -6,7 +6,9 @@
 // owner: "center logo so black back ground looks even with logo center";
 // even ~28px ring on all four sides; the small "Dola AI" watermark's top edge
 // lies outside the 320px circle mask and is blacked out in the encode; audio
-// stripped; 190-frame loop; 288×288 webm+mp4+poster) and swapped in as the
+// stripped; 190-frame loop; 224×224 webm+mp4+poster; v64 STABILIZED cut —
+// every frame re-centered on its measured disc center so the black ring is
+// even at every spin phase) and swapped in as the
 // official logo everywhere the old cmc-m-logo.png image rendered (Navbar
 // 56px, Footer 46px) through SpinLogo.tsx — a circular medallion that
 // autoplays muted+loop and freezes on the face-on poster frame under
@@ -46,38 +48,65 @@ for (const f of ['cmc-spin-logo.webm', 'cmc-spin-logo.mp4']) {
   const { stdout } = await pexec('ffprobe', ['-v', 'error', '-show_entries',
     'stream=codec_name,width,height,codec_type', '-show_entries', 'format=duration',
     '-of', 'default=noprint_wrappers=1', `${IMG}/${f}`]);
-  ok(`${f}: 288×288 video-only`, stdout.includes('width=288') && stdout.includes('height=288') && !stdout.includes('codec_type=audio'), stdout.replace(/\n/g, ' · '));
+  ok(`${f}: 224×224 video-only`, stdout.includes('width=224') && stdout.includes('height=224') && !stdout.includes('codec_type=audio'), stdout.replace(/\n/g, ' · '));
   const dur = Number((stdout.match(/duration=([\d.]+)/) || [])[1]);
   ok(`${f}: ~7.9s full spin loop`, dur > 7.8 && dur < 8.0, String(dur));
 }
-// watermark + centering checks on the poster (288²):
-// (1) the small "Dola AI" watermark's corner (poster x 246-288, y 270-288)
-// is blacked out in the encode AND lies outside the 144px circle mask —
-// pin it fully dark; (2) the disc must be CENTERED in the frame (owner:
-// "center logo so black back ground looks even with logo center") — the
-// bright-mass bbox (>120) center must sit within ±12px of (144,144);
-// the old (42,258) crop failed this with the disc ~25px low.
+// watermark + centering checks on the poster (224²):
+// (1) the small "Dola AI" watermark's zone is blacked out per-frame in the
+// encode AND lies (almost) entirely outside the 112px circle mask — pin the
+// bottom-right corner fully dark; (2) the disc must be CENTERED in the frame
+// (owner: "center logo so black back ground looks even with logo center") —
+// the bright-mass bbox (>120) center must sit within ±12px of (112,112).
 {
   const { stdout } = await pexec('ffmpeg', ['-v', 'error', '-i', `${IMG}/cmc-spin-logo-poster.jpg`,
-    '-vf', 'crop=42:18:246:270,format=gray', '-f', 'rawvideo', '-pix_fmt', 'gray', '-']);
+    '-vf', 'crop=59:24:165:200,format=gray', '-f', 'rawvideo', '-pix_fmt', 'gray', '-']);
   let bright = 0;
   for (const b of stdout) if (b > 210) bright++;
-  ok('poster corner: watermark zone blacked out', bright < 20, `${bright} bright px of ${stdout.length}`);
+  ok('poster corner: watermark zone blacked out', bright < 30, `${bright} bright px of ${stdout.length}`);
 }
 {
   const { stdout } = await pexec('ffmpeg', ['-v', 'error', '-i', `${IMG}/cmc-spin-logo-poster.jpg`,
     '-vf', 'format=gray', '-f', 'rawvideo', '-pix_fmt', 'gray', '-']);
   const buf = stdout;
-  let x0 = 288, y0 = 288, x1 = 0, y1 = 0;
-  for (let y = 0; y < 288; y++) for (let x = 0; x < 288; x++) {
-    if (buf[y * 288 + x] > 120) {
+  let x0 = 224, y0 = 224, x1 = 0, y1 = 0;
+  for (let y = 0; y < 224; y++) for (let x = 0; x < 224; x++) {
+    if (buf[y * 224 + x] > 120) {
       if (x < x0) x0 = x; if (x > x1) x1 = x;
       if (y < y0) y0 = y; if (y > y1) y1 = y;
     }
   }
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-  ok('disc centered in the frame (even black ring)', Math.abs(cx - 144) <= 12 && Math.abs(cy - 144) <= 12,
-    `bright bbox center (${cx.toFixed(0)},${cy.toFixed(0)}) — must be (144±12,144±12)`);
+  ok('disc centered in the frame (even black ring)', Math.abs(cx - 112) <= 12 && Math.abs(cy - 112) <= 12,
+    `bright bbox center (${cx.toFixed(0)},${cy.toFixed(0)}) — must be (112±12,112±12)`);
+}
+// STABILIZED loop pin: the disc ORBITS its spin axis in the source (measured
+// center x sweeps 327→421→327 across 190 frames) — the cut re-centers every
+// frame, so the bright-mass bbox center must sit near (112,112) at EVERY
+// spin phase, not just face-on. 8 samples across the loop; the unstabilized
+// v63 cut fails these at the 3/4-tilt phases (owner screenshot: black
+// crescent on one side mid-spin).
+{
+  const tmp = '/tmp/spinverif';
+  await pexec('mkdir', ['-p', tmp]);
+  let fails = 0; const detail = [];
+  for (const t of ['0', '1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0']) {
+    const { stdout } = await pexec('ffmpeg', ['-v', 'error', '-ss', t, '-i', `${IMG}/cmc-spin-logo.webm`,
+      '-frames:v', '1', '-vf', 'format=gray', '-f', 'rawvideo', '-pix_fmt', 'gray', '-']);
+    const buf = stdout;
+    let x0 = 224, y0 = 224, x1 = 0, y1 = 0;
+    for (let y = 0; y < 224; y++) for (let x = 0; x < 224; x++) {
+      if (buf[y * 224 + x] > 120) {
+        if (x < x0) x0 = x; if (x > x1) x1 = x;
+        if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    detail.push(`t${t}:(${cx.toFixed(0)},${cy.toFixed(0)})`);
+    if (Math.abs(cx - 112) > 14 || Math.abs(cy - 112) > 14) fails++;
+  }
+  ok('loop stabilized: disc centered at every spin phase', fails === 0,
+    `${8 - fails}/8 phases within (112±14,112±14) — ${detail.join(' ')}`);
 }
 
 /* ---- B. source pins: SpinLogo + swaps ---- */
@@ -101,7 +130,7 @@ await page.goto(`${BASE}/`, { waitUntil: 'load' });
 const header = page.locator('header video').first();
 await header.waitFor({ timeout: 8000 });
 ok('header video is the spin asset', (await header.evaluate(v => v.currentSrc)).includes('cmc-spin-logo'));
-ok('header video decodes 288×288', await header.evaluate(v => v.videoWidth === 288 && v.videoHeight === 288));
+ok('header video decodes 224×224', await header.evaluate(v => v.videoWidth === 224 && v.videoHeight === 224));
 await page.waitForTimeout(1300);
 const t1 = await header.evaluate(v => v.currentTime);
 await page.waitForTimeout(800);
