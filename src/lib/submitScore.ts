@@ -268,10 +268,37 @@ export async function submitScore(input: ScoreSubmission): Promise<string | null
     return null; // signed in but truly no name available — leave silently
   }
 
-  const studentUid = signedIn ? localStorage.getItem('cmc-student-uid') || '' : '';
-  const docId = await postAttempt(input, studentName, studentUid, idToken);
+  // The signed-in branch of the rules requires studentUid == the token's
+  // uid. `cmc-student-uid` can be missing while the token is still valid
+  // (storage partly cleared, older session shape) — posting an empty uid
+  // WITH a token was rejected and the score vanished without a trace. Read
+  // the uid from the token itself; if even that fails, record the play
+  // through the guest branch (no token, empty uid, name capped at 40).
+  const studentUid = signedIn
+    ? localStorage.getItem('cmc-student-uid') || uidFromIdToken(idToken) || ''
+    : '';
+  const docId = signedIn && !studentUid
+    ? await postAttempt(input, studentName.slice(0, 40), '', null)
+    : await postAttempt(input, studentName, studentUid, idToken);
   if (docId) announceSubmission();
   return docId;
+}
+
+/** uid claim of a Firebase ID token (JWT payload `user_id` / `sub`), or ''. */
+export function uidFromIdToken(idToken: string | null): string {
+  try {
+    const payload = (idToken || '').split('.')[1];
+    if (!payload) return '';
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '='));
+    // The payload is UTF-8 (display names can be Khmer) — decode it as such.
+    const json = new TextDecoder().decode(Uint8Array.from(binary, (ch) => ch.charCodeAt(0)));
+    const claims = JSON.parse(json) as { user_id?: unknown; sub?: unknown };
+    const uid = claims.user_id ?? claims.sub;
+    return typeof uid === 'string' ? uid : '';
+  } catch {
+    return '';
+  }
 }
 
 async function postAttempt(

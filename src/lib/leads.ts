@@ -1,4 +1,13 @@
-import { supabase } from './supabase';
+import { supabase, supabaseConfigured } from './supabase';
+
+/**
+ * Whether this build can store lead / newsletter opt-ins at all. The lead
+ * forms post to a Supabase edge function, so a build made without the
+ * VITE_SUPABASE_* variables (the current GitHub Pages deployment) has
+ * nowhere to send them. Forms must check this and not render an email
+ * field that can only ever answer "not configured".
+ */
+export const leadCaptureConfigured = supabaseConfigured;
 
 export type CapturableLead =
   | { kind: 'newsletter'; email: string; consent: true; website?: string }

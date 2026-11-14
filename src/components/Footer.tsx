@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Sparkles, Shield, Heart, Send, Check } from 'lucide-react';
-import { captureLead } from '../lib/leads';
+import { captureLead, leadCaptureConfigured } from '../lib/leads';
 import { SpinLogo } from './SpinLogo';
 
 interface FooterProps {
@@ -51,6 +51,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenQuickLinks, onOpenTeacherP
             </p>
           </div>
 
+          {/* Newsletter opt-in — only on builds that can actually store it.
+              Without the Supabase backend every submit failed with "not
+              configured", so the box is left out rather than shown broken. */}
+          {leadCaptureConfigured && (
           <div className="lg:col-span-6">
             <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-4 sm:p-5">
               <div className="flex items-center justify-between mb-2">
@@ -101,6 +105,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenQuickLinks, onOpenTeacherP
               {newsletterError && <p role="alert" className="mt-2 text-[10px] leading-relaxed text-rose-200">{newsletterError}</p>}
             </div>
           </div>
+          )}
 
         </div>
 

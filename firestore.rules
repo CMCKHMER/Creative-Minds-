@@ -100,11 +100,16 @@ service cloud.firestore {
     // uses to decide who is a teacher, hardened with the verification gate
     // and extended with the admin grant. RE2 has no look-around, so keep
     // this in sync with the app if the heuristic ever changes.
+    //
+    // The pattern tests the DOMAIN only (the part after the last "@"),
+    // exactly like detectRoleFromEmail(): "you@school.edu.kh" passes,
+    // "eduardo@gmail.com" does not. It used to test the whole address, so
+    // any free mailbox with "edu" in the name was granted teacher access.
     function isCmcTeacher() {
       return request.auth != null
         && request.auth.token.email_verified == true
         && request.auth.token.email != null
-        && (request.auth.token.email.matches('.*[eE][dD][uU].*')
+        && (request.auth.token.email.matches('.*@[^@]*[eE][dD][uU][^@]*')
             || isCmcAdmin());
     }
 
@@ -228,7 +233,7 @@ service cloud.firestore {
         && request.resource.data.teacherUid.size() > 0
         && request.resource.data.inviteCode is string
         && request.resource.data.inviteCode.size() >= 3
-        && request.resource.data.inviteCode.size() <= 24
+        && request.resource.data.inviteCode.size() <= 32
         && exists(/databases/$(database)/documents/invite_codes/$(request.resource.data.inviteCode))
         && get(/databases/$(database)/documents/invite_codes/$(request.resource.data.inviteCode)).data.teacherUid == request.resource.data.teacherUid
         && request.resource.data.studentName is string
@@ -316,7 +321,13 @@ service cloud.firestore {
 
     match /classes/{classId} {
       allow read: if true; // class-code lookup + dashboards
-      allow create, update: if isVerifiedUser();
+      allow create: if isVerifiedUser();
+      // Owner-only update, and teacherUid is immutable: without this any
+      // verified account could re-stamp teacherUid on someone else's class
+      // and then pass the owner-only delete below.
+      allow update: if isVerifiedUser()
+        && resource.data.teacherUid == request.auth.uid
+        && request.resource.data.teacherUid == resource.data.teacherUid;
       // Owner-only delete: `resource` is the class doc being removed, and
       // every class doc carries teacherUid (createClass stamps it), so this
       // costs no extra reads. Delete also implicitly drops the class code

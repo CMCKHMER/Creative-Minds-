@@ -1,4 +1,5 @@
 import { Suspense, memo, useEffect, useRef, useState, type ReactNode } from 'react';
+import { ErrorBoundary } from './ErrorBoundary';
 
 /**
  * LazyMount — defer a below-the-fold homepage section until it matters.
@@ -59,7 +60,12 @@ export const LazyMount = memo(function LazyMount({
   return (
     <div ref={ref} id={armed ? undefined : id}>
       {armed ? (
-        <Suspense fallback={<div style={{ minHeight }} aria-hidden="true" />}>{children}</Suspense>
+        // ErrorBoundary: if this section's chunk fails to download, only
+        // this section shows a "could not be loaded" notice — the rest of
+        // the page stays up instead of the whole app unmounting.
+        <ErrorBoundary variant="section" label={id}>
+          <Suspense fallback={<div style={{ minHeight }} aria-hidden="true" />}>{children}</Suspense>
+        </ErrorBoundary>
       ) : (
         <div style={{ minHeight }} aria-hidden="true" />
       )}

@@ -219,6 +219,12 @@ export function subscribeToClassAttempts(
       const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       rows.sort((a: any, b: any) => toMillis(b.submittedAt) - toMillis(a.submittedAt));
       callback(rows);
+    }, (error) => {
+      // Listener rejected (offline, permission denied, quota). Without this
+      // handler the callback never fired and the dashboard sat on its
+      // loading state forever; report "no rows" so it can settle.
+      console.warn('[firestore] subscribeToClassAttempts:', error);
+      if (alive) callback([]);
     });
   })();
   return () => {
@@ -251,6 +257,12 @@ export function subscribeToStudentAttempts(
       const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       rows.sort((a: any, b: any) => toMillis(b.submittedAt) - toMillis(a.submittedAt));
       callback(rows);
+    }, (error) => {
+      // Listener rejected (offline, permission denied, quota). Without this
+      // handler the callback never fired and the dashboard sat on its
+      // loading state forever; report "no rows" so it can settle.
+      console.warn('[firestore] subscribeToStudentAttempts:', error);
+      if (alive) callback([]);
     });
   })();
   return () => {
@@ -270,15 +282,19 @@ export async function listTeacherAttempts(teacherUid: string) {
     if (!classIds.length) return [];
     // Query attempts for those classes. Client-side sort avoids the
     // (classId, submittedAt) composite index that `in` + orderBy needs.
-    const q = f.query(
-      f.collection(f.db, 'drill_attempts'),
-      f.where('classId', 'in', classIds),
-      f.limit(200),
+    // Firestore caps an `in` filter at 30 values, so a teacher with more
+    // classes than that is queried in batches (one oversized query threw
+    // and the whole dashboard came back empty).
+    const batches: string[][] = [];
+    for (let i = 0; i < classIds.length; i += 30) batches.push(classIds.slice(i, i + 30));
+    const snaps = await Promise.all(
+      batches.map((ids) =>
+        f.getDocs(f.query(f.collection(f.db, 'drill_attempts'), f.where('classId', 'in', ids), f.limit(200))),
+      ),
     );
-    const snap = await f.getDocs(q);
-    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const rows = snaps.flatMap((snap) => snap.docs.map(d => ({ id: d.id, ...d.data() })));
     rows.sort((a: any, b: any) => toMillis(b.submittedAt) - toMillis(a.submittedAt));
-    return rows;
+    return rows.slice(0, 200);
   } catch (e) {
     console.warn('[firestore] listTeacherAttempts:', e);
     return [];

@@ -36,7 +36,13 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:519217757765:web:23e086ba196b341ce2ed2c',
 };
 
-export const firebaseConfigured = !firebaseConfig.apiKey.includes('DemoApiKey');
+// False for an empty key or the placeholder shipped in .env.example
+// ("demo-api-key"). The old check looked for the string "DemoApiKey", which
+// the example file never contained — so copying .env.example to .env.local
+// pointed the app at a non-existent project while every guard still
+// reported Firebase as configured.
+export const firebaseConfigured =
+  Boolean(firebaseConfig.apiKey) && !/demo[-_]?api[-_]?key/i.test(firebaseConfig.apiKey);
 
 export { firebaseConfig };
 

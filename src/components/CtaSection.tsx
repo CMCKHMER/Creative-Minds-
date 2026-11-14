@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Sparkles, ArrowRight, CheckCircle2, Mail } from 'lucide-react';
-import { captureLead } from '../lib/leads';
+import { captureLead, leadCaptureConfigured } from '../lib/leads';
 import { Reveal } from './Reveal';
 
 interface CtaSectionProps {
@@ -76,6 +76,16 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onSuccess }) => {
                 <p className="flex items-center justify-center gap-2 font-semibold"><CheckCircle2 className="w-5 h-5 text-emerald-400" /> Request received</p>
                 <p className="mt-2 text-xs leading-relaxed text-emerald-100/75">Your contact request is stored securely for up to 90 days. Automated email delivery is not enabled in this preview.</p>
                 <button type="button" onClick={onSuccess} className="mt-4 rounded-lg bg-emerald-200 px-4 py-2.5 text-xs font-bold text-emerald-950">Continue to account sign-up</button>
+              </div>
+            ) : !leadCaptureConfigured ? (
+              /* No lead-capture backend on this build: the email request
+                 form could only ever fail, so go straight to the step it
+                 led to — the teacher account sign-up, which does work. */
+              <div className="max-w-md mx-auto pt-4">
+                <button type="button" onClick={onSuccess} className="cmc-btn-primary w-full uppercase tracking-wide">
+                  <span>Create a teacher account</span>
+                  <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="max-w-md mx-auto flex flex-col gap-3 pt-4">

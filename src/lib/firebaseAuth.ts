@@ -19,13 +19,15 @@
 // verified fallback) so the REST and SDK paths can never disagree on the
 // API key or project id.
 
-import { firebaseConfig } from './firebase';
+import { firebaseConfig, firebaseConfigured as sdkFirebaseConfigured } from './firebase';
 import { selfHealStoredStudentName } from './studentName';
 
 const API_KEY = (firebaseConfig.apiKey || '').trim();
 export const FIREBASE_PROJECT_ID = (firebaseConfig.projectId || '').trim() || 'creative-minds-cambodia';
 
-export const firebaseConfigured = Boolean(API_KEY);
+// Same answer as ./firebase — the REST and SDK paths must agree on whether
+// Firebase is usable (this used to be a second, looser check).
+export const firebaseConfigured = sdkFirebaseConfigured;
 
 const BASE = 'https://identitytoolkit.googleapis.com/v1';
 
