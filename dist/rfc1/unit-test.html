@@ -8,7 +8,7 @@ try{var _cmT=localStorage.getItem('cmc-theme')||localStorage.getItem('cm-theme')
 if(_cmT==='light'){document.documentElement.setAttribute('data-cm-pre','light');
 document.documentElement.style.colorScheme='light';
 var _cmS=document.createElement('style');
-_cmS.textContent='html[data-cm-pre="light"] body:not(.light){background:#eef2f7!important;color:#0f172a!important}';
+_cmS.textContent='html[data-cm-pre="light"] body:not(.light){background:#e2e8f0!important;color:#0f172a!important}';
 document.head.appendChild(_cmS);
 document.addEventListener('DOMContentLoaded',function(){document.documentElement.removeAttribute('data-cm-pre');});}}catch(e){}
 </script>
@@ -87,20 +87,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-im
 .placeholder{text-align:center;padding:70px 24px;border:1px dashed rgba(148,163,184,.28);border-radius:16px}
 .placeholder .glyph{font-family:'Space Grotesk';font-size:44px;background:linear-gradient(90deg,var(--cy),var(--vi));-webkit-background-clip:text;background-clip:text;color:transparent}
 .footer{padding:16px 28px;border-top:1px solid var(--bd);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
-body.light{--bg:#eef2f7;--s2:#fff;--bd:#dbe3ec;--cy:#0891b2;--cyl:#0e7490;--vi:#7c3aed;--vil:#6d28d9;--tx:#0f172a;--mu:#52657d;background:#eef2f7}
+body.light{--bg:#e2e8f0;--s2:#fff;--bd:#dbe3ec;--cy:#0891b2;--cyl:#0e7490;--vi:#7c3aed;--vil:#6d28d9;--tx:#0f172a;--mu:#52657d;background:#e2e8f0}
 body.light .container{background:rgba(255,255,255,.92);border-color:#dbe3ec;box-shadow:0 30px 90px rgba(15,23,42,.12)}
 body.light .qrow{background:#fff;border-color:#dbe3ec;color:#334155}
 body.light .qrow select{background:#fff;border-color:#c3cfdd;color:#0f172a}
-body.light .passage{background:#f8fafc;border-color:#c3cfdd;color:#52657d}
+body.light .passage{background:#e2e8f0;border-color:#c3cfdd;color:#52657d}
 body.light .opts label{color:#334155}
-body.light .chip{background:#f8fafc;border-color:#c3cfdd;color:#0f172a}
+body.light .chip{background:#e2e8f0;border-color:#c3cfdd;color:#0f172a}
 body.light .chips.line .chip{color:#0e7490}
 body.light .bank span{color:#0e7490;background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.4)}
 body.light .unit-title{color:#0f172a}
 body.light .stat{background:#fff;border-color:#dbe3ec}
 body.light .stat b{color:#0e7490}
 body.light .fg input,body.light .fg select{background:#fff;border-color:#c3cfdd;color:#0f172a}
-body.light .share-item{background:#f8fafc;border-color:#c3cfdd;color:#334155}
+body.light .share-item{background:#e2e8f0;border-color:#c3cfdd;color:#334155}
 body.light .toast{background:#fff;border-color:#0891b2;color:#0e7490}
 @media (max-width:768px){.info{grid-template-columns:1fr}.hero,.info,.content{padding-left:22px;padding-right:22px}.action-row{flex-direction:column}.share-panel{margin:22px}}
 /* Aii Language Center sponsor banner ( Kid 5-12 worksheets, screen + print ) */

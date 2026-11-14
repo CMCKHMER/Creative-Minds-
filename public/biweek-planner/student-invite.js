@@ -84,7 +84,7 @@
   function palette() {
     var light = document.documentElement.getAttribute('data-theme') === 'light';
     return {
-      bg: light ? '#f8fafc' : '#020617',
+      bg: light ? '#e2e8f0' : '#020617',
       cardBg: light ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.04)',
       border: light ? 'rgba(0,0,0,.10)' : 'rgba(255,255,255,.10)',
       text: light ? '#1e293b' : '#f1f5f9',
