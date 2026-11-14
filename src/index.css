@@ -860,7 +860,7 @@
   --cmc-l-page: #e2e8f0;          /* page base — true light gray (slate-200) */
   --cmc-l-surface: #e9edf4;       /* raised section surface      */
   --cmc-l-surface-2: #d5dce6;     /* deeper section surface      */
-  --cmc-l-card: rgba(255, 255, 255, 0.78);
+  --cmc-l-card: rgba(238, 242, 247, 0.82);  /* raised cards — light gray, never pure white (owner: light theme must not glare) */
   --cmc-l-border: rgba(15, 23, 42, 0.10);
   --cmc-l-ink: #0c1a2c;           /* headings                    */
   --cmc-l-text: #1e293b;          /* body                        */
@@ -876,6 +876,15 @@ html.light body {
 }
 html.light .bg-slate-950 {
   background-color: var(--cmc-l-page);
+}
+
+/* ---- solid white surfaces softened (owner: "change the pure white BG to a
+   light grey for the whole site") — any Tailwind bg-white (including the
+   assignment preview paper and hover states) renders in the light-gray
+   family under the light theme instead of glaring white. Unlayered, so it
+   outranks the utility layer and its hover variants. ---- */
+html.light .bg-white {
+  background-color: #eef2f7;
 }
 html.light [data-keep-dark].bg-slate-950,
 html.light [data-keep-dark] .bg-slate-950 {

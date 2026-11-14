@@ -47,6 +47,12 @@ const pins = [
   ['studio/index.html', 'background:#e2e8f0', 'studio light background grey'],
   ['biweek-planner/teacher-gate.js', "var bg = light ? '#e2e8f0' : '#020617';", 'teacher-gate overlay light bg grey'],
   ['biweek-planner/student-invite.js', "bg: light ? '#e2e8f0' : '#020617',", 'student-invite overlay light bg grey'],
+  // stage 2 (owner: the big white SHEETS must go grey too)
+  ['rfc1/dictation.html', 'body.light .container{background:rgba(238,242,247,.92)', 'rfc1 sheet grey (.92 grey, not white)'],
+  ['rfc1/dictation.html', '--s2:#eef2f7', 'rfc1 --s2 token grey'],
+  ['rfc3/dictation.html', 'body.light .container{background:rgba(238,242,247,.92)', 'rfc3 sheet grey'],
+  ['rfc3/dictation.html', '--surface-2:#eef2f7', 'rfc3 --surface-2 token grey'],
+  ['rfc2/rfc2dic.html', 'body.light .container{background:rgba(238,242,247,.92)', 'rfc2 sheet grey'],
 ];
 for (const [f, needle, label] of pins) {
   const t = await readFile(join(PUB, f), 'utf8');
@@ -63,6 +69,16 @@ for (const [f, needle, label] of pins) {
     if (t.includes('#e2e8f0') && t.includes('html.light')) { found = true; break; }
   }
   ok(found, 'built CSS keeps the html.light #e2e8f0 page base');
+  // stage 2: solid Tailwind bg-white greys under the light theme (assignment
+  // paper, toggle knob, hover states) + the raised-card token is tinted
+  let sheetOverride = false, cardToken = false;
+  for (const f of css(assets)) {
+    const t = await readFile(join(DIST, 'assets', f), 'utf8');
+    if (t.includes('html.light .bg-white{background-color:#eef2f7}')) sheetOverride = true;
+    if (t.includes('--cmc-l-card:#eef2f7') || t.includes('--cmc-l-card:rgba(238')) cardToken = true;
+  }
+  ok(sheetOverride, 'built CSS greys solid bg-white under the light theme');
+  ok(cardToken, 'built CSS carries the tinted raised-card token');
 }
 
 // ── 3. browser: computed page background in light mode ───────────────────
@@ -135,7 +151,26 @@ const browser = await chromium.launch();
     await page.waitForTimeout(400);
     const bg = await bgOf();
     ok(bg === GREY_RGB, `${label}: light body = ${GREY_RGB}`, bg);
+    if (label === 'rfc dictation') {
+      // stage 2: the big sheet (.container) must compute GREY, not white
+      const sheet = await page.evaluate(() => getComputedStyle(document.querySelector('.container')).backgroundColor);
+      ok(sheet === 'rgba(238, 242, 247, 0.92)', 'rfc dictation: sheet = grey rgba(238,242,247,.92)', sheet);
+    }
     await page.screenshot({ path: join(SHOTS, `grey-${label.toLowerCase().replace(/\s+/g, '-')}.png`) });
+  }
+  // stage 2: any solid bg-white element computes grey under the light theme
+  {
+    await page.goto(`${BASE}/index.html#games`, { waitUntil: 'load' });
+    await page.waitForTimeout(900);
+    const probe = await page.evaluate(() => {
+      const el = document.createElement('div');
+      el.className = 'bg-white';
+      document.body.appendChild(el);
+      const c = getComputedStyle(el).backgroundColor;
+      el.remove();
+      return c;
+    });
+    ok(probe === 'rgb(238, 242, 247)', 'React light: solid bg-white computes grey (assignment paper family)', probe);
   }
   // dark untouched: same pages back in dark keep a dark base
   await page.goto(`${BASE}/biweek-planner/tests/diagnostic.html`, { waitUntil: 'load' });
