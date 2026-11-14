@@ -34,6 +34,7 @@ import { sanitizeScoreText } from '../lib/scoreInput';
 import { AssessmentInsights, type TutorAgentBridge } from './AssessmentInsights';
 import type { TutorIntent } from '../lib/tutorAgent';
 import { TransferStudentModal } from './TransferStudentModal';
+import { csvSafeText } from '../lib/csvSafe';
 
 // ── Tab + field definitions (drive the whole UI) ─────────────────────
 
@@ -223,6 +224,11 @@ function ScoreCell(props: {
       // appended "5" + new digit then clamped straight back to the cap —
       // "every score I type starts with 5", Oct 2026).
       onFocus={(e) => e.currentTarget.select()}
+      // Leaving the cell: show exactly what was saved. Typing is never
+      // snapped mid-keystroke (see above), so an out-of-range entry — 9 in
+      // a 0–5 cell — is stored clamped (5) while the field still read "9".
+      // Resyncing on blur keeps the screen and the record in agreement.
+      onBlur={() => setText(value > 0 ? String(value) : '')}
       onChange={(e) => {
         const capped = sanitizeScoreText(e.target.value, max);
         // Refused keystrokes (extra digits, garbage) must leave the DOM now:
@@ -1231,7 +1237,7 @@ function OverallTab(props: {
 
 function buildCsv(students: AssessmentStudentDoc[]): string {
   const head = ['Name', 'School ID', 'Sponsorship', 'Amount', 'Listening %', 'Reading %', 'PBL %', 'Quiz %', 'Homework %', 'Participation %', 'Overall %', 'Comments', 'Teacher feedback'];
-  const esc = (v: string | number) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const esc = (v: string | number) => `"${csvSafeText(v).replace(/"/g, '""')}"`;
   const rows = students.map((s) => {
     const a = areaScores(s);
     return [s.name, s.schoolId, s.sponsorship, s.amount, a.listening, a.reading, a.pbl, a.quiz, a.homework, a.participation, a.overall, s.comments, s.teacherComment].map(esc).join(',');

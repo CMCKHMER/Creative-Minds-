@@ -8,6 +8,7 @@
 // sync and the SpreadsheetML export. No DOM here — vitest runs it in node.
 
 import { groupByTest, fmtWhen, xmlEsc, sheetName, type BiweeklyAttempt } from './biweeklyScores';
+import { csvSafeText } from './csvSafe';
 
 export interface SheetRow {
   cells: string[];
@@ -381,8 +382,10 @@ ${sheets}
 </Workbook>`;
 }
 
-const csvCell = (v: string): string =>
-  /["\n,]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+const csvCell = (raw: string): string => {
+  const v = csvSafeText(raw);
+  return /["\n,]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+};
 
 /** Active tab as CSV (BOM for Excel UTF-8). */
 export function gridToCsv(rows: SheetRow[]): string {

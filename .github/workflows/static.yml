@@ -1,9 +1,22 @@
 name: Build & Deploy to GitHub Pages
 
+# Besides deploying every push to main, this workflow rebuilds the site once
+# a day so the generated feeds stay fresh: scripts/refresh_feeds.py re-runs
+# the news scraper and the Blogger sync inside the build and the results go
+# straight into the deployed artifact.
+#
+# This replaces the old news-scraper.yml / blog-sync.yml workflows. Those
+# committed the regenerated JSON back to main, which the branch ruleset
+# rejects for the Actions bot — every scheduled run failed and the news
+# panel went stale. Nothing is pushed to the repository any more.
+
 on:
   push:
     branches:
       - main
+  schedule:
+    # 01:00 UTC = 08:00 Asia/Phnom_Penh (UTC+7)
+    - cron: '0 1 * * *'
   workflow_dispatch:
 
 permissions:
@@ -31,6 +44,16 @@ jobs:
         run: npx tsc --noEmit
       - name: Unit tests (vitest)
         run: npx vitest run
+      # After the tests (which validate the committed data files) and before
+      # the build. The script keeps the committed copy of any feed it cannot
+      # regenerate and always exits 0, so a feed outage never blocks a deploy.
+      # No pip cache: both generators are stdlib-only and there is no
+      # requirements file for the cache to key on.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Refresh news headlines and blog feed
+        run: python3 scripts/refresh_feeds.py
       - name: Build
         run: npm run build
       - uses: actions/configure-pages@v5

@@ -503,10 +503,13 @@ export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: Ti
       )}
 
       <div className="relative flex items-stretch">
-        {/* LEFT — sticky label badge (always visible, marquee scrolls past it) */}
-        <div className="hidden sm:flex shrink-0 items-center gap-2 px-4 py-2.5 border-r border-white/10 bg-gradient-to-r from-cyan-500/10 to-transparent">
-          <Activity className="h-4 w-4 text-cyan-300" aria-hidden="true" />
-          <span className="text-[10px] font-bold tracking-[0.18em] text-cyan-200 uppercase whitespace-nowrap">
+        {/* LEFT — sticky label badge (always visible, marquee scrolls past it).
+            On phones the icon + "Live Activity" label are dropped to save
+            width, but the LIVE / DEMO badge itself must stay: without it the
+            built-in sample numbers looked like real statistics on mobile. */}
+        <div className="flex shrink-0 items-center gap-2 px-2.5 py-2.5 sm:px-4 border-r border-white/10 bg-gradient-to-r from-cyan-500/10 to-transparent">
+          <Activity className="hidden h-4 w-4 text-cyan-300 sm:block" aria-hidden="true" />
+          <span className="hidden text-[10px] font-bold tracking-[0.18em] text-cyan-200 uppercase whitespace-nowrap sm:inline">
             Live Activity
           </span>
           {sourceBadge}
@@ -568,6 +571,21 @@ function TickerStat({ icon, label, value }: { icon: React.ReactNode; label: stri
       <span className="text-[13px] font-bold text-white tabular-nums">{value.toLocaleString()}</span>
     </span>
   );
+}
+
+/**
+ * "updated 40s ago" stamp. It keeps its own clock: the ticker items are
+ * memoized on the data, so an age computed while building them was frozen
+ * at "0s" until the next fetch five minutes later.
+ */
+function UpdatedAgo({ fetchedAt }: { fetchedAt: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 10_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const seconds = Math.max(0, Math.round((now - fetchedAt) / 1000));
+  return <>{seconds < 60 ? `updated ${seconds}s ago` : `updated ${Math.floor(seconds / 60)} min ago`}</>;
 }
 
 function buildTickerItems(
@@ -663,10 +681,9 @@ lastError: string | null,
       </span>
     );
   } else {
-    const ago = Math.max(0, Math.round((Date.now() - d.fetchedAt) / 1000));
     nodes.push(
       <span key="updated" className="inline-flex items-center gap-1.5 whitespace-nowrap px-2 text-[10px] text-slate-500">
-        {isLoading ? 'refreshing…' : `updated ${ago}s ago`}
+        {isLoading ? 'refreshing…' : <UpdatedAgo fetchedAt={d.fetchedAt} />}
       </span>
     );
   }

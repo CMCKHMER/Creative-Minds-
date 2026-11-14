@@ -10,8 +10,9 @@ import { ArrowUpRight } from 'lucide-react';
  * announcement board above; this strip only marks the personal side.
  *
  * Static by design: no feed fetch, no network dependency, nothing to break.
- * (The blog-sync workflow still regenerates public/blog/posts.json in the
- * background, so the data remains available if a live teaser is ever wanted.)
+ * (The Pages build still regenerates public/blog/posts.json via
+ * scripts/refresh_feeds.py, so the data remains available if a live teaser
+ * is ever wanted.)
  */
 
 const BLOG_URL = 'https://creativemindscambodia.blogspot.com/';

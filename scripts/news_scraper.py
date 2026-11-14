@@ -6,10 +6,11 @@ items, and writes public/news/headlines.json so the static GitHub Pages site
 serves fresh headlines. The React side loads ./news/headlines.json at
 runtime (see src/components/NewsWindow.tsx).
 
-Stdlib only — no pip installs — because the news-scraper GitHub Action runs
-this on a bare python 3.12 runner image.
+Stdlib only — no pip installs — because the Pages build runs this on a
+bare python 3.12 runner image.
 
-Usage (as invoked by .github/workflows/news-scraper.yml):
+Usage (as invoked by scripts/refresh_feeds.py, which the Pages build in
+.github/workflows/static.yml runs on every deploy and once a day):
     python3 scripts/news_scraper.py --indent --total-keep 30
 """
 

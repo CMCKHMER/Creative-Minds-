@@ -9,6 +9,8 @@
 // in a spreadsheet they own — print it, add grading columns, share it —
 // instead of a built-in scoreboard.
 
+import { csvSafeText } from './csvSafe';
+
 export interface BiweeklyAttempt {
   studentName: string;
   drillTitle: string;
@@ -210,7 +212,7 @@ ${sheets}
 }
 
 const csvCell = (v: string | number): string => {
-  const s = String(v);
+  const s = csvSafeText(v);
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 

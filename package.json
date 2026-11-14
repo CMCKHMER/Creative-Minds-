@@ -8,7 +8,10 @@
     "build": "vite build",
     "dev": "vite",
     "lint:fix": "eslint . --fix",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "rules:min": "node scripts/build_min_rules.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

@@ -57,15 +57,22 @@
     heal: cmcHealStoredName,
   };
 
-  var gaLoader = document.createElement('script');
-  gaLoader.async = true;
-  gaLoader.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
-  document.head.appendChild(gaLoader);
+  // No real measurement ID configured (the placeholder is still in place) →
+  // do not load Google's tag at all. Loading it with 'G-XXXXXXXXXX' cost a
+  // third-party request on every static page and measured nothing. Set
+  // window.CMC_GA_ID = 'G-…' before this script to switch analytics on.
+  var GA_ENABLED = /^G-[A-Z0-9]{6,}$/.test(GA_ID) && GA_ID !== 'G-XXXXXXXXXX';
   global.dataLayer = global.dataLayer || [];
   function gtag() { global.dataLayer.push(arguments); }
   global.gtag = gtag;
-  gtag('js', new Date());
-  gtag('config', GA_ID, { send_page_view: true });
+  if (GA_ENABLED) {
+    var gaLoader = document.createElement('script');
+    gaLoader.async = true;
+    gaLoader.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(gaLoader);
+    gtag('js', new Date());
+    gtag('config', GA_ID, { send_page_view: true });
+  }
   // cmcTrack helper — safe to call before/after gtag loads.
   global.cmcTrack = function (ev, params) {
     try { if (typeof global.gtag === 'function') { global.gtag('event', ev, params || {}); } } catch (e) {}
@@ -268,6 +275,15 @@
       var exp = Number(localStorage.getItem('cmc-student-token-expires') || '0');
       if (!token || !name || cmcLooksLikeEmail(name)) return;
 
+      // Firestore integer fields reject anything that is not a whole number
+      // (a page passing 66.67 got a 400 and the score was silently lost), and
+      // the rules require 0–100 — so normalise here, once, for every page.
+      var wholeNumber = function (v, min, max) {
+        var n = Math.round(Number(v));
+        if (!isFinite(n)) n = min;
+        return String(Math.min(max, Math.max(min, n)));
+      };
+
       var send = function (tok) {
         if (!tok) return;
         var url = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
@@ -279,10 +295,10 @@
             studentName: { stringValue: name },
             studentUid: { stringValue: uid },
             classId: clsId ? { stringValue: clsId } : { nullValue: null },
-            durationSeconds: opts.durationSeconds != null ? { integerValue: String(opts.durationSeconds) } : { nullValue: null },
-            scorePct: { integerValue: String(opts.scorePct) },
-            correctCount: { integerValue: String(opts.correctCount) },
-            totalCount: { integerValue: String(opts.totalCount) },
+            durationSeconds: opts.durationSeconds != null ? { integerValue: wholeNumber(opts.durationSeconds, 0, 86400) } : { nullValue: null },
+            scorePct: { integerValue: wholeNumber(opts.scorePct, 0, 100) },
+            correctCount: { integerValue: wholeNumber(opts.correctCount, 0, 100000) },
+            totalCount: { integerValue: wholeNumber(opts.totalCount, 0, 100000) },
             submittedAt: { timestampValue: new Date().toISOString() },
           },
         };

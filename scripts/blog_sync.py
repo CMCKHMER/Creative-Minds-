@@ -4,8 +4,9 @@
 Fetches the Atom-in-JSON feed of creativemindscambodia.blogspot.com and
 writes a compact static JSON the homepage's "From the Blog" section loads
 at runtime (./blog/posts.json), mirroring the public/news/headlines.json
-pattern: a scheduled GitHub Action re-runs this script, and the site picks
-the new file up on the next Pages deploy without touching the app bundle.
+pattern: the Pages build (.github/workflows/static.yml, via
+scripts/refresh_feeds.py) re-runs this script on every deploy and once a
+day, so the deployed site always carries a fresh file.
 
 Stdlib only — no pip dependencies.
 """

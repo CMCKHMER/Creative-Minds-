@@ -14,6 +14,8 @@ import { Footer } from './components/Footer';
 import { TeacherToolsPage } from './components/TeacherTools';
 import { NewsSidePanel, NewsPage } from './components/NewsWindow';
 import { LazyMount } from './components/LazyMount';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { retryImport } from './lib/lazyRetry';
 import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { useFirebaseAuth } from './hooks/useFirebaseAuth';
@@ -29,42 +31,49 @@ import { TickerBanner } from './components/TickerBanner';
  * Paired with <LazyMount> in the JSX, which also defers every effect
  * (Firestore reads, image loads) until the section is near the viewport.
  */
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- the loader
- * projects each module's named export; memo() re-wraps it. (ComponentType<any>
- * avoids React's contravariance fight on the generic constraint; every call
- * site passes the same props the statically-imported components were
- * type-checked with before this refactor.) */
-function lazySection(loader: () => Promise<{ default: ComponentType<any> }>) {
-  return lazy(() => loader().then((m) => ({ default: memo(m.default) })));
+/* eslint-disable @typescript-eslint/no-explicit-any -- `pick` projects each
+ * module's export; memo() re-wraps it. (ComponentType<any> avoids React's
+ * contravariance fight on the generic constraint; every call site passes
+ * the same props the statically-imported components were type-checked with
+ * before this refactor.)
+ *
+ * `load` must be the bare import() so retryImport can re-request the same
+ * module after a failed download; the export is picked afterwards. */
+function lazySection<M>(load: () => Promise<M>, pick: (module: M) => ComponentType<any>) {
+  return lazy(() => retryImport(load).then((m) => ({ default: memo(pick(m)) })));
 }
-const AnnouncementBoard = lazySection(() => import('./components/AnnouncementBoard').then(m => ({ default: m.AnnouncementBoard })));
-const BlogSection = lazySection(() => import('./components/BlogSection'));
-const DailyAssessmentCard = lazySection(() => import('./components/DailyAssessmentCard').then(m => ({ default: m.DailyAssessmentCard })));
-const TOEFLiBTCard = lazySection(() => import('./components/TOEFLiBTCard').then(m => ({ default: m.TOEFLiBTCard })));
-const LMSCard = lazySection(() => import('./components/LMSCard').then(m => ({ default: m.LMSCard })));
-const BiWeekPlannerCard = lazySection(() => import('./components/BiWeekPlannerCard').then(m => ({ default: m.BiWeekPlannerCard })));
-const SocialProof = lazySection(() => import('./components/SocialProof').then(m => ({ default: m.SocialProof })));
-const KidGradeHub = lazySection(() => import('./components/KidGradeHub').then(m => ({ default: m.KidGradeHub })));
-const GEPISecHub = lazySection(() => import('./components/GEPISecHub').then(m => ({ default: m.GEPISecHub })));
-const InteractiveShowcase = lazySection(() => import('./components/InteractiveShowcase').then(m => ({ default: m.InteractiveShowcase })));
-const FeaturesBento = lazySection(() => import('./components/FeaturesBento').then(m => ({ default: m.FeaturesBento })));
-const ToeflJuniorAssessments = lazySection(() => import('./components/ToeflJuniorAssessments').then(m => ({ default: m.ToeflJuniorAssessments })));
-const ResourceLibrary = lazySection(() => import('./components/ResourceLibrary').then(m => ({ default: m.ResourceLibrary })));
-const RoiCalculator = lazySection(() => import('./components/RoiCalculator').then(m => ({ default: m.RoiCalculator })));
-const ComparisonTable = lazySection(() => import('./components/ComparisonTable').then(m => ({ default: m.ComparisonTable })));
-const Testimonials = lazySection(() => import('./components/Testimonials').then(m => ({ default: m.Testimonials })));
-const Pricing = lazySection(() => import('./components/Pricing').then(m => ({ default: m.Pricing })));
-const FaqSection = lazySection(() => import('./components/FaqSection').then(m => ({ default: m.FaqSection })));
-const CtaSection = lazySection(() => import('./components/CtaSection').then(m => ({ default: m.CtaSection })));
+/* eslint-enable @typescript-eslint/no-explicit-any */
+const AnnouncementBoard = lazySection(() => import('./components/AnnouncementBoard'), (m) => m.AnnouncementBoard);
+const BlogSection = lazySection(() => import('./components/BlogSection'), (m) => m.default);
+const DailyAssessmentCard = lazySection(() => import('./components/DailyAssessmentCard'), (m) => m.DailyAssessmentCard);
+const TOEFLiBTCard = lazySection(() => import('./components/TOEFLiBTCard'), (m) => m.TOEFLiBTCard);
+const LMSCard = lazySection(() => import('./components/LMSCard'), (m) => m.LMSCard);
+const BiWeekPlannerCard = lazySection(() => import('./components/BiWeekPlannerCard'), (m) => m.BiWeekPlannerCard);
+const SocialProof = lazySection(() => import('./components/SocialProof'), (m) => m.SocialProof);
+const KidGradeHub = lazySection(() => import('./components/KidGradeHub'), (m) => m.KidGradeHub);
+const GEPISecHub = lazySection(() => import('./components/GEPISecHub'), (m) => m.GEPISecHub);
+const InteractiveShowcase = lazySection(() => import('./components/InteractiveShowcase'), (m) => m.InteractiveShowcase);
+const FeaturesBento = lazySection(() => import('./components/FeaturesBento'), (m) => m.FeaturesBento);
+const ToeflJuniorAssessments = lazySection(() => import('./components/ToeflJuniorAssessments'), (m) => m.ToeflJuniorAssessments);
+const ResourceLibrary = lazySection(() => import('./components/ResourceLibrary'), (m) => m.ResourceLibrary);
+const RoiCalculator = lazySection(() => import('./components/RoiCalculator'), (m) => m.RoiCalculator);
+const ComparisonTable = lazySection(() => import('./components/ComparisonTable'), (m) => m.ComparisonTable);
+const Testimonials = lazySection(() => import('./components/Testimonials'), (m) => m.Testimonials);
+const Pricing = lazySection(() => import('./components/Pricing'), (m) => m.Pricing);
+const FaqSection = lazySection(() => import('./components/FaqSection'), (m) => m.FaqSection);
+const CtaSection = lazySection(() => import('./components/CtaSection'), (m) => m.CtaSection);
 
 // Lazy-load heavy modals and the games route into separate chunks so they
 // don't bloat the initial landing-page download. They load on demand.
-const TeacherPassModal = lazy(() => import('./components/TeacherPassModal').then(m => ({ default: m.TeacherPassModal })));
-const StudentDemoModal = lazy(() => import('./components/StudentDemoModal').then(m => ({ default: m.StudentDemoModal })));
-const MiniMockTest = lazy(() => import('./components/MiniMockTest').then(m => ({ default: memo(m.MiniMockTest) })));
-const LearningGamesPage = lazy(() => import('./components/LearningGamesPage').then(m => ({ default: m.LearningGamesPage })));
-const BrainLoungePage = lazy(() => import('./components/BrainLoungePage').then(m => ({ default: m.BrainLoungePage })));
-const FirebaseDashboard = lazy(() => import('./components/FirebaseDashboard').then(m => ({ default: memo(m.FirebaseDashboard) })));
+// Every chunk import is retried (retryImport) and rendered under its own
+// <Suspense> + <ErrorBoundary>, so a slow or failed download can neither
+// hold up the first paint nor blank the page.
+const TeacherPassModal = lazy(() => retryImport(() => import('./components/TeacherPassModal')).then(m => ({ default: m.TeacherPassModal })));
+const StudentDemoModal = lazy(() => retryImport(() => import('./components/StudentDemoModal')).then(m => ({ default: m.StudentDemoModal })));
+const MiniMockTest = lazy(() => retryImport(() => import('./components/MiniMockTest')).then(m => ({ default: memo(m.MiniMockTest) })));
+const LearningGamesPage = lazy(() => retryImport(() => import('./components/LearningGamesPage')).then(m => ({ default: m.LearningGamesPage })));
+const BrainLoungePage = lazy(() => retryImport(() => import('./components/BrainLoungePage')).then(m => ({ default: m.BrainLoungePage })));
+const FirebaseDashboard = lazy(() => retryImport(() => import('./components/FirebaseDashboard')).then(m => ({ default: memo(m.FirebaseDashboard) })));
 
 export function App() {
   const [quickDrawerOpen, setQuickDrawerOpen] = useState(false);
@@ -199,6 +208,42 @@ export function App() {
     return () => window.removeEventListener('hashchange', syncRoute);
   }, []);
 
+  // Deep links to a homepage section (/#pricing, /#resources, …). main.tsx
+  // pins the scroll position to the top on load, and the sections below the
+  // fold are LazyMount placeholders whose real height is only known once
+  // they render, so the browser's own "scroll to the hash" never lands.
+  // Jump to the target, then re-align a few times while the sections above
+  // it mount and settle. Any user input cancels the follow-up jumps.
+  // behavior 'instant': the stylesheet sets scroll-behavior: smooth, and a
+  // smooth scroll restarted every few hundred ms never arrives.
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (['', '#', '#top', '#games', '#teacher-tools', '#news', '#brain-lounge'].includes(hash)) return;
+    let id = '';
+    try {
+      id = decodeURIComponent(hash.slice(1));
+    } catch {
+      return;
+    }
+    if (!id || !document.getElementById(id)) return;
+
+    let cancelled = false;
+    const cancel = () => { cancelled = true; };
+    const jump = () => {
+      if (cancelled) return;
+      document.getElementById(id)?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    };
+    jump();
+    const timers = [120, 350, 700, 1200, 2000, 3000].map((ms) => window.setTimeout(jump, ms));
+    const inputs = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
+    inputs.forEach((type) => window.addEventListener(type, cancel, { passive: true, once: true }));
+    return () => {
+      cancelled = true;
+      timers.forEach((t) => window.clearTimeout(t));
+      inputs.forEach((type) => window.removeEventListener(type, cancel));
+    };
+  }, []);
+
   // Deep-link support for the teacher-only planner hub: the locked screen
   // on public/biweek-planner/ (teacher-gate.js) sends unauthenticated
   // visitors here with ?auth=teacher so the teacher sign-in modal opens
@@ -219,31 +264,60 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openMemberAuth]);
 
+  // The teacher sign-in / sign-up modal is rendered on EVERY route. It used
+  // to live only in the landing-page tree, so "Sign in as teacher" on the
+  // locked #teacher-tools page set the open flag with nothing mounted to
+  // show it (the dialog then popped up later, back on the homepage).
+  // Own Suspense: the modal chunk never suspends the page around it.
+  const authModal = (
+    <ErrorBoundary variant="silent" label="teacher-pass-modal">
+      <Suspense fallback={null}>
+        <TeacherPassModal
+          isOpen={teacherPassModalOpen}
+          onClose={() => setTeacherPassModalOpen(false)}
+          initialMode={authInitialMode}
+        />
+      </Suspense>
+    </ErrorBoundary>
+  );
+
   if (isGamesPage) return (
-    <Suspense fallback={null}>
-      <LearningGamesPage onBackHome={returnHome} />
-    </Suspense>
+    <>
+      <Suspense fallback={null}>
+        <LearningGamesPage onBackHome={returnHome} />
+      </Suspense>
+      {authModal}
+    </>
   );
 
   if (isTeacherToolsPage) return (
-    <Suspense fallback={null}>
-      <TeacherToolsPage onBackHome={returnHome} onOpenAuth={() => openMemberAuth('sign-up')} />
-    </Suspense>
+    <>
+      <Suspense fallback={null}>
+        <TeacherToolsPage onBackHome={returnHome} onOpenAuth={() => openMemberAuth('sign-up')} />
+      </Suspense>
+      {authModal}
+    </>
   );
 
   if (isNewsPage) return (
-    <Suspense fallback={null}>
-      <NewsPage onBackHome={returnHome} />
-    </Suspense>
+    <>
+      <Suspense fallback={null}>
+        <NewsPage onBackHome={returnHome} />
+      </Suspense>
+      {authModal}
+    </>
   );
 
   // The Brain Lounge — dedicated arcade page for CMC-built games
   // (cartridge registry in src/games/registry.ts). Reachable from the
   // navbar, Quick Links, or directly via #brain-lounge.
   if (isBrainLoungePage) return (
-    <Suspense fallback={null}>
-      <BrainLoungePage onBackHome={returnHome} />
-    </Suspense>
+    <>
+      <Suspense fallback={null}>
+        <BrainLoungePage onBackHome={returnHome} />
+      </Suspense>
+      {authModal}
+    </>
   );
 
   return (
@@ -433,11 +507,7 @@ export function App() {
       {/* Teacher Free Pass Modal — uses Firebase Authentication (Email/Password
           + Google), independent of the Supabase member-entitlement flow that
           gates the MiniMockTest below. */}
-      <TeacherPassModal
-        isOpen={teacherPassModalOpen}
-        onClose={() => setTeacherPassModalOpen(false)}
-        initialMode={authInitialMode}
-      />
+      {authModal}
 
       {/* Live stats + Top Teachers ticker — fixed at the bottom of the
           viewport. Shown on the homepage only (sub-pages render their own
@@ -445,11 +515,15 @@ export function App() {
       <TickerBanner onOpenTeacherPass={() => openMemberAuth('sign-up')} />
 
       {/* Live Student Experience Demo Modal */}
-      <StudentDemoModal
-        isOpen={studentDemoModalOpen}
-        onClose={() => setStudentDemoModalOpen(false)}
-        onOpenTeacherPass={() => openMemberAuth('sign-up')}
-      />
+      <ErrorBoundary variant="silent" label="student-demo-modal">
+        <Suspense fallback={null}>
+          <StudentDemoModal
+            isOpen={studentDemoModalOpen}
+            onClose={() => setStudentDemoModalOpen(false)}
+            onOpenTeacherPass={() => openMemberAuth('sign-up')}
+          />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Floating Quick Action Dock — sits above the TickerBanner so
           neither overlaps the other. */}
