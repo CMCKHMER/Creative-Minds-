@@ -134,6 +134,15 @@ swap('<p class="note" style="text-align:center;margin-top:18px">Best with sound'
 # ── S5: F1 — influence statements are public ────────────────────────────
 swap(',"mafia");applyAccuse(sp,target,', ',"public");applyAccuse(sp,target,', label='F1a influence channel')
 swap(',"mafia");applyClaim(y,t,', ',"public");applyClaim(y,t,', label='F1b proof channel')
+# F1c: the AI detective's badge claim is public speech too — the feed labelled
+#      it "SYNDICATE" (only genuine syndicate whispers keep the mafia channel)
+swap(',"mafia");applyClaim(p,t);return', ',"public");applyClaim(p,t);return', label='F1c AI claim channel')
+# F1c2: the same call without the trailing return — already fixed by F1c in
+# builds where its form matched, so 0 or 1 occurrences are both fine
+_f1c2 = html.count('"mafia");applyClaim(p,t)')
+if _f1c2:
+    html = html.replace('"mafia");applyClaim(p,t)', '"public");applyClaim(p,t)')
+    swaps.append('F1c2 AI claim channel (no-return form)')
 
 # ── S6: F11 — roster typing must not rebuild the rows ───────────────────
 swap('$("#roster").oninput=e=>{if(e.target.dataset.i!==undefined){L.roster[+e.target.dataset.i].name=e.target.value;renderSetup()}};',

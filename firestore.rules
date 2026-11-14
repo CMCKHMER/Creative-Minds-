@@ -568,6 +568,53 @@ service cloud.firestore {
       allow delete: if isVerifiedUser() && resource.data.hostUid == request.auth.uid;
     }
 
+
+    // ONLINE MAFIA ROOMS (Nov 2026): the hidden-information table for Mafia
+    // Noir (public/mafia.html, Brain Lounge bay 04) — the Firestore transport
+    // that replaced the WebSocket server the upload assumed. Same identity
+    // discipline as chess_rooms: verified players only, host owns the doc.
+    // Two subcollections chess never needed, because mafia is HIDDEN-info:
+    //   views/{uid}  — that player's PERSONAL view (own role, syndicate team,
+    //                  detective files, channel-filtered chat). Readable ONLY
+    //                  by that player; the host device writes them all. A
+    //                  town player's view never carries another player's role.
+    //   actions/{uid} — night action / ballot / chat / heartbeat. Players
+    //                  write only their own; the host reads them to resolve
+    //                  the phase and validates eligibility client-side.
+    // The authoritative engine state is mirrored into the room doc's .engine
+    // field AES-GCM-ENCRYPTED — the key lives only in the host's localStorage
+    // — so even the room doc (readable by every verified player, like
+    // chess_rooms) never carries a readable role.
+    match /mafia_rooms/{roomId} {
+      allow read: if isVerifiedUser();
+      allow create: if isVerifiedUser()
+        && request.resource.data.code == roomId
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.hostName is string
+        && request.resource.data.status == 'open'
+        && request.resource.data.engine is string;
+      allow update: if isVerifiedUser()
+        && request.auth.uid == resource.data.hostUid;
+      allow delete: if isVerifiedUser()
+        && request.auth.uid == resource.data.hostUid;
+
+      match /views/{uid} {
+        allow read: if isVerifiedUser() && request.auth.uid == uid;
+        allow create, update: if isVerifiedUser()
+          && request.auth.uid == get(/databases/$(database)/documents/mafia_rooms/$(roomId)).data.hostUid;
+        allow delete: if isVerifiedUser()
+          && request.auth.uid == get(/databases/$(database)/documents/mafia_rooms/$(roomId)).data.hostUid;
+      }
+      match /actions/{uid} {
+        allow read: if isVerifiedUser()
+          && (request.auth.uid == uid
+              || request.auth.uid == get(/databases/$(database)/documents/mafia_rooms/$(roomId)).data.hostUid);
+        allow create, update: if isVerifiedUser() && request.auth.uid == uid;
+        allow delete: if isVerifiedUser()
+          && request.auth.uid == get(/databases/$(database)/documents/mafia_rooms/$(roomId)).data.hostUid;
+      }
+    }
+
     // ── STUDIO SHARED DOCS & WORKSHEETS (Nov 2026) ──
     //
     // The Studio page (studio/) can publish a Docs or Excel document to a
