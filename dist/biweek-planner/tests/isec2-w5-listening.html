@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -239,32 +239,10 @@ html[data-theme="light"] .q-explanation{background:rgba(2,132,199,.04);border-co
 </div>
 
 <script>
-window.TEST_CONFIG={
-  title:'ISEC II · C1 Listening: Innovation in Business',
-  kicker:'Week 5 · L12B · Listening',
-  color:'#347d9b',
-  icon:'fa-headphones',
-  instructions:'C1 Listening Drill. Listen to a podcast about innovation in business. Are the sentences true or false?',
-  fields:['name', 'date'],
-  transcript:'',
-  groups:[
-    {'id':'isec2-w5-list','title':'True/False Questions (10 questions)'}
-  ]
-};
-const BANKS = {
-"isec2-w5-list":[
-["This podcast focuses on some of the downsides of innovation.",["True","False"],1],
-["If they do not innovate, businesses will not survive.",["True","False"],0],
-["There are three main types of innovation.",["True","False"],1],
-["Incremental innovation involves a series of small changes.",["True","False"],0],
-["Disruptive innovation involves introducing a change that has an impact on the existing market.",["True","False"],0],
-["Architectural innovation relates to the complete restructuring of the market.",["True","False"],1],
-["Dyson's move from the vacuum cleaners to hairdryers is an example of radical innovation.",["True","False"],1],
-["Radical innovation can lead to the death of existing markets.",["True","False"],0],
-["The speaker suggests that you test your idea before you try to get support for it.",["True","False"],1],
-["The evaluation stage is when you think about exactly how to implement your ideas.",["True","False"],1]
-]};
-window.TEST_BANKS = BANKS;
+window.TEST_CONFIG={"title":"ISEC II · C1 Listening: Innovation in Business","kicker":"Week 5 · L12B · Listening","color":"#347d9b","icon":"fa-headphones","instructions":"C1 Listening Drill. Listen to a podcast about innovation in business. Are the sentences true or false?","fields":["name","date"],"transcript":"","groups":[{"id":"isec2-w5-list","title":"True/False Questions (10 questions)"}]};
+window.TEST_BANKS={"isec2-w5-list":[["This podcast focuses on some of the downsides of innovation.",["True","False"],-1],["If they do not innovate, businesses will not survive.",["True","False"],-1],["There are three main types of innovation.",["True","False"],-1],["Incremental innovation involves a series of small changes.",["True","False"],-1],["Disruptive innovation involves introducing a change that has an impact on the existing market.",["True","False"],-1],["Architectural innovation relates to the complete restructuring of the market.",["True","False"],-1],["Dyson's move from the vacuum cleaners to hairdryers is an example of radical innovation.",["True","False"],-1],["Radical innovation can lead to the death of existing markets.",["True","False"],-1],["The speaker suggests that you test your idea before you try to get support for it.",["True","False"],-1],["The evaluation stage is when you think about exactly how to implement your ideas.",["True","False"],-1]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"01e04384897ef527","epk":"BALttAlZcbvAo1CcY-rCDgz3kWn3uzMxREJ6EKH0KNgkgIHoxvpDdGcMyaAXJhE1ij7OTgfcpL6DAskI836KFaI","iv":"ty9pBY_0ZjBLNpkL","ct":"0448J2s_L5aPIa6pBRWm4wJKdCnc4Jfh8PKqdTzPv8OIw-uByK_-O4sQKNFH5PrsexvJv187houlkZbKedLxq1U_jSqKUurb_gw3ZsOcsB_KY7s86V2JjMV7rOHhwFqwXQMS"};
 </script>
 <script>
 // CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
@@ -454,6 +432,7 @@ function doSubmit(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 
 

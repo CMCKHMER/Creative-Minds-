@@ -20,11 +20,25 @@
 // Reads on invite_attempts are AUTHENTICATED (the teacher's Firebase
 // session) and filtered to their own uid — the rules engine rejects
 // anything broader.
+//
+// GRADING (answer seal, Nov 2026): the public test pages no longer contain
+// their answer keys — they are encrypted, and the key that opens them is a
+// Firestore document only verified teachers can read. A student's browser
+// therefore cannot grade; it sends the raw answer sheet and THIS panel
+// grades it on the teacher's device (src/lib/answerSeal.ts). Attempts
+// recorded before the change still carry their own score and show as-is.
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ClipboardList, Copy, Cpu, Download, ExternalLink, RefreshCw, Shuffle } from 'lucide-react';
-import { getRestAuthUid, listInviteAttempts, registerInviteCode, RestError } from '../lib/testDb';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ClipboardList, Copy, Cpu, Download, ExternalLink, KeyRound, Lock, RefreshCw, ShieldCheck, Shuffle } from 'lucide-react';
+import {
+  ensureTeacherRegistration, getAnswerSealCode, getRestAuthUid, listInviteAttempts, putAnswerSealCode,
+  registerInviteCode, RestError,
+} from '../lib/testDb';
 import type { InviteAttemptDoc } from '../lib/testDb';
+import { formatSealCode, gradeSheet, openAnswerKey, parseSheet, sealCodeMatches } from '../lib/answerSeal';
+import type { AnswerKeyMap, SealBundle, SealPublicKey } from '../lib/answerSeal';
+import { isAdminUid } from '../lib/firebaseAuth';
+import { csvSafeText } from '../lib/csvSafe';
 
 /** Shareable test catalog — keep slugs in sync with the files under
  *  public/biweek-planner/tests/ (each has a student invite gate built in). */
@@ -77,6 +91,7 @@ const TEST_CATALOG: TestEntry[] = [
   // Skills drills
   { title: 'Level 9b Grammar', slug: 'grammar.html', group: 'Skills drills' },
   { title: 'Level 11b Written Expressions', slug: 'structure.html', group: 'Skills drills' },
+  { title: 'Level 11b Rhetorical Purpose', slug: 'rhetorical.html', group: 'Skills drills' },
   { title: 'B2 Business Listening Drill', slug: 'business-listening.html', group: 'Skills drills' },
   { title: 'Listening · Inference', slug: 'inference-listening.html', group: 'Skills drills' },
   { title: 'Listening · Prediction', slug: 'prediction-listening.html', group: 'Skills drills' },
@@ -101,7 +116,21 @@ interface AttemptDoc {
   answers: string;
   inviteMode: boolean;
   integrity: { blurs?: number; fsExits?: number };
+  /** Sealed attempt: the stored score is a placeholder; grade `sheet`. */
+  sealed: boolean;
+  sheet: string;
+  /** True when a sealed attempt could not be graded yet (key not open). */
+  ungraded?: boolean;
 }
+
+/** Where the answer seal stands for this teacher. */
+type SealStatus =
+  | 'checking'   // still loading
+  | 'ready'      // key open — sealed attempts are graded here
+  | 'missing'    // the owner has not installed the key code yet
+  | 'denied'     // this account is not allowed to read the key
+  | 'mismatch'   // an installed code that does not fit this site's tests
+  | 'error';     // network / unexpected
 
 const CODE_KEY = 'cmc-teacher-invite-code';
 
@@ -132,8 +161,35 @@ async function fetchAttempts(file: string, teacherUid: string): Promise<AttemptD
     answers: d.answers ?? '',
     inviteMode: true,
     integrity: (d.integrity as AttemptDoc['integrity']) ?? {},
+    sealed: d.sealed === true,
+    sheet: d.sheet ?? '',
   } as AttemptDoc));
 }
+
+/** The sealed-answer files ship with the site (public, safe: ciphertext and
+ *  the PUBLIC key only). Loaded once per page view. */
+let sealFilesPromise: Promise<{ pub: SealPublicKey; bundle: SealBundle }> | null = null;
+function loadSealFiles(): Promise<{ pub: SealPublicKey; bundle: SealBundle }> {
+  if (!sealFilesPromise) {
+    const base = window.location.pathname.replace(/index\.html$/, '') + 'biweek-planner/';
+    const get = async <T,>(name: string): Promise<T> => {
+      const res = await fetch(base + name, { cache: 'no-cache' });
+      if (!res.ok) throw new Error(`Could not load ${name}`);
+      return res.json() as Promise<T>;
+    };
+    sealFilesPromise = Promise.all([get<SealPublicKey>('answer-seal.pub.json'), get<SealBundle>('answer-seals.json')])
+      .then(([pub, bundle]) => ({ pub, bundle }))
+      .catch((err: unknown) => { sealFilesPromise = null; throw err; });
+  }
+  return sealFilesPromise;
+}
+
+const SEAL_NOTE: Record<Exclude<SealStatus, 'checking' | 'ready'>, string> = {
+  missing: 'The answer key is not installed yet, so new attempts cannot be scored. They are saved and will be scored as soon as the site owner installs the key.',
+  denied: 'This account cannot open the answer key (verified teacher accounts only), so new attempts cannot be scored here.',
+  mismatch: 'The installed answer key does not match the tests on this site. Ask the site owner to install the current key.',
+  error: 'Could not load the answer key just now. Attempts are saved; press Refresh to try again.',
+};
 
 /** Props kept optional-and-ignored so the dashboard call site stays valid. */
 export const BiWeeklyTestsPanel: React.FC<{
@@ -148,7 +204,39 @@ export const BiWeeklyTestsPanel: React.FC<{
   const [resultsState, setResultsState] = useState<{ tone: 'ok' | 'err' | 'info'; text: string }>({ tone: 'info', text: '' });
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sealStatus, setSealStatus] = useState<SealStatus>('checking');
+  const [sealCode, setSealCode] = useState('');
+  const [answerKey, setAnswerKey] = useState<{ slug: string; map: AnswerKeyMap } | null>(null);
+  const [installText, setInstallText] = useState('');
+  const [installState, setInstallState] = useState<{ tone: 'ok' | 'err' | 'info'; text: string }>({ tone: 'info', text: '' });
   const alive = useRef(true);
+
+  // ── Answer seal: fetch the key code once the teacher session is known ──
+  const loadSeal = useCallback(async () => {
+    try {
+      const { pub } = await loadSealFiles();
+      let found: { code: string; kid: string } | null;
+      try {
+        found = await getAnswerSealCode();
+      } catch (err) {
+        if (!(err instanceof RestError) || err.status !== 403) throw err;
+        // A teacher who never opened a private test has no allowlist entry
+        // yet — register once, then read again.
+        const registered = await ensureTeacherRegistration().catch(() => false);
+        if (!registered) { if (alive.current) setSealStatus('denied'); return; }
+        found = await getAnswerSealCode();
+      }
+      if (!alive.current) return;
+      if (!found) { setSealStatus('missing'); return; }
+      if (!(await sealCodeMatches(pub, found.code))) { if (alive.current) setSealStatus('mismatch'); return; }
+      if (!alive.current) return;
+      setSealCode(found.code);
+      setSealStatus('ready');
+    } catch (err) {
+      if (!alive.current) return;
+      setSealStatus(err instanceof RestError && err.status === 403 ? 'denied' : 'error');
+    }
+  }, []);
 
   // Restore/generate the personal teacher ID code once, resolve the REST
   // session uid, and REGISTER the code in the invite_codes registry (the
@@ -166,6 +254,7 @@ export const BiWeeklyTestsPanel: React.FC<{
       if (!alive.current) return;
       setRestUid(uid ?? '');
       if (!uid) return; // no Firebase session — results view will ask to sign in
+      void loadSeal(); // answer key for grading (verified teachers only)
       // Bind the code to this teacher. If another teacher registered the
       // random code first (collision), roll a fresh one and bind that.
       let result: 'ok' | 'taken' = 'taken';
@@ -179,7 +268,64 @@ export const BiWeeklyTestsPanel: React.FC<{
       }
     });
     return () => { alive.current = false; };
-  }, []);
+  }, [loadSeal]);
+
+  // Open the key of the selected test (in memory only — never stored).
+  useEffect(() => {
+    if (!sealCode) return;
+    const slug = formSlug.replace(/\.html$/, '');
+    let cancelled = false;
+    void loadSealFiles()
+      .then(({ pub, bundle }) => openAnswerKey(pub, bundle, sealCode, slug))
+      .then((map) => { if (!cancelled && alive.current) setAnswerKey(map ? { slug, map } : null); })
+      .catch(() => { if (!cancelled && alive.current) setAnswerKey(null); });
+    return () => { cancelled = true; };
+  }, [sealCode, formSlug]);
+
+  // Sealed attempts are graded here; older attempts keep their own score.
+  const graded = useMemo<AttemptDoc[]>(() => {
+    const slug = formSlug.replace(/\.html$/, '');
+    const key = answerKey && answerKey.slug === slug ? answerKey.map : null;
+    return attempts.map((d) => {
+      if (!d.sealed) return d;
+      const sheet = parseSheet(d.sheet);
+      if (!key || !sheet) return { ...d, scorePct: null, correctCount: null, ungraded: true };
+      const g = gradeSheet(sheet, key);
+      return { ...d, scorePct: g.pct, correctCount: g.correct, totalCount: g.total };
+    });
+  }, [attempts, answerKey, formSlug]);
+  const ungradedCount = graded.filter((d) => d.ungraded).length;
+
+  const isOwner = isAdminUid(restUid);
+
+  const installSealCode = async () => {
+    const typed = installText.trim();
+    if (!typed) return;
+    setInstallState({ tone: 'info', text: 'Checking the key…' });
+    try {
+      const { pub } = await loadSealFiles();
+      if (!(await sealCodeMatches(pub, typed))) {
+        if (alive.current) setInstallState({ tone: 'err', text: 'That code does not match this site’s tests. Paste the whole code that starts with “cmcseal1.”' });
+        return;
+      }
+      const code = formatSealCode(typed);
+      await putAnswerSealCode(code, pub.kid);
+      if (!alive.current) return;
+      setInstallText('');
+      setSealCode(code);
+      setSealStatus('ready');
+      setInstallState({ tone: 'ok', text: 'Installed. Every verified teacher can now preview and score the tests.' });
+    } catch (err) {
+      if (!alive.current) return;
+      const denied = err instanceof RestError && err.status === 403;
+      setInstallState({
+        tone: 'err',
+        text: denied
+          ? 'The database refused the save. Publish the updated firestore.rules in the Firebase console first, then try again.'
+          : err instanceof RestError ? err.message : 'Could not save the key.',
+      });
+    }
+  };
 
   const inviteUrl = `${window.location.origin}${plannerBase()}${formSlug}?invite=${encodeURIComponent(teacherCode)}`;
 
@@ -228,14 +374,15 @@ export const BiWeeklyTestsPanel: React.FC<{
 
   const exportCsv = () => {
     const cell = (v: unknown): string => {
-      const s = String(v ?? '');
+      // Student-typed text: neutralise spreadsheet formulas (csvSafe.ts).
+      const s = csvSafeText(typeof v === 'number' ? v : String(v ?? ''));
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
     const lines = [
       ['Student', 'Student ID', 'Teacher code', 'Score %', 'Correct', 'Total', 'Duration s', 'Flags', 'Submitted', 'Answers'].join(','),
-      ...attempts.map((d) => {
+      ...graded.map((d) => {
         const flags = (d.integrity?.blurs ?? 0) + (d.integrity?.fsExits ?? 0);
-        return [d.studentName, d.studentCode, d.inviteCode, d.scorePct, d.correctCount, d.totalCount, d.durationSeconds, flags, d.submittedAt, d.answers]
+        return [d.studentName, d.studentCode, d.inviteCode, d.ungraded ? 'not scored' : d.scorePct, d.correctCount, d.totalCount, d.durationSeconds, flags, d.submittedAt, d.answers]
           .map(cell).join(',');
       }),
     ];
@@ -341,6 +488,59 @@ export const BiWeeklyTestsPanel: React.FC<{
         </p>
       </div>
 
+      {/* Answer protection — where the seal stands for this teacher */}
+      {restUid && (
+        <div className="mt-4 rounded-xl border border-cyan-200/12 bg-slate-950/40 p-4" data-seal-status={sealStatus}>
+          <div className="flex items-start gap-2.5">
+            {sealStatus === 'ready'
+              ? <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />
+              : <Lock className={`mt-0.5 h-4 w-4 shrink-0 ${sealStatus === 'checking' ? 'text-slate-500' : 'text-amber-300'}`} aria-hidden="true" />}
+            <div className="min-w-0 flex-1">
+              <h4 className="text-xs font-bold text-white">Answer protection</h4>
+              <p role="status" className={`mt-0.5 text-[11px] leading-relaxed ${sealStatus === 'ready' ? 'text-slate-400' : sealStatus === 'checking' ? 'text-slate-500' : 'text-amber-200'}`}>
+                {sealStatus === 'checking' && 'Checking the answer key…'}
+                {sealStatus === 'ready' && 'On. The test pages no longer contain their answers, so students cannot look them up. Scores are worked out here, on your device, and students do not see a score when they submit.'}
+                {sealStatus !== 'checking' && sealStatus !== 'ready' && SEAL_NOTE[sealStatus]}
+              </p>
+              {isOwner && sealStatus !== 'ready' && sealStatus !== 'checking' && (
+                <div className="mt-3">
+                  <label htmlFor="bw-seal-code" className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Site owner: paste the answer key code (starts with cmcseal1.)
+                  </label>
+                  <div className="mt-1 grid gap-2 sm:grid-cols-[1fr_auto]">
+                    <input
+                      id="bw-seal-code"
+                      type="password"
+                      autoComplete="off"
+                      spellCheck={false}
+                      value={installText}
+                      onChange={(e) => setInstallText(e.target.value)}
+                      placeholder="cmcseal1.…"
+                      className="rounded-lg border border-cyan-200/25 bg-slate-950/60 px-2.5 py-2 font-mono text-xs text-cyan-50 focus:border-cyan-200 focus:outline-none"
+                    />
+                    <button
+                      onClick={() => void installSealCode()}
+                      disabled={!installText.trim()}
+                      className="flex items-center justify-center gap-1.5 rounded-lg border border-cyan-200/30 bg-cyan-200/10 px-3 py-2 text-xs font-bold text-cyan-100 transition hover:bg-cyan-200/20 disabled:opacity-40"
+                    >
+                      <KeyRound className="h-3 w-3" /> Install key
+                    </button>
+                  </div>
+                  {installState.text && (
+                    <p role="status" className={`mt-1.5 text-[11px] ${installState.tone === 'err' ? 'text-rose-300' : installState.tone === 'ok' ? 'text-emerald-300' : 'text-slate-400'}`}>
+                      {installState.text}
+                    </p>
+                  )}
+                </div>
+              )}
+              {sealStatus === 'ready' && installState.tone === 'ok' && installState.text && (
+                <p role="status" className="mt-1.5 text-[11px] text-emerald-300">{installState.text}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {resultsOpen && (
         <div className="mt-4 rounded-xl border border-cyan-200/12 bg-slate-950/40">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-200/12 px-4 py-3">
@@ -349,10 +549,18 @@ export const BiWeeklyTestsPanel: React.FC<{
               <p role="status" className={`mt-0.5 text-[10px] ${resultsState.tone === 'err' ? 'text-rose-300' : resultsState.tone === 'ok' ? 'text-emerald-300' : 'text-slate-500'}`}>
                 {loading ? 'Loading…' : resultsState.text}
               </p>
+              {ungradedCount > 0 && (
+                <p role="status" className="mt-0.5 text-[10px] text-amber-200">
+                  {ungradedCount} attempt{ungradedCount === 1 ? ' is' : 's are'} saved but not scored yet — see “Answer protection” above.
+                </p>
+              )}
             </div>
             <div className="flex gap-1.5">
               <button
-                onClick={() => void loadAttempts(formSlug, restUid)}
+                onClick={() => {
+                  void loadAttempts(formSlug, restUid);
+                  if (sealStatus !== 'ready' && restUid) void loadSeal();
+                }}
                 className="flex items-center gap-1.5 rounded-md border border-cyan-200/25 bg-cyan-200/[0.06] px-2.5 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:bg-cyan-200/[0.12]"
               >
                 <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} /> Refresh
@@ -384,16 +592,20 @@ export const BiWeeklyTestsPanel: React.FC<{
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {attempts.map((d) => {
+                  {graded.map((d) => {
                     const flags = (d.integrity?.blurs ?? 0) + (d.integrity?.fsExits ?? 0);
                     return (
                       <tr key={d.id} className="hover:bg-white/5">
                         <td className="px-4 py-2.5 text-xs font-medium text-slate-200">{d.studentName || '—'}</td>
                         <td className="px-4 py-2.5 text-xs text-slate-400">{d.studentCode || '—'}</td>
                         <td className="px-4 py-2.5 text-center">
-                          <span className={`font-mono text-xs font-bold ${(d.scorePct ?? 0) >= 80 ? 'text-emerald-300' : (d.scorePct ?? 0) >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
-                            {d.scorePct ?? '—'}% <span className="text-[10px] text-slate-600">({d.correctCount ?? '?'}/{d.totalCount ?? '?'})</span>
-                          </span>
+                          {d.ungraded ? (
+                            <span className="text-[10px] font-bold text-amber-200" title="Saved. It will be scored once the answer key is available.">Not scored</span>
+                          ) : (
+                            <span className={`font-mono text-xs font-bold ${(d.scorePct ?? 0) >= 80 ? 'text-emerald-300' : (d.scorePct ?? 0) >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
+                              {d.scorePct ?? '—'}% <span className="text-[10px] text-slate-600">({d.correctCount ?? '?'}/{d.totalCount ?? '?'})</span>
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-2.5 text-center text-[10px]">
                           {flags > 0 ? <span className="text-rose-300">⚠ {flags}</span> : <span className="text-emerald-300">✓</span>}

@@ -25,9 +25,11 @@
  *      the attempt. Invite links ALWAYS run this student flow — even for a
  *      signed-in teacher who clicks their own share link. Teachers preview
  *      a test by opening it WITHOUT ?invite= (answers + grading visible).
- *   5. Submit records the full attempt (score + per-question answers +
- *      duration + integrity flags + teacher code) into Firestore
- *      invite_attempts — the PRIVATE results collection (Nov 2026) — then
+ *   5. Submit records the full attempt (per-question answers + duration +
+ *      integrity flags + teacher code) into Firestore invite_attempts — the
+ *      PRIVATE results collection (Nov 2026). v3: the page's answer key is
+ *      SEALED (answer-seal.js), so this browser cannot grade; it sends the
+ *      raw answer sheet and the teacher's dashboard works out the score. Then
  *      auto-redirects to the homepage hero which shows a thank-you message
  *      (?thanks=1). Students never see the correct answers or their score in
  *      invite mode — the reveal/grading UI is skipped; the teacher hands
@@ -47,10 +49,10 @@
  * back. If the registry lookup fails (code not registered yet, or offline),
  * the attempt is queued and retried later, when the stamp is fetched again.
  *
- * Soft limits (same class as teacher-gate.js): this is a static GitHub
- * Pages deploy — a student who reads page source can find the answer
- * data and a determined one can bypass client checks. It raises the bar
- * for a classroom, it is not an anti-cheat guarantee.
+ * Soft limits: this is a static GitHub Pages deploy, so the proctoring
+ * checks here are client-side and a determined student can bypass them.
+ * The ANSWERS, however, are no longer in the page (v3): they are sealed and
+ * only a verified teacher session can open them.
  */
 (function () {
   'use strict';
@@ -561,6 +563,20 @@
     var pct = Math.max(0, Math.min(100, Math.round(sc.correct / total * 100)));
     var duration = startedAt ? Math.round((Date.now() - startedAt) / 1000) : 0;
 
+    // SEALED TESTS (v3): the page no longer carries its answer key — it is
+    // encrypted and only a verified teacher's session can open it (see
+    // answer-seal.js). So this browser CANNOT grade. It sends the raw answer
+    // sheet instead and the teacher's dashboard grades it. The score fields
+    // stay in the document as zeroes because the database rules require
+    // them; `sealed: true` tells the dashboard to ignore them.
+    var sealApi = window.CMC_ANSWER_SEAL;
+    var sealedSheet = (sealApi && sealApi.sealed && typeof sealApi.sheet === 'function') ? sealApi.sheet() : null;
+    if (sealedSheet) {
+      total = sealedSheet.total || total;
+      pct = 0;
+      sc.correct = 0;
+    }
+
     // Merge the live log (has timings) with the DOM snapshot (has everything).
     var merged = {};
     Object.keys(sc.perQ).forEach(function (q) { merged[q] = { letters: sc.perQ[q], sec: 0 }; });
@@ -571,6 +587,20 @@
     var answersStr = Object.keys(merged).sort(function (a, b) { return Number(a) - Number(b); })
       .map(function (q) { return q + ':' + merged[q].letters + (merged[q].sec ? ' (' + merged[q].sec + 's)' : ''); })
       .join('; ');
+    if (sealedSheet) {
+      // Readable log in the test's ORIGINAL question and option order, so it
+      // means the same thing on pages that shuffle per student.
+      var secBySid = {};
+      sc.cards.forEach(function (card) {
+        var logged = answerLog[card.dataset.qnum || '?'];
+        if (card.dataset.sid && logged && logged.sec) secBySid[card.dataset.sid] = logged.sec;
+      });
+      answersStr = sealedSheet.order.map(function (sid, i) {
+        var v = sealedSheet.answers[sid];
+        if (v == null) return '';
+        return (i + 1) + ':' + sealedSheet.letters[sid] + (secBySid[sid] ? ' (' + secBySid[sid] + 's)' : '');
+      }).filter(Boolean).join('; ');
+    }
 
     var fields = {
       drillSlug: { stringValue: slug + '.html' },
@@ -595,6 +625,11 @@
         copies: { integerValue: String(integrity.copies) }
       } } }
     };
+    if (sealedSheet) {
+      fields.sealed = { booleanValue: true };
+      fields.sealKid = { stringValue: String((window.CMC_SEAL && window.CMC_SEAL.kid) || '') };
+      fields.sheet = { stringValue: JSON.stringify({ v: 1, a: sealedSheet.answers }) };
+    }
 
     showSending(function () {
       ensureInviteToken(function (token, uid) {
@@ -603,8 +638,10 @@
         fields.inviteUid = { stringValue: uid };
         stampAndPost(token, fields, function (ok) {
           if (ok) {
-            track('invite_submit', { invite_code: inviteCode, score_pct: pct, cloud: true });
-            setLs(LOCK_KEY, JSON.stringify({ at: new Date().toISOString(), name: studentName, code: studentCode, score: sc.correct, total: total, pct: pct }));
+            track('invite_submit', sealedSheet ? { invite_code: inviteCode, cloud: true } : { invite_code: inviteCode, score_pct: pct, cloud: true });
+            setLs(LOCK_KEY, JSON.stringify(sealedSheet
+              ? { at: new Date().toISOString(), name: studentName, code: studentCode, total: total }
+              : { at: new Date().toISOString(), name: studentName, code: studentCode, score: sc.correct, total: total, pct: pct }));
             try { sessionStorage.removeItem('cmc-invite-answers:' + slug); sessionStorage.removeItem('cmc-invite-entry:' + slug); } catch (e) {}
             goHome({ cloud: true });
           } else {
@@ -643,6 +680,13 @@
         cloud: cloudState.cloud, at: new Date().toISOString()
       }));
     } catch (e) {}
+    // The recap pages' own engine still thinks the test is running (we own
+    // Submit in invite mode, so its `submitted` flag never flips) and its
+    // beforeunload handler would stop this redirect with a "Leave site?"
+    // prompt — after the attempt is already recorded. Tell the engine the
+    // test is over. Its flag is a top-level `let`, reachable only from
+    // global-scope code, hence the Function constructor.
+    try { new Function('if (typeof submitted === "boolean") submitted = true;')(); } catch (e) {}
     try { window.location.replace('../../?thanks=1'); } catch (e) { window.location.href = '../../?thanks=1'; }
   }
 

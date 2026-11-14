@@ -4,7 +4,12 @@
 //
 //   node scripts/make_private_test.mjs diagnostic
 //
-// Inputs : public/biweek-planner/tests/<slug>.html   (practice page, answers inline)
+// Inputs : public/biweek-planner/tests/<slug>.html   (practice page)
+//          The practice pages are SEALED (scripts/seal_tests.mjs): their
+//          answers are encrypted, so this tool needs the answer-seal private
+//          key file to read them:
+//            CMC_SEAL_KEY=/path/to/answer-seal.private.json \
+//              node scripts/make_private_test.mjs diagnostic
 // Outputs:
 //   1. public/biweek-planner/tests/private/<slug>.html
 //      - teacher-gate REMOVED (students must reach this page)
@@ -22,6 +27,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // repo root
 const TESTS_DIR = path.join(ROOT, 'public/biweek-planner/tests');
@@ -77,6 +83,34 @@ const banks = sandbox.window.TEST_BANKS;
 if (!config || !banks) {
   console.error(`${slug}: TEST_CONFIG / TEST_BANKS missing after evaluation`);
   process.exit(1);
+}
+
+// ── 2b. Sealed page: the answers in the page are placeholders. Open the
+//        seal with the private key and put the real answers back (in memory
+//        only) so the key file written below is correct. ─────────────────
+if (sandbox.window.CMC_SEAL) {
+  const keyFile = process.env.CMC_SEAL_KEY;
+  if (!keyFile) {
+    console.error(`${slug}: this page is sealed (its answers are encrypted).`);
+    console.error('  Set CMC_SEAL_KEY to the answer-seal private key file and run again:');
+    console.error(`    CMC_SEAL_KEY=/path/to/answer-seal.private.json node scripts/make_private_test.mjs ${slug}`);
+    process.exit(1);
+  }
+  let opened;
+  try {
+    opened = JSON.parse(execFileSync(process.execPath,
+      [path.join(ROOT, 'scripts/seal_tests.mjs'), '--open', slug, keyFile], { encoding: 'utf8' }));
+  } catch (err) {
+    console.error(`${slug}: could not open the seal with ${keyFile}: ${String(err.stderr || err.message).trim()}`);
+    process.exit(1);
+  }
+  for (const [tid, answers] of Object.entries(opened.banks || {})) {
+    if (!banks[tid] || banks[tid].length !== answers.length) {
+      console.error(`${slug}: sealed key does not match bank ${tid}`);
+      process.exit(1);
+    }
+    answers.forEach((answer, i) => { banks[tid][i][2] = answer; });
+  }
 }
 
 // ── 3. Build the answer-free question payload + the key ─────────────

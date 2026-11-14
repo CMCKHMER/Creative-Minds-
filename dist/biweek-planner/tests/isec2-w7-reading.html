@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -243,27 +243,10 @@ Furthermore, the widespread adoption of automated corporate governance serves a 
 </div>
 
 <script>
-window.TEST_CONFIG={
-  title:'ISEC II · C2 Reading: The Algorithmic Enterprise',
-  kicker:'Week 7 · L12B · Reading',
-  color:'#fbbf24',
-  icon:'fa-book-open',
-  instructions:'C2 Reading Drill on argument evaluation and bias detection. Read the passage about the myth of the purely algorithmic enterprise and answer 5 analytical questions.',
-  fields:['name', 'date'],
-  transcript:'',
-  groups:[
-    {'id':'isec2-w7-list','title':'Reading Questions (5 questions)'}
-  ]
-};
-const BANKS = {
-"isec2-w7-list":[
-["Which of the following best expresses the author's primary argument in the passage?",["Algorithmic governance is entirely inefficient and will inevitably cause corporate balance sheets to collapse.","Corporate automation is primarily designed to eliminate human errors like emotional volatility and executive dominance.","The supposed neutrality of corporate data models masks inherited human biases and shields executives from accountability.","Regulatory scrutiny must be urgently updated to dismantle the use of machine learning models in hiring pipelines."],2],
-['In paragraph 1, the author uses the phrase "techno-utopian synthesis" to characterize what viewpoint?',["The balanced integration of human creativity and automated corporate frameworks.","The flawed belief that mathematical models will seamlessly correct human errors and optimize businesses.","The radical restructuring of executive suites to entirely eliminate shareholder influence.","The scientifically proven superiority of machine learning over traditional corporate heuristics."],1],
-['According to paragraph 2, why are proprietary corporate algorithms described as "anything but detached"?',["They actively rebel against the unstated priorities and constraints set by their original human creators.","They require continuous, real-time human intervention to interpret highly complex market shifts.","They are inextricably bound to historical data that contains embedded societal and institutional imbalances.","They prioritize future market innovations over the optimization of legacy business practices."],2],
-["Which of the following choices best reveals the author's underlying bias against corporate executives who implement algorithmic governance?",["The assertion that data models aggressively extrapolate patterns from historical corporate baselines.","The claim that algorithms render institutional discrimination invisible to traditional regulatory bodies.",'The use of phrases like "disingenuously point to" and "insulate corporate elites from the social friction."',"The observation that machine learning tools are frequently deployed to forecast volatile asset allocations."],2],
-["Based on the tone and arguments presented in paragraph 3, the author implies that the push for the algorithmic enterprise is driven less by a desire for objective efficiency and more by a desire for:",["structural risk diversification.","absolute moral transparency.","strategic liability shielding.","democratization of workplace data."],2]
-]};
-window.TEST_BANKS = BANKS;
+window.TEST_CONFIG={"title":"ISEC II · C2 Reading: The Algorithmic Enterprise","kicker":"Week 7 · L12B · Reading","color":"#fbbf24","icon":"fa-book-open","instructions":"C2 Reading Drill on argument evaluation and bias detection. Read the passage about the myth of the purely algorithmic enterprise and answer 5 analytical questions.","fields":["name","date"],"transcript":"","groups":[{"id":"isec2-w7-list","title":"Reading Questions (5 questions)"}]};
+window.TEST_BANKS={"isec2-w7-list":[["Which of the following best expresses the author's primary argument in the passage?",["Algorithmic governance is entirely inefficient and will inevitably cause corporate balance sheets to collapse.","Corporate automation is primarily designed to eliminate human errors like emotional volatility and executive dominance.","The supposed neutrality of corporate data models masks inherited human biases and shields executives from accountability.","Regulatory scrutiny must be urgently updated to dismantle the use of machine learning models in hiring pipelines."],-1],["In paragraph 1, the author uses the phrase \"techno-utopian synthesis\" to characterize what viewpoint?",["The balanced integration of human creativity and automated corporate frameworks.","The flawed belief that mathematical models will seamlessly correct human errors and optimize businesses.","The radical restructuring of executive suites to entirely eliminate shareholder influence.","The scientifically proven superiority of machine learning over traditional corporate heuristics."],-1],["According to paragraph 2, why are proprietary corporate algorithms described as \"anything but detached\"?",["They actively rebel against the unstated priorities and constraints set by their original human creators.","They require continuous, real-time human intervention to interpret highly complex market shifts.","They are inextricably bound to historical data that contains embedded societal and institutional imbalances.","They prioritize future market innovations over the optimization of legacy business practices."],-1],["Which of the following choices best reveals the author's underlying bias against corporate executives who implement algorithmic governance?",["The assertion that data models aggressively extrapolate patterns from historical corporate baselines.","The claim that algorithms render institutional discrimination invisible to traditional regulatory bodies.","The use of phrases like \"disingenuously point to\" and \"insulate corporate elites from the social friction.\"","The observation that machine learning tools are frequently deployed to forecast volatile asset allocations."],-1],["Based on the tone and arguments presented in paragraph 3, the author implies that the push for the algorithmic enterprise is driven less by a desire for objective efficiency and more by a desire for:",["structural risk diversification.","absolute moral transparency.","strategic liability shielding.","democratization of workplace data."],-1]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"01e04384897ef527","epk":"BLqMNgzvxRkSUHOq5GNl-XTCDWrC4MYZQkfWkUEH1-i6TneXg6negdqvtBK8WWYyylS8HADeDMV1OXvBjcQG4Lw","iv":"5M2M7lyYTuvSuAlj","ct":"mE13SRohjOHt8-2Ppmf-CMKp1_iCk868CjCWIN74fCnhSL9BJaSaB4TIynXeITRtB_GkiXur37iB-53L9D2uicqoWpFjc_p23g1NLfGKZCovHvC4fvne"};
 </script>
 <script>
 // CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
@@ -453,6 +436,7 @@ function doSubmit(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 
 

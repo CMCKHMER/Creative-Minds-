@@ -4,11 +4,11 @@
 The Aii Level-11b "Toefl Drill: W5" worksheet (teacher's Google Doc, pages 1-2
 + OFFICIAL answer sheet) becomes live assigned test biweek-isec2-w5-grammar:
   - Part 1: 15 multiple-choice grammar items (relative clauses, subjunctive,
-    reported speech, verb patterns) — official key B A A B C B C C C D B B B A C
-  - Part 2: 10 error-identification items — official key letters and phrases
-    taken verbatim from the teacher's answer sheet (16 A "me to stay",
-    17 C "was seen", 18 C remove "but", 19 A "to help", 20 B "will take",
-    21 A "who", 22 C "move", 23 A "to write", 24 A "in where", 25 C remove "so")
+    reported speech, verb patterns)
+  - Part 2: 10 error-identification items, letters and phrases taken verbatim
+    from the teacher's answer sheet
+  The answer sheet itself is NOT in this file (public repository): it is read
+  from the JSON file named by the CMC_W5_KEY environment variable.
 
 Error-ID prompts follow the W3 page's established convention: [A]..[D] markers
 placed immediately BEFORE their segment, choices = the four segment texts,
@@ -106,11 +106,15 @@ questions = [
 ]
 
 # Official answer sheet letters (1-based qnum -> letter), Part 1 + Part 2.
-OFFICIAL = {
-    1: "B", 2: "A", 3: "A", 4: "B", 5: "C", 6: "B", 7: "C", 8: "C", 9: "C", 10: "D",
-    11: "B", 12: "B", 13: "B", 14: "A", 15: "C",
-    16: "A", 17: "C", 18: "C", 19: "A", 20: "B", 21: "A", 22: "C", 23: "A", 24: "A", 25: "C",
-}
+# NOT kept in this file: the repository is public. Point CMC_W5_KEY at a JSON
+# file outside version control, e.g. {"1": "B", "2": "A", ...} (25 entries).
+import os
+_key_path = os.environ.get("CMC_W5_KEY", "")
+if not _key_path or not os.path.exists(_key_path):
+    raise SystemExit("Set CMC_W5_KEY to the official answer sheet JSON (kept outside the repo).")
+with open(_key_path, encoding="utf-8") as _fh:
+    OFFICIAL = {int(k): str(v).upper() for k, v in json.load(_fh).items()}
+assert sorted(OFFICIAL) == list(range(1, 26)), "the answer sheet needs letters for questions 1-25"
 LETTER_IDX = {"A": 0, "B": 1, "C": 2, "D": 3}
 
 payload = {
@@ -174,4 +178,4 @@ for q in data["questions"]:
 assert "test_submissions" in out and "translate=\"no\"" in out
 print("OK  wrote", DST, len(out), "bytes")
 print("OK  payload: 25 questions (15 MC + 10 error-ID), official letters consistent")
-print("OK  official key:", " ".join(OFFICIAL[i] for i in range(1, 26)))
+print("OK  official key loaded from CMC_W5_KEY (25 letters, not printed)")

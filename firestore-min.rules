@@ -109,7 +109,11 @@ service cloud.firestore {
         && request.resource.data.totalCount is int
         && request.resource.data.totalCount >= 0
         && request.resource.data.totalCount <= 10000
-        && (!('classId' in request.resource.data) || request.resource.data.classId == null);
+        && (!('classId' in request.resource.data) || request.resource.data.classId == null)
+        && (!('sealed' in request.resource.data) || request.resource.data.sealed is bool)
+        && (!('sheet' in request.resource.data)
+            || (request.resource.data.sheet is string
+                && request.resource.data.sheet.size() <= 20000));
       allow update, delete: if false;
     }
     match /teacher_chat/{msgId} {
@@ -208,6 +212,15 @@ service cloud.firestore {
         && request.resource.data.teacherUid == request.auth.uid
         && (!('teacherUid' in resource.data)
             || resource.data.teacherUid == request.auth.uid);
+      allow delete: if false;
+    }
+    match /teacher_secrets/{secretId} {
+      allow get: if isVerifiedTeacher();
+      allow list: if false;
+      allow create, update: if isCmcAdmin()
+        && request.resource.data.key is string
+        && request.resource.data.key.size() >= 20
+        && request.resource.data.key.size() <= 200;
       allow delete: if false;
     }
     match /test_assignments/{assignmentId} {
