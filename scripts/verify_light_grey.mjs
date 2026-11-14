@@ -92,6 +92,30 @@ const browser = await chromium.launch();
     await page.waitForTimeout(900);
     const bg = await bgOf();
     ok(bg === GREY_RGB, `${label}: light body = ${GREY_RGB}`, bg);
+    // the Developer's Picks memorial card must keep DARK card + LIGHT text
+    // in light mode (owner report: description invisible on light theme)
+    if (path === '/index.html#games') {
+      await page.waitForSelector('[aria-labelledby="devpicks-title"]', { timeout: 8000 });
+      const c = await page.evaluate(() => {
+        const sec = document.querySelector('[aria-labelledby="devpicks-title"]');
+        const gc = (el) => (el ? getComputedStyle(el).color : 'missing');
+        const find = (txt) => [...sec.querySelectorAll('span')].find((s) => txt.test(s.textContent));
+        const heroChip = [...document.querySelectorAll('[data-keep-dark] span')].find((s) => /Learning Games room/i.test(s.textContent));
+        const lum = (col) => { const m = col.match(/\d+/g); return m ? +m[0] + +m[1] + +m[2] : 0; };
+        return {
+          desc: gc(sec.querySelector('p')),
+          meta: gc(sec.querySelector('div.border-t')),
+          chip: gc(find(/Developer/i)),
+          cardBg: getComputedStyle(sec.querySelector('div')).backgroundImage,
+          hero: gc(heroChip), heroLum: lum(gc(heroChip)),
+        };
+      });
+      ok(c.desc === 'rgb(203, 213, 225)', `devpick description light on dark card (${c.desc})`, c.desc);
+      ok(c.meta === 'rgb(148, 163, 184)', `devpick meta line light (${c.meta})`, c.meta);
+      ok(c.chip === 'rgb(253, 230, 138)', `devpick amber chip light (${c.chip})`, c.chip);
+      ok(c.cardBg.includes('linear-gradient'), 'devpick card background still the dark gradient');
+      ok(c.heroLum > 350, `hero chip text light on dark hero (${c.hero})`, c.hero);
+    }
     await page.screenshot({ path: join(SHOTS, `grey-${label.toLowerCase().replace(/\s+/g, '-')}.png`) });
   }
   // static families: flip their own toggles after load

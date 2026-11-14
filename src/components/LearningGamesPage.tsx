@@ -243,7 +243,10 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
       {/* Developer's Picks — the developer's own featured reading & quiz
           (owner request, Nov 2026: the Creativeminds Canva worksheet "Ghost
           Mountain" rebuilt 1:1 as a reading + quiz page). */}
-      <section className="mx-auto max-w-7xl px-5 pb-2 sm:px-8" aria-labelledby="devpicks-title">
+      {/* data-keep-dark: the memorial card stays dark in light mode —
+          without the attribute the global light remaps darken its
+          text-slate-300/500 description into dark-on-dark invisibility. */}
+      <section data-keep-dark className="mx-auto max-w-7xl px-5 pb-2 sm:px-8" aria-labelledby="devpicks-title">
         <div className="overflow-hidden rounded-3xl border border-amber-200/20 bg-gradient-to-br from-slate-900/80 via-slate-950/75 to-slate-900/55 p-6 shadow-2xl sm:p-9">
           <div className="flex flex-wrap items-center gap-2"><span className="rounded-md border border-amber-200/30 bg-amber-200/10 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-amber-200 uppercase">Developer&apos;s Pick</span><span className="rounded-md border border-white/8 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-slate-400 uppercase">Reading · Quiz</span></div>
           <h2 id="devpicks-title" className="mt-3 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">Ghost Mountain · A Reading on Memory, History &amp; Human Courage</h2>
