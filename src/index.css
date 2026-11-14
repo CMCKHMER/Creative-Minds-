@@ -857,10 +857,10 @@
    ============================================================ */
 
 :root {
-  --cmc-l-page: #e2e8f0;          /* page base — true light gray (slate-200) */
-  --cmc-l-surface: #e9edf4;       /* raised section surface      */
-  --cmc-l-surface-2: #d5dce6;     /* deeper section surface      */
-  --cmc-l-card: rgba(238, 242, 247, 0.82);  /* raised cards — light gray, never pure white (owner: light theme must not glare) */
+  --cmc-l-page: #cbd5e1;          /* page base — clear light gray (slate-300; deepened from slate-200 because the owner could not tell it apart from white) */
+  --cmc-l-surface: #d6dde7;       /* raised section surface      */
+  --cmc-l-surface-2: #bcc9d7;     /* deeper section surface      */
+  --cmc-l-card: rgba(226, 232, 240, 0.85);  /* raised cards — slate-200 gray, never pure white (owner: light theme must not glare) */
   --cmc-l-border: rgba(15, 23, 42, 0.10);
   --cmc-l-ink: #0c1a2c;           /* headings                    */
   --cmc-l-text: #1e293b;          /* body                        */
@@ -884,7 +884,7 @@ html.light .bg-slate-950 {
    family under the light theme instead of glaring white. Unlayered, so it
    outranks the utility layer and its hover variants. ---- */
 html.light .bg-white {
-  background-color: #eef2f7;
+  background-color: #e2e8f0;
 }
 html.light [data-keep-dark].bg-slate-950,
 html.light [data-keep-dark] .bg-slate-950 {
@@ -897,7 +897,7 @@ html.light ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
 /* ---- hero: deep-blue TOEFL artwork under a light veil ---- */
 html.light .cmc-hero {
-  background: linear-gradient(180deg, #e3e9f1 0%, #e0e7ef 55%, #e8edf4 100%);
+  background: linear-gradient(180deg, #c9d3e0 0%, #c6d0dd 55%, #cdd7e2 100%);
 }
 html.light .cmc-hero::after {
   background: linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.28), transparent);
@@ -907,8 +907,8 @@ html.light .cmc-hero-photo {
 }
 html.light .cmc-hero-veil {
   background:
-    linear-gradient(90deg, rgba(228, 234, 242, 0.96) 0%, rgba(228, 234, 242, 0.86) 26%, rgba(228, 234, 242, 0.42) 52%, rgba(228, 234, 242, 0.06) 100%),
-    linear-gradient(0deg, rgba(223, 230, 239, 0.55) 0%, transparent 30%, transparent 76%, rgba(228, 234, 242, 0.3) 100%);
+    linear-gradient(90deg, rgba(203, 213, 225, 0.96) 0%, rgba(203, 213, 225, 0.86) 26%, rgba(203, 213, 225, 0.42) 52%, rgba(203, 213, 225, 0.06) 100%),
+    linear-gradient(0deg, rgba(198, 208, 220, 0.55) 0%, transparent 30%, transparent 76%, rgba(203, 213, 225, 0.3) 100%);
 }
 html.light .cmc-hero-light {
   background:
@@ -976,15 +976,15 @@ html.light .cmc-hero-secondary:hover {
 
 /* ---- features bento: light-washed workshop photo under a pale veil ---- */
 html.light .cmc-features-scene {
-  background: linear-gradient(180deg, #e3e9f1 0%, #e6ebf2 55%, #e8edf4 100%);
+  background: linear-gradient(180deg, #c9d3e0 0%, #ccd5e0 55%, #ced8e2 100%);
 }
 html.light .cmc-bento-photo {
   filter: saturate(0.9) contrast(0.95) brightness(1.08);
 }
 html.light .cmc-bento-veil {
   background:
-    linear-gradient(180deg, rgba(228, 234, 242, 0.92) 0%, rgba(228, 234, 242, 0.48) 24%, rgba(228, 234, 242, 0.54) 58%, rgba(228, 234, 242, 0.92) 100%),
-    linear-gradient(90deg, rgba(228, 234, 242, 0.4) 0%, rgba(228, 234, 242, 0.1) 50%, rgba(228, 234, 242, 0.4) 100%);
+    linear-gradient(180deg, rgba(203, 213, 225, 0.92) 0%, rgba(203, 213, 225, 0.48) 24%, rgba(203, 213, 225, 0.54) 58%, rgba(203, 213, 225, 0.92) 100%),
+    linear-gradient(90deg, rgba(203, 213, 225, 0.4) 0%, rgba(203, 213, 225, 0.1) 50%, rgba(203, 213, 225, 0.4) 100%);
 }
 html.light .cmc-bento-glow {
   background:

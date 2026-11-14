@@ -86,7 +86,7 @@
   function buildOverlay() {
     if (document.getElementById(OVERLAY_ID)) return;
     var light = document.documentElement.getAttribute('data-theme') === 'light';
-    var bg = light ? '#e2e8f0' : '#020617';
+    var bg = light ? '#cbd5e1' : '#020617';
     var cardBg = light ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.04)';
     var border = light ? 'rgba(0,0,0,.10)' : 'rgba(255,255,255,.10)';
     var text = light ? '#1e293b' : '#f1f5f9';

@@ -8,7 +8,7 @@ try{var _cmT=localStorage.getItem('cmc-theme')||localStorage.getItem('cm-theme')
 if(_cmT==='light'){document.documentElement.setAttribute('data-cm-pre','light');
 document.documentElement.style.colorScheme='light';
 var _cmS=document.createElement('style');
-_cmS.textContent='html[data-cm-pre="light"] body:not(.light){background:#e2e8f0!important;color:#0f172a!important}';
+_cmS.textContent='html[data-cm-pre="light"] body:not(.light){background:#cbd5e1!important;color:#0f172a!important}';
 document.head.appendChild(_cmS);
 document.addEventListener('DOMContentLoaded',function(){document.documentElement.removeAttribute('data-cm-pre');});}}catch(e){}
 </script>
@@ -77,8 +77,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);background-im
 .placeholder .glyph{font-family:'Space Grotesk';font-size:44px;background:linear-gradient(90deg,var(--cy),var(--vi));-webkit-background-clip:text;background-clip:text;color:transparent}
 .placeholder p{margin-top:14px;color:var(--mu);font-size:15px}
 .footer{padding:16px 28px;border-top:1px solid var(--bd);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6b80;display:flex;justify-content:space-between}
-body.light{--bg:#e2e8f0;--s2:#eef2f7;--bd:#dbe3ec;--cy:#0891b2;--cyl:#0e7490;--vi:#7c3aed;--vil:#6d28d9;--tx:#0f172a;--mu:#52657d;--ok:#059669;--er:#dc2626;background:#e2e8f0}
-body.light .container{background:rgba(238,242,247,.92);border-color:#dbe3ec;box-shadow:0 30px 90px rgba(15,23,42,.12)}
+body.light{--bg:#cbd5e1;--s2:#e2e8f0;--bd:#dbe3ec;--cy:#0891b2;--cyl:#0e7490;--vi:#7c3aed;--vil:#6d28d9;--tx:#0f172a;--mu:#52657d;--ok:#059669;--er:#dc2626;background:#cbd5e1}
+body.light .container{background:rgba(226,232,240,.92);border-color:#dbe3ec;box-shadow:0 30px 90px rgba(15,23,42,.12)}
 body.light .topbar{background:linear-gradient(90deg,rgba(124,58,237,.10),rgba(8,145,178,.10));border-bottom-color:#dbe3ec}
 body.light .brand{color:#0e7490}
 body.light .live-pill{color:#6d28d9;background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.35)}

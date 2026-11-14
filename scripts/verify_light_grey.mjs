@@ -1,7 +1,9 @@
 // Verify the light-grey site-wide background (owner request, Nov 2026).
-// Static: every light --bg / light body background in public/ is #e2e8f0 and
+// Stage 3: the palette is DEEPENED one slate step (owner: "can't tell the
+// difference") — page canvas #cbd5e1 (slate-300), sheets #e2e8f0 (slate-200).
+// Static: every light --bg / light body background in public/ is #cbd5e1 and
 // the pre-paint layers match. Browser: toggling light mode computes
-// rgb(226,232,240) on the page element for each family (React home, games
+// rgb(203,213,225) on the page element for each family (React home, games
 // page, biweek planner, a biweek test, an rfc worksheet, TOEFL iBT), and dark
 // mode is untouched (still its own dark base).
 import { chromium } from 'playwright';
@@ -15,7 +17,7 @@ const DIST = '/home/z/my-project/tmp/cmc-site/dist';
 const PORT = 8965; const BASE = `http://127.0.0.1:${PORT}`;
 mkdirSync('/home/z/my-project/tmp/cmc-site/scripts/qa', { recursive: true });
 const SHOTS = '/home/z/my-project/tmp/cmc-site/scripts/qa';
-const GREY_RGB = 'rgb(226, 232, 240)';
+const GREY_RGB = 'rgb(203, 213, 225)';
 
 let pass = 0, fail = 0;
 const ok = (cond, label, extra = '') => {
@@ -25,7 +27,7 @@ const ok = (cond, label, extra = '') => {
 
 // ── 1. static sweep across every public page ──────────────────────────────
 console.log('static · light backgrounds');
-const RE = /--bg:\s*#f8fafc|--bg:\s*#eef2f7|background(-color)?:\s*#eef2f7|background(-color)?:\s*#f8fafc/;
+const RE = /--bg:\s*#f8fafc|--bg:\s*#eef2f7|background(-color)?:\s*#eef2f7|background(-color)?:\s*#f8fafc|--bg:\s*#e2e8f0|--s2:\s*#eef2f7|--surface-2:\s*#eef2f7/;
 let off = 0, withLight = 0, prePaint = 0;
 for (const p of (await readdir(PUB, { recursive: true })).filter((f) => f.endsWith('.html'))) {
   const t = await readFile(join(PUB, p), 'utf8');
@@ -38,21 +40,21 @@ for (const p of (await readdir(PUB, { recursive: true })).filter((f) => f.endsWi
 ok(off === 0, `no off-palette light background in any of the pages (${withLight} carry light themes)`);
 
 const pins = [
-  ['biweek-planner/tests/diagnostic.html', '--bg:#e2e8f0', 'test page --bg grey'],
-  ['biweek-planner/index.html', '--bg:#e2e8f0', 'planner --bg grey'],
-  ['rfc1/dictation.html', 'background:#e2e8f0', 'rfc body.light background grey'],
-  ['rfc1/dictation.html', "#e2e8f0!important", 'rfc pre-paint layer grey'],
-  ['toefl-ibt/index.html', 'background: #e2e8f0 !important', 'toefl light body grey'],
-  ['toefl-ibt/toeflreading-MIGRATED.html', 'background:#e2e8f0!important', 'MIGRATED light body grey'],
-  ['studio/index.html', 'background:#e2e8f0', 'studio light background grey'],
-  ['biweek-planner/teacher-gate.js', "var bg = light ? '#e2e8f0' : '#020617';", 'teacher-gate overlay light bg grey'],
-  ['biweek-planner/student-invite.js', "bg: light ? '#e2e8f0' : '#020617',", 'student-invite overlay light bg grey'],
-  // stage 2 (owner: the big white SHEETS must go grey too)
-  ['rfc1/dictation.html', 'body.light .container{background:rgba(238,242,247,.92)', 'rfc1 sheet grey (.92 grey, not white)'],
-  ['rfc1/dictation.html', '--s2:#eef2f7', 'rfc1 --s2 token grey'],
-  ['rfc3/dictation.html', 'body.light .container{background:rgba(238,242,247,.92)', 'rfc3 sheet grey'],
-  ['rfc3/dictation.html', '--surface-2:#eef2f7', 'rfc3 --surface-2 token grey'],
-  ['rfc2/rfc2dic.html', 'body.light .container{background:rgba(238,242,247,.92)', 'rfc2 sheet grey'],
+  ['biweek-planner/tests/diagnostic.html', '--bg:#cbd5e1', 'test page --bg slate-300 grey'],
+  ['biweek-planner/index.html', '--bg:#cbd5e1', 'planner --bg slate-300 grey'],
+  ['rfc1/dictation.html', '--er:#dc2626;background:#cbd5e1', 'rfc body.light canvas slate-300'],
+  ['rfc1/dictation.html', "#cbd5e1!important", 'rfc no-flash layer slate-300'],
+  ['toefl-ibt/index.html', 'background: #cbd5e1 !important', 'toefl light body slate-300'],
+  ['toefl-ibt/toeflreading-MIGRATED.html', 'background:#cbd5e1!important', 'MIGRATED light body slate-300'],
+  ['studio/index.html', 'background:#cbd5e1', 'studio light background slate-300'],
+  ['biweek-planner/teacher-gate.js', "var bg = light ? '#cbd5e1' : '#020617';", 'teacher-gate overlay light bg slate-300'],
+  ['biweek-planner/student-invite.js', "bg: light ? '#cbd5e1' : '#020617',", 'student-invite overlay light bg slate-300'],
+  // stage 2 (owner: the big white SHEETS must go grey too) + stage 3 (deepened)
+  ['rfc1/dictation.html', 'body.light .container{background:rgba(226,232,240,.92)', 'rfc1 sheet slate-200 (.92 grey, not white)'],
+  ['rfc1/dictation.html', '--s2:#e2e8f0', 'rfc1 --s2 token slate-200'],
+  ['rfc3/dictation.html', 'body.light .container{background:rgba(226,232,240,.92)', 'rfc3 sheet slate-200'],
+  ['rfc3/dictation.html', '--surface-2:#e2e8f0', 'rfc3 --surface-2 token slate-200'],
+  ['rfc2/rfc2dic.html', 'body.light .container{background:rgba(226,232,240,.92)', 'rfc2 sheet slate-200'],
 ];
 for (const [f, needle, label] of pins) {
   const t = await readFile(join(PUB, f), 'utf8');
@@ -66,18 +68,18 @@ for (const [f, needle, label] of pins) {
   let found = false;
   for (const f of css(assets) ) {
     const t = await readFile(join(DIST, 'assets', f), 'utf8');
-    if (t.includes('#e2e8f0') && t.includes('html.light')) { found = true; break; }
+    if (t.includes('#cbd5e1') && t.includes('html.light')) { found = true; break; }
   }
-  ok(found, 'built CSS keeps the html.light #e2e8f0 page base');
+  ok(found, 'built CSS keeps the html.light #cbd5e1 page base');
   // stage 2: solid Tailwind bg-white greys under the light theme (assignment
   // paper, toggle knob, hover states) + the raised-card token is tinted
   let sheetOverride = false, cardToken = false;
   for (const f of css(assets)) {
     const t = await readFile(join(DIST, 'assets', f), 'utf8');
-    if (t.includes('html.light .bg-white{background-color:#eef2f7}')) sheetOverride = true;
-    if (t.includes('--cmc-l-card:#eef2f7') || t.includes('--cmc-l-card:rgba(238')) cardToken = true;
+    if (t.includes('html.light .bg-white{background-color:#e2e8f0}')) sheetOverride = true;
+    if (t.includes('--cmc-l-card:#e2e8f0') || t.includes('--cmc-l-card:rgba(226')) cardToken = true;
   }
-  ok(sheetOverride, 'built CSS greys solid bg-white under the light theme');
+  ok(sheetOverride, 'built CSS greys solid bg-white under the light theme (slate-200)');
   ok(cardToken, 'built CSS carries the tinted raised-card token');
 }
 
@@ -154,7 +156,7 @@ const browser = await chromium.launch();
     if (label === 'rfc dictation') {
       // stage 2: the big sheet (.container) must compute GREY, not white
       const sheet = await page.evaluate(() => getComputedStyle(document.querySelector('.container')).backgroundColor);
-      ok(sheet === 'rgba(238, 242, 247, 0.92)', 'rfc dictation: sheet = grey rgba(238,242,247,.92)', sheet);
+      ok(sheet === 'rgba(226, 232, 240, 0.92)', 'rfc dictation: sheet = grey rgba(226,232,240,.92)', sheet);
     }
     await page.screenshot({ path: join(SHOTS, `grey-${label.toLowerCase().replace(/\s+/g, '-')}.png`) });
   }
@@ -170,7 +172,7 @@ const browser = await chromium.launch();
       el.remove();
       return c;
     });
-    ok(probe === 'rgb(238, 242, 247)', 'React light: solid bg-white computes grey (assignment paper family)', probe);
+    ok(probe === 'rgb(226, 232, 240)', 'React light: solid bg-white computes slate-200 grey (assignment paper family)', probe);
   }
   // dark untouched: same pages back in dark keep a dark base
   await page.goto(`${BASE}/biweek-planner/tests/diagnostic.html`, { waitUntil: 'load' });
