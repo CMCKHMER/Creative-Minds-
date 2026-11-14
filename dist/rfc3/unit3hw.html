@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 3 · Pocahontas — Kid 11 Online Homework (Homeworks 1–3)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ================= FOUNDATION ================= */
+:root{
+  --head:68px;
+  --forest0:#08130f; --forest1:#0d1f1a; --forest2:#123027;
+  --river:#3aa8a0; --copper:#c47a3d; --moss:#6a9e4f; --birch:#f2ead8;
+  --ochre:#d9a54a; --sky:#7fb8d4; --clay:#b4553f;
+  --ok:#4f9e5e; --bad:#c0503f; --warn:#d9a54a; --info:#4a90b8;
+  --glass:rgba(8,19,15,.92);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scrollbar-color:var(--river) var(--forest0);scrollbar-width:thin}
+body{
+  font-family:'Outfit',system-ui,sans-serif;color:#e9f2ec;min-height:100vh;overflow-x:hidden;
+  background:linear-gradient(178deg,var(--forest0) 0%,var(--forest1) 46%,var(--forest2) 100%) fixed;
+}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#0b1a15;border-left:1px solid rgba(58,168,160,.16)}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--river),#1c6b64);border-radius:9px;border:3px solid #0b1a15}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(var(--ochre),var(--copper))}
+::-webkit-scrollbar-corner{background:#0b1a15}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+:focus-visible{outline:2px solid var(--ochre);outline-offset:2px;border-radius:5px}
+.mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+
+/* ================= WOODLAND WORLD ================= */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.skyglow{position:absolute;left:0;right:0;top:0;height:34vh;opacity:.5;
+  background:linear-gradient(180deg,rgba(127,184,212,.2),transparent);
+  -webkit-mask-image:linear-gradient(180deg,#000,transparent);mask-image:linear-gradient(180deg,#000,transparent)}
+.mist{position:absolute;border-radius:50%;filter:blur(96px);opacity:.26;animation:drift 30s ease-in-out infinite alternate}
+.mist.m1{width:48vw;height:44vw;left:-14vw;top:8vh;background:radial-gradient(circle,var(--river),transparent 70%)}
+.mist.m2{width:40vw;height:38vw;right:-12vw;top:36vh;background:radial-gradient(circle,var(--copper),transparent 70%);animation-delay:-13s;opacity:.2}
+.mist.m3{width:44vw;height:40vw;left:30vw;bottom:-18vw;background:radial-gradient(circle,var(--moss),transparent 70%);animation-delay:-22s;opacity:.22}
+@keyframes drift{to{transform:translate(5vw,-5vh) scale(1.14)}}
+.ridge{position:absolute;left:0;right:0;bottom:16vh;width:100%;height:26vh;opacity:.45}
+.treeline{position:absolute;left:0;right:0;bottom:0;width:100%;height:34vh;opacity:.7}
+.river{position:absolute;left:0;right:0;bottom:0;height:12vh;opacity:.35;
+  background:linear-gradient(180deg,transparent,rgba(127,184,212,.35));
+  background-image:repeating-linear-gradient(90deg,rgba(200,235,240,.16) 0 2px,transparent 2px 26px);
+  animation:flow 14s linear infinite}
+@keyframes flow{to{background-position:52px 0}}
+.weave{position:absolute;left:0;right:0;top:0;height:100%;opacity:.05;
+  background-image:
+    repeating-linear-gradient(45deg,var(--birch) 0 1px,transparent 1px 22px),
+    repeating-linear-gradient(-45deg,var(--birch) 0 1px,transparent 1px 22px)}
+.grain{position:absolute;inset:0;opacity:.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='3'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E")}
+.mote{position:absolute;bottom:-20px;border-radius:50%;background:rgba(217,165,74,.55);
+  box-shadow:0 0 8px rgba(217,165,74,.6);animation:rise linear infinite}
+@keyframes rise{
+  0%{transform:translate(0,0);opacity:0}
+  12%{opacity:.9}
+  100%{transform:translate(34px,-116vh);opacity:0}}
+.vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(4,10,8,.7) 100%)}
+
+/* ================= HEADER ================= */
+.site-head{position:fixed;top:0;left:0;right:0;height:var(--head);z-index:60;display:flex;align-items:center;gap:14px;
+  padding:0 18px;background:var(--glass);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(58,168,160,.32);box-shadow:0 12px 40px rgba(0,0,0,.55)}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand svg{width:32px;height:32px;color:var(--river);flex-shrink:0;filter:drop-shadow(0 0 8px rgba(58,168,160,.55))}
+.brand b{font-family:'Marcellus',Georgia,serif;font-size:20px;font-weight:400;letter-spacing:.6px;display:block;line-height:1;white-space:nowrap}
+.brand small{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.9px;color:#7fa79c;display:block;margin-top:3px}
+.tabs{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.tab{border:1px solid rgba(58,168,160,.28);background:rgba(255,255,255,.03);color:#d6e8e2;border-radius:8px;
+  padding:8px 15px;font-size:12px;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:7px;transition:.18s}
+.tab .dot{width:9px;height:9px;transform:rotate(45deg);box-shadow:0 0 8px currentColor}
+.tab[data-mode="a"] .dot{background:var(--river);color:var(--river)}
+.tab[data-mode="b"] .dot{background:var(--copper);color:var(--copper)}
+.tab[data-mode="c"] .dot{background:var(--moss);color:var(--moss)}
+.tab:hover{border-color:var(--ochre);transform:translateY(-1px);box-shadow:0 0 16px rgba(217,165,74,.22)}
+body[data-mode="a"] .tab[data-mode="a"]{background:var(--river);color:#042421;border-color:var(--river);font-weight:700}
+body[data-mode="b"] .tab[data-mode="b"]{background:var(--copper);color:#2a1607;border-color:var(--copper);font-weight:700}
+body[data-mode="c"] .tab[data-mode="c"]{background:var(--moss);color:#0f2208;border-color:var(--moss);font-weight:700}
+.sound{width:38px;height:38px;border-radius:8px;border:1px solid rgba(58,168,160,.28);background:rgba(58,168,160,.08);
+  color:var(--river);display:grid;place-items:center;font-size:15px;transition:.16s;flex-shrink:0}
+.sound:hover{border-color:var(--river);background:rgba(58,168,160,.2)}
+.sound.on{background:var(--ok);border-color:var(--ok);color:#04240f}
+
+/* ================= THEMES ================= */
+.assignment{position:relative;z-index:10;max-width:950px;margin:0 auto;padding:calc(var(--head) + 24px) 16px 80px}
+#hw-a{--acc:#3aa8a0;--btn:#1f7d76;--on-btn:#fff;--acc-ink:#166b64;--paper:#f5fbfa;--panel:#e6f4f2;--ink:#1c3230;
+  --line:#cfe6e3;--soft:#e4f4f2;--glow:rgba(58,168,160,.3)}
+#hw-b{--acc:#c47a3d;--btn:#a55f26;--on-btn:#fff;--acc-ink:#8a4d18;--paper:#fdf8f1;--panel:#f7ecdc;--ink:#33261a;
+  --line:#eeddc4;--soft:#f9f0e2;--glow:rgba(196,122,61,.3)}
+#hw-c{--acc:#6a9e4f;--btn:#4e7d36;--on-btn:#fff;--acc-ink:#3f6a2a;--paper:#f8fbf4;--panel:#ecf4e3;--ink:#23301c;
+  --line:#dbe8cd;--soft:#eef5e6;--glow:rgba(106,158,79,.3)}
+
+/* ================= HERO ================= */
+.hero{background:var(--paper);color:var(--ink);border-radius:10px;padding:34px 32px 28px;margin-bottom:20px;
+  border:1px solid var(--line);position:relative;overflow:hidden;
+  box-shadow:0 24px 64px rgba(0,0,0,.5),inset 0 0 80px var(--soft)}
+.hero::before{content:"";position:absolute;left:0;right:0;top:0;height:7px;
+  background-image:repeating-linear-gradient(90deg,var(--acc) 0 12px,transparent 12px 18px,var(--ochre) 18px 24px,transparent 24px 30px)}
+.hero::after{content:"";position:absolute;right:-50px;bottom:-50px;width:200px;height:200px;
+  background-image:repeating-linear-gradient(45deg,var(--line) 0 1px,transparent 1px 16px),
+                   repeating-linear-gradient(-45deg,var(--line) 0 1px,transparent 1px 16px);opacity:.7}
+.kicker{display:inline-block;background:var(--acc);color:var(--on-btn);font-family:'IBM Plex Mono',monospace;
+  font-size:10px;font-weight:600;letter-spacing:2.2px;padding:6px 14px;border-radius:5px;margin-bottom:14px;position:relative}
+.hero h1{font-family:'Marcellus',Georgia,serif;font-weight:400;font-size:clamp(30px,5.2vw,50px);line-height:1.04;
+  margin-bottom:12px;letter-spacing:.2px;position:relative}
+.hero h1 em{font-style:normal;color:var(--btn)}
+.brief{max-width:680px;line-height:1.78;color:#4f5f58;font-size:15.5px;position:relative;font-family:'Spectral',Georgia,serif}
+.seal{position:absolute;right:28px;top:34px;width:76px;height:76px;display:grid;place-items:center;
+  border:2px solid var(--acc);color:var(--acc);font-family:'Marcellus',serif;font-size:11px;
+  letter-spacing:1px;text-align:center;line-height:1.25;transform:rotate(45deg);opacity:.7;background:var(--soft)}
+.seal span{transform:rotate(-45deg);display:block}
+.meta{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;position:relative}
+.meta input{border:1.5px solid var(--line);background:#fffef9;border-radius:6px;padding:9px 13px;font-size:14px;color:var(--ink);width:auto}
+.meta input::placeholder{color:#9aa8a2}
+.hero-stats{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;position:relative}
+.hero-stats span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-family:'IBM Plex Mono',monospace;
+  font-size:10px;font-weight:600;padding:6px 12px;border-radius:5px}
+
+/* ================= TOOLBAR ================= */
+.toolbar{position:sticky;top:var(--head);z-index:40;display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+  background:var(--glass);backdrop-filter:blur(14px);border:1px solid rgba(58,168,160,.24);
+  border-radius:10px;padding:11px 16px;margin-bottom:22px;box-shadow:0 10px 34px rgba(0,0,0,.5)}
+.progress{flex:1;min-width:170px}
+.progress-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.5px;color:var(--ochre);font-weight:600;margin-bottom:6px}
+.progress-track{height:9px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+.progress-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--ochre));
+  box-shadow:0 0 14px var(--glow);transition:width .4s ease}
+.btn{border-radius:7px;padding:10px 21px;font-weight:600;font-size:13px;letter-spacing:.4px;transition:.16s;
+  display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn.primary{background:var(--btn);color:var(--on-btn);box-shadow:0 4px 16px var(--glow)}
+.btn.primary:hover{filter:brightness(1.12);transform:translateY(-2px)}
+.btn.ghost{border:1px solid rgba(214,232,226,.4);color:#d6e8e2;background:transparent}
+.btn.ghost:hover{border-color:var(--ochre);background:rgba(217,165,74,.1)}
+.btn.paper{background:var(--soft);color:var(--acc-ink);border:1px solid var(--line)}
+.btn.paper:hover{border-color:var(--acc)}
+.btn.sm{padding:8px 15px;font-size:12px}
+
+/* ================= RECORD CARDS ================= */
+.task{background:var(--paper);color:var(--ink);border-radius:10px;padding:28px;margin-bottom:22px;
+  border:1px solid var(--line);position:relative;overflow:hidden;
+  box-shadow:0 18px 48px rgba(0,0,0,.42);scroll-margin-top:calc(var(--head) + 90px)}
+.task::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;
+  background-image:repeating-linear-gradient(180deg,var(--acc) 0 10px,transparent 10px 16px)}
+.task-head{display:flex;align-items:center;gap:13px;margin-bottom:7px;flex-wrap:wrap;padding-left:10px}
+.tnum{font-family:'IBM Plex Mono',monospace;background:var(--acc);color:var(--on-btn);font-size:12.5px;font-weight:600;
+  min-width:46px;height:34px;display:grid;place-items:center;border-radius:6px;letter-spacing:.5px;
+  box-shadow:0 3px 10px var(--glow)}
+.task-head h2{font-family:'Marcellus',Georgia,serif;font-size:23px;font-weight:400;letter-spacing:.2px}
+.pts{margin-left:auto;background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.2px;padding:4px 11px;border-radius:5px}
+.hint{color:#65756e;font-size:13.5px;margin-bottom:18px;line-height:1.65;padding-left:10px;font-family:'Spectral',serif}
+.hl{background:#e4f0cf;padding:1px 5px;border-radius:3px;font-weight:600;color:#33452a}
+.fb{display:block;font-size:12px;font-weight:600;margin-top:9px;min-height:1em;font-family:'IBM Plex Mono',monospace}
+.correct .fb{color:#256b3c}.wrong .fb{color:#a8332a}
+.g-item.correct,.write-task.correct{background:#eaf6ec;border-radius:8px}
+.g-item.wrong,.write-task.wrong{background:#fbeae7;border-radius:8px}
+
+input[type=text],select,textarea{border:1.5px solid var(--line);border-radius:6px;padding:9px 12px;font-size:14px;
+  background:#fffef9;color:var(--ink);width:100%;transition:.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--soft)}
+.correct input,.correct select{border-color:var(--ok)}
+.wrong input,.wrong select{border-color:var(--bad)}
+textarea{min-height:106px;resize:vertical;line-height:1.75;font-family:'Spectral',Georgia,serif;font-size:15.5px}
+.field-row{display:grid;grid-template-columns:1fr minmax(190px,300px);gap:7px 16px;align-items:center;
+  padding:11px 12px 11px 12px;border-radius:8px;margin-bottom:4px}
+.field-row label{font-size:15px;line-height:1.55;font-family:'Spectral',Georgia,serif}
+.field-row label b{color:var(--acc-ink);font-family:'Outfit',sans-serif;font-size:13px}
+.field-row .fb{grid-column:1/-1;margin-top:2px}
+
+.q{padding:13px 14px;margin-bottom:6px;border-radius:8px}
+.q p{font-size:15px;line-height:1.6;font-family:'Spectral',Georgia,serif}
+.q p b{font-family:'Outfit',sans-serif;font-size:13px;color:var(--acc-ink)}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.opt{border:1.5px solid var(--line);background:#fffef9;border-radius:6px;padding:9px 15px;font-size:13.5px;
+  color:var(--ink);transition:.15s;text-align:left}
+.opt:hover{border-color:var(--acc);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.09)}
+.opt.picked{background:var(--btn);border-color:var(--btn);color:var(--on-btn);font-weight:600}
+.correct .opt.picked{background:var(--ok);border-color:var(--ok);color:#fff}
+.wrong .opt.picked{background:var(--bad);border-color:var(--bad);color:#fff}
+
+.tray{display:flex;flex-wrap:wrap;gap:9px;padding:15px;background:var(--soft);border:1.5px dashed var(--line);
+  border-radius:8px;margin-bottom:14px;min-height:64px}
+.tray-label,.bin-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.4px;font-weight:600;color:#8d9a94}
+.tray-label{width:100%}
+.sort-card{border:1.5px solid var(--line);border-left:4px solid var(--acc);background:#fffef9;border-radius:6px;
+  padding:9px 14px;font-size:13.5px;color:var(--ink);transition:.15s;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,.07);
+  font-family:'Spectral',Georgia,serif}
+.sort-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.14);border-color:var(--acc)}
+.sort-card.selected{border-color:var(--btn);box-shadow:0 0 0 3px var(--soft);transform:translateY(-2px)}
+.sort-card.correct{border-color:var(--ok);border-left-color:var(--ok);background:#eaf6ec}
+.sort-card.wrong{border-color:var(--bad);border-left-color:var(--bad);background:#fbeae7}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bin{border:1.5px dashed var(--line);border-radius:8px;padding:15px;min-height:134px;background:#fffef9;transition:.15s;cursor:pointer}
+.bin:hover,.bin:focus-visible{border-color:var(--acc);background:var(--soft);outline:none}
+.bin h4{font-family:'Marcellus',serif;font-size:17px;font-weight:400;margin-bottom:3px;letter-spacing:.4px}
+.bin-a h4{color:var(--info)}.bin-b h4{color:var(--btn)}
+.bin-body{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.bin-body .sort-card{font-size:13px;padding:7px 11px}
+
+.order-list{list-style:none;counter-reset:ord;display:flex;flex-direction:column;gap:9px}
+.order-list li{counter-increment:ord;display:flex;align-items:center;gap:12px;background:#fffef9;
+  border:1.5px solid var(--line);border-radius:7px;padding:11px 14px;transition:.15s}
+.order-list li::before{content:counter(ord);font-family:'IBM Plex Mono',monospace;background:var(--acc);color:var(--on-btn);
+  font-weight:600;min-width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.order-list li.correct{border-color:var(--ok);background:#eaf6ec}
+.order-list li.wrong{border-color:var(--bad);background:#fbeae7}
+.ord-text{flex:1;font-size:14px;line-height:1.55;font-family:'Spectral',Georgia,serif}
+.ord-ctl{display:flex;gap:5px;flex-shrink:0}
+.ord-btn{border:1.5px solid var(--line);background:#fffef9;width:32px;height:32px;border-radius:6px;font-size:14px;
+  color:var(--ink);transition:.14s}
+.ord-btn:hover{border-color:var(--acc);background:var(--soft)}
+
+.write-meta{display:flex;align-items:center;gap:10px;margin:8px 0}
+.wc{font-family:'IBM Plex Mono',monospace;background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-size:11px;font-weight:600;padding:5px 12px;border-radius:5px}
+.checks{list-style:none;display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.checks li{display:flex;align-items:center;gap:9px;font-size:13px;color:#65756e;transition:.2s}
+.checks .dot{width:18px;height:18px;border-radius:4px;border:1.5px solid #c5d0cb;display:grid;place-items:center;
+  font-size:11px;color:#fff;flex-shrink:0;transition:.2s}
+.checks li.ok{color:#256b3c;font-weight:600}
+.checks li.ok .dot{background:var(--ok);border-color:var(--ok)}
+.checks li.ok .dot::after{content:"✓"}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.chips span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-size:12px;font-weight:500;padding:4px 11px;border-radius:5px}
+.bank span{display:inline-block;background:#e4f0cf;border-radius:5px;padding:5px 13px;margin:3px;font-weight:600;font-size:13.5px;color:#33452a;
+  font-family:'Spectral',serif}
+.client{display:flex;gap:14px;align-items:center;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:15px 17px;margin-bottom:15px}
+.client .avatar{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,var(--acc),var(--btn));
+  display:grid;place-items:center;font-size:23px;flex-shrink:0}
+.client p{font-size:14px;line-height:1.6;color:#4f5f58;font-family:'Spectral',serif}
+details.model,details.passage{margin-top:13px;border-top:1.5px dashed var(--line);padding-top:12px}
+details.passage{margin-top:0;border-top:none;padding-top:0}
+details summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--acc-ink)}
+details summary:hover{color:var(--btn)}
+details p{font-size:15px;line-height:1.8;color:#4a5a53;margin-top:10px;font-family:'Spectral',Georgia,serif}
+details.passage p{background:var(--soft);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc)}
+details.passage p:first-of-type::first-letter{font-family:'Marcellus',serif;font-size:2.8em;line-height:.86;
+  float:left;padding:.06em .12em 0 0;color:var(--btn)}
+.sub-q{margin-bottom:22px}
+.sub-q>label{display:block;font-size:15px;font-weight:600;margin-bottom:8px;line-height:1.55}
+.ready-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.ready-list label{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;line-height:1.55;cursor:pointer;font-family:'Spectral',serif}
+.ready-list input{width:19px;height:19px;margin-top:2px;accent-color:var(--btn);flex-shrink:0}
+.ready-count{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--acc-ink);font-size:12px}
+
+/* ================= RESULTS ================= */
+.results{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+.ring{width:126px;height:126px;flex-shrink:0}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.ring .ring-bg{stroke:var(--line)}
+.ring .ring-fg{stroke:var(--btn);stroke-dasharray:326.73;stroke-dashoffset:326.73;transform:rotate(-90deg);
+  transform-origin:center;transition:stroke-dashoffset 1s ease;filter:drop-shadow(0 0 8px var(--glow))}
+.ring-wrap{position:relative}
+.ring-pct{position:absolute;inset:0;display:grid;place-items:center;font-family:'Marcellus',serif;font-size:25px;color:var(--btn)}
+.results-body{flex:1;min-width:230px}
+.results-body h2{font-family:'Marcellus',serif;font-size:25px;font-weight:400;margin-bottom:6px}
+.score-line{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;color:var(--acc-ink);margin-bottom:8px}
+.results-body p{font-size:15px;color:#4f5f58;line-height:1.65;margin-bottom:15px;font-family:'Spectral',serif}
+.results-actions{display:flex;gap:9px;flex-wrap:wrap}
+.confetti{position:absolute;bottom:-10px;animation:pop 2.1s ease-out forwards;pointer-events:none;transform:rotate(45deg)}
+@keyframes pop{to{transform:translateY(-300px) rotate(285deg);opacity:0}}
+
+.js .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.js .reveal.in{opacity:1;transform:none}
+
+@media(max-width:760px){
+  .brand small{display:none}.brand b{font-size:17px}
+  .tab{padding:7px 10px;font-size:11px}
+  .site-head{padding:0 11px;gap:9px}
+  .field-row,.bins{grid-template-columns:1fr}
+  .seal{display:none}.task{padding:22px 18px}.hero{padding:28px 20px 24px}
+  .assignment{padding:calc(var(--head) + 16px) 12px 60px}
+  .task-head,.hint{padding-left:6px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .js .reveal{opacity:1;transform:none}
+}
+/* ── CMC site furniture (Kid 11 online homework) — namespaced hw-/cmc- ── */
+#cmc-back-btn{position:fixed;top:14px;right:14px;z-index:60;display:flex;align-items:center;
+  gap:8px;padding:9px 16px;border-radius:999px;background:rgba(3,20,24,.9);
+  border:1px solid rgba(45,212,191,.45);color:#e6f4f4;font-family:'Outfit',system-ui,sans-serif;
+  font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
+#cmc-back-btn:hover{background:rgba(45,212,191,.16);transform:translateY(-1px)}
+/* the fixed worksheet header owns the top edge — leave room for the back pill.
+   The teacher's file stacks the header at z-index:60, same as the pill, and the
+   header paints later — so the header drops to 50 (still above the sticky
+   toolbar at 40) and the pill stays clickable, like the other homework pages. */
+.site-head{padding-right:170px;z-index:50}
+@media(max-width:680px){
+  .site-head{padding-right:58px}
+  #cmc-back-btn{font-size:0;padding:9px;gap:0;top:10px;right:10px}
+  #cmc-back-btn svg{width:15px;height:15px}
+}
+/* The underwater background uses fixed layers that intentionally bleed past
+   the edges. overflow-x:clip stops sideways scroll WITHOUT creating a scroll
+   container, so the sticky toolbars of the three homeworks keep working. */
+html,body{overflow-x:clip}
+/* Name/date fields stay readable on the white hero boxes — pinned so a later
+   generic input rule can never flip them again. */
+.meta input{color:var(--ink)!important;caret-color:var(--ink)!important;font-weight:600}
+.meta input::placeholder{color:#93a8ab;opacity:1;font-weight:600}
+.meta input:-webkit-autofill{-webkit-text-fill-color:var(--ink);
+  -webkit-box-shadow:0 0 0 1000px #fff inset;transition:background-color 99999s}
+/* Teacher preview banner (teacher + at least one homework still unshared) */
+#hwBanner{display:none;position:relative;z-index:1;max-width:950px;margin:calc(var(--head) + 16px) auto -6px;
+  background:rgba(255,179,0,.12);border:1px solid rgba(255,179,0,.45);color:#ffd54f;
+  border-radius:12px;padding:10px 16px;font-size:13px;line-height:1.55;font-family:'Outfit',system-ui,sans-serif}
+html.hw-teacher-locked #hwBanner{display:block}
+/* Bottom action bar: Submit to Teacher + Share */
+.hw-bar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(3,20,24,.94);
+  backdrop-filter:blur(8px);border-top:1px solid rgba(45,212,191,.25);
+  padding:12px 16px;display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}
+.hw-btn{border:none;border-radius:999px;padding:11px 24px;font:inherit;font-weight:700;font-size:14px;
+  cursor:pointer;transition:.18s}
+.hw-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.hw-btn-submit{background:linear-gradient(90deg,#4fb060,#2f7d43);color:#fff}
+.hw-btn-submit:disabled{opacity:.7;cursor:progress;filter:none}
+.hw-btn-submit.done{background:linear-gradient(90deg,#2c6b39,#4fb060)}
+.hw-btn-ghost{background:transparent;border:2px solid rgba(184,212,216,.5);color:#cfe9e9}
+.hw-btn-ghost:hover{border-color:#fff}
+.assignment{padding-bottom:130px!important}
+.needs-name{animation:needPulse 1.8s ease}
+@keyframes needPulse{0%,100%{box-shadow:none}25%,75%{box-shadow:0 0 0 4px rgba(63,168,96,.35);border-color:#e05252}}
+.cmc-toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(14px);
+  z-index:70;background:#fff;border:2px solid #2f7d43;color:#2c6b39;
+  padding:10px 18px;border-radius:999px;font-weight:700;font-size:13.5px;font-family:'Outfit',system-ui,sans-serif;
+  box-shadow:0 12px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:all .3s;
+  max-width:88vw;text-align:center}
+.cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.cmc-toast.err{border-color:var(--bad);color:var(--bad)}
+.cmc-share{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:70;
+  background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.5);
+  padding:14px 16px;display:none;gap:8px;flex-wrap:wrap;justify-content:center;
+  align-items:center;max-width:92vw}
+.cmc-share.open{display:flex}
+.cmc-share button{border:2px solid #cfd8dc;background:#fff;border-radius:999px;
+  padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+.cmc-share button:hover{border-color:#0e7c86;color:#0e7c86}
+.cmc-share .close{border-color:transparent;color:#607d8b}
+/* ── Share gate: each homework opens only when the teacher shares it ── */
+.tabs .tab[hidden]{display:none!important}
+html.hw-pending body>*:not(#hwGate){display:none!important}
+html.hw-pending body{overflow:hidden!important}
+#hwGate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:linear-gradient(178deg,#03191d,#062a31 55%,#0a444b)}
+#hwGate .hw-gate-card{max-width:430px;width:100%;text-align:center;background:#f6fdfc;color:#1c3231;
+  border-radius:18px;padding:34px 28px;border-top:6px solid #2dd4bf;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+#hwGate .hw-gate-icon{width:58px;height:58px;margin:0 auto;border-radius:16px;display:grid;place-items:center;
+  font-size:26px;background:linear-gradient(135deg,#0e7c86,#2dd4bf);color:#04241f}
+#hwGate h1{font-family:'Marcellus',Georgia,serif;font-size:23px;margin:16px 0 0}
+#hwGate p{font-size:13.5px;line-height:1.65;color:#4f6467;margin:12px auto 0;max-width:340px}
+#hwGate .hw-gate-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+#hwGate a{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;text-decoration:none;
+  background:linear-gradient(90deg,#0e7c86,#2dd4bf);color:#04241f;font-weight:700;font-size:13px}
+#hwGate button#hwGateCheck{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;cursor:pointer;
+  border:2px solid #0e7c86;background:#fff;color:#0e7c86;font-weight:700;font-size:13px;font-family:inherit}
+#hwGate button#hwGateCheck:hover{background:#eaf7f6}
+#hwGate button#hwGateCheck:disabled{opacity:.6;cursor:wait}
+
+@media print{
+  .hw-bar,#cmc-back-btn,#hwBanner,.cmc-share,.cmc-toast,#hwGate{display:none!important}
+}
+@media print{
+  .bg,.site-head,.toolbar,.results,.no-print,details.model,.fb{display:none!important}
+  body{background:#fff;color:#000}
+  .assignment{padding:0;max-width:100%}
+  .hero,.task{background:#fff!important;color:#000!important;box-shadow:none;border:1px solid #bbb;break-inside:avoid;opacity:1!important;transform:none!important}
+  .hero::after,.task::before{display:none}
+  .brief,.hint,details p,.client p{color:#333!important}
+  textarea{min-height:70px}
+}
+</style>
+<script>
+/* ── Kid 11 homework share gate — ONE switch per homework ────────────────
+   Unit 3 · Pocahontas ships as the teacher's 3-homework file. Each of the
+   three homeworks is gated by its own Firestore doc (biweekly_tests/
+   hw-kid11-u3-hw1|2|3 — public read, teacher-only write, same collection
+   the bi-weekly tests use, so NO rules change):
+     · students see ONLY the homeworks the teacher has shared — the other
+       tabs do not exist for them (hidden, not merely locked);
+     · no homework shared → a full-page locked overlay;
+     · teachers (same heuristic as teacher-gate.js / RoleGate) always get in
+       with a preview banner, and can preview any homework by deep link;
+     · a deep link to an unshared homework (#hw-b) falls back to the first
+       shared one instead of revealing content;
+   The gate RE-CHECKS by itself — every 15s, on tab focus/visibility, and via
+   a Check-again button — so sharing (or closing) a homework in another
+   tab/device updates this page without a reload. */
+(function () {
+  'use strict';
+  var FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/biweekly_tests/';
+  var HW_DOCS = [
+    { mode: 'a', doc: 'hw-kid11-u3-hw1' },
+    { mode: 'b', doc: 'hw-kid11-u3-hw2' },
+    { mode: 'c', doc: 'hw-kid11-u3-hw3' }
+  ];
+  var known = { a: null, b: null, c: null }; // null = share state not read yet
+  function ls(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function isTeacher() {
+    if (!ls('cmc-student-token')) return false;
+    var role = ls('cmc-student-role');
+    var email = ls('cmc-student-email').toLowerCase();
+    var uid = ls('cmc-student-uid');
+    return role === 'teacher' || email.indexOf('edu') !== -1 || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+  }
+  // Lock BEFORE first paint for everyone who is not a teacher — applyState()
+  // below lifts it (at least one homework shared) or builds the overlay.
+  window.CMC_HW_TEACHER = isTeacher();
+  if (!window.CMC_HW_TEACHER) document.documentElement.classList.add('hw-pending');
+
+  function buildGate() {
+    if (document.getElementById('hwGate')) return;
+    var g = document.createElement('div');
+    g.id = 'hwGate';
+    g.setAttribute('role', 'dialog');
+    g.setAttribute('aria-modal', 'true');
+    g.setAttribute('aria-label', 'Homework not shared yet');
+    g.innerHTML =
+      '<div class="hw-gate-card">' +
+      '<div class="hw-gate-icon" aria-hidden="true">🔒</div>' +
+      '<h1>Homework not shared yet</h1>' +
+      '<p>Your teacher hasn\u2019t opened the <b>Unit 3 homework</b> (Pocahontas) for the class yet. ' +
+      'Ask your teacher to share it from the <b>Kid 11 card</b> on the CMC homepage — this page unlocks by itself, no refresh needed.</p>' +
+      '<div class="hw-gate-actions">' +
+      '<button type="button" id="hwGateCheck">Check again</button>' +
+      '<a href="https://cmckhmer.github.io/Creative-Minds-/">Back to CMC home</a>' +
+      '</div>' +
+      '</div>';
+    document.body.appendChild(g);
+    var btn = document.getElementById('hwGateCheck');
+    if (btn) btn.addEventListener('click', function () {
+      btn.disabled = true; btn.textContent = 'Checking…';
+      check();
+      window.setTimeout(function () { btn.disabled = false; btn.textContent = 'Check again'; }, 1200);
+    });
+  }
+
+  function dropGate() {
+    var g = document.getElementById('hwGate');
+    if (g) g.remove();
+  }
+
+  // Students only get tab buttons for homeworks the teacher has shared —
+  // the unshared ones are hidden entirely (owner request), never shown locked.
+  function setTabs() {
+    var teacher = window.CMC_HW_TEACHER;
+    HW_DOCS.forEach(function (h) {
+      var btn = document.querySelector('.tab[data-mode="' + h.mode + '"]');
+      if (btn) btn.hidden = !teacher && known[h.mode] !== true;
+    });
+  }
+
+  function firstSharedMode() {
+    for (var i = 0; i < HW_DOCS.length; i++) {
+      if (known[HW_DOCS[i].mode] === true) return HW_DOCS[i].mode;
+    }
+    return null;
+  }
+  function hwSetMode(m) {
+    if (typeof window.CMC_HW_SETMODE === 'function') window.CMC_HW_SETMODE(m);
+  }
+
+  function applyState() {
+    var root = document.documentElement;
+    // Re-read the teacher heuristic EVERY check — the session may appear
+    // after this page loaded (sign-in in another tab, token refresh).
+    window.CMC_HW_TEACHER = isTeacher();
+    var want = (location.hash.match(/^#hw-([abc])$/) || [])[1] || '';
+    if (window.CMC_HW_TEACHER) {
+      root.classList.remove('hw-pending');
+      root.classList.toggle('hw-teacher-locked', !(known.a === true && known.b === true && known.c === true));
+      dropGate();
+      setTabs();
+      if (want) hwSetMode(want); // teachers may preview any homework
+      return;
+    }
+    var anyShared = known.a === true || known.b === true || known.c === true;
+    if (anyShared) {
+      root.classList.remove('hw-pending', 'hw-teacher-locked');
+      root.classList.add('hw-open');
+      dropGate();
+      setTabs();
+      var m = document.body.getAttribute('data-mode') || 'a';
+      if (want && known[want] === true) {
+        if (want !== m) hwSetMode(want);
+      } else if (known[m] !== true) {
+        var f = firstSharedMode();
+        if (f && f !== m) hwSetMode(f);
+      }
+    } else {
+      // Everything closed again (or still nothing shared) → full lock.
+      root.classList.remove('hw-open', 'hw-teacher-locked');
+      root.classList.add('hw-pending');
+      buildGate();
+    }
+  }
+
+  function shareState(d) {
+    return !!(d && d.fields && d.fields.shared && d.fields.shared.booleanValue === true);
+  }
+
+  var checking = false;
+  function check() {
+    if (checking) return;
+    checking = true;
+    // Each doc settles INDEPENDENTLY — one slow/failed read must never hold
+    // the other homeworks' state hostage. The checking flag releases as soon
+    // as this round's docs have settled, with a fixed timer as hang safety
+    // so a hanging request can never stop future re-checks.
+    var pending = HW_DOCS.length;
+    function done() { pending--; if (pending <= 0) checking = false; }
+    window.setTimeout(function () { checking = false; }, 8000);
+    HW_DOCS.forEach(function (h) {
+      function settle(v) {
+        // A network blip must not re-lock a homework the student already
+        // saw open — keep the last known state; only the very first read
+        // fails closed (locked) so a blip can never open the homework.
+        if (v === null) { if (known[h.mode] === null) known[h.mode] = false; }
+        else known[h.mode] = v;
+        applyState();
+        done();
+      }
+      fetch(FS + h.doc)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { settle(shareState(d)); })
+        .catch(function () { settle(null); });
+    });
+  }
+
+  function startPolling() {
+    window.setInterval(check, 15000);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') check();
+    });
+    window.addEventListener('focus', check);
+    window.addEventListener('pageshow', check);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { check(); startPolling(); });
+  } else {
+    check();
+    startPolling();
+  }
+})();
+</script>
+</head>
+<body data-mode="a">
+
+<!-- Back to CMC home (same fixture as the other Reading Future worksheets) -->
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" aria-label="Back to CMC home">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" stroke="#2dd4bf" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Back to CMC
+</a>
+
+<!-- Teacher preview banner (only shown to a teacher while at least one homework is still locked) -->
+<div id="hwBanner">👩‍🏫 <b>Teacher preview</b> — homeworks you haven't shared stay invisible to students. Flip the <b>Share with students</b> switches on the Kid&nbsp;11 card (CMC homepage, Kid Program section) to open Homework 1, 2 or 3 for the class.</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="pine" viewBox="0 0 40 100">
+    <path fill="currentColor" d="M20 3 L30 30 L24 30 L34 56 L26 56 L38 84 L2 84 L14 56 L6 56 L16 30 L10 30 Z"/>
+    <rect x="18" y="82" width="4" height="16" fill="currentColor"/>
+  </symbol>
+  <symbol id="emblem" viewBox="0 0 40 40">
+    <path fill="none" stroke="currentColor" stroke-width="2" d="M20 4 L34 20 L20 36 L6 20 Z"/>
+    <path fill="none" stroke="currentColor" stroke-width="1.4" d="M20 11 L27 20 L20 29 L13 20 Z"/>
+    <path fill="currentColor" d="M20 17 L23 20 L20 23 L17 20 Z"/>
+    <path fill="none" stroke="currentColor" stroke-width="1.2" d="M2 20 L6 20 M34 20 L38 20"/>
+  </symbol>
+</defs></svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="skyglow"></div>
+  <div class="mist m1"></div><div class="mist m2"></div><div class="mist m3"></div>
+  <div class="weave"></div>
+  <svg class="ridge" viewBox="0 0 1440 260" preserveAspectRatio="none">
+    <path fill="rgba(20,52,46,.7)" d="M0 200 L180 96 L300 160 L470 60 L640 168 L820 104 L980 176 L1160 88 L1320 158 L1440 112 L1440 260 L0 260 Z"/>
+  </svg>
+  <svg class="treeline" viewBox="0 0 1440 340" preserveAspectRatio="none">
+    <g fill="rgba(9,28,23,.85)">
+      <use href="#pine" x="10" y="120" width="52" height="200"/><use href="#pine" x="70" y="150" width="42" height="170"/>
+      <use href="#pine" x="120" y="100" width="58" height="220"/><use href="#pine" x="186" y="146" width="44" height="174"/>
+      <use href="#pine" x="238" y="124" width="50" height="196"/><use href="#pine" x="296" y="158" width="40" height="162"/>
+      <use href="#pine" x="342" y="108" width="56" height="212"/><use href="#pine" x="406" y="150" width="44" height="170"/>
+      <use href="#pine" x="458" y="128" width="50" height="192"/><use href="#pine" x="516" y="160" width="40" height="160"/>
+      <use href="#pine" x="562" y="104" width="58" height="216"/><use href="#pine" x="628" y="148" width="44" height="172"/>
+      <use href="#pine" x="680" y="126" width="50" height="194"/><use href="#pine" x="738" y="156" width="42" height="164"/>
+      <use href="#pine" x="786" y="110" width="56" height="210"/><use href="#pine" x="850" y="150" width="44" height="170"/>
+      <use href="#pine" x="902" y="122" width="52" height="198"/><use href="#pine" x="962" y="158" width="40" height="162"/>
+      <use href="#pine" x="1008" y="106" width="58" height="214"/><use href="#pine" x="1074" y="148" width="44" height="172"/>
+      <use href="#pine" x="1126" y="128" width="50" height="192"/><use href="#pine" x="1184" y="160" width="40" height="160"/>
+      <use href="#pine" x="1230" y="102" width="58" height="218"/><use href="#pine" x="1296" y="150" width="44" height="170"/>
+      <use href="#pine" x="1348" y="124" width="52" height="196"/><use href="#pine" x="1404" y="156" width="40" height="164"/>
+    </g>
+  </svg>
+  <div class="river"></div>
+  <div class="grain"></div>
+  <span class="mote" style="left:8%;width:5px;height:5px;animation-duration:19s"></span>
+  <span class="mote" style="left:23%;width:3px;height:3px;animation-duration:15s;animation-delay:3s"></span>
+  <span class="mote" style="left:40%;width:6px;height:6px;animation-duration:23s;animation-delay:6s"></span>
+  <span class="mote" style="left:57%;width:4px;height:4px;animation-duration:17s;animation-delay:2s"></span>
+  <span class="mote" style="left:74%;width:5px;height:5px;animation-duration:21s;animation-delay:8s"></span>
+  <span class="mote" style="left:90%;width:3px;height:3px;animation-duration:14s;animation-delay:5s"></span>
+  <div class="vignette"></div>
+</div>
+
+<header class="site-head">
+  <div class="brand">
+    <svg viewBox="0 0 40 40"><use href="#emblem"/></svg>
+    <div><b>Pocahontas</b><small>UNIT 3 · HISTORY · HOMEWORKS 1–3</small></div>
+  </div>
+  <nav class="tabs" aria-label="Choose homework">
+    <button type="button" class="tab" data-mode="a"><span class="dot"></span>01 Archive</button>
+    <button type="button" class="tab" data-mode="b"><span class="dot"></span>02 Historian</button>
+    <button type="button" class="tab" data-mode="c"><span class="dot"></span>03 Interpreter</button>
+  </nav>
+  <button type="button" class="sound on" id="soundBtn" aria-pressed="true" title="Mute feedback sounds">🔊</button>
+</header>
+
+<!-- ================= HOMEWORK 1 · ARCHIVE RECORD ================= -->
+<main class="assignment" id="hw-a">
+  <section class="hero reveal">
+    <span class="seal"><span>RECORD<br>№ 3</span></span>
+    <span class="kicker">HOMEWORK 1 · VOCABULARY &amp; COMPREHENSION</span>
+    <h1>The Archive <em>Record</em> 📜</h1>
+    <p class="brief">You are cataloguing an early American history collection. Before you can label the exhibits you must master the unit vocabulary and know what the record actually says about Pocahontas. Complete all five sections. <b>30 points</b>. Estimated time: 35–45 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Student name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>8 WORD MEANINGS</span><span>8 GAP FILLS</span><span>5 COMPREHENSION</span><span>5 TRUE / FALSE</span><span>4 SUFFIX WORDS</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 30 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button type="button" class="btn primary sm" data-action="check">Check the Record</button>
+    <button type="button" class="btn ghost sm" data-action="reset">Reset</button>
+    <button type="button" class="btn ghost sm no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Reading passage — Pocahontas (220 words) · tap to open</summary>
+      <p>Pocahontas is an important figure in early American history. She was the daughter of one of the <span class="hl">leaders</span> of the Algonquian people. The Algonquians were a group of Native Americans.</p>
+      <p>Pocahontas was born around 1595. She was named Matoaka. Pocahontas, the name people remember, is a <span class="hl">nickname</span>. It means "<span class="hl">playful</span> little girl." She grew up learning how to find food, farm, and build houses.</p>
+      <p>In 1607, Pocahontas met a group of Europeans. It is believed that she saved the life of Captain John Smith, an Englishman she became friends with. Many people now believe that this is not true. But people agree that Pocahontas helped the English when they came to America.</p>
+      <p>Pocahontas met an Englishman named John Rolfe in 1612, and they got <span class="hl">married</span> two years later. They had different <span class="hl">religions</span>, so she changed hers to Christianity and gave herself the new name Rebecca. Their marriage was known to have helped bring peace between the Native Americans and the Europeans.</p>
+      <p>However, after a few years, the <span class="hl">relationship</span> between the Native Americans and the Europeans became <span class="hl">worse</span>. They did not understand each other, and this caused <span class="hl">conflicts</span>. So in 1616, Pocahontas went to England to meet and speak with King James I.</p>
+      <p>Pocahontas helped teach the English people about Native Americans. And this helped bring peace between the two groups.</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.1</span><h2>Word Meanings</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Match each highlighted unit word with its meaning (a–h).</p>
+    <div class="g-item field-row" data-answer="g"><label>1. She is the <span class="hl">leader</span> of our club.</label><select><option value="">— meaning —</option><option value="a">a. to become the husband or wife of someone</option><option value="b">b. the way two or more people or groups feel about each other</option><option value="c">c. a strong disagreement between people</option><option value="d">d. more serious; very bad</option><option value="e">e. happy and full of energy</option><option value="f">f. a friendly or fun name for someone or something</option><option value="g">g. someone who is in control of a group</option><option value="h">h. the belief in a god or in a group of gods</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="f"><label>2. My <span class="hl">nickname</span> at school is "Mr. Baseball."</label><select><option value="">— meaning —</option><option value="a">a. to become the husband or wife of someone</option><option value="b">b. the way two or more people or groups feel about each other</option><option value="c">c. a strong disagreement between people</option><option value="d">d. more serious; very bad</option><option value="e">e. happy and full of energy</option><option value="f">f. a friendly or fun name for someone or something</option><option value="g">g. someone who is in control of a group</option><option value="h">h. the belief in a god or in a group of gods</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="e"><label>3. She is an old dog, but she is still very <span class="hl">playful</span>.</label><select><option value="">— meaning —</option><option value="a">a. to become the husband or wife of someone</option><option value="b">b. the way two or more people or groups feel about each other</option><option value="c">c. a strong disagreement between people</option><option value="d">d. more serious; very bad</option><option value="e">e. happy and full of energy</option><option value="f">f. a friendly or fun name for someone or something</option><option value="g">g. someone who is in control of a group</option><option value="h">h. the belief in a god or in a group of gods</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label>4. My uncle asked his girlfriend to <span class="hl">marry</span> him.</label><select><option value="">— meaning —</option><option value="a">a. to become the husband or wife of someone</option><option value="b">b. the way two or more people or groups feel about each other</option><option value="c">c. a strong disagreement between people</option><option value="d">d. more serious; very bad</option><option value="e">e. happy and full of energy</option><option value="f">f. a friendly or fun name for someone or something</option><option value="g">g. someone who is in control of a group</option><option value="h">h. the belief in a god or in a group of gods</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="h"><label>5. Some people do not eat beef because of their <span class="hl">religion</span>.</label><select><option value="">— meaning —</option><option value="a">a. to become the husband or wife of someone</option><option value="b">b. the way two or more people or groups feel about each other</option><option value="c">c. a strong disagreement between people</option><option value="d">d. more serious; very bad</option><option value="e">e. happy and full of energy</option><option value="f">f. a friendly or fun name for someone or something</option><option value="g">g. someone who is in control of a group</option><option value="h">h. the belief in a god or in a group of gods</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label>6. I have a friendly <span class="hl">relationship</span> with my classmates.</label><select><option value="">— meaning —</option><option value="a">a. to become the husband or wife of someone</option><option value="b">b. the way two or more people or groups feel about each other</option><option value="c">c. a strong disagreement between people</option><option value="d">d. more serious; very bad</option><option value="e">e. happy and full of energy</option><option value="f">f. a friendly or fun name for someone or something</option><option value="g">g. someone who is in control of a group</option><option value="h">h. the belief in a god or in a group of gods</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="d"><label>7. My cold is getting <span class="hl">worse</span>.</label><select><option value="">— meaning —</option><option value="a">a. to become the husband or wife of someone</option><option value="b">b. the way two or more people or groups feel about each other</option><option value="c">c. a strong disagreement between people</option><option value="d">d. more serious; very bad</option><option value="e">e. happy and full of energy</option><option value="f">f. a friendly or fun name for someone or something</option><option value="g">g. someone who is in control of a group</option><option value="h">h. the belief in a god or in a group of gods</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="c"><label>8. I try to agree with everyone because I want to avoid <span class="hl">conflict</span>.</label><select><option value="">— meaning —</option><option value="a">a. to become the husband or wife of someone</option><option value="b">b. the way two or more people or groups feel about each other</option><option value="c">c. a strong disagreement between people</option><option value="d">d. more serious; very bad</option><option value="e">e. happy and full of energy</option><option value="f">f. a friendly or fun name for someone or something</option><option value="g">g. someone who is in control of a group</option><option value="h">h. the belief in a god or in a group of gods</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.2</span><h2>Catalogue Notes — Gap Fill</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Complete the catalogue notes with the word bank. Type your answers.</p>
+    <div class="bank"><span>leader</span><span>nickname</span><span>playful</span><span>marry</span><span>religion</span><span>relationship</span><span>worse</span><span>conflict</span></div>
+    <div class="g-item field-row" data-answer="leader"><label>1. A ______ is someone who is in control of a group.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="nickname"><label>2. "Pocahontas" is a ______; her birth name was Matoaka.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="playful"><label>3. Her nickname means "______ little girl" — happy and full of energy.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="marry"><label>4. To ______ someone is to become their husband or wife.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="religion"><label>5. She changed her ______ to Christianity and became Rebecca.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="relationship"><label>6. The ______ between the two groups became worse after a few years.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="worse"><label>7. When something becomes more serious or very bad, it gets ______.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="conflict|conflicts"><label>8. Because they did not understand each other, this caused ______.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.3</span><h2>Understanding the Reading</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Choose the best answer.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> Who was Pocahontas's father?</p><div class="opts"><button type="button" class="opt" data-val="a">An English captain</button><button type="button" class="opt" data-val="b">One of the leaders of the Algonquian people</button><button type="button" class="opt" data-val="c">King James I</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>2.</b> What was her name at birth?</p><div class="opts"><button type="button" class="opt" data-val="a">Rebecca</button><button type="button" class="opt" data-val="b">Pocahontas</button><button type="button" class="opt" data-val="c">Matoaka</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>3.</b> Whom did she marry?</p><div class="opts"><button type="button" class="opt" data-val="a">John Rolfe</button><button type="button" class="opt" data-val="b">Captain John Smith</button><button type="button" class="opt" data-val="c">King James I</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>4.</b> Why did the relationship between the two groups become worse?</p><div class="opts"><button type="button" class="opt" data-val="a">Because she moved to England</button><button type="button" class="opt" data-val="b">Because they did not understand each other</button><button type="button" class="opt" data-val="c">Because she changed her name</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>5.</b> Why did she go to England in 1616?</p><div class="opts"><button type="button" class="opt" data-val="a">To find food and farm</button><button type="button" class="opt" data-val="b">To marry John Rolfe</button><button type="button" class="opt" data-val="c">To meet and speak with King James I</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.4</span><h2>True or False</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Check every statement against the passage.</p>
+    <div class="g-item q" data-answer="T"><p><b>1.</b> The Algonquians were a group of Native Americans.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>2.</b> She grew up learning to find food, farm and build houses.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="F"><p><b>3.</b> Everyone agrees that she saved Captain John Smith's life.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>4.</b> Her marriage helped bring peace between the two groups.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="F"><p><b>5.</b> The relationship stayed peaceful for the rest of her life.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.5</span><h2>Vocabulary Skills — the suffix <em>-ship</em></h2><span class="pts">4 PTS</span></div>
+    <p class="hint">The suffix <b>-ship</b> means "state, condition, or skill". Match each word with its meaning.</p>
+    <div class="g-item field-row" data-answer="d"><label>1. <span class="hl">relationship</span> (relation + ship)</label><select><option value="">— meaning —</option><option value="a">a. the state of being friends with someone</option><option value="b">b. the state of being in control of a group of people</option><option value="c">c. the state of owning something</option><option value="d">d. the way two or more people feel and behave towards each other</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label>2. <span class="hl">friendship</span></label><select><option value="">— meaning —</option><option value="a">a. the state of being friends with someone</option><option value="b">b. the state of being in control of a group of people</option><option value="c">c. the state of owning something</option><option value="d">d. the way two or more people feel and behave towards each other</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label>3. <span class="hl">leadership</span></label><select><option value="">— meaning —</option><option value="a">a. the state of being friends with someone</option><option value="b">b. the state of being in control of a group of people</option><option value="c">c. the state of owning something</option><option value="d">d. the way two or more people feel and behave towards each other</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="c"><label>4. <span class="hl">ownership</span></label><select><option value="">— meaning —</option><option value="a">a. the state of being friends with someone</option><option value="b">b. the state of being in control of a group of people</option><option value="c">c. the state of owning something</option><option value="d">d. the way two or more people feel and behave towards each other</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Archive Assessment</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button type="button" class="btn primary sm" data-action="review">Review mistakes</button><button type="button" class="btn paper sm" data-action="print">🖨 Print / PDF</button><button type="button" class="btn paper sm" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- ================= HOMEWORK 2 · TIMELINE HISTORIAN ================= -->
+<main class="assignment" id="hw-b" hidden>
+  <section class="hero reveal">
+    <span class="seal"><span>HISTORIAN<br>№ 3</span></span>
+    <span class="kicker">HOMEWORK 2 · SEQUENCING &amp; CRITICAL THINKING</span>
+    <h1>You are the <em>Timeline Historian</em> 🕰️</h1>
+    <p class="brief">A historian never mixes up dates — and never calls a legend a fact. Put Pocahontas's life in order, match the time expressions to their events, link causes to effects, and separate what the record supports from what is disputed. <b>27 points</b>. Estimated time: 40–50 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Historian name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>6 TIMELINE EVENTS</span><span>4 TIME EXPRESSIONS</span><span>5 CAUSE–EFFECT</span><span>8 CLAIM CARDS</span><span>3 EVIDENCE CHECKS</span><span>1 SUMMARY</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 27 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button type="button" class="btn primary sm" data-action="check">File the Timeline</button>
+    <button type="button" class="btn ghost sm" data-action="reset">Reset</button>
+    <button type="button" class="btn ghost sm no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Source record — the reading passage (220 words) · tap to open</summary>
+      <p>Pocahontas is an important figure in early American history. She was the daughter of one of the <span class="hl">leaders</span> of the Algonquian people. The Algonquians were a group of Native Americans.</p>
+      <p>Pocahontas was born around 1595. She was named Matoaka. Pocahontas, the name people remember, is a <span class="hl">nickname</span>. It means "<span class="hl">playful</span> little girl." She grew up learning how to find food, farm, and build houses.</p>
+      <p>In 1607, Pocahontas met a group of Europeans. It is believed that she saved the life of Captain John Smith, an Englishman she became friends with. Many people now believe that this is not true. But people agree that Pocahontas helped the English when they came to America.</p>
+      <p>Pocahontas met an Englishman named John Rolfe in 1612, and they got <span class="hl">married</span> two years later. They had different <span class="hl">religions</span>, so she changed hers to Christianity and gave herself the new name Rebecca. Their marriage was known to have helped bring peace between the Native Americans and the Europeans.</p>
+      <p>However, after a few years, the <span class="hl">relationship</span> between the Native Americans and the Europeans became <span class="hl">worse</span>. They did not understand each other, and this caused <span class="hl">conflicts</span>. So in 1616, Pocahontas went to England to meet and speak with King James I.</p>
+      <p>Pocahontas helped teach the English people about Native Americans. And this helped bring peace between the two groups.</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.1</span><h2>Build the Timeline</h2><span class="pts">6 PTS</span></div>
+    <p class="hint">Use ↑ and ↓ to order her life from birth to the journey to England.</p>
+    <div class="order-task" data-solution="born,grew,met1607,rolfe,married,england">
+      <ol class="order-list">
+        <li data-key="rolfe"><span class="ord-text"><b>1612</b> — She meets an Englishman named John Rolfe.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="england"><span class="ord-text"><b>1616</b> — She goes to England to meet and speak with King James I.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="born"><span class="ord-text"><b>Around 1595</b> — She is born and named Matoaka.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="married"><span class="ord-text"><b>Two years later</b> — They marry; she becomes Rebecca and their marriage brings peace.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="met1607"><span class="ord-text"><b>1607</b> — She meets a group of Europeans and helps the English.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="grew"><span class="ord-text"><b>Childhood</b> — She learns how to find food, farm and build houses.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+      </ol><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.2</span><h2>Time Expressions → Events</h2><span class="pts">4 PTS</span></div>
+    <p class="hint">The reading skill asks you to find <b>the expressions that show the order of time</b>. Match each expression with the event it introduces.</p>
+    <div class="g-item field-row" data-answer="b"><label>1. <span class="hl">around 1595</span></label><select><option value="">— event —</option><option value="a">a. she went to England to speak with King James I</option><option value="b">b. she was born and named Matoaka</option><option value="c">c. she met a group of Europeans</option><option value="d">d. she and John Rolfe got married</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="c"><label>2. <span class="hl">In 1607</span></label><select><option value="">— event —</option><option value="a">a. she went to England to speak with King James I</option><option value="b">b. she was born and named Matoaka</option><option value="c">c. she met a group of Europeans</option><option value="d">d. she and John Rolfe got married</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="d"><label>3. <span class="hl">two years later</span></label><select><option value="">— event —</option><option value="a">a. she went to England to speak with King James I</option><option value="b">b. she was born and named Matoaka</option><option value="c">c. she met a group of Europeans</option><option value="d">d. she and John Rolfe got married</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label>4. <span class="hl">in 1616</span></label><select><option value="">— event —</option><option value="a">a. she went to England to speak with King James I</option><option value="b">b. she was born and named Matoaka</option><option value="c">c. she met a group of Europeans</option><option value="d">d. she and John Rolfe got married</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.3</span><h2>Cause → Effect</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Match each cause (1–5) with its effect (a–e).</p>
+    <div class="g-item field-row" data-answer="c"><label><b>1.</b> Pocahontas and John Rolfe had different religions.</label><select><option value="">— effect —</option><option value="a">a. their marriage helped bring peace between the two groups</option><option value="b">b. this caused conflicts</option><option value="c">c. she changed hers to Christianity and became Rebecca</option><option value="d">d. she went to England to speak with King James I</option><option value="e">e. this helped bring peace between the two groups</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label><b>2.</b> Pocahontas married John Rolfe.</label><select><option value="">— effect —</option><option value="a">a. their marriage helped bring peace between the two groups</option><option value="b">b. this caused conflicts</option><option value="c">c. she changed hers to Christianity and became Rebecca</option><option value="d">d. she went to England to speak with King James I</option><option value="e">e. this helped bring peace between the two groups</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label><b>3.</b> The two groups did not understand each other.</label><select><option value="">— effect —</option><option value="a">a. their marriage helped bring peace between the two groups</option><option value="b">b. this caused conflicts</option><option value="c">c. she changed hers to Christianity and became Rebecca</option><option value="d">d. she went to England to speak with King James I</option><option value="e">e. this helped bring peace between the two groups</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="d"><label><b>4.</b> The relationship became worse.</label><select><option value="">— effect —</option><option value="a">a. their marriage helped bring peace between the two groups</option><option value="b">b. this caused conflicts</option><option value="c">c. she changed hers to Christianity and became Rebecca</option><option value="d">d. she went to England to speak with King James I</option><option value="e">e. this helped bring peace between the two groups</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="e"><label><b>5.</b> She taught the English people about Native Americans.</label><select><option value="">— effect —</option><option value="a">a. their marriage helped bring peace between the two groups</option><option value="b">b. this caused conflicts</option><option value="c">c. she changed hers to Christianity and became Rebecca</option><option value="d">d. she went to England to speak with King James I</option><option value="e">e. this helped bring peace between the two groups</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.4</span><h2>Supported or Disputed?</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">The passage says the John Smith rescue <b>"is believed"</b> — and that many now think it is not true. <b>Tap a card, then tap a column.</b></p>
+    <div class="sort-task">
+      <div class="tray"><span class="tray-label">CLAIM CARDS — CLASSIFY ALL 8</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="supported">She was the daughter of an Algonquian leader.</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="disputed">She saved Captain John Smith's life.</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="supported">Her name at birth was Matoaka.</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="disputed">She married Captain John Smith.</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="supported">"Pocahontas" is a nickname meaning "playful little girl."</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="disputed">Peace between the two groups lasted forever.</button>
+        <button type="button" class="sort-card" data-idx="6" data-correct="supported">She married John Rolfe and became Rebecca.</button>
+        <button type="button" class="sort-card" data-idx="7" data-correct="disputed">The film tells her story exactly as it happened.</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="supported" tabindex="0" role="button" aria-label="Place card in SUPPORTED"><h4>✔ SUPPORTED</h4><p class="bin-sub">STATED IN THE RECORD</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="disputed" tabindex="0" role="button" aria-label="Place card in DISPUTED"><h4>? DISPUTED</h4><p class="bin-sub">LEGEND, MYTH OR CONTRADICTED</p><div class="bin-body"></div></div>
+      </div><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.5</span><h2>The Evidence Check</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">Verify each panel text before it goes on the wall.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> "The rescue of John Smith is a proven fact."</p><div class="opts"><button type="button" class="opt" data-val="a">Correct</button><button type="button" class="opt" data-val="b">Wrong — it is believed, but many now think it is not true</button><button type="button" class="opt" data-val="c">Wrong — she never met John Smith</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>2.</b> "People agree that Pocahontas helped the English when they came to America."</p><div class="opts"><button type="button" class="opt" data-val="a">Correct — it matches the passage</button><button type="button" class="opt" data-val="b">Wrong — nobody agrees on this</button><button type="button" class="opt" data-val="c">Wrong — she refused to help them</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>3.</b> "She travelled to England in 1616 to speak with King James I."</p><div class="opts"><button type="button" class="opt" data-val="a">Wrong — she went in 1607</button><button type="button" class="opt" data-val="b">Wrong — she never left America</button><button type="button" class="opt" data-val="c">Correct — it matches the passage</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task write-task reveal" id="w-summary">
+    <div class="task-head"><span class="tnum">2.6</span><h2>Write the Archive Summary</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Summarise her life in 50–80 words, in the correct order. The live checklist shows what a complete summary needs.</p>
+    <div class="client"><span class="avatar">🗂️</span><p><b>Archive brief:</b> a visitor wants the key dates and the reason she travelled to England — nothing invented.</p></div>
+    <textarea placeholder="Pocahontas, born around 1595, was the daughter of…"></textarea>
+    <div class="write-meta"><span class="wc">0 words</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See a model summary</summary><p>"Pocahontas, born around 1595, was the daughter of an Algonquian leader. Her nickname means 'playful little girl.' In 1607 she met Europeans and helped the English. Later she married John Rolfe; because they had different religions, she became Rebecca. Their marriage improved the relationship between the two groups. However, conflicts grew, so in 1616 she travelled to England to speak with King James I and teach the English about her people."</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Timeline Assessment</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button type="button" class="btn primary sm" data-action="review">Review mistakes</button><button type="button" class="btn paper sm" data-action="print">🖨 Print / PDF</button><button type="button" class="btn paper sm" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- ================= HOMEWORK 3 · MUSEUM INTERPRETER ================= -->
+<main class="assignment" id="hw-c" hidden>
+  <section class="hero reveal">
+    <span class="seal"><span>INTERPRETER<br>№ 3</span></span>
+    <span class="kicker">HOMEWORK 3 · WRITING &amp; SPEAKING</span>
+    <h1>You are the <em>Museum Interpreter</em> 🪶</h1>
+    <p class="brief">Visitors arrive knowing the film, not the person. Separate facts from opinions, title the exhibit, write the interpretation text, and prepare honest answers to the questions every visitor asks. <b>16 points</b>. Estimated time: 40–50 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Interpreter name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>8 CLAIMS TO JUDGE</span><span>1 EXHIBIT TITLE</span><span>1 INTERPRETATION</span><span>3 VISITOR ANSWERS</span><span>2 SUFFIX SENTENCES</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 16 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button type="button" class="btn primary sm" data-action="check">Open the Exhibit</button>
+    <button type="button" class="btn ghost sm" data-action="reset">Reset</button>
+    <button type="button" class="btn ghost sm no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Source material — the reading passage (220 words) · tap to open</summary>
+      <p>Pocahontas is an important figure in early American history. She was the daughter of one of the <span class="hl">leaders</span> of the Algonquian people. The Algonquians were a group of Native Americans.</p>
+      <p>Pocahontas was born around 1595. She was named Matoaka. Pocahontas, the name people remember, is a <span class="hl">nickname</span>. It means "<span class="hl">playful</span> little girl." She grew up learning how to find food, farm, and build houses.</p>
+      <p>In 1607, Pocahontas met a group of Europeans. It is believed that she saved the life of Captain John Smith, an Englishman she became friends with. Many people now believe that this is not true. But people agree that Pocahontas helped the English when they came to America.</p>
+      <p>Pocahontas met an Englishman named John Rolfe in 1612, and they got <span class="hl">married</span> two years later. They had different <span class="hl">religions</span>, so she changed hers to Christianity and gave herself the new name Rebecca. Their marriage was known to have helped bring peace between the Native Americans and the Europeans.</p>
+      <p>However, after a few years, the <span class="hl">relationship</span> between the Native Americans and the Europeans became <span class="hl">worse</span>. They did not understand each other, and this caused <span class="hl">conflicts</span>. So in 1616, Pocahontas went to England to meet and speak with King James I.</p>
+      <p>Pocahontas helped teach the English people about Native Americans. And this helped bring peace between the two groups.</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.0</span><h2>Warm-Up</h2><span class="pts">REFLECT</span></div>
+    <p class="hint">Not graded. Answer the textbook warm-up before you begin.</p>
+    <div class="sub-q"><label>Native Americans were the first people to live in North and South America. <b>What do you know about Native Americans? Have you seen the film or heard the story of Pocahontas? Who is your favourite female character in films or books?</b></label>
+      <textarea placeholder="I know that…"></textarea></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.1</span><h2>Fact or Opinion?</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">An interpreter must know the difference. <b>Tap a card, then tap a bin.</b> Tap a placed card to return it.</p>
+    <div class="sort-task">
+      <div class="tray"><span class="tray-label">EXHIBIT CLAIMS — SORT ALL 8</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="fact">Pocahontas was born around 1595.</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="opinion">Her story is the most moving in American history.</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="fact">She was named Matoaka at birth.</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="opinion">Everyone should visit this exhibit twice.</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="fact">She married John Rolfe and took the name Rebecca.</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="opinion">The film is better than the real history.</button>
+        <button type="button" class="sort-card" data-idx="6" data-correct="fact">In 1616 she went to England to speak with King James I.</button>
+        <button type="button" class="sort-card" data-idx="7" data-correct="opinion">Films should never change historical facts.</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="fact" tabindex="0" role="button" aria-label="Place card in FACT"><h4>◈ FACT</h4><p class="bin-sub">SUPPORTED BY THE READING</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="opinion" tabindex="0" role="button" aria-label="Place card in OPINION"><h4>✎ OPINION</h4><p class="bin-sub">A BELIEF OR JUDGEMENT</p><div class="bin-body"></div></div>
+      </div><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task write-task reveal" id="w-title">
+    <div class="task-head"><span class="tnum">3.2</span><h2>The Exhibit Title</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Name the exhibit for the entrance wall. The checklist turns green as you meet the rules.</p>
+    <input type="text" placeholder="Type your exhibit title here…" aria-label="Your exhibit title">
+    <div class="write-meta"><span class="wc">0 / 60 characters</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See model titles</summary><p>"Matoaka, Rebecca, Pocahontas: One Life, Three Names" · "Beyond the Film: The Real Pocahontas" · "A Bridge Between Two Worlds"</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task write-task reveal" id="w-panel">
+    <div class="task-head"><span class="tnum">3.3</span><h2>Write the Interpretation Text</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Write 70–110 words for the entrance panel. Give facts, give your opinion, and correct the film myth.</p>
+    <textarea placeholder="Pocahontas is often remembered through a film, but…"></textarea>
+    <div class="write-meta"><span class="wc">0 words</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See a model interpretation</summary><p>"Pocahontas is often remembered through a film, but the archive tells a quieter, stronger story. Born around 1595 and named Matoaka, she carried a nickname meaning 'playful little girl.' In 1607 she met English settlers and helped them survive. Later she married John Rolfe, changed her religion and became Rebecca. Their marriage eased the relationship between two very different peoples. However, understanding failed and conflicts returned, so in 1616 she sailed to England to speak with King James I. In my opinion, her real leadership is far more impressive than any cartoon."</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.4</span><h2>Visitor Questions — Speaking Prep</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">In class you will answer these aloud as the interpreter. At least 12 words each. Use the phrase chips.</p>
+    <div class="sub-q write-task" id="w-v1">
+      <label>1. A visitor asks: <i>"Was Pocahontas her real name?"</i></label>
+      <div class="chips"><span>Matoaka</span><span>nickname</span><span>playful little girl</span><span>Rebecca</span></div>
+      <textarea placeholder="No — her birth name was…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"No. Her birth name was Matoaka; Pocahontas was a nickname meaning 'playful little girl,' and later she took the name Rebecca."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-v2">
+      <label>2. A visitor asks: <i>"Did she really save John Smith?"</i></label>
+      <div class="chips"><span>it is believed</span><span>many now think it is not true</span><span>people agree she helped</span></div>
+      <textarea placeholder="That story is believed, but…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"That story is believed, but many people now think it is not true. What people agree on is that she helped the English."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-v3">
+      <label>3. A visitor asks: <i>"Why did she travel to England?"</i></label>
+      <div class="chips"><span>relationship became worse</span><span>conflicts</span><span>King James I</span><span>bring peace</span></div>
+      <textarea placeholder="Because the relationship…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"Because the relationship between the two groups became worse and caused conflicts, she went in 1616 to speak with King James I."</p></details><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.5</span><h2>Suffix <em>-ship</em> in Your Own Words</h2><span class="pts">2 PTS</span></div>
+    <p class="hint">Write one original sentence with each noun. At least 8 words each.</p>
+    <div class="sub-q write-task" id="w-p1">
+      <label>1. Use <span class="hl">friendship</span> (the state of being friends).</label>
+      <textarea placeholder="Her friendship with…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"Her friendship with the English settlers helped them survive the first years."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-p2">
+      <label>2. Use <span class="hl">leadership</span> (the state of being in control of a group).</label>
+      <textarea placeholder="Her father's leadership…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"Her father's leadership of the Algonquian people shaped her early life."</p></details><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.6</span><h2>The Balanced Verdict</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Choose the statement the whole reading best supports.</p>
+    <div class="g-item q" data-answer="b"><p><b>Which sentence best closes your interpretation?</b></p>
+      <div class="opts"><button type="button" class="opt" data-val="a">Pocahontas married John Smith and lived happily in England.</button><button type="button" class="opt" data-val="b">Pocahontas helped build understanding between two groups, even though the peace did not last.</button><button type="button" class="opt" data-val="c">Pocahontas caused the conflicts between the two groups.</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.7</span><h2>Interpreter's Checklist</h2><span class="pts">REFLECT</span></div>
+    <p class="hint">Tick what is true before you open the exhibit. <span class="ready-count">Ready: 0 / 4</span></p>
+    <ul class="ready-list">
+      <li><label><input type="checkbox" class="ready-check"> I used at least four unit words in my writing.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> I explained that the John Smith rescue is <b>not certain</b>.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> I used her three names correctly: Matoaka, Pocahontas, Rebecca.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> I can answer the three visitor questions aloud.</label></li>
+    </ul>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Exhibit Assessment</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button type="button" class="btn primary sm" data-action="review">Review mistakes</button><button type="button" class="btn paper sm" data-action="print">🖨 Print / PDF</button><button type="button" class="btn paper sm" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- Bottom action bar: completion submit + share -->
+<div class="hw-bar no-print">
+  <button type="button" class="hw-btn hw-btn-submit" id="submitBtn">Submit to Teacher ✓</button>
+  <button type="button" class="hw-btn hw-btn-ghost" data-cmc-share aria-haspopup="true">Share homework ▾</button>
+</div>
+<div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
+<div class="cmc-share" id="cmcShare">
+  <button type="button" data-cmc-copy>🔗 Copy Link</button>
+  <button type="button" data-cmc-wa>💬 WhatsApp</button>
+  <button type="button" data-cmc-tg>✈️ Telegram</button>
+  <button type="button" data-cmc-email>✉️ Email</button>
+  <button type="button" class="close" data-cmc-close>✕ Close</button>
+</div>
+
+<noscript><p style="position:relative;z-index:20;text-align:center;padding:24px">Please enable JavaScript to use the interactive homeworks.</p></noscript>
+
+<noscript><p style="position:relative;z-index:20;text-align:center;padding:24px">Please enable JavaScript to use the interactive homeworks.</p></noscript>
+
+<script>
+(function(){
+'use strict';
+document.documentElement.classList.add('js');
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+var norm=function(s){return String(s==null?'':s).toLowerCase().replace(/[.!?]+$/,'').trim().replace(/\s+/g,' ');};
+var wc=function(s){return (String(s).trim().match(/\S+/g)||[]).length;};
+var UNIT=['leader','nickname','playful','marry','married','religion','relationship','worse','conflict','peace','native'];
+var unitCount=function(t){return UNIT.filter(function(v){return new RegExp('\\b'+v,'i').test(t);}).length;};
+var SHIP=/\b(relationship|friendship|leadership|ownership|partnership|membership|scholarship)\b/i;
+var SEQ=/\b(first|then|next|later|after|afterwards|finally)\b|\bin 1[56]\d\d\b|\baround 1595\b/i;
+
+/* ---------- SOUND ---------- */
+var Snd={ctx:null,g:null,on:true,ready:false,
+ init:function(){
+  if(this.ready){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();return;}
+  var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  try{this.ctx=new AC();this.g=this.ctx.createGain();this.g.gain.value=this.on?.3:0;
+   this.g.connect(this.ctx.destination);this.ready=true;
+   if(this.ctx.state==='suspended')this.ctx.resume();}catch(e){}
+ },
+ mute:function(v){this.on=v;if(this.g&&this.ctx)this.g.gain.setTargetAtTime(v?.3:0,this.ctx.currentTime,.04);},
+ t:function(f,d,ty,v){
+  if(!this.ready||!this.on)return;d=d||.1;ty=ty||'sine';v=v||.15;
+  try{var t=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();
+   o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);
+   g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+   o.connect(g);g.connect(this.g);o.start(t);o.stop(t+d+.02);}catch(e){}
+ },
+ click:function(){this.t(620,.05,'triangle',.08);},
+ place:function(){this.t(430,.07,'sine',.1);},
+ good:function(){var s=this;s.t(587,.12,'sine',.15);setTimeout(function(){s.t(880,.2,'sine',.14);},95);},
+ bad:function(){this.t(178,.2,'sawtooth',.11);},
+ win:function(){var s=this;[523,659,784,1046].forEach(function(f,i){setTimeout(function(){s.t(f,.34,'triangle',.15);},i*95);});}
+};
+
+/* ---------- WRITING CONFIG ---------- */
+var WRITE={
+ 'w-summary':{checks:[
+  {label:'50–80 words',test:function(t){var n=wc(t);return n>=50&&n<=80;}},
+  {label:'3+ unit words (leader, nickname, religion, relationship, conflict…)',test:function(t){return unitCount(t)>=3;}},
+  {label:'A -ship noun (relationship, friendship, leadership, ownership)',test:function(t){return SHIP.test(t);}},
+  {label:'At least two dates (1595, 1607, 1612, 1616)',test:function(t){var m=t.match(/1595|1607|1612|1614|1616/g)||[];var u={};m.forEach(function(x){u[x]=1;});return Object.keys(u).length>=2;}},
+  {label:'A sequencing expression: first / then / later / after / finally',test:function(t){return SEQ.test(t);}}]},
+ 'w-title':{unit:'chars',checks:[
+  {label:'Between 15 and 60 characters',test:function(t){var n=t.trim().length;return n>=15&&n<=60;}},
+  {label:'Mentions Pocahontas, Matoaka, Rebecca or history',test:function(t){return /pocahontas|matoaka|rebecca|history|native/i.test(t);}},
+  {label:'No full stop at the end',test:function(t){return t.trim().length>0&&!/\.$/.test(t.trim());}}]},
+ 'w-panel':{checks:[
+  {label:'70–110 words',test:function(t){var n=wc(t);return n>=70&&n<=110;}},
+  {label:'3+ unit words',test:function(t){return unitCount(t)>=3;}},
+  {label:'A -ship noun',test:function(t){return SHIP.test(t);}},
+  {label:'An opinion phrase: I think / I believe / in my opinion / for me',test:function(t){return /i think|i believe|in my opinion|for me/i.test(t);}},
+  {label:'A contrast link: however / although / but',test:function(t){return /\b(however|although|but)\b/i.test(t);}},
+  {label:'Mentions the film or the myth',test:function(t){return /\b(film|movie|myth|legend|cartoon|story)\b/i.test(t);}}]},
+ 'w-v1':{checks:[{label:'At least 12 words',test:function(t){return wc(t)>=12;}}]},
+ 'w-v2':{checks:[{label:'At least 12 words',test:function(t){return wc(t)>=12;}}]},
+ 'w-v3':{checks:[{label:'At least 12 words',test:function(t){return wc(t)>=12;}}]},
+ 'w-p1':{checks:[
+  {label:'Uses the word "friendship"',test:function(t){return /\bfriendship\b/i.test(t);}},
+  {label:'At least 8 words',test:function(t){return wc(t)>=8;}}]},
+ 'w-p2':{checks:[
+  {label:'Uses the word "leadership"',test:function(t){return /\bleadership\b/i.test(t);}},
+  {label:'At least 8 words',test:function(t){return wc(t)>=8;}}]}
+};
+
+/* ---------- PROGRESS ---------- */
+function hasResponse(q){
+ var sel=$('select',q),inp=$('input',q);
+ if(sel)return sel.value!=='';
+ if(inp)return inp.value.trim()!=='';
+ return !!q.getAttribute('data-picked');
+}
+function refreshProgress(root){
+ if(!root)return;
+ var done=0,total=0;
+ $$('.g-item',root).forEach(function(q){total++;if(hasResponse(q))done++;});
+ $$('.sort-task',root).forEach(function(t){var c=$$('.sort-card',t);total+=c.length;
+  done+=c.filter(function(x){return x.closest('.bin');}).length;});
+ $$('.order-task',root).forEach(function(t){var n=$$('li',t).length;total+=n;if(t.getAttribute('data-touched'))done+=n;});
+ $$('.write-task',root).forEach(function(t){total++;if($('textarea,input',t).value.trim())done++;});
+ $('.progress-fill',root).style.width=(total?Math.round(done/total*100):0)+'%';
+ $('.progress-label-text',root).textContent=done+' / '+total+' answered';
+}
+
+/* ---------- WRITING TASKS ---------- */
+$$('.write-task').forEach(function(t){
+ var cfg=WRITE[t.id];if(!cfg)return;
+ var field=$('textarea,input',t),list=$('.checks',t);
+ cfg.checks.forEach(function(c){
+  var li=document.createElement('li');
+  li.innerHTML='<span class="dot"></span><span>'+c.label+'</span>';
+  list.appendChild(li);
+ });
+ var update=function(){
+  var v=field.value,pass=true;
+  cfg.checks.forEach(function(c,i){
+   var ok=c.test(v);list.children[i].classList.toggle('ok',ok);if(!ok)pass=false;
+  });
+  t.setAttribute('data-pass',pass?'1':'0');
+  $('.wc',t).textContent=cfg.unit==='chars'?(v.trim().length+' / 60 characters'):(wc(v)+' words');
+  refreshProgress(t.closest('.assignment'));
+ };
+ field.addEventListener('input',update);
+ t._update=update;update();
+});
+
+/* ---------- SORT PLACEMENT ---------- */
+function placeCard(bin){
+ var task=bin.closest('.sort-task'),root=bin.closest('.assignment');
+ var sel=$('.sort-card.selected',task);
+ if(!sel){$('.fb',task).textContent='👆 Select a card first, then tap a column.';return;}
+ $('.bin-body',bin).appendChild(sel);
+ sel.classList.remove('selected','correct','wrong');
+ $('.fb',task).textContent='';Snd.place();refreshProgress(root);
+}
+
+/* ---------- EVENTS ---------- */
+$$('.assignment').forEach(function(root){
+ root.addEventListener('click',function(e){
+  var act=e.target.closest('[data-action]');
+  if(act){doAction(act.getAttribute('data-action'),root);return;}
+  var opt=e.target.closest('.opt');
+  if(opt){
+   var q=opt.closest('.g-item');
+   $$('.opt',q).forEach(function(b){b.classList.remove('picked');});
+   opt.classList.add('picked');q.setAttribute('data-picked',opt.getAttribute('data-val'));
+   q.classList.remove('correct','wrong');$('.fb',q).textContent='';
+   Snd.click();refreshProgress(root);return;
+  }
+  var card=e.target.closest('.sort-card');
+  if(card){
+   var task=card.closest('.sort-task');
+   if(card.closest('.bin')){$('.tray',task).appendChild(card);}
+   else{
+    var sel=$('.sort-card.selected',task);
+    if(sel===card)card.classList.remove('selected');
+    else{if(sel)sel.classList.remove('selected');card.classList.add('selected');}
+   }
+   card.classList.remove('correct','wrong');$('.fb',task).textContent='';
+   Snd.place();refreshProgress(root);return;
+  }
+  var bin=e.target.closest('.bin');
+  if(bin){placeCard(bin);return;}
+  var ob=e.target.closest('.ord-btn');
+  if(ob){
+   var li=ob.closest('li'),dir=parseInt(ob.getAttribute('data-dir'),10);
+   var sib=dir<0?li.previousElementSibling:li.nextElementSibling;
+   if(!sib)return;
+   if(dir<0)li.parentNode.insertBefore(li,sib);else li.parentNode.insertBefore(sib,li);
+   var ot=li.closest('.order-task');ot.setAttribute('data-touched','1');
+   $$('li',ot).forEach(function(x){x.classList.remove('correct','wrong');});
+   $('.fb',ot).textContent='';Snd.place();refreshProgress(root);
+  }
+ });
+ root.addEventListener('keydown',function(e){
+  var bin=e.target.closest('.bin');
+  if(bin&&(e.key==='Enter'||e.key===' ')){e.preventDefault();placeCard(bin);}
+ });
+ var onChange=function(e){
+  var q=e.target.closest('.g-item');
+  if(q&&(e.target.matches('input,select'))){
+   q.classList.remove('correct','wrong');$('.fb',q).textContent='';refreshProgress(root);
+  }
+  if(e.target.matches('.ready-check')){
+   var lbl=$('.ready-count',root);
+   if(lbl)lbl.textContent='Ready: '+$$('.ready-check:checked',root).length+' / 4';
+  }
+ };
+ root.addEventListener('input',onChange);
+ root.addEventListener('change',onChange);
+});
+
+/* ---------- GRADING ---------- */
+function grade(root){
+ var earned=0,total=0,anyWrong=false;
+ $$('.g-item',root).forEach(function(q){
+  total++;
+  var key=q.getAttribute('data-answer'),acc=key.split('|').map(norm);
+  var sel=$('select',q),inp=$('input',q),val='',shown='';
+  if(sel){val=sel.value;var o=sel.querySelector('option[value="'+key+'"]');shown=o?o.textContent:key;}
+  else if(inp){val=inp.value;shown=key.split('|')[0];}
+  else{val=q.getAttribute('data-picked')||'';var b=q.querySelector('.opt[data-val="'+key+'"]');shown=b?b.textContent:key;}
+  var ok=norm(val)!==''&&acc.indexOf(norm(val))>-1;
+  q.classList.toggle('correct',ok);q.classList.toggle('wrong',!ok);
+  $('.fb',q).textContent=ok?'✔ Correct':'✘ Answer: '+shown;
+  if(ok)earned++;else anyWrong=true;
+ });
+ $$('.sort-task',root).forEach(function(t){
+  var cards=$$('.sort-card',t),c=0;
+  cards.forEach(function(card){
+   var bin=card.closest('.bin');
+   var ok=!!bin&&bin.getAttribute('data-bin')===card.getAttribute('data-correct');
+   card.classList.toggle('correct',ok);card.classList.toggle('wrong',!ok);
+   if(ok)c++;else anyWrong=true;
+  });
+  total+=cards.length;earned+=c;
+  $('.fb',t).textContent=c+' / '+cards.length+' in the right column.'+(c===cards.length?' ✔':' — tap a card to move it.');
+ });
+ $$('.order-task',root).forEach(function(t){
+  var sol=t.getAttribute('data-solution').split(','),lis=$$('li',t),c=0;
+  lis.forEach(function(li,i){
+   var ok=li.getAttribute('data-key')===sol[i];
+   li.classList.toggle('correct',ok);li.classList.toggle('wrong',!ok);
+   if(ok)c++;else anyWrong=true;
+  });
+  total+=lis.length;earned+=c;
+  $('.fb',t).textContent=c+' / '+lis.length+' in the right position.'+
+   (c===lis.length?' ✔':' Hint: born 1595 → childhood → 1607 → 1612 → marriage → 1616.');
+ });
+ $$('.write-task',root).forEach(function(t){
+  total++;
+  var ok=t.getAttribute('data-pass')==='1';
+  t.classList.toggle('correct',ok);t.classList.toggle('wrong',!ok);
+  $('.fb',t).textContent=ok?'✔ Requirements met — well done.':'✘ Finish the live checklist above to earn this point.';
+  if(ok)earned++;else anyWrong=true;
+ });
+ if(anyWrong)Snd.bad();else Snd.good();
+ showResults(root,earned,total);
+}
+function showResults(root,earned,total){
+ var pct=Math.round(earned/total*100),panel=$('.results',root);
+ $('.score-line',panel).textContent=earned+' / '+total+' points';
+ $('.ring-pct',panel).textContent=pct+'%';
+ var msgs={
+  'hw-a':['🏆 Record complete! You are ready to label the exhibits.','🌟 Strong record — review the marked entries.','👍 A good start. Reread the passage and revise.','📖 Open the reading passage above, then try again.'],
+  'hw-b':['🏆 Timeline filed! Your dates and evidence are sound.','🌟 A solid timeline — correct the marked claims.','👍 Reasonable start. Recheck the order and the disputed claims.','📖 Study the source record above, then rebuild the timeline.'],
+  'hw-c':['🏆 Exhibit open! Your interpretation is honest and clear.','🌟 A strong exhibit — polish the marked parts.','👍 Good ideas. Add more facts and address the myth.','📖 Reread the source material, then write again.']
+ }[root.id];
+ $('.score-msg',panel).textContent=pct>=90?msgs[0]:(pct>=70?msgs[1]:(pct>=50?msgs[2]:msgs[3]));
+ panel.hidden=false;
+ requestAnimationFrame(function(){$('.ring-fg',panel).style.strokeDashoffset=String(326.73*(1-pct/100));});
+ if(pct>=90){Snd.win();celebrate(panel);}
+ panel.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function celebrate(panel){
+ var colors=['#3aa8a0','#c47a3d','#6a9e4f','#d9a54a','#7fb8d4'];
+ for(var i=0;i<28;i++){
+  var s=document.createElement('span');s.className='confetti';
+  s.style.left=(Math.random()*100)+'%';
+  s.style.animationDelay=(Math.random()*.6)+'s';
+  s.style.background=colors[i%5];
+  var sz=6+Math.random()*8;s.style.width=s.style.height=sz+'px';
+  panel.appendChild(s);
+  setTimeout((function(node){return function(){if(node.parentNode)node.parentNode.removeChild(node);};})(s),2800);
+ }
+}
+
+/* ---------- ACTIONS ---------- */
+function doAction(a,root){
+ if(a==='check'){Snd.init();grade(root);}
+ else if(a==='reset')resetAll(root);
+ else if(a==='print')window.print();
+ else if(a==='review'){
+  var first=$('.wrong',root);
+  if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+  else $('.results',root).scrollIntoView({behavior:'smooth'});
+ }
+}
+function resetAll(root){
+ $$('.g-item',root).forEach(function(q){
+  q.classList.remove('correct','wrong');q.removeAttribute('data-picked');
+  var sel=$('select',q);if(sel)sel.value='';
+  var inp=$('input',q);if(inp)inp.value='';
+  $$('.opt',q).forEach(function(b){b.classList.remove('picked');});
+  $('.fb',q).textContent='';
+ });
+ $$('.sort-task',root).forEach(function(t){
+  var tray=$('.tray',t);
+  $$('.sort-card',t).sort(function(a,b){
+   return parseInt(a.getAttribute('data-idx'),10)-parseInt(b.getAttribute('data-idx'),10);
+  }).forEach(function(c){c.classList.remove('selected','correct','wrong');tray.appendChild(c);});
+  $('.fb',t).textContent='';
+ });
+ $$('.order-task',root).forEach(function(t){
+  var list=$('.order-list',t);
+  t.getAttribute('data-initial').split(',').forEach(function(k){
+   list.appendChild($('li[data-key="'+k+'"]',t));
+  });
+  t.removeAttribute('data-touched');
+  $$('li',t).forEach(function(li){li.classList.remove('correct','wrong');});
+  $('.fb',t).textContent='';
+ });
+ $$('.write-task',root).forEach(function(t){
+  $('textarea,input',t).value='';
+  t.classList.remove('correct','wrong');$('.fb',t).textContent='';
+  if(t._update)t._update();
+ });
+ $$('.ready-check',root).forEach(function(c){c.checked=false;});
+ var lbl=$('.ready-count',root);if(lbl)lbl.textContent='Ready: 0 / 4';
+ var panel=$('.results',root);panel.hidden=true;
+ $('.ring-fg',panel).style.strokeDashoffset='326.73';
+ refreshProgress(root);Snd.click();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- INIT ---------- */
+$$('.order-task').forEach(function(t){
+ t.setAttribute('data-initial',$$('li',t).map(function(li){return li.getAttribute('data-key');}).join(','));
+});
+function setMode(m){
+ document.body.setAttribute('data-mode',m);
+ $$('.assignment').forEach(function(a){a.hidden=a.id!=='hw-'+m;});
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+window.CMC_HW_SETMODE=setMode;window.CMC_HW_GRADE=grade;
+$$('.tab').forEach(function(b){
+ b.addEventListener('click',function(){Snd.init();Snd.click();setMode(b.getAttribute('data-mode'));});
+});
+$('#soundBtn').addEventListener('click',function(){
+ Snd.init();Snd.mute(!Snd.on);
+ this.classList.toggle('on',Snd.on);
+ this.textContent=Snd.on?'🔊':'🔇';
+ this.setAttribute('aria-pressed',String(Snd.on));
+ this.title=Snd.on?'Mute feedback sounds':'Unmute feedback sounds';
+ if(Snd.on)Snd.click();
+});
+var io=new IntersectionObserver(function(es){
+ es.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+},{threshold:.06});
+$$('.reveal').forEach(function(el){io.observe(el);});
+$$('.assignment').forEach(refreshProgress);
+if(!/#hw-[abc]/.test(location.hash))setMode('a');
+})();
+</script>
+<script>
+/* ── Kid 11 online homework: hero name/date sync + completion submit + share ──
+   Name and date typed in any homework hero mirror into the other two, so a
+   student who does Homework 1 today and Homework 2 tomorrow keeps their
+   details. Submit-to-Teacher reuses the site-wide drill_attempts pipeline:
+   signed-in students post under their own localStorage session token (with
+   securetoken refresh), visitors through the validated guest branch (empty
+   studentUid, 1-40 char name, classId null) — append-only, no rules change,
+   lands in the teacher dashboard feed and the homepage ticker. The payload
+   names the ACTIVE homework (1 The Archive Record / 2 Timeline Historian /
+   3 Museum Interpreter) so the teacher can tell the three apart. */
+
+(function () {
+  var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+  var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+
+  /* ── An email is NEVER a display name ───────────────────────────────
+     Owner report: "students that sign in with their gmail are not showing
+     names on the completion ticker" — Google sign-ins can return an empty
+     displayName and the old auth fallback stored the EMAIL as the name, so
+     submissions carried e.g. "mam.ry@aii.edu.kh". Heals a stored
+     email-as-name once at load and guards every outgoing name ("mam.ry@…"
+     → "Mam Ry"). A real typed name is never touched. */
+  function cmcLooksLikeEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim());
+  }
+  function cmcFriendlyFromEmail(email) {
+    var local = String(email || '').split('@')[0].trim();
+    if (!local) return '';
+    var words = local.split(/[._+\-]+/).map(function (w) { return w.trim(); }).filter(Boolean);
+    if (!words.length) return local.slice(0, 40);
+    return words.map(function (w) { return (w.charAt(0).toUpperCase() + w.slice(1)).slice(0, 40); }).join(' ').trim().slice(0, 40);
+  }
+  function cmcNameOf(v) {
+    var s = String(v || '').trim();
+    if (!s || !cmcLooksLikeEmail(s)) return s;
+    return cmcFriendlyFromEmail(s) || s;
+  }
+  (function () {
+    try {
+      var stored = localStorage.getItem('cmc-student-name') || '';
+      if (!cmcLooksLikeEmail(stored)) return;
+      var healed = cmcFriendlyFromEmail(stored);
+      if (healed) localStorage.setItem('cmc-student-name', healed);
+      else localStorage.removeItem('cmc-student-name');
+    } catch (e) { /* private mode — nothing to heal */ }
+  })();
+
+
+  var HW_LABELS = {
+    a: 'Homework 1 · The Archive Record',
+    b: 'Homework 2 · Timeline Historian',
+    c: 'Homework 3 · Museum Interpreter'
+  };
+
+  function cmcToast(msg, err) {
+    var t = document.getElementById('cmcToast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!err);
+    t.classList.add('show');
+    clearTimeout(cmcToast._tm);
+    cmcToast._tm = setTimeout(function () { t.classList.remove('show'); }, 3600);
+  }
+
+  function cmcSession() {
+    var tok = '', uid = '', name = '';
+    try {
+      tok = localStorage.getItem('cmc-student-token') || '';
+      uid = localStorage.getItem('cmc-student-uid') || '';
+      name = localStorage.getItem('cmc-student-name') || '';
+    } catch (e) {}
+    return { tok: tok, uid: uid, name: cmcNameOf(name), authed: !!(tok && uid) };
+  }
+
+  // Mirror the Name/Date typed in any hero into every other hero (same role
+  // by aria-label), and prefill the Name for signed-in students.
+  function cmcSyncNameDate(from) {
+    var name = '', date = '';
+    document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+      var label = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (label.indexOf('date') !== -1) { if (inp.value) date = inp.value; }
+      else { if (inp.value) name = inp.value; }
+    });
+    if (from) {
+      var fl = (from.getAttribute('aria-label') || '').toLowerCase();
+      if (fl.indexOf('date') !== -1) date = from.value; else name = from.value;
+    }
+    document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+      if (inp === from) return;
+      var label = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (label.indexOf('date') !== -1) { if (date) inp.value = date; }
+      else { if (name) inp.value = name; }
+    });
+  }
+  document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+    inp.addEventListener('input', function () { cmcSyncNameDate(inp); });
+  });
+  try {
+    var pre = cmcNameOf(localStorage.getItem('cmc-student-name'));
+    if (pre) {
+      document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+        if (((inp.getAttribute('aria-label') || '').toLowerCase().indexOf('date')) === -1) inp.value = pre.slice(0, 40);
+      });
+    }
+  } catch (e) {}
+
+  function cmcRefreshToken(cb) {
+    // Same securetoken grant flow as the rfc2/rfc3 worksheets and cmc-shared.js.
+    try {
+      var rt = localStorage.getItem('cmc-student-refresh-token');
+      if (!rt) return cb(null);
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.id_token) {
+          try {
+            localStorage.setItem('cmc-student-token', d.id_token);
+            localStorage.setItem('cmc-student-token-expires', String(Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000));
+            if (d.refresh_token) localStorage.setItem('cmc-student-refresh-token', d.refresh_token);
+          } catch (e) {}
+          cb(d.id_token);
+        } else cb(null);
+      }).catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+
+  function cmcPost(body, token) {
+    var h = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return fetch(CMC_FS, { method: 'POST', headers: h, body: JSON.stringify({ fields: body }) });
+  }
+
+  function cmcActiveRoot() {
+    return document.getElementById('hw-' + (document.body.getAttribute('data-mode') || 'a'));
+  }
+
+  function cmcActiveNameInput(root) {
+    // The heroes keep the teacher's markup order: name first, date second.
+    var inputs = root.querySelectorAll('.meta input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (((inputs[i].getAttribute('aria-label') || '').toLowerCase().indexOf('date')) === -1) return inputs[i];
+    }
+    return inputs[0] || null;
+  }
+
+  function cmcCurrentScore(root) {
+    // Reuse the homework's own grading — the score line reads "E / T points".
+    var line = root.querySelector('.score-line');
+    var panel = root.querySelector('.results');
+    var m = line && /^(\d+) \/ (\d+) points$/.exec((line.textContent || '').trim());
+    if (!(panel && !panel.hidden && m)) { if (window.CMC_HW_GRADE) window.CMC_HW_GRADE(root); }
+    var txt = (root.querySelector('.score-line').textContent || '').trim();
+    var m2 = /^(\d+) \/ (\d+) points$/.exec(txt);
+    return { correct: m2 ? Number(m2[1]) : 0, total: m2 ? Number(m2[2]) : 0 };
+  }
+
+  function cmcBuildBody(name, uid, score, mode) {
+    // Field set matches the drill_attempts rules: guest branch requires
+    // studentUid == '', name 1-40 chars, ints in range, classId null.
+    var pct = score.total > 0 ? Math.round(score.correct / score.total * 100) : 0;
+    return {
+      drillSlug:   { stringValue: 'unit3hw.html' },
+      drillTitle:  { stringValue: 'Unit 3 · Pocahontas — ' + (HW_LABELS[mode] || HW_LABELS.a) },
+      drillSource: { stringValue: 'rfc3' },
+      studentName: { stringValue: name },
+      studentUid:  { stringValue: uid },
+      scorePct:      { integerValue: String(pct) },
+      correctCount:  { integerValue: String(score.correct) },
+      totalCount:    { integerValue: String(score.total) },
+      classId:       { nullValue: null },
+      submittedAt:   { timestampValue: new Date().toISOString() }
+    };
+  }
+
+  function submitCompletion() {
+    var btn = document.getElementById('submitBtn');
+    var root = cmcActiveRoot();
+    var mode = document.body.getAttribute('data-mode') || 'a';
+    var nameEl = cmcActiveNameInput(root);
+
+    var sess = cmcSession();
+    var name = cmcNameOf((((nameEl && nameEl.value) || '').trim() || sess.name).slice(0, 40));
+    if (!name) {
+      cmcToast('Add your name first — your teacher needs to know who finished the homework.', true);
+      btn.textContent = '⚠ Add your name first';
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 2600);
+      if (nameEl) {
+        nameEl.focus();
+        nameEl.classList.add('needs-name');
+        setTimeout(function () { nameEl.classList.remove('needs-name'); }, 1900);
+      }
+      var hero = root.querySelector('.hero');
+      if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.remove('done');
+    btn.textContent = 'Submitting…';
+    var score = cmcCurrentScore(root);
+    var body = cmcBuildBody(name, sess.authed ? sess.uid : '', score, mode);
+    var okMsg = '✓ Submitted! ' + name + ' — ' + score.correct + '/' + score.total + ' sent to your teacher.';
+
+    var done = function (ok, msg) {
+      btn.disabled = false;
+      btn.classList.toggle('done', ok);
+      btn.textContent = ok ? '✓ Submitted to teacher' : '⚠ Try again';
+      cmcToast(msg, !ok);
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 4200);
+    };
+
+    cmcPost(body, sess.authed ? sess.tok : '')
+      .then(function (r) {
+        if (r.ok) return done(true, okMsg);
+        if (r.status === 401 && sess.authed) {
+          cmcRefreshToken(function (t) {
+            if (t) {
+              cmcPost(body, t).then(function (r2) { done(r2.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+            } else {
+              // Session unrecoverable → validated guest branch.
+              cmcPost(cmcBuildBody(name, '', score, mode), '')
+                .then(function (r3) { done(r3.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+            }
+          });
+          return;
+        }
+        // Permission or server error → guest branch fallback (uid must be '').
+        cmcPost(cmcBuildBody(name, '', score, mode), '')
+          .then(function (r3) { done(r3.ok, okMsg); })
+          .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+      })
+      .catch(function () { done(false, 'Could not reach the teacher console — check your connection and try again.'); });
+  }
+  document.getElementById('submitBtn').addEventListener('click', submitCompletion);
+
+  /* ── Share (native sheet when available, fallback options otherwise) ── */
+  function cmcHomeworkUrl() {
+    return location.origin === 'null'
+      ? 'https://cmckhmer.github.io/Creative-Minds-/rfc3/unit3hw.html'
+      : location.href.split('#')[0];
+  }
+  function cmcShareText() {
+    return 'Kid 11 Online Homework — Unit 3 · Pocahontas · Homeworks 1–3 (auto-graded)';
+  }
+  function cmcToggleShare(force) {
+    var p = document.getElementById('cmcShare');
+    var open = typeof force === 'boolean' ? force : !p.classList.contains('open');
+    p.classList.toggle('open', open);
+  }
+  document.addEventListener('click', function (e) {
+    var p = document.getElementById('cmcShare');
+    if (p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('[data-cmc-share]')) cmcToggleShare(false);
+  });
+  function cmcNativeShare() {
+    if (navigator.share) {
+      navigator.share({ title: 'Unit 3 · Pocahontas', text: cmcShareText(), url: cmcHomeworkUrl() }).catch(function () {});
+      return true;
+    }
+    return false;
+  }
+  document.querySelector('[data-cmc-share]').addEventListener('click', function () { if (!cmcNativeShare()) cmcToggleShare(); });
+  function cmcCopyLink() {
+    var url = cmcHomeworkUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { cmcToast('Homework link copied — paste it into your class chat'); });
+    } else {
+      var t = document.createElement('textarea'); t.value = url; document.body.appendChild(t);
+      t.select(); document.execCommand('copy'); t.remove();
+      cmcToast('Homework link copied — paste it into your class chat');
+    }
+    cmcToggleShare(false);
+  }
+  document.querySelector('[data-cmc-copy]').addEventListener('click', cmcCopyLink);
+  document.querySelector('[data-cmc-wa]').addEventListener('click', function () {
+    window.open('https://wa.me/?text=' + encodeURIComponent(cmcShareText() + ' ' + cmcHomeworkUrl()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-tg]').addEventListener('click', function () {
+    window.open('https://t.me/share/url?url=' + encodeURIComponent(cmcHomeworkUrl()) + '&text=' + encodeURIComponent(cmcShareText()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-email]').addEventListener('click', function () {
+    location.href = 'mailto:?subject=' + encodeURIComponent('Unit 3 · Pocahontas — Kid 11 Online Homework') + '&body=' + encodeURIComponent(cmcShareText() + '\n' + cmcHomeworkUrl());
+    cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-close]').addEventListener('click', function () { cmcToggleShare(false); });
+})();
+</script>
+</body>
+</html>

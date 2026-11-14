@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit 4 · Walt Disney — Kid 11 Online Homework (Homeworks 1–3)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ================= FOUNDATION ================= */
+:root{
+  --head:68px;
+  --ink:#14110f; --ink2:#1e1915; --ink3:#2a231d;
+  --paper:#f9f2e4; --paper2:#f1e7d2;
+  --blue:#2f6fdb; --gold:#e0a63a; --rose:#d94f8c; --green:#3fa66a; --cyan:#39b8d8;
+  --red:#d64545; --slate:#5b6472; --cream:#fff8ea;
+  --ok:#2f8f57; --bad:#c0453a; --warn:#c98a1f; --info:#2f6fdb;
+  --glass:rgba(18,14,11,.92);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scrollbar-color:var(--gold) var(--ink);scrollbar-width:thin}
+body{
+  font-family:'Outfit',system-ui,sans-serif;color:#f3ead9;min-height:100vh;overflow-x:hidden;
+  background:linear-gradient(176deg,var(--ink) 0%,var(--ink2) 48%,var(--ink3) 100%) fixed;
+}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:#191410;border-left:1px solid rgba(224,166,58,.16)}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--gold),#8a5a1c);border-radius:9px;border:3px solid #191410}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(var(--cyan),var(--rose))}
+::-webkit-scrollbar-corner{background:#191410}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:5px}
+.mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+
+/* ================= ANIMATION DESK WORLD ================= */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.desk{position:absolute;inset:0;opacity:.5;
+  background-image:
+    radial-gradient(ellipse 420px 260px at 14% 12%,rgba(224,166,58,.16),transparent 65%),
+    radial-gradient(ellipse 380px 300px at 86% 58%,rgba(47,111,219,.14),transparent 65%),
+    radial-gradient(ellipse 460px 240px at 48% 98%,rgba(217,79,140,.12),transparent 65%)}
+.grain{position:absolute;inset:0;opacity:.08;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E")}
+.storyboard{position:absolute;inset:0;opacity:.06;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(249,242,228,.5) 0 1px,transparent 1px 120px),
+    repeating-linear-gradient(90deg,rgba(249,242,228,.5) 0 1px,transparent 1px 180px)}
+.filmstrip{position:absolute;top:0;bottom:0;width:44px;opacity:.14;
+  background-image:repeating-linear-gradient(180deg,rgba(249,242,228,.7) 0 14px,transparent 14px 30px);
+  border-left:1px solid rgba(249,242,228,.3);border-right:1px solid rgba(249,242,228,.3)}
+.filmstrip.left{left:18px}.filmstrip.right{right:18px}
+.lamp{position:absolute;border-radius:50%;filter:blur(96px);opacity:.24;animation:flicker 18s ease-in-out infinite alternate}
+.lamp.l1{width:46vw;height:46vw;left:-14vw;top:-14vw;background:radial-gradient(circle,var(--gold),transparent 70%)}
+.lamp.l2{width:38vw;height:38vw;right:-12vw;top:30vh;background:radial-gradient(circle,var(--blue),transparent 70%);animation-delay:-8s;opacity:.18}
+.lamp.l3{width:40vw;height:40vw;left:32vw;bottom:-20vw;background:radial-gradient(circle,var(--rose),transparent 70%);animation-delay:-14s;opacity:.16}
+@keyframes flicker{0%{opacity:.18;transform:scale(1)}50%{opacity:.3}100%{opacity:.22;transform:scale(1.1)}}
+.castle{position:absolute;left:50%;bottom:-4vh;transform:translateX(-50%);width:min(70vw,760px);color:rgba(249,242,228,.07)}
+.spark{position:absolute;bottom:-20px;border-radius:50%;background:rgba(224,166,58,.6);
+  box-shadow:0 0 10px rgba(224,166,58,.7);animation:rise linear infinite}
+@keyframes rise{0%{transform:translate(0,0);opacity:0}12%{opacity:.9}100%{transform:translate(30px,-116vh);opacity:0}}
+.vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(8,6,4,.72) 100%)}
+
+/* ================= HEADER ================= */
+.site-head{position:fixed;top:0;left:0;right:0;height:var(--head);z-index:60;display:flex;align-items:center;gap:14px;
+  padding:0 18px;background:var(--glass);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(224,166,58,.34);box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand svg{width:34px;height:34px;color:var(--gold);flex-shrink:0;filter:drop-shadow(0 0 8px rgba(224,166,58,.5))}
+.brand b{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;font-weight:800;letter-spacing:-.2px;display:block;line-height:1;white-space:nowrap}
+.brand small{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.9px;color:#a8977e;display:block;margin-top:3px}
+.tabs{margin-left:auto;display:flex;gap:7px;overflow-x:auto;max-width:60vw;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:1px solid rgba(224,166,58,.3);background:rgba(255,255,255,.03);color:#e8dcc6;border-radius:8px;
+  padding:8px 15px;font-size:12px;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:7px;transition:.18s;white-space:nowrap}
+.tab .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor}
+.tab[data-mode="a"] .dot{background:var(--blue);color:var(--blue)}
+.tab[data-mode="b"] .dot{background:var(--gold);color:var(--gold)}
+.tab[data-mode="c"] .dot{background:var(--rose);color:var(--rose)}
+.tab:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 0 16px rgba(224,166,58,.22)}
+body[data-mode="a"] .tab[data-mode="a"]{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:700}
+body[data-mode="b"] .tab[data-mode="b"]{background:var(--gold);color:#241a06;border-color:var(--gold);font-weight:700}
+body[data-mode="c"] .tab[data-mode="c"]{background:var(--rose);color:#fff;border-color:var(--rose);font-weight:700}
+.sound{width:38px;height:38px;border-radius:8px;border:1px solid rgba(224,166,58,.3);background:rgba(224,166,58,.08);
+  color:var(--gold);display:grid;place-items:center;font-size:15px;transition:.16s;flex-shrink:0}
+.sound:hover{border-color:var(--gold);background:rgba(224,166,58,.2)}
+.sound.on{background:var(--ok);border-color:var(--ok);color:#fff}
+
+/* ================= THEMES ================= */
+.assignment{position:relative;z-index:10;max-width:960px;margin:0 auto;padding:calc(var(--head) + 24px) 16px 80px}
+#hw-a{--acc:#2f6fdb;--btn:#2456ad;--on-btn:#fff;--acc-ink:#1e4a96;--paper:#f7f9fe;--panel:#e9effb;--ink:#1f2836;
+  --line:#d3ddec;--soft:#eaf0f9;--glow:rgba(47,111,219,.3)}
+#hw-b{--acc:#e0a63a;--btn:#b8801f;--on-btn:#fff;--acc-ink:#8a5f14;--paper:#fdf9ef;--panel:#f7ecd4;--ink:#33291a;
+  --line:#eeddc0;--soft:#f9f1de;--glow:rgba(224,166,58,.3)}
+#hw-c{--acc:#d94f8c;--btn:#b8326c;--on-btn:#fff;--acc-ink:#a3245c;--paper:#fdf6fa;--panel:#f8e6f0;--ink:#33202a;
+  --line:#f0d4e2;--soft:#faeaf2;--glow:rgba(217,79,140,.3)}
+
+/* ================= HERO ================= */
+.hero{background:var(--paper);color:var(--ink);border-radius:12px;padding:34px 32px 28px;margin-bottom:20px;
+  border:1px solid var(--line);position:relative;overflow:hidden;
+  box-shadow:0 24px 64px rgba(0,0,0,.55),inset 0 0 80px var(--soft)}
+.hero::before{content:"";position:absolute;left:0;right:0;top:0;height:7px;
+  background:linear-gradient(90deg,var(--acc),var(--gold),var(--acc))}
+.hero::after{content:"";position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:50%;
+  border:1px solid var(--line);opacity:.6}
+.kicker{display:inline-block;background:var(--acc);color:var(--on-btn);font-family:'IBM Plex Mono',monospace;
+  font-size:10px;font-weight:600;letter-spacing:2.2px;padding:6px 14px;border-radius:5px;margin-bottom:14px;position:relative}
+.hero h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(30px,5.2vw,50px);line-height:1.02;
+  margin-bottom:12px;letter-spacing:-.6px;position:relative}
+.hero h1 em{font-style:normal;color:var(--btn)}
+.brief{max-width:680px;line-height:1.75;color:#54504a;font-size:15.5px;position:relative;font-family:'Newsreader',Georgia,serif}
+.seal{position:absolute;right:28px;top:34px;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;
+  border:2px solid var(--acc);color:var(--acc);font-family:'Bricolage Grotesque',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:1px;text-align:center;line-height:1.25;transform:rotate(-8deg);opacity:.75;background:var(--soft)}
+.meta{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;position:relative}
+.meta input{border:1.5px solid var(--line);background:#fffdf7;border-radius:6px;padding:9px 13px;font-size:14px;color:var(--ink);width:auto}
+.meta input::placeholder{color:#a2957f}
+.hero-stats{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;position:relative}
+.hero-stats span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-family:'IBM Plex Mono',monospace;
+  font-size:10px;font-weight:600;padding:6px 12px;border-radius:5px}
+
+/* ================= TOOLBAR ================= */
+.toolbar{position:sticky;top:var(--head);z-index:40;display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+  background:var(--glass);backdrop-filter:blur(14px);border:1px solid rgba(224,166,58,.26);
+  border-radius:10px;padding:11px 16px;margin-bottom:22px;box-shadow:0 10px 34px rgba(0,0,0,.5)}
+.progress{flex:1;min-width:170px}
+.progress-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.5px;color:var(--gold);font-weight:600;margin-bottom:6px}
+.progress-track{height:9px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+.progress-fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--gold));
+  box-shadow:0 0 14px var(--glow);transition:width .4s ease}
+.btn{border-radius:7px;padding:10px 21px;font-weight:600;font-size:13px;letter-spacing:.4px;transition:.16s;
+  display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn.primary{background:var(--btn);color:var(--on-btn);box-shadow:0 4px 16px var(--glow)}
+.btn.primary:hover{filter:brightness(1.12);transform:translateY(-2px)}
+.btn.ghost{border:1px solid rgba(232,220,198,.4);color:#e8dcc6;background:transparent}
+.btn.ghost:hover{border-color:var(--gold);background:rgba(224,166,58,.1)}
+.btn.paper{background:var(--soft);color:var(--acc-ink);border:1px solid var(--line)}
+.btn.paper:hover{border-color:var(--acc)}
+.btn.sm{padding:8px 15px;font-size:12px}
+
+/* ================= STORYBOARD CARDS ================= */
+.task{background:var(--paper);color:var(--ink);border-radius:12px;padding:28px;margin-bottom:22px;
+  border:1px solid var(--line);position:relative;overflow:hidden;
+  box-shadow:0 18px 48px rgba(0,0,0,.45);scroll-margin-top:calc(var(--head) + 90px)}
+.task::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;
+  background-image:repeating-linear-gradient(180deg,var(--acc) 0 12px,transparent 12px 20px)}
+.task-head{display:flex;align-items:center;gap:13px;margin-bottom:7px;flex-wrap:wrap;padding-left:10px}
+.tnum{font-family:'IBM Plex Mono',monospace;background:var(--acc);color:var(--on-btn);font-size:12.5px;font-weight:600;
+  min-width:46px;height:34px;display:grid;place-items:center;border-radius:6px;letter-spacing:.5px;
+  box-shadow:0 3px 10px var(--glow)}
+.task-head h2{font-family:'Bricolage Grotesque',sans-serif;font-size:23px;font-weight:700;letter-spacing:-.3px}
+.pts{margin-left:auto;background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.2px;padding:4px 11px;border-radius:5px}
+.hint{color:#6d6152;font-size:13.5px;margin-bottom:18px;line-height:1.65;padding-left:10px;font-family:'Newsreader',serif}
+.hl{background:#e8f0cf;padding:1px 5px;border-radius:3px;font-weight:600;color:#3a4a24}
+.fb{display:block;font-size:12px;font-weight:600;margin-top:9px;min-height:1em;font-family:'IBM Plex Mono',monospace}
+.correct .fb{color:#1f6b40}.wrong .fb{color:#a02e22}
+.g-item.correct,.write-task.correct{background:#eaf6ec;border-radius:8px}
+.g-item.wrong,.write-task.wrong{background:#fbeae7;border-radius:8px}
+
+input[type=text],select,textarea{border:1.5px solid var(--line);border-radius:6px;padding:9px 12px;font-size:14px;
+  background:#fffdf7;color:var(--ink);width:100%;transition:.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--soft)}
+.correct input,.correct select{border-color:var(--ok)}
+.wrong input,.wrong select{border-color:var(--bad)}
+textarea{min-height:106px;resize:vertical;line-height:1.75;font-family:'Newsreader',Georgia,serif;font-size:15.5px}
+.field-row{display:grid;grid-template-columns:1fr minmax(190px,300px);gap:7px 16px;align-items:center;
+  padding:11px 12px;border-radius:8px;margin-bottom:4px}
+.field-row label{font-size:15px;line-height:1.55;font-family:'Newsreader',Georgia,serif}
+.field-row label b{color:var(--acc-ink);font-family:'Outfit',sans-serif;font-size:13px}
+.field-row .fb{grid-column:1/-1;margin-top:2px}
+
+.q{padding:13px 14px;margin-bottom:6px;border-radius:8px}
+.q p{font-size:15px;line-height:1.6;font-family:'Newsreader',Georgia,serif}
+.q p b{font-family:'Outfit',sans-serif;font-size:13px;color:var(--acc-ink)}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.opt{border:1.5px solid var(--line);background:#fffdf7;border-radius:6px;padding:9px 15px;font-size:13.5px;
+  color:var(--ink);transition:.15s;text-align:left}
+.opt:hover{border-color:var(--acc);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.09)}
+.opt.picked{background:var(--btn);border-color:var(--btn);color:var(--on-btn);font-weight:600}
+.correct .opt.picked{background:var(--ok);border-color:var(--ok);color:#fff}
+.wrong .opt.picked{background:var(--bad);border-color:var(--bad);color:#fff}
+
+.tray{display:flex;flex-wrap:wrap;gap:9px;padding:15px;background:var(--soft);border:1.5px dashed var(--line);
+  border-radius:8px;margin-bottom:14px;min-height:64px}
+.tray-label,.bin-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.4px;font-weight:600;color:#96897a}
+.tray-label{width:100%}
+.sort-card{border:1.5px solid var(--line);border-left:4px solid var(--acc);background:#fffdf7;border-radius:6px;
+  padding:9px 14px;font-size:13.5px;color:var(--ink);transition:.15s;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,.07);
+  font-family:'Newsreader',Georgia,serif}
+.sort-card:hover{transform:translateY(-2px) rotate(-.4deg);box-shadow:0 6px 16px rgba(0,0,0,.14);border-color:var(--acc)}
+.sort-card.selected{border-color:var(--btn);box-shadow:0 0 0 3px var(--soft);transform:translateY(-2px)}
+.sort-card.correct{border-color:var(--ok);border-left-color:var(--ok);background:#eaf6ec}
+.sort-card.wrong{border-color:var(--bad);border-left-color:var(--bad);background:#fbeae7}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bin{border:1.5px dashed var(--line);border-radius:8px;padding:15px;min-height:134px;background:#fffdf7;transition:.15s;cursor:pointer}
+.bin:hover,.bin:focus-visible{border-color:var(--acc);background:var(--soft);outline:none}
+.bin h4{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:700;margin-bottom:3px}
+.bin-a h4{color:var(--info)}.bin-b h4{color:var(--btn)}
+.bin-body{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.bin-body .sort-card{font-size:13px;padding:7px 11px}
+
+.order-list{list-style:none;counter-reset:ord;display:flex;flex-direction:column;gap:9px}
+.order-list li{counter-increment:ord;display:flex;align-items:center;gap:12px;background:#fffdf7;
+  border:1.5px solid var(--line);border-radius:7px;padding:11px 14px;transition:.15s}
+.order-list li::before{content:counter(ord);font-family:'IBM Plex Mono',monospace;background:var(--acc);color:var(--on-btn);
+  font-weight:600;min-width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.order-list li.correct{border-color:var(--ok);background:#eaf6ec}
+.order-list li.wrong{border-color:var(--bad);background:#fbeae7}
+.ord-text{flex:1;font-size:14px;line-height:1.55;font-family:'Newsreader',Georgia,serif}
+.ord-ctl{display:flex;gap:5px;flex-shrink:0}
+.ord-btn{border:1.5px solid var(--line);background:#fffdf7;width:32px;height:32px;border-radius:6px;font-size:14px;
+  color:var(--ink);transition:.14s}
+.ord-btn:hover{border-color:var(--acc);background:var(--soft)}
+
+.write-meta{display:flex;align-items:center;gap:10px;margin:8px 0}
+.wc{font-family:'IBM Plex Mono',monospace;background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);
+  font-size:11px;font-weight:600;padding:5px 12px;border-radius:5px}
+.checks{list-style:none;display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.checks li{display:flex;align-items:center;gap:9px;font-size:13px;color:#6d6152;transition:.2s}
+.checks .dot{width:18px;height:18px;border-radius:4px;border:1.5px solid #cdc0aa;display:grid;place-items:center;
+  font-size:11px;color:#fff;flex-shrink:0;transition:.2s}
+.checks li.ok{color:#1f6b40;font-weight:600}
+.checks li.ok .dot{background:var(--ok);border-color:var(--ok)}
+.checks li.ok .dot::after{content:"✓"}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.chips span{background:var(--soft);border:1px solid var(--line);color:var(--acc-ink);font-size:12px;font-weight:500;padding:4px 11px;border-radius:5px}
+.bank span{display:inline-block;background:#e8f0cf;border-radius:5px;padding:5px 13px;margin:3px;font-weight:600;font-size:13.5px;color:#3a4a24;
+  font-family:'Newsreader',serif}
+.client{display:flex;gap:14px;align-items:center;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:15px 17px;margin-bottom:15px}
+.client .avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--btn));
+  display:grid;place-items:center;font-size:23px;flex-shrink:0;border:2px solid var(--paper)}
+.client p{font-size:14px;line-height:1.6;color:#54504a;font-family:'Newsreader',serif}
+details.model,details.passage{margin-top:13px;border-top:1.5px dashed var(--line);padding-top:12px}
+details.passage{margin-top:0;border-top:none;padding-top:0}
+details summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--acc-ink)}
+details summary:hover{color:var(--btn)}
+details p{font-size:15px;line-height:1.8;color:#4e4438;margin-top:10px;font-family:'Newsreader',Georgia,serif}
+details.passage p{background:var(--soft);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc)}
+details.passage p:first-of-type::first-letter{font-family:'Bricolage Grotesque',sans-serif;font-size:2.8em;line-height:.86;
+  float:left;padding:.06em .12em 0 0;font-weight:800;color:var(--btn)}
+.sub-q{margin-bottom:22px}
+.sub-q>label{display:block;font-size:15px;font-weight:600;margin-bottom:8px;line-height:1.55}
+.ready-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.ready-list label{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;line-height:1.55;cursor:pointer;font-family:'Newsreader',serif}
+.ready-list input{width:19px;height:19px;margin-top:2px;accent-color:var(--btn);flex-shrink:0}
+.ready-count{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--acc-ink);font-size:12px}
+
+/* ================= RESULTS ================= */
+.results{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+.ring{width:126px;height:126px;flex-shrink:0}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.ring .ring-bg{stroke:var(--line)}
+.ring .ring-fg{stroke:var(--btn);stroke-dasharray:326.73;stroke-dashoffset:326.73;transform:rotate(-90deg);
+  transform-origin:center;transition:stroke-dashoffset 1s ease;filter:drop-shadow(0 0 8px var(--glow))}
+.ring-wrap{position:relative}
+.ring-pct{position:absolute;inset:0;display:grid;place-items:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:24px;color:var(--btn)}
+.results-body{flex:1;min-width:230px}
+.results-body h2{font-family:'Bricolage Grotesque',sans-serif;font-size:25px;font-weight:800;margin-bottom:6px}
+.score-line{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;color:var(--acc-ink);margin-bottom:8px}
+.results-body p{font-size:15px;color:#54504a;line-height:1.65;margin-bottom:15px;font-family:'Newsreader',serif}
+.results-actions{display:flex;gap:9px;flex-wrap:wrap}
+.confetti{position:absolute;bottom:-10px;border-radius:2px;animation:pop 2.1s ease-out forwards;pointer-events:none}
+@keyframes pop{to{transform:translateY(-300px) rotate(240deg);opacity:0}}
+
+.js .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.js .reveal.in{opacity:1;transform:none}
+
+@media(max-width:760px){
+  .brand small{display:none}.brand b{font-size:16px}
+  .tab{padding:7px 10px;font-size:11px}
+  .site-head{padding:0 11px;gap:9px}
+  .field-row,.bins{grid-template-columns:1fr}
+  .seal{display:none}.task{padding:22px 18px}.hero{padding:28px 20px 24px}
+  .assignment{padding:calc(var(--head) + 16px) 12px 60px}
+  .task-head,.hint{padding-left:6px}
+  .filmstrip{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .js .reveal{opacity:1;transform:none}
+}
+/* ── CMC site furniture (Kid 11 online homework) — namespaced hw-/cmc- ── */
+#cmc-back-btn{position:fixed;top:14px;right:14px;z-index:60;display:flex;align-items:center;
+  gap:8px;padding:9px 16px;border-radius:999px;background:rgba(3,20,24,.9);
+  border:1px solid rgba(45,212,191,.45);color:#e6f4f4;font-family:'Outfit',system-ui,sans-serif;
+  font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
+#cmc-back-btn:hover{background:rgba(45,212,191,.16);transform:translateY(-1px)}
+/* the fixed worksheet header owns the top edge — leave room for the back pill.
+   The teacher's file stacks the header at z-index:60, same as the pill, and the
+   header paints later — so the header drops to 50 (still above the sticky
+   toolbar at 40) and the pill stays clickable, like the other homework pages. */
+.site-head{padding-right:170px;z-index:50}
+@media(max-width:680px){
+  .site-head{padding-right:58px}
+  #cmc-back-btn{font-size:0;padding:9px;gap:0;top:10px;right:10px}
+  #cmc-back-btn svg{width:15px;height:15px}
+}
+/* The underwater background uses fixed layers that intentionally bleed past
+   the edges. overflow-x:clip stops sideways scroll WITHOUT creating a scroll
+   container, so the sticky toolbars of the three homeworks keep working. */
+html,body{overflow-x:clip}
+/* Name/date fields stay readable on the white hero boxes — pinned so a later
+   generic input rule can never flip them again. */
+.meta input{color:var(--ink)!important;caret-color:var(--ink)!important;font-weight:600}
+.meta input::placeholder{color:#93a8ab;opacity:1;font-weight:600}
+.meta input:-webkit-autofill{-webkit-text-fill-color:var(--ink);
+  -webkit-box-shadow:0 0 0 1000px #fff inset;transition:background-color 99999s}
+/* Teacher preview banner (teacher + at least one homework still unshared) */
+#hwBanner{display:none;position:relative;z-index:1;max-width:950px;margin:calc(var(--head) + 16px) auto -6px;
+  background:rgba(255,179,0,.12);border:1px solid rgba(255,179,0,.45);color:#ffd54f;
+  border-radius:12px;padding:10px 16px;font-size:13px;line-height:1.55;font-family:'Outfit',system-ui,sans-serif}
+html.hw-teacher-locked #hwBanner{display:block}
+/* Bottom action bar: Submit to Teacher + Share */
+.hw-bar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(3,20,24,.94);
+  backdrop-filter:blur(8px);border-top:1px solid rgba(45,212,191,.25);
+  padding:12px 16px;display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}
+.hw-btn{border:none;border-radius:999px;padding:11px 24px;font:inherit;font-weight:700;font-size:14px;
+  cursor:pointer;transition:.18s}
+.hw-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.hw-btn-submit{background:linear-gradient(90deg,#4fb060,#2f7d43);color:#fff}
+.hw-btn-submit:disabled{opacity:.7;cursor:progress;filter:none}
+.hw-btn-submit.done{background:linear-gradient(90deg,#2c6b39,#4fb060)}
+.hw-btn-ghost{background:transparent;border:2px solid rgba(184,212,216,.5);color:#cfe9e9}
+.hw-btn-ghost:hover{border-color:#fff}
+.assignment{padding-bottom:130px!important}
+.needs-name{animation:needPulse 1.8s ease}
+@keyframes needPulse{0%,100%{box-shadow:none}25%,75%{box-shadow:0 0 0 4px rgba(63,168,96,.35);border-color:#e05252}}
+.cmc-toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(14px);
+  z-index:70;background:#fff;border:2px solid #2f7d43;color:#2c6b39;
+  padding:10px 18px;border-radius:999px;font-weight:700;font-size:13.5px;font-family:'Outfit',system-ui,sans-serif;
+  box-shadow:0 12px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:all .3s;
+  max-width:88vw;text-align:center}
+.cmc-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.cmc-toast.err{border-color:var(--bad);color:var(--bad)}
+.cmc-share{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:70;
+  background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.5);
+  padding:14px 16px;display:none;gap:8px;flex-wrap:wrap;justify-content:center;
+  align-items:center;max-width:92vw}
+.cmc-share.open{display:flex}
+.cmc-share button{border:2px solid #cfd8dc;background:#fff;border-radius:999px;
+  padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
+.cmc-share button:hover{border-color:#0e7c86;color:#0e7c86}
+.cmc-share .close{border-color:transparent;color:#607d8b}
+/* ── Share gate: each homework opens only when the teacher shares it ── */
+.tabs .tab[hidden]{display:none!important}
+html.hw-pending body>*:not(#hwGate){display:none!important}
+html.hw-pending body{overflow:hidden!important}
+#hwGate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:linear-gradient(178deg,#03191d,#062a31 55%,#0a444b)}
+#hwGate .hw-gate-card{max-width:430px;width:100%;text-align:center;background:#f6fdfc;color:#1c3231;
+  border-radius:18px;padding:34px 28px;border-top:6px solid #2dd4bf;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+#hwGate .hw-gate-icon{width:58px;height:58px;margin:0 auto;border-radius:16px;display:grid;place-items:center;
+  font-size:26px;background:linear-gradient(135deg,#0e7c86,#2dd4bf);color:#04241f}
+#hwGate h1{font-family:'Newsreader',Georgia,serif;font-size:23px;margin:16px 0 0}
+#hwGate p{font-size:13.5px;line-height:1.65;color:#4f6467;margin:12px auto 0;max-width:340px}
+#hwGate .hw-gate-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+#hwGate a{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;text-decoration:none;
+  background:linear-gradient(90deg,#0e7c86,#2dd4bf);color:#04241f;font-weight:700;font-size:13px}
+#hwGate button#hwGateCheck{display:inline-flex;margin-top:20px;padding:12px 22px;border-radius:999px;cursor:pointer;
+  border:2px solid #0e7c86;background:#fff;color:#0e7c86;font-weight:700;font-size:13px;font-family:inherit}
+#hwGate button#hwGateCheck:hover{background:#eaf7f6}
+#hwGate button#hwGateCheck:disabled{opacity:.6;cursor:wait}
+
+@media print{
+  .hw-bar,#cmc-back-btn,#hwBanner,.cmc-share,.cmc-toast,#hwGate{display:none!important}
+}
+@media print{
+  .bg,.site-head,.toolbar,.results,.no-print,details.model,.fb{display:none!important}
+  body{background:#fff;color:#000}
+  .assignment{padding:0;max-width:100%}
+  .hero,.task{background:#fff!important;color:#000!important;box-shadow:none;border:1px solid #bbb;break-inside:avoid;opacity:1!important;transform:none!important}
+  .task::before,.hero::after{display:none}
+  .brief,.hint,details p,.client p{color:#333!important}
+  textarea{min-height:70px}
+}
+</style>
+<script>
+/* ── Kid 11 homework share gate — ONE switch per homework ────────────────
+   Unit 4 · Walt Disney ships as the teacher's 3-homework file. Each of the
+   three homeworks is gated by its own Firestore doc (biweekly_tests/
+   hw-kid11-u4-hw1|2|3 — public read, teacher-only write, same collection
+   the bi-weekly tests use, so NO rules change):
+     · students see ONLY the homeworks the teacher has shared — the other
+       tabs do not exist for them (hidden, not merely locked);
+     · no homework shared → a full-page locked overlay;
+     · teachers (same heuristic as teacher-gate.js / RoleGate) always get in
+       with a preview banner, and can preview any homework by deep link;
+     · a deep link to an unshared homework (#hw-b) falls back to the first
+       shared one instead of revealing content;
+   The gate RE-CHECKS by itself — every 15s, on tab focus/visibility, and via
+   a Check-again button — so sharing (or closing) a homework in another
+   tab/device updates this page without a reload. */
+(function () {
+  'use strict';
+  var FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/biweekly_tests/';
+  var HW_DOCS = [
+    { mode: 'a', doc: 'hw-kid11-u4-hw1' },
+    { mode: 'b', doc: 'hw-kid11-u4-hw2' },
+    { mode: 'c', doc: 'hw-kid11-u4-hw3' }
+  ];
+  var known = { a: null, b: null, c: null }; // null = share state not read yet
+  function ls(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function isTeacher() {
+    if (!ls('cmc-student-token')) return false;
+    var role = ls('cmc-student-role');
+    var email = ls('cmc-student-email').toLowerCase();
+    var uid = ls('cmc-student-uid');
+    return role === 'teacher' || email.indexOf('edu') !== -1 || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+  }
+  // Lock BEFORE first paint for everyone who is not a teacher — applyState()
+  // below lifts it (at least one homework shared) or builds the overlay.
+  window.CMC_HW_TEACHER = isTeacher();
+  if (!window.CMC_HW_TEACHER) document.documentElement.classList.add('hw-pending');
+
+  function buildGate() {
+    if (document.getElementById('hwGate')) return;
+    var g = document.createElement('div');
+    g.id = 'hwGate';
+    g.setAttribute('role', 'dialog');
+    g.setAttribute('aria-modal', 'true');
+    g.setAttribute('aria-label', 'Homework not shared yet');
+    g.innerHTML =
+      '<div class="hw-gate-card">' +
+      '<div class="hw-gate-icon" aria-hidden="true">🔒</div>' +
+      '<h1>Homework not shared yet</h1>' +
+      '<p>Your teacher hasn\u2019t opened the <b>Unit 4 homework</b> (Walt Disney) for the class yet. ' +
+      'Ask your teacher to share it from the <b>Kid 11 card</b> on the CMC homepage — this page unlocks by itself, no refresh needed.</p>' +
+      '<div class="hw-gate-actions">' +
+      '<button type="button" id="hwGateCheck">Check again</button>' +
+      '<a href="https://cmckhmer.github.io/Creative-Minds-/">Back to CMC home</a>' +
+      '</div>' +
+      '</div>';
+    document.body.appendChild(g);
+    var btn = document.getElementById('hwGateCheck');
+    if (btn) btn.addEventListener('click', function () {
+      btn.disabled = true; btn.textContent = 'Checking…';
+      check();
+      window.setTimeout(function () { btn.disabled = false; btn.textContent = 'Check again'; }, 1200);
+    });
+  }
+
+  function dropGate() {
+    var g = document.getElementById('hwGate');
+    if (g) g.remove();
+  }
+
+  // Students only get tab buttons for homeworks the teacher has shared —
+  // the unshared ones are hidden entirely (owner request), never shown locked.
+  function setTabs() {
+    var teacher = window.CMC_HW_TEACHER;
+    HW_DOCS.forEach(function (h) {
+      var btn = document.querySelector('.tab[data-mode="' + h.mode + '"]');
+      if (btn) btn.hidden = !teacher && known[h.mode] !== true;
+    });
+  }
+
+  function firstSharedMode() {
+    for (var i = 0; i < HW_DOCS.length; i++) {
+      if (known[HW_DOCS[i].mode] === true) return HW_DOCS[i].mode;
+    }
+    return null;
+  }
+  function hwSetMode(m) {
+    if (typeof window.CMC_HW_SETMODE === 'function') window.CMC_HW_SETMODE(m);
+  }
+
+  function applyState() {
+    var root = document.documentElement;
+    // Re-read the teacher heuristic EVERY check — the session may appear
+    // after this page loaded (sign-in in another tab, token refresh).
+    window.CMC_HW_TEACHER = isTeacher();
+    var want = (location.hash.match(/^#hw-([abc])$/) || [])[1] || '';
+    if (window.CMC_HW_TEACHER) {
+      root.classList.remove('hw-pending');
+      root.classList.toggle('hw-teacher-locked', !(known.a === true && known.b === true && known.c === true));
+      dropGate();
+      setTabs();
+      if (want) hwSetMode(want); // teachers may preview any homework
+      return;
+    }
+    var anyShared = known.a === true || known.b === true || known.c === true;
+    if (anyShared) {
+      root.classList.remove('hw-pending', 'hw-teacher-locked');
+      root.classList.add('hw-open');
+      dropGate();
+      setTabs();
+      var m = document.body.getAttribute('data-mode') || 'a';
+      if (want && known[want] === true) {
+        if (want !== m) hwSetMode(want);
+      } else if (known[m] !== true) {
+        var f = firstSharedMode();
+        if (f && f !== m) hwSetMode(f);
+      }
+    } else {
+      // Everything closed again (or still nothing shared) → full lock.
+      root.classList.remove('hw-open', 'hw-teacher-locked');
+      root.classList.add('hw-pending');
+      buildGate();
+    }
+  }
+
+  function shareState(d) {
+    return !!(d && d.fields && d.fields.shared && d.fields.shared.booleanValue === true);
+  }
+
+  var checking = false;
+  function check() {
+    if (checking) return;
+    checking = true;
+    // Each doc settles INDEPENDENTLY — one slow/failed read must never hold
+    // the other homeworks' state hostage. The checking flag releases as soon
+    // as this round's docs have settled, with a fixed timer as hang safety
+    // so a hanging request can never stop future re-checks.
+    var pending = HW_DOCS.length;
+    function done() { pending--; if (pending <= 0) checking = false; }
+    window.setTimeout(function () { checking = false; }, 8000);
+    HW_DOCS.forEach(function (h) {
+      function settle(v) {
+        // A network blip must not re-lock a homework the student already
+        // saw open — keep the last known state; only the very first read
+        // fails closed (locked) so a blip can never open the homework.
+        if (v === null) { if (known[h.mode] === null) known[h.mode] = false; }
+        else known[h.mode] = v;
+        applyState();
+        done();
+      }
+      fetch(FS + h.doc)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { settle(shareState(d)); })
+        .catch(function () { settle(null); });
+    });
+  }
+
+  function startPolling() {
+    window.setInterval(check, 15000);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') check();
+    });
+    window.addEventListener('focus', check);
+    window.addEventListener('pageshow', check);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { check(); startPolling(); });
+  } else {
+    check();
+    startPolling();
+  }
+})();
+</script>
+</head>
+<body data-mode="a">
+
+<!-- Back to CMC home (same fixture as the other Reading Future worksheets) -->
+<a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" aria-label="Back to CMC home">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" stroke="#2dd4bf" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Back to CMC
+</a>
+
+<!-- Teacher preview banner (only shown to a teacher while at least one homework is still locked) -->
+<div id="hwBanner">👩‍🏫 <b>Teacher preview</b> — homeworks you haven't shared stay invisible to students. Flip the <b>Share with students</b> switches on the Kid&nbsp;11 card (CMC homepage, Kid Program section) to open Homework 1, 2 or 3 for the class.</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="reel" viewBox="0 0 40 40">
+    <circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="2.4"/>
+    <circle cx="20" cy="20" r="4" fill="currentColor"/>
+    <circle cx="20" cy="10" r="3.4" fill="currentColor"/><circle cx="29" cy="16" r="3.4" fill="currentColor"/>
+    <circle cx="26" cy="27" r="3.4" fill="currentColor"/><circle cx="14" cy="27" r="3.4" fill="currentColor"/>
+    <circle cx="11" cy="16" r="3.4" fill="currentColor"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" d="M34 30 L40 36"/>
+  </symbol>
+  <symbol id="castle" viewBox="0 0 760 240">
+    <path fill="currentColor" d="M60 240 L60 150 L80 150 L80 120 L96 120 L96 150 L120 150 L120 240 Z"/>
+    <path fill="currentColor" d="M150 240 L150 110 L170 110 L170 80 L186 80 L186 110 L210 110 L210 240 Z"/>
+    <path fill="currentColor" d="M250 240 L250 90 L276 90 L276 54 L296 54 L296 90 L322 90 L322 240 Z"/>
+    <path fill="currentColor" d="M340 240 L340 60 L360 60 L360 24 L380 24 L380 60 L400 60 L400 240 Z"/>
+    <path fill="currentColor" d="M420 240 L420 90 L446 90 L446 54 L466 54 L466 90 L492 90 L492 240 Z"/>
+    <path fill="currentColor" d="M520 240 L520 110 L544 110 L544 80 L560 80 L560 110 L584 110 L584 240 Z"/>
+    <path fill="currentColor" d="M610 240 L610 150 L634 150 L634 120 L650 120 L650 150 L674 150 L674 240 Z"/>
+    <path fill="currentColor" d="M40 240 L720 240 L720 220 L40 220 Z"/>
+    <path fill="currentColor" d="M296 54 L286 34 L306 34 Z M380 24 L370 4 L390 4 Z M466 54 L456 34 L476 34 Z"/>
+  </symbol>
+</defs></svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="desk"></div><div class="storyboard"></div><div class="grain"></div>
+  <div class="filmstrip left"></div><div class="filmstrip right"></div>
+  <div class="lamp l1"></div><div class="lamp l2"></div><div class="lamp l3"></div>
+  <svg class="castle" viewBox="0 0 760 240"><use href="#castle"/></svg>
+  <span class="spark" style="left:8%;width:5px;height:5px;animation-duration:19s"></span>
+  <span class="spark" style="left:23%;width:3px;height:3px;animation-duration:15s;animation-delay:3s"></span>
+  <span class="spark" style="left:40%;width:6px;height:6px;animation-duration:23s;animation-delay:6s"></span>
+  <span class="spark" style="left:57%;width:4px;height:4px;animation-duration:17s;animation-delay:2s"></span>
+  <span class="spark" style="left:74%;width:5px;height:5px;animation-duration:21s;animation-delay:8s"></span>
+  <span class="spark" style="left:90%;width:3px;height:3px;animation-duration:14s;animation-delay:5s"></span>
+  <div class="vignette"></div>
+</div>
+
+<header class="site-head">
+  <div class="brand">
+    <svg viewBox="0 0 40 40"><use href="#reel"/></svg>
+    <div><b>Walt Disney</b><small>UNIT 4 · HISTORY · HOMEWORKS 1–3</small></div>
+  </div>
+  <nav class="tabs" aria-label="Choose homework">
+    <button type="button" class="tab" data-mode="a"><span class="dot"></span>01 Storyboard</button>
+    <button type="button" class="tab" data-mode="b"><span class="dot"></span>02 Producer</button>
+    <button type="button" class="tab" data-mode="c"><span class="dot"></span>03 Legacy</button>
+  </nav>
+  <button type="button" class="sound on" id="soundBtn" aria-pressed="true" title="Mute feedback sounds">🔊</button>
+</header>
+
+<!-- ================= HOMEWORK 1 · STORYBOARD DESK ================= -->
+<main class="assignment" id="hw-a">
+  <section class="hero reveal">
+    <span class="seal">STORYBOARD<br>№ 4</span>
+    <span class="kicker">HOMEWORK 1 · VOCABULARY &amp; COMPREHENSION</span>
+    <h1>The Storyboard <em>Desk</em> ✏️</h1>
+    <p class="brief">You are preparing the storyboard for a short film about Walt Disney. Before you draw a single frame, you must master the unit vocabulary and know the facts of his life. Complete all five sections. <b>30 points</b>. Estimated time: 35–45 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Student name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>8 WORD MEANINGS</span><span>8 GAP FILLS</span><span>5 COMPREHENSION</span><span>5 TRUE / FALSE</span><span>4 SUFFIX WORDS</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 30 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button type="button" class="btn primary sm" data-action="check">Check Storyboard</button>
+    <button type="button" class="btn ghost sm" data-action="reset">Reset</button>
+    <button type="button" class="btn ghost sm no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Reading passage — Walt Disney (221 words) · tap to open</summary>
+      <p>When people think of Walt Disney, they think of Mickey Mouse or Disneyland, but Walt Disney was a man who had to overcome difficulties to become successful.</p>
+      <p>From a young age, Walt loved to draw <span class="hl">cartoons</span>. He <span class="hl">delivered</span> newspapers every morning so that he could take art classes. He was known to fall asleep at school, but he continued to work hard.</p>
+      <p>When he was eighteen, he started a company with other artists. The company did not do well, so Walt decided to study animation. With his new skills, he started his second company. The company was successful at first, but then failed because of poor <span class="hl">management</span>.</p>
+      <p>However, Walt did not <span class="hl">give up</span>. He started a cartoon <span class="hl">studio</span> in Hollywood in 1923. This is where the idea of Mickey Mouse was born. As his studio grew, he started making animated films. His first film was <i>Snow White and the Seven Dwarfs</i>.</p>
+      <p>Walt's creativity did not stop there. He wanted to create a park for children. In 1955, Disneyland was opened. Sixteen years later, Walt Disney World was opened.</p>
+      <p>In 1966, Walt discovered he had lung <span class="hl">cancer</span>. He died one month after doctors removed one of his lungs. <span class="hl">Decades</span> later, his legacy lives on through his famous quote: "All our dreams can come true, if we have the <span class="hl">courage</span> to pursue them."</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.1</span><h2>Word Meanings</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Match each highlighted unit word with its meaning (a–h).</p>
+    <div class="g-item field-row" data-answer="c"><label>1. I like to read this <span class="hl">cartoon</span> in the newspaper.</label><select><option value="">— meaning —</option><option value="a">a. the building or room where an artist works</option><option value="b">b. the skill of controlling and making decisions about a business</option><option value="c">c. a series of drawings that tell a story</option><option value="d">d. a serious disease</option><option value="e">e. a period of ten years</option><option value="f">f. to take something to a person or place</option><option value="g">g. the ability to do something dangerous or difficult without showing fear</option><option value="h">h. to stop trying to do something before you have finished</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="f"><label>2. Please <span class="hl">deliver</span> the mail to my house.</label><select><option value="">— meaning —</option><option value="a">a. the building or room where an artist works</option><option value="b">b. the skill of controlling and making decisions about a business</option><option value="c">c. a series of drawings that tell a story</option><option value="d">d. a serious disease</option><option value="e">e. a period of ten years</option><option value="f">f. to take something to a person or place</option><option value="g">g. the ability to do something dangerous or difficult without showing fear</option><option value="h">h. to stop trying to do something before you have finished</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label>3. My sister wants to start her own company, so she is studying business <span class="hl">management</span>.</label><select><option value="">— meaning —</option><option value="a">a. the building or room where an artist works</option><option value="b">b. the skill of controlling and making decisions about a business</option><option value="c">c. a series of drawings that tell a story</option><option value="d">d. a serious disease</option><option value="e">e. a period of ten years</option><option value="f">f. to take something to a person or place</option><option value="g">g. the ability to do something dangerous or difficult without showing fear</option><option value="h">h. to stop trying to do something before you have finished</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="h"><label>4. The boy didn't <span class="hl">give up</span> no matter how difficult it was.</label><select><option value="">— meaning —</option><option value="a">a. the building or room where an artist works</option><option value="b">b. the skill of controlling and making decisions about a business</option><option value="c">c. a series of drawings that tell a story</option><option value="d">d. a serious disease</option><option value="e">e. a period of ten years</option><option value="f">f. to take something to a person or place</option><option value="g">g. the ability to do something dangerous or difficult without showing fear</option><option value="h">h. to stop trying to do something before you have finished</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label>5. The painter worked all night in his <span class="hl">studio</span>.</label><select><option value="">— meaning —</option><option value="a">a. the building or room where an artist works</option><option value="b">b. the skill of controlling and making decisions about a business</option><option value="c">c. a series of drawings that tell a story</option><option value="d">d. a serious disease</option><option value="e">e. a period of ten years</option><option value="f">f. to take something to a person or place</option><option value="g">g. the ability to do something dangerous or difficult without showing fear</option><option value="h">h. to stop trying to do something before you have finished</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="d"><label>6. The doctor told the patient that her <span class="hl">cancer</span> had spread.</label><select><option value="">— meaning —</option><option value="a">a. the building or room where an artist works</option><option value="b">b. the skill of controlling and making decisions about a business</option><option value="c">c. a series of drawings that tell a story</option><option value="d">d. a serious disease</option><option value="e">e. a period of ten years</option><option value="f">f. to take something to a person or place</option><option value="g">g. the ability to do something dangerous or difficult without showing fear</option><option value="h">h. to stop trying to do something before you have finished</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="e"><label>7. I was in elementary school a <span class="hl">decade</span> ago.</label><select><option value="">— meaning —</option><option value="a">a. the building or room where an artist works</option><option value="b">b. the skill of controlling and making decisions about a business</option><option value="c">c. a series of drawings that tell a story</option><option value="d">d. a serious disease</option><option value="e">e. a period of ten years</option><option value="f">f. to take something to a person or place</option><option value="g">g. the ability to do something dangerous or difficult without showing fear</option><option value="h">h. to stop trying to do something before you have finished</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="g"><label>8. Dan did not have the <span class="hl">courage</span> to pick up the snake.</label><select><option value="">— meaning —</option><option value="a">a. the building or room where an artist works</option><option value="b">b. the skill of controlling and making decisions about a business</option><option value="c">c. a series of drawings that tell a story</option><option value="d">d. a serious disease</option><option value="e">e. a period of ten years</option><option value="f">f. to take something to a person or place</option><option value="g">g. the ability to do something dangerous or difficult without showing fear</option><option value="h">h. to stop trying to do something before you have finished</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.2</span><h2>Storyboard Notes — Gap Fill</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Complete the notes with the word bank. Type your answers.</p>
+    <div class="bank"><span>cartoon</span><span>deliver</span><span>management</span><span>give up</span><span>studio</span><span>cancer</span><span>decade</span><span>courage</span></div>
+    <div class="g-item field-row" data-answer="cartoon"><label>1. A ______ is a series of drawings that tell a story.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="deliver"><label>2. Please ______ the mail to my house.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="management"><label>3. She is studying business ______ to run her company.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="give up"><label>4. He didn't ______ no matter how difficult it was.</label><input type="text" spellcheck="false" placeholder="phrase"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="studio"><label>5. The painter worked all night in his ______.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="cancer"><label>6. The doctor said her ______ had spread.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="decade"><label>7. A ______ is a period of ten years.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="courage"><label>8. He had the ______ to pick up the snake.</label><input type="text" spellcheck="false" placeholder="one word"><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.3</span><h2>Understanding the Reading</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Choose the best answer.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> What do people think of when they think of Walt Disney?</p><div class="opts"><button type="button" class="opt" data-val="a">Newspapers and school</button><button type="button" class="opt" data-val="b">Mickey Mouse or Disneyland</button><button type="button" class="opt" data-val="c">Hospitals and doctors</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>2.</b> Why did he deliver newspapers every morning?</p><div class="opts"><button type="button" class="opt" data-val="a">To buy a studio</button><button type="button" class="opt" data-val="b">To meet other artists</button><button type="button" class="opt" data-val="c">So that he could take art classes</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>3.</b> Why did his second company fail?</p><div class="opts"><button type="button" class="opt" data-val="a">Because of poor management</button><button type="button" class="opt" data-val="b">Because he stopped drawing</button><button type="button" class="opt" data-val="c">Because Disneyland closed</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>4.</b> Where and when did he start a cartoon studio?</p><div class="opts"><button type="button" class="opt" data-val="a">New York in 1955</button><button type="button" class="opt" data-val="b">Hollywood in 1923</button><button type="button" class="opt" data-val="c">Florida in 1966</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>5.</b> What was his first film?</p><div class="opts"><button type="button" class="opt" data-val="a">Mickey Mouse</button><button type="button" class="opt" data-val="b">Walt Disney World</button><button type="button" class="opt" data-val="c">Snow White and the Seven Dwarfs</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.4</span><h2>True or False</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Check every statement against the passage.</p>
+    <div class="g-item q" data-answer="F"><p><b>1.</b> Walt Disney became successful without difficulties.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>2.</b> He fell asleep at school but continued to work hard.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>3.</b> The idea of Mickey Mouse was born in his Hollywood studio.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="F"><p><b>4.</b> Disneyland opened in 1966.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="T"><p><b>5.</b> His legacy lives on through his famous quote.</p><div class="opts"><button type="button" class="opt" data-val="T">True</button><button type="button" class="opt" data-val="F">False</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">1.5</span><h2>Vocabulary Skills — the suffix <em>-age</em></h2><span class="pts">4 PTS</span></div>
+    <p class="hint">The suffix <b>-age</b> is added to words to form nouns. Match each word with its meaning.</p>
+    <div class="g-item field-row" data-answer="d"><label>1. <span class="hl">courage</span> (cour + age)</label><select><option value="">— meaning —</option><option value="a">a. an object wrapped in paper to be sent by post</option><option value="b">b. a situation in which there is not enough of something</option><option value="c">c. a special place to keep things not being used</option><option value="d">d. bravery; the ability to face danger or difficulty without fear</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label>2. <span class="hl">package</span></label><select><option value="">— meaning —</option><option value="a">a. an object wrapped in paper to be sent by post</option><option value="b">b. a situation in which there is not enough of something</option><option value="c">c. a special place to keep things not being used</option><option value="d">d. bravery; the ability to face danger or difficulty without fear</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label>3. <span class="hl">shortage</span></label><select><option value="">— meaning —</option><option value="a">a. an object wrapped in paper to be sent by post</option><option value="b">b. a situation in which there is not enough of something</option><option value="c">c. a special place to keep things not being used</option><option value="d">d. bravery; the ability to face danger or difficulty without fear</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="c"><label>4. <span class="hl">storage</span></label><select><option value="">— meaning —</option><option value="a">a. an object wrapped in paper to be sent by post</option><option value="b">b. a situation in which there is not enough of something</option><option value="c">c. a special place to keep things not being used</option><option value="d">d. bravery; the ability to face danger or difficulty without fear</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Storyboard Assessment</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button type="button" class="btn primary sm" data-action="review">Review mistakes</button><button type="button" class="btn paper sm" data-action="print">🖨 Print / PDF</button><button type="button" class="btn paper sm" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- ================= HOMEWORK 2 · TIMELINE PRODUCER ================= -->
+<main class="assignment" id="hw-b" hidden>
+  <section class="hero reveal">
+    <span class="seal">PRODUCER<br>№ 4</span>
+    <span class="kicker">HOMEWORK 2 · SEQUENCING &amp; SUMMARIZING</span>
+    <h1>You are the <em>Timeline Producer</em> 🎞️</h1>
+    <p class="brief">A producer must know the order of events and the key points of a story. Put Walt Disney's life in order, link causes to effects, separate key points from supporting details, verify the facts, and write a tight summary. <b>29 points</b>. Estimated time: 40–50 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Producer name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>8 TIMELINE EVENTS</span><span>5 CAUSE–EFFECT</span><span>8 STORY CARDS</span><span>4 FACT CHECKS</span><span>3 SUMMARIZING</span><span>1 SUMMARY</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 29 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button type="button" class="btn primary sm" data-action="check">Approve the Cut</button>
+    <button type="button" class="btn ghost sm" data-action="reset">Reset</button>
+    <button type="button" class="btn ghost sm no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Production archive — the reading passage (221 words) · tap to open</summary>
+      <p>When people think of Walt Disney, they think of Mickey Mouse or Disneyland, but Walt Disney was a man who had to overcome difficulties to become successful.</p>
+      <p>From a young age, Walt loved to draw <span class="hl">cartoons</span>. He <span class="hl">delivered</span> newspapers every morning so that he could take art classes. He was known to fall asleep at school, but he continued to work hard.</p>
+      <p>When he was eighteen, he started a company with other artists. The company did not do well, so Walt decided to study animation. With his new skills, he started his second company. The company was successful at first, but then failed because of poor <span class="hl">management</span>.</p>
+      <p>However, Walt did not <span class="hl">give up</span>. He started a cartoon <span class="hl">studio</span> in Hollywood in 1923. This is where the idea of Mickey Mouse was born. As his studio grew, he started making animated films. His first film was <i>Snow White and the Seven Dwarfs</i>.</p>
+      <p>Walt's creativity did not stop there. He wanted to create a park for children. In 1955, Disneyland was opened. Sixteen years later, Walt Disney World was opened.</p>
+      <p>In 1966, Walt discovered he had lung <span class="hl">cancer</span>. He died one month after doctors removed one of his lungs. <span class="hl">Decades</span> later, his legacy lives on through his famous quote: "All our dreams can come true, if we have the <span class="hl">courage</span> to pursue them."</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.1</span><h2>Build the Timeline</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">Use ↑ and ↓ to order his life from childhood to legacy.</p>
+    <div class="order-task" data-solution="young,first,study,second,studio,film,park,legacy">
+      <ol class="order-list">
+        <li data-key="studio"><span class="ord-text"><b>1923</b> — He starts a cartoon studio in Hollywood; the idea of Mickey Mouse is born.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="park"><span class="ord-text"><b>1955</b> — Disneyland opens; sixteen years later, Walt Disney World opens.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="young"><span class="ord-text"><b>Young age</b> — He loves drawing cartoons and delivers newspapers to take art classes.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="second"><span class="ord-text">His second company is successful at first, then fails because of poor management.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="legacy"><span class="ord-text"><b>1966</b> — He discovers lung cancer and dies; decades later his legacy lives on.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="first"><span class="ord-text"><b>Age eighteen</b> — He starts a company with other artists; it does not do well.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="film"><span class="ord-text">As the studio grows, he makes animated films; his first film is <i>Snow White and the Seven Dwarfs</i>.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+        <li data-key="study"><span class="ord-text">He decides to study animation and starts his second company with new skills.</span><span class="ord-ctl"><button type="button" class="ord-btn" data-dir="-1" aria-label="Move up">↑</button><button type="button" class="ord-btn" data-dir="1" aria-label="Move down">↓</button></span></li>
+      </ol><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.2</span><h2>Cause → Effect</h2><span class="pts">5 PTS</span></div>
+    <p class="hint">Match each cause (1–5) with its effect (a–e).</p>
+    <div class="g-item field-row" data-answer="c"><label><b>1.</b> He wanted to take art classes.</label><select><option value="">— effect —</option><option value="a">a. he decided to study animation</option><option value="b">b. it failed</option><option value="c">c. he delivered newspapers every morning</option><option value="d">d. he started a cartoon studio in Hollywood in 1923</option><option value="e">e. Disneyland opened in 1955</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="a"><label><b>2.</b> His first company did not do well.</label><select><option value="">— effect —</option><option value="a">a. he decided to study animation</option><option value="b">b. it failed</option><option value="c">c. he delivered newspapers every morning</option><option value="d">d. he started a cartoon studio in Hollywood in 1923</option><option value="e">e. Disneyland opened in 1955</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="b"><label><b>3.</b> His second company had poor management.</label><select><option value="">— effect —</option><option value="a">a. he decided to study animation</option><option value="b">b. it failed</option><option value="c">c. he delivered newspapers every morning</option><option value="d">d. he started a cartoon studio in Hollywood in 1923</option><option value="e">e. Disneyland opened in 1955</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="d"><label><b>4.</b> He did not give up.</label><select><option value="">— effect —</option><option value="a">a. he decided to study animation</option><option value="b">b. it failed</option><option value="c">c. he delivered newspapers every morning</option><option value="d">d. he started a cartoon studio in Hollywood in 1923</option><option value="e">e. Disneyland opened in 1955</option></select><small class="fb"></small></div>
+    <div class="g-item field-row" data-answer="e"><label><b>5.</b> He wanted to create a park for children.</label><select><option value="">— effect —</option><option value="a">a. he decided to study animation</option><option value="b">b. it failed</option><option value="c">c. he delivered newspapers every morning</option><option value="d">d. he started a cartoon studio in Hollywood in 1923</option><option value="e">e. Disneyland opened in 1955</option></select><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.3</span><h2>Key Point or Supporting Detail?</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">The reading skill is <b>Summarizing</b>: find the key points from each paragraph. <b>Tap a card, then tap a column.</b></p>
+    <div class="sort-task">
+      <div class="tray"><span class="tray-label">STORY CARDS — SORT ALL 8</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="key">Walt Disney overcame difficulties to become successful.</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="detail">He delivered newspapers every morning.</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="key">He kept working hard to learn art and animation.</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="detail">He was known to fall asleep at school.</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="key">He built a studio and created animated films.</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="detail"><i>Snow White and the Seven Dwarfs</i> was his first film.</button>
+        <button type="button" class="sort-card" data-idx="6" data-correct="key">He created parks and left a legacy of courage.</button>
+        <button type="button" class="sort-card" data-idx="7" data-correct="detail">He died one month after doctors removed one lung.</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="key" tabindex="0" role="button" aria-label="Place card in KEY POINT"><h4>◈ KEY POINT</h4><p class="bin-sub">NEEDED IN A SUMMARY</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="detail" tabindex="0" role="button" aria-label="Place card in DETAIL"><h4>▤ SUPPORTING DETAIL</h4><p class="bin-sub">A SPECIFIC EXAMPLE</p><div class="bin-body"></div></div>
+      </div><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.4</span><h2>The Fact Check</h2><span class="pts">4 PTS</span></div>
+    <p class="hint">Verify each claim before it enters the film.</p>
+    <div class="g-item q" data-answer="b"><p><b>1.</b> "Walt Disney's first company succeeded immediately."</p><div class="opts"><button type="button" class="opt" data-val="a">Correct</button><button type="button" class="opt" data-val="b">Wrong — it did not do well</button><button type="button" class="opt" data-val="c">Wrong — he never started a company</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>2.</b> "His second company failed because of poor management."</p><div class="opts"><button type="button" class="opt" data-val="a">Correct — it matches the passage</button><button type="button" class="opt" data-val="b">Wrong — it failed because of cancer</button><button type="button" class="opt" data-val="c">Wrong — it never failed</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="c"><p><b>3.</b> "Disneyland opened in 1955."</p><div class="opts"><button type="button" class="opt" data-val="a">Wrong — it opened in 1923</button><button type="button" class="opt" data-val="b">Wrong — it opened in 1966</button><button type="button" class="opt" data-val="c">Correct — it matches the passage</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>4.</b> "Walt Disney World opened sixteen years before Disneyland."</p><div class="opts"><button type="button" class="opt" data-val="a">Correct</button><button type="button" class="opt" data-val="b">Wrong — it opened sixteen years later</button><button type="button" class="opt" data-val="c">Wrong — it opened in 1923</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">2.5</span><h2>The Summarizing Desk</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">Choose the best summary decision.</p>
+    <div class="g-item q" data-answer="c"><p><b>1.</b> Which is the <b>best summary</b> of the whole passage?</p><div class="opts"><button type="button" class="opt" data-val="a">Walt Disney delivered newspapers and fell asleep at school.</button><button type="button" class="opt" data-val="b">Walt Disney had lung cancer and died in 1966.</button><button type="button" class="opt" data-val="c">Walt Disney overcame early failures, built a studio and parks, and left a legacy of courage.</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="a"><p><b>2.</b> Which detail is <b>not needed</b> in a one-sentence summary?</p><div class="opts"><button type="button" class="opt" data-val="a">He was known to fall asleep at school.</button><button type="button" class="opt" data-val="b">He overcame difficulties to become successful.</button><button type="button" class="opt" data-val="c">He created animated films and parks.</button></div><small class="fb"></small></div>
+    <div class="g-item q" data-answer="b"><p><b>3.</b> Which sentence best summarizes the <b>final paragraph</b>?</p><div class="opts"><button type="button" class="opt" data-val="a">Doctors removed one of his lungs.</button><button type="button" class="opt" data-val="b">His legacy lives on through his quote about dreams and courage.</button><button type="button" class="opt" data-val="c">He discovered he had lung cancer in 1966.</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task write-task reveal" id="w-summary">
+    <div class="task-head"><span class="tnum">2.6</span><h2>Write the Production Summary</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Summarize the passage in 50–80 words. The live checklist shows what a complete summary needs.</p>
+    <div class="client"><span class="avatar">🎬</span><p><b>Producer brief:</b> give the key points in order — early hardship, failures, studio, films, parks, legacy.</p></div>
+    <textarea placeholder="Walt Disney loved cartoons from a young age…"></textarea>
+    <div class="write-meta"><span class="wc">0 words</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See a model summary</summary><p>"Walt Disney loved cartoons from a young age and delivered newspapers to pay for art classes. His first companies failed, partly because of poor management, but he did not give up. In 1923 he opened a Hollywood studio, where Mickey Mouse was born. Later he made Snow White and the Seven Dwarfs. Disneyland opened in 1955. After his death in 1966, his courage still inspires people to pursue dreams."</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Production Assessment</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button type="button" class="btn primary sm" data-action="review">Review mistakes</button><button type="button" class="btn paper sm" data-action="print">🖨 Print / PDF</button><button type="button" class="btn paper sm" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- ================= HOMEWORK 3 · LEGACY WRITER ================= -->
+<main class="assignment" id="hw-c" hidden>
+  <section class="hero reveal">
+    <span class="seal">LEGACY<br>№ 4</span>
+    <span class="kicker">HOMEWORK 3 · WRITING &amp; SPEAKING</span>
+    <h1>You are the <em>Legacy Writer</em> 🏰</h1>
+    <p class="brief">A magazine has asked you to write a short feature on Walt Disney's legacy and interview him about his journey. Separate facts from opinions, title the feature, write it, and prepare answers you can defend aloud. <b>16 points</b>. Estimated time: 40–50 minutes.</p>
+    <div class="meta"><input type="text" placeholder="Writer name" aria-label="Your name"><input type="text" placeholder="Date" aria-label="Date"></div>
+    <div class="hero-stats"><span>8 CLAIMS TO JUDGE</span><span>1 FEATURE TITLE</span><span>1 FEATURE</span><span>3 INTERVIEW ANSWERS</span><span>2 SUFFIX SENTENCES</span></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="progress"><div class="progress-label">PROGRESS · <span class="progress-label-text">0 / 16 answered</span></div><div class="progress-track"><div class="progress-fill"></div></div></div>
+    <button type="button" class="btn primary sm" data-action="check">Publish Feature</button>
+    <button type="button" class="btn ghost sm" data-action="reset">Reset</button>
+    <button type="button" class="btn ghost sm no-print" data-action="print" aria-label="Print">🖨</button>
+  </div>
+
+  <section class="task reveal">
+    <details class="passage"><summary>📖 Source material — the reading passage (221 words) · tap to open</summary>
+      <p>When people think of Walt Disney, they think of Mickey Mouse or Disneyland, but Walt Disney was a man who had to overcome difficulties to become successful.</p>
+      <p>From a young age, Walt loved to draw <span class="hl">cartoons</span>. He <span class="hl">delivered</span> newspapers every morning so that he could take art classes. He was known to fall asleep at school, but he continued to work hard.</p>
+      <p>When he was eighteen, he started a company with other artists. The company did not do well, so Walt decided to study animation. With his new skills, he started his second company. The company was successful at first, but then failed because of poor <span class="hl">management</span>.</p>
+      <p>However, Walt did not <span class="hl">give up</span>. He started a cartoon <span class="hl">studio</span> in Hollywood in 1923. This is where the idea of Mickey Mouse was born. As his studio grew, he started making animated films. His first film was <i>Snow White and the Seven Dwarfs</i>.</p>
+      <p>Walt's creativity did not stop there. He wanted to create a park for children. In 1955, Disneyland was opened. Sixteen years later, Walt Disney World was opened.</p>
+      <p>In 1966, Walt discovered he had lung <span class="hl">cancer</span>. He died one month after doctors removed one of his lungs. <span class="hl">Decades</span> later, his legacy lives on through his famous quote: "All our dreams can come true, if we have the <span class="hl">courage</span> to pursue them."</p>
+    </details>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.0</span><h2>Warm-Up</h2><span class="pts">REFLECT</span></div>
+    <p class="hint">Not graded. Answer the textbook warm-up before you begin.</p>
+    <div class="sub-q"><label>Walt Disney was a pioneer of cartoons and animated films. <b>How are cartoons and animated films created? What is your favourite Disney film? Would you like to go to Disneyland?</b></label>
+      <textarea placeholder="Cartoons are created by…"></textarea></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.1</span><h2>Fact or Opinion?</h2><span class="pts">8 PTS</span></div>
+    <p class="hint">A feature must be honest. <b>Tap a card, then tap a bin.</b> Tap a placed card to return it.</p>
+    <div class="sort-task">
+      <div class="tray"><span class="tray-label">DRAFT CLAIMS — SORT ALL 8</span>
+        <button type="button" class="sort-card" data-idx="0" data-correct="fact">Walt Disney started a cartoon studio in Hollywood in 1923.</button>
+        <button type="button" class="sort-card" data-idx="1" data-correct="opinion">Disneyland is the happiest place on Earth.</button>
+        <button type="button" class="sort-card" data-idx="2" data-correct="fact">Disneyland opened in 1955.</button>
+        <button type="button" class="sort-card" data-idx="3" data-correct="opinion">Every child should visit a Disney park.</button>
+        <button type="button" class="sort-card" data-idx="4" data-correct="fact">He discovered he had lung cancer in 1966.</button>
+        <button type="button" class="sort-card" data-idx="5" data-correct="opinion">His films are better than all other films.</button>
+        <button type="button" class="sort-card" data-idx="6" data-correct="fact">His first film was <i>Snow White and the Seven Dwarfs</i>.</button>
+        <button type="button" class="sort-card" data-idx="7" data-correct="opinion">Dreams are more important than money.</button>
+      </div>
+      <div class="bins">
+        <div class="bin bin-a" data-bin="fact" tabindex="0" role="button" aria-label="Place card in FACT"><h4>◈ FACT</h4><p class="bin-sub">SUPPORTED BY THE READING</p><div class="bin-body"></div></div>
+        <div class="bin bin-b" data-bin="opinion" tabindex="0" role="button" aria-label="Place card in OPINION"><h4>✎ OPINION</h4><p class="bin-sub">A BELIEF OR JUDGEMENT</p><div class="bin-body"></div></div>
+      </div><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task write-task reveal" id="w-title">
+    <div class="task-head"><span class="tnum">3.2</span><h2>The Feature Title</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Write the title for your feature. The checklist turns green as you meet the editor's rules.</p>
+    <input type="text" placeholder="Type your title here…" aria-label="Your feature title">
+    <div class="write-meta"><span class="wc">0 / 60 characters</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See model titles</summary><p>"The Man Who Drew Dreams" · "From Paper Routes to Magic Kingdoms" · "Walt Disney: Courage in Every Frame"</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task write-task reveal" id="w-feature">
+    <div class="task-head"><span class="tnum">3.3</span><h2>Write the Feature</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Write 70–110 words for the magazine. Give facts, give your opinion, and show both failure and success.</p>
+    <textarea placeholder="Walt Disney is remembered for magic, but…"></textarea>
+    <div class="write-meta"><span class="wc">0 words</span></div>
+    <ul class="checks"></ul>
+    <details class="model"><summary>🔑 See a model feature</summary><p>"Walt Disney is remembered for magic, but his story is really about courage. He delivered newspapers to afford art classes, and his early companies failed because of poor management. However, he did not give up. In 1923 he opened a cartoon studio in Hollywood, and Mickey Mouse was born. Later came Snow White and the Seven Dwarfs, then Disneyland in 1955. In my opinion, his greatest legacy is not a castle but the idea that dreams can come true if we pursue them."</p></details>
+    <small class="fb"></small>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.4</span><h2>The Interview — Speaking Prep</h2><span class="pts">3 PTS</span></div>
+    <p class="hint">In class you will role-play this interview. Answer <b>as Walt Disney</b>, at least 12 words each. Use the phrase chips.</p>
+    <div class="sub-q write-task" id="w-i1">
+      <label>1. "How did you pay for art classes as a boy?"</label>
+      <div class="chips"><span>delivered newspapers</span><span>every morning</span><span>art classes</span></div>
+      <textarea placeholder="I delivered newspapers…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"I delivered newspapers every morning so that I could take art classes, even when I was tired at school."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-i2">
+      <label>2. "Why did you keep going after your companies failed?"</label>
+      <div class="chips"><span>did not give up</span><span>poor management</span><span>new skills</span></div>
+      <textarea placeholder="I did not give up because…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"I did not give up because I believed in animation; poor management taught me to learn better skills."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-i3">
+      <label>3. "What do you want your films and parks to give children?"</label>
+      <div class="chips"><span>joy</span><span>courage</span><span>dreams can come true</span></div>
+      <textarea placeholder="I want them to…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model answer</summary><p>"I want them to bring joy and courage, so every child believes dreams can come true."</p></details><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.5</span><h2>Suffix <em>-age</em> in Your Own Words</h2><span class="pts">2 PTS</span></div>
+    <p class="hint">Write one original sentence with each noun. At least 8 words each.</p>
+    <div class="sub-q write-task" id="w-p1">
+      <label>1. Use <span class="hl">package</span> (an object wrapped to be sent by post).</label>
+      <textarea placeholder="The studio sent a package…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"The studio sent a package of drawings to the printer."</p></details><small class="fb"></small>
+    </div>
+    <div class="sub-q write-task" id="w-p2">
+      <label>2. Use <span class="hl">storage</span> (a place to keep things not being used).</label>
+      <textarea placeholder="Old animation cels were kept…"></textarea>
+      <div class="write-meta"><span class="wc">0 words</span></div><ul class="checks"></ul>
+      <details class="model"><summary>🔑 Model sentence</summary><p>"Old animation cels were kept in storage for many years."</p></details><small class="fb"></small>
+    </div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.6</span><h2>The Balanced Verdict</h2><span class="pts">1 PT</span></div>
+    <p class="hint">Choose the statement the whole reading best supports.</p>
+    <div class="g-item q" data-answer="b"><p><b>Which sentence best closes your feature?</b></p>
+      <div class="opts"><button type="button" class="opt" data-val="a">Walt Disney became successful without any difficulties.</button><button type="button" class="opt" data-val="b">Walt Disney's success came from persistence, creativity and courage, not from an easy path.</button><button type="button" class="opt" data-val="c">Walt Disney only created parks, not films.</button></div><small class="fb"></small></div>
+  </section>
+
+  <section class="task reveal">
+    <div class="task-head"><span class="tnum">3.7</span><h2>Writer's Checklist</h2><span class="pts">REFLECT</span></div>
+    <p class="hint">Tick what is true before you publish. <span class="ready-count">Ready: 0 / 4</span></p>
+    <ul class="ready-list">
+      <li><label><input type="checkbox" class="ready-check"> I used at least four unit words in my writing.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> My feature mentions <b>both</b> failure and success.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> Every fact I wrote comes from the reading.</label></li>
+      <li><label><input type="checkbox" class="ready-check"> I can answer the three interview questions aloud.</label></li>
+    </ul>
+  </section>
+
+  <section class="task results" hidden>
+    <div class="ring-wrap"><svg class="ring" viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg><span class="ring-pct">0%</span></div>
+    <div class="results-body"><h2>Editor's Verdict</h2><div class="score-line"></div><p class="score-msg"></p>
+      <div class="results-actions no-print"><button type="button" class="btn primary sm" data-action="review">Review mistakes</button><button type="button" class="btn paper sm" data-action="print">🖨 Print / PDF</button><button type="button" class="btn paper sm" data-action="reset">Try again</button></div></div>
+  </section>
+</main>
+
+<!-- Bottom action bar: completion submit + share -->
+<div class="hw-bar no-print">
+  <button type="button" class="hw-btn hw-btn-submit" id="submitBtn">Submit to Teacher ✓</button>
+  <button type="button" class="hw-btn hw-btn-ghost" data-cmc-share aria-haspopup="true">Share homework ▾</button>
+</div>
+<div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
+<div class="cmc-share" id="cmcShare">
+  <button type="button" data-cmc-copy>🔗 Copy Link</button>
+  <button type="button" data-cmc-wa>💬 WhatsApp</button>
+  <button type="button" data-cmc-tg>✈️ Telegram</button>
+  <button type="button" data-cmc-email>✉️ Email</button>
+  <button type="button" class="close" data-cmc-close>✕ Close</button>
+</div>
+
+<noscript><p style="position:relative;z-index:20;text-align:center;padding:24px">Please enable JavaScript to use the interactive homeworks.</p></noscript>
+
+<noscript><p style="position:relative;z-index:20;text-align:center;padding:24px">Please enable JavaScript to use the interactive homeworks.</p></noscript>
+
+<script>
+(function(){
+'use strict';
+document.documentElement.classList.add('js');
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+var norm=function(s){return String(s==null?'':s).toLowerCase().replace(/[.!?]+$/,'').trim().replace(/\s+/g,' ');};
+var wc=function(s){return (String(s).trim().match(/\S+/g)||[]).length;};
+var UNIT=['cartoon','deliver','management','give up','studio','cancer','decade','courage','animation','film'];
+var unitCount=function(t){return UNIT.filter(function(v){return new RegExp('\\b'+v,'i').test(t);}).length;};
+var AGE=/\b(courage|package|shortage|storage|marriage|village|percentage|baggage)\b/i;
+var SEQ=/\b(first|then|next|later|after|afterwards|finally|however)\b|\bin 19\d\d\b|\bsixteen years\b/i;
+var PERSIST=/\b(give up|kept|continued|persist\w*|never stopped|did not stop|overcame|hard work)\b/i;
+
+/* ---------- SOUND ---------- */
+var Snd={ctx:null,g:null,on:true,ready:false,
+ init:function(){
+  if(this.ready){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();return;}
+  var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  try{this.ctx=new AC();this.g=this.ctx.createGain();this.g.gain.value=this.on?.3:0;
+   this.g.connect(this.ctx.destination);this.ready=true;
+   if(this.ctx.state==='suspended')this.ctx.resume();}catch(e){}
+ },
+ mute:function(v){this.on=v;if(this.g&&this.ctx)this.g.gain.setTargetAtTime(v?.3:0,this.ctx.currentTime,.04);},
+ t:function(f,d,ty,v){
+  if(!this.ready||!this.on)return;d=d||.1;ty=ty||'sine';v=v||.15;
+  try{var t=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();
+   o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);
+   g.gain.linearRampToValueAtTime(v,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+   o.connect(g);g.connect(this.g);o.start(t);o.stop(t+d+.02);}catch(e){}
+ },
+ click:function(){this.t(640,.05,'triangle',.08);},
+ place:function(){this.t(420,.07,'sine',.1);},
+ good:function(){var s=this;s.t(587,.12,'sine',.15);setTimeout(function(){s.t(880,.2,'sine',.14);},95);},
+ bad:function(){this.t(175,.2,'sawtooth',.11);},
+ win:function(){var s=this;[523,659,784,1046].forEach(function(f,i){setTimeout(function(){s.t(f,.34,'triangle',.15);},i*95);});}
+};
+
+/* ---------- WRITING CONFIG ---------- */
+var WRITE={
+ 'w-summary':{checks:[
+  {label:'50–80 words',test:function(t){var n=wc(t);return n>=50&&n<=80;}},
+  {label:'3+ unit words (cartoon, deliver, management, studio, courage…)',test:function(t){return unitCount(t)>=3;}},
+  {label:'An -age noun (courage, package, shortage, storage)',test:function(t){return AGE.test(t);}},
+  {label:'At least two time markers (1923, 1955, 1966, eighteen, sixteen)',test:function(t){var m=t.match(/1923|1955|1966|eighteen|sixteen|decades?/gi)||[];var u={};m.forEach(function(x){u[x.toLowerCase()]=1;});return Object.keys(u).length>=2;}},
+  {label:'A sequencing expression: first / then / later / after / finally',test:function(t){return SEQ.test(t);}},
+  {label:'Mentions persistence: did not give up / kept working / overcame',test:function(t){return PERSIST.test(t);}}]},
+ 'w-title':{unit:'chars',checks:[
+  {label:'Between 15 and 60 characters',test:function(t){var n=t.trim().length;return n>=15&&n<=60;}},
+  {label:'Mentions Disney, Walt, cartoon, animation, dream or studio',test:function(t){return /disney|walt|cartoon|animation|dream|studio/i.test(t);}},
+  {label:'No full stop at the end',test:function(t){return t.trim().length>0&&!/\.$/.test(t.trim());}}]},
+ 'w-feature':{checks:[
+  {label:'70–110 words',test:function(t){var n=wc(t);return n>=70&&n<=110;}},
+  {label:'3+ unit words',test:function(t){return unitCount(t)>=3;}},
+  {label:'An -age noun',test:function(t){return AGE.test(t);}},
+  {label:'An opinion phrase: I think / I believe / in my opinion / for me',test:function(t){return /i think|i believe|in my opinion|for me/i.test(t);}},
+  {label:'A contrast link: however / although / but',test:function(t){return /\b(however|although|but)\b/i.test(t);}},
+  {label:'Shows both failure and success',test:function(t){return /fail\w*|did not give up/i.test(t)&&/success|studio|Disneyland|film|dream/i.test(t);}}]},
+ 'w-i1':{checks:[{label:'At least 12 words',test:function(t){return wc(t)>=12;}}]},
+ 'w-i2':{checks:[{label:'At least 12 words',test:function(t){return wc(t)>=12;}}]},
+ 'w-i3':{checks:[{label:'At least 12 words',test:function(t){return wc(t)>=12;}}]},
+ 'w-p1':{checks:[
+  {label:'Uses the word "package"',test:function(t){return /\bpackages?\b/i.test(t);}},
+  {label:'At least 8 words',test:function(t){return wc(t)>=8;}}]},
+ 'w-p2':{checks:[
+  {label:'Uses the word "storage"',test:function(t){return /\bstorage\b/i.test(t);}},
+  {label:'At least 8 words',test:function(t){return wc(t)>=8;}}]}
+};
+
+/* ---------- PROGRESS ---------- */
+function hasResponse(q){
+ var sel=$('select',q),inp=$('input',q);
+ if(sel)return sel.value!=='';
+ if(inp)return inp.value.trim()!=='';
+ return !!q.getAttribute('data-picked');
+}
+function refreshProgress(root){
+ if(!root)return;
+ var done=0,total=0;
+ $$('.g-item',root).forEach(function(q){total++;if(hasResponse(q))done++;});
+ $$('.sort-task',root).forEach(function(t){var c=$$('.sort-card',t);total+=c.length;
+  done+=c.filter(function(x){return x.closest('.bin');}).length;});
+ $$('.order-task',root).forEach(function(t){var n=$$('li',t).length;total+=n;if(t.getAttribute('data-touched'))done+=n;});
+ $$('.write-task',root).forEach(function(t){total++;if($('textarea,input',t).value.trim())done++;});
+ $('.progress-fill',root).style.width=(total?Math.round(done/total*100):0)+'%';
+ $('.progress-label-text',root).textContent=done+' / '+total+' answered';
+}
+
+/* ---------- WRITING TASKS ---------- */
+$$('.write-task').forEach(function(t){
+ var cfg=WRITE[t.id];if(!cfg)return;
+ var field=$('textarea,input',t),list=$('.checks',t);
+ cfg.checks.forEach(function(c){
+  var li=document.createElement('li');
+  li.innerHTML='<span class="dot"></span><span>'+c.label+'</span>';
+  list.appendChild(li);
+ });
+ var update=function(){
+  var v=field.value,pass=true;
+  cfg.checks.forEach(function(c,i){
+   var ok=c.test(v);list.children[i].classList.toggle('ok',ok);if(!ok)pass=false;
+  });
+  t.setAttribute('data-pass',pass?'1':'0');
+  $('.wc',t).textContent=cfg.unit==='chars'?(v.trim().length+' / 60 characters'):(wc(v)+' words');
+  refreshProgress(t.closest('.assignment'));
+ };
+ field.addEventListener('input',update);
+ t._update=update;update();
+});
+
+/* ---------- SORT PLACEMENT ---------- */
+function placeCard(bin){
+ var task=bin.closest('.sort-task'),root=bin.closest('.assignment');
+ var sel=$('.sort-card.selected',task);
+ if(!sel){$('.fb',task).textContent='👆 Select a card first, then tap a column.';return;}
+ $('.bin-body',bin).appendChild(sel);
+ sel.classList.remove('selected','correct','wrong');
+ $('.fb',task).textContent='';Snd.place();refreshProgress(root);
+}
+
+/* ---------- EVENTS ---------- */
+$$('.assignment').forEach(function(root){
+ root.addEventListener('click',function(e){
+  var act=e.target.closest('[data-action]');
+  if(act){doAction(act.getAttribute('data-action'),root);return;}
+  var opt=e.target.closest('.opt');
+  if(opt){
+   var q=opt.closest('.g-item');
+   $$('.opt',q).forEach(function(b){b.classList.remove('picked');});
+   opt.classList.add('picked');q.setAttribute('data-picked',opt.getAttribute('data-val'));
+   q.classList.remove('correct','wrong');$('.fb',q).textContent='';
+   Snd.click();refreshProgress(root);return;
+  }
+  var card=e.target.closest('.sort-card');
+  if(card){
+   var task=card.closest('.sort-task');
+   if(card.closest('.bin')){$('.tray',task).appendChild(card);}
+   else{
+    var sel=$('.sort-card.selected',task);
+    if(sel===card)card.classList.remove('selected');
+    else{if(sel)sel.classList.remove('selected');card.classList.add('selected');}
+   }
+   card.classList.remove('correct','wrong');$('.fb',task).textContent='';
+   Snd.place();refreshProgress(root);return;
+  }
+  var bin=e.target.closest('.bin');
+  if(bin){placeCard(bin);return;}
+  var ob=e.target.closest('.ord-btn');
+  if(ob){
+   var li=ob.closest('li'),dir=parseInt(ob.getAttribute('data-dir'),10);
+   var sib=dir<0?li.previousElementSibling:li.nextElementSibling;
+   if(!sib)return;
+   if(dir<0)li.parentNode.insertBefore(li,sib);else li.parentNode.insertBefore(sib,li);
+   var ot=li.closest('.order-task');ot.setAttribute('data-touched','1');
+   $$('li',ot).forEach(function(x){x.classList.remove('correct','wrong');});
+   $('.fb',ot).textContent='';Snd.place();refreshProgress(root);
+  }
+ });
+ root.addEventListener('keydown',function(e){
+  var bin=e.target.closest('.bin');
+  if(bin&&(e.key==='Enter'||e.key===' ')){e.preventDefault();placeCard(bin);}
+ });
+ var onChange=function(e){
+  var q=e.target.closest('.g-item');
+  if(q&&(e.target.matches('input,select'))){
+   q.classList.remove('correct','wrong');$('.fb',q).textContent='';refreshProgress(root);
+  }
+  if(e.target.matches('.ready-check')){
+   var lbl=$('.ready-count',root);
+   if(lbl)lbl.textContent='Ready: '+$$('.ready-check:checked',root).length+' / 4';
+  }
+ };
+ root.addEventListener('input',onChange);
+ root.addEventListener('change',onChange);
+});
+
+/* ---------- GRADING ---------- */
+function grade(root){
+ var earned=0,total=0,anyWrong=false;
+ $$('.g-item',root).forEach(function(q){
+  total++;
+  var key=q.getAttribute('data-answer'),acc=key.split('|').map(norm);
+  var sel=$('select',q),inp=$('input',q),val='',shown='';
+  if(sel){val=sel.value;var o=sel.querySelector('option[value="'+key+'"]');shown=o?o.textContent:key;}
+  else if(inp){val=inp.value;shown=key.split('|')[0];}
+  else{val=q.getAttribute('data-picked')||'';var b=q.querySelector('.opt[data-val="'+key+'"]');shown=b?b.textContent:key;}
+  var ok=norm(val)!==''&&acc.indexOf(norm(val))>-1;
+  q.classList.toggle('correct',ok);q.classList.toggle('wrong',!ok);
+  $('.fb',q).textContent=ok?'✔ Correct':'✘ Answer: '+shown;
+  if(ok)earned++;else anyWrong=true;
+ });
+ $$('.sort-task',root).forEach(function(t){
+  var cards=$$('.sort-card',t),c=0;
+  cards.forEach(function(card){
+   var bin=card.closest('.bin');
+   var ok=!!bin&&bin.getAttribute('data-bin')===card.getAttribute('data-correct');
+   card.classList.toggle('correct',ok);card.classList.toggle('wrong',!ok);
+   if(ok)c++;else anyWrong=true;
+  });
+  total+=cards.length;earned+=c;
+  $('.fb',t).textContent=c+' / '+cards.length+' in the right column.'+(c===cards.length?' ✔':' — tap a card to move it.');
+ });
+ $$('.order-task',root).forEach(function(t){
+  var sol=t.getAttribute('data-solution').split(','),lis=$$('li',t),c=0;
+  lis.forEach(function(li,i){
+   var ok=li.getAttribute('data-key')===sol[i];
+   li.classList.toggle('correct',ok);li.classList.toggle('wrong',!ok);
+   if(ok)c++;else anyWrong=true;
+  });
+  total+=lis.length;earned+=c;
+  $('.fb',t).textContent=c+' / '+lis.length+' in the right position.'+
+   (c===lis.length?' ✔':' Hint: young age → first company → study animation → second company → 1923 studio → films → parks → legacy.');
+ });
+ $$('.write-task',root).forEach(function(t){
+  total++;
+  var ok=t.getAttribute('data-pass')==='1';
+  t.classList.toggle('correct',ok);t.classList.toggle('wrong',!ok);
+  $('.fb',t).textContent=ok?'✔ Requirements met — well done.':'✘ Finish the live checklist above to earn this point.';
+  if(ok)earned++;else anyWrong=true;
+ });
+ if(anyWrong)Snd.bad();else Snd.good();
+ showResults(root,earned,total);
+}
+function showResults(root,earned,total){
+ var pct=Math.round(earned/total*100),panel=$('.results',root);
+ $('.score-line',panel).textContent=earned+' / '+total+' points';
+ $('.ring-pct',panel).textContent=pct+'%';
+ var msgs={
+  'hw-a':['🏆 Storyboard approved! You are ready to draw the frames.','🌟 Strong notes — review the marked entries.','👍 A good start. Reread the passage and revise.','📖 Open the reading passage above, then try again.'],
+  'hw-b':['🏆 Final cut approved! Your timeline and summary are sound.','🌟 A solid production — correct the marked claims.','👍 Reasonable start. Recheck the order and the key points.','📖 Study the production archive above, then rebuild the timeline.'],
+  'hw-c':['🏆 Published! Your feature is honest, clear and well supported.','🌟 A strong feature — polish the marked parts.','👍 Good ideas. Add more facts and show both failure and success.','📖 Reread the source material, then write again.']
+ }[root.id];
+ $('.score-msg',panel).textContent=pct>=90?msgs[0]:(pct>=70?msgs[1]:(pct>=50?msgs[2]:msgs[3]));
+ panel.hidden=false;
+ requestAnimationFrame(function(){$('.ring-fg',panel).style.strokeDashoffset=String(326.73*(1-pct/100));});
+ if(pct>=90){Snd.win();celebrate(panel);}
+ panel.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function celebrate(panel){
+ var colors=['#2f6fdb','#e0a63a','#d94f8c','#3fa66a','#39b8d8'];
+ for(var i=0;i<28;i++){
+  var s=document.createElement('span');s.className='confetti';
+  s.style.left=(Math.random()*100)+'%';
+  s.style.animationDelay=(Math.random()*.6)+'s';
+  s.style.background=colors[i%5];
+  var w=6+Math.random()*9;s.style.width=w+'px';s.style.height=(w*.6)+'px';
+  panel.appendChild(s);
+  setTimeout((function(node){return function(){if(node.parentNode)node.parentNode.removeChild(node);};})(s),2800);
+ }
+}
+
+/* ---------- ACTIONS ---------- */
+function doAction(a,root){
+ if(a==='check'){Snd.init();grade(root);}
+ else if(a==='reset')resetAll(root);
+ else if(a==='print')window.print();
+ else if(a==='review'){
+  var first=$('.wrong',root);
+  if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+  else $('.results',root).scrollIntoView({behavior:'smooth'});
+ }
+}
+function resetAll(root){
+ $$('.g-item',root).forEach(function(q){
+  q.classList.remove('correct','wrong');q.removeAttribute('data-picked');
+  var sel=$('select',q);if(sel)sel.value='';
+  var inp=$('input',q);if(inp)inp.value='';
+  $$('.opt',q).forEach(function(b){b.classList.remove('picked');});
+  $('.fb',q).textContent='';
+ });
+ $$('.sort-task',root).forEach(function(t){
+  var tray=$('.tray',t);
+  $$('.sort-card',t).sort(function(a,b){
+   return parseInt(a.getAttribute('data-idx'),10)-parseInt(b.getAttribute('data-idx'),10);
+  }).forEach(function(c){c.classList.remove('selected','correct','wrong');tray.appendChild(c);});
+  $('.fb',t).textContent='';
+ });
+ $$('.order-task',root).forEach(function(t){
+  var list=$('.order-list',t);
+  t.getAttribute('data-initial').split(',').forEach(function(k){
+   list.appendChild($('li[data-key="'+k+'"]',t));
+  });
+  t.removeAttribute('data-touched');
+  $$('li',t).forEach(function(li){li.classList.remove('correct','wrong');});
+  $('.fb',t).textContent='';
+ });
+ $$('.write-task',root).forEach(function(t){
+  $('textarea,input',t).value='';
+  t.classList.remove('correct','wrong');$('.fb',t).textContent='';
+  if(t._update)t._update();
+ });
+ $$('.ready-check',root).forEach(function(c){c.checked=false;});
+ var lbl=$('.ready-count',root);if(lbl)lbl.textContent='Ready: 0 / 4';
+ var panel=$('.results',root);panel.hidden=true;
+ $('.ring-fg',panel).style.strokeDashoffset='326.73';
+ refreshProgress(root);Snd.click();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- INIT ---------- */
+$$('.order-task').forEach(function(t){
+ t.setAttribute('data-initial',$$('li',t).map(function(li){return li.getAttribute('data-key');}).join(','));
+});
+function setMode(m){
+ document.body.setAttribute('data-mode',m);
+ $$('.assignment').forEach(function(a){
+  var active=a.id==='hw-'+m;
+  a.hidden=!active;
+  if(active)$$('.reveal',a).forEach(function(el){el.classList.add('in');});
+ });
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+window.CMC_HW_SETMODE=setMode;window.CMC_HW_GRADE=grade;
+$$('.tab').forEach(function(b){
+ b.addEventListener('click',function(){Snd.init();Snd.click();setMode(b.getAttribute('data-mode'));});
+});
+$('#soundBtn').addEventListener('click',function(){
+ Snd.init();Snd.mute(!Snd.on);
+ this.classList.toggle('on',Snd.on);
+ this.textContent=Snd.on?'🔊':'🔇';
+ this.setAttribute('aria-pressed',String(Snd.on));
+ this.title=Snd.on?'Mute feedback sounds':'Unmute feedback sounds';
+ if(Snd.on)Snd.click();
+});
+if('IntersectionObserver' in window){
+ var io=new IntersectionObserver(function(es){
+  es.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+ },{threshold:.06});
+ $$('.reveal').forEach(function(el){io.observe(el);});
+}else{
+ $$('.reveal').forEach(function(el){el.classList.add('in');});
+}
+$$('.assignment').forEach(refreshProgress);
+if(!/#hw-[abc]/.test(location.hash))setMode('a');
+})();
+</script>
+<script>
+/* ── Kid 11 online homework: hero name/date sync + completion submit + share ──
+   Name and date typed in any homework hero mirror into the other two, so a
+   student who does Homework 1 today and Homework 2 tomorrow keeps their
+   details. Submit-to-Teacher reuses the site-wide drill_attempts pipeline:
+   signed-in students post under their own localStorage session token (with
+   securetoken refresh), visitors through the validated guest branch (empty
+   studentUid, 1-40 char name, classId null) — append-only, no rules change,
+   lands in the teacher dashboard feed and the homepage ticker. The payload
+   names the ACTIVE homework (1 The Storyboard Desk / 2 Timeline Producer /
+   3 Legacy Writer) so the teacher can tell the three apart. */
+
+(function () {
+  var CMC_FS = 'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+  var CMC_API_KEY = 'AIzaSyDNUq0ru99XKh08D887Xk63h36MPOlXWwc';
+
+  /* ── An email is NEVER a display name ───────────────────────────────
+     Owner report: "students that sign in with their gmail are not showing
+     names on the completion ticker" — Google sign-ins can return an empty
+     displayName and the old auth fallback stored the EMAIL as the name, so
+     submissions carried e.g. "mam.ry@aii.edu.kh". Heals a stored
+     email-as-name once at load and guards every outgoing name ("mam.ry@…"
+     → "Mam Ry"). A real typed name is never touched. */
+  function cmcLooksLikeEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || '').trim());
+  }
+  function cmcFriendlyFromEmail(email) {
+    var local = String(email || '').split('@')[0].trim();
+    if (!local) return '';
+    var words = local.split(/[._+\-]+/).map(function (w) { return w.trim(); }).filter(Boolean);
+    if (!words.length) return local.slice(0, 40);
+    return words.map(function (w) { return (w.charAt(0).toUpperCase() + w.slice(1)).slice(0, 40); }).join(' ').trim().slice(0, 40);
+  }
+  function cmcNameOf(v) {
+    var s = String(v || '').trim();
+    if (!s || !cmcLooksLikeEmail(s)) return s;
+    return cmcFriendlyFromEmail(s) || s;
+  }
+  (function () {
+    try {
+      var stored = localStorage.getItem('cmc-student-name') || '';
+      if (!cmcLooksLikeEmail(stored)) return;
+      var healed = cmcFriendlyFromEmail(stored);
+      if (healed) localStorage.setItem('cmc-student-name', healed);
+      else localStorage.removeItem('cmc-student-name');
+    } catch (e) { /* private mode — nothing to heal */ }
+  })();
+
+
+  var HW_LABELS = {
+    a: 'Homework 1 · The Storyboard Desk',
+    b: 'Homework 2 · Timeline Producer',
+    c: 'Homework 3 · Legacy Writer'
+  };
+
+  function cmcToast(msg, err) {
+    var t = document.getElementById('cmcToast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!err);
+    t.classList.add('show');
+    clearTimeout(cmcToast._tm);
+    cmcToast._tm = setTimeout(function () { t.classList.remove('show'); }, 3600);
+  }
+
+  function cmcSession() {
+    var tok = '', uid = '', name = '';
+    try {
+      tok = localStorage.getItem('cmc-student-token') || '';
+      uid = localStorage.getItem('cmc-student-uid') || '';
+      name = localStorage.getItem('cmc-student-name') || '';
+    } catch (e) {}
+    return { tok: tok, uid: uid, name: cmcNameOf(name), authed: !!(tok && uid) };
+  }
+
+  // Mirror the Name/Date typed in any hero into every other hero (same role
+  // by aria-label), and prefill the Name for signed-in students.
+  function cmcSyncNameDate(from) {
+    var name = '', date = '';
+    document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+      var label = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (label.indexOf('date') !== -1) { if (inp.value) date = inp.value; }
+      else { if (inp.value) name = inp.value; }
+    });
+    if (from) {
+      var fl = (from.getAttribute('aria-label') || '').toLowerCase();
+      if (fl.indexOf('date') !== -1) date = from.value; else name = from.value;
+    }
+    document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+      if (inp === from) return;
+      var label = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (label.indexOf('date') !== -1) { if (date) inp.value = date; }
+      else { if (name) inp.value = name; }
+    });
+  }
+  document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+    inp.addEventListener('input', function () { cmcSyncNameDate(inp); });
+  });
+  try {
+    var pre = cmcNameOf(localStorage.getItem('cmc-student-name'));
+    if (pre) {
+      document.querySelectorAll('.assignment .meta input').forEach(function (inp) {
+        if (((inp.getAttribute('aria-label') || '').toLowerCase().indexOf('date')) === -1) inp.value = pre.slice(0, 40);
+      });
+    }
+  } catch (e) {}
+
+  function cmcRefreshToken(cb) {
+    // Same securetoken grant flow as the rfc2/rfc3 worksheets and cmc-shared.js.
+    try {
+      var rt = localStorage.getItem('cmc-student-refresh-token');
+      if (!rt) return cb(null);
+      fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.id_token) {
+          try {
+            localStorage.setItem('cmc-student-token', d.id_token);
+            localStorage.setItem('cmc-student-token-expires', String(Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000));
+            if (d.refresh_token) localStorage.setItem('cmc-student-refresh-token', d.refresh_token);
+          } catch (e) {}
+          cb(d.id_token);
+        } else cb(null);
+      }).catch(function () { cb(null); });
+    } catch (e) { cb(null); }
+  }
+
+  function cmcPost(body, token) {
+    var h = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return fetch(CMC_FS, { method: 'POST', headers: h, body: JSON.stringify({ fields: body }) });
+  }
+
+  function cmcActiveRoot() {
+    return document.getElementById('hw-' + (document.body.getAttribute('data-mode') || 'a'));
+  }
+
+  function cmcActiveNameInput(root) {
+    // The heroes keep the teacher's markup order: name first, date second.
+    var inputs = root.querySelectorAll('.meta input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (((inputs[i].getAttribute('aria-label') || '').toLowerCase().indexOf('date')) === -1) return inputs[i];
+    }
+    return inputs[0] || null;
+  }
+
+  function cmcCurrentScore(root) {
+    // Reuse the homework's own grading — the score line reads "E / T points".
+    var line = root.querySelector('.score-line');
+    var panel = root.querySelector('.results');
+    var m = line && /^(\d+) \/ (\d+) points$/.exec((line.textContent || '').trim());
+    if (!(panel && !panel.hidden && m)) { if (window.CMC_HW_GRADE) window.CMC_HW_GRADE(root); }
+    var txt = (root.querySelector('.score-line').textContent || '').trim();
+    var m2 = /^(\d+) \/ (\d+) points$/.exec(txt);
+    return { correct: m2 ? Number(m2[1]) : 0, total: m2 ? Number(m2[2]) : 0 };
+  }
+
+  function cmcBuildBody(name, uid, score, mode) {
+    // Field set matches the drill_attempts rules: guest branch requires
+    // studentUid == '', name 1-40 chars, ints in range, classId null.
+    var pct = score.total > 0 ? Math.round(score.correct / score.total * 100) : 0;
+    return {
+      drillSlug:   { stringValue: 'unit4hw.html' },
+      drillTitle:  { stringValue: 'Unit 4 · Walt Disney — ' + (HW_LABELS[mode] || HW_LABELS.a) },
+      drillSource: { stringValue: 'rfc3' },
+      studentName: { stringValue: name },
+      studentUid:  { stringValue: uid },
+      scorePct:      { integerValue: String(pct) },
+      correctCount:  { integerValue: String(score.correct) },
+      totalCount:    { integerValue: String(score.total) },
+      classId:       { nullValue: null },
+      submittedAt:   { timestampValue: new Date().toISOString() }
+    };
+  }
+
+  function submitCompletion() {
+    var btn = document.getElementById('submitBtn');
+    var root = cmcActiveRoot();
+    var mode = document.body.getAttribute('data-mode') || 'a';
+    var nameEl = cmcActiveNameInput(root);
+
+    var sess = cmcSession();
+    var name = cmcNameOf((((nameEl && nameEl.value) || '').trim() || sess.name).slice(0, 40));
+    if (!name) {
+      cmcToast('Add your name first — your teacher needs to know who finished the homework.', true);
+      btn.textContent = '⚠ Add your name first';
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 2600);
+      if (nameEl) {
+        nameEl.focus();
+        nameEl.classList.add('needs-name');
+        setTimeout(function () { nameEl.classList.remove('needs-name'); }, 1900);
+      }
+      var hero = root.querySelector('.hero');
+      if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.remove('done');
+    btn.textContent = 'Submitting…';
+    var score = cmcCurrentScore(root);
+    var body = cmcBuildBody(name, sess.authed ? sess.uid : '', score, mode);
+    var okMsg = '✓ Submitted! ' + name + ' — ' + score.correct + '/' + score.total + ' sent to your teacher.';
+
+    var done = function (ok, msg) {
+      btn.disabled = false;
+      btn.classList.toggle('done', ok);
+      btn.textContent = ok ? '✓ Submitted to teacher' : '⚠ Try again';
+      cmcToast(msg, !ok);
+      setTimeout(function () { btn.textContent = 'Submit to Teacher ✓'; }, 4200);
+    };
+
+    cmcPost(body, sess.authed ? sess.tok : '')
+      .then(function (r) {
+        if (r.ok) return done(true, okMsg);
+        if (r.status === 401 && sess.authed) {
+          cmcRefreshToken(function (t) {
+            if (t) {
+              cmcPost(body, t).then(function (r2) { done(r2.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+            } else {
+              // Session unrecoverable → validated guest branch.
+              cmcPost(cmcBuildBody(name, '', score, mode), '')
+                .then(function (r3) { done(r3.ok, okMsg); })
+                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+            }
+          });
+          return;
+        }
+        // Permission or server error → guest branch fallback (uid must be '').
+        cmcPost(cmcBuildBody(name, '', score, mode), '')
+          .then(function (r3) { done(r3.ok, okMsg); })
+          .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+      })
+      .catch(function () { done(false, 'Could not reach the teacher console — check your connection and try again.'); });
+  }
+  document.getElementById('submitBtn').addEventListener('click', submitCompletion);
+
+  /* ── Share (native sheet when available, fallback options otherwise) ── */
+  function cmcHomeworkUrl() {
+    return location.origin === 'null'
+      ? 'https://cmckhmer.github.io/Creative-Minds-/rfc3/unit4hw.html'
+      : location.href.split('#')[0];
+  }
+  function cmcShareText() {
+    return 'Kid 11 Online Homework — Unit 4 · Walt Disney · Homeworks 1–3 (auto-graded)';
+  }
+  function cmcToggleShare(force) {
+    var p = document.getElementById('cmcShare');
+    var open = typeof force === 'boolean' ? force : !p.classList.contains('open');
+    p.classList.toggle('open', open);
+  }
+  document.addEventListener('click', function (e) {
+    var p = document.getElementById('cmcShare');
+    if (p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('[data-cmc-share]')) cmcToggleShare(false);
+  });
+  function cmcNativeShare() {
+    if (navigator.share) {
+      navigator.share({ title: 'Unit 4 · Walt Disney', text: cmcShareText(), url: cmcHomeworkUrl() }).catch(function () {});
+      return true;
+    }
+    return false;
+  }
+  document.querySelector('[data-cmc-share]').addEventListener('click', function () { if (!cmcNativeShare()) cmcToggleShare(); });
+  function cmcCopyLink() {
+    var url = cmcHomeworkUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { cmcToast('Homework link copied — paste it into your class chat'); });
+    } else {
+      var t = document.createElement('textarea'); t.value = url; document.body.appendChild(t);
+      t.select(); document.execCommand('copy'); t.remove();
+      cmcToast('Homework link copied — paste it into your class chat');
+    }
+    cmcToggleShare(false);
+  }
+  document.querySelector('[data-cmc-copy]').addEventListener('click', cmcCopyLink);
+  document.querySelector('[data-cmc-wa]').addEventListener('click', function () {
+    window.open('https://wa.me/?text=' + encodeURIComponent(cmcShareText() + ' ' + cmcHomeworkUrl()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-tg]').addEventListener('click', function () {
+    window.open('https://t.me/share/url?url=' + encodeURIComponent(cmcHomeworkUrl()) + '&text=' + encodeURIComponent(cmcShareText()), '_blank', 'noopener'); cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-email]').addEventListener('click', function () {
+    location.href = 'mailto:?subject=' + encodeURIComponent('Unit 4 · Walt Disney — Kid 11 Online Homework') + '&body=' + encodeURIComponent(cmcShareText() + '\n' + cmcHomeworkUrl());
+    cmcToggleShare(false);
+  });
+  document.querySelector('[data-cmc-close]').addEventListener('click', function () { cmcToggleShare(false); });
+})();
+</script>
+</body>
+</html>

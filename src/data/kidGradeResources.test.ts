@@ -50,11 +50,17 @@ describe('Kid Program grade resource pathway', () => {
       './rfc3/unit2hw.html#hw-a',
       './rfc3/unit2hw.html#hw-b',
       './rfc3/unit2hw.html#hw-c',
+      './rfc3/unit3hw.html#hw-a',
+      './rfc3/unit3hw.html#hw-b',
+      './rfc3/unit3hw.html#hw-c',
+      './rfc3/unit4hw.html#hw-a',
+      './rfc3/unit4hw.html#hw-b',
+      './rfc3/unit4hw.html#hw-c',
     ]);
     // The online-homework entries are the teacher's Unit 14 (Doctor Fish),
-    // Unit 13, Unit 15 and Unit 2 (Leonardo da Vinci) three-homework files
-    // (one row per homework) — the only materials allowed outside the
-    // grade's Reading Future book naming.
+    // Unit 13, Unit 15, Unit 2 (Leonardo da Vinci), Unit 3 (Pocahontas) and
+    // Unit 4 (Walt Disney) three-homework files (one row per homework) — the
+    // only materials allowed outside the grade's Reading Future book naming.
     const kid11Homework = kid11?.materials.filter((material) => material.kind === 'Online homework') ?? [];
     expect(kid11Homework.map((material) => material.id)).toEqual([
       'kid-11-homework-u14-hw1',
@@ -69,6 +75,12 @@ describe('Kid Program grade resource pathway', () => {
       'kid-11-homework-u2-hw1',
       'kid-11-homework-u2-hw2',
       'kid-11-homework-u2-hw3',
+      'kid-11-homework-u3-hw1',
+      'kid-11-homework-u3-hw2',
+      'kid-11-homework-u3-hw3',
+      'kid-11-homework-u4-hw1',
+      'kid-11-homework-u4-hw2',
+      'kid-11-homework-u4-hw3',
     ]);
     expect(kid11Homework.slice(0, 3).map((material) => material.title)).toEqual([
       'Unit 14 · Homework 1 — Spa Intake File',
@@ -92,8 +104,14 @@ describe('Kid Program grade resource pathway', () => {
       'hw-kid11-u2-hw1',
       'hw-kid11-u2-hw2',
       'hw-kid11-u2-hw3',
+      'hw-kid11-u3-hw1',
+      'hw-kid11-u3-hw2',
+      'hw-kid11-u3-hw3',
+      'hw-kid11-u4-hw1',
+      'hw-kid11-u4-hw2',
+      'hw-kid11-u4-hw3',
     ]);
-    expect(kid11Homework.map((material) => material.hideUntilShared)).toEqual([true, true, true, true, true, true, true, true, true, true, true, true]);
+    expect(kid11Homework.map((material) => material.hideUntilShared)).toEqual(new Array(18).fill(true));
     expect(KID_GRADE_RESOURCES.filter((grade) => grade.grade !== 6 && grade.grade !== 7 && grade.grade !== 11).every((grade) => grade.status === 'planned' && grade.materials.length === 0)).toBe(true);
   });
 

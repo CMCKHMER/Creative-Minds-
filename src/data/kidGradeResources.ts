@@ -117,10 +117,10 @@ const kid7Resources: KidGradeMaterial[] = [
 // drill_attempts Firestore collection via the validated guest branch (or the
 // signed-in localStorage session token) — same pipeline as the rfc2/rfc3
 // dictation sheets, so completions reach the teacher dashboard with no rules
-// change. Units 2, 13, 14 and 15 are 3-homework files where EACH homework
-// carries its own shareDoc: the teacher assigns one homework at a time, and
-// hideUntilShared keeps every unshared homework completely invisible to
-// students.
+// change. Units 2, 3, 4, 13, 14 and 15 are 3-homework files where EACH
+// homework carries its own shareDoc: the teacher assigns one homework at a
+// time, and hideUntilShared keeps every unshared homework completely
+// invisible to students.
 const kid11Resources: KidGradeMaterial[] = [
   {
     id: 'kid-11-rfc3-word-list',
@@ -274,6 +274,66 @@ const kid11Resources: KidGradeMaterial[] = [
     description: 'Leonardo da Vinci writing & speaking: fact vs opinion sort, exhibition title, magazine review, interview prep, suffix sentences and a balanced verdict — 16 auto-graded points. Only visible once the teacher shares Homework 3.',
     href: './rfc3/unit2hw.html#hw-c',
     shareDoc: 'hw-kid11-u2-hw3',
+    hideUntilShared: true,
+  },
+  // Unit 3 — the teacher's 3-homework file (Pocahontas). Same per-homework
+  // share-gate pattern as Units 2/13/14/15: one share doc per homework,
+  // students see only what the teacher has opened, one homework at a time.
+  {
+    id: 'kid-11-homework-u3-hw1',
+    title: 'Unit 3 · Homework 1 — The Archive Record',
+    kind: 'Online homework',
+    description: 'Pocahontas vocabulary & comprehension: word meanings, catalogue-note gap fills, reading comprehension, true/false and the suffix -ship — 30 auto-graded points. Only visible once the teacher shares Homework 1.',
+    href: './rfc3/unit3hw.html#hw-a',
+    shareDoc: 'hw-kid11-u3-hw1',
+    hideUntilShared: true,
+  },
+  {
+    id: 'kid-11-homework-u3-hw2',
+    title: 'Unit 3 · Homework 2 — Timeline Historian',
+    kind: 'Online homework',
+    description: 'Pocahontas chronology & critical thinking: order the timeline, match time expressions to events, link causes to effects, weigh supported vs disputed claims, an evidence check and an archive summary — 27 auto-graded points. Only visible once the teacher shares Homework 2.',
+    href: './rfc3/unit3hw.html#hw-b',
+    shareDoc: 'hw-kid11-u3-hw2',
+    hideUntilShared: true,
+  },
+  {
+    id: 'kid-11-homework-u3-hw3',
+    title: 'Unit 3 · Homework 3 — Museum Interpreter',
+    kind: 'Online homework',
+    description: 'Pocahontas writing & speaking: fact vs opinion sort, exhibit title, interpretation text, visitor-question prep, suffix sentences and a balanced verdict — 16 auto-graded points. Only visible once the teacher shares Homework 3.',
+    href: './rfc3/unit3hw.html#hw-c',
+    shareDoc: 'hw-kid11-u3-hw3',
+    hideUntilShared: true,
+  },
+  // Unit 4 — the teacher's 3-homework file (Walt Disney). Same per-homework
+  // share-gate pattern as the other units: one share doc per homework,
+  // students see only what the teacher has opened, one homework at a time.
+  {
+    id: 'kid-11-homework-u4-hw1',
+    title: 'Unit 4 · Homework 1 — The Storyboard Desk',
+    kind: 'Online homework',
+    description: 'Walt Disney vocabulary & comprehension: word meanings, storyboard-note gap fills, reading comprehension, true/false and the suffix -age — 30 auto-graded points. Only visible once the teacher shares Homework 1.',
+    href: './rfc3/unit4hw.html#hw-a',
+    shareDoc: 'hw-kid11-u4-hw1',
+    hideUntilShared: true,
+  },
+  {
+    id: 'kid-11-homework-u4-hw2',
+    title: 'Unit 4 · Homework 2 — Timeline Producer',
+    kind: 'Online homework',
+    description: 'Walt Disney chronology & summarizing: order the timeline, link causes to effects, separate key points from supporting details, fact checks, a summarizing desk and a production summary — 29 auto-graded points. Only visible once the teacher shares Homework 2.',
+    href: './rfc3/unit4hw.html#hw-b',
+    shareDoc: 'hw-kid11-u4-hw2',
+    hideUntilShared: true,
+  },
+  {
+    id: 'kid-11-homework-u4-hw3',
+    title: 'Unit 4 · Homework 3 — Legacy Writer',
+    kind: 'Online homework',
+    description: 'Walt Disney writing & speaking: fact vs opinion sort, feature title, magazine feature, interview prep, suffix sentences and a balanced verdict — 16 auto-graded points. Only visible once the teacher shares Homework 3.',
+    href: './rfc3/unit4hw.html#hw-c',
+    shareDoc: 'hw-kid11-u4-hw3',
     hideUntilShared: true,
   },
 ];
