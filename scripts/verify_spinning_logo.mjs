@@ -69,8 +69,8 @@ ok('SpinLogo: reduced-motion freezes on poster', spin.includes("matchMedia('(pre
 ok('SpinLogo: hidden from AT (aria-hidden)', spin.includes('aria-hidden="true"'));
 const nav = await readFile('/home/z/my-project/tmp/cmc-site/src/components/Navbar.tsx', 'utf8');
 const foot = await readFile('/home/z/my-project/tmp/cmc-site/src/components/Footer.tsx', 'utf8');
-ok('Navbar renders SpinLogo at 46px', nav.includes('<SpinLogo size={46} className="w-[46px] h-[46px]" />'));
-ok('Footer renders SpinLogo at 42px', foot.includes('<SpinLogo size={42} className="w-[42px] h-[42px]" />'));
+ok('Navbar renders SpinLogo at 56px (owner: "might need to make it larger")', nav.includes('<SpinLogo size={56} className="w-[56px] h-[56px]" />'));
+ok('Footer renders SpinLogo at 46px', foot.includes('<SpinLogo size={46} className="w-[46px] h-[46px]" />'));
 ok('image logo gone from React sources', !nav.includes('cmc-m-logo') && !foot.includes('cmc-m-logo'));
 ok('favicon intentionally still the PNG monogram', (await readFile('/home/z/my-project/tmp/cmc-site/index.html', 'utf8')).includes('./icons/favicon-64.png'));
 
@@ -89,7 +89,7 @@ const t2 = await header.evaluate(v => v.currentTime);
 ok('header video is PLAYING', t2 > t1, `${t1.toFixed(2)} → ${t2.toFixed(2)}s`);
 ok('header video muted + looping', await header.evaluate(v => v.muted && v.loop));
 const box = await header.boundingBox();
-ok('renders at the 46px slot', Math.abs(box.width - 46) < 2 && Math.abs(box.height - 46) < 2, `${box.width}×${box.height}`);
+ok('renders at the 56px slot', Math.abs(box.width - 56) < 2 && Math.abs(box.height - 56) < 2, `${box.width}×${box.height}`);
 ok('circular mask applied', (await header.evaluate(v => getComputedStyle(v).borderRadius)) !== '0px');
 // light theme: the medallion is self-contained (video element, no remaps touch it)
 await page.evaluate(() => document.documentElement.classList.add('light'));

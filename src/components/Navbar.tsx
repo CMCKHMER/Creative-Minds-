@@ -127,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* Official CMC logo — the spinning coin (teacher's 360° spin video) */}
               <a href="#top" aria-label="CMC Network home" className="flex items-center gap-2.5 group">
-                <SpinLogo size={46} className="w-[46px] h-[46px]" />
+                <SpinLogo size={56} className="w-[56px] h-[56px]" />
                 <div className="flex flex-col leading-none">
                   <span className="cmc-nav-wordmark hidden whitespace-nowrap font-bold text-base sm:inline sm:text-lg tracking-tight text-white group-hover:text-cyan-200 transition">
                     CMC Network Hub

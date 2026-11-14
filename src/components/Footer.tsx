@@ -41,7 +41,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenQuickLinks, onOpenTeacherP
           
           <div className="lg:col-span-6 space-y-3">
             <div className="flex items-center gap-2.5">
-              <SpinLogo size={42} className="w-[42px] h-[42px]" />
+              <SpinLogo size={46} className="w-[46px] h-[46px]" />
               <span className="font-extrabold text-lg text-white tracking-tight">
                 Creative Minds Network
               </span>
