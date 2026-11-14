@@ -256,7 +256,17 @@ service cloud.firestore {
         && request.resource.data.totalCount is int
         && request.resource.data.totalCount >= 0
         && request.resource.data.totalCount <= 10000
-        && (!('classId' in request.resource.data) || request.resource.data.classId == null);
+        && (!('classId' in request.resource.data) || request.resource.data.classId == null)
+        // SEALED TESTS (Nov 2026): the test pages no longer contain their
+        // answer keys, so a student's browser cannot grade. It sends the raw
+        // answer sheet (`sheet`, JSON text) with sealed == true and the
+        // teacher's dashboard grades it. Both are optional so attempts from
+        // a stale cached page are still accepted; when present they are
+        // type- and size-checked.
+        && (!('sealed' in request.resource.data) || request.resource.data.sealed is bool)
+        && (!('sheet' in request.resource.data)
+            || (request.resource.data.sheet is string
+                && request.resource.data.sheet.size() <= 20000));
 
       // Result history is append-only — nobody rewrites a submission.
       allow update, delete: if false;
@@ -439,6 +449,23 @@ service cloud.firestore {
         && request.resource.data.teacherUid == request.auth.uid
         && (!('teacherUid' in resource.data)
             || resource.data.teacherUid == request.auth.uid);
+      allow delete: if false;
+    }
+
+    // ANSWER SEAL (Nov 2026): the public bi-weekly test pages carry their
+    // answers ENCRYPTED (scripts/seal_tests.mjs). The one private key that
+    // opens them is the document teacher_secrets/answer-seal. This rule IS
+    // the protection: a verified teacher may fetch that document by name;
+    // nobody may list the collection, and students and signed-out visitors
+    // get nothing. Only the site owner can install or replace the key (from
+    // the dashboard: Bi-Weekly Tests → Answer protection).
+    match /teacher_secrets/{secretId} {
+      allow get: if isVerifiedTeacher();
+      allow list: if false;
+      allow create, update: if isCmcAdmin()
+        && request.resource.data.key is string
+        && request.resource.data.key.size() >= 20
+        && request.resource.data.key.size() <= 200;
       allow delete: if false;
     }
 

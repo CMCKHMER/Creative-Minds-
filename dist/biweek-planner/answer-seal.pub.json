@@ -1,0 +1,12 @@
+{
+ "v": 1,
+ "alg": "ECDH-P256 + HKDF-SHA256 + AES-256-GCM",
+ "kid": "01e04384897ef527",
+ "x": "wRy6hW5WqpUvRgIiOxtpSafTa4ZbyzIsI16x2jLiJIQ",
+ "y": "7tt5MRoOSz4XC60Ij1JXO53cNcZms6v3Q_NHcoPB8RY",
+ "check": {
+  "epk": "BHqiaR5p0U1i-qlHZIVWxMuhctHtmEd3PBHpVNE_qGkgSjK0QhLATSSJ2ARZKAX3UQNf8slIcUpHjmduy-mQ468",
+  "iv": "IitOfeg96BjgiAFB",
+  "ct": "iTKuwEtac-KOA2cFmquV5wlcRbd1yxsN1w3t"
+ }
+}

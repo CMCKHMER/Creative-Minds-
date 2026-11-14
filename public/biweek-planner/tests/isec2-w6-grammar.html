@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -238,37 +238,10 @@ html[data-theme="light"] .q-explanation{background:rgba(2,132,199,.04);border-co
 </div>
 
 <script>
-window.TEST_CONFIG={
-  title:'ISEC II · C2 Grammar: Advanced Modals & Conditionals',
-  kicker:'Week 6 · L12B · Structure',
-  color:'#f87171',
-  icon:'fa-pen-fancy',
-  instructions:'C2-level grammar drill testing advanced modal usage and conditional contrast, including inverted, mixed, and hypothetical structures. Choose the best answer for each blank.',
-  fields:['name', 'date'],
-  transcript:'',
-  groups:[
-    {'id':'isec2-w6-list','title':'Grammar Questions (15 questions)'}
-  ]
-};
-const BANKS = {
-"isec2-w6-list":[
-["It is imperative that the manuscript ____ submitted before the committee convenes, or the publication will be deferred indefinitely.",["be","is","will be","was being"],0],
-["The archaeological team _______ unearthed the artifact sooner if they had deployed ground-penetrating radar at the onset of the excavation.",["should have","could have","must have","would have to"],1],
-["_______ the monetary policy been adjusted preemptively, the hyperinflationary spiral of the late 1980s might have been averted.",["If","Should","Had","Were"],2],
-["If Dr. Henderson _______ the seminar on quantum computing last week, she would be able to contribute meaningfully to today's theoretical debate.",["attended","has attended","would attend","had attended"],3],
-["_______ meticulous safety protocols are enforced at the nuclear facility, an unforeseen seismic event could still compromise containment structures.",["Even if","Unless","Provided that","In case"],0],
-["Professor Vance suggested that the linguistic anomaly _______ from an undocumented dialect rather than a scribal error.",["stems","stem","will stem","has stemmed"],1],
-["By the erratic behavior of the celestial body, astronomers deduced that it _______ experienced a gravitational perturbation from a rogue mass.",["might","should have","must have","need have"],2],
-["_______ the board of directors to reject the merger proposal, the corporate restructuring strategy would face immediate dissolution.",["Had","Should","If","Were"],3],
-["Were he naturally inclined toward diplomatic discourse, he _______ compromised during the negotiations yesterday instead of alienating the delegates.",["would have","would","will have","had"],0],
-["The financial restructuring will proceed as planned, _______ unforeseen regulatory hurdles materialize in the final congressional review.",["provided that","unless","whereas","although"],1],
-["It is crucial that the chemical agent _______ exposed to ambient atmosphere for longer than thirty seconds during the transfer phase.",["is not","will not be","not be","has not been"],2],
-["You _______ troubled to translate the entire manuscript; the digital archive provided a verified translation simultaneously.",["should have","must have","couldn't have","needn't have"],3],
-["_______ the atmospheric concentration of carbon dioxide to double, global mean temperatures would experience a precipitous rise.",["Were","Had","Should","If"],0],
-["If the sovereign state _______ its currency last year, its current economic stability would be considerably less precarious.",["devalues","had devalued","would devalue","has devalued"],1],
-["_______ the empirical data contradict the preliminary hypothesis, the research team remains committed to publishing their initial findings.",["Providing that","Supposing","Even though","In case"],2]
-]};
-window.TEST_BANKS = BANKS;
+window.TEST_CONFIG={"title":"ISEC II · C2 Grammar: Advanced Modals & Conditionals","kicker":"Week 6 · L12B · Structure","color":"#f87171","icon":"fa-pen-fancy","instructions":"C2-level grammar drill testing advanced modal usage and conditional contrast, including inverted, mixed, and hypothetical structures. Choose the best answer for each blank.","fields":["name","date"],"transcript":"","groups":[{"id":"isec2-w6-list","title":"Grammar Questions (15 questions)"}]};
+window.TEST_BANKS={"isec2-w6-list":[["It is imperative that the manuscript ____ submitted before the committee convenes, or the publication will be deferred indefinitely.",["be","is","will be","was being"],-1],["The archaeological team _______ unearthed the artifact sooner if they had deployed ground-penetrating radar at the onset of the excavation.",["should have","could have","must have","would have to"],-1],["_______ the monetary policy been adjusted preemptively, the hyperinflationary spiral of the late 1980s might have been averted.",["If","Should","Had","Were"],-1],["If Dr. Henderson _______ the seminar on quantum computing last week, she would be able to contribute meaningfully to today's theoretical debate.",["attended","has attended","would attend","had attended"],-1],["_______ meticulous safety protocols are enforced at the nuclear facility, an unforeseen seismic event could still compromise containment structures.",["Even if","Unless","Provided that","In case"],-1],["Professor Vance suggested that the linguistic anomaly _______ from an undocumented dialect rather than a scribal error.",["stems","stem","will stem","has stemmed"],-1],["By the erratic behavior of the celestial body, astronomers deduced that it _______ experienced a gravitational perturbation from a rogue mass.",["might","should have","must have","need have"],-1],["_______ the board of directors to reject the merger proposal, the corporate restructuring strategy would face immediate dissolution.",["Had","Should","If","Were"],-1],["Were he naturally inclined toward diplomatic discourse, he _______ compromised during the negotiations yesterday instead of alienating the delegates.",["would have","would","will have","had"],-1],["The financial restructuring will proceed as planned, _______ unforeseen regulatory hurdles materialize in the final congressional review.",["provided that","unless","whereas","although"],-1],["It is crucial that the chemical agent _______ exposed to ambient atmosphere for longer than thirty seconds during the transfer phase.",["is not","will not be","not be","has not been"],-1],["You _______ troubled to translate the entire manuscript; the digital archive provided a verified translation simultaneously.",["should have","must have","couldn't have","needn't have"],-1],["_______ the atmospheric concentration of carbon dioxide to double, global mean temperatures would experience a precipitous rise.",["Were","Had","Should","If"],-1],["If the sovereign state _______ its currency last year, its current economic stability would be considerably less precarious.",["devalues","had devalued","would devalue","has devalued"],-1],["_______ the empirical data contradict the preliminary hypothesis, the research team remains committed to publishing their initial findings.",["Providing that","Supposing","Even though","In case"],-1]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"01e04384897ef527","epk":"BJSRiXyQp5JmZtuxTuGFFE3LqoC7pByl-7LsJRpdY0JUBcZWJmageapSiP6-MFfcPJkilDm3LGMP1iB2wnot8NQ","iv":"yvNjY89qkecnrX2Y","ct":"pvkejypCR1PkmWudSU9CCeaaQVpZPqPXl8mspWEFSOohkuLTi5ja-BDwqfBPEKV5LQOFr5d4RAgo027Vzr0-sMZuv6gDzhZgV5qrdohnqIKL1CSqtHgBC6C3RDM-Kzxvh5X3SecZjRbNu1o"};
 </script>
 <script>
 // CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
@@ -458,6 +431,7 @@ function doSubmit(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 
 

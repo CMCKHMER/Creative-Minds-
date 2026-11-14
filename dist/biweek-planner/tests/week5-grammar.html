@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -238,33 +238,10 @@ html[data-theme="light"] .q-explanation{background:rgba(2,132,199,.04);border-co
 </div>
 
 <script>
-window.TEST_CONFIG={
-  title:'Grammar: Conditionals & Agreement',
-  kicker:'Week 5 · Level 10 · Structure',
-  color:'#f87171',
-  icon:'fa-spell-check',
-  instructions:'World Class Unit 11-12: Grammar. Same drill as Week 2 for additional practice with conditionals and subject-verb agreement.',
-  fields:['name', 'date'],
-  transcript:'',
-  groups:[
-    {'id':'w2-grammar-list','title':'Conditionals & Agreement (11 questions)'}
-  ]
-};
-const BANKS = {
-"w2-grammar-list":[
-["If researchers ________ more reliable genetic evidence, they ________ able to determine whether the gene actually contributes to longevity.",["obtained / would be","had obtained / would have been","obtained / will be","would obtain / will be"],0],
-["If the researchers ________ the same genetic pattern in a larger population, their findings ________ stronger evidence for a connection between genetics and healthy aging.",["had identified / will provide","will identify / would provide","identify / would provide","identify / will provide"],3],
-["If environmental conditions ________ to improve, scientists ________ better able to distinguish genetic influences from lifestyle factors.",["had continued / would have been","will continue / would be","continue / will be","continues / will be"],2],
-["If the Laron population ________ in a more diverse community now, researchers ________ greater difficulty determining whether their unusual health characteristics are caused by a single gene.",["lived / would have","had lived / will have","lives / will have","will live / would have"],0],
-["If scientists ________ that genes account for most differences in lifespan, their understanding of the role of lifestyle ________ considerably.",["had proved / will change","proved / would change","will prove / would change","proves / will change"],1],
-["If the study ________ a significant relationship between the gene and resistance to disease, the researchers ________ additional experiments to confirm the result.",["had revealed / will conduct","will reveal / would conduct","reveals / will conduct","revealed / will conduct"],2],
-["Neither the quality of the materials nor the skills of the workers ________ responsible for the unexpected increase in production costs.",["appears to be","appear to be","have appeared to be","are appearing to be"],1],
-["The committee of experts who ________ responsible for evaluating the proposals ________ expected to announce its decision tomorrow.",["is / are","are / is","is / is","are / are"],1],
-["One of the most challenging aspects of learning a foreign language ________ understanding expressions that cannot be translated literally.",["are","have been","were","is"],3],
-["The number of applicants for the scholarship ________ increased considerably this year, although the number of available scholarships ________ unchanged.",["have / remain","has / remains","has / remain","have / remains"],1],
-["What the researchers discovered during the experiment ________ several unexpected problems that had not been considered during the planning stage.",["were","have been","are","was"],3]
-]};
-window.TEST_BANKS = BANKS;
+window.TEST_CONFIG={"title":"Grammar: Conditionals & Agreement","kicker":"Week 5 · Level 10 · Structure","color":"#f87171","icon":"fa-spell-check","instructions":"World Class Unit 11-12: Grammar. Same drill as Week 2 for additional practice with conditionals and subject-verb agreement.","fields":["name","date"],"transcript":"","groups":[{"id":"w2-grammar-list","title":"Conditionals & Agreement (11 questions)"}]};
+window.TEST_BANKS={"w2-grammar-list":[["If researchers ________ more reliable genetic evidence, they ________ able to determine whether the gene actually contributes to longevity.",["obtained / would be","had obtained / would have been","obtained / will be","would obtain / will be"],-1],["If the researchers ________ the same genetic pattern in a larger population, their findings ________ stronger evidence for a connection between genetics and healthy aging.",["had identified / will provide","will identify / would provide","identify / would provide","identify / will provide"],-1],["If environmental conditions ________ to improve, scientists ________ better able to distinguish genetic influences from lifestyle factors.",["had continued / would have been","will continue / would be","continue / will be","continues / will be"],-1],["If the Laron population ________ in a more diverse community now, researchers ________ greater difficulty determining whether their unusual health characteristics are caused by a single gene.",["lived / would have","had lived / will have","lives / will have","will live / would have"],-1],["If scientists ________ that genes account for most differences in lifespan, their understanding of the role of lifestyle ________ considerably.",["had proved / will change","proved / would change","will prove / would change","proves / will change"],-1],["If the study ________ a significant relationship between the gene and resistance to disease, the researchers ________ additional experiments to confirm the result.",["had revealed / will conduct","will reveal / would conduct","reveals / will conduct","revealed / will conduct"],-1],["Neither the quality of the materials nor the skills of the workers ________ responsible for the unexpected increase in production costs.",["appears to be","appear to be","have appeared to be","are appearing to be"],-1],["The committee of experts who ________ responsible for evaluating the proposals ________ expected to announce its decision tomorrow.",["is / are","are / is","is / is","are / are"],-1],["One of the most challenging aspects of learning a foreign language ________ understanding expressions that cannot be translated literally.",["are","have been","were","is"],-1],["The number of applicants for the scholarship ________ increased considerably this year, although the number of available scholarships ________ unchanged.",["have / remain","has / remains","has / remain","have / remains"],-1],["What the researchers discovered during the experiment ________ several unexpected problems that had not been considered during the planning stage.",["were","have been","are","was"],-1]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"01e04384897ef527","epk":"BKz3np_s4qYmP1s6jR15yQrbZ75db2m_Lf969qyqFz9RIPuubmE39m5K6d_r14IylcwPJU4ah9xg0jmA8j6Ltzs","iv":"B4BIEiPdZyLv3zpW","ct":"Dlbv3mzc_7NhHQug2GVUUR7bfWw94dhpXlZnNSX4P_yAtjENFgYJDGsiFhGwx40hCN_6AZeRInTZusxJ54EC-V-MgBNxDTYR1t7YE7SAGBAaSUQefwR5z1E3SlvXDHgSpSE"};
 </script>
 <script>
 // CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
@@ -454,6 +431,7 @@ function doSubmit(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 
 

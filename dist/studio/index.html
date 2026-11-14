@@ -1460,6 +1460,8 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
   <div class="dialog-buttons"><button class="cancel" onclick="closeModal('shadowModal')">Cancel</button><button class="primary" id="shadowApply">Apply</button></div>
 </div></div>
 
+<!-- Opens the sealed answer keys of linked bi-weekly tests (verified teachers only). -->
+<script src="../biweek-planner/answer-seal.js?v=1"></script>
 <script>
 /* ══ SETUP ═══════════════════════════════════════════ */
 const base=document.getElementById('base'), textLayer=document.getElementById('textLayer'),
@@ -6550,7 +6552,11 @@ function testPageUrl(slug){ return '../biweek-planner/tests/' + slug + '.html'; 
      recap    — rows [prompt, choices, "L"-ciphered index] + window.AMAP_OFF
    decodeAnswer maps both to a plain 0-based option index (arrays for
    multi-answer questions). The STUDENT payload built from this NEVER
-   carries the answer field — grading happens on the teacher side. */
+   carries the answer field — grading happens on the teacher side.
+   SEALED (Nov 2026): the pages no longer carry real answers — the answer
+   field holds a placeholder (its SHAPE is kept, so `m` is still right) and
+   the real key is the encrypted window.CMC_SEAL line. `a` from here is
+   therefore meaningless; grading uses sealedKeyOf() below. */
 function extractTestPage(html){
   var iA = html.indexOf('window.AMAP_OFF');
   var iC = html.indexOf('window.TEST_CONFIG=');
@@ -6600,10 +6606,22 @@ function linkedTestPayload(slug, ex){
     questions: ex.questions.map(function(q){ return { g: q.g, i: q.i, p: q.p, c: q.c, m: !!q.m }; }),
     audios: ex.audios, total: ex.questions.length };
 }
-/* Teacher-side: rebuild the answer key from the live test page, aligned to
-   the payload's question order (groups order, then bank row order). */
-function answerKeyOf(ex){
-  return ex.questions.map(function(q){ return q.a; });
+/* Teacher-side: open the SEALED answer key of the live test page, aligned to
+   the payload's question order (groups order, then bank row order).
+   The key is encrypted in the page; ../biweek-planner/answer-seal.js opens
+   it with the private key that Firestore hands to verified teachers only.
+   Resolves to an array of answers; rejects when the key cannot be opened. */
+function sealedKeyOf(slug, html, ex){
+  var api = window.CMC_ANSWER_SEAL;
+  var seal = api && api.sealFromHtml(html);
+  if (!seal) return Promise.reject(new Error('test page has no sealed key'));
+  return api.open(slug, seal).then(function(payload){
+    return ex.questions.map(function(q){
+      var bank = (payload.banks || {})[q.g];
+      if (!bank || bank.length <= q.i) throw new Error('sealed key does not match the page');
+      return bank[q.i];
+    });
+  });
 }
 
 /* ── Input-cell marking (teacher authoring, Excel mode) ── */
@@ -7182,7 +7200,9 @@ function gradeResults(subs, done){
   subs.forEach(function(s){ s.testScore = null; });
   fetch(testPageUrl(lt.slug)).then(function(r){ return r.ok ? r.text() : Promise.reject(new Error('HTTP ' + r.status)); })
     .then(function(html){
-      var key = answerKeyOf(extractTestPage(html));
+      return sealedKeyOf(lt.slug, html, extractTestPage(html));
+    })
+    .then(function(key){
       subs.forEach(function(s){
         if (!s.test || !Array.isArray(s.test.answers)) return;
         var n = Math.min(key.length, s.test.answers.length);

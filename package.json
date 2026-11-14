@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "rules:min": "node scripts/build_min_rules.mjs"
+    "rules:min": "node scripts/build_min_rules.mjs",
+    "seal": "node scripts/seal_tests.mjs",
+    "seal:check": "node scripts/seal_tests.mjs --check"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
