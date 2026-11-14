@@ -1257,6 +1257,47 @@ html.light [data-keep-dark] .cmc-glass:hover {
   border-color: rgba(103, 232, 249, 0.3);
 }
 
+/* ---- Bi-Weekly Test Scores card goes WHITE in light mode (owner screenshot:
+   the spreadsheet grid area rendered dark with hard-to-see text — "the grey
+   area makes it hard to see text. change the area to white so text can be
+   seen clearly"). The card is a deliberate data-keep-dark surface that the
+   #firebase-dashboard re-lighting layer (further down) re-lights EXCEPT its
+   grid container — bg-slate-950/60 was never in that list — leaving dark
+   cells under darkened text. A working spreadsheet is paper: in light mode
+   the whole card, its grid, header rails, tool menu and text become white
+   with dark ink; dark mode keeps the original dark card. Selectors are
+   scoped one step tighter than that id-scoped layer (ID + [data-keep-dark]
+   + .cmc-scores-card) so they win it by specificity. ---- */
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card {
+  background-image: none;
+  background-color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+}
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-slate-950\/60,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-slate-950\/40,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-slate-950\/95 { background-color: #ffffff; }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-slate-900 { background-color: #f1f5f9; }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-white\/\[0\.02\] { background-color: transparent; }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-white\/5 { background-color: rgba(15, 23, 42, 0.04); }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-white\/10 { background-color: rgba(15, 23, 42, 0.08); }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .text-white,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .text-slate-200,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .text-slate-300 { color: #0f172a; }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .text-slate-400,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .text-slate-500,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .text-slate-600 { color: #475569; }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .text-slate-700 { color: #94a3b8; }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .text-emerald-200,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .text-emerald-300 { color: #047857; }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .border-white\/10,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .border-white\/5 { border-color: rgba(15, 23, 42, 0.12); }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-emerald-300\/10,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-emerald-300\/20,
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .bg-emerald-400\/10 { background-color: rgba(16, 185, 129, 0.14); }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .outline-emerald-300 { outline-color: #059669; }
+html.light #firebase-dashboard [data-keep-dark].cmc-scores-card .ring-emerald-300\/40 { --tw-ring-color: rgba(5, 150, 105, 0.45); }
+
+
 /* ---- light-theme patch set (round 2, from visual QA) ---- */
 /* Hero eyebrow uses text-cyan-200/90 (opacity variant) — needs its own override */
 html.light .text-cyan-200\/90, html.light .text-cyan-100\/90 { color: #155e75; }

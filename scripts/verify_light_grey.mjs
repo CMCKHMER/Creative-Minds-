@@ -174,6 +174,100 @@ const browser = await chromium.launch();
     });
     ok(probe === 'rgb(226, 232, 240)', 'React light: solid bg-white computes slate-200 grey (assignment paper family)', probe);
   }
+  // stage 4 (owner screenshot: the Bi-Weekly Test Scores spreadsheet grid
+  // rendered dark in light mode with hard-to-see text — "change the area to
+  // white so text can be seen clearly"). The dashboard scores card must
+  // compute a WHITE paper surface with dark ink; dark mode keeps the dark card.
+  await ctx.route('**firestore.googleapis.com**', (route) => route.abort());
+  await ctx.route('**documents:runQuery**', (route) => {
+    const body = route.request().postData() || '';
+    if (!body.includes('drill_attempts')) return route.abort();
+    const doc = (name, pct, correct, total, iso) => ({
+      document: { fields: {
+        studentName: { stringValue: name }, drillTitle: { stringValue: 'Diagnostic · Week 12' },
+        drillSlug: { stringValue: 'diagnostic.html' }, classId: { stringValue: 'Kid 11' },
+        scorePct: { integerValue: String(pct) }, correctCount: { integerValue: String(correct) },
+        totalCount: { integerValue: String(total) }, submittedAt: { timestampValue: iso },
+      } },
+    });
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        doc('Sok Dara', 44, 4, 9, '2026-11-08T15:43:00Z'),
+        doc('Chan Bora', 92, 11, 12, '2026-11-09T09:10:00Z'),
+      ]),
+    });
+  });
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('cmc-student-token', 'x'.repeat(40));
+      localStorage.setItem('cmc-student-role', 'teacher');
+      localStorage.setItem('cmc-student-uid', 'uid-t');
+      localStorage.setItem('cmc-student-name', 'SheetQa');
+      localStorage.setItem('cmc-student-email', 't@e.edu');
+      localStorage.setItem('cmc-student-verified', '1');
+      localStorage.setItem('cmc-student-token-expires', String(Date.now() + 3600000));
+    } catch {}
+  });
+  {
+    await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000);
+    // the dashboard is LazyMount-ed — its chunk downloads only when the mount
+    // point nears the viewport, so scroll until the section exists (same
+    // recipe as verify_command_center.mjs)
+    for (let i = 0; i < 40 && !(await page.evaluate(() => !!document.getElementById('firebase-dashboard'))); i++) {
+      await page.evaluate(() => window.scrollBy(0, 900));
+      await page.waitForTimeout(300);
+    }
+    await page.evaluate(() => document.getElementById('firebase-dashboard')?.scrollIntoView({ behavior: 'instant' }));
+    await page.waitForSelector('#firebase-dashboard.cmc-cmdc', { timeout: 20000 });
+    await page.waitForSelector('.cmc-scores-card table tbody tr', { timeout: 15000 });
+    const c = await page.evaluate(() => {
+      const card = document.querySelector('.cmc-scores-card');
+      const grid = card.querySelector('[class*="max-h-[420px]"]');
+      const span = card.querySelector('tbody td span');
+      const th = card.querySelector('thead th:nth-child(2)');
+      return {
+        cardBg: getComputedStyle(card).backgroundColor,
+        gridBg: grid ? getComputedStyle(grid).backgroundColor : 'missing',
+        cellInk: span ? getComputedStyle(span).color : 'missing',
+        headBg: th ? getComputedStyle(th).backgroundColor : 'missing',
+        firstCell: span ? span.textContent : 'missing',
+      };
+    });
+    ok(c.cardBg === 'rgb(255, 255, 255)', `scores card: white paper surface in light mode (${c.cardBg})`, c.cardBg);
+    ok(c.gridBg === 'rgb(255, 255, 255)', `scores grid: cell area white (${c.gridBg})`, c.gridBg);
+    ok(c.cellInk === 'rgb(15, 23, 42)', `scores cells: dark ink (${c.cellInk})`, c.cellInk);
+    ok(c.headBg === 'rgb(241, 245, 249)', `scores header rail: light grey (${c.headBg})`, c.headBg);
+    ok((c.firstCell || '').includes('Bora') || (c.firstCell || '').includes('Dara'), 'scores grid: fed attempts reached the sheet', c.firstCell);
+    const cardEl = await page.$('.cmc-scores-card');
+    await cardEl.screenshot({ path: join(SHOTS, 'grey-scores-card.png') });
+  }
+  // same card in DARK mode: untouched dark surface + light ink
+  {
+    await page.addInitScript(() => { try { localStorage.setItem('cmc-theme', 'dark'); } catch {} });
+    await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000);
+    // the dashboard is LazyMount-ed — its chunk downloads only when the mount
+    // point nears the viewport, so scroll until the section exists (same
+    // recipe as verify_command_center.mjs)
+    for (let i = 0; i < 40 && !(await page.evaluate(() => !!document.getElementById('firebase-dashboard'))); i++) {
+      await page.evaluate(() => window.scrollBy(0, 900));
+      await page.waitForTimeout(300);
+    }
+    await page.evaluate(() => document.getElementById('firebase-dashboard')?.scrollIntoView({ behavior: 'instant' }));
+    await page.waitForSelector('#firebase-dashboard.cmc-cmdc', { timeout: 20000 });
+    await page.waitForSelector('.cmc-scores-card table tbody tr', { timeout: 15000 });
+    const c = await page.evaluate(() => {
+      const card = document.querySelector('.cmc-scores-card');
+      const grid = card.querySelector('[class*="max-h-[420px]"]');
+      const span = card.querySelector('tbody td span');
+      return { gridBg: getComputedStyle(grid).backgroundColor, ink: getComputedStyle(span).color };
+    });
+    ok(/oklab|rgba\(2, 6, 23/.test(c.gridBg), `scores grid: dark mode keeps its dark surface (${c.gridBg})`, c.gridBg);
+    ok(/oklch/.test(c.ink) || c.ink === 'rgb(203, 213, 225)', `scores cells: dark mode keeps light ink (${c.ink})`, c.ink);
+  }
   // dark untouched: same pages back in dark keep a dark base
   await page.goto(`${BASE}/biweek-planner/tests/diagnostic.html`, { waitUntil: 'load' });
   await page.evaluate(() => { localStorage.setItem('cmc-theme', 'dark'); document.documentElement.setAttribute('data-theme', 'dark'); });

@@ -50,7 +50,7 @@ export const BiWeeklyScoresCard: React.FC = () => {
   };
 
   return (
-    <div data-keep-dark className="mt-8 rounded-2xl border border-emerald-300/15 bg-gradient-to-br from-slate-950/70 via-slate-950/60 to-slate-950/80 p-5 sm:p-6">
+    <div data-keep-dark className="cmc-scores-card mt-8 rounded-2xl border border-emerald-300/15 bg-gradient-to-br from-slate-950/70 via-slate-950/60 to-slate-950/80 p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-xl border border-emerald-300/20 bg-emerald-300/10 text-emerald-200">
