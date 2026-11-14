@@ -35,7 +35,10 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Instrument Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden}
-  .app{display:grid; grid-template-rows:40px 28px auto 52px 1fr 30px; height:100vh}
+  /* CMC-NO-PAGE-SCROLL: the single column is minmax(0,1fr) so no bar can widen
+     the whole app past the window (a long status message used to do exactly
+     that on phones — and it stayed widened, because the text is only faded). */
+  .app{display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:40px 28px auto 52px 1fr 30px; height:100vh}
 
   /* ── Quick-access toolbar (customizable) ──────────────── */
   .quick-bar{display:flex; align-items:center; gap:4px; padding:0 10px; background:var(--panel); border-bottom:1px solid var(--line); z-index:55; overflow-x:auto; user-select:none}
@@ -140,20 +143,28 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
   .btn-export:hover{transform:translateY(-1px); box-shadow:0 6px 18px rgba(139,92,246,.4)}
 
   /* ── Workspace ───────────────────────────────────────── */
-  .workspace{display:grid; grid-template-columns:64px 1fr 300px; min-height:0}
+  /* CMC-NO-PAGE-SCROLL: the single row is minmax(0,1fr), NOT the implicit
+     `auto`. With `auto` the row grew to the tallest child (the 738px tool
+     rail), so on any window shorter than ~920px the stage and the side panel
+     ran on underneath the status bar and the page became scrollable — one
+     click on a spreadsheet cell then scrolled the whole app up, dragging the
+     status bar over the sheet and the menus off the top. */
+  .workspace{display:grid; grid-template-columns:64px 1fr 300px; grid-template-rows:minmax(0,1fr); min-height:0}
   .workspace.no-panel{grid-template-columns:64px 1fr 0px}
-  .rail{background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 0; z-index:40; overflow:visible}
+  .rail{background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 0; z-index:40; min-height:0; overflow-x:hidden; overflow-y:auto; scrollbar-width:none}
   .rail::-webkit-scrollbar{display:none}
-  .tool{position:relative; width:42px; height:42px; display:grid; place-items:center; border:none; background:transparent; color:var(--muted); border-radius:11px; cursor:pointer; transition:all .18s}
-  .tool:hover{color:var(--text); background:var(--panel-2); transform:translateX(2px)}
+  .tool{position:relative; width:42px; height:42px; min-height:28px; flex:0 1 auto; display:grid; place-items:center; border:none; background:transparent; color:var(--muted); border-radius:11px; cursor:pointer; transition:all .18s}
+  .tool:hover{color:var(--text); background:var(--panel-2); left:2px}
   .tool.active{color:#fff; background:linear-gradient(135deg,var(--cm-primary),var(--cm-secondary)); box-shadow:0 4px 14px rgba(6,182,212,.3)}
-  /* Tooltip — fixed to viewport so it survives overflow:hidden ancestors */
-  .tool::after{content:attr(data-tip); position:fixed; left:64px; opacity:0; pointer-events:none; background:#0c0e14; color:var(--text); font-size:11px; padding:6px 12px; border-radius:6px; border:1px solid var(--line); white-space:nowrap; transition:opacity .15s; z-index:1000; box-shadow:0 8px 24px rgba(0,0,0,.5); font-weight:600}
+  /* Tooltip — fixed to the viewport so the scrolling rail cannot clip it. --tip-y is set on hover by the
+     rail's mouseover handler (a fixed box does not follow the rail's scroll position by itself). Never put a
+     transform on .tool: it would become the tooltip's containing block and the rail would clip it. */
+  .tool::after{content:attr(data-tip); position:fixed; left:74px; top:var(--tip-y,-99px); transform:translateY(-50%); opacity:0; pointer-events:none; background:#0c0e14; color:var(--text); font-size:11px; padding:6px 12px; border-radius:6px; border:1px solid var(--line); white-space:nowrap; transition:opacity .15s; z-index:1000; box-shadow:0 8px 24px rgba(0,0,0,.5); font-weight:600}
   .tool:hover::after{opacity:1}
-  .rail hr{width:26px; border:none; border-top:1px solid var(--line); margin:4px 0}
+  .rail hr{width:26px; flex:none; border:none; border-top:1px solid var(--line); margin:4px 0}
   /* Left rail is canvas-only: dim + disable it in Docs/Excel/Code so a click never switches the view back to canvas */
   .rail.off .tool{opacity:.35; cursor:not-allowed}
-  .rail.off .tool:hover{color:var(--muted); background:transparent; transform:none}
+  .rail.off .tool:hover{color:var(--muted); background:transparent; left:0}
   .rail.off .tool::after{content:'Canvas tool — return to the Canvas tab to use the left toolbar'}
 
   /* Stage & Rulers */
@@ -332,9 +343,10 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
   .keys{font-size:11px; color:var(--muted); line-height:1.9}
   .keys kbd{background:var(--panel-2); border:1px solid var(--line); border-bottom-width:2px; padding:1px 6px; border-radius:4px; font-family:inherit; color:var(--text); margin-right:3px; font-size:10px}
 
-  footer{display:flex; align-items:center; gap:18px; padding:0 18px; font-size:11px; color:var(--muted); background:var(--panel); border-top:1px solid var(--line); z-index:50}
+  footer{display:flex; align-items:center; gap:18px; padding:0 18px; font-size:11px; color:var(--muted); background:var(--panel); border-top:1px solid var(--line); z-index:50; min-width:0; overflow:hidden}
+  footer > span{flex:none; white-space:nowrap}
   footer .live{display:flex; align-items:center; gap:6px; margin-left:auto}
-  #statusFlash{margin-left:auto; margin-right:2px; color:var(--teal); font-weight:600; opacity:0; transition:opacity .3s; white-space:nowrap; pointer-events:none}
+  #statusFlash{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; margin-left:auto; margin-right:2px; color:var(--teal); font-weight:600; opacity:0; transition:opacity .3s; white-space:nowrap; pointer-events:none}
   #statusFlash.show{opacity:1}
   footer .live i{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse2 1.8s infinite}
   @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.3}}
@@ -586,6 +598,9 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
 
   /* Footer */
   footer{padding:0 10px; gap:10px; font-size:10.5px; padding-bottom:env(safe-area-inset-bottom)}
+  /* A status message gets the whole bar while it shows, and takes no room once it has faded */
+  footer:has(#statusFlash.show) > span:not(#statusFlash){display:none}
+  #statusFlash:not(.show){max-width:0; margin:0}
   footer .live{gap:4px}
 
   /* Modals & dialogs */
@@ -1946,6 +1961,13 @@ lineHeightEl.oninput=()=>{tLineHeight=(+lineHeightEl.value)/100; lhOut.textConte
 /* ── Tool Selection ────────────────────────────────── */
 const toolNames={select:'Select/Move',brush:'Brush',eraser:'Eraser',line:'Line',rect:'Rectangle',ellipse:'Ellipse',gradient:'Gradient',text:'Vector Text',doc:'Document Mode (Word)',sheet:'Spreadsheet (Excel)',transform:'Free Transform',perspective:'Perspective Warp',crop:'Crop',margins:'Margins & Guides',picker:'Eyedropper',code:'Code Editor'};
 const railEl=document.getElementById('rail');
+/* Rail tooltips are position:fixed (so the scrolling rail cannot clip them);
+   pin each one beside its tool at hover time. */
+railEl.addEventListener('mouseover', e => {
+  const t = e.target.closest && e.target.closest('.tool'); if (!t) return;
+  const b = t.getBoundingClientRect();
+  t.style.setProperty('--tip-y', Math.round(b.top + b.height / 2) + 'px');
+});
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>{ if(railEl.classList.contains('off') && railEl.contains(b)) return; selectTool(b.dataset.tool); });
 function selectTool(t){
   const prevTool = tool;
@@ -2455,7 +2477,7 @@ function renderSheet(){
     if (isDouble) { lastCellClick = null; startCellEdit(); return; }
     renderSheet();
     // Focus the grid so keyboard navigation works after a click.
-    sheetGrid.focus();
+    sheetGrid.focus({ preventScroll: true });
   }); });
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
@@ -5335,7 +5357,7 @@ function fxGridMouseDown(e){
   const dbl = fxLastClick && fxLastClick.r === r && fxLastClick.c === c && (now - fxLastClick.t) < 400;
   fxLastClick = { r, c, t: now };
   e.preventDefault();
-  sheetGrid.focus();
+  sheetGrid.focus({ preventScroll: true });
   fxPressHandled = true;
   if (e.shiftKey && fxShiftBase) {
     fxRange = fxNormRange(fxShiftBase.row, fxShiftBase.col, r, c);
