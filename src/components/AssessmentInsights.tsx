@@ -5,9 +5,10 @@
 // use (same masks, same audit stamps). All parsing/analysis is on-device —
 // nothing is uploaded, no model calls, no keys.
 
-import { useMemo, useRef, useState, type ReactNode } from 'react';
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Bot, Check, Loader2, Send, Sparkles, Undo2, User } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Bot, Check, ClipboardList, Loader2, MessageSquareText, Send, Sparkles, Undo2, User } from 'lucide-react';
 import type { AssessmentStudentDoc } from '../lib/assessmentDb';
+import { formatWeekLabel } from '../lib/assessmentDb';
 import {
   answerInsightQuestion,
   buildClassInsights,
@@ -15,6 +16,7 @@ import {
   type ClassInsights,
   type StudentInsight,
 } from '../lib/insightEngine';
+import { auditMissedInputs, buildAssessmentFeedback, type MissedInputReport } from '../lib/assessmentAudit';
 import { parseTutorCommand, TUTOR_HELP, type TutorIntent } from '../lib/tutorAgent';
 
 /** Bridge from the workspace: everything the agent needs to actually
@@ -170,13 +172,45 @@ function IntentCard({ msg, onApply, onUndo }: { msg: ChatMsg; onApply: (id: numb
   );
 }
 
-function TutorThread({ insights, agent, students }: { insights: ClassInsights; agent: TutorAgentBridge | null; students: AssessmentStudentDoc[] }) {
+function TutorThread({ insights, agent, students, audit }: { insights: ClassInsights; agent: TutorAgentBridge | null; students: AssessmentStudentDoc[]; audit: MissedInputReport }) {
   const [messages, setMessages] = useState<ChatMsg[]>([
     { id: 0, role: 'ai', text: 'I keep your records. Key stats in plain language — "Dara listening 4 speaking 3" — and I file them after you apply. Or ask about the class: try a suggestion below.' },
   ]);
   const [input, setInput] = useState('');
   const nextId = useRef(1);
   const newMsg = (m: Omit<ChatMsg, 'id'>): ChatMsg => ({ ...m, id: nextId.current++ });
+
+  // The agent actively LOOKS for missed inputs: it speaks up in the thread
+  // once per distinct scan result (open, week change, record change) —
+  // owner: "Ai needs to be working looking for missed input and assessment
+  // feedback".
+  const scanWeek = agent?.weekKey ?? null;
+  const lastScan = useRef<string>('');
+  useEffect(() => {
+    const findings = audit.week.length + audit.initial.length;
+    const key = `${scanWeek ?? 'base'}|${students.length}|${findings}|${audit.week.map((f) => f.studentId + f.kind).join(',')}`;
+    if (lastScan.current === key) return;
+    lastScan.current = key;
+    if (findings === 0) return; // quiet when there is nothing to fix
+    const lines = [...audit.week, ...audit.initial].map((f) => `• ${f.detail}`);
+    setMessages((prev) => [...prev, {
+      id: nextId.current++,
+      role: 'ai',
+      text: `I scanned the records for missed inputs.\n${audit.headline}\n${lines.join('\n')}\nSay "assessment feedback" and I will draft a per-student comment you can read out or save as a note.`,
+    }]);
+  }, [audit, scanWeek, students.length]);
+
+  /** The missed-input report as a thread message. */
+  const missedText = (report: MissedInputReport): string => {
+    const findings = report.week.length + report.initial.length;
+    if (findings === 0) return report.headline;
+    const lines = [...report.week, ...report.initial].map((f) => `• ${f.detail}`);
+    return `I scanned the records for missed inputs.\n${report.headline}\n${lines.join('\n')}`;
+  };
+  const feedbackText = (): string => {
+    const lines = buildAssessmentFeedback(students, scanWeek);
+    return `Assessment feedback — ${scanWeek ? formatWeekLabel(scanWeek) : 'initial record'}:\n${lines.map((l) => `• ${l.text}`).join('\n')}\nSave any line with "note for <student>: …" and I will file it.`;
+  };
 
   /** Patch one message's card BY ID — safe across repeated updates. */
   const setCard = (id: number, patch: (card: NonNullable<ChatMsg['card']>) => NonNullable<ChatMsg['card']>) => {
@@ -219,6 +253,15 @@ function TutorThread({ insights, agent, students }: { insights: ClassInsights; a
     }
     if (parsed.intents.length > 0) {
       setMessages((prev) => [...prev, newMsg({ role: 'teacher', text: q }), newMsg({ role: 'ai', text: 'Ready to write — check this card:', card: { intents: parsed.intents, summary: parsed.summary, status: 'draft' } })]);
+      return;
+    }
+    // Question routing — the agent's own scans before the generic Q&A.
+    if (/\b(missed|missing|incomplete|not recorded|gaps?)\b/i.test(q)) {
+      setMessages((prev) => [...prev, newMsg({ role: 'teacher', text: q }), newMsg({ role: 'ai', text: missedText(audit) })]);
+      return;
+    }
+    if (/\bfeedback\b/i.test(q)) {
+      setMessages((prev) => [...prev, newMsg({ role: 'teacher', text: q }), newMsg({ role: 'ai', text: feedbackText() })]);
       return;
     }
     const { text } = answerInsightQuestion(q, insights);
@@ -268,6 +311,20 @@ function TutorThread({ insights, agent, students }: { insights: ClassInsights; a
         >
           How to record scores
         </button>
+        <button
+          type="button"
+          onClick={() => setMessages((prev) => [...prev, newMsg({ role: 'teacher', text: 'Any missed inputs?' }), newMsg({ role: 'ai', text: missedText(audit) })])}
+          className="inline-flex items-center gap-1 rounded-full border border-amber-300/25 bg-amber-300/[0.06] px-2.5 py-1 text-[10px] font-semibold text-amber-100 transition hover:border-amber-300/50"
+        >
+          <ClipboardList className="h-3 w-3" aria-hidden="true" /> Find missed inputs
+        </button>
+        <button
+          type="button"
+          onClick={() => setMessages((prev) => [...prev, newMsg({ role: 'teacher', text: 'Assessment feedback' }), newMsg({ role: 'ai', text: feedbackText() })])}
+          className="inline-flex items-center gap-1 rounded-full border border-cyan-300/25 bg-cyan-300/[0.06] px-2.5 py-1 text-[10px] font-semibold text-cyan-100 transition hover:border-cyan-300/50"
+        >
+          <MessageSquareText className="h-3 w-3" aria-hidden="true" /> Assessment feedback
+        </button>
       </div>
       <form
         className="mt-3 flex gap-2"
@@ -296,6 +353,7 @@ function TutorThread({ insights, agent, students }: { insights: ClassInsights; a
 
 export function AssessmentInsights({ students, agent }: { students: AssessmentStudentDoc[]; agent?: TutorAgentBridge | null }) {
   const insights = useMemo(() => buildClassInsights(students), [students]);
+  const audit = useMemo(() => auditMissedInputs(students, agent?.weekKey ?? null), [students, agent?.weekKey]);
   const { pulse, rising, falling, steady, needsData } = insights;
 
   const chips: Array<{ label: string; value: number; cls: string }> = [
@@ -313,6 +371,31 @@ export function AssessmentInsights({ students, agent }: { students: AssessmentSt
           <span className="font-bold text-slate-200">AI Tutor.</span> Key stats in plain language and the agent files them into your records after you apply — it also reads the saved history for who is rising, who is falling, and what to do next. Computed on-device; nothing is uploaded.
         </p>
       </div>
+
+      {/* Missed inputs — the agent's active scan, quiet when everything is in. */}
+      {audit.week.length + audit.initial.length > 0 ? (
+        <section className="rounded-xl border border-amber-300/25 bg-amber-300/[0.05] p-4" data-testid="missed-inputs">
+          <h3 className="flex items-center gap-1.5 text-[10px] font-bold tracking-[0.14em] text-amber-200 uppercase">
+            <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> Missed inputs ({audit.week.length + audit.initial.length}){agent?.weekKey ? ` — ${formatWeekLabel(agent.weekKey)}` : ''}
+          </h3>
+          <ul className="mt-2 space-y-1">
+            {[...audit.week, ...audit.initial].map((f) => (
+              <li key={f.studentId + f.kind} className="flex items-start gap-1.5 text-[11px] leading-relaxed text-slate-200">
+                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-300/70" aria-hidden="true" />{f.detail}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[10px] text-slate-500">The tutor agent re-scans whenever the records or the week change — key the missing scores in the AI Tutor thread and this list clears itself.</p>
+        </section>
+      ) : !audit.started ? (
+        <p className="rounded-xl border border-white/8 bg-white/[0.02] px-3.5 py-2.5 text-[11px] font-semibold text-slate-400" data-testid="missed-inputs-quiet">
+          {audit.headline}
+        </p>
+      ) : (
+        <p className="rounded-xl border border-emerald-300/20 bg-emerald-300/[0.04] px-3.5 py-2.5 text-[11px] font-semibold text-emerald-200" data-testid="missed-inputs-clear">
+          No missed inputs{agent?.weekKey ? ` for ${formatWeekLabel(agent.weekKey)}` : ''} — every student has the areas the class recorded.
+        </p>
+      )}
 
       {/* Pulse grid */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -391,7 +474,7 @@ export function AssessmentInsights({ students, agent }: { students: AssessmentSt
         </div>
       </div>
 
-      <TutorThread insights={insights} agent={agent ?? null} students={students} />
+      <TutorThread insights={insights} agent={agent ?? null} students={students} audit={audit} />
     </div>
   );
 }

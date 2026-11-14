@@ -335,22 +335,28 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
   // otherwise the ISO Monday key ("YYYY-MM-DD") of the selected week.
   // Weeks live in a `weeks` map on each student doc — the flat fields keep
   // the original data so nothing already recorded is lost or moved.
-  const [weekKey, setWeekKey] = useState<string | null>(null);
+  // The workspace opens ON the actual current week — the Monday containing
+  // today (owner: "sync the date with the actual date") — instead of
+  // defaulting to the undated "Initial record". null still means Initial
+  // record; it is just no longer the starting point.
+  const todayWeekKey = useMemo(() => weekKeyOf(), []);
+  const [weekKey, setWeekKey] = useState<string | null>(todayWeekKey);
   const [weekForClassId, setWeekForClassId] = useState<string | null>(classId);
   if (weekForClassId !== classId) {
     setWeekForClassId(classId);
-    setWeekKey(null);
+    setWeekKey(todayWeekKey);
   }
-  const todayWeekKey = useMemo(() => weekKeyOf(), []);
   const weekOptions = useMemo(() => {
-    const keys = new Set<string>();
+    // The actual current week is ALWAYS in the list (marked in the selector),
+    // even before anyone records into it; weeks with data follow.
+    const keys = new Set<string>([todayWeekKey]);
     for (const s of students) {
       for (const [k, entry] of Object.entries(s.weeks ?? {})) {
         if (Object.keys(entry ?? {}).length) keys.add(k);
       }
     }
     return [...keys].sort().reverse();
-  }, [students]);
+  }, [students, todayWeekKey]);
 
   const activeClass = useMemo(
     () => classes?.find((c) => c.id === classId) ?? null,
@@ -791,7 +797,7 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
                   being recorded into (the selector lied until the first
                   score landed). */}
               {weekKey && !weekOptions.includes(weekKey) && <option value={weekKey}>{formatWeekLabel(weekKey)}</option>}
-              {weekOptions.map((k) => <option key={k} value={k}>{formatWeekLabel(k)}</option>)}
+              {weekOptions.map((k) => <option key={k} value={k}>{formatWeekLabel(k)}{k === todayWeekKey ? ' — current week' : ''}</option>)}
             </select>
             <input
               type="date"
@@ -821,7 +827,7 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
             )}
             <span className="ml-auto text-[10px] font-semibold text-slate-500">
               {weekKey
-                ? `Recording into ${formatWeekLabel(weekKey)} — other weeks stay as history`
+                ? `Recording into ${formatWeekLabel(weekKey)}${weekKey === todayWeekKey ? ' (current week)' : ''} — other weeks stay as history`
                 : 'Recording into the original record — pick a date above to start a new week'}
             </span>
           </div>

@@ -217,6 +217,15 @@ if (hubChunk) {
 // ── 2. browser flows ─────────────────────────────────────────────────────
 const browser = await chromium.launch();
 
+// The workspace's week key is the Monday containing today (local time) —
+// the same math the app uses (Cambodia: no DST, UTC+7).
+const mondayKey = (() => {
+  const d = new Date();
+  const shift = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - shift);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+})();
+
 async function newTeacherPage(routes = []) {
   const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 } });
   for (const [k, v] of Object.entries(TEACHER_SEED)) await ctx.addInitScript(([key, val]) => localStorage.setItem(key, val), [k, v]);
@@ -302,15 +311,16 @@ console.log('browser · roster + score keying');
   await page.waitForTimeout(300);
   ok((await cell.inputValue()) === '4', '0–5 cell caps at one digit ("45" keys as 4)', await cell.inputValue());
   await page.waitForTimeout(900);
-  const listeningPatch = db.patches.find((p) => p.masks.includes('listening'));
-  ok(!!listeningPatch && listeningPatch.decoded.listening === 4, 'listening score PATCHes flat record (no week selected)', JSON.stringify(db.patches.at(-1)));
+  const listeningMask = db.patches.find((p) => p.masks.includes(`weeks.${mondayKey}.listening`));
+  ok(!!listeningMask && listeningMask.decoded.weeks[mondayKey].listening === 4,
+    'listening score PATCHes weeks.<current monday>.listening (workspace opens synced to the actual date)', JSON.stringify(db.patches.at(-1)));
 
   // focus-replace model: typing 3 replaces, not appends
   await cell.click();
   await page.keyboard.type('3');
   await page.waitForTimeout(1100);
   const last = db.patches.at(-1);
-  ok(last?.decoded.listening === 3, 'focused cell replaces the value (3, not 43)', JSON.stringify(last));
+  ok(last?.decoded.weeks[mondayKey].listening === 3, 'focused cell replaces the value (3, not 43)', JSON.stringify(last));
 
   // roster Overall column reflects the saved score (listening 3/5 → 60%)
   await ws(page).getByRole('button', { name: 'Roster', exact: true }).click();
@@ -335,14 +345,15 @@ console.log('browser · weekly entries');
   await page.locator('input[placeholder="Student name"]').fill('Dara');
   await page.waitForTimeout(900);
 
-  // "This week" with no recorded data — the selector must still SHOW the week
-  await ws(page).getByRole('button', { name: 'This week' }).click();
-  await page.waitForTimeout(300);
+  // The workspace now OPENS on the actual current week (owner: "sync the
+  // date with the actual date") — the "This week" button is already active
+  // (disabled) and the selector lists the week marked as current.
+  ok(await ws(page).getByRole('button', { name: 'This week' }).isDisabled(), 'workspace opens on the actual current week ("This week" already active)');
   const sel = ws(page).locator('select[aria-label="Assessment week"]');
   const selectedLabel = await sel.evaluate((el) => el.options[el.selectedIndex]?.textContent ?? '');
-  ok(/Week of /.test(selectedLabel), 'week selector shows the selected week before any score exists', selectedLabel);
+  ok(/Week of /.test(selectedLabel) && selectedLabel.includes('— current week'), 'week selector opens on the current week and marks it', selectedLabel);
   const caption = await page.textContent('[data-testid="assessment-workspace"]');
-  ok(caption.includes('Recording into Week of'), 'caption names the recording week');
+  ok(caption.includes('Recording into Week of') && caption.includes('(current week)'), 'caption names the recording week as current');
 
   await ws(page).getByRole('button', { name: 'Homework', exact: true }).click();
   const cell = ws(page).locator('table input[type="number"]').first();
@@ -350,13 +361,16 @@ console.log('browser · weekly entries');
   await page.keyboard.type('80');
   await page.waitForTimeout(1100);
   const weekMask = db.patches.at(-1)?.masks.find((m) => m.startsWith('weeks.'));
-  ok(!!weekMask && /weeks\.\d{4}-\d{2}-\d{2}\.hwDay1/.test(weekMask), 'week score PATCHes the weeks.<monday>.hwDay1 leaf', JSON.stringify(db.patches.at(-1)?.masks));
+  ok(weekMask === `weeks.${mondayKey}.hwDay1`, 'week score PATCHes the weeks.<current monday>.hwDay1 leaf', JSON.stringify(db.patches.at(-1)?.masks));
 
-  // switching back to Initial shows the flat value (listening untouched here; homework day blank)
+  // switching back to Initial shows the flat value (homework day blank there)
   await ws(page).locator('select[aria-label="Assessment week"]').selectOption('__base__');
   await page.waitForTimeout(300);
   const flatCell = await ws(page).locator('table input[type="number"]').first().inputValue();
   ok(flatCell === '', 'Initial record stays blank after a week-only entry (no bleed)', flatCell);
+  // and the selector still offers the current week even with data elsewhere
+  const optLabels = await sel.evaluate((el) => [...el.options].map((o) => o.textContent));
+  ok(optLabels.some((t) => t?.includes('— current week')), 'current week stays listed in the selector after leaving it', JSON.stringify(optLabels));
   ok(errors.length === 0, 'weekly flows produce no page errors', errors.join(' | '));
   await page.screenshot({ path: join(SHOTS, 'assessment-week.png') });
   await ctx.close();
@@ -421,6 +435,24 @@ console.log('browser · AI insights tab');
   await page.waitForTimeout(400);
   const thread2 = await page.textContent('[data-testid="insights-tab"]');
   ok(/Dara/.test(thread2) && /rising/i.test(thread2), 'assistant answers a per-student question with the trend narrative');
+
+  // Missed inputs — the agent actively scans the selected (current) week:
+  // Dara and Bora have history but nothing recorded for the current week.
+  const missed = await page.textContent('[data-testid="insights-tab"]');
+  ok(missed.includes('Missed inputs (2)'), 'missed-input panel lists both students for the current week', missed.slice(0, 400));
+  ok(missed.includes('no entry for') && missed.includes('nobody has recorded this week so far'), 'panel details name the missing work');
+  await ws(page).getByRole('button', { name: 'Find missed inputs' }).click();
+  await page.waitForTimeout(400);
+  const threadM = await page.textContent('[data-testid="insights-tab"]');
+  ok(threadM.includes('I scanned the records for missed inputs'), '"Find missed inputs" posts the scan report in the thread');
+  await ws(page).getByRole('button', { name: 'Assessment feedback' }).click();
+  await page.waitForTimeout(400);
+  const threadF = await page.textContent('[data-testid="insights-tab"]');
+  ok(threadF.includes('Assessment feedback — Week of') && threadF.includes('Dara:') && threadF.includes('Bora:'), '"Assessment feedback" drafts a grounded line per student');
+  await askInput.fill('any missed inputs?');
+  await askInput.press('Enter');
+  await page.waitForTimeout(400);
+  ok(((await page.textContent('[data-testid="insights-tab"]')) || '').includes('2 missed inputs'), '"missed inputs" question routes to the agent scan');
   ok(errors.length === 0, 'insights tab produces no page errors', errors.join(' | '));
   await page.screenshot({ path: join(SHOTS, 'assessment-insights.png') });
   await ctx.close();
@@ -465,11 +497,12 @@ const applyCard = async (page) => {
   let tabText = await ws(page).textContent();
   ok(tabText.includes('Apply to records'), 'keyed stats render a confirmation card (draft, not saved)');
   ok(tabText.includes('Listening 4/5') && tabText.includes('Speaking 3/5'), 'card lists the parsed skills', tabText.slice(-400));
-  ok(!sectPatches().some((p) => p.masks.includes('listening')), 'no PATCH before Apply (draft stays a draft)');
+  ok(!sectPatches().some((p) => p.masks.some((m) => m.endsWith('.listening'))), 'no PATCH before Apply (draft stays a draft)');
 
   await applyCard(page);
-  const rec = sectPatches().find((p) => p.masks.includes('listening') && p.masks.includes('speaking'));
-  ok(!!rec && rec.decoded.listening === 4 && rec.decoded.speaking === 3, 'Apply PATCHes listening+speaking through the same db layer', JSON.stringify(sectPatches()));
+  const rec = sectPatches().find((p) => p.masks.some((m) => m.endsWith('.listening')) && p.masks.some((m) => m.endsWith('.speaking')));
+  ok(!!rec && rec.decoded.weeks[mondayKey].listening === 4 && rec.decoded.weeks[mondayKey].speaking === 3,
+    'Apply PATCHes listening+speaking into the current week through the same db layer', JSON.stringify(sectPatches()));
   ok(((await ws(page).textContent()) || '').includes('Saved to the records.'), 'card confirms the save');
   // roster reflects the agent's write: listening area = mean(4,3)*20 = 70
   await ws(page).getByRole('button', { name: 'Roster', exact: true }).click();
@@ -486,7 +519,7 @@ const applyCard = async (page) => {
   await ws(page).getByRole('button', { name: 'Undo' }).first().dispatchEvent('click');
   await page.waitForTimeout(900);
   const undoPatch = db.patches.at(-1);
-  ok(undoPatch?.decoded.listening === 0 && undoPatch?.decoded.speaking === 0, 'Undo writes the previous values back (0 = not assessed)', JSON.stringify(undoPatch));
+  ok(undoPatch?.decoded.weeks[mondayKey].listening === 0 && undoPatch?.decoded.weeks[mondayKey].speaking === 0, 'Undo writes the previous values back (0 = not assessed)', JSON.stringify(undoPatch));
   await ws(page).getByRole('button', { name: 'Roster', exact: true }).click();
   await page.waitForTimeout(400);
   const overall2 = await ws(page).locator('table tbody tr td .cmc-stat-num').first().textContent();
@@ -526,8 +559,8 @@ console.log('browser · tutor agent week targeting');
 {
   const { ctx, page, errors } = await newTeacherPage();
   await openReadyClass(page);
-  await ws(page).getByRole('button', { name: 'This week' }).click();
-  await page.waitForTimeout(300);
+  // The workspace already opens on the actual current week — no week switch
+  // needed before keying daily stats.
   await askAgent(page, 'Dara hw 80 90');
   await applyCard(page);
   const wk = db.patches.filter((p) => p.masks.some((m) => m.startsWith('weeks.'))).at(-1);
