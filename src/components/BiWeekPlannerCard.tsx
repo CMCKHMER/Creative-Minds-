@@ -1,7 +1,17 @@
+import { useRef } from 'react';
 import { ArrowUpRight, CalendarCheck, Clock3, FileText, GraduationCap, LockKeyhole } from 'lucide-react';
 import { useSignedInSession } from '../hooks/useSignedInSession';
+import { useTitleParticles } from '../hooks/useTitleParticles';
+import type { DotGradient } from '../lib/titleParticlesMath';
 
 const PLANNER_URL = './biweek-planner/';
+
+// Dot colours for the heading's second line — the same stops as
+// .cmc-gradient-text in src/index.css (dark page / light page).
+const HEADING_DOTS: { dark: DotGradient; light: DotGradient } = {
+  dark: [[0, '#a5f3fc'], [0.45, '#5eead4'], [1, '#a5b4fc']],
+  light: [[0, '#0891b2'], [0.45, '#0d9488'], [1, '#6366f1']],
+};
 
 const sections = [
   { label: 'Week 2 · Diagnostic', detail: 'Orientation + Grammar + Listening + Structure', icon: FileText, accent: 'teal' },
@@ -80,8 +90,18 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
   const session = useSignedInSession();
   const isTeacher = session?.role === 'teacher';
 
+  // The heading drawn as particles, like the hero title. It is fetched when
+  // the section comes near the screen; the <h2> stays the real text.
+  const sectionRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const headingAsDots = useTitleParticles({
+    section: sectionRef, title: titleRef, canvas: canvasRef,
+    enabled: isTeacher, whenNear: true, letters: '.cmc-dots-line', gradient: HEADING_DOTS,
+  });
+
   return (
-    <section id="toefl-itp-planner" aria-labelledby="biweek-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-violet-100/10 bg-[#0a0f1f] py-20 sm:py-24 lg:py-28">
+    <section ref={sectionRef} id="toefl-itp-planner" aria-labelledby="biweek-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-violet-100/10 bg-[#0a0f1f] py-20 sm:py-24 lg:py-28">
       {/* Aii Language Center logo watermark (white bg removed to PNG alpha)
           — replaces the old classroom photo background at the owner's
           request so the section reads as Aii CAP Campus branded. */}
@@ -98,7 +118,11 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_.86fr] lg:gap-16">
         <div>
           <span className="cmc-eyebrow"><span className="h-px w-8 bg-violet-300" aria-hidden="true" />Aii CAP Campus · 8-Week Study Plan</span>
-          <h2 id="biweek-title" className="cmc-h2">TOEFL ITP<br /><span className="cmc-gradient-text">Bi-Weekly Planner.</span></h2>
+          <h2 id="biweek-title" ref={titleRef} className={`cmc-h2${headingAsDots ? ' cmc-dots-on' : ''}`}>
+            <span className="cmc-dots-line">TOEFL ITP</span>
+            <br />
+            <span className="cmc-dots-line cmc-gradient-text" data-dot-gradient="">Bi-Weekly Planner.</span>
+          </h2>
           <p className="cmc-lead">Built for the teachers of Aii CAP Campus: a structured 8-week preparation plan covering all three TOEFL ITP sections — Listening, Structure & Written Expression, and Reading. Each week includes practice drills with timers, auto-scoring, and individual shareable links you can drop straight into your class group. Teacher-made materials from Oxford Skills World and Reading Explorer.</p>
           <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <a href={PLANNER_URL} aria-label="Open the TOEFL ITP Bi-Weekly Planner" className="cmc-btn-3d cmc-btn-3d--violet group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-200">
@@ -180,6 +204,8 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
           </div>
         </div>
       )}
+      {/* The heading's particles are drawn here (src/lib/titleParticles.ts). */}
+      {isTeacher && <canvas ref={canvasRef} className="cmc-title-canvas" aria-hidden="true" />}
     </section>
   );
 }

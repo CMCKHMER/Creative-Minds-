@@ -1,10 +1,11 @@
-// Hero title as particles — the three.js part.
+// A heading as particles — the three.js part. Used by the hero title and by
+// the TOEFL ITP Bi-Weekly Planner heading (see hooks/useTitleParticles.ts).
 //
-// Loaded with a dynamic import from Hero.tsx so three.js stays out of the
-// first download (see manualChunks in vite.config.ts). The motion and the
-// letter sampling live in titleParticlesMath.ts.
+// Loaded with a dynamic import so three.js stays out of the first download
+// (see manualChunks in vite.config.ts). The motion and the letter sampling
+// live in titleParticlesMath.ts.
 //
-// The real <h1> stays in the page: it is the text for screen readers, it is
+// The real heading stays in the page: it is the text for screen readers, it is
 // what is shown until this module is ready, and it is what comes back if the
 // WebGL context is lost. This module only draws dots on a canvas that covers
 // the hero and reports when the dots are on screen.
@@ -30,19 +31,28 @@ import {
   particleBudget,
   scatter,
   stepParticles,
+  type DotGradient,
   type ParticleParams,
   type PointerState,
 } from './titleParticlesMath';
 
 export interface TitleParticlesOptions {
-  /** The hero <section>: the canvas covers it and the pointer is read on it. */
+  /** The <section>: the canvas covers it and the pointer is read on it. */
   section: HTMLElement;
-  /** The <h1>; its `.cmc-title-solid` spans hold the letters. */
+  /** The heading; the spans matched by `letters` hold its text. */
   title: HTMLElement;
   /** A canvas inside the section, stretched over it. */
   canvas: HTMLCanvasElement;
   /** Called with true when the dots are drawn, false when the text must come back. */
   onActive: (active: boolean) => void;
+  /** Which spans inside the title are drawn. Each must start with its text. */
+  letters?: string;
+  /**
+   * Resting colours for the spans marked `data-dot-gradient` (a line set in
+   * gradient text), left to right. Every other span rests in the theme's
+   * plain letter colour.
+   */
+  gradient?: { dark: DotGradient; light: DotGradient };
 }
 
 const VERTEX = /* glsl */ `
@@ -78,7 +88,30 @@ const hex = (h: string): Rgb => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.s
 const DARK: Palette = { rest: hex('#f4faff'), spark: hex('#ffd24a'), pushed: hex('#ffffff'), flying: hex('#ffc933'), far: hex('#ffc933'), pressHue: 0.5, pressSat: 1, pressLight: 0.62 };
 const LIGHT: Palette = { rest: hex('#0c1a2c'), spark: hex('#c2410c'), pushed: hex('#0c1a2c'), flying: hex('#c2410c'), far: hex('#c2410c'), pressHue: 0.52, pressSat: 0.9, pressLight: 0.36 };
 
-interface Sampled { points: Float32Array; fontPx: number; /** the title's corner on the canvas */ x: number; y: number }
+interface Sampled {
+  points: Float32Array;
+  fontPx: number;
+  /** the title's corner on the canvas */
+  x: number;
+  y: number;
+  /** per point: how far along its gradient line it sits (0–1), or -1 on a plain line; null when no line is marked */
+  along: Float32Array | null;
+}
+
+/** The colour at `t` (0–1) on a list of stops. */
+function gradientAt(stops: Array<[number, Rgb]>, t: number): Rgb {
+  if (!stops.length) return [1, 1, 1];
+  if (t <= stops[0][0]) return stops[0][1];
+  for (let i = 1; i < stops.length; i++) {
+    const [at, c] = stops[i];
+    if (t <= at) {
+      const [from, a] = stops[i - 1];
+      const k = at > from ? (t - from) / (at - from) : 1;
+      return [a[0] + (c[0] - a[0]) * k, a[1] + (c[1] - a[1]) * k, a[2] + (c[2] - a[2]) * k];
+    }
+  }
+  return stops[stops.length - 1][1];
+}
 
 /**
  * The title's letters as points in the canvas's own coordinates.
@@ -91,7 +124,7 @@ interface Sampled { points: Float32Array; fontPx: number; /** the title's corner
  * button near its lower edge does it), and then the canvas and the letters
  * move together while the hero's own box stays put.
  */
-function sampleTitle(canvas: HTMLElement, title: HTMLElement, budget: number): Sampled | null {
+function sampleTitle(canvas: HTMLElement, title: HTMLElement, budget: number, letters: string): Sampled | null {
   const origin = canvas.getBoundingClientRect();
   const box = title.getBoundingClientRect();
   if (box.width < 8 || box.height < 8) return null;
@@ -103,17 +136,23 @@ function sampleTitle(canvas: HTMLElement, title: HTMLElement, budget: number): S
   mask.height = Math.ceil((box.height + pad * 2) * scale);
   const ctx = mask.getContext('2d', { willReadFrequently: true });
   if (!ctx) return null;
-  ctx.fillStyle = '#000';
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
 
   let fontPx = 0;
   let drawn = 0;
+  // Each span is drawn in its own shade of red, so a dot can be traced back
+  // to the line it came from. Only the alpha decides where dots go.
+  const SHADE = 20;
+  const lines: Array<{ left: number; width: number; gradient: boolean }> = [];
   const range = document.createRange();
-  title.querySelectorAll<HTMLElement>('.cmc-title-solid').forEach((span) => {
+  title.querySelectorAll<HTMLElement>(letters).forEach((span) => {
     const node = span.firstChild;
-    if (!node || node.nodeType !== Node.TEXT_NODE) return;
+    if (!node || node.nodeType !== Node.TEXT_NODE || lines.length >= 11) return;
     const text = node.textContent ?? '';
+    const line = span.getBoundingClientRect();
+    lines.push({ left: line.left - box.left + pad, width: Math.max(1, line.width), gradient: span.hasAttribute('data-dot-gradient') });
+    ctx.fillStyle = `rgb(${lines.length * SHADE},0,0)`;
     const cs = getComputedStyle(span);
     const size = parseFloat(cs.fontSize) || 16;
     fontPx = Math.max(fontPx, size);
@@ -141,17 +180,30 @@ function sampleTitle(canvas: HTMLElement, title: HTMLElement, budget: number): S
   const pts = letterPoints(alpha, mask.width, mask.height, dotSpacing(fontPx) * scale, budget);
   if (pts.length < 200) return null; // font not painted (still loading) — keep the text
 
+  let along: Float32Array | null = null;
+  if (lines.some((l) => l.gradient)) {
+    along = new Float32Array(pts.length / 2).fill(-1);
+    for (let i = 0; i < pts.length; i += 2) {
+      const px = Math.min(mask.width - 1, Math.max(0, Math.round(pts[i])));
+      const py = Math.min(mask.height - 1, Math.max(0, Math.round(pts[i + 1])));
+      const line = lines[Math.round(data[(py * mask.width + px) * 4] / SHADE) - 1];
+      if (line?.gradient) along[i / 2] = Math.min(1, Math.max(0, (pts[i] / scale - line.left) / line.width));
+    }
+  }
+
   const ox = box.left - origin.left - pad;
   const oy = box.top - origin.top - pad;
   for (let i = 0; i < pts.length; i += 2) {
     pts[i] = pts[i] / scale + ox;
     pts[i + 1] = pts[i + 1] / scale + oy;
   }
-  return { points: pts, fontPx, x: box.left - origin.left, y: box.top - origin.top };
+  return { points: pts, fontPx, x: box.left - origin.left, y: box.top - origin.top, along };
 }
 
 /** Starts the effect. Returns the function that removes it again. */
-export function mountTitleParticles({ section, title, canvas, onActive }: TitleParticlesOptions): () => void {
+export function mountTitleParticles({ section, title, canvas, onActive, letters = '.cmc-title-solid', gradient }: TitleParticlesOptions): () => void {
+  const stopsFor = (g: DotGradient | undefined) => (g ?? []).map(([at, c]): [number, Rgb] => [at, hex(c)]);
+  const gradients = { dark: stopsFor(gradient?.dark), light: stopsFor(gradient?.light) };
   let renderer: WebGLRenderer;
   try {
     renderer = new WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: 'low-power' });
@@ -185,6 +237,8 @@ export function mountTitleParticles({ section, title, canvas, onActive }: TitleP
   let look = new Uint8Array(0);
   let colors = new Float32Array(0);
   let sizes = new Float32Array(0);
+  let along: Float32Array | null = null; // see Sampled.along
+  let rest: Float32Array | null = null;  // a resting colour per dot, when a line has a gradient
   let params: ParticleParams = paramsForFont(64);
   let dotSize = 2.2;
   let palette: Palette = document.documentElement.classList.contains('light') ? LIGHT : DARK;
@@ -225,19 +279,40 @@ export function mountTitleParticles({ section, title, canvas, onActive }: TitleP
     camera.updateProjectionMatrix();
   };
 
+  /** Works out each dot's resting colour for the current theme. */
+  const tintRest = () => {
+    const stops = palette === LIGHT ? gradients.light : gradients.dark;
+    if (!along || !stops.length) {
+      rest = null;
+      return;
+    }
+    rest = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const c = along[i] < 0 ? palette.rest : gradientAt(stops, along[i]);
+      rest.set(c, i * 3);
+    }
+  };
+
   const paint = (now: number) => {
     // Hue of the held-button swirl drifts slowly, back and forth.
     const zig = (1 + Math.sin((now / 12000) * Math.PI * 2)) / 24; // cyan ↔ sky, the site's own blues
     const pressed = hslToRgb(palette.pressHue + zig, palette.pressSat, palette.pressLight);
     for (let i = 0; i < count; i++) {
       const state = look[i] as Look;
+      const j = i * 3;
+      if (state === Look.Rest && rest) {
+        colors[j] = rest[j];
+        colors[j + 1] = rest[j + 1];
+        colors[j + 2] = rest[j + 2];
+        sizes[i] = dotSize * LOOK_SIZE[state];
+        continue;
+      }
       const c = state === Look.Rest ? palette.rest
         : state === Look.Spark ? palette.spark
         : state === Look.Pushed ? palette.pushed
         : state === Look.Flying ? palette.flying
         : state === Look.Pressed ? pressed
         : palette.far;
-      const j = i * 3;
       colors[j] = c[0];
       colors[j + 1] = c[1];
       colors[j + 2] = c[2];
@@ -252,7 +327,7 @@ export function mountTitleParticles({ section, title, canvas, onActive }: TitleP
     if (disposed) return;
     resize();
     started = true;
-    const sampled = lost ? null : sampleTitle(canvas, title, particleBudget(section.clientWidth));
+    const sampled = lost ? null : sampleTitle(canvas, title, particleBudget(section.clientWidth), letters);
     if (!sampled) {
       // Nothing to draw (title hidden, font not painted): show the real text.
       count = 0;
@@ -279,6 +354,8 @@ export function mountTitleParticles({ section, title, canvas, onActive }: TitleP
       geometry.setAttribute('size', new BufferAttribute(sizes, 1).setUsage(DynamicDrawUsage));
       points.geometry = geometry;
     }
+    along = sampled.along;
+    tintRest();
     if (intro) {
       scatter(pos, home, count, sampled.fontPx * 0.7, Math.random);
     } else {
@@ -413,6 +490,7 @@ export function mountTitleParticles({ section, title, canvas, onActive }: TitleP
 
   const themeObserver = new MutationObserver(() => {
     palette = document.documentElement.classList.contains('light') ? LIGHT : DARK;
+    tintRest();
     dirtyLook = true;
     wake();
   });

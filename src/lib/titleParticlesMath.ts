@@ -296,6 +296,9 @@ export function hslToRgb(h: number, s: number, l: number): [number, number, numb
   return [channel(hue + 1 / 3), channel(hue), channel(hue - 1 / 3)];
 }
 
+/** Colour stops across a line of text: [position 0–1, '#rrggbb'], in order. */
+export type DotGradient = Array<[number, string]>;
+
 /** How many dots a hero of this width gets. */
 export function particleBudget(heroWidth: number): number {
   if (heroWidth < 640) return 9000;

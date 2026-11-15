@@ -479,10 +479,22 @@
   opacity: 0.28;
 }
 
+/* The same for a section heading (the TOEFL ITP Bi-Weekly Planner): each
+   line of the <h2> is a .cmc-dots-line, hidden from the eye while its dots
+   are drawn. */
+.cmc-dots-line {
+  transition: opacity 450ms ease-out;
+}
+
+.cmc-dots-on .cmc-dots-line {
+  opacity: 0;
+}
+
 @media print {
   .cmc-title-canvas { display: none; }
   .cmc-title-as-particles .cmc-title-solid,
-  .cmc-title-as-particles .cmc-title-outline { opacity: 1; }
+  .cmc-title-as-particles .cmc-title-outline,
+  .cmc-dots-on .cmc-dots-line { opacity: 1; }
 }
 
 .cmc-hero-eyebrow {

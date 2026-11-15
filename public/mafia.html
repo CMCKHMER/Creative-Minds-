@@ -588,9 +588,9 @@ async function runNight(){const tok=L.token;L.phase="night";L.skip=false;L.kill=
  return null;
 }
 async function dawn(res){const tok=L.token;L.phase="dawn";setLocalRender();AU.dawn();fDivider("DAY "+word(L.night));await bannerLocal("DAY "+word(L.night),"Who is missing from the table?");if(!ok(tok))return;document.dispatchEvent(new CustomEvent("cmcmafia:phase",{detail:{phase:"dawn"}}));
- if(res?.victim){const v=res.victim;setLocalRender();fSys(`<b>${esc(v.name)}</b> was ${pick(["found in the alley behind the Blue Note Club","left under the Fifth Street lamppost","never came home from the docks"])}. Their card reads: <b style="color:${ROLE[v.role].color}">${ROLE[v.role].name}</b>.`,true);
+ if(res?.victim){const v=res.victim;setLocalRender();fSys(`<b>${esc(v.name)}</b> was ${(window.MNS&&MNS.found())||pick(["found in the alley behind the Blue Note Club","left under the Fifth Street lamppost","never came home from the docks"])}. Their card reads: <b style="color:${ROLE[v.role].color}">${ROLE[v.role].name}</b>.`,true);
   await fateModal({kicker:"DAWN REPORT",title:`${esc(v.name)} was silenced`,red:true,p:v,sound:"gun",sub:`The ${ROLE[v.role].name} will not see another night. ${v.human?"You watch from the shadows now.":"The table grows colder."}`});
- } else {AU.save();fSys("A shot rang out — but the Doctor's hands were quicker. <b style='color:var(--green)'>Everyone wakes up alive.</b>",true);await fateModal({kicker:"DAWN REPORT",title:"A peaceful night",sub:"Someone owes the Doctor a life. The Syndicate will not forgive it.",btn:"BEGIN THE DAY"})}
+ } else {AU.save();fSys(((window.MNS&&MNS.saved())||"A shot rang out — but the Doctor's hands were quicker.")+" <b style='color:var(--green)'>Everyone wakes up alive.</b>",true);await fateModal({kicker:"DAWN REPORT",title:"A peaceful night",sub:"Someone owes the Doctor a life. The Syndicate will not forgive it.",btn:"BEGIN THE DAY"})}
 }
 function ghostCheck(){L.ghost=!L.players.some(p=>p.human&&p.alive)}
 function checkWinLocal(){const m=mafiaAlive().length,t=townAlive().length;L.winner=m===0?"town":m>=t?"mafia":null;return!!L.winner}
@@ -1812,5 +1812,7 @@ const MN_FS = (function () {
   return { send, connect, resetClient };
 })();
 </script>
+<!-- story: case files (patch_mafia_art.py) -->
+<script src="mafia-story.js"></script>
 </body>
 </html>
