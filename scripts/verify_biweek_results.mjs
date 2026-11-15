@@ -44,6 +44,8 @@ const ROOT = resolve(HERE, '..');
 const DIST = resolve(process.env.BIWEEK_DIST || join(ROOT, 'dist'));
 const KEY_FILE = resolve(process.env.SEAL_KEY_FILE || join(ROOT, '.secrets/answer-seal.private.json'));
 const HAS_KEY = existsSync(KEY_FILE);
+// BIWEEK_NO_COUNT=1: the database refuses count queries — the feed must still update (slower).
+const NO_COUNT = process.env.BIWEEK_NO_COUNT === '1';
 const SEAL_CODE = HAS_KEY ? (() => {
   const text = readFileSync(KEY_FILE, 'utf8').trim();
   try { return JSON.parse(text).key; } catch { return text; }
@@ -54,7 +56,7 @@ const SEAL_CODE = HAS_KEY ? (() => {
 const PORT = 8970;
 const ORIGIN = (n) => `http://127.0.0.1:${PORT + n}`;
 const servers = [];
-for (let n = 0; n < 4; n++) {
+for (let n = 0; n < 6; n++) { // teacher + up to five students
   const server = createServer(async (req, res) => {
     try {
       const file = normalize(decodeURIComponent(new URL(req.url, ORIGIN(0)).pathname));
@@ -85,6 +87,8 @@ const db = {
   inviteAttempts: [],
   drillAttempts: [],
   sealCode: SEAL_CODE,
+  // how the dashboard reads the teacher's invite attempts: whole list vs. count
+  reads: { inviteLists: 0, inviteCounts: 0 },
 };
 const violations = [];
 const refuse = (what) => { violations.push(what); return { code: 403, body: { error: { code: 403, status: 'PERMISSION_DENIED', message: 'Missing or insufficient permissions.' } } }; };
@@ -112,6 +116,23 @@ function firestore(method, url, auth, body) {
   const path = decodeURIComponent(u.pathname).split('/documents')[1] || '';
   const documentId = u.searchParams.get('documentId');
 
+  if (path === ':runAggregationQuery' && method === 'POST') {
+    // COUNT query: allowed exactly where the list query is allowed.
+    const q = (body.structuredAggregationQuery || {}).structuredQuery || {};
+    const coll = q.from && q.from[0] && q.from[0].collectionId;
+    const ff = q.where && q.where.fieldFilter;
+    const aggs = (body.structuredAggregationQuery || {}).aggregations || [];
+    if (coll === 'drill_attempts' && aggs.length === 1 && aggs[0].count) { // public feed (site counters): anyone may count it
+      return { code: 200, body: [{ result: { aggregateFields: { [aggs[0].alias]: { integerValue: String(db.drillAttempts.length) } } }, readTime: new Date().toISOString() }] };
+    }
+    if (coll !== 'invite_attempts' || !ff || ff.field.fieldPath !== 'teacherUid' || aggs.length !== 1 || !aggs[0].count) return refuse(`aggregation query on ${coll}`);
+    if (!isVerifiedTeacher(auth) || val(ff.value) !== auth.user_id) return refuseQuietly();
+    if (NO_COUNT) return refuseQuietly(); // rehearse a database that will not answer count queries
+    db.reads.inviteCounts += 1;
+    const n = db.inviteAttempts.filter((d) => val(d.fields.teacherUid) === auth.user_id).length;
+    return { code: 200, body: [{ result: { aggregateFields: { [aggs[0].alias]: { integerValue: String(n) } } }, readTime: new Date().toISOString() }] };
+  }
+
   if (path === ':runQuery' && method === 'POST') {
     const q = body.structuredQuery || {};
     const coll = q.from && q.from[0] && q.from[0].collectionId;
@@ -121,6 +142,7 @@ function firestore(method, url, auth, body) {
     if (coll === 'invite_attempts') {
       // Owner-only read: the query itself must be limited to the caller.
       if (!isVerifiedTeacher(auth) || want.teacherUid !== auth.user_id) return refuseQuietly();
+      if (Object.keys(want).length === 1) db.reads.inviteLists += 1; // every attempt of the teacher (dashboard)
       rows = db.inviteAttempts;
     } else if (coll === 'drill_attempts') {
       rows = db.drillAttempts;
@@ -460,6 +482,60 @@ if (existsSync(join(DIST, 'assets'))) {
       }, 20000, 500);
       ok('dashboard sheet: after Refresh a new result is the first row, 23 of 23', !!g2 && g2[1].includes('Late Student') && cells(g2[1], 'Correct', 'Total').join('/') === `${diag.total}/${diag.total}`,
         g2 ? g2.slice(1, 4).map((r) => `${r[col('Student')]} ${r[col('Correct')]}/${r[col('Total')]}`).join(' > ') : 'row missing');
+    }
+
+    // The "Attempt Feed · Live" under Live Class Results — the screen the
+    // owner was watching. It must show what came through the share link.
+    const feedRows = () => dash.evaluate(() => {
+      const box = document.querySelector('[data-attempt-feed]');
+      if (!box) return null;
+      box.scrollIntoView({ behavior: 'instant', block: 'center' });
+      return [...box.querySelectorAll('tbody tr')].map((tr) => [...tr.children].map((td, i) => (i === 2 ? td.innerText.replace(/\s+/g, '') : td.innerText.replace(/\s+/g, ' ').trim())));
+    });
+    const showAll = () => dash.evaluate(() => {
+      const b = [...document.querySelectorAll('[data-attempt-feed] button')].find((x) => /^Show all/.test(x.textContent.trim()));
+      if (b) b.click();
+    });
+    const feed = await until(async () => {
+      await showAll();
+      const rows = await feedRows();
+      return rows && rows.some((r) => r[0] === 'Sok Dara') ? rows : null;
+    }, 20000, 500);
+    const feedRow = (rows, name) => (rows || []).find((r) => r[0] === name);
+    ok('dashboard feed: the test taken through the share link is in the Attempt Feed', !!feedRow(feed, 'Sok Dara'), feed ? `${feed.length} rows` : 'feed missing or empty');
+    if (HAS_KEY) {
+      const r = feedRow(feed, 'Sok Dara');
+      ok('dashboard feed: it is scored out of the real number of questions', !!r && r[2] === `${Math.round((RIGHT / diag.total) * 100)}%(${RIGHT}/${diag.total})` && /Share link/i.test(r[1]),
+        r ? `${r[1]} | ${r[2]}` : 'row missing');
+
+      // Live: a student finishes while the teacher only watches — no click.
+      const before = { ...db.reads };
+      await studentTakes('diagnostic', 'Live Watcher', 12);
+      const t0 = Date.now();
+      const live = await until(async () => {
+        const rows = await feedRows();
+        return rows && rows[0] && rows[0][0] === 'Live Watcher' ? rows : null;
+      }, NO_COUNT ? 90000 : 40000, 500);
+      ok(`dashboard feed: a new result appears by itself, at the top${NO_COUNT ? ' (count queries refused: once-a-minute fallback)' : ''}`, !!live && live[0][2] === `${Math.round((12 / diag.total) * 100)}%(12/${diag.total})`,
+        live ? `${live[0][0]} ${live[0][2]} after ${Math.round((Date.now() - t0) / 1000)} s` : 'did not appear in time');
+      if (!NO_COUNT) {
+        // Quota: while nothing changes the feed asks only for the COUNT.
+        await sleep(1000);
+        const mid = { ...db.reads };
+        await sleep(33000);
+        const after = { ...db.reads };
+        ok('dashboard feed: the list was downloaded once for the new result', mid.inviteLists - before.inviteLists === 1, `${mid.inviteLists - before.inviteLists} list reads`);
+        ok('dashboard feed: while idle it only asks how many results exist (1 read each)', after.inviteLists === mid.inviteLists && after.inviteCounts - mid.inviteCounts >= 2,
+          `in 33 s: ${after.inviteLists - mid.inviteLists} list reads, ${after.inviteCounts - mid.inviteCounts} count reads`);
+      }
+    } else skip('dashboard feed: scoring and live update', 'no SEAL_KEY_FILE');
+    if (process.env.BIWEEK_SHOT) { // optional picture of the feed, for a human to look at
+      await sleep(900);
+      const clip = await dash.evaluate(() => {
+        const r = document.querySelector('[data-attempt-feed]').getBoundingClientRect();
+        return { x: Math.max(0, r.left - 8), y: Math.max(0, r.top - 8), width: r.width + 16, height: Math.min(r.height + 16, window.innerHeight) };
+      });
+      await dash.screenshot({ path: process.env.BIWEEK_SHOT, clip, animations: 'disabled', timeout: 15000 }).catch((e) => console.log('screenshot failed:', String(e.message).slice(0, 200)));
     }
 
     // The share panel above the sheet.
