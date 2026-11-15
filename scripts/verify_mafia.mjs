@@ -34,11 +34,14 @@ const server = createServer(async (req, res) => {
 });
 await new Promise(r => server.listen(PORT, r));
 const browser = await chromium.launch({ headless: true, ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM, args: ['--no-sandbox', '--disable-gpu', '--single-process', '--no-zygote'] } : {}) });
+// A single-process Chromium (PW_CHROMIUM, used where no sandboxed browser can
+// run) dies when a context is closed mid-run — leave those to browser.close().
+const closeCtx = (ctx) => (process.env.PW_CHROMIUM ? Promise.resolve() : ctx.close().catch(() => {}));
 const results = [];
 const ok = (name, cond, detail) => results.push(`${cond ? 'PASS' : 'FAIL'}  ${name}${detail ? ' — ' + detail : ''}`);
 
 /* ---- A. shipped artifacts ---- */
-for (const [f, min] of [['mafia.html', 100000], ['mafia-art/mafia-mafia.jpg', 50000], ['mafia-art/mafia-detective.jpg', 50000], ['mafia-art/mafia-doctor.jpg', 50000], ['mafia-art/mafia-city.jpg', 80000], ['mafia-audio/narr-night.mp3', 5000]]) {
+for (const [f, min] of [['mafia.html', 100000], ['mafia-art/mafia-mafia.jpg', 50000], ['mafia-art/mafia-detective.jpg', 50000], ['mafia-art/mafia-doctor.jpg', 50000], ['mafia-art/mafia-city.jpg', 80000], ['mafia-art/mafia-villager.jpg', 30000], ['mafia-art/mafia-cardback.jpg', 50000], ['mafia-art/mafia-town-wins.jpg', 80000], ['mafia-audio/narr-night.mp3', 5000]]) {
   const s = await stat(`${DIST}/${f}`).catch(() => null);
   ok(`dist asset: ${f}`, !!s && s.size > min, s ? `${s.size}B` : 'missing');
 }
@@ -62,6 +65,8 @@ const narrReqs = [];
   // rules modal
   await page.click('#rulesBtn');
   ok('rules modal', (await page.locator('#modalBox').textContent()).includes('How to Play'));
+  await page.waitForFunction(() => { const i = [...document.querySelectorAll('#modalBox .hr-pic img')]; return i.length === 4 && i.every(x => x.complete); }, null, { timeout: 8000 }).catch(() => {});
+  ok('rules modal: a picture for each of the 4 roles', await page.evaluate(() => { const i = [...document.querySelectorAll('#modalBox .hr-pic img')]; return i.length === 4 && i.every(x => x.naturalWidth > 100) && new Set(i.map(x => x.getAttribute('src'))).size === 4; }));
   await page.click('#modalBox .m-actions button');
   // online mode without a CMC session → the sign-in gate explains itself
   // (v66+: the transport is Firestore-backed; rooms need a signed-in CMC
@@ -78,7 +83,7 @@ const narrReqs = [];
   await page.waitForTimeout(400);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   ok('mobile 393px: hub overflow-free', overflow <= 0, `scrollW-clientW=${overflow}`);
-  await ctx.close().catch(() => {});
+  await closeCtx(ctx);
 }
 
 /* ---- C. full solo case to the end + leaderboard POST (page 2) ---- */
@@ -104,8 +109,21 @@ const posts = [];
   await page.click('#dealBtn');
   // reveal: flip the card, then hide it
   await page.waitForSelector('#roleCard .back', { timeout: 15000 });
+  await page.waitForFunction(() => { const i = document.querySelector('#roleCard .back .cb-art'); return !!i && i.complete; }, null, { timeout: 8000 }).catch(() => {});
+  ok('deal: card back shows the painted back', await page.evaluate(() => { const i = document.querySelector('#roleCard .back .cb-art'); if (!i || i.naturalWidth < 300) return false; const a = i.getBoundingClientRect(), b = i.closest('.back').getBoundingClientRect(); return Math.abs(a.width - b.width) < 4 && Math.abs(a.height - b.height) < 4; }));
   await page.click('#roleCard .back');
   await page.waitForSelector('#hideCardBtn:not([hidden])', { timeout: 8000 });
+  await page.waitForFunction(() => { const i = document.querySelector('#roleCard .rf-art img'); return !!i && i.complete; }, null, { timeout: 8000 }).catch(() => {});
+  const front = await page.evaluate(() => {
+    const f = document.querySelector('#roleCard .rolefront'), i = f && f.querySelector('.rf-art img');
+    if (!f || !i) return null;
+    const box = f.getBoundingClientRect(), d = f.querySelector('.rf-desc').getBoundingClientRect(), x = f.querySelector('.rf-extra').getBoundingClientRect();
+    return { art: f.classList.contains('has-art'), w: i.naturalWidth, src: i.getAttribute('src'), name: f.querySelector('.rf-name').textContent,
+      fits: d.bottom <= x.top + 1 && x.bottom <= box.bottom && f.scrollHeight <= f.clientHeight };
+  });
+  const artFor = { Mafia: 'mafia', Detective: 'detective', Doctor: 'doctor', Citizen: 'villager' };
+  ok('deal: role card carries its own picture', !!front && front.art && front.w > 300 && front.src === `mafia-art/mafia-${artFor[front.name]}.jpg`, front ? `${front.name} → ${front.src}` : 'no card');
+  ok('deal: role card text fits under the picture', !!front && front.fits);
   await page.click('#hideCardBtn');
   const role = (await page.locator('#rolePanel .role-head b').first().textContent() || '').trim();
   ok('solo: role panel reveals a role', ['Mafia', 'Detective', 'Doctor', 'Citizen'].includes(role), role);
@@ -139,6 +157,17 @@ const posts = [];
   ok(`solo: full case reached the end modal (${role})`, ended, `${rounds} rounds`);
   const endText = ended ? (await page.locator('#modalBox').textContent()) : '';
   ok('end modal: reveal grid + case stats', ended && await page.locator('#modalBox .reveal-grid').count() === 1 && endText.includes('Nights'));
+  ok('end modal: every player tile is visible', ended && await page.evaluate(async () => {
+    await new Promise(r => setTimeout(r, 2200));
+    const t = [...document.querySelectorAll('#modalBox .rev')];
+    return t.length >= 5 && t.every(e => getComputedStyle(e).opacity === '1');
+  }));
+  {
+    const townWon = endText.includes('THE CITY ENDURES');
+    await page.waitForFunction(() => { const i = document.querySelector('#modalBox .end-art img'); return !i || i.complete; }, null, { timeout: 8000 }).catch(() => {});
+    const art = await page.evaluate(() => { const i = document.querySelector('#modalBox .end-art img'); return i ? i.naturalWidth : 0; });
+    ok('end modal: sunrise picture when the city wins, none otherwise', ended && (townWon ? art > 400 : art === 0), `${townWon ? 'city' : 'syndicate'} won · picture ${art}px`);
+  }
   ok('end modal: class leaderboard block injected', ended && await page.locator('#modalBox .cmc-lb').count() === 1);
   ok('end modal: identity mirrored', ended && (await page.inputValue('#cmcLbName')) === 'Vireak Bot'
     && (await page.inputValue('#cmcLbId')) === '7A · 12');
@@ -159,7 +188,7 @@ const posts = [];
   await page.click('#cmcLbSend');
   await page.waitForTimeout(900);
   ok('POST: manual re-send allowed (new case id untouched)', posts.length === 2, `${posts.length} POST(s)`);
-  await ctx.close().catch(() => {});
+  await closeCtx(ctx);
 }
 
 /* ---- D. pass & play hand-offs (page 3) ---- */
@@ -176,7 +205,73 @@ const posts = [];
   await page.click('#modalBox .m-actions button');
   await page.waitForSelector('#roleCard .back', { timeout: 10000 }).catch(() => {});
   ok('pass&play: card reveal behind the hand-off', await page.locator('#roleCard .back').count() === 1);
-  await ctx.close().catch(() => {});
+  await closeCtx(ctx);
+}
+
+/* ---- E. artwork: phone layout, city-wins screen, and no picture at all ---- */
+const fakeEnd = (winner) => {
+  const roles = ['mafia', 'detective', 'doctor', 'villager', 'villager', 'mafia', 'villager', 'villager'];
+  const players = roles.map((r, i) => ({ id: 'p' + i, name: 'Seat ' + (i + 1), role: r, alive: i % 2 === 0, fate: i % 2 ? 'voted' : null, seed: i + 3, color: '#e8b64c' }));
+  showEndModal({ winner, players, you: players[0], room: { night: 3, hostId: 'x' }, stats: { kills: 2, saves: 1, lynch: 2 } }, true);
+};
+{
+  const ctx = await browser.newContext({ viewport: { width: 360, height: 640 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE + '/mafia.html');
+  await page.evaluate(fakeEnd, 'town');
+  await page.waitForFunction(() => { const i = document.querySelector('#modalBox .end-art img'); return !!i && i.complete; }, null, { timeout: 8000 }).catch(() => {});
+  await page.waitForTimeout(400);
+  const e = await page.evaluate(() => {
+    const box = document.getElementById('modalBox'), i = box.querySelector('.end-art img'), t = box.querySelector('.m-title');
+    const b = box.getBoundingClientRect(), a = i ? i.parentNode.getBoundingClientRect() : null, tt = t.getBoundingClientRect(); // the frame, not the picture: it eases in slightly enlarged
+    return { w: i ? i.naturalWidth : 0, top: box.scrollTop, scrolls: box.scrollHeight > box.clientHeight + 40, artSeen: !!a && a.top >= b.top - 1 && a.bottom <= innerHeight, titleSeen: tt.top >= b.top && tt.bottom <= innerHeight,
+      wide: !!a && Math.abs(a.width - b.width) <= 4, over: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+  });
+  ok('phone: city-wins screen opens on the picture and the verdict', e.w > 400 && e.top === 0 && e.scrolls && e.artSeen && e.titleSeen, JSON.stringify(e));
+  ok('phone: picture spans the box, page overflow-free', e.wide && e.over <= 0, `overflow ${e.over}`);
+  await page.evaluate(() => closeModal());
+  await page.evaluate(fakeEnd, 'mafia');
+  ok('syndicate-wins screen: no sunrise picture', await page.locator('#modalBox .end-art').count() === 0 && (await page.locator('#modalBox').textContent()).includes('THE SYNDICATE OWNS THE NIGHT'));
+  // every role card on the narrowest phone: text stays clear of the footer line
+  await page.evaluate(() => closeModal());
+  await page.setViewportSize({ width: 320, height: 640 });
+  const fits = await page.evaluate(async () => {
+    const out = [];
+    for (const k of ['mafia', 'detective', 'doctor', 'villager']) {
+      openModal(`<div class="card3d flipped"><div class="inner"><div class="face front">${roleFrontHTML(k, 'SELF-SAVE: 1 LEFT')}</div></div></div>`);
+      const f = document.querySelector('#modalBox .rolefront'), i = f.querySelector('.rf-art img');
+      if (!i) { out.push(`${k}:no picture:BAD`); closeModal(); continue; }
+      await new Promise(r => { if (i.complete) r(); else { i.onload = r; setTimeout(r, 4000); } });
+      const d = f.querySelector('.rf-desc').getBoundingClientRect(), x = f.querySelector('.rf-extra').getBoundingClientRect(), b = f.getBoundingClientRect();
+      out.push(`${k}:${Math.round(b.width)}:${i.naturalWidth > 300 && d.bottom <= x.top + 1 && x.bottom <= b.bottom ? 'ok' : 'BAD'}`);
+      closeModal();
+    }
+    return out;
+  });
+  ok('all four role cards: picture loads and text fits on a 320px phone', fits.every(f => f.endsWith(':ok')), fits.join(' '));
+  await closeCtx(ctx);
+}
+{
+  // pictures unreachable (first visit with a dropped connection): the game must look as it did before
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.route('**/mafia-art/**', r => r.abort());
+  await page.goto(BASE + '/mafia.html');
+  await page.evaluate(() => {
+    openModal(`<div class="card3d" id="t1"><div class="inner"><div class="face back">${cardBackSVG()}</div></div></div><div class="card3d flipped" id="t2"><div class="inner"><div class="face front">${roleFrontHTML('doctor', '')}</div></div></div>`);
+  });
+  await page.waitForFunction(() => !document.querySelector('#t1 .cb-art') && !document.querySelector('#t2 .has-art'), null, { timeout: 8000 }).catch(() => {});
+  const fb = await page.evaluate(() => {
+    const svg = document.querySelector('#t1 .back svg'), f = document.querySelector('#t2 .rolefront'), ic = f.querySelector('.rf-icon').getBoundingClientRect(), art = f.querySelector('.rf-art');
+    return { back: !!svg && svg.getBoundingClientRect().height > 200 && !document.querySelector('#t1 .cb-art'), front: !!art && !f.classList.contains('has-art') && getComputedStyle(art).display === 'none' && ic.width > 80 };
+  });
+  ok('no pictures: drawn card back still shows', fb.back);
+  ok('no pictures: role card falls back to the icon design', fb.front);
+  await page.evaluate(() => closeModal());
+  await page.evaluate(fakeEnd, 'town');
+  await page.waitForFunction(() => !document.querySelector('#modalBox .end-art'), null, { timeout: 8000 }).catch(() => {});
+  ok('no pictures: city-wins screen drops the empty banner', await page.locator('#modalBox .end-art').count() === 0 && await page.locator('#modalBox .m-title').isVisible());
+  await closeCtx(ctx);
 }
 
 await browser.close();
