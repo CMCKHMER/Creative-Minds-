@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -247,32 +247,10 @@ It is important to emphasize, however, that genes are not the sole explanation f
 </div>
 
 <script>
-window.TEST_CONFIG={
-  title:'Reading: Genes, Health & Longevity',
-  kicker:'Week 4 · Level 10 · Reading',
-  color:'#fbbf24',
-  icon:'fa-book-open',
-  instructions:"Reading Explorer Unit 9-10. Read the academic passage carefully. Then answer Questions 1-10. Pay attention to organization, transitions, key ideas, supporting details, and the author's purpose.",
-  fields:['name', 'date'],
-  transcript:'',
-  groups:[
-    {'id':'w4-reading-list','title':'Reading Questions (10 questions)'}
-  ]
-};
-const BANKS = {
-"w4-reading-list":[
-["What is the main purpose of the passage?",["To explain why exercise is more important than genetics","To examine evidence suggesting that genes may influence healthy aging","To prove that certain genes guarantee a longer lifespan","To compare the lifestyles of people in Italy, Ecuador, and the United States"],1],
-['What does the phrase "To begin with" signal?',["A contradiction with the previous idea","The final conclusion of the passage","The introduction of the first example of genetic research","A change from genetics to environmental factors"],2],
-["Why does the author mention the residents of Molochio?",["To demonstrate that all elderly Italians have the same diet","To provide an example of a population being studied for possible genetic links to longevity","To show that bitter foods are responsible for long life","To explain why people in Italy live longer than people elsewhere"],1],
-["According to the passage, what is significant about the Laron population?",["They are unusually tall and have fewer genetic problems.","They have lived in Ecuador since the 1980s.","Their genetic condition may limit growth while also providing protection against some diseases.","Their diet prevents them from developing chronic diseases."],2],
-['What is the function of the word "Nevertheless" in the third paragraph?',["It introduces a result that is expected from the previous sentence.","It introduces an idea that contrasts with the previous information.","It introduces another example from Italy.","It signals that the author is ending the discussion."],1],
-['What can be inferred from the description of the "wellderly"?',["They were selected because they represent people who have remained unusually healthy into old age.","They are people who have developed many chronic diseases.","They are younger than 80 but have unusually healthy lifestyles.","They have all taken prescription drugs for chronic illnesses."],0],
-["Which statement best describes the relationship among the three research examples?",["Each example provides evidence that genetics may be connected to healthy aging.","Each study proves that one particular gene determines lifespan.","The studies demonstrate that environmental factors are irrelevant.","The three studies focus on exactly the same genetic condition."],0],
-['Why does the author say, "It is important to emphasize, however"?',["To introduce information that qualifies or limits the previous conclusions","To repeat the strongest evidence from the Italian study","To introduce a completely unrelated topic","To show that scientists have rejected genetic research"],0],
-["What is the author's main purpose in mentioning that genes may account for only about 25 percent of longevity?",["To suggest that genes have no influence on aging","To emphasize that longevity results from multiple interacting factors","To prove that environmental factors account for exactly 75 percent","To encourage people to stop studying genetics"],1],
-["Which statement best represents the overall conclusion of the passage?",["Scientists have discovered the exact genetic formula for a long life.","Healthy aging is determined almost entirely by lifestyle choices.","Genetic research suggests that genes contribute to longevity, but they interact with environmental and other factors.","People with unusual genetic conditions are guaranteed to live longer than others."],2]
-]};
-window.TEST_BANKS = BANKS;
+window.TEST_CONFIG={"title":"Reading: Genes, Health & Longevity","kicker":"Week 4 · Level 10 · Reading","color":"#fbbf24","icon":"fa-book-open","instructions":"Reading Explorer Unit 9-10. Read the academic passage carefully. Then answer Questions 1-10. Pay attention to organization, transitions, key ideas, supporting details, and the author's purpose.","fields":["name","date"],"transcript":"","groups":[{"id":"w4-reading-list","title":"Reading Questions (10 questions)"}]};
+window.TEST_BANKS={"w4-reading-list":[["What is the main purpose of the passage?",["To explain why exercise is more important than genetics","To examine evidence suggesting that genes may influence healthy aging","To prove that certain genes guarantee a longer lifespan","To compare the lifestyles of people in Italy, Ecuador, and the United States"],-1],["What does the phrase \"To begin with\" signal?",["A contradiction with the previous idea","The final conclusion of the passage","The introduction of the first example of genetic research","A change from genetics to environmental factors"],-1],["Why does the author mention the residents of Molochio?",["To demonstrate that all elderly Italians have the same diet","To provide an example of a population being studied for possible genetic links to longevity","To show that bitter foods are responsible for long life","To explain why people in Italy live longer than people elsewhere"],-1],["According to the passage, what is significant about the Laron population?",["They are unusually tall and have fewer genetic problems.","They have lived in Ecuador since the 1980s.","Their genetic condition may limit growth while also providing protection against some diseases.","Their diet prevents them from developing chronic diseases."],-1],["What is the function of the word \"Nevertheless\" in the third paragraph?",["It introduces a result that is expected from the previous sentence.","It introduces an idea that contrasts with the previous information.","It introduces another example from Italy.","It signals that the author is ending the discussion."],-1],["What can be inferred from the description of the \"wellderly\"?",["They were selected because they represent people who have remained unusually healthy into old age.","They are people who have developed many chronic diseases.","They are younger than 80 but have unusually healthy lifestyles.","They have all taken prescription drugs for chronic illnesses."],-1],["Which statement best describes the relationship among the three research examples?",["Each example provides evidence that genetics may be connected to healthy aging.","Each study proves that one particular gene determines lifespan.","The studies demonstrate that environmental factors are irrelevant.","The three studies focus on exactly the same genetic condition."],-1],["Why does the author say, \"It is important to emphasize, however\"?",["To introduce information that qualifies or limits the previous conclusions","To repeat the strongest evidence from the Italian study","To introduce a completely unrelated topic","To show that scientists have rejected genetic research"],-1],["What is the author's main purpose in mentioning that genes may account for only about 25 percent of longevity?",["To suggest that genes have no influence on aging","To emphasize that longevity results from multiple interacting factors","To prove that environmental factors account for exactly 75 percent","To encourage people to stop studying genetics"],-1],["Which statement best represents the overall conclusion of the passage?",["Scientists have discovered the exact genetic formula for a long life.","Healthy aging is determined almost entirely by lifestyle choices.","Genetic research suggests that genes contribute to longevity, but they interact with environmental and other factors.","People with unusual genetic conditions are guaranteed to live longer than others."],-1]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"91b223ca962a2ba9","epk":"BEivHCrvBQ9tRHpLcZQEsylI91Wu504Hmd-GmUl6bod6UjIkvJTvox1sSXQJqGzyaLsxHBb-6JD8q70lL-OEQEc","iv":"78gBK6RGSYRzQDR0","ct":"LOopk_LEyDAZ8laeEOf_TuC7iV7BVl2W-dosneKMtQFrhyCC5VHLYwA1J0_P32hDkmSeWWKTOdZEbXxhU4UIsYx1ikcerwZECtch3lb4Yo_GIszCQvyi37Of7FleFyIP"};
 </script>
 <script>
 // CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
@@ -462,6 +440,7 @@ function doSubmit(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 
 

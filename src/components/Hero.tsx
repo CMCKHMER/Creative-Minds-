@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play } from 'lucide-react';
 import { useCountUp } from '../hooks/useReveal';
+import { useTitleParticles } from '../hooks/useTitleParticles';
 
 interface HeroProps {
   onExploreTools: () => void;
@@ -81,6 +82,13 @@ export const Hero = ({
 }: HeroProps) => {
   const shortcutsRef = useRef<HTMLElement>(null);
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const titleCanvasRef = useRef<HTMLCanvasElement>(null);
+  // The title drawn as particles (three.js). The <h1> below stays the real
+  // text; the effect is fetched only when the browser is idle and only where
+  // it is welcome — see useTitleParticles.
+  const titleParticles = useTitleParticles({ section: heroRef, title: titleRef, canvas: titleCanvasRef });
 
   useEffect(() => {
     const target = shortcutsRef.current;
@@ -125,6 +133,7 @@ export const Hero = ({
     <>
       <section
         id="top"
+        ref={heroRef}
         className="cmc-hero relative isolate overflow-hidden"
         onPointerMove={handlePointerMove}
         onPointerLeave={resetPointer}
@@ -160,7 +169,11 @@ export const Hero = ({
               Creative Minds Network
             </div>
 
-              <h1 className="cmc-title" aria-label="Everything a teacher needs in one place.">
+              <h1
+                ref={titleRef}
+                className={`cmc-title${titleParticles ? ' cmc-title-as-particles' : ''}`}
+                aria-label="Everything a teacher needs in one place."
+              >
                 <span className="cmc-title-row cmc-title-row-first">
                   <span className="cmc-title-outline" aria-hidden="true">EVERYTHING A TEACHER</span>
                   <span className="cmc-title-solid">EVERYTHING A TEACHER</span>
@@ -233,6 +246,8 @@ export const Hero = ({
           <span>See what's inside</span>
           <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
         </div>
+        {/* The title's particles are drawn here (src/lib/titleParticles.ts). */}
+        <canvas ref={titleCanvasRef} className="cmc-title-canvas" aria-hidden="true" />
       </section>
 
       <section ref={shortcutsRef} className="border-y border-white/10 bg-[#081622]/95 backdrop-blur" aria-label="Explore Creative Minds Network tools">

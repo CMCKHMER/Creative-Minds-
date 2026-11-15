@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -280,8 +280,10 @@ Furthermore, the algorithmic oversight accompanying remote infrastructural frame
 
 <script>
 window.AMAP_OFF=13;
-window.TEST_CONFIG={"title": "TOEFL Reading Drill – Recap", "kicker": "Week 8 · Recap · Reading", "color": "#fbbf24", "icon": "fa-book-open", "examMinutes": 30, "instructions": "Target time: 30 minutes. Read the passage carefully (about 8–10 minutes), analyzing the implicit meanings, then answer the inference questions. The timer starts when you click Start and cannot be paused.", "shuffle": true, "transcript": "", "groups": [{"id": "w8r-read-q", "title": "Comprehension (Questions 1–3)", "dirs": "Target time: 30 minutes overall. Read the passage carefully (8–10 minutes), analyzing implicit meanings, then choose the letter of the best answer."}]};
-window.TEST_BANKS={"w8r-read-q": [["Based on the first paragraph, what can be inferred about the author’s view of physical office environments?", ["They exclusively foster formal, rigid channels of communication that suppress creativity.", "They inherently support the transmission of unarticulated knowledge through incidental interactions.", "They are structurally superior to digital environments for long-term data archiving.", "They eliminate the need for deliberate documentation among leadership teams."], "O", "B — the text notes physical offices feature “serendipitous collisions” and serve as “conduits for non-codified expertise” (tacit knowledge), implying incidental interactions naturally transmit unarticulated knowledge."], ["What does the author imply about leadership teams that rely heavily on archived Slack threads and cloud wikis?", ["They possess an accurate, holistic understanding of their organization's intellectual capital.", "They confuse the physical storage of information with genuine organizational understanding.", "They deliberately sabotage the socio-cultural context of their workforce.", "They struggle with the technical implementation of distributed frameworks."], "O", "B — the author states leadership “mistake the proliferation of archived Slack threads… for actual organizational comprehension,” meaning they confuse data storage with real understanding."], ["It can be inferred from the second paragraph that algorithmic oversight of remote workers tends to:", ["Encourage employees to focus on deep, unmeasured strategic innovation.", "Accurately quantify the true cognitive complexity of modern labor.", "Induce behaviors designed to satisfy metrics rather than achieve real progress.", "Eliminate the visibility gap between management and worker cognition."], "P", "C — metric tracking incentivizes “a culture of performative output” where employees “optimize for the dashboard rather than the enterprise’s long-term strategic vitality.”"]]};
+window.TEST_CONFIG={"title":"TOEFL Reading Drill – Recap","kicker":"Week 8 · Recap · Reading","color":"#fbbf24","icon":"fa-book-open","examMinutes":30,"instructions":"Target time: 30 minutes. Read the passage carefully (about 8–10 minutes), analyzing the implicit meanings, then answer the inference questions. The timer starts when you click Start and cannot be paused.","shuffle":true,"transcript":"","groups":[{"id":"w8r-read-q","title":"Comprehension (Questions 1–3)","dirs":"Target time: 30 minutes overall. Read the passage carefully (8–10 minutes), analyzing implicit meanings, then choose the letter of the best answer."}]};
+window.TEST_BANKS={"w8r-read-q":[["Based on the first paragraph, what can be inferred about the author’s view of physical office environments?",["They exclusively foster formal, rigid channels of communication that suppress creativity.","They inherently support the transmission of unarticulated knowledge through incidental interactions.","They are structurally superior to digital environments for long-term data archiving.","They eliminate the need for deliberate documentation among leadership teams."],"M",""],["What does the author imply about leadership teams that rely heavily on archived Slack threads and cloud wikis?",["They possess an accurate, holistic understanding of their organization's intellectual capital.","They confuse the physical storage of information with genuine organizational understanding.","They deliberately sabotage the socio-cultural context of their workforce.","They struggle with the technical implementation of distributed frameworks."],"M",""],["It can be inferred from the second paragraph that algorithmic oversight of remote workers tends to:",["Encourage employees to focus on deep, unmeasured strategic innovation.","Accurately quantify the true cognitive complexity of modern labor.","Induce behaviors designed to satisfy metrics rather than achieve real progress.","Eliminate the visibility gap between management and worker cognition."],"M",""]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"91b223ca962a2ba9","epk":"BJi-b-DbAJc2hUAJeh-Uolw4XHQGXuWxUSU-fkNJt3I1RgyM7P8XOOLmrmX-xAvFmy_26jVJGdxmOBROGAliqZ8","iv":"b6hmlv0-K5T6dc3m","ct":"9GGvyiMRwXcLJ5drZhqEnK5SwZXivZSOb1E3myESkqVt9Y3g5X7LtH5AiWEglUNzfZqwsMfG0Q82It8KI6M2puVolsaVRxfS0Hpa-DPL2L6_p0furHTeLxB8nf3ZPZiWDnWQSEuBQPHKd_macwbH4Tww4pzWpJHbtnVr6vbulWkUQiMu1Oyhv7_mkFzuojlDhhYVc1FSCMIeG94ALsNoN9FVOrK8T6v-yd6tMW6vmIeqfySXBrlhHv18bFl9OOjB2dKUjqv4xMMjlKykjFgR4ROaPofkyJZsg738tLalTb-Ig97MuUbxpBk8Bg_KOaeaxHl2Ac4b0tQ9VAUwwhmqK_qiPmhPdATK0A8PbZBoRM5WI_lMEDkUnMN_hMEf4YXUbMU6jsuIsZLhlO52e2q1nxXLorfxw1yO0tkucHGAATqJZ79H9XNkBBZQXRH3dJ4zUuPwZDQK2vmikXLIwNOCFpExuPC1qirhKAtS-2BTyGytBhLV2ckkvMfk9LAUKUCcn4RA7ULulfAE9OGST0yZ7j7aBxx1CNYymB6Ma_T81Hs2lA22G57JZmdiv6CWjfTS9gy8G9pNWA0n2MZGm-_ayfjk0HTG0FgN34c4D8FZ6JdMT17EhPUUPQ65UyYfPxMBJcDBCRSGMjF6V6Mi61dZnTXn-66bPkvpE-Dhw8lZ7_I3T8Ta44fmv8ehjZl-7OWKbzscp0JyyUul7KAcf7oyPo9jrm4DDAoXZpDPZr0WszML9EnnK3ZmQw_z_D_aEiFiF4Ciw8LJiP8Zc_uhGqy_XpesKVgFMbY1MzfFAPuTJpNH2L4-NoAvsYxn_MYef5YnyN69pWRRuwDCBIodp90Q3NbLsrswrJp9Z4JGlgYtZUINpiFFVljdnXhiFK-5tRrMCaGuCsm3TUs0hORXwG7lD27ILwZKtYn83bgroml7mzpTkMXBwqh7C19zNqQcCZzNVQ"};
 </script>
 <script>
 // CMC-TEMPLATE-V2-W8 — enforced "recap exam" engine, derived from the
@@ -293,7 +295,7 @@ window.TEST_BANKS={"w8r-read-q": [["Based on the first paragraph, what can be in
 //   - start gate with honour-code checkbox (+ optional fullscreen)
 //   - enforced countdown: starts with the test, cannot be paused, auto-submits
 //   - per-load shuffle of question order AND option order (answer remapped)
-//   - answer key obfuscated in source (letter cipher, offset @@AMAP_OFF@@)
+//   - answer key SEALED: not present in page source (see answer-seal.js)
 //   - tab-switch / window-blur / fullscreen-exit flags (badge + analytics)
 //   - copy / cut / right-click blocked on the form while the test is running
 //   - unsaved-progress warning on page close
@@ -374,13 +376,15 @@ form.innerHTML = timerBarHtml + groupsHtml +
 // ---------- question rendering (shuffle + obfuscated answers) ----------
 const cards = [];
 let qCounter = 0;
-function addQ(target, prompt, choices, answerIdx, expl) {
+function addQ(target, prompt, choices, answerIdx, expl, sid) {
   const order = shuffle(choices.map((_, i) => i));
   const newChoices = order.map(i => choices[i]);
   const newAns = order.indexOf(answerIdx);
   const card = document.createElement('div');
   card.className = 'question-card';
   card.dataset.answer = String(newAns);
+  card.dataset.order = order.join(',');
+  if (sid) card.dataset.sid = sid;
   if (expl) card.dataset.expl = expl;
   card.dataset.qnum = String(++qCounter);
   const optsHtml = newChoices.map((choice, i) =>
@@ -407,7 +411,7 @@ Object.entries(banks).forEach(([tid, rows]) => {
   const order = shuffle(rows.map((_, i) => i));
   order.forEach(ri => {
     const r = rows[ri];
-    addQ(target, r[0], r[1], decAns(r[2]), r[3] || '');
+    addQ(target, r[0], r[1], decAns(r[2]), r[3] || '', tid + ':' + ri);
   });
 });
 
@@ -701,6 +705,7 @@ if (!prevLock && gateEl) {
 } else if (gateEl) { gateEl.remove(); }
 
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 </body>
 </html>

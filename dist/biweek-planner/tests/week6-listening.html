@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -239,37 +239,10 @@ html[data-theme="light"] .q-explanation{background:rgba(2,132,199,.04);border-co
 </div>
 
 <script>
-window.TEST_CONFIG={
-  title:'Listening: Student Athletes',
-  kicker:'Week 6 · Level 10 · Listening',
-  color:'#347d9b',
-  icon:'fa-headphones',
-  instructions:'Q:Skills Unit 8. Listen to the dialogue between Tom and Min about college athletic scholarships. Choose the best answer for each question.',
-  fields:['name', 'date'],
-  transcript:'',
-  groups:[
-    {'id':'w6-listening-list','title':'Listening Questions (15 questions)'}
-  ]
-};
-const BANKS = {
-"w6-listening-list":[
-["Who first expresses concern about the amount of financial assistance given to student athletes?",["Tom","Min","The writer","The NCAA"],1],
-["According to Tom, why can athletic programs benefit a college financially?",["Games bring revenue.","Tuition costs decrease.","The government pays.","Athletes pay fees."],0],
-["Which speaker argues that athletic scholarships may help a university attract students?",["Min","Tom","The writer","The NCAA"],1],
-["What does Min suggest about funding for student athletes at the beginning of the discussion?",["It should come from tickets.","It should depend on grades.","The cost may not be justified.","All students should receive it."],2],
-["Which speaker introduces examples of athletic scholarships outside the United States?",["Min","Tom","The writer","The athletic department"],0],
-["What causes Min to acknowledge that athletes receive special treatment in other countries?",["Tom explains sports revenue.","She learns about foreign scholarships.","She learns about NCAA rules.","She attends a soccer game."],1],
-["How does Tom's position differ from Min's?",["Tom supports college sports; Min questions the funding.","Tom opposes scholarships; Min supports them.","Tom supports foreign athletes; Min opposes them.","Tom focuses on grades; Min focuses on sports."],0],
-["Which statement best describes a shift in Min's position during the conversation?",["She supports all scholarships.","She acknowledges foreign examples.","She rejects college sports.","She supports professional sports."],1],
-["When Tom mentions the NCAA's minimum academic requirement, what is his main purpose?",["To show academic requirements.","To show athletes need no study.","To explain scholarships.","To compare Ivy League schools."],0],
-["What does Min imply when she mentions a student leaving college for a professional sports contract?",["Pro sports may replace college.","Pro teams require degrees.","College athletes dislike sports.","Colleges reward pro athletes."],0],
-["Why does Tom mention that an athlete who makes an Olympic team could bring worldwide attention to the college?",["To show another benefit","To criticize college sports","To explain Olympic training","To discuss athlete salaries"],0],
-["What is the purpose of Tom's reference to Harvard and Princeton?",["They have strong teams.","They need more athletes.","They do not offer scholarships.","They have lower standards."],2],
-["Which statement best represents the disagreement between Min and Tom near the end of the conversation?",["They disagree about college sports.","They disagree about ticket prices.","They disagree about foreign scholarships.","They disagree about academic rules."],0],
-["What does Min's final statement about the soccer game suggest about her attitude toward sports?",["She dislikes sports.","She enjoys watching games.","She wants an athletic scholarship.","She prefers soccer to basketball."],1],
-["Which sequence best tracks the development of the conversation?",["Costs → benefits → examples → requirements → disagreement","Benefits → costs → requirements → examples → disagreement","Examples → costs → benefits → disagreement → requirements","Requirements → examples → costs → benefits → disagreement"],0]
-]};
-window.TEST_BANKS = BANKS;
+window.TEST_CONFIG={"title":"Listening: Student Athletes","kicker":"Week 6 · Level 10 · Listening","color":"#347d9b","icon":"fa-headphones","instructions":"Q:Skills Unit 8. Listen to the dialogue between Tom and Min about college athletic scholarships. Choose the best answer for each question.","fields":["name","date"],"transcript":"","groups":[{"id":"w6-listening-list","title":"Listening Questions (15 questions)"}]};
+window.TEST_BANKS={"w6-listening-list":[["Who first expresses concern about the amount of financial assistance given to student athletes?",["Tom","Min","The writer","The NCAA"],-1],["According to Tom, why can athletic programs benefit a college financially?",["Games bring revenue.","Tuition costs decrease.","The government pays.","Athletes pay fees."],-1],["Which speaker argues that athletic scholarships may help a university attract students?",["Min","Tom","The writer","The NCAA"],-1],["What does Min suggest about funding for student athletes at the beginning of the discussion?",["It should come from tickets.","It should depend on grades.","The cost may not be justified.","All students should receive it."],-1],["Which speaker introduces examples of athletic scholarships outside the United States?",["Min","Tom","The writer","The athletic department"],-1],["What causes Min to acknowledge that athletes receive special treatment in other countries?",["Tom explains sports revenue.","She learns about foreign scholarships.","She learns about NCAA rules.","She attends a soccer game."],-1],["How does Tom's position differ from Min's?",["Tom supports college sports; Min questions the funding.","Tom opposes scholarships; Min supports them.","Tom supports foreign athletes; Min opposes them.","Tom focuses on grades; Min focuses on sports."],-1],["Which statement best describes a shift in Min's position during the conversation?",["She supports all scholarships.","She acknowledges foreign examples.","She rejects college sports.","She supports professional sports."],-1],["When Tom mentions the NCAA's minimum academic requirement, what is his main purpose?",["To show academic requirements.","To show athletes need no study.","To explain scholarships.","To compare Ivy League schools."],-1],["What does Min imply when she mentions a student leaving college for a professional sports contract?",["Pro sports may replace college.","Pro teams require degrees.","College athletes dislike sports.","Colleges reward pro athletes."],-1],["Why does Tom mention that an athlete who makes an Olympic team could bring worldwide attention to the college?",["To show another benefit","To criticize college sports","To explain Olympic training","To discuss athlete salaries"],-1],["What is the purpose of Tom's reference to Harvard and Princeton?",["They have strong teams.","They need more athletes.","They do not offer scholarships.","They have lower standards."],-1],["Which statement best represents the disagreement between Min and Tom near the end of the conversation?",["They disagree about college sports.","They disagree about ticket prices.","They disagree about foreign scholarships.","They disagree about academic rules."],-1],["What does Min's final statement about the soccer game suggest about her attitude toward sports?",["She dislikes sports.","She enjoys watching games.","She wants an athletic scholarship.","She prefers soccer to basketball."],-1],["Which sequence best tracks the development of the conversation?",["Costs → benefits → examples → requirements → disagreement","Benefits → costs → requirements → examples → disagreement","Examples → costs → benefits → disagreement → requirements","Requirements → examples → costs → benefits → disagreement"],-1]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"91b223ca962a2ba9","epk":"BJtwnsLwV6XSiOlBefk7_B8j_-hlOzIINAemdX4Ms7jSSkUd-4cEv_sSUUjiA_OtlhQPBnsFFTdqrHXWmKgyy-A","iv":"Obe7xaNE8LJxJx3T","ct":"Hx6oqba-xtQwJPgHgLwwmYFga1Wbgifs8NyCmZnNYdXF_pDn4VJdAIWHy081lougVGdxNWKPInso8klNy29cEyGhklBXPO-BZk8qX7Lxs6DypiC-9Y540AgSRTK7eIoaHyAB6zsU2BvqzP99Nbw"};
 </script>
 <script>
 // CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
@@ -459,6 +432,7 @@ function doSubmit(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 
 

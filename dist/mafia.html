@@ -135,7 +135,7 @@ main{position:relative;z-index:2;padding:70px 14px 112px;max-width:1500px;margin
 .rolefront{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;padding:9% 8%;position:relative;background:linear-gradient(165deg,#1a2140,#0c0f22)}.rolefront::before{content:"";position:absolute;inset:7px;border:1px solid var(--rc);opacity:.5;border-radius:9px}.rf-team{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--rc)}.rf-icon{width:44%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;margin:9% 0 7%;color:var(--rc);border:1px solid var(--rc);box-shadow:0 0 26px color-mix(in srgb,var(--rc) 35%,transparent)}.rf-icon svg{width:56%;height:56%}.rf-name{font-family:var(--disp);font-size:24px;color:var(--cream)}.rf-desc{font-family:var(--type);font-size:11px;color:var(--cream2);line-height:1.6;margin-top:7%;text-align:center}.rf-extra{margin-top:auto;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--rc);text-transform:uppercase;padding-top:6px}
 .fan-card .rolefront{padding:8%}.fan-card .rf-desc,.fan-card .rf-extra{display:none}.fan-card .rf-name{font-size:14px}.fan-card .rf-team{font-size:7px}
 .inv-card{width:150px;margin:18px auto 8px;position:relative}.inv-card .av{width:150px;height:150px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}.inv-card .av svg{width:100%;height:100%}.inv-stamp{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%) rotate(-14deg) scale(3);opacity:0;font-family:var(--disp);font-size:24px;padding:6px 14px;border:3px solid currentColor;border-radius:8px;letter-spacing:2px;animation:stampIn .45s .5s cubic-bezier(.2,1.4,.3,1) forwards}.inv-stamp.maf{color:var(--red2)}.inv-stamp.inn{color:var(--blue2)}@keyframes stampIn{to{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}}
-.reveal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;margin:20px 0}.rev{border-radius:10px;padding:12px 8px;background:rgba(10,13,24,.6);border:1px solid var(--tcol);opacity:0;animation:revIn .45s forwards}@keyframes revIn{from{opacity:0;transform:rotateY(90deg)}}.rev svg{width:25px;height:25px;color:var(--tcol)}.rev b{display:block;font-size:12px;margin-top:6px}.rev span{font-size:9px;font-weight:700;letter-spacing:1.4px;color:var(--tcol);text-transform:uppercase}.rev em{display:block;font-style:normal;font-size:8px;color:var(--muted);margin-top:3px}
+.reveal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;margin:20px 0}.rev{border-radius:10px;padding:12px 8px;background:rgba(10,13,24,.6);border:1px solid var(--tcol);opacity:0;animation:revIn .45s forwards}@keyframes revIn{from{opacity:0;transform:rotateY(90deg)}to{opacity:1;transform:none}}.rev svg{width:25px;height:25px;color:var(--tcol)}.rev b{display:block;font-size:12px;margin-top:6px}.rev span{font-size:9px;font-weight:700;letter-spacing:1.4px;color:var(--tcol);text-transform:uppercase}.rev em{display:block;font-style:normal;font-size:8px;color:var(--muted);margin-top:3px}
 .stats-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.stat{padding:9px 15px;border:1px solid var(--line);border-radius:10px;background:rgba(232,182,76,.05)}.stat b{display:block;font-family:var(--disp);font-size:21px;color:var(--gold2)}.stat span{font-size:9px;font-weight:700;letter-spacing:1.7px;color:var(--muted);text-transform:uppercase}
 .help{text-align:left;font-family:var(--type);font-size:12.5px;color:var(--cream2);line-height:1.7}.help h3{font-family:var(--ui);font-size:11px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin:16px 0 7px}.help-roles{display:grid;grid-template-columns:1fr 1fr;gap:9px}.hr{display:flex;gap:9px;padding:9px;border:1px solid rgba(232,182,76,.15);border-radius:9px}.hr svg{width:21px;height:21px;flex:0 0 auto;color:var(--hc)}.hr b{display:block;font-family:var(--ui);font-size:10px;letter-spacing:1.7px;color:var(--hc);text-transform:uppercase}.hr span{font-size:11px;line-height:1.5}
 #toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-12px);z-index:90;padding:11px 16px;border-radius:10px;background:rgba(20,26,51,.97);border:1px solid var(--line);color:var(--cream);font-family:var(--type);font-size:12px;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center}#toast.show{opacity:1;transform:translateX(-50%)}
@@ -177,10 +177,50 @@ main{position:relative;z-index:2;padding:70px 14px 112px;max-width:1500px;margin
 .fan-card img{width:100%;height:100%;object-fit:cover;display:block}
 .fan-name{position:absolute;left:0;right:0;bottom:0;padding:7px 0 8px;text-align:center;font-size:9px;font-weight:700;letter-spacing:2.5px;color:var(--gold2);background:linear-gradient(transparent,rgba(5,7,15,.92) 55%);text-shadow:0 1px 6px rgba(0,0,0,.8)}
 @media(max-width:560px){.cmc-id-row input{min-width:100%}}
+/* ── owner artwork (patch_mafia_art.py) ── */
+.card3d .back .cb-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.rf-art{display:none}
+.rolefront.has-art{padding-top:7%}
+.rolefront.has-art .rf-art{display:block;position:absolute;left:0;right:0;top:0;height:68%;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
+.rolefront.has-art .rf-art img{width:100%;height:112%;object-fit:cover;object-position:50% 0;display:block}
+.rolefront.has-art::before{z-index:1}
+.rolefront.has-art>div:not(.rf-art){position:relative;z-index:2}
+.rolefront.has-art .rf-team{padding:4px 9px 3px;border-radius:999px;background:rgba(5,7,15,.72);border:1px solid color-mix(in srgb,var(--rc) 45%,transparent)}
+.rolefront.has-art .rf-icon{width:17%;margin:64% 0 2%;background:#0c0f22;box-shadow:0 0 18px color-mix(in srgb,var(--rc) 45%,transparent),0 0 0 3px rgba(5,7,15,.6)}
+.rolefront.has-art .rf-name{text-shadow:0 2px 10px #05070f}
+.rolefront.has-art .rf-desc{margin-top:3%;font-size:10.5px;line-height:1.5}
+.end-art{margin:-28px -26px 0;aspect-ratio:5/2;max-height:42vh;overflow:hidden;border-radius:14px 14px 0 0;-webkit-mask-image:linear-gradient(#000 66%,transparent);mask-image:linear-gradient(#000 66%,transparent)}
+.end-art img{width:100%;height:100%;object-fit:cover;object-position:50% 55%;display:block;animation:endArtIn 1.6s ease-out both}
+.end-art+.m-kicker{position:relative;margin-top:-22px}
+@keyframes endArtIn{from{opacity:0;transform:scale(1.06)}}
+.hr .hr-pic{position:relative;flex:0 0 auto;width:46px;height:46px;border-radius:8px;overflow:hidden;display:grid;place-items:center;border:1px solid var(--hc);background:#0c0f22}
+.hr .hr-pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 18%}
+@media(max-width:356px){.rolefront.has-art .rf-art{height:58%}.rolefront.has-art .rf-icon{margin-top:50%}.rolefront.has-art .rf-name{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.end-art img{animation:none}}
+/* ── owner artwork II: city backdrops (patch_mafia_art.py) ── */
+.bg-art{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat;opacity:0;transition:opacity 2.2s ease}
+#bgNight{background-position:58% 50%}#bgDay{background-position:42% 50%}
+#bg.has-art #bgNight{background-image:url(mafia-art/mafia-city.jpg);opacity:.62}
+#bg.has-day #bgDay{background-image:url(mafia-art/mafia-city-day.jpg)}
+body[data-phase=day] #bg.has-day #bgDay{opacity:.6}
+body[data-phase=day] #bg.has-day #bgNight{opacity:0}
+#bgScrim{position:absolute;inset:0;opacity:0;transition:opacity 2.2s ease;background:radial-gradient(120% 85% at 50% 40%,rgba(7,9,18,.25),rgba(7,9,18,.72) 78%),linear-gradient(rgba(7,9,18,.5),rgba(7,9,18,0) 22%,rgba(7,9,18,0) 60%,rgba(7,9,18,.78))}
+#bg.has-art #bgScrim{opacity:1}
+#bg.has-art #moon,#bg.has-art #skyA,#bg.has-art #skyB,#bg.has-day #sun,#bg.has-day #dayWash{display:none}
+#bg.has-art~main .hero-art{display:none}
+.tw-art{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat;opacity:0;transition:opacity 2.2s ease;pointer-events:none}
+#twNight{background-position:60% 42%}#twDay{background-position:44% 40%}
+#twScrim{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2.2s ease;background:radial-gradient(70% 70% at 50% 47%,rgba(10,13,24,.2),rgba(10,13,24,.7))}
+#bg.has-art~main #twNight{background-image:url(mafia-art/mafia-city.jpg);opacity:.5}
+#bg.has-art~main #twScrim{opacity:1}
+#bg.has-day~main #twDay{background-image:url(mafia-art/mafia-city-day.jpg)}
+body[data-phase=day] #bg.has-day~main #twDay{opacity:.55}
+body[data-phase=day] #bg.has-day~main #twNight{opacity:0}
+@media(prefers-reduced-motion:reduce){.bg-art,#bgScrim,.tw-art,#twScrim{transition:none}}
 </style>
 </head>
 <body data-phase="night">
-<div id="bg"><div id="dayWash"></div><div id="moon"></div><div id="sun"></div><div id="skyA"></div><div id="skyB"></div><div class="fog" id="fogA"></div><div class="fog" id="fogB"></div></div>
+<div id="bg"><div class="bg-art" id="bgNight"></div><div class="bg-art" id="bgDay"></div><div id="bgScrim"></div><div id="dayWash"></div><div id="moon"></div><div id="sun"></div><div id="skyA"></div><div id="skyB"></div><div class="fog" id="fogA"></div><div class="fog" id="fogB"></div></div>
 <canvas id="fx"></canvas><div id="vignette"></div><div id="grain"></div>
 
 <header>
@@ -308,7 +348,7 @@ main{position:relative;z-index:2;padding:70px 14px 112px;max-width:1500px;margin
         <button class="btn gold" id="startBtn">DEAL THE CARDS</button>
         <p class="note" id="lobbyNote"></p>
       </div>
-      <div id="tableWrap" hidden>
+      <div id="tableWrap" hidden><div class="tw-art" id="twNight"></div><div class="tw-art" id="twDay"></div><div id="twScrim"></div>
         <div id="table">
           <div id="medallion">
             <svg class="timer-ring" viewBox="0 0 100 100"><circle class="tr-bg" cx="50" cy="50" r="44"/><circle id="trFg" cx="50" cy="50" r="44"/></svg>
@@ -386,8 +426,8 @@ function avatarSVG(p){
  const a=acc===0?`<circle cx="45.5" cy="37.5" r="4" fill="none" stroke="#f6d789" stroke-width="1.4"/>`:acc===1?`<path d="M50 43l9-2.4" stroke="#f1e6cf" stroke-width="2"/><circle cx="60" cy="40.4" r="1.6" fill="#ff5b3d"/>`:acc===2?`<circle cx="35" cy="37" r="3.4" fill="none" stroke="#f6d789" stroke-width="1.3"/><circle cx="45" cy="37" r="3.4" fill="none" stroke="#f6d789" stroke-width="1.3"/>`:`<path d="M35 44q5 3.4 10 0" stroke="#f1e6cf" stroke-width="1.4" fill="none" opacity=".65"/>`;
  return `<svg viewBox="0 0 80 80"><rect width="80" height="80" fill="${c}" opacity=".25"/>${rays}<path d="M13 80q0-23 19-27h16q19 4 19 27z" fill="${ink}"/><rect x="31" y="52" width="18" height="4.6" rx="2" fill="${c}" opacity=".75"/><circle cx="40" cy="37" r="12.5" fill="${ink}"/>${h}${a}</svg>`;
 }
-function cardBackSVG(){let r="";for(let i=0;i<26;i++){const a=i/26*Math.PI*2;r+=`<line x1="60" y1="85" x2="${60+Math.cos(a)*54}" y2="${85+Math.sin(a)*79}" stroke="#e8b64c" stroke-opacity=".28"/>`}return `<svg viewBox="0 0 120 170"><rect width="120" height="170" rx="9" fill="#10152a"/><rect x="5" y="5" width="110" height="160" rx="6" fill="none" stroke="#e8b64c" stroke-opacity=".65"/><rect x="9" y="9" width="102" height="152" rx="4" fill="none" stroke="#e8b64c" stroke-opacity=".25"/>${r}<rect x="41" y="66" width="38" height="38" transform="rotate(45 60 85)" fill="#0a0d18" stroke="#e8b64c"/><text x="60" y="91" text-anchor="middle" font-family="Josefin Sans,sans-serif" font-weight="700" font-size="15" fill="#e8b64c">MN</text></svg>`}
-function roleFrontHTML(k,extra=""){const r=ROLE[k];return `<div class="rolefront" style="--rc:${r.color}"><div class="rf-team">${r.team}</div><div class="rf-icon">${r.icon}</div><div class="rf-name">${r.name}</div><div class="rf-desc">${r.desc}</div><div class="rf-extra">${esc(extra)}</div></div>`}
+function cardBackSVG(){let r="";for(let i=0;i<26;i++){const a=i/26*Math.PI*2;r+=`<line x1="60" y1="85" x2="${60+Math.cos(a)*54}" y2="${85+Math.sin(a)*79}" stroke="#e8b64c" stroke-opacity=".28"/>`}return `<svg viewBox="0 0 120 170"><rect width="120" height="170" rx="9" fill="#10152a"/><rect x="5" y="5" width="110" height="160" rx="6" fill="none" stroke="#e8b64c" stroke-opacity=".65"/><rect x="9" y="9" width="102" height="152" rx="4" fill="none" stroke="#e8b64c" stroke-opacity=".25"/>${r}<rect x="41" y="66" width="38" height="38" transform="rotate(45 60 85)" fill="#0a0d18" stroke="#e8b64c"/><text x="60" y="91" text-anchor="middle" font-family="Josefin Sans,sans-serif" font-weight="700" font-size="15" fill="#e8b64c">MN</text></svg><img class="cb-art" src="mafia-art/mafia-cardback.jpg" alt="" decoding="async" onerror="this.remove()">`}
+function roleFrontHTML(k,extra=""){const r=ROLE[k];return `<div class="rolefront has-art" style="--rc:${r.color}"><div class="rf-art"><img src="mafia-art/mafia-${k}.jpg" alt="" decoding="async" onerror="this.closest('.rolefront').classList.remove('has-art')"></div><div class="rf-team">${r.team}</div><div class="rf-icon">${r.icon}</div><div class="rf-name">${r.name}</div><div class="rf-desc">${r.desc}</div><div class="rf-extra">${esc(extra)}</div></div>`}
 function buildSkyline(el,seed,h,dark){const r=mulberry(seed);let x=0,b="";while(x<1600){const w=30+r()*90,bh=h*(.3+r()*.7),y=h-bh;b+=`<rect x="${x}" y="${y}" width="${w}" height="${bh}" fill="${dark?"#080b16":"#0b0f1e"}"/>`;for(let wy=y+8;wy<h-8;wy+=13)for(let wx=x+5;wx<x+w-6;wx+=11)if(r()<.24)b+=`<rect x="${wx}" y="${wy}" width="4" height="6" fill="#ffb02e" opacity="${.25+r()*.5}"/>`;x+=w+2+r()*14}el.innerHTML=`<svg viewBox="0 0 1600 ${h}" preserveAspectRatio="xMidYMax slice">${b}</svg>`}
 
 /* ---------- audio ---------- */
@@ -431,9 +471,9 @@ let modalRes=null,modalCritical=false,toastTimer=null,bannerTimer=null;
 
 /* ---------- shared UI helpers ---------- */
 function toast(t){clearTimeout(toastTimer);const e=$("#toast");e.textContent=t;e.classList.add("show");toastTimer=setTimeout(()=>e.classList.remove("show"),2600)}
-function openModal(html,{critical=false,lg=false}={}){modalCritical=critical;$("#overlay").hidden=false;$("#modalBox").className="frame"+(lg?" lg":"");$("#modalBox").innerHTML=html;const b=$("#modalBox button");if(b)setTimeout(()=>b.focus(),50)}
+function openModal(html,{critical=false,lg=false}={}){modalCritical=critical;$("#overlay").hidden=false;$("#modalBox").className="frame"+(lg?" lg":"");$("#modalBox").innerHTML=html;$("#modalBox").scrollTop=0;const b=$("#modalBox button");if(b)setTimeout(()=>b.focus({preventScroll:true}),50)}
 function closeModal(v=null){$("#overlay").hidden=true;$("#modalBox").innerHTML="";modalCritical=false;if(modalRes){const r=modalRes;modalRes=null;r(v)}}
-function modalPromise(builder,opts){return new Promise(res=>{modalRes=res;openModal("",opts);const box=$("#modalBox");builder(box,v=>{if(modalRes===res){modalRes=null;$("#overlay").hidden=true;box.innerHTML="";modalCritical=false;res(v)}});const b=box.querySelector("button");if(b)setTimeout(()=>b.focus(),50)})}
+function modalPromise(builder,opts){return new Promise(res=>{modalRes=res;openModal("",opts);const box=$("#modalBox");builder(box,v=>{if(modalRes===res){modalRes=null;$("#overlay").hidden=true;box.innerHTML="";modalCritical=false;res(v)}});const b=box.querySelector("button");if(b)setTimeout(()=>b.focus({preventScroll:true}),50)})}
 function clearFeed(){$("#feed").innerHTML=""}
 function feedScroll(){const f=$("#feed");if(f.scrollHeight-f.scrollTop-f.clientHeight<140)f.scrollTop=f.scrollHeight}
 function fDivider(t){const d=document.createElement("div");d.className="fdivider";d.textContent=t;$("#feed").appendChild(d);feedScroll()}
@@ -548,9 +588,9 @@ async function runNight(){const tok=L.token;L.phase="night";L.skip=false;L.kill=
  return null;
 }
 async function dawn(res){const tok=L.token;L.phase="dawn";setLocalRender();AU.dawn();fDivider("DAY "+word(L.night));await bannerLocal("DAY "+word(L.night),"Who is missing from the table?");if(!ok(tok))return;document.dispatchEvent(new CustomEvent("cmcmafia:phase",{detail:{phase:"dawn"}}));
- if(res?.victim){const v=res.victim;setLocalRender();fSys(`<b>${esc(v.name)}</b> was ${pick(["found in the alley behind the Blue Note Club","left under the Fifth Street lamppost","never came home from the docks"])}. Their card reads: <b style="color:${ROLE[v.role].color}">${ROLE[v.role].name}</b>.`,true);
+ if(res?.victim){const v=res.victim;setLocalRender();fSys(`<b>${esc(v.name)}</b> was ${(window.MNS&&MNS.found())||pick(["found in the alley behind the Blue Note Club","left under the Fifth Street lamppost","never came home from the docks"])}. Their card reads: <b style="color:${ROLE[v.role].color}">${ROLE[v.role].name}</b>.`,true);
   await fateModal({kicker:"DAWN REPORT",title:`${esc(v.name)} was silenced`,red:true,p:v,sound:"gun",sub:`The ${ROLE[v.role].name} will not see another night. ${v.human?"You watch from the shadows now.":"The table grows colder."}`});
- } else {AU.save();fSys("A shot rang out — but the Doctor's hands were quicker. <b style='color:var(--green)'>Everyone wakes up alive.</b>",true);await fateModal({kicker:"DAWN REPORT",title:"A peaceful night",sub:"Someone owes the Doctor a life. The Syndicate will not forgive it.",btn:"BEGIN THE DAY"})}
+ } else {AU.save();fSys(((window.MNS&&MNS.saved())||"A shot rang out — but the Doctor's hands were quicker.")+" <b style='color:var(--green)'>Everyone wakes up alive.</b>",true);await fateModal({kicker:"DAWN REPORT",title:"A peaceful night",sub:"Someone owes the Doctor a life. The Syndicate will not forgive it.",btn:"BEGIN THE DAY"})}
 }
 function ghostCheck(){L.ghost=!L.players.some(p=>p.human&&p.alive)}
 function checkWinLocal(){const m=mafiaAlive().length,t=townAlive().length;L.winner=m===0?"town":m>=t?"mafia":null;return!!L.winner}
@@ -631,15 +671,15 @@ function investigateModal(t,isM){return modalPromise((b,done)=>{isM?AU.winMafia(
 function fateModal({kicker,title,red=false,sub,p,sound,btn="CONTINUE"}){return modalPromise((b,done)=>{b.innerHTML=`<div class="m-kicker">${kicker}</div><div class="m-title ${red?"red":""}">${title}</div>${p?`<div class="card3d" id="fateCard"><div class="inner"><div class="face back">${cardBackSVG()}</div><div class="face front">${roleFrontHTML(p.role,p.fate==="voted"?"VOTED OUT":"SILENCED")}</div></div></div>`:""}<p class="m-sub">${sub}</p><div class="m-actions"><button class="btn gold">${btn}</button></div>`;if(p)setTimeout(()=>{const c=$("#fateCard");if(c){c.classList.add("flipped");sound==="gun"?AU.gun():AU.stamp()}},650);b.querySelector(".m-actions button").onclick=()=>done(true)},{critical:true})}
 function showEndModal(V,isLocal){const winner=V.winner,grid=V.players.map((p,i)=>{const r=ROLE[p.role]||ROLE.villager;return `<div class="rev" style="--tcol:${r.color};animation-delay:${i*90}ms">${r.icon}<b>${esc(p.name)}</b><span>${r.name}</span><em>${p.alive?"SURVIVED":p.fate==="voted"?"VOTED OUT":p.fate==="left"?"LEFT":"SILENCED"}${p.id===V.you.id?" · YOU":""}</em></div>`}).join("");
  const host=isLocal||V.room.hostId===O.session?.playerId;
- openModal(`<div class="m-kicker">CASE CLOSED · ${V.room.night} NIGHT${V.room.night===1?"":"S"}</div><div class="m-title ${winner==="mafia"?"red":""}">${winner==="town"?"THE CITY ENDURES":"THE SYNDICATE OWNS THE NIGHT"}</div><p class="m-sub">${winner==="town"?"Every last mafioso has been dragged into the light.":"The city's keys change hands in silence."}</p><div class="reveal-grid">${grid}</div><div class="stats-row"><div class="stat"><b>${V.room.night}</b><span>Nights</span></div><div class="stat"><b>${V.stats.kills}</b><span>Silenced</span></div><div class="stat"><b>${V.stats.saves}</b><span>Saves</span></div><div class="stat"><b>${V.stats.lynch??V.stats.lynches??0}</b><span>Voted out</span></div></div><div class="m-actions">${isLocal?'<button class="btn gold" id="againLocal">↻ PLAY AGAIN</button><button class="btn line" id="newSetup">NEW TABLE</button>':'<button class="btn gold" id="againOnline" '+(host?"":"disabled")+'>↻ PLAY AGAIN</button>'}<button class="btn dim" id="endExit">EXIT</button></div>`,{lg:true});
+ openModal(`${winner==="town"?'<div class="end-art"><img src="mafia-art/mafia-town-wins.jpg" alt="The townspeople watch the sun rise over the city — AI illustration" onerror="this.parentNode.remove()"></div>':""}<div class="m-kicker">CASE CLOSED · ${V.room.night} NIGHT${V.room.night===1?"":"S"}</div><div class="m-title ${winner==="mafia"?"red":""}">${winner==="town"?"THE CITY ENDURES":"THE SYNDICATE OWNS THE NIGHT"}</div><p class="m-sub">${winner==="town"?"Every last mafioso has been dragged into the light.":"The city's keys change hands in silence."}</p><div class="reveal-grid">${grid}</div><div class="stats-row"><div class="stat"><b>${V.room.night}</b><span>Nights</span></div><div class="stat"><b>${V.stats.kills}</b><span>Silenced</span></div><div class="stat"><b>${V.stats.saves}</b><span>Saves</span></div><div class="stat"><b>${V.stats.lynch??V.stats.lynches??0}</b><span>Voted out</span></div></div><div class="m-actions">${isLocal?'<button class="btn gold" id="againLocal">↻ PLAY AGAIN</button><button class="btn line" id="newSetup">NEW TABLE</button>':'<button class="btn gold" id="againOnline" '+(host?"":"disabled")+'>↻ PLAY AGAIN</button>'}<button class="btn dim" id="endExit">EXIT</button></div>`,{lg:true});
  if(isLocal){$("#againLocal").onclick=()=>{closeModal();startLocal()};$("#newSetup").onclick=()=>{closeModal();L.token++;app.screen="localSetup";app.mode=null;render()}}
  else{$("#againOnline").onclick=()=>{sendO({type:"again"});closeModal()}}
  $("#endExit").onclick=exitApp;
 }
-function showRules(){if(modalCritical)return toast("Finish the current private screen first.");AU.tick();modalPromise((b,done)=>{b.innerHTML=`<div class="m-kicker">HOUSE RULES</div><div class="m-title">How to Play</div><div class="help"><h3>Goal</h3>The <b style="color:var(--blue2)">City</b> wins by eliminating every mafioso. The <b style="color:var(--red2)">Syndicate</b> wins when its members equal the remaining town.<h3>Roles</h3><div class="help-roles">${Object.values(ROLE).map(r=>`<div class="hr" style="--hc:${r.color}">${r.icon}<span><b>${r.name}</b><span>${r.desc}</span></span></div>`).join("")}</div><h3>Flow</h3><b>Night:</b> Mafia mark a victim, Doctor protects, Detective investigates.<br><b>Day:</b> discussion and accusations.<br><b>Vote:</b> secret ballot; top vote is eliminated and revealed. Ties eliminate nobody.<h3>Modes</h3><b>Solo:</b> you vs a thinking AI table with three difficulties.<br><b>Pass &amp; Play:</b> local multiplayer with private hand-off screens; mix in AI seats.<br><b>Online:</b> private rooms across devices; roles hidden server-side, timed phases, reconnects.</div><div class="m-actions"><button class="btn gold">BACK TO THE TABLE</button></div>`;b.querySelector(".m-actions button").onclick=()=>done(true)},{lg:true})}
+function showRules(){if(modalCritical)return toast("Finish the current private screen first.");AU.tick();modalPromise((b,done)=>{b.innerHTML=`<div class="m-kicker">HOUSE RULES</div><div class="m-title">How to Play</div><div class="help"><h3>Goal</h3>The <b style="color:var(--blue2)">City</b> wins by eliminating every mafioso. The <b style="color:var(--red2)">Syndicate</b> wins when its members equal the remaining town.<h3>Roles</h3><div class="help-roles">${Object.entries(ROLE).map(([k,r])=>`<div class="hr" style="--hc:${r.color}"><span class="hr-pic">${r.icon}<img src="mafia-art/mafia-${k}.jpg" alt="" loading="lazy" onerror="this.remove()"></span><span><b>${r.name}</b><span>${r.desc}</span></span></div>`).join("")}</div><h3>Flow</h3><b>Night:</b> Mafia mark a victim, Doctor protects, Detective investigates.<br><b>Day:</b> discussion and accusations.<br><b>Vote:</b> secret ballot; top vote is eliminated and revealed. Ties eliminate nobody.<h3>Modes</h3><b>Solo:</b> you vs a thinking AI table with three difficulties.<br><b>Pass &amp; Play:</b> local multiplayer with private hand-off screens; mix in AI seats.<br><b>Online:</b> private rooms across devices; roles hidden server-side, timed phases, reconnects.</div><div class="m-actions"><button class="btn gold">BACK TO THE TABLE</button></div>`;b.querySelector(".m-actions button").onclick=()=>done(true)},{lg:true})}
 
 /* ---------- online ---------- */
-function onlineUnavailable(kind){setConn("off");var denied=kind==="denied";openModal("<div class='m-kicker'>ONLINE TABLES</div><div class='m-title'>"+(denied?"The table is closed to you":"Sign in to play online")+"</div>"+(denied?"<p class='m-sub'>This table only accepts the CMC account that hosts it. Sign in with that account, or open a table of your own.</p>":"<p class='m-sub'>Online rooms run on CMC accounts — roles, votes and the case file are tied to real players. <b>Sign in on the CMC site</b> (header → account), then come back and open or join a table.<br><br>Solo Case and Pass &amp; Play work without an account.</p>")+"<div class='m-actions'><a class='btn gold' href='https://cmckhmer.github.io/Creative-Minds-/' style='text-decoration:none'>SIGN IN ON CMC →</a><button class='btn dim' id='ouBack'>BACK TO MODES</button></div>");$("#ouBack").onclick=()=>{app.screen="hub";render();closeModal()};}
+function onlineUnavailable(kind){setConn("off");var denied=kind==="denied",unver=false;try{unver=denied&&localStorage.getItem("cmc-student-verified")==="0"}catch(e){}openModal("<div class='m-kicker'>ONLINE TABLES</div><div class='m-title'>"+(unver?"Verify your email first":denied?"Online tables are not switched on":"Sign in to play online")+"</div>"+(unver?"<p class='m-sub'>Online tables only accept CMC accounts with a <b>verified email address</b>. Open the verification link CMC sent to your inbox, sign in again on the CMC site, then come back.<br><br>Solo Case and Pass &amp; Play work without it.</p>":denied?"<p class='m-sub'>You are signed in, but the CMC database refused the request. Either your email address is not verified yet (check your inbox, then sign in again), or the site owner has not published the database rules for Mafia rooms.<br><br>Solo Case and Pass &amp; Play work in the meantime.</p>":"<p class='m-sub'>Online rooms run on CMC accounts — roles, votes and the case file are tied to real players. <b>Sign in on the CMC site</b> (header → account), then come back and open or join a table.<br><br>Solo Case and Pass &amp; Play work without an account.</p>")+"<div class='m-actions'><a class='btn gold' href='https://cmckhmer.github.io/Creative-Minds-/' style='text-decoration:none'>SIGN IN ON CMC →</a><button class='btn dim' id='ouBack'>BACK TO MODES</button></div>");$("#ouBack").onclick=()=>{app.screen="hub";render();closeModal()};}
 function saveO(s){O.session=s;try{localStorage.setItem("mnSession",JSON.stringify(s))}catch(e){}}
 function clearO(){O.session=null;try{localStorage.removeItem("mnSession")}catch(e){}}
 function sendO(o){MN_FS.send(o)}
@@ -796,6 +836,8 @@ setInterval(()=>{const V=app.V;if(!V?.room?.phaseEndsAt){$("#countdown").textCon
 /* ---------- init ---------- */
 buildSkyline($("#skyA"),7,220,true);buildSkyline($("#skyB"),13,180,false);
 $("#heroFan").innerHTML=["mafia","detective","doctor"].map(k=>`<div class="fan-card"><img src="mafia-art/mafia-${k}.jpg" alt="${ROLE[k].name} — AI illustration" loading="eager"><span class="fan-name">${ROLE[k].name.toUpperCase()}</span></div>`).join("");
+(function(){const warm=()=>["mafia-art/mafia-cardback.jpg","mafia-art/mafia-villager.jpg"].forEach(u=>{new Image().src=u});if(document.readyState==="complete")setTimeout(warm,600);else addEventListener("load",()=>setTimeout(warm,600),{once:true})})();
+(function(){const bg=$("#bg"),c=navigator.connection;if(!bg||(c&&c.saveData))return;const get=(u,cls)=>{const i=new Image();i.onload=()=>bg.classList.add(cls);i.src=u};get("mafia-art/mafia-city.jpg","has-art");const day=()=>get("mafia-art/mafia-city-day.jpg","has-day");if(document.readyState==="complete")setTimeout(day,900);else addEventListener("load",()=>setTimeout(day,900),{once:true})})();
 $("#soloIcon").innerHTML=IC.solo;$("#localIcon").innerHTML=IC.local;$("#onlineIcon").innerHTML=IC.online;
 const params=new URLSearchParams(location.search);if(params.get("room"))$("#joinCode").value=params.get("room").toUpperCase().slice(0,4);
 try{$("#nameInput").value=localStorage.getItem("mnName")||""}catch(e){}
@@ -1104,7 +1146,10 @@ const MN_FS = (function () {
   const IV = (v) => ({ integerValue: String(Math.round(Number(v) || 0)) });
   const BV = (v) => ({ booleanValue: !!v });
   const NV = (v) => ({ nullValue: null });
-  const B64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  // chunked: spreading a whole engine blob (tens of KB late in a case) into
+  // fromCharCode overflows the engine's argument limit ("Maximum call stack
+  // size exceeded" — 65,536 arguments on Safari) and kills the host's sync
+  const B64 = (buf) => { const u = new Uint8Array(buf); let out = ''; for (let i = 0; i < u.length; i += 0x2000) out += String.fromCharCode.apply(null, u.subarray(i, i + 0x2000)); return btoa(out); };
   const UB64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
   const json = (v) => JSON.stringify(v);
 
@@ -1161,23 +1206,33 @@ const MN_FS = (function () {
     if (res.status === 401 || res.status === 403) throw new Error('denied');
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || ('HTTP ' + res.status));
+      const e = new Error(err?.error?.message || ('HTTP ' + res.status));
+      e.http = res.status; e.status = err?.error?.status || '';
+      throw e;
     }
     return res.status === 200 ? res.json() : {};
   }
+  // Firestore answers a create on a taken id with HTTP 409, status
+  // ALREADY_EXISTS and the MESSAGE "Document already exists: <name>" — the
+  // status word is not in the message, so never test the message for it.
+  const taken = (e) => !!e && (e.http === 409 || e.status === 'ALREADY_EXISTS');
   const roomPath = (code) => `/mafia_rooms/${encodeURIComponent(code)}`;
   async function getRoom(code) { const d = await api('GET', roomPath(code)); return d ? parseRoom(d.fields) : null; }
-  async function createRoomDoc(code, fields) { await api('POST', `${roomPath(code)}?documentId=${encodeURIComponent(code)}`, { fields }); }
+  // createDocument posts to the COLLECTION (…/mafia_rooms?documentId=CODE).
+  // Posting to the document path (…/mafia_rooms/CODE?documentId=CODE) is a
+  // 400 INVALID_ARGUMENT on Firestore — no table could ever be opened.
+  async function createRoomDoc(code, fields) { await api('POST', `/mafia_rooms?documentId=${encodeURIComponent(code)}`, { fields }); }
   async function patchRoom(code, fields, mask) {
     const qp = `?currentDocument.exists=true&${mask.map((f) => 'updateMask.fieldPaths=' + encodeURIComponent(f)).join('&')}`;
     await api('PATCH', roomPath(code) + qp, { fields });
   }
+  // create-or-overwrite in ONE request: an unmasked PATCH writes the whole
+  // document whether or not it exists. (The old POST-then-PATCH pair relied
+  // on finding "ALREADY_EXISTS" in the error message; on Firestore it is not
+  // there, so every write after a player's first one failed — views froze
+  // after the first deal-out and a second action was "unreachable".)
   async function upsert(path, id, fields) {
-    try { await api('POST', `${path}?documentId=${encodeURIComponent(id)}`, { fields }); }
-    catch (e) {
-      if (!/ALREADY_EXISTS/.test(String(e.message))) throw e;
-      await api('PATCH', `${path}/${encodeURIComponent(id)}`, { fields }); // full overwrite, no mask
-    }
+    await api('PATCH', `${path}/${encodeURIComponent(id)}`, { fields });
   }
   async function getView(code, uid) { const d = await api('GET', `${roomPath(code)}/views/${encodeURIComponent(uid)}`); return d ? d.fields : null; }
   // heartbeat: masked patch of ONLY the seen field — the action fields (and
@@ -1189,7 +1244,7 @@ const MN_FS = (function () {
       { fields: { seen: { timestampValue: new Date().toISOString() } } });
   }
   async function listActions(code) {
-    const d = await api('GET', `${roomPath(code)}/actions?pageSize=50&orderBy=%60at%60`);
+    const d = await api('GET', `${roomPath(code)}/actions?pageSize=50`); // no orderBy: it drops docs lacking the field (heartbeat-only docs have no `at`)
     return (d && d.documents) ? d.documents : [];
   }
   function seatsFromFields(f) {
@@ -1256,9 +1311,12 @@ const MN_FS = (function () {
     E.phaseEndsAt = Date.now() + REVEAL_MS; E.phaseDuration = REVEAL_MS / 1000;
     logSys(E, `The cards are dealt. ${n} at the table, ${m} of them wolves. Memorize your role.`);
   }
-  function logSys(E, text) { E.log.push({ channel: 'system', text: text.slice(0, 220) }); if (E.log.length > 220) E.log = E.log.slice(-220); }
+  // every log entry carries a running number `n` — the only reliable identity
+  // a feed line has (see pushFeed)
+  const nextN = (E) => (E.logN = (E.logN || 0) + 1);
+  function logSys(E, text) { E.log.push({ n: nextN(E), channel: 'system', text: text.slice(0, 220) }); if (E.log.length > 220) E.log = E.log.slice(-220); }
   function logChat(E, channel, seat, text) {
-    E.log.push({ channel, text: '', from: { id: seat.id, name: seat.name, color: seat.color }, msg: String(text).slice(0, 200) });
+    E.log.push({ n: nextN(E), channel, text: '', from: { id: seat.id, name: seat.name, color: seat.color }, msg: String(text).slice(0, 200) });
     if (E.log.length > 220) E.log = E.log.slice(-220);
   }
   function aliveSeats(E) { return E.seats.filter((s) => s.alive && !s.left); }
@@ -1377,6 +1435,7 @@ const MN_FS = (function () {
   }
   async function broadcast(E) {
     E.seq = (E.seq || 0) + 1;
+    E.log.forEach((m) => { if (!m.n) m.n = nextN(E); }); // a table resumed from an older build
     const blob = await sealEngine(H.key, E);
     const mask = ['engine', 'seq', 'phase', 'gameId', 'updatedAt', 'config', 'status', 'seats'];
     try {
@@ -1390,7 +1449,7 @@ const MN_FS = (function () {
     } catch (e) { toast('Could not sync the table — check your connection.'); }
     await Promise.all(E.seats.map((s) => {
       const { st, feed } = buildView(E, s);
-      return upsert(roomPath(E.code) + '/views', s.uid, { seq: IV(E.seq), state: SV(json(st)), feed: { arrayValue: { values: feed.map((m) => ({ mapValue: { fields: { channel: SV(m.channel), text: SV(m.channel === 'system' ? m.text : m.msg), fromId: SV(m.from ? m.from.id : ''), fromName: SV(m.from ? m.from.name : ''), fromColor: SV(m.from ? m.from.color : '') } } })) } } }).catch(() => {});
+      return upsert(roomPath(E.code) + '/views', s.uid, { seq: IV(E.seq), state: SV(json(st)), feed: { arrayValue: { values: feed.map((m) => ({ mapValue: { fields: { n: IV(m.n || 0), channel: SV(m.channel), text: SV(m.channel === 'system' ? m.text : m.msg), fromId: SV(m.from ? m.from.id : ''), fromName: SV(m.from ? m.from.name : ''), fromColor: SV(m.from ? m.from.color : '') } } })) } } }).catch(() => {});
     }));
     applyLocal(E);
   }
@@ -1429,7 +1488,7 @@ const MN_FS = (function () {
       // reconcile the room doc (host-only writes) + claim seats from actions
       const room = await getRoom(E.code);
       if (!room) { E.statusClosed = true; E.phase = 'end'; await broadcast(E); resetClient(); return; }
-      let seatsChanged = false;
+      let seatsChanged = false, acted = false;
       for (const rs of room.seats) {
         if (!E.seats.some((s) => s.uid === rs.uid)) {
           const ns = newSeat(E.seats.length, rs.uid, rs.name);
@@ -1444,9 +1503,14 @@ const MN_FS = (function () {
         const f = d.fields || {};
         const at = Date.parse((f.at && f.at.timestampValue) || '') || 0;
         const kind = (f.action && f.action.stringValue) || 'hb';
+        let seat = E.seats.find((s) => s.uid === uid);
+        // the heartbeat only touches `seen`, so read it BEFORE the "nothing
+        // new" skip — otherwise an idle player's lastSeen never moved and
+        // everyone showed as disconnected 16s after their last action
+        const seenAt = Date.parse((f.seen && f.seen.timestampValue) || '') || 0;
+        if (seat && seenAt > (seat.lastSeen || 0)) seat.lastSeen = seenAt;
         if (at <= (H.seenActions[uid] || 0)) continue;
         H.seenActions[uid] = at;
-        let seat = E.seats.find((s) => s.uid === uid);
         if (kind === 'join') {          if (!seat && E.phase === 'lobby' && E.seats.length < E.max) {
             const name = ((f.text && f.text.stringValue) || 'Stranger').slice(0, 16);
             seat = newSeat(E.seats.length, uid, name);
@@ -1458,42 +1522,48 @@ const MN_FS = (function () {
           continue;
         }
         if (!seat) continue;
-        seat.lastSeen = Date.parse((f.seen && f.seen.timestampValue) || '') || at || seat.lastSeen;
+        seat.lastSeen = Math.max(seat.lastSeen || 0, seenAt, at);
         const targetId = f.targetId && f.targetId.stringValue !== '' ? f.targetId.stringValue : null;
         if (kind === 'hb') continue;
         if (kind === 'chat') {
           const chan = E.phase === 'lobby' || E.phase === 'day' ? 'public'
             : E.phase === 'night' && seat.role === 'mafia' && seat.alive ? 'mafia'
             : E.phase === 'vote' && !seat.alive ? 'ghost' : !seat.alive ? 'ghost' : null;
-          if (chan) { logChat(E, chan, seat, f.text ? f.text.stringValue : ''); }
+          if (chan) { logChat(E, chan, seat, f.text ? f.text.stringValue : ''); acted = true; }
           continue;
         }
-        if (kind === 'leave') { seatLeave(E, seat); continue; }
-        if (kind === 'start' && uid === E.hostUid && E.phase === 'lobby' && E.seats.length >= MIN) { deal(E); continue; }
-        if (kind === 'again' && uid === E.hostUid && E.phase === 'end') { E.gameId++; E.seats.forEach((s) => { s.action = null; s.submitted = false; }); deal(E); continue; }
+        if (kind === 'leave') { seatLeave(E, seat); acted = true; continue; }
+        if (kind === 'start' && uid === E.hostUid && E.phase === 'lobby' && E.seats.length >= MIN) { deal(E); acted = true; continue; }
+        if (kind === 'again' && uid === E.hostUid && E.phase === 'end') { E.gameId++; E.seats.forEach((s) => { s.action = null; s.submitted = false; }); deal(E); acted = true; continue; }
         if (kind === 'config' && uid === E.hostUid && E.phase === 'lobby') {
           const key = f.key && f.key.stringValue, val = Math.max(10, Math.min(300, Number(f.value && f.value.integerValue) || 0));
-          if (['night', 'day', 'vote'].includes(key) && val) { E.config[key] = val; }
+          if (['night', 'day', 'vote'].includes(key) && val) { E.config[key] = val; acted = true; }
           continue;
         }
         if (kind === 'callVote' && uid === E.hostUid && E.phase === 'day') {
           E.phase = 'vote'; E.phaseDuration = E.config.vote; E.phaseEndsAt = Date.now() + E.config.vote * 1000;
-          logSys(E, 'The host calls the vote. Ballots are open.'); continue;
+          logSys(E, 'The host calls the vote. Ballots are open.'); acted = true; continue;
         }
         if (['kill', 'protect', 'investigate'].includes(kind) && E.phase === 'night' && seat.alive) {
           const role = kind === 'kill' ? 'mafia' : kind === 'protect' ? 'doctor' : 'detective';
           if (seat.role !== role) continue;
           if (targetId !== null && !nightEligible(E, seat, kind).includes(targetId)) continue;
-          seat.action = { action: kind, targetId, at }; seat.submitted = true; continue;
+          seat.action = { action: kind, targetId, at }; seat.submitted = true; acted = true; continue;
         }
         if (kind === 'vote' && E.phase === 'vote' && seat.alive) {
           if (targetId !== null && !aliveSeats(E).some((s) => s.id === targetId && s.id !== seat.id)) continue;
-          seat.action = { action: 'vote', targetId, at }; seat.submitted = true; continue;
+          seat.action = { action: 'vote', targetId, at }; seat.submitted = true; acted = true; continue;
         }
       }
-      if (seatsChanged || E._needBroadcast) { E._needBroadcast = false; await broadcast(E); }
+      // `acted`: a guest's chat line, night action or ballot changed the table.
+      // This used to wait on a flag nothing ever set, so a guest's message
+      // only went out when the HOST next did something or the phase ended.
+      if (seatsChanged || acted) await broadcast(E);
     } catch (e) { if (!/denied|signed-out/.test(String(e.message))) {} }
-    H.busy = false;
+    // `finally`: the "table is gone" branch above returns early; without this
+    // the busy flag stayed up and the next table opened from the same tab
+    // never ran its host loop
+    finally { H.busy = false; }
   }
   function nightEligible(E, seat, kind) {
     const live = aliveSeats(E);
@@ -1512,14 +1582,19 @@ const MN_FS = (function () {
   }
 
   // ═══════════════ CLIENT (host + guests share this) ═══════════════
-  const C = { code: null, uid: null, seatId: null, pollT: null, lastSeq: -1, fedLog: false, feedSeen: {}, busy: false, gone: false };
+  const C = { code: null, uid: null, seatId: null, pollT: null, lastSeq: -1, fedLog: false, feedN: 0, busy: false, gone: false };
 
+  // Feed lines are told apart by their running number `n`, nothing else. The
+  // old key was built from fields that only exist on the HOST's copy of a
+  // line (m.from, m.msg); on a guest every public line produced the same key
+  // ("public||undefined"), so a guest saw the first chat message of a case
+  // and never another. A text key would also drop a repeated "yes".
   function pushFeed(feed) {
-    if (!C.fedLog) { C.fedLog = true; handleO({ type: 'log', messages: feed.map(feedMsg) }); return; }
+    const top = feed.reduce((a, m) => Math.max(a, m.n || 0), 0);
+    if (!C.fedLog) { C.fedLog = true; C.feedN = top; handleO({ type: 'log', messages: feed.map(feedMsg) }); return; }
     feed.forEach((m) => {
-      const key = m.channel + '|' + (m.from ? m.from.id : '') + '|' + (m.channel === 'system' ? m.text : m.msg);
-      if (C.feedSeen[key]) return;
-      C.feedSeen[key] = 1;
+      if (!((m.n || 0) > (C.feedN || 0))) return;
+      C.feedN = m.n;
       handleO({ type: 'chat', message: feedMsg(m) });
     });
   }
@@ -1530,7 +1605,9 @@ const MN_FS = (function () {
     // guests were fine because their poll reads the Firestore doc, where the
     // text was already written from m.msg)
     if (m.channel === 'system' || m.channel === 'private') return { channel: m.channel, text: m.text };
-    return { channel: m.channel, text: m.msg !== undefined ? m.msg : m.text, from: { id: m.fromId, name: m.fromName, color: m.fromColor } };
+    // the host's own copy of a line carries the speaker as m.from; a line read
+    // back from Firestore carries fromId / fromName / fromColor
+    return { channel: m.channel, text: m.msg !== undefined ? m.msg : m.text, from: m.from || { id: m.fromId, name: m.fromName, color: m.fromColor } };
   }
   async function poll() {
     if (!C.code || C.busy || C.gone) return;
@@ -1562,7 +1639,7 @@ const MN_FS = (function () {
       C.lastSeq = seq;
       const feed = (vf.feed?.arrayValue?.values || []).map((v) => {
         const m = v.mapValue.fields;
-        return { channel: m.channel.stringValue, text: m.text.stringValue, fromId: m.fromId.stringValue, fromName: m.fromName.stringValue, fromColor: m.fromColor.stringValue };
+        return { n: Number((m.n && m.n.integerValue) || '0'), channel: m.channel.stringValue, text: m.text.stringValue, fromId: m.fromId.stringValue, fromName: m.fromName.stringValue, fromColor: m.fromColor.stringValue };
       });
       pushFeed(feed);
       const st = JSON.parse(vf.state.stringValue || '{}');
@@ -1576,7 +1653,7 @@ const MN_FS = (function () {
     try {
       const me = identity();
       if (o.type === 'create') return await doCreate(me);
-      if (o.type === 'join') return await doJoin(me, o.code, o.name);
+      if (o.type === 'join') return await doJoin(me, o.code);
       if (!me) { clearO(); onlineUnavailable(); return; }
       if (!C.code) return;
       if (o.type === 'leave') { // both hosts and guests leave through the actions doc
@@ -1646,14 +1723,19 @@ const MN_FS = (function () {
         broadcast(E);
         return;
       } catch (e) {
-        if (/ALREADY_EXISTS/.test(String(e.message))) continue;
+        if (taken(e)) continue;
         if (/denied/.test(String(e.message))) { onlineUnavailable('denied'); return; }
-        toast('Could not open the table — check your connection.'); return;
+        if (/signed-out/.test(String(e.message))) { onlineUnavailable(); return; }
+        // say what actually went wrong: a refused request is not a bad connection
+        console.log('MN_FS.doCreate error', e && e.http, String(e && e.message || e).slice(0, 200));
+        toast(e && e.http ? 'Could not open the table — the server refused it (error ' + e.http + '). Tell your teacher.' : 'Could not open the table — check your connection.'); return;
       }
     }
     toast('Could not find a free code — try again.');
   }
-  async function doJoin(me, code, name) {
+  // (the page passes "Stranger" when the name box is empty, so the seat name
+  // comes from seatName(): typed alias, else the CMC account name)
+  async function doJoin(me, code) {
     if (!me) { onlineUnavailable(); return; }
     code = (code || '').toUpperCase();
     if (!/^[A-Z2-9]{4}$/.test(code)) { toast('Enter the four-letter room code.'); return; }
@@ -1666,7 +1748,7 @@ const MN_FS = (function () {
       H.code = null; H.E = null; stopHostLoops();
       // the seat itself is claimed through THIS player's own actions doc (the
       // host reconciles the room doc — the rules only let the host write it)
-      await upsert(roomPath(code) + '/actions', me.uid, { action: SV('join'), text: SV(name || seatName()), at: { timestampValue: new Date().toISOString() } });
+      await upsert(roomPath(code) + '/actions', me.uid, { action: SV('join'), text: SV(seatName()), at: { timestampValue: new Date().toISOString() } });
       saveO({ token: code + ':' + me.uid, playerId: mine ? mine.id : '?', roomCode: code });
       enterRoom(code, me.uid, mine ? mine.id : '?'); startPoll();
     } catch (e) {
@@ -1687,13 +1769,13 @@ const MN_FS = (function () {
       gameId: IV(E.gameId), seq: IV(E.seq), engine: SV(blob), updatedAt: { timestampValue: new Date().toISOString() } };
   }
   function enterRoom(code, uid, playerId) {
-    C.code = code; C.uid = uid; C.lastSeq = -1; C.fedLog = false; C.feedSeen = {}; C.gone = false; C.lastHb = 0; C.endSent = null;
+    C.code = code; C.uid = uid; C.lastSeq = -1; C.fedLog = false; C.feedN = 0; C.gone = false; C.lastHb = 0; C.endSent = null;
     O.sel = null; O.prevPhase = null; O.hadState = false; O.lastResultKey = ''; O.revealedGame = null; O.endKey = '';
     app.mode = 'online'; clearFeed();
     handleO({ type: 'joined', token: code + ':' + uid, playerId: playerId || '0', roomCode: code });
     setConn('live');
   }
-  function resetClient() { stopPoll(); stopHostLoops(); H.E = null; H.code = null; C.code = null; C.uid = null; C.lastSeq = -1; C.fedLog = false; C.feedSeen = {}; }
+  function resetClient() { stopPoll(); stopHostLoops(); H.E = null; H.code = null; C.code = null; C.uid = null; C.lastSeq = -1; C.fedLog = false; C.feedN = 0; }
   function startPoll() { stopPoll(); C.pollT = setInterval(poll, 1500); poll(); }
 
   async function connect() {
@@ -1730,5 +1812,7 @@ const MN_FS = (function () {
   return { send, connect, resetClient };
 })();
 </script>
+<!-- story: case files (patch_mafia_art.py) -->
+<script src="mafia-story.js"></script>
 </body>
 </html>

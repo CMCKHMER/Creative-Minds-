@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -238,45 +238,10 @@ html[data-theme="light"] .q-explanation{background:rgba(2,132,199,.04);border-co
 </div>
 
 <script>
-window.TEST_CONFIG={
-  title:'TOEFL Drill (Unit 9-10)',
-  kicker:'Week 2 · Level 10 · Structure',
-  color:'#f87171',
-  icon:'fa-spell-check',
-  instructions:'TOEFL Drill (Unit 9-10) — noun clauses & adjective clauses. Part A — Error Correction: choose the part that contains an error. Part B — Clause Sorting: choose the answer that correctly identifies the type and function of the bold clause. NC = Noun Clause · AC = Adjective Clause.',
-  fields:['name', 'date'],
-  transcript:'',
-  groups:[
-    {'id':'unit910-a','title':'Part A — Error Correction (10 questions)','dirs':'Choose the part that contains an error.'},
-    {'id':'unit910-b','title':'Part B — Clause Sorting (10 questions)','dirs':'Identify the type and function of the bold clause. NC = Noun Clause · AC = Adjective Clause.'}
-  ]
-};
-const BANKS = {
-"unit910-a":[
-["Researchers are still investigating [A: what caused] [B: did the sudden decline] [C: in the bird population] [D: last year]. Which part contains an error?",["what caused","did the sudden decline","in the bird population","last year"],1],
-["The scientist [A: which discovered the new species] [B: has published a detailed report] [C: about her findings] [D: recently]. Which part contains an error?",["which discovered the new species","has published a detailed report","about her findings","recently"],0],
-["Nobody knows [A: that why the ancient civilization] [B: suddenly disappeared] [C: from the region]. Which part contains an error?",["that why the ancient civilization","suddenly disappeared","from the region"],0],
-["The professor explained [A: how does the machine work] [B: during the experiment] [C: to the students]. Which part contains an error?",["how does the machine work","during the experiment","to the students"],0],
-["The researcher [A: whose her research focuses on climate change] [B: received an international award] [C: last month]. Which part contains an error?",["whose her research focuses on climate change","received an international award","last month"],0],
-["The laboratory [A: where the experiment was conducted in] [B: has recently been renovated] [C: by the university]. Which part contains an error?",["where the experiment was conducted in","has recently been renovated","by the university"],0],
-["It remains unclear [A: what will the government do] [B: to reduce pollution] [C: in major cities]. Which part contains an error?",["what will the government do","to reduce pollution","in major cities"],0],
-["The students visited a museum [A: which displayed artifacts] [B: that were discovered] [C: from an ancient civilization]. Which part contains an error?",["which displayed artifacts","that were discovered","from an ancient civilization"],2],
-["The professor asked the students [A: whether they had understood] [B: what he had explained] [C: during the previous lecture] [D: tomorrow]. Which part contains an error?",["whether they had understood","what he had explained","during the previous lecture","tomorrow"],3],
-["The environmental project [A: that was launched last year] [B: has helped communities] [C: whose water supplies were contaminated] [D: from industrial waste]. Which part contains an error?",["that was launched last year","has helped communities","whose water supplies were contaminated","from industrial waste"],3]
-],
-"unit910-b":[
-["Scientists are investigating <b>what caused the sudden decline in the population</b>.",["NC — functions as the object of investigating","AC — describes scientists","NC — describes population","AC — functions as the subject"],0],
-["The researcher <b>who discovered the new species</b> received an international award.",["NC — functions as the subject","AC — describes researcher","NC — functions as the object","AC — describes species"],1],
-["Nobody knows <b>why the ancient civilization suddenly disappeared</b>.",["AC — describes civilization","NC — functions as the object of knows","AC — describes nobody","NC — functions as an adjective"],1],
-["The laboratory <b>where the experiment was conducted</b> has recently been renovated.",["NC — functions as the subject","NC — describes experiment","AC — describes laboratory","AC — functions as the object"],2],
-["Researchers have not determined <b>whether the experiment was successful</b>.",["AC — describes experiment","NC — functions as the object of determined","AC — describes researchers","NC — describes successful"],1],
-["The scientist <b>whose research focuses on climate change</b> published a groundbreaking study.",["NC — describes scientist","AC — describes research","NC — functions as the object","AC — describes scientist"],3],
-["<b>What the researchers discovered during the experiment</b> surprised the scientific community.",["AC — describes researchers","NC — functions as the subject of the sentence","AC — describes experiment","NC — functions as the object of discovered"],1],
-["The technology <b>that was developed at the university</b> is now used in hospitals worldwide.",["NC — functions as the subject","AC — describes technology","NC — describes university","AC — functions as the object"],1],
-["The professor explained <b>how the new system could improve energy efficiency</b>.",["NC — functions as the object of explained","AC — describes system","NC — describes professor","AC — functions as the subject"],0],
-["The year <b>when the new environmental law was introduced</b> marked a significant change in national policy.",["NC — functions as the subject","AC — describes year","NC — functions as the object","AC — describes law"],1]
-]};
-window.TEST_BANKS = BANKS;
+window.TEST_CONFIG={"title":"TOEFL Drill (Unit 9-10)","kicker":"Week 2 · Level 10 · Structure","color":"#f87171","icon":"fa-spell-check","instructions":"TOEFL Drill (Unit 9-10) — noun clauses & adjective clauses. Part A — Error Correction: choose the part that contains an error. Part B — Clause Sorting: choose the answer that correctly identifies the type and function of the bold clause. NC = Noun Clause · AC = Adjective Clause.","fields":["name","date"],"transcript":"","groups":[{"id":"unit910-a","title":"Part A — Error Correction (10 questions)","dirs":"Choose the part that contains an error."},{"id":"unit910-b","title":"Part B — Clause Sorting (10 questions)","dirs":"Identify the type and function of the bold clause. NC = Noun Clause · AC = Adjective Clause."}]};
+window.TEST_BANKS={"unit910-a":[["Researchers are still investigating [A: what caused] [B: did the sudden decline] [C: in the bird population] [D: last year]. Which part contains an error?",["what caused","did the sudden decline","in the bird population","last year"],-1],["The scientist [A: which discovered the new species] [B: has published a detailed report] [C: about her findings] [D: recently]. Which part contains an error?",["which discovered the new species","has published a detailed report","about her findings","recently"],-1],["Nobody knows [A: that why the ancient civilization] [B: suddenly disappeared] [C: from the region]. Which part contains an error?",["that why the ancient civilization","suddenly disappeared","from the region"],-1],["The professor explained [A: how does the machine work] [B: during the experiment] [C: to the students]. Which part contains an error?",["how does the machine work","during the experiment","to the students"],-1],["The researcher [A: whose her research focuses on climate change] [B: received an international award] [C: last month]. Which part contains an error?",["whose her research focuses on climate change","received an international award","last month"],-1],["The laboratory [A: where the experiment was conducted in] [B: has recently been renovated] [C: by the university]. Which part contains an error?",["where the experiment was conducted in","has recently been renovated","by the university"],-1],["It remains unclear [A: what will the government do] [B: to reduce pollution] [C: in major cities]. Which part contains an error?",["what will the government do","to reduce pollution","in major cities"],-1],["The students visited a museum [A: which displayed artifacts] [B: that were discovered] [C: from an ancient civilization]. Which part contains an error?",["which displayed artifacts","that were discovered","from an ancient civilization"],-1],["The professor asked the students [A: whether they had understood] [B: what he had explained] [C: during the previous lecture] [D: tomorrow]. Which part contains an error?",["whether they had understood","what he had explained","during the previous lecture","tomorrow"],-1],["The environmental project [A: that was launched last year] [B: has helped communities] [C: whose water supplies were contaminated] [D: from industrial waste]. Which part contains an error?",["that was launched last year","has helped communities","whose water supplies were contaminated","from industrial waste"],-1]],"unit910-b":[["Scientists are investigating <b>what caused the sudden decline in the population<\/b>.",["NC — functions as the object of investigating","AC — describes scientists","NC — describes population","AC — functions as the subject"],-1],["The researcher <b>who discovered the new species<\/b> received an international award.",["NC — functions as the subject","AC — describes researcher","NC — functions as the object","AC — describes species"],-1],["Nobody knows <b>why the ancient civilization suddenly disappeared<\/b>.",["AC — describes civilization","NC — functions as the object of knows","AC — describes nobody","NC — functions as an adjective"],-1],["The laboratory <b>where the experiment was conducted<\/b> has recently been renovated.",["NC — functions as the subject","NC — describes experiment","AC — describes laboratory","AC — functions as the object"],-1],["Researchers have not determined <b>whether the experiment was successful<\/b>.",["AC — describes experiment","NC — functions as the object of determined","AC — describes researchers","NC — describes successful"],-1],["The scientist <b>whose research focuses on climate change<\/b> published a groundbreaking study.",["NC — describes scientist","AC — describes research","NC — functions as the object","AC — describes scientist"],-1],["<b>What the researchers discovered during the experiment<\/b> surprised the scientific community.",["AC — describes researchers","NC — functions as the subject of the sentence","AC — describes experiment","NC — functions as the object of discovered"],-1],["The technology <b>that was developed at the university<\/b> is now used in hospitals worldwide.",["NC — functions as the subject","AC — describes technology","NC — describes university","AC — functions as the object"],-1],["The professor explained <b>how the new system could improve energy efficiency<\/b>.",["NC — functions as the object of explained","AC — describes system","NC — describes professor","AC — functions as the subject"],-1],["The year <b>when the new environmental law was introduced<\/b> marked a significant change in national policy.",["NC — functions as the subject","AC — describes year","NC — functions as the object","AC — describes law"],-1]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"91b223ca962a2ba9","epk":"BLgKWe_2fFiMmugch2i3SV2C1zv8UqD12NrEC7XMh2I-PObsnjboTflaiWmFD4Whei9C6Vx2yBwIXrPkhRFabr0","iv":"hlYp_9-AiKqUcH9s","ct":"mwbp5L_UdowwUvfmMOlixYGtKV_nBE8ladkK5gHk-qhBPPGrVJ9hP9Hza2HxTmeb2zWwsmWJiD3anWbBzTv2lllnu41E52DAeaaFE095EVdHe4MkJzHuLplx9pYDgjg6agR5xE1ZH7HNzL3SmNkWeDrZE8za-opUWbunWw"};
 </script>
 <script>
 // CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
@@ -466,6 +431,7 @@ function doSubmit(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 
 

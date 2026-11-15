@@ -35,7 +35,10 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Instrument Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden}
-  .app{display:grid; grid-template-rows:40px 28px auto 52px 1fr 30px; height:100vh}
+  /* CMC-NO-PAGE-SCROLL: the single column is minmax(0,1fr) so no bar can widen
+     the whole app past the window (a long status message used to do exactly
+     that on phones — and it stayed widened, because the text is only faded). */
+  .app{display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:40px 28px auto 52px 1fr 30px; height:100vh}
 
   /* ── Quick-access toolbar (customizable) ──────────────── */
   .quick-bar{display:flex; align-items:center; gap:4px; padding:0 10px; background:var(--panel); border-bottom:1px solid var(--line); z-index:55; overflow-x:auto; user-select:none}
@@ -140,20 +143,28 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
   .btn-export:hover{transform:translateY(-1px); box-shadow:0 6px 18px rgba(139,92,246,.4)}
 
   /* ── Workspace ───────────────────────────────────────── */
-  .workspace{display:grid; grid-template-columns:64px 1fr 300px; min-height:0}
+  /* CMC-NO-PAGE-SCROLL: the single row is minmax(0,1fr), NOT the implicit
+     `auto`. With `auto` the row grew to the tallest child (the 738px tool
+     rail), so on any window shorter than ~920px the stage and the side panel
+     ran on underneath the status bar and the page became scrollable — one
+     click on a spreadsheet cell then scrolled the whole app up, dragging the
+     status bar over the sheet and the menus off the top. */
+  .workspace{display:grid; grid-template-columns:64px 1fr 300px; grid-template-rows:minmax(0,1fr); min-height:0}
   .workspace.no-panel{grid-template-columns:64px 1fr 0px}
-  .rail{background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 0; z-index:40; overflow:visible}
+  .rail{background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 0; z-index:40; min-height:0; overflow-x:hidden; overflow-y:auto; scrollbar-width:none}
   .rail::-webkit-scrollbar{display:none}
-  .tool{position:relative; width:42px; height:42px; display:grid; place-items:center; border:none; background:transparent; color:var(--muted); border-radius:11px; cursor:pointer; transition:all .18s}
-  .tool:hover{color:var(--text); background:var(--panel-2); transform:translateX(2px)}
+  .tool{position:relative; width:42px; height:42px; min-height:28px; flex:0 1 auto; display:grid; place-items:center; border:none; background:transparent; color:var(--muted); border-radius:11px; cursor:pointer; transition:all .18s}
+  .tool:hover{color:var(--text); background:var(--panel-2); left:2px}
   .tool.active{color:#fff; background:linear-gradient(135deg,var(--cm-primary),var(--cm-secondary)); box-shadow:0 4px 14px rgba(6,182,212,.3)}
-  /* Tooltip — fixed to viewport so it survives overflow:hidden ancestors */
-  .tool::after{content:attr(data-tip); position:fixed; left:64px; opacity:0; pointer-events:none; background:#0c0e14; color:var(--text); font-size:11px; padding:6px 12px; border-radius:6px; border:1px solid var(--line); white-space:nowrap; transition:opacity .15s; z-index:1000; box-shadow:0 8px 24px rgba(0,0,0,.5); font-weight:600}
+  /* Tooltip — fixed to the viewport so the scrolling rail cannot clip it. --tip-y is set on hover by the
+     rail's mouseover handler (a fixed box does not follow the rail's scroll position by itself). Never put a
+     transform on .tool: it would become the tooltip's containing block and the rail would clip it. */
+  .tool::after{content:attr(data-tip); position:fixed; left:74px; top:var(--tip-y,-99px); transform:translateY(-50%); opacity:0; pointer-events:none; background:#0c0e14; color:var(--text); font-size:11px; padding:6px 12px; border-radius:6px; border:1px solid var(--line); white-space:nowrap; transition:opacity .15s; z-index:1000; box-shadow:0 8px 24px rgba(0,0,0,.5); font-weight:600}
   .tool:hover::after{opacity:1}
-  .rail hr{width:26px; border:none; border-top:1px solid var(--line); margin:4px 0}
+  .rail hr{width:26px; flex:none; border:none; border-top:1px solid var(--line); margin:4px 0}
   /* Left rail is canvas-only: dim + disable it in Docs/Excel/Code so a click never switches the view back to canvas */
   .rail.off .tool{opacity:.35; cursor:not-allowed}
-  .rail.off .tool:hover{color:var(--muted); background:transparent; transform:none}
+  .rail.off .tool:hover{color:var(--muted); background:transparent; left:0}
   .rail.off .tool::after{content:'Canvas tool — return to the Canvas tab to use the left toolbar'}
 
   /* Stage & Rulers */
@@ -332,9 +343,10 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
   .keys{font-size:11px; color:var(--muted); line-height:1.9}
   .keys kbd{background:var(--panel-2); border:1px solid var(--line); border-bottom-width:2px; padding:1px 6px; border-radius:4px; font-family:inherit; color:var(--text); margin-right:3px; font-size:10px}
 
-  footer{display:flex; align-items:center; gap:18px; padding:0 18px; font-size:11px; color:var(--muted); background:var(--panel); border-top:1px solid var(--line); z-index:50}
+  footer{display:flex; align-items:center; gap:18px; padding:0 18px; font-size:11px; color:var(--muted); background:var(--panel); border-top:1px solid var(--line); z-index:50; min-width:0; overflow:hidden}
+  footer > span{flex:none; white-space:nowrap}
   footer .live{display:flex; align-items:center; gap:6px; margin-left:auto}
-  #statusFlash{margin-left:auto; margin-right:2px; color:var(--teal); font-weight:600; opacity:0; transition:opacity .3s; white-space:nowrap; pointer-events:none}
+  #statusFlash{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; margin-left:auto; margin-right:2px; color:var(--teal); font-weight:600; opacity:0; transition:opacity .3s; white-space:nowrap; pointer-events:none}
   #statusFlash.show{opacity:1}
   footer .live i{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse2 1.8s infinite}
   @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.3}}
@@ -586,6 +598,9 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
 
   /* Footer */
   footer{padding:0 10px; gap:10px; font-size:10.5px; padding-bottom:env(safe-area-inset-bottom)}
+  /* A status message gets the whole bar while it shows, and takes no room once it has faded */
+  footer:has(#statusFlash.show) > span:not(#statusFlash){display:none}
+  #statusFlash:not(.show){max-width:0; margin:0}
   footer .live{gap:4px}
 
   /* Modals & dialogs */
@@ -1460,6 +1475,8 @@ console.log(greet('Creative Minds'));" spellcheck="false"></textarea>
   <div class="dialog-buttons"><button class="cancel" onclick="closeModal('shadowModal')">Cancel</button><button class="primary" id="shadowApply">Apply</button></div>
 </div></div>
 
+<!-- Opens the sealed answer keys of linked bi-weekly tests (verified teachers only). -->
+<script src="../biweek-planner/answer-seal.js?v=1"></script>
 <script>
 /* ══ SETUP ═══════════════════════════════════════════ */
 const base=document.getElementById('base'), textLayer=document.getElementById('textLayer'),
@@ -1944,6 +1961,13 @@ lineHeightEl.oninput=()=>{tLineHeight=(+lineHeightEl.value)/100; lhOut.textConte
 /* ── Tool Selection ────────────────────────────────── */
 const toolNames={select:'Select/Move',brush:'Brush',eraser:'Eraser',line:'Line',rect:'Rectangle',ellipse:'Ellipse',gradient:'Gradient',text:'Vector Text',doc:'Document Mode (Word)',sheet:'Spreadsheet (Excel)',transform:'Free Transform',perspective:'Perspective Warp',crop:'Crop',margins:'Margins & Guides',picker:'Eyedropper',code:'Code Editor'};
 const railEl=document.getElementById('rail');
+/* Rail tooltips are position:fixed (so the scrolling rail cannot clip them);
+   pin each one beside its tool at hover time. */
+railEl.addEventListener('mouseover', e => {
+  const t = e.target.closest && e.target.closest('.tool'); if (!t) return;
+  const b = t.getBoundingClientRect();
+  t.style.setProperty('--tip-y', Math.round(b.top + b.height / 2) + 'px');
+});
 document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>{ if(railEl.classList.contains('off') && railEl.contains(b)) return; selectTool(b.dataset.tool); });
 function selectTool(t){
   const prevTool = tool;
@@ -2453,7 +2477,7 @@ function renderSheet(){
     if (isDouble) { lastCellClick = null; startCellEdit(); return; }
     renderSheet();
     // Focus the grid so keyboard navigation works after a click.
-    sheetGrid.focus();
+    sheetGrid.focus({ preventScroll: true });
   }); });
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
@@ -2485,7 +2509,13 @@ sheetGrid.addEventListener('keydown', e => {
 });
 sheetGrid.addEventListener('keypress', e => {
   if (e.target.matches('input')) return;
-  if (e.key.length === 1) { setCell(selectedCell.row, selectedCell.col, e.key); startCellEdit(); const td = sheetGrid.querySelector(`td.cell[data-r="${selectedCell.row}"][data-c="${selectedCell.col}"]`); const input = td && td.querySelector('input'); if (input) { input.value = e.key; input.setSelectionRange(1, 1); } }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  /* Type-to-edit: open the editor seeded with the typed character.
+     preventDefault is essential — the editor takes focus inside this handler,
+     so without it the browser inserts the same character again ("12" was
+     stored as "112"). Nothing is written to the cell until the edit is
+     committed, so Escape leaves the old value untouched. */
+  if (e.key.length === 1) { e.preventDefault(); startCellEdit(); const td = sheetGrid.querySelector(`td.cell[data-r="${selectedCell.row}"][data-c="${selectedCell.col}"]`); const input = td && td.querySelector('input'); if (input) { input.value = e.key; input.setSelectionRange(1, 1); } }
 });
 // Right-click a cell, row/column header or anywhere on the grid: opens the
 // full Canva-style tool menu (customizable via ⚙ Tools). The right-clicked
@@ -5181,12 +5211,20 @@ function startCellEdit(){
   td.classList.add('editing');
   const input = td.querySelector('input'); input.focus();
   input.setSelectionRange(input.value.length, input.value.length);
-  const commit = () => { setCell(r0, c0, input.value); };
-  input.addEventListener('blur', () => { commit(); renderSheet(); });
+  /* `done` makes the edit end exactly once. Re-rendering removes the editor,
+     which fires blur — that blur used to save an edit the user had just
+     cancelled with Escape. */
+  let done = false;
+  const commit = () => { if (done) return; done = true; setCell(r0, c0, input.value); };
+  /* Hand the keyboard back to the grid after Enter / Tab / Escape. Otherwise
+     focus falls to <body>, arrow keys stop moving the selection and the next
+     letters are read as tool shortcuts instead of going into the next cell. */
+  const backToGrid = () => { try { sheetGrid.focus({ preventScroll: true }); } catch (err) {} };
+  input.addEventListener('blur', () => { if (done) return; commit(); renderSheet(); });
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { commit(); renderSheet(); e.preventDefault(); moveSelection(1, 0); }
-    if (e.key === 'Tab') { commit(); renderSheet(); e.preventDefault(); moveSelection(0, 1); }
-    if (e.key === 'Escape') { renderSheet(); }
+    if (e.key === 'Enter') { commit(); renderSheet(); e.preventDefault(); moveSelection(1, 0); backToGrid(); }
+    if (e.key === 'Tab') { commit(); renderSheet(); e.preventDefault(); moveSelection(0, e.shiftKey ? -1 : 1); backToGrid(); }
+    if (e.key === 'Escape') { done = true; renderSheet(); e.preventDefault(); backToGrid(); }
     e.stopPropagation();
   });
   fxUpdateOverlays();
@@ -5333,7 +5371,7 @@ function fxGridMouseDown(e){
   const dbl = fxLastClick && fxLastClick.r === r && fxLastClick.c === c && (now - fxLastClick.t) < 400;
   fxLastClick = { r, c, t: now };
   e.preventDefault();
-  sheetGrid.focus();
+  sheetGrid.focus({ preventScroll: true });
   fxPressHandled = true;
   if (e.shiftKey && fxShiftBase) {
     fxRange = fxNormRange(fxShiftBase.row, fxShiftBase.col, r, c);
@@ -6501,9 +6539,12 @@ function requireTeacher(){
 }
 
 /* ── Linkable test catalog (kept in sync with the Bi-Weekly Tests panel) ──
-   Only tests that actually exist under /biweek-planner/tests/<slug>.html —
-   the catalog entries 'isec2-w5-grammar' and 'isec2-w4-inference' have no
-   public page file and are deliberately excluded. */
+   Only tests that actually exist under /biweek-planner/tests/<slug>.html.
+   Question counts are not relied on from here: the picker labels each test
+   with the real count from ../biweek-planner/test-counts.json (generated
+   from the pages). `node scripts/test_counts.mjs
+   --check` (part of the unit tests) fails if a slug below has no page or a
+   title states a wrong "(N questions)". */
 var STUDIO_TESTS = [
   { group: 'Orientation', items: [
     { slug: 'diagnostic', title: 'Orientation Diagnostic (Week 2 · All Sections)' } ]},
@@ -6514,7 +6555,7 @@ var STUDIO_TESTS = [
     { slug: 'isec2-w5-listening', title: 'W5 · C1 Listening: Innovation in Business' },
     { slug: 'isec2-w6-grammar', title: 'W6 · C2 Grammar: Modals & Conditionals' },
     { slug: 'isec2-w7-reading', title: 'W7 · C2 Reading: The Algorithmic Enterprise' },
-    { slug: 'week8-mock', title: 'Level 10 TOEFL Mock Test (30 questions)' } ]},
+    { slug: 'week8-mock', title: 'Level 10 TOEFL Mock Test (40 questions)' } ]},
   { group: 'Week 8 recaps', items: [
     { slug: 'week8-recap-grammar', title: 'Grammar Drill — Recap' },
     { slug: 'week8-recap-listening', title: 'Listening Drill — Recap' },
@@ -6526,8 +6567,10 @@ var STUDIO_TESTS = [
     { slug: 'week5-grammar', title: 'Week 5 · Grammar: Conditionals & Agreement' },
     { slug: 'week6-listening', title: 'Week 6 · Listening: Student Athletes' },
     { slug: 'week7-reading', title: 'Week 7 · Reading: How We Name the Stars' } ]},
+  { group: 'Level 11b weekly tests', items: [
+    { slug: 'isec2-w4-inference', title: 'W4 · L11b Reading: Recognizing Inference' },
+    { slug: 'isec2-w5-grammar', title: 'W5 · L11b Grammar: Mysteries & the Unexplained' } ]},
   { group: 'Skills drills', items: [
-    { slug: 'grammar', title: 'Level 9b Parallel Structure' },
     { slug: 'structure', title: 'Level 11b Written Expressions' },
     { slug: 'business-listening', title: 'B2 Business Listening Drill' },
     { slug: 'inference-listening', title: 'Listening · Inference' },
@@ -6541,6 +6584,18 @@ function testTitleOf(slug){
   return slug;
 }
 function testPageUrl(slug){ return '../biweek-planner/tests/' + slug + '.html'; }
+/* Question counts of every test page: { slug: { title, total, parts } }.
+   Resolves to null when the file cannot be read (labels then stay as typed). */
+var studioTestCountsPromise = null;
+function studioTestCounts(){
+  if (!studioTestCountsPromise) {
+    studioTestCountsPromise = fetch('../biweek-planner/test-counts.json', { cache: 'no-cache' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ return d && d.tests ? d.tests : null; })
+      .catch(function(){ studioTestCountsPromise = null; return null; });
+  }
+  return studioTestCountsPromise;
+}
 
 /* ── Test page extraction ──
    Reads a bi-week test page (static file, same origin) and pulls out
@@ -6550,7 +6605,11 @@ function testPageUrl(slug){ return '../biweek-planner/tests/' + slug + '.html'; 
      recap    — rows [prompt, choices, "L"-ciphered index] + window.AMAP_OFF
    decodeAnswer maps both to a plain 0-based option index (arrays for
    multi-answer questions). The STUDENT payload built from this NEVER
-   carries the answer field — grading happens on the teacher side. */
+   carries the answer field — grading happens on the teacher side.
+   SEALED (Nov 2026): the pages no longer carry real answers — the answer
+   field holds a placeholder (its SHAPE is kept, so `m` is still right) and
+   the real key is the encrypted window.CMC_SEAL line. `a` from here is
+   therefore meaningless; grading uses sealedKeyOf() below. */
 function extractTestPage(html){
   var iA = html.indexOf('window.AMAP_OFF');
   var iC = html.indexOf('window.TEST_CONFIG=');
@@ -6600,10 +6659,22 @@ function linkedTestPayload(slug, ex){
     questions: ex.questions.map(function(q){ return { g: q.g, i: q.i, p: q.p, c: q.c, m: !!q.m }; }),
     audios: ex.audios, total: ex.questions.length };
 }
-/* Teacher-side: rebuild the answer key from the live test page, aligned to
-   the payload's question order (groups order, then bank row order). */
-function answerKeyOf(ex){
-  return ex.questions.map(function(q){ return q.a; });
+/* Teacher-side: open the SEALED answer key of the live test page, aligned to
+   the payload's question order (groups order, then bank row order).
+   The key is encrypted in the page; ../biweek-planner/answer-seal.js opens
+   it with the private key that Firestore hands to verified teachers only.
+   Resolves to an array of answers; rejects when the key cannot be opened. */
+function sealedKeyOf(slug, html, ex){
+  var api = window.CMC_ANSWER_SEAL;
+  var seal = api && api.sealFromHtml(html);
+  if (!seal) return Promise.reject(new Error('test page has no sealed key'));
+  return api.open(slug, seal).then(function(payload){
+    return ex.questions.map(function(q){
+      var bank = (payload.banks || {})[q.g];
+      if (!bank || bank.length <= q.i) throw new Error('sealed key does not match the page');
+      return bank[q.i];
+    });
+  });
 }
 
 /* ── Input-cell marking (teacher authoring, Excel mode) ── */
@@ -6668,6 +6739,17 @@ function studioShare(){
     '<label class="cmc-label">My published docs &amp; worksheets</label>' +
     '<div id="cmcMyDocs" class="cmc-hint">Loading…</div>';
   var dlg = openModal('Share ' + (kind === 'doc' ? 'document' : 'spreadsheet'), 'Publishes a live copy to a shareable link. Your local work stays on this device — publish again after edits to update the live copy.', body);
+  // Real question counts (one shared file, generated from the test pages).
+  studioTestCounts().then(function(counts){
+    var sel = body.querySelector('#cmcLinkTest');
+    if (!sel || !counts) return;
+    Array.prototype.forEach.call(sel.options, function(o){
+      var t = counts[o.value];
+      if (!t) return;
+      var base = testTitleOf(o.value).replace(/\s*\(\d+\s*questions?\)\s*$/i, '');
+      o.textContent = base + ' — ' + t.total + ' question' + (t.total === 1 ? '' : 's');
+    });
+  });
   var chosen = 'view';
   var cards = body.querySelectorAll('.cmc-radio-card');
   function syncCards(){ cards.forEach(function(c){ c.classList.toggle('on', c.dataset.m === chosen); }); if (kind === 'sheet') body.querySelector('#cmcInputHint').textContent = chosen === 'collect' ? ('Currently marked input cells: ' + studioInputCells.size + ' — select cells in the editor and press ✎ Input to mark or unmark them. Students can type only in shaded cells.') : 'Students will see a read-only copy. Mark ✎ Input cells only if you switch to Collect answers.'; }
@@ -7182,7 +7264,9 @@ function gradeResults(subs, done){
   subs.forEach(function(s){ s.testScore = null; });
   fetch(testPageUrl(lt.slug)).then(function(r){ return r.ok ? r.text() : Promise.reject(new Error('HTTP ' + r.status)); })
     .then(function(html){
-      var key = answerKeyOf(extractTestPage(html));
+      return sealedKeyOf(lt.slug, html, extractTestPage(html));
+    })
+    .then(function(key){
       subs.forEach(function(s){
         if (!s.test || !Array.isArray(s.test.answers)) return;
         var n = Math.min(key.length, s.test.answers.length);

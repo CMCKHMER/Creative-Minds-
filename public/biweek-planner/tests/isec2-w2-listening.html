@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -240,37 +240,10 @@ html[data-theme="light"] .q-explanation{background:rgba(2,132,199,.04);border-co
 </div>
 
 <script>
-window.TEST_CONFIG={
-  title:'ISEC II · Business Listening (B2 + C2)',
-  kicker:'Week 2 · L12B · Listening',
-  color:'#347d9b',
-  icon:'fa-briefcase',
-  instructions:'Two listening drills: B2 Business Interview (Anna and her tutoring app) and C2 Job Interview (Maria and her HR career). Focus: note-taking, identifying gist & purpose. Listen to each audio and answer the questions.',
-  fields:['name', 'date'],
-  transcript:'',
-  groups:[
-    {'id':'isec2-w2-b2-list','title':'B2 · A Business Interview (6 questions)','dirs':'Choose the correct answer.'},
-    {'id':'isec2-w2-c2-list','title':'C2 · A Job Interview (6 questions)','dirs':'Circle the best answer.'}
-  ]
-};
-const BANKS = {
-"isec2-w2-b2-list":[
-["Anna ...",["didn't start the company but manages it now.","started the company and manages it now.","started the company but doesn't manage it any more."],1],
-["The app ...",["is for parents to learn from.","is for students to learn from.","is for students who want to find a tutor."],2],
-["Many parents ...",["don't have the time or knowledge to help with their children's homework.","think that schools should help with their children's homework.","don't want to help with their children's homework."],0],
-["The app ...",["has student exercises on it.","is only for people in remote areas.","offers live online support from tutors."],2],
-["On the app, tutors who live in remote areas ...",["often charge lower rates.","often charge higher rates.","don't like to work too much."],0],
-["The app ...",["is new and not many people know about it.","is already popular.","is not very successful."],1]
-],
-"isec2-w2-c2-list":[
-["Four years ago, Maria worked for a small HR services provider ...",["in the B2B sector.","in the B2C sector.","in both B2B and B2C sectors."],0],
-["Maria has been in her current job ...",["for four years.","for three years.","for one year."],1],
-["Maria's current role is focused ...",["only on learning and development.","on a number of HR topics.","only on payroll and she wants to do L&D."],1],
-["Maria ...",["did a diploma in L&D two years ago.","is doing a diploma in psychology at the moment.","Both options are true."],2],
-["Maria will need to ...",["identify and devise an L&D strategy.","devise and implement an L&D strategy.","implement an L&D strategy that has already been devised."],1],
-["Maria ...",["will hear back from them next week.","has been invited to a second interview next week.","needs to call them next week to find out the next steps."],0]
-]};
-window.TEST_BANKS = BANKS;
+window.TEST_CONFIG={"title":"ISEC II · Business Listening (B2 + C2)","kicker":"Week 2 · L12B · Listening","color":"#347d9b","icon":"fa-briefcase","instructions":"Two listening drills: B2 Business Interview (Anna and her tutoring app) and C2 Job Interview (Maria and her HR career). Focus: note-taking, identifying gist & purpose. Listen to each audio and answer the questions.","fields":["name","date"],"transcript":"","groups":[{"id":"isec2-w2-b2-list","title":"B2 · A Business Interview (6 questions)","dirs":"Choose the correct answer."},{"id":"isec2-w2-c2-list","title":"C2 · A Job Interview (6 questions)","dirs":"Circle the best answer."}]};
+window.TEST_BANKS={"isec2-w2-b2-list":[["Anna ...",["didn't start the company but manages it now.","started the company and manages it now.","started the company but doesn't manage it any more."],-1],["The app ...",["is for parents to learn from.","is for students to learn from.","is for students who want to find a tutor."],-1],["Many parents ...",["don't have the time or knowledge to help with their children's homework.","think that schools should help with their children's homework.","don't want to help with their children's homework."],-1],["The app ...",["has student exercises on it.","is only for people in remote areas.","offers live online support from tutors."],-1],["On the app, tutors who live in remote areas ...",["often charge lower rates.","often charge higher rates.","don't like to work too much."],-1],["The app ...",["is new and not many people know about it.","is already popular.","is not very successful."],-1]],"isec2-w2-c2-list":[["Four years ago, Maria worked for a small HR services provider ...",["in the B2B sector.","in the B2C sector.","in both B2B and B2C sectors."],-1],["Maria has been in her current job ...",["for four years.","for three years.","for one year."],-1],["Maria's current role is focused ...",["only on learning and development.","on a number of HR topics.","only on payroll and she wants to do L&D."],-1],["Maria ...",["did a diploma in L&D two years ago.","is doing a diploma in psychology at the moment.","Both options are true."],-1],["Maria will need to ...",["identify and devise an L&D strategy.","devise and implement an L&D strategy.","implement an L&D strategy that has already been devised."],-1],["Maria ...",["will hear back from them next week.","has been invited to a second interview next week.","needs to call them next week to find out the next steps."],-1]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"91b223ca962a2ba9","epk":"BKZkwpXov0Y8DIB3nodAes1gE-lXgqek0bPcEpwkSBAZVIU1KzxcnIBLjZ1AJ2dreGF__S-Q2AxDsKQyNSliAj8","iv":"gYlMyXw9OfPfQxH7","ct":"haJb26Re8xmNsQuqvK0YmlVog2Jmo3sMbvQgKXWKwSeRDrXFFBi_OrlBZZpZm9jneJqE0oksPjxhCS-SrOXLVQH0kpKJrD58EjPafIMibyd-1neNz1dcTXoeYCLvkX6-mQ7YdQfGEuW27IzFkxTH_h9SIDKnklXx0CIRTQDSMQ"};
 </script>
 <script>
 // CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
@@ -460,6 +433,7 @@ function doSubmit(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 
 

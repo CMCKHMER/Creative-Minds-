@@ -4,7 +4,7 @@
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <!-- Teacher-account gate: test pages are teacher-only. Loads early so the lock is applied before first paint. -->
-<script src="../student-invite.js?v=2"></script>
+<script src="../student-invite.js?v=3"></script>
 <script src="../teacher-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -238,10 +238,10 @@ html[data-theme="light"] .q-explanation{background:rgba(2,132,199,.04);border-co
 </div>
 
 <script>
-window.TEST_CONFIG={"title": "Listening: Short Conversation Quiz", "kicker": "Week 3 · Level 9a · Listening", "color": "#347d9b", "icon": "fa-headphones", "instructions": "TOEFL ITP Listening — Short Conversation Quiz. You will hear eight short recordings. Listen carefully and choose the correct answer. The audio recording is embedded above the questions — press play to listen.", "fields": ["name", "date"], "transcript": "", "groups": [{"id": "l9a-w3-list", "title": "Short Conversation Quiz (8 questions)", "dirs": "You will hear eight short recordings. Listen carefully and circle the correct answer."}]};
-
-const BANKS = {"l9a-w3-list": [["What does Gordon think he’s good at?", ["groupwork", "communication with people", "solving problems"], 0], ["Which job is the company advertising?", ["Engineers", "Chefs", "Doctors"], 2], ["What did John forget to put on his CV?", ["his problem-solving skills", "his internship experience", "his experience working in a team"], 1], ["Where did the man find the documents?", ["Photocopy Machine", "Trash bin", "Briefcase"], 1], ["Where did the woman find out about the job?", ["an online job site", "a colleague", "a library noticeboard"], 2], ["How much will they pay for each office chair?", ["100 Euros", "130 Euros", "150 Euros"], 1], ["Why didn’t Suzanna get the job?", ["She wasn’t enthusiastic enough.", "She didn’t have enough experience.", "She had the wrong skillset."], 0], ["Why didn’t the man accept the job offer?", ["The salary wasn’t good enough.", "The work didn’t seem very interesting.", "He didn’t have the right skills."], 1]]};
-window.TEST_BANKS = BANKS;
+window.TEST_CONFIG={"title":"Listening: Short Conversation Quiz","kicker":"Week 3 · Level 9a · Listening","color":"#347d9b","icon":"fa-headphones","instructions":"TOEFL ITP Listening — Short Conversation Quiz. You will hear eight short recordings. Listen carefully and choose the correct answer. The audio recording is embedded above the questions — press play to listen.","fields":["name","date"],"transcript":"","groups":[{"id":"l9a-w3-list","title":"Short Conversation Quiz (8 questions)","dirs":"You will hear eight short recordings. Listen carefully and circle the correct answer."}]};
+window.TEST_BANKS={"l9a-w3-list":[["What does Gordon think he’s good at?",["groupwork","communication with people","solving problems"],-1],["Which job is the company advertising?",["Engineers","Chefs","Doctors"],-1],["What did John forget to put on his CV?",["his problem-solving skills","his internship experience","his experience working in a team"],-1],["Where did the man find the documents?",["Photocopy Machine","Trash bin","Briefcase"],-1],["Where did the woman find out about the job?",["an online job site","a colleague","a library noticeboard"],-1],["How much will they pay for each office chair?",["100 Euros","130 Euros","150 Euros"],-1],["Why didn’t Suzanna get the job?",["She wasn’t enthusiastic enough.","She didn’t have enough experience.","She had the wrong skillset."],-1],["Why didn’t the man accept the job offer?",["The salary wasn’t good enough.","The work didn’t seem very interesting.","He didn’t have the right skills."],-1]]};
+// Answers are sealed (scripts/seal_tests.mjs) — only a verified teacher session can open them.
+window.CMC_SEAL={"v":1,"kid":"91b223ca962a2ba9","epk":"BBdjLqsglWld7s1PqcrqwPCrZrGZQHYf8BL2oyGQ-OvcfFD9FbMAi01PS4FHLKT9U8tbQ_pTHiDulI1ziklJTT8","iv":"dIwY6s-plw2RyaEJ","ct":"yBD4ePAn9We0A-YggURW0TL63VpuB0NuWqt2hF0rMNYaoOIcfByr4xL8kU2g_pA8TnxkuWFZkoMsZKAwLNZfshAiXU4QPeEPRqFxZQUc3U-FG9XBr4fBmkI-"};
 </script>
 <script>
 // CMC-TEMPLATE-V2 — Each test page defines config + banks before this script runs
@@ -431,6 +431,7 @@ function doSubmit(){
   result.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>
+<script src="../answer-seal.js?v=1"></script>
 
 <script>(function(){var sb=document.querySelector('.timer-start');if(!sb)return;var armed=false;sb.addEventListener('click',function(){if(armed)return;armed=true;try{if(window.CMC&&CMC.fs&&CMC.fs.supported()&&!CMC.fs.isActive())CMC.fs.enter();}catch(e){}});})();</script>
 </body>

@@ -1323,7 +1323,8 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
    signed-in students post under their own localStorage session token (with
    securetoken refresh), visitors through the validated guest branch (empty
    studentUid, 1-40 char name, classId null) — append-only, no rules change,
-   lands in the teacher dashboard feed and the homepage ticker. The payload
+   lands on the teacher's score sheet (homepage → Kid Program → the
+   homework's Scores button) and in the homepage ticker. The payload
    names the ACTIVE homework (1 The Storyboard Desk / 2 Timeline Producer /
    3 Legacy Writer) so the teacher can tell the three apart. */
 
@@ -1463,20 +1464,19 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
 
   function cmcCurrentScore(root) {
     // Reuse the homework's own grading — the score line reads "E / T points".
-    var line = root.querySelector('.score-line');
-    var panel = root.querySelector('.results');
-    var m = line && /^(\d+) \/ (\d+) points$/.exec((line.textContent || '').trim());
-    if (!(panel && !panel.hidden && m)) { if (window.CMC_HW_GRADE) window.CMC_HW_GRADE(root); }
-    var txt = (root.querySelector('.score-line').textContent || '').trim();
-    var m2 = /^(\d+) \/ (\d+) points$/.exec(txt);
-    return { correct: m2 ? Number(m2[1]) : 0, total: m2 ? Number(m2[2]) : 0 };
+    // ALWAYS grade again at submit: the result panel stays open after a
+    // check, so a student who checked, fixed answers and pressed Submit
+    // without checking again used to send the OLD score.
+    if (window.CMC_HW_GRADE) window.CMC_HW_GRADE(root);
+    try { cmcNoteCheck(root, false); } catch (e) { /* never block the submit */ }
+    return cmcReadScore(root) || { correct: 0, total: 0 };
   }
 
   function cmcBuildBody(name, uid, score, mode) {
     // Field set matches the drill_attempts rules: guest branch requires
     // studentUid == '', name 1-40 chars, ints in range, classId null.
     var pct = score.total > 0 ? Math.round(score.correct / score.total * 100) : 0;
-    return {
+    var body = {
       drillSlug:   { stringValue: 'unit4hw.html' },
       drillTitle:  { stringValue: 'Unit 4 · Walt Disney — ' + (HW_LABELS[mode] || HW_LABELS.a) },
       drillSource: { stringValue: 'rfc3' },
@@ -1488,7 +1488,99 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
       classId:       { nullValue: null },
       submittedAt:   { timestampValue: new Date().toISOString() }
     };
+    // First try — see the block above. Left out when there is no record.
+    var tr = cmcTryFor(mode, name);
+    if (tr && tr.t === score.total) {
+      body.firstCorrectCount = { integerValue: String(tr.c) };
+      if (tr.a >= 0) body.firstAnsweredCount = { integerValue: String(tr.a) };
+      body.checkCount = { integerValue: String(tr.n) };
+    }
+    return body;
   }
+
+  /* ── First try (Nov 2026) ──────────────────────────────────────────────
+     Owner report: "I need their completion score … I don't know how well or
+     bad they did". "Check" shows the right answers and a student may correct
+     and submit again, so the submitted score alone tells the teacher little.
+     Per homework this remembers the score of the FIRST check, how much of
+     the paper was answered then, and how many checks were made, and sends
+     them with the submission (three extra fields — the grading itself and
+     the rules are untouched). Kept in this browser under the student's
+     name, so reloading the page does not turn a corrected paper into a
+     first try; forgotten after 45 days so a new term starts clean. */
+  var CMC_TRY_PREFIX = 'cmc-hw-first:unit4hw.html:';
+  var CMC_TRY_MAX_AGE = 45 * 24 * 60 * 60 * 1000;
+  var cmcTryMem = {};
+  function cmcTryKey(mode, name) {
+    return CMC_TRY_PREFIX + mode + ':' + String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+  function cmcTryGet(mode, name) {
+    var key = cmcTryKey(mode, name), rec = null;
+    try { rec = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { rec = null; }
+    if (!rec) rec = cmcTryMem[key] || null;
+    if (!rec || typeof rec.c !== 'number' || typeof rec.t !== 'number' || typeof rec.n !== 'number') return null;
+    if (!(Date.now() - rec.at < CMC_TRY_MAX_AGE)) return null;
+    return rec;
+  }
+  function cmcTrySet(mode, name, rec) {
+    var key = cmcTryKey(mode, name);
+    cmcTryMem[key] = rec;
+    try { localStorage.setItem(key, JSON.stringify(rec)); } catch (e) { /* private mode — memory only */ }
+  }
+  function cmcTryDrop(mode, name) {
+    var key = cmcTryKey(mode, name);
+    delete cmcTryMem[key];
+    try { localStorage.removeItem(key); } catch (e) {}
+  }
+  function cmcTryName(root) {
+    var el = cmcActiveNameInput(root);
+    return (((el && el.value) || '').trim() || cmcSession().name).slice(0, 40);
+  }
+  // This student's record for this homework. A check made before the name
+  // was typed is filed under no name and moves to the name once there is one.
+  function cmcTryFor(mode, name) {
+    var rec = cmcTryGet(mode, name);
+    if (name) {
+      var loose = cmcTryGet(mode, '');
+      if (loose) {
+        if (rec) rec.n += loose.n; else rec = loose;
+        cmcTrySet(mode, name, rec);
+        cmcTryDrop(mode, '');
+      }
+    }
+    return rec;
+  }
+  function cmcReadScore(root) {
+    var line = root.querySelector('.score-line');
+    var m = line && /^(\d+) \/ (\d+) points$/.exec((line.textContent || '').trim());
+    return m ? { correct: Number(m[1]), total: Number(m[2]) } : null;
+  }
+  // Called right after a grading. `count` is false for the silent re-grade a
+  // submission does, so only real presses of "Check" are counted.
+  function cmcNoteCheck(root, count) {
+    if (!root) return;
+    var s = cmcReadScore(root);
+    if (!s) return;
+    var mode = String(root.id || '').replace('hw-', '');
+    var name = cmcTryName(root);
+    var rec = cmcTryFor(mode, name);
+    if (rec && rec.t !== s.total) rec = null; // the homework itself changed
+    if (!rec) {
+      var label = root.querySelector('.progress-label-text');
+      var p = /^(\d+) \/ (\d+)/.exec(((label && label.textContent) || '').trim());
+      rec = { c: s.correct, t: s.total, a: p ? Number(p[1]) : -1, n: 0, at: Date.now() };
+      count = true; // a first grading always counts, also when Submit made it
+    }
+    if (count) rec.n += 1;
+    cmcTrySet(mode, name, rec);
+  }
+  // The homework's own click handler sits on the .assignment root and grades
+  // synchronously; this listener is on document, so it runs after it.
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('.assignment [data-action="check"]') : null;
+    if (!b) return;
+    try { cmcNoteCheck(b.closest('.assignment'), true); } catch (err) { /* never block the homework */ }
+  });
 
   function submitCompletion() {
     var btn = document.getElementById('submitBtn');

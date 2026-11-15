@@ -406,6 +406,11 @@ export interface InviteAttemptDoc {
   answers: string;
   inviteMode: boolean;
   integrity: Record<string, unknown>;
+  /** Sealed tests (Nov 2026): the student's browser could not grade, so the
+   *  stored score fields are placeholders and `sheet` holds the raw answers
+   *  (`{"v":1,"a":{questionId:value}}`) for the dashboard to grade. */
+  sealed?: boolean;
+  sheet?: string;
 }
 
 /** Create-once binding of an invite code to its owner. Returns 'ok' when
@@ -448,4 +453,72 @@ export async function listInviteAttempts(drillSlug: string, teacherUid: string):
   return (docs as unknown as InviteAttemptDoc[]).sort((a, b) =>
     String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')),
   );
+}
+
+/** EVERY invite attempt of this teacher, across all tests, newest first —
+ *  the feed of the dashboard's score sheet. Same owner filter as above. */
+export async function listAllInviteAttempts(teacherUid: string): Promise<InviteAttemptDoc[]> {
+  const docs = await runQuery('invite_attempts', {
+    ...fieldFilter('teacherUid', 'EQUAL', teacherUid),
+    limit: 2000,
+  });
+  return (docs as unknown as InviteAttemptDoc[]).sort((a, b) =>
+    String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')),
+  );
+}
+
+/** How many invite attempts this teacher has — ONE billed read however
+ *  many there are (a Firestore count query). The dashboard's live feed
+ *  asks this every few seconds and downloads the list only when the number
+ *  has changed, so watching a class finish a test stays inside the free
+ *  quota. Throws RestError like the other calls. */
+export async function countInviteAttempts(teacherUid: string): Promise<number> {
+  type Row = { result?: { aggregateFields?: Record<string, { integerValue?: string }> } };
+  const res = await fsCall<Row[] | Row>(':runAggregationQuery', {
+    method: 'POST',
+    body: JSON.stringify({
+      structuredAggregationQuery: {
+        structuredQuery: {
+          from: [{ collectionId: 'invite_attempts', allDescendants: false }],
+          ...fieldFilter('teacherUid', 'EQUAL', teacherUid),
+        },
+        aggregations: [{ alias: 'n', count: {} }],
+      },
+    }),
+  });
+  const row = Array.isArray(res) ? res[0] : res;
+  const n = Number(row?.result?.aggregateFields?.n?.integerValue);
+  if (!Number.isFinite(n)) throw new RestError(0, 'Unexpected answer to the count query');
+  return n;
+}
+
+// ── Answer seal (teacher_secrets/answer-seal) ────────────────────────
+//
+// The public bi-weekly test pages carry their answers ENCRYPTED. The one
+// private key that opens them lives in this single document, which the
+// rules let verified teachers read (get only — never list) and only the
+// site owner write. See src/lib/answerSeal.ts and scripts/seal_tests.mjs.
+
+const SEAL_DOC = '/teacher_secrets/answer-seal';
+
+/** The installed key code, or null when the owner has not installed it yet.
+ *  Throws RestError(403) for accounts the rules do not treat as teachers. */
+export async function getAnswerSealCode(): Promise<{ code: string; kid: string } | null> {
+  try {
+    const doc = await fsCall<{ name: string; fields?: FsFields }>(SEAL_DOC);
+    const data = decFields(doc.fields ?? {});
+    const code = typeof data.key === 'string' ? data.key : '';
+    return code ? { code, kid: typeof data.kid === 'string' ? data.kid : '' } : null;
+  } catch (err) {
+    if (err instanceof RestError && err.status === 404) return null;
+    throw err;
+  }
+}
+
+/** Site owner only (rules: isCmcAdmin). Installs or replaces the key code. */
+export async function putAnswerSealCode(code: string, kid: string): Promise<void> {
+  await fsCall(SEAL_DOC, {
+    method: 'PATCH',
+    body: JSON.stringify({ fields: encMap({ key: code, kid, updatedAt: new Date().toISOString() }) }),
+  });
 }

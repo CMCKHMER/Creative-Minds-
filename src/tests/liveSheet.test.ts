@@ -35,8 +35,9 @@ describe('liveSheet — grid model', () => {
   it('attemptsToRows: header row + one signed row per attempt', () => {
     const rows = attemptsToRows([attempt(), attempt({ studentName: 'Chan S' })]);
     expect(rows).toHaveLength(3);
-    expect(rows[0].cells).toEqual(['Student', 'Class', 'Score %', 'Correct', 'Total', 'Submitted']);
+    expect(rows[0].cells).toEqual(['Student', 'Class', 'Score %', 'Correct', 'Total', 'Submitted', 'Note']);
     expect(rows[1].cells[0]).toBe('Sok Dara');
+    expect(rows[1].cells[6]).toBe(''); // no remark for an ordinary result
     expect(rows[1].cells[2]).toBe('80');
     expect(rows[1].sig).toBeTruthy();
     expect(rows[2].sig).not.toBe(rows[1].sig);
@@ -150,7 +151,7 @@ describe('liveSheet — sorting', () => {
 });
 
 describe('liveSheet — server sync', () => {
-  it('appends only attempts the grid does not have yet (matched by sig)', () => {
+  it('adds only attempts the grid does not have yet (matched by sig)', () => {
     const a1 = attempt();
     const a2 = attempt({ studentName: 'Chan S', submittedAt: '2026-11-09T10:00:00.000Z' });
     const rows = [...attemptsToRows([a1]), ...blankRows(24, 6)];
@@ -159,6 +160,64 @@ describe('liveSheet — server sync', () => {
     expect(next.some((r) => r.sig === rows[1].sig)).toBe(true);
     expect(next.filter((r) => r.sig)).toHaveLength(2);
     expect(next[next.length - 1].cells.every((c) => c === '')).toBe(true); // blanks re-added
+  });
+
+  // A teacher watches a student finish and presses Refresh: the new result
+  // must be the first row under the header, not below every older row.
+  it('puts new attempts directly under the header, newest first', () => {
+    const old1 = attempt({ studentName: 'Old One', submittedAt: '2026-11-01T10:00:00.000Z' });
+    const old2 = attempt({ studentName: 'Old Two', submittedAt: '2026-11-02T10:00:00.000Z' });
+    const new1 = attempt({ studentName: 'New One', submittedAt: '2026-11-14T09:00:00.000Z' });
+    const new2 = attempt({ studentName: 'New Two', submittedAt: '2026-11-14T10:00:00.000Z' });
+    const rows = [...attemptsToRows([old2, old1]), ...blankRows(24, 7)];
+    const { rows: next, added } = syncServerRows(rows, [new1, old1, new2, old2]);
+    expect(added).toBe(2);
+    expect(next[0].cells[0]).toBe('Student');
+    expect(next.slice(1, 5).map((r) => r.cells[0])).toEqual(['New Two', 'New One', 'Old Two', 'Old One']);
+  });
+
+  it('keeps rows and cells the teacher typed', () => {
+    const a1 = attempt();
+    let rows = [...attemptsToRows([a1]), ...blankRows(3, 7)];
+    rows = setCell(rows, 1, 0, 'Sok Dara (resit)');
+    rows = setCell(rows, 2, 0, 'my own row');
+    const a2 = attempt({ studentName: 'Chan S', submittedAt: '2026-11-09T10:00:00.000Z' });
+    const { rows: next } = syncServerRows(rows, [a1, a2]);
+    expect(next.map((r) => r.cells[0]).slice(0, 4)).toEqual(['Student', 'Chan S', 'Sok Dara (resit)', 'my own row']);
+  });
+
+  // The owner's report: an old "4 of 9" row sat in the sheet (cached in the
+  // browser) with nothing to say it belonged to the 9-question version of
+  // a test that now has 23 questions.
+  it('labels a row that is already on the sheet when the server has a remark for it', () => {
+    const old = attempt({ drillTitle: 'Orientation Diagnostic', drillSlug: 'diagnostic.html', scorePct: 44, correctCount: 4, totalCount: 9 });
+    const cached = [...attemptsToRows([old]).map((r) => ({ ...r, cells: r.cells.slice(0, 6) })), ...blankRows(2, 6)]; // sheet saved before the Note column existed
+    expect(gridWidth(cached)).toBe(6);
+    const note = 'Earlier version of this test (9 questions; it now has 23)';
+    const { rows: next, added } = syncServerRows(cached, [{ ...old, note }]);
+    expect(added).toBe(0);
+    expect(next[0].cells[6]).toBe('Note');
+    expect(next[1].cells.slice(3, 7)).toEqual(['4', '9', next[1].cells[5], note]);
+    // idempotent: a second refresh changes nothing
+    expect(syncServerRows(next, [{ ...old, note }]).rows).toBe(next);
+  });
+
+  it('never overwrites a column the teacher added: the Note goes to its own column', () => {
+    const old = attempt({ totalCount: 9 });
+    let rows = attemptsToRows([old]).map((r) => ({ ...r, cells: r.cells.slice(0, 6) }));
+    rows = setCell(rows, 0, 6, 'My grade', true);
+    rows = setCell(rows, 1, 6, 'B+', true);
+    const { rows: next } = syncServerRows(rows, [{ ...old, note: 'Earlier version' }]);
+    expect(next[0].cells.slice(6)).toEqual(['My grade', 'Note']);
+    expect(next[1].cells.slice(6)).toEqual(['B+', 'Earlier version']);
+  });
+
+  it('a new attempt with a remark carries it in the Note column', () => {
+    const rows = [...attemptsToRows([attempt()]), ...blankRows(2, 7)];
+    const fresh = attempt({ studentName: 'Chan S', submittedAt: '2026-11-09T10:00:00.000Z', note: 'Earlier version' });
+    const { rows: next } = syncServerRows(rows, [attempt(), fresh]);
+    expect(next[1].cells[0]).toBe('Chan S');
+    expect(next[1].cells[6]).toBe('Earlier version');
   });
 
   it('reports zero adds when everything is already there', () => {

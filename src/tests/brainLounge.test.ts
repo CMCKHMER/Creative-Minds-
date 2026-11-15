@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { BRAIN_GAMES, liveBrainGames, reservedBays, type BrainGameDef } from '../games/registry';
@@ -259,6 +259,49 @@ describe('mafia noir standalone cartridge', () => {
     expect(html).toContain('mafia-art/mafia-city.jpg'); // AI hero art wired
     expect(html).toContain('mafia-art/mafia-${k}.jpg'); // AI fan portraits wired
     expect(html).toContain('</html>');
+  });
+
+  it("wires the owner's artwork: card back, a picture per role, city-wins sunrise", () => {
+    const html = readFileSync(resolve(process.cwd(), 'public', 'mafia.html'), 'utf8');
+    // back of every role card — the drawn back stays underneath as the fallback
+    expect(html).toContain('<img class="cb-art" src="mafia-art/mafia-cardback.jpg"');
+    expect(html).toContain('>MN</text></svg><img class="cb-art"');
+    // front of the role card: one picture per role key, icon design if it fails
+    expect(html).toContain('<div class="rf-art"><img src="mafia-art/mafia-${k}.jpg"');
+    expect(html).toContain("classList.remove('has-art')");
+    // CASE CLOSED: the sunrise only when the city wins
+    expect(html).toContain('${winner==="town"?\'<div class="end-art"><img src="mafia-art/mafia-town-wins.jpg"');
+    // every role the game deals has a picture on disk, none of them heavy
+    const roles = [...html.matchAll(/^ (\w+):\{name:"/gm)].map((m) => m[1]);
+    expect(roles).toEqual(['mafia', 'detective', 'doctor', 'villager']);
+    for (const name of [...roles, 'cardback', 'town-wins', 'city', 'city-day']) {
+      const size = statSync(resolve(process.cwd(), 'public', 'mafia-art', `mafia-${name}.jpg`)).size;
+      expect(size, name).toBeGreaterThan(20_000);
+      expect(size, name).toBeLessThan(260_000);
+    }
+  });
+
+  it('paints the night city and the dawn city behind the page and the table', () => {
+    const html = readFileSync(resolve(process.cwd(), 'public', 'mafia.html'), 'utf8');
+    // two layers behind the page, two behind the seats
+    expect(html).toContain('<div id="bg"><div class="bg-art" id="bgNight"></div><div class="bg-art" id="bgDay"></div><div id="bgScrim"></div>');
+    expect(html).toContain('<div id="tableWrap" hidden><div class="tw-art" id="twNight"></div><div class="tw-art" id="twDay"></div><div id="twScrim"></div>');
+    // a picture is shown only after it has loaded; the drawn scene is the fallback
+    expect(html).toContain('get("mafia-art/mafia-city.jpg","has-art")');
+    expect(html).toContain('get("mafia-art/mafia-city-day.jpg","has-day")');
+    expect(html).toContain('#bg.has-art #moon,#bg.has-art #skyA,#bg.has-art #skyB,#bg.has-day #sun,#bg.has-day #dayWash{display:none}');
+    // the day picture follows the phase the game already sets on <body>
+    expect(html).toContain('body[data-phase=day] #bg.has-day #bgDay{opacity:.6}');
+    expect(html).toContain('document.body.dataset.phase=');
+  });
+
+  it('shows the CASE CLOSED role tiles and opens tall modals at the top', () => {
+    const html = readFileSync(resolve(process.cwd(), 'public', 'mafia.html'), 'utf8');
+    // the tiles rest at opacity 0, so the animation must name where it ends
+    expect(html).toContain('@keyframes revIn{from{opacity:0;transform:rotateY(90deg)}to{opacity:1;transform:none}}');
+    // focusing the first button must not scroll the verdict off a phone screen
+    expect(html.match(/b\.focus\(\{preventScroll:true\}\)/g)?.length).toBe(2);
+    expect(html).not.toContain('b.focus(),50');
   });
 
   it('carries the three audit bug fixes', () => {

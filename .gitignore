@@ -19,3 +19,8 @@ dist/tsconfig.tsbuildinfo
 .env
 .env.local
 .env.*.local
+
+# Answer-seal PRIVATE key (scripts/seal_tests.mjs --init-key). It belongs in
+# Firestore teacher_secrets/answer-seal — never in this public repository.
+.secrets/
+*.private.json

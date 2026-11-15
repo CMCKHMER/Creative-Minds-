@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useState } from 'react';
-import { ArrowUpRight, BookOpen, CheckCircle2, Check, ChevronDown, ChevronUp, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles } from 'lucide-react';
+import { ArrowUpRight, BarChart3, BookOpen, CheckCircle2, Check, ChevronDown, ChevronUp, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles } from 'lucide-react';
 import { KID_GRADE_RESOURCES, type KidGradeMaterial } from '../data/kidGradeResources';
 import { getProjectId, getValidIdToken, restoreSession } from '../lib/firebaseAuth';
+import { KidHomeworkScores } from './KidHomeworkScores';
 import { Reveal } from './Reveal';
 
 // Every online-homework share state lives in Firestore under biweekly_tests —
@@ -62,6 +63,11 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
   // the fold keeps students on the page with zero duplicated gate logic).
   // Per grade so the cards fold independently of each other.
   const [hwExpanded, setHwExpanded] = useState<Record<number, boolean>>({});
+  // Teacher-only score sheet of one homework (owner report: "I need to get
+  // their completion score because the live leaderboards don't show it").
+  // The submissions were stored all along, but no screen listed them per
+  // homework — the ticker and the games board only show "N drills · X% avg".
+  const [scoresFor, setScoresFor] = useState<{ material: KidGradeMaterial; grade: number } | null>(null);
 
   // All homework share docs across the grade cards (deduped).
   const shareDocIds = Array.from(new Set(
@@ -283,7 +289,7 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
                             const rowError = isTeacher && toggleError && toggleErrFor === material.id;
                             return (
                               <Fragment key={material.id}>
-                                <div className={`group/hw flex items-start gap-2 rounded-lg border p-2.5 transition ${isOpen ? 'border-emerald-200/20 bg-emerald-200/[0.05] hover:border-emerald-100/40 hover:bg-emerald-200/[0.09]' : 'border-white/10 bg-slate-950/50'}`}>
+                                <div className={`group/hw flex flex-wrap items-start gap-2 rounded-lg border p-2.5 transition ${isOpen ? 'border-emerald-200/20 bg-emerald-200/[0.05] hover:border-emerald-100/40 hover:bg-emerald-200/[0.09]' : 'border-white/10 bg-slate-950/50'}`}>
                                   {isOpen ? (
                                     <a href={material.href} aria-label={`Open Kid ${resource.grade} homework: ${material.title}`} className="flex min-w-0 flex-1 items-start gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">
                                       <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-200" aria-hidden="true" />
@@ -303,6 +309,12 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
                                   {isTeacher && (
                                     <button type="button" onClick={() => toggleHomeworkShare(material)} disabled={toggling || isPending} aria-label={isOpen ? `Close ${material.title} homework for students` : `Share ${material.title} homework with students`} title={isOpen ? 'Homework is open — select to close it again' : 'Share with students — opens this homework for the class'} className={`shrink-0 rounded-md border p-1.5 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200 disabled:opacity-60 ${isOpen ? 'border-emerald-200/25 bg-slate-950/50 text-emerald-100 hover:border-emerald-100/50 hover:bg-emerald-200/10' : 'border-amber-200/30 bg-amber-200/[0.08] text-amber-100 hover:border-amber-100/60 hover:bg-amber-200/[0.16]'}`}>
                                       {isOpen ? <Lock className="h-3.5 w-3.5" aria-hidden="true" /> : <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />}
+                                    </button>
+                                  )}
+                                  {/* Teacher-only: who handed this homework in and how they did. */}
+                                  {isTeacher && (
+                                    <button type="button" data-hw-scores={material.id} onClick={() => setScoresFor({ material, grade: resource.grade })} aria-label={`See the scores of ${material.title}`} className="inline-flex basis-full items-center justify-center gap-1.5 rounded-md border border-cyan-200/25 bg-slate-950/50 px-2 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:border-cyan-100/50 hover:bg-cyan-200/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200">
+                                      <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" /> Scores
                                     </button>
                                   )}
                                 </div>
@@ -337,7 +349,7 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
                         {!isTeacher && homework.every((material) => material.hideUntilShared && ((material.shareDoc && shareStatus[material.shareDoc]) || 'pending') !== 'open') && (
                           <p className="mt-2 text-[9px] leading-relaxed text-slate-600">Your teacher hasn’t shared homework here yet — it appears the moment they open it.</p>
                         )}
-                        <p className="mt-2 text-[9px] leading-relaxed text-slate-500">{isTeacher ? 'Each homework has its own share switch — students only see the homeworks you have opened · they press “Submit to Teacher” when done.' : 'Your teacher opens each homework here · students press “Submit to Teacher” when done.'}</p>
+                        <p className="mt-2 text-[9px] leading-relaxed text-slate-500">{isTeacher ? 'Each homework has its own share switch — students only see the homeworks you have opened · they press “Submit to Teacher” when done · “Scores” lists who handed it in and how they did.' : 'Your teacher opens each homework here · students press “Submit to Teacher” when done.'}</p>
                       </div>
                     )}
                   </>
@@ -356,6 +368,14 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
         <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 7 worksheets open in this site (each with a back-to-CMC button; answer keys on Kid 7 dictation are teacher-locked); Kid 11 links to the separate Reading Future Create 3 pages, and its online homework opens here too — the teacher flips the Share-with-students switch for each homework (Units 2, 3, 4, 13, 14 and 15 each come as three homeworks the teacher shares one at a time, so students only ever see the homework that was assigned to them), and every page carries a Submit-to-Teacher completion button plus a share link for the class chat. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP &amp; ISEC Program Resources section below.</span></p>
         </Reveal>
       </div>
+      {isTeacher && scoresFor && (
+        <KidHomeworkScores
+          title={scoresFor.material.title}
+          href={scoresFor.material.href}
+          gradeLabel={`Kid ${scoresFor.grade}`}
+          onClose={() => setScoresFor(null)}
+        />
+      )}
     </section>
   );
 }

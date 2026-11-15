@@ -705,7 +705,6 @@ function svgPreview(cat,color){
 const WEEKS=[
   {n:2,cat:'orientation',title:'Orientation & Diagnostic',skill:'All sections · Baseline',activity:'Take the diagnostic test to identify strengths and weaknesses.',tests:[{text:'L9b Grammar: Parallel Structure',file:'9b-w2-grammar.html',icon:'fa-spell-check'},
     {text:'Diagnostic Test',file:'diagnostic.html',icon:'fa-clipboard-list'},
-    {text:'Level 9b Parallel Structure',file:'grammar.html',icon:'fa-spell-check'},
     {text:'Business Listening',file:'business-listening.html',icon:'fa-briefcase'},
     {text:'Level 11b Structure',file:'structure.html',icon:'fa-pen-ruler'},
     {text:'L11b Matching: Logical Connectors',file:'isec2-w2-matching.html',icon:'fa-link'},
@@ -885,13 +884,20 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
 .bp-modal-card{max-width:680px;width:100%;max-height:88vh;overflow:auto;padding:22px;border-radius:18px;background:var(--card);
   border:1px solid var(--border);backdrop-filter:blur(14px);box-shadow:0 30px 80px -42px rgba(0,0,0,.6);color:var(--text)}
 </style>
+<script src="./answer-seal.js?v=2"></script>
 <script>
 /* Teacher share + results for bi-weekly tests.
  * - "Share test" builds the student invite link: tests/<file>?invite=<TEACHER-CODE>
  * - The teacher ID code is stored once per device (localStorage) and rides on
  *   every student attempt so results attribute back to the sharing teacher.
- * - "Results" lists every recorded attempt for that test (public read on
- *   drill_attempts — same source the homepage ticker uses) with CSV export.
+ *   The code is registered to the teacher's account before the link can be
+ *   copied; an unregistered code would make the database refuse every answer.
+ * - The window states how many questions the test has (test-counts.json,
+ *   generated from the test pages by scripts/test_counts.mjs).
+ * - "Results" lists this teacher's invite attempts for that test
+ *   (invite_attempts, signed-in read), scored here against the test's own
+ *   answer key, with CSV export. Results recorded for an earlier version of
+ *   a test (another question count) are listed apart and labelled.
  */
 (function(){
   'use strict';
@@ -921,6 +927,7 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
       '<button type="button" id="bp-modal-x" aria-label="Close" style="position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:14px"><i class="fas fa-xmark"></i></button>'+
       '<p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)">Teacher tools</p>'+
       '<h3 id="bp-modal-title" class="font-display" style="margin:4px 0 0;font-size:19px;font-weight:800">'+esc('Share test')+'</h3>'+
+      '<p id="bp-modal-count" style="margin:5px 0 0;font-size:12px;font-weight:700;color:var(--accent)"></p>'+
       '<div style="display:flex;gap:6px;margin:14px 0 0">'+
         '<button type="button" id="bp-tab-share" class="bp-tab" style="flex:1">Share with students</button>'+
         '<button type="button" id="bp-tab-results" class="bp-tab" style="flex:1">Results</button>'+
@@ -981,23 +988,17 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
   function open(file,text,tabName){
     currentFile=file;currentText=text||file;
     el('bp-modal-title').textContent=currentText;
+    showCount(file);
     var code=getCode();
-    if(!code){setCode('TEACHER-'+Math.random().toString(36).slice(2,6).toUpperCase());code=getCode();}
+    if(!code){setCode(freshCode());code=getCode();}
     el('bp-code').value=code;
     el('bp-link').value=inviteUrl(file);
-    codeHint();
+    checkCode(0);
     modal.hidden=false;
     tab(tabName||'share');
     track('biweek_share_open',{drill_slug:file});
   }
   function close(){modal.hidden=true;if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}}
-
-  function codeHint(){
-    var c=el('bp-code').value;
-    el('bp-code-hint').textContent=c.length>=3
-      ?'Saved on this device — every link you share carries this code.'
-      :'Code needs at least 3 letters/numbers (A–Z, 0–9, dash, underscore).';
-  }
 
   el('bp-modal-x').addEventListener('click',close);
   modal.addEventListener('click',function(e){if(e.target===modal)close();});
@@ -1008,90 +1009,387 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
     var before=el('bp-code').value;
     var clean=sanitizeCode(before);
     if(clean!==before)el('bp-code').value=clean;
-    setCode(clean);el('bp-link').value=inviteUrl(currentFile);codeHint();
+    setCode(clean);el('bp-link').value=inviteUrl(currentFile);checkCode(700);
   });
   el('bp-code-gen').addEventListener('click',function(){
-    setCode('TEACHER-'+Math.random().toString(36).slice(2,6).toUpperCase());
-    el('bp-code').value=getCode();el('bp-link').value=inviteUrl(currentFile);codeHint();
+    setCode(freshCode());
+    el('bp-code').value=getCode();el('bp-link').value=inviteUrl(currentFile);checkCode(0);
   });
   el('bp-copy').addEventListener('click',function(){
+    if(codeStatus!=='ok')return;
     var url=inviteUrl(currentFile);
     var done=function(){var b=el('bp-copy');b.innerHTML='<i class="fas fa-check"></i> Copied!';setTimeout(function(){b.innerHTML='<i class="fas fa-copy"></i> Copy';},1500);};
     try{navigator.clipboard.writeText(url).then(done).catch(done);}catch(e){done();}
     track('biweek_share_copy',{drill_slug:currentFile});
   });
-  el('bp-preview').addEventListener('click',function(){window.open(inviteUrl(currentFile),'_blank','noopener');});
+  el('bp-preview').addEventListener('click',function(){if(codeStatus!=='ok')return;window.open(inviteUrl(currentFile),'_blank','noopener');});
   el('bp-native-share').addEventListener('click',function(){
+    if(codeStatus!=='ok')return;
     var url=inviteUrl(currentFile);
     if(navigator.share){navigator.share({title:currentText+' — CMC bi-weekly test',url:url}).catch(function(){});}
     else{try{navigator.clipboard.writeText(url);}catch(e){}var b=el('bp-native-share');b.innerHTML='<i class="fas fa-check"></i> Link copied';setTimeout(function(){b.innerHTML='<i class="fas fa-share-nodes"></i> Share…';},1500);}
   });
 
-  // ── results (public read on drill_attempts, anonymous REST) ──────
+  // ── question counts (test-counts.json — generated from the test pages) ──
+  var countsPromise=null;
+  function loadCounts(){
+    if(!countsPromise){
+      countsPromise=fetch('test-counts.json',{cache:'no-cache'})
+        .then(function(r){return r.ok?r.json():null;})
+        .then(function(d){return d&&d.tests?d.tests:null;})
+        .catch(function(){countsPromise=null;return null;});
+    }
+    return countsPromise;
+  }
+  function slugOf(file){return String(file||'').replace(/\.html$/,'');}
+  function plural(n,word){return n+' '+word+(n===1?'':'s');}
+  /** "23 questions — Part A 6 · Part B 5 · Part C 5 · Part D 7" */
+  function countLine(t){
+    if(!t)return '';
+    var parts=(t.parts||[]).map(function(p){return String(p.title||'').split(' · ')[0].replace(/\s*\(.*$/,'')+' '+p.total;});
+    return plural(t.total,'question')+(parts.length>1?' — '+parts.join(' · '):'');
+  }
+  function showCount(file){
+    var line=el('bp-modal-count');
+    line.textContent='';
+    loadCounts().then(function(counts){
+      if(file!==currentFile)return;
+      var t=counts&&counts[slugOf(file)];
+      line.textContent=t?countLine(t):'';
+    });
+  }
+  // Every test button says how many questions the test has (tooltip).
+  loadCounts().then(function(counts){
+    if(!counts)return;
+    Array.prototype.forEach.call(document.querySelectorAll('.bp-test-row'),function(row){
+      var share=row.querySelector('.bp-share'),link=row.querySelector('a.drill-btn');
+      var t=share&&counts[slugOf(share.dataset.file)];
+      if(!t||!link)return;
+      link.title='Open '+share.dataset.text+' — '+plural(t.total,'question');
+      share.title='Share with students · view results — '+plural(t.total,'question');
+    });
+  });
+
+  // ── teacher session + invite-code registration ────────────────────
+  // A student's attempt is accepted by the database only when the invite
+  // code on the link is REGISTERED to a teacher (invite_codes/<code>); the
+  // attempt is then stored for that teacher alone. A code that was typed
+  // here but never registered made every submission bounce, so the code is
+  // now registered before the link can be copied.
+  var FS='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents';
+  var SEAL=window.CMC_ANSWER_SEAL||null;
+  var MIN_CODE=8,MAX_CODE=24; // database rule: 8–32 characters; the test page reads 24
+  var codeStatus='idle',codeSeq=0,codeTimer=null;
+
+  function session(forceRefresh){
+    if(!SEAL||!SEAL.session)return Promise.resolve(null);
+    return (forceRefresh&&SEAL.refreshSession?SEAL.refreshSession():SEAL.session()).catch(function(){return null;});
+  }
+  /** fetch with the teacher's token; one silent token refresh on 401. */
+  function authFetch(url,init,retried){
+    return session(!!retried).then(function(s){
+      if(!s||!s.token){var e=new Error('signin');e.code='signin';throw e;}
+      var opts={method:(init&&init.method)||'GET',headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.token}};
+      if(init&&init.body)opts.body=init.body;
+      return fetch(url,opts).then(function(res){
+        if(res.status===401&&!retried)return authFetch(url,init,true);
+        return {res:res,uid:s.uid};
+      });
+    });
+  }
+  /** The database treats an account as a teacher only once it is on the
+   *  teachers list. The dashboard adds it on first visit; a teacher who has
+   *  only ever used this planner is added here. Resolves to true/false. */
+  var teacherReady=null;
+  function ensureTeacher(){
+    if(!teacherReady){
+      teacherReady=session(false).then(function(s){
+        if(!s||!s.token)return false;
+        return authFetch(FS+'/teachers/'+encodeURIComponent(s.uid),null,false).then(function(out){
+          if(out.res.ok)return true;
+          if(out.res.status!==404)return false;
+          return authFetch(FS+'/teachers?documentId='+encodeURIComponent(s.uid),{method:'POST',
+            body:JSON.stringify({fields:{registeredAt:{stringValue:new Date().toISOString()}}})},false)
+            .then(function(o){return o.res.ok||o.res.status===409;});
+        });
+      }).catch(function(){return false;});
+      teacherReady.then(function(ok){if(!ok)teacherReady=null;});
+    }
+    return teacherReady;
+  }
+  function codeOwner(code){
+    return fetch(FS+'/invite_codes/'+encodeURIComponent(code),{cache:'no-store'})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(doc){var f=doc&&doc.fields;return f&&f.teacherUid&&f.teacherUid.stringValue?f.teacherUid.stringValue:'';})
+      .catch(function(){return null;}); // null = could not ask
+  }
+  /** Resolves to 'ok' | 'taken' | 'short' | 'signin' | 'denied' | 'offline'. */
+  function registerCode(code){
+    if(code.length<MIN_CODE||code.length>MAX_CODE)return Promise.resolve('short');
+    return ensureTeacher().then(function(){return session(false);}).then(function(s){
+      if(!s||!s.token)return 'signin';
+      return authFetch(FS+'/invite_codes?documentId='+encodeURIComponent(code),{method:'POST',
+        body:JSON.stringify({fields:{teacherUid:{stringValue:s.uid},registeredAt:{stringValue:new Date().toISOString()}}})
+      },false).then(function(out){
+        if(out.res.ok)return 'ok';
+        var status=out.res.status;
+        // Already registered (409), or refused: ask the public registry who owns it.
+        return codeOwner(code).then(function(owner){
+          if(owner===null)return 'offline';
+          if(owner)return owner===out.uid?'ok':'taken';
+          if(status===401)return 'signin';
+          if(status===403)return 'denied';
+          return 'offline';
+        });
+      });
+    }).catch(function(e){return e&&e.code==='signin'?'signin':'offline';});
+  }
+  var CODE_TEXT={
+    idle:'',
+    checking:'Checking the code…',
+    ok:'✓ This code is registered to your account — results from every link you share come back to you.',
+    taken:'⚠ Another teacher already uses this code. Choose a different one — with this code your students’ results would not reach you.',
+    short:'The code needs 8 to 24 letters or numbers (A–Z, 0–9, dash, underscore).',
+    signin:'⚠ Your teacher session has expired. Sign in again on the main site, then reopen this window.',
+    denied:'⚠ This account cannot register a code (verified teacher accounts only). Students’ answers sent with this link would be refused.',
+    offline:'⚠ Could not reach the server to register the code. Check the connection and try again — do not share the link yet.'
+  };
+  function codeHint(){
+    var hint=el('bp-code-hint');
+    hint.textContent=CODE_TEXT[codeStatus]||'';
+    hint.style.color=codeStatus==='ok'?'#34d399':(codeStatus==='idle'||codeStatus==='checking'||codeStatus==='short')?'var(--muted)':'#f87171';
+    var ready=codeStatus==='ok';
+    ['bp-copy','bp-preview','bp-native-share'].forEach(function(id){
+      var b=el(id);b.disabled=!ready;b.style.opacity=ready?'1':'.45';b.style.cursor=ready?'pointer':'not-allowed';
+    });
+    el('bp-link').style.opacity=ready?'1':'.5';
+  }
+  function checkCode(delay){
+    var code=getCode(),seq=++codeSeq;
+    if(codeTimer){clearTimeout(codeTimer);codeTimer=null;}
+    if(code.length<MIN_CODE){codeStatus='short';codeHint();return;}
+    codeStatus='checking';codeHint();
+    codeTimer=setTimeout(function(){
+      registerCode(code).then(function(status){
+        if(seq!==codeSeq)return; // the code changed while we were asking
+        codeStatus=status;codeHint();
+      });
+    },delay||0);
+  }
+  function freshCode(){return 'TEACHER-'+Math.random().toString(36).slice(2,6).toUpperCase();}
+
+  // ── results ────────────────────────────────────────────────────────
+  // Students' invite attempts are stored in invite_attempts, readable only
+  // by the teacher who owns the code (signed-in read). The answers are not
+  // graded on the student's device — the test pages are sealed — so each
+  // sheet is graded HERE against the test's own answer key, and the total
+  // is always the number of questions the test really has.
+  // Before 9 Nov 2026 invite attempts went to the public drill_attempts
+  // feed; those older rows are still shown, in their own block, and marked
+  // when the test had a different number of questions at the time.
   function dec(v){
     if(!v)return '';
     if('stringValue'in v)return v.stringValue;
     if('integerValue'in v)return Number(v.integerValue);
+    if('doubleValue'in v)return Number(v.doubleValue);
     if('booleanValue'in v)return v.booleanValue;
     if('timestampValue'in v)return v.timestampValue;
     if('mapValue'in v){var out={},f=(v.mapValue&&v.mapValue.fields)||{};Object.keys(f).forEach(function(k){out[k]=dec(f[k]);});return out;}
     return '';
   }
-  var resultsCache=[];
-  function loadResults(file){
-    el('bp-results-meta').textContent='Loading results…';
-    el('bp-results-wrap').innerHTML='<p style="font-size:11.5px;color:var(--muted);padding:12px 2px">Fetching…</p>';
-    try{
-      fetch('https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents:runQuery',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({structuredQuery:{from:[{collectionId:'drill_attempts',allDescendants:false}],
-          where:{fieldFilter:{field:{fieldPath:'drillSlug'},op:'EQUAL',value:{stringValue:file}}},limit:200}})
-      }).then(function(r){return r.ok?r.json():[];}).then(function(rows){
-        var docs=(Array.isArray(rows)?rows:[]).filter(function(r){return r&&r.document;})
-          .map(function(r){var f=r.document.fields||{},d={id:(r.document.name||'').split('/').pop()};
-            ['studentName','studentCode','inviteCode','answers','drillSource','submittedAt'].forEach(function(k){d[k]=dec(f[k]);});
-            ['scorePct','correctCount','totalCount','durationSeconds'].forEach(function(k){d[k]=dec(f[k]);});
-            d.inviteMode=dec(f.inviteMode)===true;d.integrity=dec(f.integrity)||{};return d;})
-          .filter(function(d){return d.inviteMode;}) // invite attempts only — practice attempts stay on the student dashboard
-          .sort(function(a,b){return String(b.submittedAt||'').localeCompare(String(a.submittedAt||''));});
-        resultsCache=docs;
-        renderResults(docs);
-      }).catch(function(){renderResults([]);});
-    }catch(e){renderResults([]);}
-    if(refreshTimer)clearInterval(refreshTimer);
-    refreshTimer=setInterval(function(){if(!modal.hidden&&currentFile)loadResults(currentFile);},8000);
-  }
-  function renderResults(docs){
-    el('bp-results-meta').textContent=docs.length
-      ?docs.length+' submitted invite attempt'+(docs.length===1?'':'s')+' · auto-refreshes'
-      :'No student has submitted through an invite link yet.';
-    if(!docs.length){el('bp-results-wrap').innerHTML='<p style="font-size:11.5px;color:var(--muted);padding:12px 2px">Share the student link first — submissions land here automatically (name, ID, score and full answer sheet).</p>';return;}
-    var rows=docs.map(function(d){
-      var flags=(d.integrity&&((d.integrity.blurs||0)+(d.integrity.fsExits||0)+(d.integrity.copies||0)))||0;
-      var when=d.submittedAt?new Date(d.submittedAt).toLocaleString():'—';
-      return '<tr>'+
-        '<td style="font-weight:700;white-space:nowrap">'+esc(d.studentName||'—')+'</td>'+
-        '<td style="white-space:nowrap">'+esc(d.studentCode||'—')+'</td>'+
-        '<td style="white-space:nowrap">'+esc(d.inviteCode||'—')+'</td>'+
-        '<td style="font-weight:700;white-space:nowrap;color:'+(d.scorePct>=80?'#34d399':d.scorePct>=50?'#fbbf24':'#f87171')+'">'+(d.scorePct==null?'—':d.scorePct+'%')+' <span style="color:var(--muted);font-weight:400">('+esc(d.correctCount==null?'?':d.correctCount)+'/'+esc(d.totalCount==null?'?':d.totalCount)+')</span></td>'+
-        '<td style="white-space:nowrap">'+(d.durationSeconds!=null?Math.round(d.durationSeconds/60)+'m':'—')+'</td>'+
-        '<td style="white-space:nowrap">'+(flags?'<span style="color:#f87171">⚠ '+flags+'</span>':'<span style="color:#34d399">✓</span>')+'</td>'+
-        '<td style="white-space:nowrap;font-size:10.5px;color:var(--muted)">'+esc(when)+'</td>'+
-        '<td class="bp-ans" title="'+esc(d.answers||'')+'">'+esc(d.answers||'—')+'</td>'+
-      '</tr>';
-    }).join('');
-    el('bp-results-wrap').innerHTML='<table class="bp-results-table"><thead><tr>'+
-      '<th>Student</th><th>ID</th><th>Code</th><th>Score</th><th>Time</th><th>Flags</th><th>Submitted</th><th>Answers</th>'+
-      '</tr></thead><tbody>'+rows+'</tbody></table>';
-  }
-  function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
-  el('bp-csv').addEventListener('click',function(){
-    var lines=[['Student','Student ID','Teacher code','Score %','Correct','Total','Duration s','Flags','Submitted','Answers'].join(',')];
-    resultsCache.forEach(function(d){
-      var flags=(d.integrity&&((d.integrity.blurs||0)+(d.integrity.fsExits||0)+(d.integrity.copies||0)))||0;
-      lines.push([d.studentName,d.studentCode,d.inviteCode,d.scorePct,d.correctCount,d.totalCount,d.durationSeconds,flags,d.submittedAt,d.answers].map(csvCell).join(','));
+  function docsOf(rows){
+    return (Array.isArray(rows)?rows:[]).filter(function(r){return r&&r.document;}).map(function(r){
+      var f=r.document.fields||{},d={id:(r.document.name||'').split('/').pop()};
+      ['studentName','studentCode','inviteCode','answers','drillSource','submittedAt','sheet'].forEach(function(k){d[k]=dec(f[k]);});
+      ['scorePct','correctCount','totalCount','durationSeconds'].forEach(function(k){d[k]=dec(f[k]);});
+      d.inviteMode=dec(f.inviteMode)===true;d.sealed=dec(f.sealed)===true;d.integrity=dec(f.integrity)||{};
+      return d;
     });
-    var blob=new Blob([lines.join('\n')],{type:'text/csv'});
+  }
+  function query(collection,filters,limit){
+    var where=filters.length===1?{fieldFilter:filters[0]}:{compositeFilter:{op:'AND',filters:filters.map(function(f){return{fieldFilter:f};})}};
+    return JSON.stringify({structuredQuery:{from:[{collectionId:collection,allDescendants:false}],where:where,limit:limit}});
+  }
+  function eq(field,value){return{field:{fieldPath:field},op:'EQUAL',value:{stringValue:value}};}
+
+  /** This teacher's invite attempts for one test. Resolves to
+   *  { docs, problem } — problem is '' | 'signin' | 'denied' | 'offline'. */
+  function fetchInviteAttempts(file){
+    return ensureTeacher().then(function(){return session(false);}).then(function(s){
+      if(!s||!s.token)return{docs:[],problem:'signin'};
+      return authFetch(FS+':runQuery',{method:'POST',body:query('invite_attempts',[eq('drillSlug',file),eq('teacherUid',s.uid)],300)},false)
+        .then(function(out){
+          if(out.res.ok)return out.res.json().then(function(rows){return{docs:docsOf(rows),problem:''};});
+          return{docs:[],problem:out.res.status===401?'signin':out.res.status===403?'denied':'offline'};
+        });
+    }).catch(function(e){return{docs:[],problem:e&&e.code==='signin'?'signin':'offline'};});
+  }
+  /** Invite attempts recorded in the public feed before the private
+   *  pipeline existed (anonymous read, as before). */
+  function fetchLegacyAttempts(file){
+    return fetch(FS+':runQuery',{method:'POST',headers:{'Content-Type':'application/json'},body:query('drill_attempts',[eq('drillSlug',file)],300)})
+      .then(function(r){return r.ok?r.json():[];})
+      .then(function(rows){return docsOf(rows).filter(function(d){return d.inviteMode;});})
+      .catch(function(){return[];});
+  }
+
+  // Answer keys, opened once per test and kept in memory only.
+  var keyCache={},bundlePromise=null;
+  function loadBundle(){
+    if(!bundlePromise){
+      bundlePromise=fetch('answer-seals.json',{cache:'no-cache'})
+        .then(function(r){if(!r.ok)throw new Error('bundle');return r.json();})
+        .catch(function(e){bundlePromise=null;throw e;});
+    }
+    return bundlePromise;
+  }
+  /** Resolves to { map, problem }: map = { questionId: answer } or null. */
+  function openKey(slug){
+    if(keyCache[slug])return Promise.resolve({map:keyCache[slug],problem:''});
+    if(!SEAL||!SEAL.open||!window.crypto||!window.crypto.subtle)return Promise.resolve({map:null,problem:'network'});
+    return loadBundle().then(function(bundle){
+      var seal=bundle&&bundle.seals&&bundle.seals[slug];
+      if(!seal){var e=new Error('no seal');e.code='layout';throw e;}
+      return SEAL.open(slug,seal);
+    }).then(function(payload){
+      keyCache[slug]=SEAL.keyMap(payload);
+      return{map:keyCache[slug],problem:''};
+    }).catch(function(e){return{map:null,problem:(e&&e.code)||'network'};});
+  }
+  var KEY_TEXT={
+    missing:'The school answer key is not installed yet, so these answers cannot be scored. The site owner installs it once from the dashboard (Bi-Weekly Tests → Answer protection).',
+    denied:'This account cannot open answer keys — only verified teacher accounts can — so these answers cannot be scored here.',
+    signin:'Your teacher session has expired. Sign in again on the main site to score these answers.',
+    mismatch:'The installed answer key does not match this test, so these answers cannot be scored.',
+    layout:'This test has no answer key on the site. Tell the site owner.',
+    network:'Could not reach the server to open the answer key. Scores will appear when the connection is back.'
+  };
+  function parseSheet(text){
+    try{var o=JSON.parse(String(text||''));return o&&o.a&&typeof o.a==='object'?o.a:null;}catch(e){return null;}
+  }
+  /** One table row from a stored attempt. Sealed attempts are graded with
+   *  the key; the total is the key's size, never what the device reported. */
+  function toRow(d,key,legacy){
+    var row={studentName:d.studentName,studentCode:d.studentCode,inviteCode:d.inviteCode,durationSeconds:d.durationSeconds,
+      submittedAt:d.submittedAt,answers:d.answers,integrity:d.integrity,legacy:!!legacy,graded:true,
+      correct:d.correctCount,total:d.totalCount,pct:d.scorePct};
+    if(d.sealed){
+      var sheet=parseSheet(d.sheet);
+      if(key&&sheet){
+        var ids=Object.keys(key),ok=0;
+        ids.forEach(function(id){if(sheet[id]!==undefined&&sheet[id]!==''&&String(sheet[id])===key[id])ok++;});
+        row.correct=ok;row.total=ids.length;row.pct=ids.length?Math.round(ok/ids.length*100):0;
+      }else{row.graded=false;row.correct=null;row.pct=null;}
+    }
+    return row;
+  }
+  function flagsOf(r){return (r.integrity&&((r.integrity.blurs||0)+(r.integrity.fsExits||0)+(r.integrity.copies||0)))||0;}
+  function byNewest(a,b){return String(b.submittedAt||'').localeCompare(String(a.submittedAt||''));}
+
+  var resultsCache=[],resultsNow=0,loadSeq=0;
+  function loadResults(file,quiet){
+    var seq=++loadSeq;
+    if(!quiet){
+      el('bp-results-meta').textContent='Loading results…';
+      el('bp-results-wrap').innerHTML='<p style="font-size:11.5px;color:var(--muted);padding:12px 2px">Fetching…</p>';
+    }
+    Promise.all([loadCounts(),fetchInviteAttempts(file),fetchLegacyAttempts(file)]).then(function(v){
+      var counts=v[0],mine=v[1],legacy=v[2];
+      var needKey=mine.docs.some(function(d){return d.sealed;});
+      return (needKey?openKey(slugOf(file)):Promise.resolve({map:null,problem:''})).then(function(k){
+        if(seq!==loadSeq||file!==currentFile)return;
+        var t=counts&&counts[slugOf(file)];
+        var rows=mine.docs.map(function(d){return toRow(d,k.map,false);})
+          .concat(legacy.map(function(d){return toRow(d,null,true);})).sort(byNewest);
+        resultsCache=rows;resultsNow=t?t.total:0;
+        renderResults(rows,{now:resultsNow,readProblem:mine.problem,keyProblem:needKey?k.problem:''});
+      });
+    }).catch(function(){
+      if(seq!==loadSeq)return;
+      el('bp-results-meta').textContent='Could not load the results.';
+      el('bp-results-wrap').innerHTML='<p style="font-size:11.5px;color:#f87171;padding:12px 2px">Check the connection, then open Results again.</p>';
+    });
+    if(refreshTimer)clearInterval(refreshTimer);
+    refreshTimer=setInterval(function(){if(!modal.hidden&&currentFile&&!el('bp-pane-results').hidden)loadResults(currentFile,true);},15000);
+  }
+  /** A row belongs to an earlier version of the test when it was scored
+   *  out of a different number of questions than the test has today. */
+  function isOldVersion(r,now){return !!now&&r.total!=null&&r.total!==''&&Number(r.total)!==now;}
+  function note(text,color){
+    return '<p style="margin:0 0 8px;padding:9px 11px;border-radius:10px;font-size:11.5px;line-height:1.55;border:1px solid '+color+';color:var(--text);background:rgba(148,163,184,.06)">'+text+'</p>';
+  }
+  function rowHtml(r,old){
+    var flags=flagsOf(r);
+    var when=r.submittedAt?new Date(r.submittedAt).toLocaleString():'—';
+    var score;
+    if(!r.graded){
+      score='<span style="color:var(--muted);font-weight:600">Not scored yet</span> <span style="color:var(--muted);font-weight:400">('+esc(r.total==null?'—':r.total)+' questions)</span>';
+    }else{
+      var color=old?'var(--muted)':(r.pct>=80?'#34d399':r.pct>=50?'#fbbf24':'#f87171');
+      score='<span style="color:'+color+'">'+(r.pct==null||r.pct===''?'—':esc(r.pct)+'%')+'</span> <span style="color:var(--muted);font-weight:400">('+esc(r.correct)+'/'+esc(r.total)+')</span>';
+    }
+    return '<tr'+(old?' style="opacity:.75"':'')+'>'+
+      '<td style="font-weight:700;white-space:nowrap">'+esc(r.studentName||'—')+'</td>'+
+      '<td style="white-space:nowrap">'+esc(r.studentCode||'—')+'</td>'+
+      '<td style="white-space:nowrap">'+esc(r.inviteCode||'—')+'</td>'+
+      '<td style="font-weight:700;white-space:nowrap">'+score+'</td>'+
+      '<td style="white-space:nowrap">'+(r.durationSeconds!=null&&r.durationSeconds!==''?Math.round(r.durationSeconds/60)+'m':'—')+'</td>'+
+      '<td style="white-space:nowrap">'+(flags?'<span style="color:#f87171">⚠ '+flags+'</span>':'<span style="color:#34d399">✓</span>')+'</td>'+
+      '<td style="white-space:nowrap;font-size:10.5px;color:var(--muted)">'+esc(when)+'</td>'+
+      '<td class="bp-ans" title="'+esc(r.answers||'')+'">'+esc(r.answers||'—')+'</td>'+
+    '</tr>';
+  }
+  function tableHtml(rows,old){
+    return '<table class="bp-results-table"><thead><tr>'+
+      '<th>Student</th><th>ID</th><th>Code</th><th>Score</th><th>Time</th><th>Flags</th><th>Submitted</th><th>Answers</th>'+
+      '</tr></thead><tbody>'+rows.map(function(r){return rowHtml(r,old);}).join('')+'</tbody></table>';
+  }
+  var READ_TEXT={
+    signin:'Your teacher session has expired, so your students’ results cannot be read. Sign in again on the main site, then reopen this window.',
+    denied:'This account cannot read test results (verified teacher accounts only).',
+    offline:'Could not reach the server to read your students’ results. They will appear when the connection is back.'
+  };
+  function renderResults(rows,info){
+    var now=info.now;
+    var current=rows.filter(function(r){return !isOldVersion(r,now);});
+    var older=rows.filter(function(r){return isOldVersion(r,now);});
+    var unscored=current.filter(function(r){return !r.graded;}).length;
+    var head=now?'This test has '+plural(now,'question')+'. ':'';
+    el('bp-results-meta').textContent=head+(current.length
+      ?plural(current.length,'result')+' · refreshes by itself'
+      :'No student has submitted this test through your link yet.');
+    var html='';
+    if(info.readProblem)html+=note(esc(READ_TEXT[info.readProblem]||READ_TEXT.offline),'rgba(248,113,113,.45)');
+    if(unscored&&info.keyProblem)html+=note(esc(KEY_TEXT[info.keyProblem]||KEY_TEXT.network),'rgba(251,191,36,.45)');
+    if(current.length){
+      html+=tableHtml(current,false);
+    }else if(!info.readProblem){
+      html+='<p style="font-size:11.5px;color:var(--muted);padding:12px 2px">Share the student link first — submissions land here automatically (name, ID, score and full answer sheet).</p>';
+    }
+    if(older.length){
+      var sizes={};older.forEach(function(r){sizes[r.total]=1;});
+      var list=Object.keys(sizes).sort(function(a,b){return Number(a)-Number(b);}).join(' or ');
+      html+='<div style="margin-top:16px;padding-top:12px;border-top:1px dashed var(--border)">'+
+        note('<b>Earlier version of this test — '+plural(older.length,'older result')+'.</b> '+
+          'These were taken when the test had '+esc(list)+' question'+(list==='1'?'':'s')+'; it now has '+esc(now)+'. '+
+          'They are kept for your records and are not results of the current test.','rgba(148,163,184,.4)')+
+        tableHtml(older,true)+'</div>';
+    }
+    el('bp-results-wrap').innerHTML=html;
+  }
+  function csvCell(v){
+    v=String(v==null?'':v);
+    if(/^[=+\-@\t\r]/.test(v))v="'"+v; // never let a typed name run as a spreadsheet formula
+    return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
+  }
+  el('bp-csv').addEventListener('click',function(){
+    var lines=[['Student','Student ID','Teacher code','Score %','Correct','Total','Duration s','Flags','Submitted','Note','Answers'].join(',')];
+    resultsCache.forEach(function(r){
+      var remark=!r.graded?'Not scored yet (answer key not open)'
+        :isOldVersion(r,resultsNow)?'Earlier version of this test ('+r.total+' questions; it now has '+resultsNow+')':'';
+      lines.push([r.studentName,r.studentCode,r.inviteCode,r.pct,r.correct,r.total,r.durationSeconds,flagsOf(r),r.submittedAt,remark,r.answers].map(csvCell).join(','));
+    });
+    var blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv'});
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
     a.href=url;a.download='results-'+(currentFile||'test').replace(/\.html$/,'')+'.csv';a.click();
