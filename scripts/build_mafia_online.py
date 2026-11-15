@@ -64,10 +64,12 @@ j = html.find(tail, html.find('$("#ouBack").onclick')) + len(tail)
 NEW_GUARD = (
  'function onlineUnavailable(kind){'
  'setConn("off");'
- 'var denied=kind==="denied";'
- 'openModal("<div class=\'m-kicker\'>ONLINE TABLES</div><div class=\'m-title\'>"+(denied?"The table is closed to you":"Sign in to play online")+"</div>"'
- '+(denied'
- '?"<p class=\'m-sub\'>This table only accepts the CMC account that hosts it. Sign in with that account, or open a table of your own.</p>"'
+ 'var denied=kind==="denied",unver=false;try{unver=denied&&localStorage.getItem("cmc-student-verified")==="0"}catch(e){}'
+ 'openModal("<div class=\'m-kicker\'>ONLINE TABLES</div><div class=\'m-title\'>"+(unver?"Verify your email first":denied?"Online tables are not switched on":"Sign in to play online")+"</div>"'
+ '+(unver'
+ '?"<p class=\'m-sub\'>Online tables only accept CMC accounts with a <b>verified email address</b>. Open the verification link CMC sent to your inbox, sign in again on the CMC site, then come back.<br><br>Solo Case and Pass &amp; Play work without it.</p>"'
+ ':denied'
+ '?"<p class=\'m-sub\'>You are signed in, but the CMC database refused the request. Either your email address is not verified yet (check your inbox, then sign in again), or the site owner has not published the database rules for Mafia rooms.<br><br>Solo Case and Pass &amp; Play work in the meantime.</p>"'
  ':"<p class=\'m-sub\'>Online rooms run on CMC accounts — roles, votes and the case file are tied to real players. <b>Sign in on the CMC site</b> (header → account), then come back and open or join a table.<br><br>Solo Case and Pass &amp; Play work without an account.</p>")'
  '+"<div class=\'m-actions\'><a class=\'btn gold\' href=\'https://cmckhmer.github.io/Creative-Minds-/\' style=\'text-decoration:none\'>SIGN IN ON CMC →</a><button class=\'btn dim\' id=\'ouBack\'>BACK TO MODES</button></div>");'
  '$("#ouBack").onclick=()=>{app.screen="hub";render();closeModal()};}')
