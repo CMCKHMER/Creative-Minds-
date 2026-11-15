@@ -14,11 +14,14 @@
 //   • online mode: without a game server the game explains itself and parks
 //     the buttons (no more endless RECONNECTING)
 //   • rules modal, mobile 393px overflow-free
-import { chromium } from 'playwright';
+// portable: `playwright` if installed, else `playwright-core` + PW_CHROMIUM;
+// MAFIA_DIST=<folder> serves another build (default ../dist)
+const { chromium } = await import('playwright').catch(() => import('playwright-core'));
 import { readFile, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { extname, join, normalize } from 'node:path';
-const DIST = '/home/z/my-project/tmp/cmc-site/dist';
+import { dirname, extname, join, normalize, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const DIST = resolve(process.env.MAFIA_DIST || join(dirname(fileURLToPath(import.meta.url)), '..', 'dist'));
 const PORT = 8977; const BASE = `http://127.0.0.1:${PORT}`;
 const server = createServer(async (req, res) => {
   try {
@@ -30,7 +33,7 @@ const server = createServer(async (req, res) => {
   } catch { res.writeHead(404); res.end(); }
 });
 await new Promise(r => server.listen(PORT, r));
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM, args: ['--no-sandbox', '--disable-gpu', '--single-process', '--no-zygote'] } : {}) });
 const results = [];
 const ok = (name, cond, detail) => results.push(`${cond ? 'PASS' : 'FAIL'}  ${name}${detail ? ' — ' + detail : ''}`);
 
@@ -75,7 +78,7 @@ const narrReqs = [];
   await page.waitForTimeout(400);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   ok('mobile 393px: hub overflow-free', overflow <= 0, `scrollW-clientW=${overflow}`);
-  await ctx.close();
+  await ctx.close().catch(() => {});
 }
 
 /* ---- C. full solo case to the end + leaderboard POST (page 2) ---- */
@@ -156,7 +159,7 @@ const posts = [];
   await page.click('#cmcLbSend');
   await page.waitForTimeout(900);
   ok('POST: manual re-send allowed (new case id untouched)', posts.length === 2, `${posts.length} POST(s)`);
-  await ctx.close();
+  await ctx.close().catch(() => {});
 }
 
 /* ---- D. pass & play hand-offs (page 3) ---- */
@@ -173,7 +176,7 @@ const posts = [];
   await page.click('#modalBox .m-actions button');
   await page.waitForSelector('#roleCard .back', { timeout: 10000 }).catch(() => {});
   ok('pass&play: card reveal behind the hand-off', await page.locator('#roleCard .back').count() === 1);
-  await ctx.close();
+  await ctx.close().catch(() => {});
 }
 
 await browser.close();

@@ -1,140 +1,191 @@
 // Mafia Noir ONLINE verification — Firestore transport (MN_FS shim).
-// The Firestore REST API is MOCKED with a rule-shaped in-memory store:
-//   • Bearer token required on every mafia_rooms op (tok-N ↔ uid-N registry);
-//   • views/{uid} readable ONLY by that uid (403 otherwise — a client that
-//     tried to peek another player's view would fail here);
-//   • actions/{uid} writable only by that uid, listable only by the host;
-//   • room-doc updates only by the host; masked PATCH honored.
-// The verifier then plays a FULL 4-player online case across four browser
-// contexts (host creates, three guests join), covering: lobby join, the
-// deal, reveal cards, night actions per role, public day chat, the host
-// calling the vote, ballots, verdicts, the end modal, the leaderboard POST
-// each player sends (title 'Mafia Noir · Online'), host resume-after-reload,
-// and the sign-in gate for a context with no CMC session.
-import { chromium } from 'playwright';
+//
+// The Firestore REST API is EMULATED in memory, and the emulation is shaped
+// after FIRESTORE, not after the client. (The first version of this mock
+// accepted whatever the shim sent — a create POSTed to a document path, an
+// "ALREADY_EXISTS" word inside the error message — so it passed 20/20 while
+// no table could be opened on the real database.) What it enforces:
+//   • createDocument is POST to a COLLECTION path with ?documentId=…; a POST
+//     to a document path is 400 INVALID_ARGUMENT;
+//   • a taken id is HTTP 409, status ALREADY_EXISTS, message
+//     "Document already exists: <name>" (the status word is NOT in the message);
+//   • PATCH without a mask replaces the document, with a mask touches only
+//     the masked fields, with currentDocument.exists=true needs the document;
+//   • list with orderBy drops documents that lack the ordering field;
+//   • the mafia_rooms block of firestore.rules, including email_verified:
+//     room read = any verified user; create = code == id, hostUid == caller,
+//     hostName/engine strings, status 'open'; update/delete = host;
+//     views/{uid}: read = that uid, write = host;
+//     actions/{uid}: read = that uid or host, write = that uid, delete = host.
+// Every refusal is recorded in `violations`; the run must end with none.
+//
+// The verifier then plays a FULL 4-player online case (host creates, three
+// guests join), covering: lobby join, presence, the deal, reveal cards, night
+// actions per role, public day chat, the host calling the vote, ballots,
+// verdicts, the end modal, the leaderboard POST each player sends, host
+// resume-after-reload, the sign-in gate and the unverified-email gate.
+//
+//   node scripts/verify_mafia_online.mjs
+//   MAFIA_DIST=public   serve another folder (default ../dist)
+//   PW_CHROMIUM=/path   use this Chromium binary (with playwright-core)
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { extname, join, normalize } from 'node:path';
-const DIST = '/home/z/my-project/tmp/cmc-site/dist';
-const PORT = 8990; const BASE = `http://127.0.0.1:${PORT}`;
-const server = createServer(async (req, res) => {
-  try {
-    const file = normalize(decodeURIComponent(new URL(req.url, BASE).pathname));
-    const data = await readFile(join(DIST, file === '/' ? 'index.html' : file));
-    const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.jpg': 'image/jpeg', '.png': 'image/png', '.mp3': 'audio/mpeg', '.webm': 'video/webm', '.svg': 'image/svg+xml', '.json': 'application/json', '.woff2': 'font/woff2' };
-    res.writeHead(200, { 'Content-Type': types[extname(file)] || 'application/octet-stream' });
-    res.end(data);
-  } catch { res.writeHead(404); res.end(); }
-});
-await new Promise(r => server.listen(PORT, r));
+import { dirname, extname, join, normalize, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const { chromium } = await import('playwright').catch(() => import('playwright-core'));
+const DIST = resolve(process.env.MAFIA_DIST || join(dirname(fileURLToPath(import.meta.url)), '..', 'dist'));
+// One ORIGIN per seat: some headless Chromium builds share localStorage
+// across browser contexts, and every player needs their own CMC session.
+const PORT = 8990; const ORIGIN = (n) => `http://127.0.0.1:${PORT + n}`; const BASE = ORIGIN(0);
+const servers = [];
+for (let n = 0; n < 6; n++) {
+  const server = createServer(async (req, res) => {
+    try {
+      const file = normalize(decodeURIComponent(new URL(req.url, BASE).pathname));
+      const data = await readFile(join(DIST, file === '/' ? 'index.html' : file));
+      const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.jpg': 'image/jpeg', '.png': 'image/png', '.mp3': 'audio/mpeg', '.webm': 'video/webm', '.svg': 'image/svg+xml', '.json': 'application/json' };
+      res.writeHead(200, { 'Content-Type': types[extname(file)] || 'application/octet-stream' });
+      res.end(data);
+    } catch { res.writeHead(404); res.end(); }
+  });
+  await new Promise(r => server.listen(PORT + n, '127.0.0.1', r));
+  servers.push(server);
+}
 
-// ── rule-shaped in-memory Firestore ─────────────────────────────────────
-const TOKENS = { 'tok-0': 'uid-0', 'tok-1': 'uid-1', 'tok-2': 'uid-2', 'tok-3': 'uid-3' };
+// ── strict in-memory Firestore (REST) ───────────────────────────────────
+const TOKENS = {
+  'tok-0': { uid: 'uid-0', verified: true }, 'tok-1': { uid: 'uid-1', verified: true },
+  'tok-2': { uid: 'uid-2', verified: true }, 'tok-3': { uid: 'uid-3', verified: true },
+  'tok-unverified': { uid: 'uid-unverified', verified: false },
+};
 const DB = new Map();           // code -> {fields, views: Map, actions: Map}
 const engineWrites = [];        // every .engine value ever written
-const violations = [];          // rule-shaped access violations the mock saw
-const OPS = [];                 // every firestore op the mock handled
-const json = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(obj)); };
-function parseUrl(u) { return new URL(u); }
+const violations = [];          // every refusal the emulator handed out
+const OPS = [];                 // every firestore op the emulator handled
+const DOCS = 'projects/creative-minds-cambodia/databases/(default)/documents/';
+const E = (code, status, message) => ({ code, body: { error: { code, message, status } } });
+const NOT_FOUND = (name) => E(404, 'NOT_FOUND', `Document "${DOCS}${name}" not found.`);
+const str = (v) => !!v && typeof v.stringValue === 'string';
 
 async function fsHandler(req) {
   let out;
   try { out = await fsInner(req); }
-  catch (e) { out = { code: 500, body: { error: { message: 'MOCK THREW: ' + String(e && e.message || e).slice(0, 120) } } }; }
-  if (!out) out = { code: 500, body: { error: { message: 'MOCK RETURNED UNDEFINED' } } };
-  OPS.push(`  → ${out.code} ${out.body && out.body.error ? JSON.stringify(out.body).slice(0, 90) : 'ok'}`);
+  catch (e) { out = E(500, 'INTERNAL', 'EMULATOR THREW: ' + String(e && e.message || e).slice(0, 120)); }
+  OPS.push(`  → ${out.code} ${out.body && out.body.error ? JSON.stringify(out.body).slice(0, 110) : 'ok'}`);
   return out;
 }
 async function fsInner(req) {
-  const url = parseUrl(req.url());
+  const url = new URL(req.url());
   const m = url.pathname.match(/\/documents\/(.+)$/);
   const method = req.method();
   const auth = (req.headers()['authorization'] || '').replace('Bearer ', '');
-  const uid = TOKENS[auth];
-  OPS.push(`${method} ${url.pathname.slice(-55)} auth=${auth || 'NONE'} uid=${uid || '?'}`);
+  const who = TOKENS[auth];
+  const uid = who ? who.uid : null;
+  OPS.push(`${method} ${url.pathname.slice(-55)}${url.search.slice(0, 40)} auth=${auth || 'NONE'} uid=${uid || '?'}`);
   if (OPS.length > 400) OPS.splice(0, 100);
-  if (!uid) return { code: 403, body: { error: { message: 'Unauthenticated' } } };
-  if (!m || !m[1].startsWith('mafia_rooms')) return null; // not ours — let it 404
-  const seg = m[1].split('/');
-  const code = seg[1];
-  const room = DB.get(code);
+  const path = m ? m[1] : '';
+  const refuse = (out) => { violations.push(`${method} ${path}${url.search.slice(0, 40)} (${uid || 'anon'}) → ${out.code} ${out.body.error.status}`); return out; };
+  if (auth && !who) return refuse(E(401, 'UNAUTHENTICATED', 'Request had invalid authentication credentials.'));
+  const DENIED = () => refuse(E(403, 'PERMISSION_DENIED', 'Missing or insufficient permissions.'));
+  const seg = path.split('/');
+  if (seg[0] !== 'mafia_rooms') return DENIED(); // nothing else is in this emulator's rules
+  const verified = !!who && who.verified;        // isVerifiedUser()
   const body = req.postData() ? JSON.parse(req.postData()) : null;
-  const err = (msg, c = 403) => { violations.push(`${method} ${m[1]} (${uid}) → ${msg}`); return { code: c, body: { error: { code: c, message: msg } } }; };
+  const fields = (body && body.fields) || {};
+  const isDocPath = seg.length % 2 === 0;
+  const mask = url.searchParams.getAll('updateMask.fieldPaths');
+  const mustExist = url.searchParams.get('currentDocument.exists') === 'true';
 
-  if (seg.length === 2) { // the room doc
-    if (method === 'POST') {
-      const docId = url.searchParams.get('documentId');
-      if (body.fields.hostUid?.stringValue !== uid) return err(`create: not own room (got ${JSON.stringify(body?.fields?.hostUid)} expected ${uid})`);
-      if (DB.has(docId)) return { code: 409, body: { error: { code: 409, message: 'ALREADY_EXISTS: entity already exists' } } };
-      DB.set(docId, { fields: body.fields, views: new Map(), actions: new Map() });
-      return { code: 200, body: { name: `p/d/mafia_rooms/${docId}`, fields: body.fields } };
-    }
-    if (!room) return { code: 404, body: { error: { code: 404, message: 'NOT_FOUND' } } };
-    if (method === 'GET') return { code: 200, body: { name: `p/d/mafia_rooms/${code}`, fields: room.fields } };
-    if (method === 'PATCH') {
-      if (room.fields.hostUid?.stringValue !== uid) return err('room update: not host');
-      const mask = url.searchParams.getAll('updateMask.fieldPaths');
-      if (body.fields.engine?.stringValue) engineWrites.push(body.fields.engine.stringValue);
-      for (const f of mask) room.fields[f] = body.fields[f];
-      return { code: 200, body: { name: `p/d/mafia_rooms/${code}`, fields: room.fields } };
-    }
+  // createDocument: POST …/{collection}?documentId=ID — never a document path
+  if (method === 'POST' && isDocPath) return refuse(E(400, 'INVALID_ARGUMENT', `Document parent name "${DOCS}${seg.slice(0, -1).join('/')}" lacks "/" at index ${DOCS.length + seg.slice(0, -1).join('/').length}.`));
+  if ((method === 'PATCH' || method === 'DELETE') && !isDocPath) return refuse(E(400, 'INVALID_ARGUMENT', 'Invalid document name.'));
+
+  const code = seg[1];
+  const room = code ? DB.get(code) : null;
+  const hostUid = room ? room.fields.hostUid?.stringValue : null;
+  const applyPatch = (cur) => {
+    if (!mask.length) return fields;                       // no mask: replace the document
+    const next = Object.assign({}, cur || {});
+    for (const f of mask) { if (f in fields) next[f] = fields[f]; else delete next[f]; }
+    return next;
+  };
+
+  // ── /mafia_rooms and /mafia_rooms/{code} ──
+  if (seg.length === 1) {
+    if (method !== 'POST') return DENIED();                // no list rule a client could satisfy here
+    const id = url.searchParams.get('documentId');
+    if (!id) return refuse(E(400, 'INVALID_ARGUMENT', 'documentId is required in this emulator.'));
+    const allowed = verified && fields.code?.stringValue === id && fields.hostUid?.stringValue === uid
+      && str(fields.hostName) && fields.status?.stringValue === 'open' && str(fields.engine);
+    if (!allowed) return DENIED();
+    if (DB.has(id)) return E(409, 'ALREADY_EXISTS', `Document already exists: ${DOCS}mafia_rooms/${id}`);
+    DB.set(id, { fields, views: new Map(), actions: new Map() });
+    if (fields.engine?.stringValue) engineWrites.push(fields.engine.stringValue);
+    return { code: 200, body: { name: `${DOCS}mafia_rooms/${id}`, fields } };
   }
-  if (seg.length === 3 && seg[2] === 'views') { // create a view doc (documentId=uid, host-only)
-    if (method !== 'POST') return { code: 404, body: { error: { code: 404, message: 'NOT_FOUND' } } };
-    if (!room || room.fields.hostUid?.stringValue !== uid) return err('view write: not host');
-    const docId = url.searchParams.get('documentId');
-    if (room.views.has(docId)) return { code: 409, body: { error: { code: 409, message: 'ALREADY_EXISTS' } } };
-    room.views.set(docId, body.fields);
-    return { code: 200, body: { name: `p/d/mafia_rooms/${code}/views/${docId}`, fields: body.fields } };
-  }
-  if (seg.length === 4 && seg[2] === 'views') { // views/{uid}: GET = owner only, PATCH = host-only overwrite
-    const vuid = seg[3];
+  if (seg.length === 2) {
     if (method === 'GET') {
-      if (uid !== vuid) return err('view read: not owner');
-      const v = room?.views.get(vuid);
-      return v ? { code: 200, body: { name: `p/d/mafia_rooms/${code}/views/${vuid}`, fields: v } } : { code: 404, body: { error: { code: 404, message: 'NOT_FOUND' } } };
-    }
-    if (method !== 'PATCH') return { code: 404, body: { error: { code: 404, message: 'NOT_FOUND' } } };
-    if (!room || room.fields.hostUid?.stringValue !== uid) return err('view write: not host');
-    room.views.set(vuid, body.fields);
-    return { code: 200, body: { name: `p/d/mafia_rooms/${code}/views/${vuid}`, fields: body.fields } };
-  }
-  if (seg[2] === 'actions') {
-    if (seg.length === 3 && method === 'GET') { // LIST (host resolves)
-      if (!room) return { code: 404, body: { error: { code: 404, message: 'NOT_FOUND' } } };
-      if (room.fields.hostUid?.stringValue !== uid) return err('actions list: not host');
-      return { code: 200, body: { documents: [...room.actions].map(([a, fields]) => ({ name: `p/d/mafia_rooms/${code}/actions/${a}`, fields })) } };
-    }
-    if (seg.length === 3 && method === 'POST') { // create own action doc (documentId=uid)
-      const docId = url.searchParams.get('documentId');
-      if (uid !== docId) return err('action write: not own');
-      if (!room) return { code: 404, body: { error: { code: 404, message: 'NOT_FOUND' } } };
-      if (room.actions.has(docId)) return { code: 409, body: { error: { code: 409, message: 'ALREADY_EXISTS' } } };
-      room.actions.set(docId, body.fields);
-      return { code: 200, body: { fields: body.fields } };
-    }
-    const auid = seg[3];
-    if (method === 'GET') { if (uid !== auid) return err('action read: not owner'); const f = room?.actions.get(auid); return f ? { code: 200, body: { fields: f } } : { code: 404, body: { error: { code: 404, message: 'NOT_FOUND' } } }; }
-    if (method === 'POST') {
-      const docId = url.searchParams.get('documentId');
-      if (uid !== docId) return err('action write: not own');
-      if (room?.actions.has(docId)) return { code: 409, body: { error: { code: 409, message: 'ALREADY_EXISTS' } } };
-      room?.actions.set(docId, body.fields);
-      return { code: 200, body: { fields: body.fields } };
+      if (!verified) return DENIED();
+      return room ? { code: 200, body: { name: `${DOCS}${path}`, fields: room.fields } } : NOT_FOUND(path);
     }
     if (method === 'PATCH') {
-      if (uid !== auid) return err('action write: not own');
-      const mask = url.searchParams.getAll('updateMask.fieldPaths');
-      const cur = (room?.actions.get(auid) || {});
-      room?.actions.set(auid, mask.length ? Object.assign({}, cur, body.fields) : body.fields);
-      return { code: 200, body: { fields: body.fields } };
+      if (!room) {                                          // a PATCH on a missing doc is a CREATE for the rules
+        if (mustExist) return verified ? NOT_FOUND(path) : DENIED();
+        return DENIED();
+      }
+      if (!(verified && uid === hostUid)) return DENIED();
+      if (fields.engine?.stringValue) engineWrites.push(fields.engine.stringValue);
+      room.fields = applyPatch(room.fields);
+      return { code: 200, body: { name: `${DOCS}${path}`, fields: room.fields } };
     }
+    if (method === 'DELETE') { if (!(room && verified && uid === hostUid)) return DENIED(); DB.delete(code); return { code: 200, body: {} }; }
+    return DENIED();
   }
-  return { code: 404, body: { error: { code: 404, message: 'NOT_FOUND' } } };
+
+  // ── subcollections: views/{uid}, actions/{uid} ──
+  const sub = seg[2];
+  if (sub !== 'views' && sub !== 'actions') return DENIED();
+  const isHost = verified && !!room && uid === hostUid;    // rules: get(room).data.hostUid — no room, no host
+  const store = room ? room[sub] : null;
+  if (seg.length === 3) {
+    if (method === 'GET') {                                 // LIST: must be provably allowed for every doc
+      if (sub !== 'actions' || !isHost) return DENIED();
+      let docs = [...store].map(([id, f]) => ({ name: `${DOCS}${path}/${id}`, fields: f }));
+      const order = (url.searchParams.get('orderBy') || '').replace(/`/g, '').split(' ')[0];
+      if (order) docs = docs.filter(d => order in d.fields).sort((a, b) => String(a.fields[order].timestampValue || '').localeCompare(String(b.fields[order].timestampValue || '')));
+      return { code: 200, body: docs.length ? { documents: docs } : {} };
+    }
+    if (method === 'POST') {
+      const id = url.searchParams.get('documentId');
+      const allowed = sub === 'views' ? isHost : (verified && uid === id);
+      if (!allowed || !room) return DENIED();
+      if (store.has(id)) return E(409, 'ALREADY_EXISTS', `Document already exists: ${DOCS}${path}/${id}`);
+      store.set(id, fields);
+      return { code: 200, body: { name: `${DOCS}${path}/${id}`, fields } };
+    }
+    return DENIED();
+  }
+  const docId = seg[3];
+  if (method === 'GET') {
+    const allowed = sub === 'views' ? (verified && uid === docId) : (verified && (uid === docId || isHost));
+    if (!allowed) return DENIED();
+    const f = store && store.get(docId);
+    return f ? { code: 200, body: { name: `${DOCS}${path}`, fields: f } } : NOT_FOUND(path);
+  }
+  if (method === 'PATCH') {
+    const allowed = sub === 'views' ? isHost : (verified && uid === docId);
+    if (!allowed) return DENIED();
+    if (!room) return NOT_FOUND(path);                      // (real Firestore would create an orphan; the client never does this)
+    if (mustExist && !store.has(docId)) return NOT_FOUND(path);
+    store.set(docId, applyPatch(store.get(docId)));
+    return { code: 200, body: { name: `${DOCS}${path}`, fields: store.get(docId) } };
+  }
+  if (method === 'DELETE') { if (!isHost) return DENIED(); store.delete(docId); return { code: 200, body: {} }; }
+  return DENIED();
 }
 
 // ── browser setup ────────────────────────────────────────────────────────
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM, args: ['--no-sandbox', '--disable-gpu', '--single-process', '--no-zygote'] } : {}) });
 const results = [];
 const ok = (name, cond, detail) => results.push(`${cond ? 'PASS' : 'FAIL'}  ${name}${detail ? ' — ' + detail : ''}`);
 const posts = [];
@@ -143,8 +194,7 @@ function makeContext(n) {
   return browser.newContext({ viewport: { width: 1280, height: 900 } }).then(async (ctx) => {
     await ctx.route('**/firestore.googleapis.com/**', async (route) => {
       const out = await fsHandler(route.request());
-      if (out) return route.fulfill({ status: out.code, contentType: 'application/json', body: JSON.stringify(out.body) });
-      return route.fulfill({ status: 404, contentType: 'application/json', body: '{"error":{"message":"NOT_FOUND"}}' });
+      return route.fulfill({ status: out.code, contentType: 'application/json', body: JSON.stringify(out.body) });
     });
     await ctx.route('**/drill_attempts*', async (route) => {
       if (route.request().method() === 'POST') {
@@ -166,7 +216,7 @@ function makeContext(n) {
 const seats = [];
 for (let i = 0; i < 4; i++) seats.push(await makeContext(i));
 const pages = [];
-for (let i = 0; i < 4; i++) { const p = await seats[i].newPage(); p.setDefaultTimeout(20000); pages.push(p); await p.goto(BASE + '/mafia.html'); }
+for (let i = 0; i < 4; i++) { const p = await seats[i].newPage(); p.setDefaultTimeout(20000); pages.push(p); await p.goto(ORIGIN(i) + '/mafia.html'); }
 
 // host opens a table
 for (const p of pages) {
@@ -233,6 +283,24 @@ for (let t = 0; t < 15 && !cfg; t++) {
     ? { night: Number(app.V.room.config.night), day: Number(app.V.room.config.day), vote: Number(app.V.room.config.vote) } : null).catch(() => null);
 }
 ok('lobby: host pace config reaches every seat (30/60/30)', !!cfg && cfg.night === 30 && cfg.day === 60 && cfg.vote === 30, cfg ? JSON.stringify(cfg) : 'no config in view');
+
+// presence: nobody has done anything for longer than the 16s "away" window,
+// only heartbeats went out. The next table update must still show all four
+// as connected (the host used to skip heartbeats when no new action came in,
+// so idle players — and the host itself — turned grey).
+await pages[0].waitForTimeout(18000);
+await pages[0].evaluate(() => sendO({ type: 'chat', text: 'presence ping' }));
+let dots = null;
+for (let t = 0; t < 12; t++) {
+  await pages[0].waitForTimeout(1000);
+  dots = await pages[2].evaluate(() => ({ live: document.querySelectorAll('#lobbyPlayers .conn.dot.live').length, off: document.querySelectorAll('#lobbyPlayers .conn.dot.off').length,
+    got: /presence ping/.test(document.body.textContent || '') })).catch(() => null);
+  if (dots && dots.got) break;
+}
+ok('lobby: idle players stay connected after 18s of heartbeats only', !!dots && dots.got && dots.live === 4 && dots.off === 0, JSON.stringify(dots));
+// nobody typed a name: every seat carries its CMC account name, not "Stranger"
+const names = await pages[0].evaluate(() => [...document.querySelectorAll('#lobbyPlayers .pcard b')].map(b => b.textContent.trim()));
+ok('lobby: seats carry the account names', names.length === 4 && names.every(n => /^Student \d$/.test(n)), names.join(', '));
 
 // start the case (host)
 await pages[0].waitForFunction(() => { const b = document.querySelector('#startBtn'); return b && !b.disabled; }, { timeout: 30000 }).catch(() => {
@@ -396,6 +464,44 @@ if (chatOk < aliveIdx.length) {
   for (const j of aliveIdx) console.log(`DEBUG p${j} chatCalls=`, await pages[j].evaluate(() => (window._chatCalls || []).slice(-6)).catch(e => 'err'), 'domMsgs=', await pages[j].evaluate(() => document.querySelectorAll('#feed .msg').length).catch(() => '?'));
 }
 ok('day chat: public messages reach every living screen', chatOk === aliveIdx.length, per.map(([i, c]) => `p${i}:${c}`).join(' '));
+
+// EVERY living player's line must reach EVERY living screen. (The probe above
+// only follows the first speaker; a guest used to receive the first public
+// line of a case and nothing after it, and a guest's own line only left the
+// host when the host next did something.)
+let grid = [];
+for (let t = 0; t < 20; t++) {
+  await pages[0].waitForTimeout(1000);
+  grid = [];
+  for (const viewer of aliveIdx) for (const speaker of aliveIdx) grid.push([viewer, speaker, await pages[viewer].locator(`.msg:has-text("day-vote-we-see-you-${speaker}")`).count()]);
+  if (grid.every(([, , c]) => c === 1)) break;
+}
+ok('day chat: every living player’s line reaches every living screen, once', grid.length > 0 && grid.every(([, , c]) => c === 1),
+  grid.filter(([, , c]) => c !== 1).map(([v, sp, c]) => `p${v} sees p${sp}×${c}`).join(' ') || `${aliveIdx.length}×${aliveIdx.length} delivered`);
+
+// a GUEST says the same thing twice while the host stays silent: both lines
+// arrive everywhere, with the speaker's name on them
+const guest = aliveIdx.find((i) => i !== 0);
+const listener = aliveIdx.find((i) => i !== 0 && i !== guest) ?? aliveIdx.find((i) => i !== guest);
+if (guest !== undefined && listener !== undefined) {
+  for (let k = 0; k < 2; k++) {
+    await pages[guest].fill('#chatInput', 'same-words-again');
+    await pages[guest].press('#chatInput', 'Enter');
+    await pages[guest].waitForTimeout(2600);   // one actions doc per player: leave the host a poll between the two
+  }
+  let twice = [0, 0];
+  for (let t = 0; t < 15; t++) {
+    twice = [await pages[listener].locator('.msg:has-text("same-words-again")').count(), await pages[0].locator('.msg:has-text("same-words-again")').count()];
+    if (twice[0] === 2 && twice[1] === 2) break;
+    await pages[0].waitForTimeout(1000);
+  }
+  ok('day chat: a guest’s repeated line arrives twice without the host acting', twice[0] === 2 && twice[1] === 2, `guest p${listener} sees ${twice[0]}, host sees ${twice[1]}`);
+  const named = await pages[0].evaluate(() => {
+    const m = [...document.querySelectorAll('#feed .msg')].filter((e) => /same-words-again/.test(e.textContent || '')).pop();
+    return m ? (m.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60) : '';
+  });
+  ok('day chat: the host’s screen names the speaker', new RegExp('Student ' + guest).test(named) && !/undefined/.test(named), named);
+}
 const ghostLeak = aliveIdx.length < 4 ? (await Promise.all(aliveIdx.map(i => pages[i].locator('.msg.ghost').count()))).every(c => c === 0) : true;
 ok('day chat: no ghost chatter leaks to the living', ghostLeak, '');
 
@@ -444,12 +550,39 @@ ok('host resume: reload restores the table + engine', !!resumed, '');
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const p = await ctx.newPage();
-  await p.goto(BASE + '/mafia.html');
+  await p.goto(ORIGIN(4) + '/mafia.html');
   await p.click('#onlineMode');
   await p.waitForSelector('#modalBox:has-text("Sign in to play online")', { timeout: 8000 }).catch(() => {});
   const t = (await p.locator('#modalBox').textContent().catch(() => '')) || '';
   ok('sign-in gate: no session → honest modal + CMC link', t.includes('Sign in to play online') && t.includes('SIGN IN ON CMC'), t.slice(0, 50));
-  await ctx.close();
+}
+
+// a signed-in account whose email is NOT verified: the rules deny it, and the
+// game must say so plainly instead of "the table is closed to you"
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.route('**/firestore.googleapis.com/**', async (route) => {
+    const out = await fsHandler(route.request());
+    return route.fulfill({ status: out.code, contentType: 'application/json', body: JSON.stringify(out.body) });
+  });
+  await ctx.addInitScript(() => {
+    localStorage.setItem('cmc-student-token', 'tok-unverified');
+    localStorage.setItem('cmc-student-token-expires', String(Date.now() + 3600000));
+    localStorage.setItem('cmc-student-uid', 'uid-unverified');
+    localStorage.setItem('cmc-student-name', 'Unverified');
+    localStorage.setItem('cmc-student-verified', '0');
+  });
+  const p = await ctx.newPage();
+  await p.goto(ORIGIN(5) + '/mafia.html');
+  await p.click('#onlineMode');
+  await p.click('#createBtn');
+  await p.waitForSelector('#modalBox:has-text("Verify your email first")', { timeout: 8000 }).catch(() => {});
+  const t = (await p.locator('#modalBox').textContent().catch(() => '')) || '';
+  ok('unverified account: create is refused with a "verify your email" message', t.includes('Verify your email first') && !t.includes('closed to you'), t.slice(0, 60));
+  const mine = violations.filter(v => v.includes('uid-unverified'));
+  ok('unverified account: the database refused it (403)', mine.length > 0 && mine.every(v => v.includes('403 PERMISSION_DENIED')), mine[0] || 'no refusal seen');
+  // drop the expected refusals from the violation log
+  for (let i = violations.length - 1; i >= 0; i--) if (violations[i].includes('uid-unverified')) violations.splice(i, 1);
 }
 
 // ── transport-level secrecy pins ─────────────────────────────────────────
@@ -457,11 +590,12 @@ ok('secrecy: engine blob never carries plaintext roles', engineWrites.length > 0
   && engineWrites.every(e => !/"role"\s*:\s*"(mafia|detective|doctor|villager)"/.test(e)
     && !/"mafiaTeam"\s*:/.test(e)),
   `${engineWrites.length} engine writes, all ciphertext`);
-ok('rules-shaped mock: zero access violations', violations.length === 0, violations.slice(0, 3).join(' | ') || 'none');
+ok('Firestore emulation: zero refused requests', violations.length === 0, violations.slice(0, 3).join(' | ') || 'none');
 
-for (const p of pages) await p.context().close();
-await browser.close();
-server.close();
+// (single-process Chromium dies on the first context close; browser.close()
+// takes every context down anyway)
+await browser.close().catch(() => {});
+for (const sv of servers) sv.close();
 console.log(results.join('\n'));
 const fails = results.filter(r => r.startsWith('FAIL'));
 console.log(`\nverify_mafia_online: ${results.length - fails.length} passed, ${fails.length} failed`);
