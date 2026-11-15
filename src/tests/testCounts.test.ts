@@ -61,6 +61,65 @@ describe('repository: one question count per test, everywhere', () => {
   });
 });
 
+describe('the planner does not hand out the same test twice', () => {
+  /** The questions a page actually shows, reduced to their words (the same
+   *  question can be bracketed or blanked slightly differently on two pages). */
+  const words = (prompt: string): string => prompt
+    .replace(/\[[A-D]:\s*/g, '').replace(/\]/g, '')
+    .replace(/Which .*$/, '')
+    .toLowerCase().replace(/[^a-z]+/g, ' ').trim();
+  const questionsOf = (file: string): string[] => {
+    const html = readFileSync(resolve(PLANNER, 'tests', file), 'utf8');
+    const cfg = /window\.TEST_CONFIG=(\{.*?\});\n/s.exec(html);
+    const banks = /window\.TEST_BANKS=(\{.*?\});\n/s.exec(html);
+    if (!cfg || !banks) return [];
+    const groups = (JSON.parse(cfg[1]) as { groups?: { id: string }[] }).groups ?? [];
+    const data = JSON.parse(banks[1]) as Record<string, unknown[]>;
+    return groups.flatMap((g) => (data[g.id] ?? []).map((row) => (Array.isArray(row) && typeof row[0] === 'string' ? words(row[0]) : ''))).filter(Boolean).sort();
+  };
+  const hub = readFileSync(resolve(PLANNER, 'index.html'), 'utf8');
+  const weeks = hub.slice(hub.indexOf('const WEEKS='), hub.indexOf('\n];', hub.indexOf('const WEEKS=')));
+  const listed = [...weeks.matchAll(/file:'([^']+\.html)'/g)].map((m) => m[1]);
+
+  // Owner's report (15 Nov 2026): the Week 2 card listed "L9b Grammar:
+  // Parallel Structure" and "Level 9b Parallel Structure" — two pages with
+  // the same 20 questions.
+  it('no two tests on the planner have exactly the same questions', () => {
+    expect(listed.length).toBeGreaterThan(30);
+    const seen = new Map<string, string>();
+    const twice: string[] = [];
+    for (const file of new Set(listed)) {
+      const q = questionsOf(file);
+      if (q.length === 0) continue;
+      const sig = q.join('|');
+      const other = seen.get(sig);
+      if (other) twice.push(`${other} = ${file}`);
+      else seen.set(sig, file);
+    }
+    expect(twice).toEqual([]);
+  });
+
+  it('no week card lists the same test page twice', () => {
+    const cards = weeks.split(/\{n:(?=\d+,cat:)/).slice(1);
+    expect(cards.length).toBeGreaterThanOrEqual(7);
+    for (const card of cards) {
+      const files = [...card.matchAll(/file:'([^']+\.html)'/g)].map((m) => m[1]);
+      expect(files.filter((f, i) => files.indexOf(f) !== i), `week ${parseInt(card, 10)}`).toEqual([]);
+    }
+  });
+
+  it('the retired duplicate is off the planner and the Studio list, and its replacement is still there', () => {
+    expect(listed).not.toContain('grammar.html');
+    expect(listed).toContain('9b-w2-grammar.html');
+    expect(questionsOf('grammar.html')).toEqual(questionsOf('9b-w2-grammar.html')); // why it was retired
+    const studio = readFileSync(resolve(ROOT, 'public/studio/index.html'), 'utf8');
+    expect(studio).not.toContain("{ slug: 'grammar',");
+    // the dashboard keeps it for its earlier results, but offers no new link
+    const panel = readFileSync(resolve(ROOT, 'src/components/BiWeeklyTestsPanel.tsx'), 'utf8');
+    expect(panel).toMatch(/slug: 'grammar\.html', group: RETIRED_GROUP, retiredFor: /);
+  });
+});
+
 describe('telling an earlier version of a test from the current one', () => {
   it('flags a different total, and nothing else', () => {
     expect(isEarlierVersion(9, 23)).toBe(true);
