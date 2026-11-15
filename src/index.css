@@ -1726,6 +1726,41 @@ html.light #toefl-itp-planner .border-amber-200\/20 { border-color: rgba(180, 83
 html.light #toefl-itp-planner .bg-amber-100\/\[0\.03\] { background-color: rgba(180, 83, 9, 0.04); }
 html.light #toefl-itp-planner .bg-amber-200\/\[0\.05\] { background-color: rgba(180, 83, 9, 0.07); }
 
+/* The band is: section colour → Aii Language Center logo watermark → veil →
+   text. The veil (.cmc-planner-veil) is a Tailwind gradient of slate-950
+   stops. Colour remaps do not reach gradient stops, and the old scrim rule
+   further down matched a class this veil no longer has — so under the light
+   theme the veil stayed near-black while the text on it turned dark ink:
+   dark on dark (owner report, Nov 2026). Here the veil becomes pale —
+   strongest behind the copy (left on desktop, everywhere on a phone),
+   thinner on the right so the logo still shows beside the preview card. */
+html.light #toefl-itp-planner .cmc-planner-veil {
+  background-image: linear-gradient(
+    to bottom,
+    rgba(214, 221, 231, 0.94),
+    rgba(214, 221, 231, 0.86) 50%,
+    rgba(214, 221, 231, 0.94)
+  );
+}
+@media (min-width: 1024px) {
+  html.light #toefl-itp-planner .cmc-planner-veil {
+    background-image: linear-gradient(
+      to right,
+      rgba(214, 221, 231, 0.95) 0%,
+      rgba(214, 221, 231, 0.88) 52%,
+      rgba(214, 221, 231, 0.62) 100%
+    );
+  }
+}
+/* Signed-out view: the "Teacher access required" card sits in the middle of
+   the band, right on the logo lettering — give it a solid pale face so the
+   letters do not run through its text. */
+html.light #toefl-itp-planner .cmc-planner-locked {
+  background-color: rgba(231, 237, 244, 0.92);
+  border-color: rgba(180, 83, 9, 0.28);
+  box-shadow: 0 18px 40px -30px rgba(15, 23, 42, 0.3);
+}
+
 /* ============================================================
    Light theme: background photos stay VISIBLE (user request:
    light mode should show the same imagery as dark mode), and
