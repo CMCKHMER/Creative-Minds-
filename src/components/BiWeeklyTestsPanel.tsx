@@ -48,7 +48,16 @@ import type { TestCounts } from '../lib/testCounts';
  *  Question counts are NOT typed here: the picker shows the real count from
  *  biweek-planner/test-counts.json, which is generated from the pages
  *  (`node scripts/test_counts.mjs --check` fails on a slug with no page). */
-interface TestEntry { title: string; slug: string; group: string; }
+interface TestEntry {
+  title: string;
+  slug: string;
+  group: string;
+  /** Set on a test that is no longer handed out: the title of the test that
+   *  replaces it. The page and its answer key stay (links already sent keep
+   *  working, earlier results stay readable), but no new link is offered. */
+  retiredFor?: string;
+}
+const RETIRED_GROUP = 'Retired — earlier results only';
 const TEST_CATALOG: TestEntry[] = [
   // Orientation
   { title: 'Orientation Diagnostic (Week 2 · All Sections)', slug: 'diagnostic.html', group: 'Orientation' },
@@ -95,13 +104,16 @@ const TEST_CATALOG: TestEntry[] = [
   { title: 'W7 · L11b Reading: Human Bionics', slug: 'isec2-w7-bionics.html', group: 'Level 11b weekly tests' },
   { title: 'W8 · L11b Peer-Led: AI Practice', slug: 'isec2-w8-ai.html', group: 'Level 11b weekly tests' },
   // Skills drills
-  { title: 'Level 9b Grammar', slug: 'grammar.html', group: 'Skills drills' },
   { title: 'Level 11b Written Expressions', slug: 'structure.html', group: 'Skills drills' },
   { title: 'Level 11b Rhetorical Purpose', slug: 'rhetorical.html', group: 'Skills drills' },
   { title: 'B2 Business Listening Drill', slug: 'business-listening.html', group: 'Skills drills' },
   { title: 'Listening · Inference', slug: 'inference-listening.html', group: 'Skills drills' },
   { title: 'Listening · Prediction', slug: 'prediction-listening.html', group: 'Skills drills' },
   { title: 'Listening · Short Conversations', slug: 'short-conversations.html', group: 'Skills drills' },
+  // Retired. "Level 9b Parallel Structure" had the same 20 questions and the
+  // same answers as "W2 · L9b Grammar: Parallel Structure (B2)" and sat next
+  // to it on the planner's Week 2 card.
+  { title: 'Level 9b Parallel Structure (duplicate)', slug: 'grammar.html', group: RETIRED_GROUP, retiredFor: 'W2 · L9b Grammar: Parallel Structure (B2)' },
 ];
 const CATALOG_GROUPS = TEST_CATALOG.reduce<{ label: string; items: TestEntry[] }[]>((acc, t) => {
   const g = acc.find((x) => x.label === t.group);
@@ -320,7 +332,10 @@ export const BiWeeklyTestsPanel: React.FC<{
   /** '' or "Earlier version of this test (9 questions; it now has 23)". */
   const noteOf = (d: AttemptDoc): string => versionNote(d.totalCount, testCount?.total);
   const earlierCount = graded.filter((d) => noteOf(d)).length;
-  const codeReady = codeState === 'ok';
+  const retiredFor = TEST_CATALOG.find((t) => t.slug === formSlug)?.retiredFor;
+  // A link is offered only for a test that is still handed out, and only
+  // once the invite code is registered to this teacher.
+  const codeReady = codeState === 'ok' && !retiredFor;
 
   const isOwner = isAdminUid(restUid);
 
@@ -490,7 +505,7 @@ export const BiWeeklyTestsPanel: React.FC<{
           <button
             onClick={copyLink}
             disabled={!codeReady}
-            title={codeReady ? undefined : CODE_NOTE[codeState]}
+            title={codeReady ? undefined : retiredFor ? 'This test is retired — no new links' : CODE_NOTE[codeState]}
             className="hudp-cta flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
           >
             <Copy className="h-3 w-3" /> {copied ? 'Copied!' : 'Copy student link'}
@@ -501,13 +516,20 @@ export const BiWeeklyTestsPanel: React.FC<{
             This test has {countLine(testCount)}.
           </p>
         )}
-        <p
-          role="status"
-          data-code-state={codeState}
-          className={`mt-1.5 text-[11px] leading-relaxed ${codeReady ? 'text-emerald-300' : codeState === 'checking' || codeState === 'short' ? 'text-slate-400' : 'text-rose-300'}`}
-        >
-          {CODE_NOTE[codeState]}
-        </p>
+        {retiredFor ? (
+          <p role="status" data-retired className="mt-1.5 text-[11px] leading-relaxed text-amber-200">
+            This test is retired: it has the same questions as <b className="text-white">{retiredFor}</b> — share that one instead.
+            Links you already sent still work, and earlier results stay under “View results”.
+          </p>
+        ) : (
+          <p
+            role="status"
+            data-code-state={codeState}
+            className={`mt-1.5 text-[11px] leading-relaxed ${codeReady ? 'text-emerald-300' : codeState === 'checking' || codeState === 'short' ? 'text-slate-400' : 'text-rose-300'}`}
+          >
+            {CODE_NOTE[codeState]}
+          </p>
+        )}
         {/* The link is shown only once the code is registered to this teacher:
             a link with an unregistered code lets the student finish the whole
             test and then the database refuses the result. */}
