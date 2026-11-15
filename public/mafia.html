@@ -639,7 +639,7 @@ function showEndModal(V,isLocal){const winner=V.winner,grid=V.players.map((p,i)=
 function showRules(){if(modalCritical)return toast("Finish the current private screen first.");AU.tick();modalPromise((b,done)=>{b.innerHTML=`<div class="m-kicker">HOUSE RULES</div><div class="m-title">How to Play</div><div class="help"><h3>Goal</h3>The <b style="color:var(--blue2)">City</b> wins by eliminating every mafioso. The <b style="color:var(--red2)">Syndicate</b> wins when its members equal the remaining town.<h3>Roles</h3><div class="help-roles">${Object.values(ROLE).map(r=>`<div class="hr" style="--hc:${r.color}">${r.icon}<span><b>${r.name}</b><span>${r.desc}</span></span></div>`).join("")}</div><h3>Flow</h3><b>Night:</b> Mafia mark a victim, Doctor protects, Detective investigates.<br><b>Day:</b> discussion and accusations.<br><b>Vote:</b> secret ballot; top vote is eliminated and revealed. Ties eliminate nobody.<h3>Modes</h3><b>Solo:</b> you vs a thinking AI table with three difficulties.<br><b>Pass &amp; Play:</b> local multiplayer with private hand-off screens; mix in AI seats.<br><b>Online:</b> private rooms across devices; roles hidden server-side, timed phases, reconnects.</div><div class="m-actions"><button class="btn gold">BACK TO THE TABLE</button></div>`;b.querySelector(".m-actions button").onclick=()=>done(true)},{lg:true})}
 
 /* ---------- online ---------- */
-function onlineUnavailable(kind){setConn("off");var denied=kind==="denied";openModal("<div class='m-kicker'>ONLINE TABLES</div><div class='m-title'>"+(denied?"The table is closed to you":"Sign in to play online")+"</div>"+(denied?"<p class='m-sub'>This table only accepts the CMC account that hosts it. Sign in with that account, or open a table of your own.</p>":"<p class='m-sub'>Online rooms run on CMC accounts — roles, votes and the case file are tied to real players. <b>Sign in on the CMC site</b> (header → account), then come back and open or join a table.<br><br>Solo Case and Pass &amp; Play work without an account.</p>")+"<div class='m-actions'><a class='btn gold' href='https://cmckhmer.github.io/Creative-Minds-/' style='text-decoration:none'>SIGN IN ON CMC →</a><button class='btn dim' id='ouBack'>BACK TO MODES</button></div>");$("#ouBack").onclick=()=>{app.screen="hub";render();closeModal()};}
+function onlineUnavailable(kind){setConn("off");var denied=kind==="denied",unver=false;try{unver=denied&&localStorage.getItem("cmc-student-verified")==="0"}catch(e){}openModal("<div class='m-kicker'>ONLINE TABLES</div><div class='m-title'>"+(unver?"Verify your email first":denied?"Online tables are not switched on":"Sign in to play online")+"</div>"+(unver?"<p class='m-sub'>Online tables only accept CMC accounts with a <b>verified email address</b>. Open the verification link CMC sent to your inbox, sign in again on the CMC site, then come back.<br><br>Solo Case and Pass &amp; Play work without it.</p>":denied?"<p class='m-sub'>You are signed in, but the CMC database refused the request. Either your email address is not verified yet (check your inbox, then sign in again), or the site owner has not published the database rules for Mafia rooms.<br><br>Solo Case and Pass &amp; Play work in the meantime.</p>":"<p class='m-sub'>Online rooms run on CMC accounts — roles, votes and the case file are tied to real players. <b>Sign in on the CMC site</b> (header → account), then come back and open or join a table.<br><br>Solo Case and Pass &amp; Play work without an account.</p>")+"<div class='m-actions'><a class='btn gold' href='https://cmckhmer.github.io/Creative-Minds-/' style='text-decoration:none'>SIGN IN ON CMC →</a><button class='btn dim' id='ouBack'>BACK TO MODES</button></div>");$("#ouBack").onclick=()=>{app.screen="hub";render();closeModal()};}
 function saveO(s){O.session=s;try{localStorage.setItem("mnSession",JSON.stringify(s))}catch(e){}}
 function clearO(){O.session=null;try{localStorage.removeItem("mnSession")}catch(e){}}
 function sendO(o){MN_FS.send(o)}
@@ -1104,7 +1104,10 @@ const MN_FS = (function () {
   const IV = (v) => ({ integerValue: String(Math.round(Number(v) || 0)) });
   const BV = (v) => ({ booleanValue: !!v });
   const NV = (v) => ({ nullValue: null });
-  const B64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  // chunked: spreading a whole engine blob (tens of KB late in a case) into
+  // fromCharCode overflows the engine's argument limit ("Maximum call stack
+  // size exceeded" — 65,536 arguments on Safari) and kills the host's sync
+  const B64 = (buf) => { const u = new Uint8Array(buf); let out = ''; for (let i = 0; i < u.length; i += 0x2000) out += String.fromCharCode.apply(null, u.subarray(i, i + 0x2000)); return btoa(out); };
   const UB64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
   const json = (v) => JSON.stringify(v);
 
@@ -1161,23 +1164,33 @@ const MN_FS = (function () {
     if (res.status === 401 || res.status === 403) throw new Error('denied');
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || ('HTTP ' + res.status));
+      const e = new Error(err?.error?.message || ('HTTP ' + res.status));
+      e.http = res.status; e.status = err?.error?.status || '';
+      throw e;
     }
     return res.status === 200 ? res.json() : {};
   }
+  // Firestore answers a create on a taken id with HTTP 409, status
+  // ALREADY_EXISTS and the MESSAGE "Document already exists: <name>" — the
+  // status word is not in the message, so never test the message for it.
+  const taken = (e) => !!e && (e.http === 409 || e.status === 'ALREADY_EXISTS');
   const roomPath = (code) => `/mafia_rooms/${encodeURIComponent(code)}`;
   async function getRoom(code) { const d = await api('GET', roomPath(code)); return d ? parseRoom(d.fields) : null; }
-  async function createRoomDoc(code, fields) { await api('POST', `${roomPath(code)}?documentId=${encodeURIComponent(code)}`, { fields }); }
+  // createDocument posts to the COLLECTION (…/mafia_rooms?documentId=CODE).
+  // Posting to the document path (…/mafia_rooms/CODE?documentId=CODE) is a
+  // 400 INVALID_ARGUMENT on Firestore — no table could ever be opened.
+  async function createRoomDoc(code, fields) { await api('POST', `/mafia_rooms?documentId=${encodeURIComponent(code)}`, { fields }); }
   async function patchRoom(code, fields, mask) {
     const qp = `?currentDocument.exists=true&${mask.map((f) => 'updateMask.fieldPaths=' + encodeURIComponent(f)).join('&')}`;
     await api('PATCH', roomPath(code) + qp, { fields });
   }
+  // create-or-overwrite in ONE request: an unmasked PATCH writes the whole
+  // document whether or not it exists. (The old POST-then-PATCH pair relied
+  // on finding "ALREADY_EXISTS" in the error message; on Firestore it is not
+  // there, so every write after a player's first one failed — views froze
+  // after the first deal-out and a second action was "unreachable".)
   async function upsert(path, id, fields) {
-    try { await api('POST', `${path}?documentId=${encodeURIComponent(id)}`, { fields }); }
-    catch (e) {
-      if (!/ALREADY_EXISTS/.test(String(e.message))) throw e;
-      await api('PATCH', `${path}/${encodeURIComponent(id)}`, { fields }); // full overwrite, no mask
-    }
+    await api('PATCH', `${path}/${encodeURIComponent(id)}`, { fields });
   }
   async function getView(code, uid) { const d = await api('GET', `${roomPath(code)}/views/${encodeURIComponent(uid)}`); return d ? d.fields : null; }
   // heartbeat: masked patch of ONLY the seen field — the action fields (and
@@ -1189,7 +1202,7 @@ const MN_FS = (function () {
       { fields: { seen: { timestampValue: new Date().toISOString() } } });
   }
   async function listActions(code) {
-    const d = await api('GET', `${roomPath(code)}/actions?pageSize=50&orderBy=%60at%60`);
+    const d = await api('GET', `${roomPath(code)}/actions?pageSize=50`); // no orderBy: it drops docs lacking the field (heartbeat-only docs have no `at`)
     return (d && d.documents) ? d.documents : [];
   }
   function seatsFromFields(f) {
@@ -1256,9 +1269,12 @@ const MN_FS = (function () {
     E.phaseEndsAt = Date.now() + REVEAL_MS; E.phaseDuration = REVEAL_MS / 1000;
     logSys(E, `The cards are dealt. ${n} at the table, ${m} of them wolves. Memorize your role.`);
   }
-  function logSys(E, text) { E.log.push({ channel: 'system', text: text.slice(0, 220) }); if (E.log.length > 220) E.log = E.log.slice(-220); }
+  // every log entry carries a running number `n` — the only reliable identity
+  // a feed line has (see pushFeed)
+  const nextN = (E) => (E.logN = (E.logN || 0) + 1);
+  function logSys(E, text) { E.log.push({ n: nextN(E), channel: 'system', text: text.slice(0, 220) }); if (E.log.length > 220) E.log = E.log.slice(-220); }
   function logChat(E, channel, seat, text) {
-    E.log.push({ channel, text: '', from: { id: seat.id, name: seat.name, color: seat.color }, msg: String(text).slice(0, 200) });
+    E.log.push({ n: nextN(E), channel, text: '', from: { id: seat.id, name: seat.name, color: seat.color }, msg: String(text).slice(0, 200) });
     if (E.log.length > 220) E.log = E.log.slice(-220);
   }
   function aliveSeats(E) { return E.seats.filter((s) => s.alive && !s.left); }
@@ -1377,6 +1393,7 @@ const MN_FS = (function () {
   }
   async function broadcast(E) {
     E.seq = (E.seq || 0) + 1;
+    E.log.forEach((m) => { if (!m.n) m.n = nextN(E); }); // a table resumed from an older build
     const blob = await sealEngine(H.key, E);
     const mask = ['engine', 'seq', 'phase', 'gameId', 'updatedAt', 'config', 'status', 'seats'];
     try {
@@ -1390,7 +1407,7 @@ const MN_FS = (function () {
     } catch (e) { toast('Could not sync the table — check your connection.'); }
     await Promise.all(E.seats.map((s) => {
       const { st, feed } = buildView(E, s);
-      return upsert(roomPath(E.code) + '/views', s.uid, { seq: IV(E.seq), state: SV(json(st)), feed: { arrayValue: { values: feed.map((m) => ({ mapValue: { fields: { channel: SV(m.channel), text: SV(m.channel === 'system' ? m.text : m.msg), fromId: SV(m.from ? m.from.id : ''), fromName: SV(m.from ? m.from.name : ''), fromColor: SV(m.from ? m.from.color : '') } } })) } } }).catch(() => {});
+      return upsert(roomPath(E.code) + '/views', s.uid, { seq: IV(E.seq), state: SV(json(st)), feed: { arrayValue: { values: feed.map((m) => ({ mapValue: { fields: { n: IV(m.n || 0), channel: SV(m.channel), text: SV(m.channel === 'system' ? m.text : m.msg), fromId: SV(m.from ? m.from.id : ''), fromName: SV(m.from ? m.from.name : ''), fromColor: SV(m.from ? m.from.color : '') } } })) } } }).catch(() => {});
     }));
     applyLocal(E);
   }
@@ -1429,7 +1446,7 @@ const MN_FS = (function () {
       // reconcile the room doc (host-only writes) + claim seats from actions
       const room = await getRoom(E.code);
       if (!room) { E.statusClosed = true; E.phase = 'end'; await broadcast(E); resetClient(); return; }
-      let seatsChanged = false;
+      let seatsChanged = false, acted = false;
       for (const rs of room.seats) {
         if (!E.seats.some((s) => s.uid === rs.uid)) {
           const ns = newSeat(E.seats.length, rs.uid, rs.name);
@@ -1444,9 +1461,14 @@ const MN_FS = (function () {
         const f = d.fields || {};
         const at = Date.parse((f.at && f.at.timestampValue) || '') || 0;
         const kind = (f.action && f.action.stringValue) || 'hb';
+        let seat = E.seats.find((s) => s.uid === uid);
+        // the heartbeat only touches `seen`, so read it BEFORE the "nothing
+        // new" skip — otherwise an idle player's lastSeen never moved and
+        // everyone showed as disconnected 16s after their last action
+        const seenAt = Date.parse((f.seen && f.seen.timestampValue) || '') || 0;
+        if (seat && seenAt > (seat.lastSeen || 0)) seat.lastSeen = seenAt;
         if (at <= (H.seenActions[uid] || 0)) continue;
         H.seenActions[uid] = at;
-        let seat = E.seats.find((s) => s.uid === uid);
         if (kind === 'join') {          if (!seat && E.phase === 'lobby' && E.seats.length < E.max) {
             const name = ((f.text && f.text.stringValue) || 'Stranger').slice(0, 16);
             seat = newSeat(E.seats.length, uid, name);
@@ -1458,42 +1480,48 @@ const MN_FS = (function () {
           continue;
         }
         if (!seat) continue;
-        seat.lastSeen = Date.parse((f.seen && f.seen.timestampValue) || '') || at || seat.lastSeen;
+        seat.lastSeen = Math.max(seat.lastSeen || 0, seenAt, at);
         const targetId = f.targetId && f.targetId.stringValue !== '' ? f.targetId.stringValue : null;
         if (kind === 'hb') continue;
         if (kind === 'chat') {
           const chan = E.phase === 'lobby' || E.phase === 'day' ? 'public'
             : E.phase === 'night' && seat.role === 'mafia' && seat.alive ? 'mafia'
             : E.phase === 'vote' && !seat.alive ? 'ghost' : !seat.alive ? 'ghost' : null;
-          if (chan) { logChat(E, chan, seat, f.text ? f.text.stringValue : ''); }
+          if (chan) { logChat(E, chan, seat, f.text ? f.text.stringValue : ''); acted = true; }
           continue;
         }
-        if (kind === 'leave') { seatLeave(E, seat); continue; }
-        if (kind === 'start' && uid === E.hostUid && E.phase === 'lobby' && E.seats.length >= MIN) { deal(E); continue; }
-        if (kind === 'again' && uid === E.hostUid && E.phase === 'end') { E.gameId++; E.seats.forEach((s) => { s.action = null; s.submitted = false; }); deal(E); continue; }
+        if (kind === 'leave') { seatLeave(E, seat); acted = true; continue; }
+        if (kind === 'start' && uid === E.hostUid && E.phase === 'lobby' && E.seats.length >= MIN) { deal(E); acted = true; continue; }
+        if (kind === 'again' && uid === E.hostUid && E.phase === 'end') { E.gameId++; E.seats.forEach((s) => { s.action = null; s.submitted = false; }); deal(E); acted = true; continue; }
         if (kind === 'config' && uid === E.hostUid && E.phase === 'lobby') {
           const key = f.key && f.key.stringValue, val = Math.max(10, Math.min(300, Number(f.value && f.value.integerValue) || 0));
-          if (['night', 'day', 'vote'].includes(key) && val) { E.config[key] = val; }
+          if (['night', 'day', 'vote'].includes(key) && val) { E.config[key] = val; acted = true; }
           continue;
         }
         if (kind === 'callVote' && uid === E.hostUid && E.phase === 'day') {
           E.phase = 'vote'; E.phaseDuration = E.config.vote; E.phaseEndsAt = Date.now() + E.config.vote * 1000;
-          logSys(E, 'The host calls the vote. Ballots are open.'); continue;
+          logSys(E, 'The host calls the vote. Ballots are open.'); acted = true; continue;
         }
         if (['kill', 'protect', 'investigate'].includes(kind) && E.phase === 'night' && seat.alive) {
           const role = kind === 'kill' ? 'mafia' : kind === 'protect' ? 'doctor' : 'detective';
           if (seat.role !== role) continue;
           if (targetId !== null && !nightEligible(E, seat, kind).includes(targetId)) continue;
-          seat.action = { action: kind, targetId, at }; seat.submitted = true; continue;
+          seat.action = { action: kind, targetId, at }; seat.submitted = true; acted = true; continue;
         }
         if (kind === 'vote' && E.phase === 'vote' && seat.alive) {
           if (targetId !== null && !aliveSeats(E).some((s) => s.id === targetId && s.id !== seat.id)) continue;
-          seat.action = { action: 'vote', targetId, at }; seat.submitted = true; continue;
+          seat.action = { action: 'vote', targetId, at }; seat.submitted = true; acted = true; continue;
         }
       }
-      if (seatsChanged || E._needBroadcast) { E._needBroadcast = false; await broadcast(E); }
+      // `acted`: a guest's chat line, night action or ballot changed the table.
+      // This used to wait on a flag nothing ever set, so a guest's message
+      // only went out when the HOST next did something or the phase ended.
+      if (seatsChanged || acted) await broadcast(E);
     } catch (e) { if (!/denied|signed-out/.test(String(e.message))) {} }
-    H.busy = false;
+    // `finally`: the "table is gone" branch above returns early; without this
+    // the busy flag stayed up and the next table opened from the same tab
+    // never ran its host loop
+    finally { H.busy = false; }
   }
   function nightEligible(E, seat, kind) {
     const live = aliveSeats(E);
@@ -1512,14 +1540,19 @@ const MN_FS = (function () {
   }
 
   // ═══════════════ CLIENT (host + guests share this) ═══════════════
-  const C = { code: null, uid: null, seatId: null, pollT: null, lastSeq: -1, fedLog: false, feedSeen: {}, busy: false, gone: false };
+  const C = { code: null, uid: null, seatId: null, pollT: null, lastSeq: -1, fedLog: false, feedN: 0, busy: false, gone: false };
 
+  // Feed lines are told apart by their running number `n`, nothing else. The
+  // old key was built from fields that only exist on the HOST's copy of a
+  // line (m.from, m.msg); on a guest every public line produced the same key
+  // ("public||undefined"), so a guest saw the first chat message of a case
+  // and never another. A text key would also drop a repeated "yes".
   function pushFeed(feed) {
-    if (!C.fedLog) { C.fedLog = true; handleO({ type: 'log', messages: feed.map(feedMsg) }); return; }
+    const top = feed.reduce((a, m) => Math.max(a, m.n || 0), 0);
+    if (!C.fedLog) { C.fedLog = true; C.feedN = top; handleO({ type: 'log', messages: feed.map(feedMsg) }); return; }
     feed.forEach((m) => {
-      const key = m.channel + '|' + (m.from ? m.from.id : '') + '|' + (m.channel === 'system' ? m.text : m.msg);
-      if (C.feedSeen[key]) return;
-      C.feedSeen[key] = 1;
+      if (!((m.n || 0) > (C.feedN || 0))) return;
+      C.feedN = m.n;
       handleO({ type: 'chat', message: feedMsg(m) });
     });
   }
@@ -1530,7 +1563,9 @@ const MN_FS = (function () {
     // guests were fine because their poll reads the Firestore doc, where the
     // text was already written from m.msg)
     if (m.channel === 'system' || m.channel === 'private') return { channel: m.channel, text: m.text };
-    return { channel: m.channel, text: m.msg !== undefined ? m.msg : m.text, from: { id: m.fromId, name: m.fromName, color: m.fromColor } };
+    // the host's own copy of a line carries the speaker as m.from; a line read
+    // back from Firestore carries fromId / fromName / fromColor
+    return { channel: m.channel, text: m.msg !== undefined ? m.msg : m.text, from: m.from || { id: m.fromId, name: m.fromName, color: m.fromColor } };
   }
   async function poll() {
     if (!C.code || C.busy || C.gone) return;
@@ -1562,7 +1597,7 @@ const MN_FS = (function () {
       C.lastSeq = seq;
       const feed = (vf.feed?.arrayValue?.values || []).map((v) => {
         const m = v.mapValue.fields;
-        return { channel: m.channel.stringValue, text: m.text.stringValue, fromId: m.fromId.stringValue, fromName: m.fromName.stringValue, fromColor: m.fromColor.stringValue };
+        return { n: Number((m.n && m.n.integerValue) || '0'), channel: m.channel.stringValue, text: m.text.stringValue, fromId: m.fromId.stringValue, fromName: m.fromName.stringValue, fromColor: m.fromColor.stringValue };
       });
       pushFeed(feed);
       const st = JSON.parse(vf.state.stringValue || '{}');
@@ -1576,7 +1611,7 @@ const MN_FS = (function () {
     try {
       const me = identity();
       if (o.type === 'create') return await doCreate(me);
-      if (o.type === 'join') return await doJoin(me, o.code, o.name);
+      if (o.type === 'join') return await doJoin(me, o.code);
       if (!me) { clearO(); onlineUnavailable(); return; }
       if (!C.code) return;
       if (o.type === 'leave') { // both hosts and guests leave through the actions doc
@@ -1646,14 +1681,19 @@ const MN_FS = (function () {
         broadcast(E);
         return;
       } catch (e) {
-        if (/ALREADY_EXISTS/.test(String(e.message))) continue;
+        if (taken(e)) continue;
         if (/denied/.test(String(e.message))) { onlineUnavailable('denied'); return; }
-        toast('Could not open the table — check your connection.'); return;
+        if (/signed-out/.test(String(e.message))) { onlineUnavailable(); return; }
+        // say what actually went wrong: a refused request is not a bad connection
+        console.log('MN_FS.doCreate error', e && e.http, String(e && e.message || e).slice(0, 200));
+        toast(e && e.http ? 'Could not open the table — the server refused it (error ' + e.http + '). Tell your teacher.' : 'Could not open the table — check your connection.'); return;
       }
     }
     toast('Could not find a free code — try again.');
   }
-  async function doJoin(me, code, name) {
+  // (the page passes "Stranger" when the name box is empty, so the seat name
+  // comes from seatName(): typed alias, else the CMC account name)
+  async function doJoin(me, code) {
     if (!me) { onlineUnavailable(); return; }
     code = (code || '').toUpperCase();
     if (!/^[A-Z2-9]{4}$/.test(code)) { toast('Enter the four-letter room code.'); return; }
@@ -1666,7 +1706,7 @@ const MN_FS = (function () {
       H.code = null; H.E = null; stopHostLoops();
       // the seat itself is claimed through THIS player's own actions doc (the
       // host reconciles the room doc — the rules only let the host write it)
-      await upsert(roomPath(code) + '/actions', me.uid, { action: SV('join'), text: SV(name || seatName()), at: { timestampValue: new Date().toISOString() } });
+      await upsert(roomPath(code) + '/actions', me.uid, { action: SV('join'), text: SV(seatName()), at: { timestampValue: new Date().toISOString() } });
       saveO({ token: code + ':' + me.uid, playerId: mine ? mine.id : '?', roomCode: code });
       enterRoom(code, me.uid, mine ? mine.id : '?'); startPoll();
     } catch (e) {
@@ -1687,13 +1727,13 @@ const MN_FS = (function () {
       gameId: IV(E.gameId), seq: IV(E.seq), engine: SV(blob), updatedAt: { timestampValue: new Date().toISOString() } };
   }
   function enterRoom(code, uid, playerId) {
-    C.code = code; C.uid = uid; C.lastSeq = -1; C.fedLog = false; C.feedSeen = {}; C.gone = false; C.lastHb = 0; C.endSent = null;
+    C.code = code; C.uid = uid; C.lastSeq = -1; C.fedLog = false; C.feedN = 0; C.gone = false; C.lastHb = 0; C.endSent = null;
     O.sel = null; O.prevPhase = null; O.hadState = false; O.lastResultKey = ''; O.revealedGame = null; O.endKey = '';
     app.mode = 'online'; clearFeed();
     handleO({ type: 'joined', token: code + ':' + uid, playerId: playerId || '0', roomCode: code });
     setConn('live');
   }
-  function resetClient() { stopPoll(); stopHostLoops(); H.E = null; H.code = null; C.code = null; C.uid = null; C.lastSeq = -1; C.fedLog = false; C.feedSeen = {}; }
+  function resetClient() { stopPoll(); stopHostLoops(); H.E = null; H.code = null; C.code = null; C.uid = null; C.lastSeq = -1; C.fedLog = false; C.feedN = 0; }
   function startPoll() { stopPoll(); C.pollT = setInterval(poll, 1500); poll(); }
 
   async function connect() {
