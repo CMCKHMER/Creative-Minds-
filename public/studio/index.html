@@ -2509,7 +2509,13 @@ sheetGrid.addEventListener('keydown', e => {
 });
 sheetGrid.addEventListener('keypress', e => {
   if (e.target.matches('input')) return;
-  if (e.key.length === 1) { setCell(selectedCell.row, selectedCell.col, e.key); startCellEdit(); const td = sheetGrid.querySelector(`td.cell[data-r="${selectedCell.row}"][data-c="${selectedCell.col}"]`); const input = td && td.querySelector('input'); if (input) { input.value = e.key; input.setSelectionRange(1, 1); } }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  /* Type-to-edit: open the editor seeded with the typed character.
+     preventDefault is essential — the editor takes focus inside this handler,
+     so without it the browser inserts the same character again ("12" was
+     stored as "112"). Nothing is written to the cell until the edit is
+     committed, so Escape leaves the old value untouched. */
+  if (e.key.length === 1) { e.preventDefault(); startCellEdit(); const td = sheetGrid.querySelector(`td.cell[data-r="${selectedCell.row}"][data-c="${selectedCell.col}"]`); const input = td && td.querySelector('input'); if (input) { input.value = e.key; input.setSelectionRange(1, 1); } }
 });
 // Right-click a cell, row/column header or anywhere on the grid: opens the
 // full Canva-style tool menu (customizable via ⚙ Tools). The right-clicked
@@ -5205,12 +5211,20 @@ function startCellEdit(){
   td.classList.add('editing');
   const input = td.querySelector('input'); input.focus();
   input.setSelectionRange(input.value.length, input.value.length);
-  const commit = () => { setCell(r0, c0, input.value); };
-  input.addEventListener('blur', () => { commit(); renderSheet(); });
+  /* `done` makes the edit end exactly once. Re-rendering removes the editor,
+     which fires blur — that blur used to save an edit the user had just
+     cancelled with Escape. */
+  let done = false;
+  const commit = () => { if (done) return; done = true; setCell(r0, c0, input.value); };
+  /* Hand the keyboard back to the grid after Enter / Tab / Escape. Otherwise
+     focus falls to <body>, arrow keys stop moving the selection and the next
+     letters are read as tool shortcuts instead of going into the next cell. */
+  const backToGrid = () => { try { sheetGrid.focus({ preventScroll: true }); } catch (err) {} };
+  input.addEventListener('blur', () => { if (done) return; commit(); renderSheet(); });
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { commit(); renderSheet(); e.preventDefault(); moveSelection(1, 0); }
-    if (e.key === 'Tab') { commit(); renderSheet(); e.preventDefault(); moveSelection(0, 1); }
-    if (e.key === 'Escape') { renderSheet(); }
+    if (e.key === 'Enter') { commit(); renderSheet(); e.preventDefault(); moveSelection(1, 0); backToGrid(); }
+    if (e.key === 'Tab') { commit(); renderSheet(); e.preventDefault(); moveSelection(0, e.shiftKey ? -1 : 1); backToGrid(); }
+    if (e.key === 'Escape') { done = true; renderSheet(); e.preventDefault(); backToGrid(); }
     e.stopPropagation();
   });
   fxUpdateOverlays();
