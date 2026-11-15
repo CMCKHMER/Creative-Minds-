@@ -467,6 +467,31 @@ export async function listAllInviteAttempts(teacherUid: string): Promise<InviteA
   );
 }
 
+/** How many invite attempts this teacher has — ONE billed read however
+ *  many there are (a Firestore count query). The dashboard's live feed
+ *  asks this every few seconds and downloads the list only when the number
+ *  has changed, so watching a class finish a test stays inside the free
+ *  quota. Throws RestError like the other calls. */
+export async function countInviteAttempts(teacherUid: string): Promise<number> {
+  type Row = { result?: { aggregateFields?: Record<string, { integerValue?: string }> } };
+  const res = await fsCall<Row[] | Row>(':runAggregationQuery', {
+    method: 'POST',
+    body: JSON.stringify({
+      structuredAggregationQuery: {
+        structuredQuery: {
+          from: [{ collectionId: 'invite_attempts', allDescendants: false }],
+          ...fieldFilter('teacherUid', 'EQUAL', teacherUid),
+        },
+        aggregations: [{ alias: 'n', count: {} }],
+      },
+    }),
+  });
+  const row = Array.isArray(res) ? res[0] : res;
+  const n = Number(row?.result?.aggregateFields?.n?.integerValue);
+  if (!Number.isFinite(n)) throw new RestError(0, 'Unexpected answer to the count query');
+  return n;
+}
+
 // ── Answer seal (teacher_secrets/answer-seal) ────────────────────────
 //
 // The public bi-weekly test pages carry their answers ENCRYPTED. The one
