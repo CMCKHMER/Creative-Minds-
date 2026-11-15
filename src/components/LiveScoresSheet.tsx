@@ -5,8 +5,10 @@
 // delete rows and columns, sort, reset. Fullscreen-safe keyboard model
 // (arrows, Enter, Tab, Del, Ctrl+Z/Y/A). Edits auto-save in the browser.
 //
-// Server rows carry a signature; a refresh only APPENDS attempts the
-// teacher doesn't have yet, so manual rows and edits always survive.
+// Server rows carry a signature; a refresh only ADDS attempts the teacher
+// doesn't have yet (at the top, newest first) and fills an empty Note cell
+// when the server has a remark for a row — manual rows and edits always
+// survive.
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -66,7 +68,7 @@ export const LiveScoresSheet: React.FC<{ attempts: BiweeklyAttempt[] }> = ({ att
   const width = gridWidth(rows);
   const s = normSel(sel);
 
-  /* Build tabs on first load; on refresh append only NEW attempts. */
+  /* Build tabs on first load; on refresh add only NEW attempts (on top). */
   useEffect(() => {
     setTabs((prev) => {
       const groups = groupByTest(attempts);
@@ -512,7 +514,7 @@ export const LiveScoresSheet: React.FC<{ attempts: BiweeklyAttempt[] }> = ({ att
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
         Right-click any cell (or long-press on touch) for the tool menu — copy, paste, insert / delete rows
         &amp; columns, sort. Ctrl+C / Ctrl+V swap data with Excel &amp; Google Sheets. Edits auto-save in this
-        browser; the server only ever adds new attempts.
+        browser; new attempts are added at the top, and nothing you typed is changed.
       </p>
       {hint && (
         <p className="mt-1 text-[10px] font-bold text-emerald-300">{hint}</p>

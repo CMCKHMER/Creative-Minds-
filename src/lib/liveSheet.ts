@@ -29,7 +29,10 @@ export interface Selection {
   r1: number; c1: number; r2: number; c2: number;
 }
 
-export const DEFAULT_HEADERS = ['Student', 'Class', 'Score %', 'Correct', 'Total', 'Submitted'];
+export const DEFAULT_HEADERS = ['Student', 'Class', 'Score %', 'Correct', 'Total', 'Submitted', 'Note'];
+/** Header of the column that carries server remarks (see BiweeklyAttempt.note). */
+export const NOTE_HEADER = 'Note';
+const NOTE_COL = DEFAULT_HEADERS.indexOf(NOTE_HEADER);
 export const BLANK_ROWS = 24;
 const LS_PREFIX = 'cmc.liveSheet.v1.';
 const NUM_RE = /^-?\d+(\.\d+)?$/;
@@ -39,7 +42,7 @@ const NUM_RE = /^-?\d+(\.\d+)?$/;
 const rowSig = (a: BiweeklyAttempt): string =>
   JSON.stringify([a.studentName, a.drillSlug || a.drillTitle, a.submittedAt]);
 
-function attemptRow(a: BiweeklyAttempt, width: number): SheetRow {
+function attemptRow(a: BiweeklyAttempt, width: number, noteCol = NOTE_COL): SheetRow {
   const cells = [
     a.studentName || 'Unknown',
     a.classId || '',
@@ -48,8 +51,26 @@ function attemptRow(a: BiweeklyAttempt, width: number): SheetRow {
     String(a.totalCount),
     fmtWhen(a.submittedAt),
   ];
-  while (cells.length < width) cells.push('');
+  while (cells.length < Math.max(width, noteCol + 1)) cells.push('');
+  if (a.note && noteCol >= 0) cells[noteCol] = a.note;
   return { cells, sig: rowSig(a) };
+}
+
+/** Where server remarks go in a sheet the teacher may have rearranged:
+ *  the column headed "Note"; else the default position when that column is
+ *  still unused; else a new column at the right edge. Returns the (possibly
+ *  widened) rows and the column index. */
+export function ensureNoteColumn(rows: SheetRow[]): { rows: SheetRow[]; col: number } {
+  const header = rows[0]?.cells ?? [];
+  const named = header.findIndex((h) => h.trim().toLowerCase() === NOTE_HEADER.toLowerCase());
+  if (named >= 0) return { rows, col: named };
+  const width = gridWidth(rows);
+  const free = rows.every((r) => (r.cells[NOTE_COL] ?? '').trim() === '');
+  const col = free ? NOTE_COL : width;
+  const next = normalizeWidth(cloneRows(rows), Math.max(width, col + 1));
+  if (next.length === 0) next.push(blankRow(col + 1));
+  next[0].cells[col] = NOTE_HEADER;
+  return { rows: next, col };
 }
 
 /** Grid rows for one test: header + one row per attempt (newest first). */
@@ -266,24 +287,62 @@ export function sortByColumn(rows: SheetRow[], col: number, dir: 'asc' | 'desc')
 
 /* ── server sync & persistence ──────────────────────────────────────── */
 
-/** Append attempts the teacher's grid doesn't have yet (matched by sig);
- *  trailing blank rows are trimmed first and re-added after. */
+/** Bring a teacher's grid up to date with the server (rows matched by sig):
+ *
+ *   - attempts the grid does not have yet are inserted directly UNDER THE
+ *     HEADER, newest first — the same order a fresh sheet has. (They used
+ *     to be appended below every older row, so the attempt a teacher had
+ *     just watched a student finish was the last thing on the sheet.)
+ *   - a remark the server now has for a row that is already on the grid
+ *     (e.g. "earlier version of this test") is written into that row's
+ *     Note cell when the cell is still empty.
+ *
+ *  Rows and cells the teacher typed are never changed; trailing blank rows
+ *  are trimmed and re-added so the sheet keeps its working space. */
 export function syncServerRows(
   rows: SheetRow[],
   attempts: BiweeklyAttempt[],
 ): { rows: SheetRow[]; added: number } {
   const present = new Set(rows.map((r) => r.sig).filter((s): s is string => typeof s === 'string'));
   const missing = attempts.filter((a) => !present.has(rowSig(a)));
-  if (missing.length === 0) return { rows, added: 0 };
+  const notes = new Map<string, string>();
+  for (const a of attempts) if (a.note) notes.set(rowSig(a), a.note);
+  const hasNotes = notes.size > 0;
+  const stale = hasNotes && rows.some((r) => typeof r.sig === 'string' && notes.has(r.sig));
+  if (missing.length === 0 && !stale) return { rows, added: 0 };
 
-  const width = Math.max(gridWidth(rows), DEFAULT_HEADERS.length);
+  const width = Math.max(gridWidth(rows), hasNotes ? DEFAULT_HEADERS.length : 1);
   let next = normalizeWidth(cloneRows(rows), width);
+  let noteCol = -1;
+  if (hasNotes) {
+    const placed = ensureNoteColumn(next);
+    next = placed.rows;
+    noteCol = placed.col;
+  }
+  const finalWidth = gridWidth(next);
+  let changed = false;
+
+  if (noteCol >= 0) {
+    for (let i = 1; i < next.length; i++) {
+      const sig = next[i].sig;
+      const note = typeof sig === 'string' ? notes.get(sig) : undefined;
+      if (note && (next[i].cells[noteCol] ?? '').trim() === '') {
+        next[i].cells[noteCol] = note;
+        changed = true;
+      }
+    }
+  }
+  if (missing.length === 0) return changed ? { rows: next, added: 0 } : { rows, added: 0 };
+
   let end = next.length;
   while (end > 1 && isBlankRow(next[end - 1])) end--;
-  next = next.slice(0, end);
-  for (const a of missing) next.push(attemptRow(a, width));
-  while (next.length - 1 < BLANK_ROWS) next.push(blankRow(width));
-  return { rows: next, added: missing.length };
+  const head = next.length ? next[0] : { cells: [...DEFAULT_HEADERS] };
+  const fresh = [...missing]
+    .sort((a, b) => (a.submittedAt < b.submittedAt ? 1 : a.submittedAt > b.submittedAt ? -1 : 0))
+    .map((a) => attemptRow(a, finalWidth, noteCol));
+  next = [head, ...fresh, ...next.slice(1, end)];
+  while (next.length - 1 < BLANK_ROWS) next.push(blankRow(finalWidth));
+  return { rows: normalizeWidth(next, gridWidth(next)), added: missing.length };
 }
 
 /** Build the tab list for a batch of attempts (one tab per test). */
@@ -342,7 +401,7 @@ export function gridWorkbookXml(tabs: Array<{ title: string; rows: SheetRow[] }>
     .map((t) => {
       const width = gridWidth(t.rows);
       const cols = Array.from({ length: width }, (_, i) =>
-        `<Column ss:Width="${i === 0 ? 150 : i === 5 ? 110 : i < 6 ? [90, 52, 56, 48][i - 1] ?? 90 : 100}"/>`,
+        `<Column ss:Width="${i === 0 ? 150 : i === 5 ? 110 : i < 6 ? [90, 52, 56, 48][i - 1] ?? 90 : i === 6 ? 330 : 100}"/>`,
       ).join('');
       const body = t.rows
         .map((r) => `<Row>${r.cells.map((v) => cell(v)).join('')}</Row>`)

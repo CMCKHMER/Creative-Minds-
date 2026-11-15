@@ -10,6 +10,7 @@
 // instead of a built-in scoreboard.
 
 import { csvSafeText } from './csvSafe';
+import { currentTotal, versionNote, type TestCounts } from './testCounts';
 
 export interface BiweeklyAttempt {
   studentName: string;
@@ -20,6 +21,11 @@ export interface BiweeklyAttempt {
   correctCount: number;
   totalCount: number;
   submittedAt: string; // ISO timestamp
+  /** A remark the teacher should see next to the row — e.g. the result was
+   *  recorded for an earlier version of the test (other question count). */
+  note?: string;
+  /** Came through a teacher's invite link (private `invite_attempts`). */
+  viaInvite?: boolean;
 }
 
 const FIRESTORE_RUNQUERY =
@@ -86,6 +92,24 @@ export async function fetchBiweeklyAttempts(): Promise<BiweeklyAttempt[]> {
   return rows;
 }
 
+/** One list, newest first, from the public feed and the teacher's private
+ *  invite results. */
+export function mergeAttempts(...lists: BiweeklyAttempt[][]): BiweeklyAttempt[] {
+  return lists.flat().sort((a, b) => (a.submittedAt < b.submittedAt ? 1 : a.submittedAt > b.submittedAt ? -1 : 0));
+}
+
+/** Label every result that was scored out of a different number of
+ *  questions than its test has today (see testCounts.ts). Rows of unknown
+ *  tests are left alone; an existing note is kept. */
+export function annotateVersions(attempts: BiweeklyAttempt[], counts: TestCounts | null): BiweeklyAttempt[] {
+  if (!counts) return attempts;
+  return attempts.map((a) => {
+    if (a.note) return a;
+    const note = versionNote(a.totalCount, currentTotal(counts, a.drillSlug));
+    return note ? { ...a, note } : a;
+  });
+}
+
 /** Group rows into one bucket per test, ordered by most recent activity. */
 export function groupByTest(
   attempts: BiweeklyAttempt[],
@@ -134,7 +158,7 @@ export const sheetName = (title: string): string => {
   return (clean || 'Sheet').slice(0, 31);
 };
 
-const HEADERS = ['Student', 'Class', 'Score %', 'Correct', 'Total', 'Submitted'];
+const HEADERS = ['Student', 'Class', 'Score %', 'Correct', 'Total', 'Submitted', 'Note'];
 
 function sheetXml(title: string, rows: BiweeklyAttempt[]): string {
   const cell = (v: string | number, style = ''): string => {
@@ -153,6 +177,7 @@ function sheetXml(title: string, rows: BiweeklyAttempt[]): string {
         cell(r.correctCount),
         cell(r.totalCount),
         cell(fmtWhen(r.submittedAt)),
+        cell(r.note ?? '', r.note ? 'sNote' : ''),
       ]),
     )
     .join('');
@@ -166,7 +191,7 @@ function sheetXml(title: string, rows: BiweeklyAttempt[]): string {
  <Worksheet ss:Name="${xmlEsc(sheetName(title))}">
   <Table ss:DefaultRowHeight="18">
    <Column ss:Width="150"/><Column ss:Width="90"/><Column ss:Width="52"/>
-   <Column ss:Width="56"/><Column ss:Width="48"/><Column ss:Width="110"/>
+   <Column ss:Width="56"/><Column ss:Width="48"/><Column ss:Width="110"/><Column ss:Width="330"/>
    ${rowHtml(HEADERS.map((h) => cell(h, 'sHead')))}
    ${body}${note}
   </Table>
@@ -222,7 +247,7 @@ export function toCsv(attempts: BiweeklyAttempt[]): string {
   for (const a of attempts) {
     lines.push(
       [a.studentName || 'Unknown', a.classId || '—', a.scorePct, a.correctCount, a.totalCount,
-        fmtWhen(a.submittedAt), a.drillSlug].map(csvCell).join(','),
+        fmtWhen(a.submittedAt), a.note ?? '', a.drillSlug].map(csvCell).join(','),
     );
   }
   return '\ufeff' + lines.join('\r\n');

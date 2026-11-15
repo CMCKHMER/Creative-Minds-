@@ -1,0 +1,112 @@
+// The question count of a bi-weekly test must be the same everywhere:
+// what the teacher is told when sharing it, what the student answers, and
+// what the result is scored out of. Regression for the owner's report —
+// "the Diagnostic showed N questions, the live sheet said 9 and 4 correct":
+// the 9 was the test's size before it was replaced on 9 Nov 2026.
+
+import { execFileSync } from 'node:child_process';
+import { readdirSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import type { AnswerKeyMap } from '../lib/answerSeal';
+import { inviteRows } from '../lib/inviteScores';
+import { countLine, currentTotal, isEarlierVersion, versionNote } from '../lib/testCounts';
+import type { TestCounts } from '../lib/testCounts';
+
+const ROOT = resolve(__dirname, '../..');
+const PLANNER = resolve(ROOT, 'public/biweek-planner');
+const counts = (JSON.parse(readFileSync(resolve(PLANNER, 'test-counts.json'), 'utf8')) as { tests: TestCounts }).tests;
+
+describe('repository: one question count per test, everywhere', () => {
+  it('test-counts.json matches the pages, their private twins and every catalog', () => {
+    const out = execFileSync('node', [resolve(ROOT, 'scripts/test_counts.mjs'), '--check'], { encoding: 'utf8' });
+    expect(out).toMatch(/test counts OK/);
+  });
+
+  it('lists every test page, and the parts add up to the total', () => {
+    const pages = readdirSync(resolve(PLANNER, 'tests'))
+      .filter((f) => f.endsWith('.html') && !f.startsWith('_'))
+      .map((f) => f.replace(/\.html$/, ''))
+      .sort();
+    expect(Object.keys(counts).sort()).toEqual(pages);
+    for (const [slug, t] of Object.entries(counts)) {
+      expect(t.total, slug).toBeGreaterThan(0);
+      expect(t.parts.reduce((n, p) => n + p.total, 0), slug).toBe(t.total);
+    }
+  });
+
+  it('a part title that names a number of questions names the real one', () => {
+    for (const [slug, t] of Object.entries(counts)) {
+      for (const p of t.parts) {
+        const said = /\((\d+)\s*questions?\)/i.exec(p.title);
+        if (said) expect(Number(said[1]), `${slug}: ${p.title}`).toBe(p.total);
+      }
+    }
+  });
+
+  it('the Week 2 tests the owner compared: Diagnostic 23, Written Expressions 25', () => {
+    expect(counts.diagnostic.total).toBe(23);
+    expect(counts.diagnostic.parts.map((p) => p.total)).toEqual([6, 5, 5, 7]);
+    expect(counts.structure.total).toBe(25);
+    expect(countLine(counts.diagnostic)).toBe('23 questions — Part A 6 · Part B 5 · Part C 5 · Part D 7');
+  });
+
+  it('the planner hub reads its results from the private collection and scores them itself', () => {
+    const hub = readFileSync(resolve(PLANNER, 'index.html'), 'utf8');
+    expect(hub).toContain("query('invite_attempts'");
+    expect(hub).toContain('test-counts.json');
+    expect(hub).toContain('<script src="./answer-seal.js');
+    // the invite code is registered before a link can be copied
+    expect(hub).toContain("FS+'/invite_codes?documentId='");
+  });
+});
+
+describe('telling an earlier version of a test from the current one', () => {
+  it('flags a different total, and nothing else', () => {
+    expect(isEarlierVersion(9, 23)).toBe(true);
+    expect(isEarlierVersion(23, 23)).toBe(false);
+    expect(isEarlierVersion(9, undefined)).toBe(false); // unknown test
+    expect(isEarlierVersion(null, 23)).toBe(false);
+    expect(isEarlierVersion(0, 23)).toBe(false);
+    expect(versionNote(9, 23)).toBe('Earlier version of this test (9 questions; it now has 23)');
+    expect(versionNote(1, 23)).toBe('Earlier version of this test (1 question; it now has 23)');
+    expect(versionNote(23, 23)).toBe('');
+  });
+
+  it('finds a test by slug or by file name', () => {
+    expect(currentTotal(counts, 'diagnostic.html')).toBe(23);
+    expect(currentTotal(counts, 'diagnostic')).toBe(23);
+    expect(currentTotal(counts, 'no-such-test.html')).toBeUndefined();
+    expect(currentTotal(null, 'diagnostic')).toBeUndefined();
+  });
+});
+
+describe('invite-link results on the score sheet', () => {
+  const key: AnswerKeyMap = { 'a:0': '1', 'a:1': '0', 'a:2': '2', 'b:0': '0|2' };
+  const sheet = (a: Record<string, string>) => JSON.stringify({ v: 1, a });
+  const doc = (over: Record<string, unknown>) => ({
+    studentName: 'Sok Dara', drillSlug: 'diagnostic.html', drillTitle: 'Orientation Diagnostic',
+    submittedAt: '2026-11-14T03:00:00.000Z', scorePct: 0, correctCount: 0, totalCount: 4, ...over,
+  });
+
+  it('grades a sealed attempt against the key: total = the key, not what the device sent', () => {
+    const { attempts, unscored } = inviteRows(
+      [doc({ sealed: true, totalCount: 9, sheet: sheet({ 'a:0': '1', 'a:1': '0', 'a:2': '1', 'b:0': '0|2' }) })],
+      () => key,
+    );
+    expect(unscored).toBe(0);
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0]).toMatchObject({ correctCount: 3, totalCount: 4, scorePct: 75, viaInvite: true, drillTitle: 'Orientation Diagnostic' });
+  });
+
+  it('never shows a made-up score: a sealed attempt without the key is counted, not listed', () => {
+    const { attempts, unscored } = inviteRows([doc({ sealed: true, sheet: sheet({ 'a:0': '1' }) })], () => null);
+    expect(attempts).toHaveLength(0);
+    expect(unscored).toBe(1);
+  });
+
+  it('keeps the stored score of an attempt from before the tests were sealed', () => {
+    const { attempts } = inviteRows([doc({ scorePct: 44, correctCount: 4, totalCount: 9 })], () => null);
+    expect(attempts[0]).toMatchObject({ scorePct: 44, correctCount: 4, totalCount: 9 });
+  });
+});

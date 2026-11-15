@@ -36,12 +36,18 @@ import {
 } from '../lib/testDb';
 import type { InviteAttemptDoc } from '../lib/testDb';
 import { formatSealCode, gradeSheet, openAnswerKey, parseSheet, sealCodeMatches } from '../lib/answerSeal';
-import type { AnswerKeyMap, SealBundle, SealPublicKey } from '../lib/answerSeal';
+import type { AnswerKeyMap } from '../lib/answerSeal';
 import { isAdminUid } from '../lib/firebaseAuth';
 import { csvSafeText } from '../lib/csvSafe';
+import { loadSealFiles } from '../lib/sealFiles';
+import { countLine, loadTestCounts, testSlug, versionNote } from '../lib/testCounts';
+import type { TestCounts } from '../lib/testCounts';
 
 /** Shareable test catalog — keep slugs in sync with the files under
- *  public/biweek-planner/tests/ (each has a student invite gate built in). */
+ *  public/biweek-planner/tests/ (each has a student invite gate built in).
+ *  Question counts are NOT typed here: the picker shows the real count from
+ *  biweek-planner/test-counts.json, which is generated from the pages
+ *  (`node scripts/test_counts.mjs --check` fails on a slug with no page). */
 interface TestEntry { title: string; slug: string; group: string; }
 const TEST_CATALOG: TestEntry[] = [
   // Orientation
@@ -54,7 +60,7 @@ const TEST_CATALOG: TestEntry[] = [
   { title: 'W6 · C2 Grammar: Modals & Conditionals', slug: 'isec2-w6-grammar.html', group: 'ISEC II weekly tests' },
   { title: 'W7 · C2 Reading: The Algorithmic Enterprise', slug: 'isec2-w7-reading.html', group: 'ISEC II weekly tests' },
   { title: 'W8 · Recap: Listening · Grammar · Reading', slug: 'isec2-w8-recap.html', group: 'ISEC II weekly tests' },
-  { title: 'Level 10 TOEFL Mock Test (40 questions)', slug: 'week8-mock.html', group: 'ISEC II weekly tests' },
+  { title: 'Level 10 TOEFL Mock Test', slug: 'week8-mock.html', group: 'ISEC II weekly tests' },
   // Week 8 recaps
   { title: 'Grammar Drill — Recap', slug: 'week8-recap-grammar.html', group: 'Week 8 recaps' },
   { title: 'Listening Drill — Recap', slug: 'week8-recap-listening.html', group: 'Week 8 recaps' },
@@ -166,23 +172,20 @@ async function fetchAttempts(file: string, teacherUid: string): Promise<AttemptD
   } as AttemptDoc));
 }
 
-/** The sealed-answer files ship with the site (public, safe: ciphertext and
- *  the PUBLIC key only). Loaded once per page view. */
-let sealFilesPromise: Promise<{ pub: SealPublicKey; bundle: SealBundle }> | null = null;
-function loadSealFiles(): Promise<{ pub: SealPublicKey; bundle: SealBundle }> {
-  if (!sealFilesPromise) {
-    const base = window.location.pathname.replace(/index\.html$/, '') + 'biweek-planner/';
-    const get = async <T,>(name: string): Promise<T> => {
-      const res = await fetch(base + name, { cache: 'no-cache' });
-      if (!res.ok) throw new Error(`Could not load ${name}`);
-      return res.json() as Promise<T>;
-    };
-    sealFilesPromise = Promise.all([get<SealPublicKey>('answer-seal.pub.json'), get<SealBundle>('answer-seals.json')])
-      .then(([pub, bundle]) => ({ pub, bundle }))
-      .catch((err: unknown) => { sealFilesPromise = null; throw err; });
-  }
-  return sealFilesPromise;
-}
+/** Where the teacher's invite code stands. Students' answers are accepted
+ *  by the database only for a code that is REGISTERED to a teacher, so the
+ *  link may be copied only in the 'ok' state. */
+type CodeState = 'checking' | 'ok' | 'taken' | 'short' | 'signin' | 'denied' | 'error';
+const MIN_CODE = 8; // firestore.rules: invite_codes ids are 8–32 characters
+const CODE_NOTE: Record<CodeState, string> = {
+  checking: 'Checking your teacher code…',
+  ok: 'Your teacher code is registered to your account — results from this link come back to you.',
+  taken: 'Another teacher already uses this code. Choose a different one — with this code your students’ results would not reach you.',
+  short: 'The teacher code needs 8 to 24 letters or numbers (A–Z, 0–9, dash, underscore).',
+  signin: 'Sign in with your teacher account (top-right) before sharing — the link needs a code registered to you.',
+  denied: 'This account cannot register a teacher code (verified teacher accounts only). Answers sent through this link would be refused.',
+  error: 'Could not reach the server to register your teacher code. Check the connection — do not share the link yet.',
+};
 
 const SEAL_NOTE: Record<Exclude<SealStatus, 'checking' | 'ready'>, string> = {
   missing: 'The answer key is not installed yet, so new attempts cannot be scored. They are saved and will be scored as soon as the site owner installs the key.',
@@ -204,6 +207,9 @@ export const BiWeeklyTestsPanel: React.FC<{
   const [resultsState, setResultsState] = useState<{ tone: 'ok' | 'err' | 'info'; text: string }>({ tone: 'info', text: '' });
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [codeState, setCodeState] = useState<CodeState>('checking');
+  const [sessionKnown, setSessionKnown] = useState(false);
+  const [counts, setCounts] = useState<TestCounts | null>(null);
   const [sealStatus, setSealStatus] = useState<SealStatus>('checking');
   const [sealCode, setSealCode] = useState('');
   const [answerKey, setAnswerKey] = useState<{ slug: string; map: AnswerKeyMap } | null>(null);
@@ -238,10 +244,8 @@ export const BiWeeklyTestsPanel: React.FC<{
     }
   }, []);
 
-  // Restore/generate the personal teacher ID code once, resolve the REST
-  // session uid, and REGISTER the code in the invite_codes registry (the
-  // create-once code→owner binding students copy onto their submissions —
-  // without it their attempts cannot be owned, so they would be rejected).
+  // Restore/generate the personal teacher ID code once and resolve the REST
+  // session uid (the id the security rules see).
   useEffect(() => {
     let code = '';
     try { code = sanitizeCode(localStorage.getItem(CODE_KEY) || ''); } catch { /* stays '' */ }
@@ -250,25 +254,42 @@ export const BiWeeklyTestsPanel: React.FC<{
       try { localStorage.setItem(CODE_KEY, code); } catch { /* private mode — code stays in memory */ }
     }
     setTeacherCode(code);
-    void getRestAuthUid().then(async (uid) => {
+    void loadTestCounts().then((c) => { if (alive.current) setCounts(c); });
+    void getRestAuthUid().then((uid) => {
       if (!alive.current) return;
       setRestUid(uid ?? '');
-      if (!uid) return; // no Firebase session — results view will ask to sign in
-      void loadSeal(); // answer key for grading (verified teachers only)
-      // Bind the code to this teacher. If another teacher registered the
-      // random code first (collision), roll a fresh one and bind that.
-      let result: 'ok' | 'taken' = 'taken';
-      for (let attemptNo = 0; attemptNo < 3 && result === 'taken'; attemptNo += 1) {
-        result = await registerInviteCode(code, uid).catch(() => 'taken');
-        if (result === 'taken') {
-          code = 'TEACHER-' + Math.random().toString(36).slice(2, 6).toUpperCase();
-          try { localStorage.setItem(CODE_KEY, code); } catch { /* in-memory */ }
-          if (alive.current) setTeacherCode(code);
-        }
-      }
+      setSessionKnown(true);
+      if (uid) void loadSeal(); // answer key for grading (verified teachers only)
     });
     return () => { alive.current = false; };
   }, [loadSeal]);
+
+  // REGISTER the code in the invite_codes registry — the create-once
+  // code→owner binding students copy onto their submissions. Without it the
+  // database refuses every answer sent through the link. This runs for the
+  // stored code AND for every code the teacher types or generates here (a
+  // typed code used to be registered only on the next page load, so a link
+  // copied right after typing collected nothing).
+  useEffect(() => {
+    if (!sessionKnown || !teacherCode) return;
+    let cancelled = false;
+    const settle = (state: CodeState) => { if (!cancelled && alive.current) setCodeState(state); };
+    const timer = window.setTimeout(() => {
+      if (!restUid) { settle('signin'); return; }
+      if (teacherCode.length < MIN_CODE) { settle('short'); return; }
+      settle('checking');
+      void (async () => {
+        try {
+          // The rules know a teacher by the teachers list; a first visit adds it.
+          await ensureTeacherRegistration().catch(() => false);
+          settle((await registerInviteCode(teacherCode, restUid)) === 'ok' ? 'ok' : 'taken');
+        } catch (err) {
+          settle(err instanceof RestError && (err.status === 403 || err.status === 401) ? 'denied' : 'error');
+        }
+      })();
+    }, 500);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [teacherCode, restUid, sessionKnown]);
 
   // Open the key of the selected test (in memory only — never stored).
   useEffect(() => {
@@ -295,6 +316,11 @@ export const BiWeeklyTestsPanel: React.FC<{
     });
   }, [attempts, answerKey, formSlug]);
   const ungradedCount = graded.filter((d) => d.ungraded).length;
+  const testCount = counts?.[testSlug(formSlug)];
+  /** '' or "Earlier version of this test (9 questions; it now has 23)". */
+  const noteOf = (d: AttemptDoc): string => versionNote(d.totalCount, testCount?.total);
+  const earlierCount = graded.filter((d) => noteOf(d)).length;
+  const codeReady = codeState === 'ok';
 
   const isOwner = isAdminUid(restUid);
 
@@ -360,6 +386,7 @@ export const BiWeeklyTestsPanel: React.FC<{
   }, [resultsOpen, formSlug, loadAttempts, restUid]);
 
   const copyLink = () => {
+    if (!codeReady) return;
     void navigator.clipboard.writeText(inviteUrl).then(() => {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
@@ -379,10 +406,10 @@ export const BiWeeklyTestsPanel: React.FC<{
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
     const lines = [
-      ['Student', 'Student ID', 'Teacher code', 'Score %', 'Correct', 'Total', 'Duration s', 'Flags', 'Submitted', 'Answers'].join(','),
+      ['Student', 'Student ID', 'Teacher code', 'Score %', 'Correct', 'Total', 'Duration s', 'Flags', 'Submitted', 'Note', 'Answers'].join(','),
       ...graded.map((d) => {
         const flags = (d.integrity?.blurs ?? 0) + (d.integrity?.fsExits ?? 0);
-        return [d.studentName, d.studentCode, d.inviteCode, d.ungraded ? 'not scored' : d.scorePct, d.correctCount, d.totalCount, d.durationSeconds, flags, d.submittedAt, d.answers]
+        return [d.studentName, d.studentCode, d.inviteCode, d.ungraded ? 'not scored' : d.scorePct, d.correctCount, d.totalCount, d.durationSeconds, flags, d.submittedAt, noteOf(d), d.answers]
           .map(cell).join(',');
       }),
     ];
@@ -404,7 +431,10 @@ export const BiWeeklyTestsPanel: React.FC<{
     >
       {CATALOG_GROUPS.map((g) => (
         <optgroup key={g.label} label={g.label}>
-          {g.items.map((t) => <option key={t.slug} value={t.slug}>{t.title}</option>)}
+          {g.items.map((t) => {
+            const n = counts?.[testSlug(t.slug)]?.total;
+            return <option key={t.slug} value={t.slug}>{n ? `${t.title} — ${n} question${n === 1 ? '' : 's'}` : t.title}</option>;
+          })}
         </optgroup>
       ))}
     </select>
@@ -459,11 +489,25 @@ export const BiWeeklyTestsPanel: React.FC<{
           {picker}
           <button
             onClick={copyLink}
-            className="hudp-cta flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5"
+            disabled={!codeReady}
+            title={codeReady ? undefined : CODE_NOTE[codeState]}
+            className="hudp-cta flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
           >
             <Copy className="h-3 w-3" /> {copied ? 'Copied!' : 'Copy student link'}
           </button>
         </div>
+        {testCount && (
+          <p data-test-count={testCount.total} className="mt-2 text-[11px] font-semibold text-cyan-100">
+            This test has {countLine(testCount)}.
+          </p>
+        )}
+        <p
+          role="status"
+          data-code-state={codeState}
+          className={`mt-1.5 text-[11px] leading-relaxed ${codeReady ? 'text-emerald-300' : codeState === 'checking' || codeState === 'short' ? 'text-slate-400' : 'text-rose-300'}`}
+        >
+          {CODE_NOTE[codeState]}
+        </p>
         <p className="mt-2 break-all rounded-lg border border-cyan-200/10 bg-cyan-200/[0.04] px-3 py-2 font-mono text-[10.5px] text-cyan-100/70">{inviteUrl}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <a
@@ -549,6 +593,11 @@ export const BiWeeklyTestsPanel: React.FC<{
               <p role="status" className={`mt-0.5 text-[10px] ${resultsState.tone === 'err' ? 'text-rose-300' : resultsState.tone === 'ok' ? 'text-emerald-300' : 'text-slate-500'}`}>
                 {loading ? 'Loading…' : resultsState.text}
               </p>
+              {earlierCount > 0 && (
+                <p role="status" className="mt-0.5 text-[10px] text-slate-300">
+                  {earlierCount} result{earlierCount === 1 ? ' was' : 's were'} recorded for an earlier version of this test (it now has {testCount?.total} questions) — marked below.
+                </p>
+              )}
               {ungradedCount > 0 && (
                 <p role="status" className="mt-0.5 text-[10px] text-amber-200">
                   {ungradedCount} attempt{ungradedCount === 1 ? ' is' : 's are'} saved but not scored yet — see “Answer protection” above.
@@ -604,6 +653,11 @@ export const BiWeeklyTestsPanel: React.FC<{
                           ) : (
                             <span className={`font-mono text-xs font-bold ${(d.scorePct ?? 0) >= 80 ? 'text-emerald-300' : (d.scorePct ?? 0) >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
                               {d.scorePct ?? '—'}% <span className="text-[10px] text-slate-600">({d.correctCount ?? '?'}/{d.totalCount ?? '?'})</span>
+                            </span>
+                          )}
+                          {noteOf(d) && (
+                            <span className="mt-0.5 block text-[9.5px] font-semibold leading-snug text-slate-400" title={noteOf(d)}>
+                              earlier version · {d.totalCount} questions
                             </span>
                           )}
                         </td>
