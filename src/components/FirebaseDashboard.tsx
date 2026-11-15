@@ -12,6 +12,8 @@ import { displayStudentName } from '../lib/studentName';
 import { StudentAuthModal } from './StudentAuthModal';
 import { BiWeeklyScoresCard } from './BiWeeklyScoresCard';
 import { BiWeeklyTestsPanel } from './BiWeeklyTestsPanel';
+import { currentTotal, isEarlierVersion, loadTestCounts } from '../lib/testCounts';
+import type { TestCounts } from '../lib/testCounts';
 import './command-center.css';
 
 export function FirebaseDashboard() {
@@ -214,6 +216,15 @@ export function FirebaseDashboard() {
 
   // Compact-by-default completed lists: both attempt tables show only the
   // 5 newest rows until "Show all" is pressed, keeping the dashboard tight.
+  // Question counts of the bi-weekly tests as they are TODAY — used to label
+  // a feed row that was scored on an earlier version of the same test
+  // (e.g. the 9-question Diagnostic that was replaced by the 23-question one).
+  const [testCounts, setTestCounts] = useState<TestCounts | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void loadTestCounts().then((c) => { if (alive) setTestCounts(c); });
+    return () => { alive = false; };
+  }, []);
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [showAllStudent, setShowAllStudent] = useState(false);
   const scopedAttempts = selectedClass
@@ -492,6 +503,16 @@ export function FirebaseDashboard() {
                                 {a.scorePct || 0}%
                               </span>
                               <span className="ml-1 text-[10px] text-slate-600">({a.correctCount}/{a.totalCount})</span>
+                              {a.drillSource === 'biweek-planner'
+                                && isEarlierVersion(Number(a.totalCount), currentTotal(testCounts, String(a.drillSlug || ''))) && (
+                                <span
+                                  data-earlier-version
+                                  title={`This result was recorded when the test had ${a.totalCount} questions. It now has ${currentTotal(testCounts, String(a.drillSlug || ''))}.`}
+                                  className="mt-0.5 block text-[9px] font-semibold uppercase tracking-wider text-amber-300/80"
+                                >
+                                  earlier version · now {currentTotal(testCounts, String(a.drillSlug || ''))} questions
+                                </span>
+                              )}
                             </>
                           )}
                         </td>

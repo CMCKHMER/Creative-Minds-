@@ -508,16 +508,23 @@ export const BiWeeklyTestsPanel: React.FC<{
         >
           {CODE_NOTE[codeState]}
         </p>
-        <p className="mt-2 break-all rounded-lg border border-cyan-200/10 bg-cyan-200/[0.04] px-3 py-2 font-mono text-[10.5px] text-cyan-100/70">{inviteUrl}</p>
+        {/* The link is shown only once the code is registered to this teacher:
+            a link with an unregistered code lets the student finish the whole
+            test and then the database refuses the result. */}
+        {codeReady && (
+          <p data-invite-link className="mt-2 break-all rounded-lg border border-cyan-200/10 bg-cyan-200/[0.04] px-3 py-2 font-mono text-[10.5px] text-cyan-100/70">{inviteUrl}</p>
+        )}
         <div className="mt-2 flex flex-wrap gap-2">
-          <a
-            href={inviteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-md border border-cyan-200/25 bg-cyan-200/[0.06] px-2.5 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:bg-cyan-200/[0.12]"
-          >
-            <ExternalLink className="h-3 w-3" /> Preview as student
-          </a>
+          {codeReady && (
+            <a
+              href={inviteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-md border border-cyan-200/25 bg-cyan-200/[0.06] px-2.5 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:bg-cyan-200/[0.12]"
+            >
+              <ExternalLink className="h-3 w-3" /> Preview as student
+            </a>
+          )}
           <button
             onClick={() => setResultsOpen((v) => !v)}
             className="flex items-center gap-1.5 rounded-md border border-cyan-200/30 bg-cyan-200/10 px-2.5 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:bg-cyan-200/20"

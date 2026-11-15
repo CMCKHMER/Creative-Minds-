@@ -394,6 +394,88 @@ if (HAS_KEY) {
   ok('a test shows only its own results', !view.current.some((r) => r[0] === 'Sok Dara') && view.older.length === 0);
 } else skip('second test (25 questions)', 'no SEAL_KEY_FILE');
 
+// 4b. the dashboard on the main page: the "Bi-Weekly Test Scores" sheet and
+// the share panel. Run only against a built site (the hub alone has no dashboard).
+if (existsSync(join(DIST, 'assets'))) {
+  // The teacher's browser still holds the sheet as it was saved before this
+  // fix: six columns, and the old 9-question row with nothing to explain it.
+  await hub.evaluate(() => {
+    const when = '2026-11-08T17:00:00.000Z';
+    const rows = [
+      { cells: ['Student', 'Class', 'Score %', 'Correct', 'Total', 'Submitted'] },
+      { cells: ['Earlier Attempt', '', '44', '4', '9', '8 Nov'], sig: JSON.stringify(['Earlier Attempt', 'diagnostic.html', when]) },
+      { cells: ['', '', '', '', '', ''] },
+    ];
+    localStorage.setItem('cmc.liveSheet.v1.diagnostic.html', JSON.stringify({ v: 1, rows }));
+  });
+  const dash = await teacherCtx.newPage();
+  await dash.goto(`${ORIGIN(0)}/index.html`, { waitUntil: 'domcontentloaded' });
+  const found = await until(async () => {
+    await dash.evaluate(() => {
+      const el = document.querySelector('.cmc-scores-card') || document.getElementById('firebase-dashboard');
+      if (el) el.scrollIntoView({ behavior: 'instant', block: 'center' });
+      else window.scrollBy({ top: 1400, behavior: 'instant' });
+    });
+    return dash.evaluate(() => !!document.querySelector('.cmc-scores-card table'));
+  }, 60000, 400);
+  ok('dashboard: the score sheet opens for the signed-in teacher', !!found);
+  if (found) {
+    const sheetOf = (title) => dash.evaluate((t) => {
+      const card = document.querySelector('.cmc-scores-card');
+      const tab = [...card.querySelectorAll('button')].find((b) => b.textContent.trim().startsWith(t));
+      if (!tab) return null;
+      tab.click();
+      return new Promise((done) => setTimeout(() => done(
+        // header row (thead) first; the leading row-number column is dropped
+        [...card.querySelectorAll('table tr')].map((tr) => [...tr.children].slice(1).map((td) => (td.querySelector('input') ? td.querySelector('input').value : td.innerText).trim())),
+      ), 300));
+    }, title);
+    const NOTE = `Earlier version of this test (9 questions; it now has ${diag.total})`;
+    const grid = await until(async () => {
+      const g = await sheetOf(diag.title);
+      return g && g.some((r) => r.includes('Sok Dara')) ? g : null;
+    }, 20000, 500);
+    const head = grid ? grid[0] : [];
+    const col = (name) => head.indexOf(name);
+    const rowOf = (g, name) => (g || []).find((r) => r.includes(name));
+    const cells = (r, ...names) => (r ? names.map((n) => r[col(n)]) : []);
+    ok('dashboard sheet: the result that came through the invite link is on the sheet', !!rowOf(grid, 'Sok Dara'), grid ? `${grid.length} rows` : 'the test has no tab');
+    if (grid && HAS_KEY) {
+      const got = cells(rowOf(grid, 'Sok Dara'), 'Score %', 'Correct', 'Total');
+      ok('dashboard sheet: scored out of the real number of questions', got.join('/') === `${Math.round((RIGHT / diag.total) * 100)}/${RIGHT}/${diag.total}`, got.join(' / '));
+    } else skip('dashboard sheet: scored out of the real number of questions', 'no SEAL_KEY_FILE');
+    const old = rowOf(grid, 'Earlier Attempt');
+    ok('dashboard sheet: the saved "4 of 9" row is now explained in a Note column', col('Note') >= 0 && !!old && cells(old, 'Correct', 'Total', 'Note').join('|') === `4|9|${NOTE}`,
+      old ? cells(old, 'Correct', 'Total', 'Note').join(' | ') : 'row missing');
+    ok('dashboard sheet: the new result is above the old one', !!grid && grid.findIndex((r) => r.includes('Sok Dara')) === 1 && grid.findIndex((r) => r.includes('Earlier Attempt')) > 1,
+      grid ? grid.slice(1, 3).map((r) => r[col('Student')]).join(' > ') : '');
+
+    // A student finishes while the teacher has the sheet open.
+    if (HAS_KEY) {
+      await studentTakes('diagnostic', 'Late Student', diag.total);
+      await dash.evaluate(() => [...document.querySelectorAll('.cmc-scores-card button')].find((b) => b.textContent.trim() === 'Refresh').click());
+      const g2 = await until(async () => {
+        const g = await sheetOf(diag.title);
+        return g && g.some((r) => r.includes('Late Student')) ? g : null;
+      }, 20000, 500);
+      ok('dashboard sheet: after Refresh a new result is the first row, 23 of 23', !!g2 && g2[1].includes('Late Student') && cells(g2[1], 'Correct', 'Total').join('/') === `${diag.total}/${diag.total}`,
+        g2 ? g2.slice(1, 4).map((r) => `${r[col('Student')]} ${r[col('Correct')]}/${r[col('Total')]}`).join(' > ') : 'row missing');
+    }
+
+    // The share panel above the sheet.
+    const panel = await until(() => dash.evaluate(() => {
+      const state = document.querySelector('[data-code-state]');
+      if (!state || state.getAttribute('data-code-state') === 'checking') return null;
+      const link = document.querySelector('[data-invite-link]');
+      const count = document.querySelector('[data-test-count]');
+      return { state: state.getAttribute('data-code-state'), link: link ? link.textContent : '', count: count ? count.textContent : '' };
+    }), 15000);
+    ok('dashboard panel: the invite code is registered before a link is offered', !!panel && panel.state === 'ok' && panel.link.includes('?invite=BORA-2026'), panel ? `${panel.state} ${panel.link}` : 'panel missing');
+    ok('dashboard panel: the selected test states its question count', !!panel && /This test has \d+ questions/.test(panel.count), panel ? panel.count : '');
+  }
+  await dash.close();
+} else skip('dashboard checks', 'not a built site (no assets/ folder)');
+
 // 5. no installed key → "Not scored yet", never a wrong number
 db.sealCode = null;
 await hub.reload({ waitUntil: 'domcontentloaded' });
