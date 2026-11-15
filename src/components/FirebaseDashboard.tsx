@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { Activity, RefreshCw } from 'lucide-react';
 import { useMemberAuth } from '../hooks/useMemberAuth';
@@ -12,7 +12,10 @@ import { displayStudentName } from '../lib/studentName';
 import { StudentAuthModal } from './StudentAuthModal';
 import { BiWeeklyScoresCard } from './BiWeeklyScoresCard';
 import { BiWeeklyTestsPanel } from './BiWeeklyTestsPanel';
-import { currentTotal, isEarlierVersion, loadTestCounts } from '../lib/testCounts';
+import { loadTestCounts } from '../lib/testCounts';
+import { buildAttemptFeed, feedStats, feedWhen } from '../lib/attemptFeed';
+import { fetchInviteScores, inviteAttemptCount } from '../lib/inviteScores';
+import type { InviteScores } from '../lib/inviteScores';
 import type { TestCounts } from '../lib/testCounts';
 import './command-center.css';
 
@@ -182,6 +185,47 @@ export function FirebaseDashboard() {
     loadData();
   }, [loadData, selectedClass]);
 
+  // ── Results of this teacher's own share links ──────────────────────
+  // A bi-weekly test taken through a share (invite) link is stored in the
+  // private invite_attempts collection, not in the class feed above, so it
+  // has to be fetched separately — otherwise the "live" feed never shows
+  // the test a teacher has just handed out.
+  //
+  // Kept live cheaply: every 15 s (tab visible, dashboard on screen) ONE
+  // count query asks how many attempts exist; the list is downloaded again
+  // only when that number changed. If the count cannot be read, the list is
+  // re-read once a minute instead.
+  const [invite, setInvite] = useState<InviteScores | null>(null);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const inviteSeen = useRef<number | null>(null);
+  const restTeacher = firebaseAuth.isTeacher && !!firebaseAuth.session;
+  const loadInvite = useCallback(async () => {
+    setInviteBusy(true);
+    const r = await fetchInviteScores();
+    // A failed refresh must not wipe results that are already on screen.
+    setInvite((prev) => (r.state === 'ok' || !prev || prev.state !== 'ok' ? r : prev));
+    if (r.state === 'ok') inviteSeen.current = r.attempts.length + r.waiting.length;
+    setInviteBusy(false);
+  }, []);
+  useEffect(() => {
+    if (!restTeacher) { inviteSeen.current = null; return; }
+    const first = window.setTimeout(() => { void loadInvite(); }, 0);
+    let ticks = 0;
+    const iv = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      const box = document.getElementById('firebase-dashboard')?.getBoundingClientRect();
+      if (!box || box.bottom < 0 || box.top > window.innerHeight) return;
+      ticks += 1;
+      void inviteAttemptCount().then((n) => {
+        if (n === null) { if (ticks % 4 === 0) void loadInvite(); return; }
+        if (n !== inviteSeen.current) void loadInvite();
+      });
+    }, 15000);
+    return () => { window.clearTimeout(first); window.clearInterval(iv); };
+  }, [restTeacher, loadInvite]);
+  // Signed out (or not a teacher): whatever was loaded is no longer shown.
+  const inviteShown = restTeacher ? invite : null;
+
   const handleCreateClass = async () => {
     if (!teacherUid || !newClassName.trim()) return;
     const id = await createClass({
@@ -227,11 +271,24 @@ export function FirebaseDashboard() {
   }, []);
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [showAllStudent, setShowAllStudent] = useState(false);
-  const scopedAttempts = selectedClass
-    ? attempts.filter((a: any) => a.classId === selectedClass)
-    : attempts;
-  const visibleAttempts = showAllAttempts ? scopedAttempts.slice(0, 50) : scopedAttempts.slice(0, 5);
-  const hiddenAttemptCount = Math.max(0, scopedAttempts.length - 5);
+  // One feed: class drills + results of the teacher's share links, newest first.
+  const feed = useMemo(
+    () => buildAttemptFeed({ classAttempts: attempts, selectedClass, invite: inviteShown, counts: testCounts }),
+    [attempts, selectedClass, inviteShown, testCounts],
+  );
+  const visibleAttempts = showAllAttempts ? feed.slice(0, 50) : feed.slice(0, 5);
+  const hiddenAttemptCount = Math.max(0, feed.length - 5);
+  const feedWaiting = feed.filter((r) => r.kind === 'waiting').length;
+  // Headline numbers: every class and every share-link result (no class filter).
+  const [statsNow, setStatsNow] = useState(0);
+  useEffect(() => {
+    const t = window.setTimeout(() => setStatsNow(Date.now()), 0);
+    return () => window.clearTimeout(t);
+  }, [attempts, inviteShown]);
+  const allStats = useMemo(
+    () => feedStats(buildAttemptFeed({ classAttempts: attempts, selectedClass: null, invite: inviteShown, counts: testCounts }), statsNow || 0),
+    [attempts, inviteShown, testCounts, statsNow],
+  );
 
   // Join a class by its CMC-XXXXXX code: writes the enrollment doc, stamps
   // the student profile, and persists the code for the submit paths
@@ -261,22 +318,7 @@ export function FirebaseDashboard() {
     setJoining(false);
   };
 
-  // Stats
-  const stats = useMemo(() => {
-    const total = attempts.length;
-    // Assignment submissions sit at scorePct 0 until the teacher grades them
-    // (grading writes to test_scores, not back here — drill_attempts is
-    // append-only). Keep them out of the average so one ungraded test can't
-    // tank the class number; they still count toward total activity.
-    const graded = attempts.filter((a: any) => a.drillSource !== 'assignment');
-    const avgScore = graded.length > 0 ? Math.round(graded.reduce((s: number, a: any) => s + (a.scorePct || 0), 0) / graded.length) : 0;
-    const uniqueStudents = new Set(attempts.map((a: any) => a.studentUid || a.studentName)).size;
-    const recentCount = attempts.filter((a: any) => {
-      const ts = a.submittedAt?.toDate?.() || new Date(a.submittedAt);
-      return Date.now() - ts.getTime() < 86400000; // last 24h
-    }).length;
-    return { total, avgScore, uniqueStudents, recentCount };
-  }, [attempts]);
+  const stats = allStats;
 
   if (!firebaseReady) {
     return (
@@ -458,21 +500,32 @@ export function FirebaseDashboard() {
               </div>
             </div>
 
-            {/* Attempts feed — console frame (the table itself stays plain) */}
-            <div className="cmcdc-panel overflow-hidden rounded-xl">
+            {/* Attempts feed — console frame (the table itself stays plain).
+                Class drills AND results of the teacher's share links. */}
+            <div className="cmcdc-panel overflow-hidden rounded-xl" data-attempt-feed>
               <div className="cmcdc-panel-head">
                 <span className="cmcdc-panel-code">MDL-F02</span>
                 <span className="cmcdc-led cmcdc-led--live" />Attempt Feed · Live
                 <i className="cmcdc-lead" aria-hidden="true" />
-                <span className="cmcdc-panel-tag">{loading ? 'syncing…' : `${scopedAttempts.length} rows`}</span>
+                <span className="cmcdc-panel-tag">{loading && feed.length === 0 ? 'syncing…' : `${feed.length} rows`}</span>
+                <button
+                  type="button"
+                  onClick={() => { void loadData(); void loadInvite(); }}
+                  disabled={loading || inviteBusy}
+                  title="Check for new results now"
+                  className="ml-2 inline-flex items-center gap-1 rounded-md border border-cyan-200/25 bg-cyan-200/[0.06] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-100 transition hover:bg-cyan-200/[0.14] disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3 w-3 ${loading || inviteBusy ? 'animate-spin' : ''}`} /> Refresh
+                </button>
               </div>
-              {loading ? (
+              {feed.length === 0 && (loading || (restTeacher && inviteShown === null)) ? (
                 <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-500">
                   <RefreshCw className="h-4 w-4 animate-spin" /> Loading…
                 </div>
-              ) : attempts.length === 0 ? (
+              ) : feed.length === 0 ? (
                 <div className="py-12 text-center text-sm text-slate-500">
-                  No drill attempts yet. Share your class code — when enrolled students complete drills, their scores appear here in real-time.
+                  No attempts yet. Results appear here when enrolled students complete drills, and when students finish a
+                  bi-weekly test you shared with your link.
                 </div>
               ) : (
                 <table className="w-full text-sm">
@@ -485,55 +538,68 @@ export function FirebaseDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {visibleAttempts.map((a: any, i: number) => (
-                      <tr key={i} className="hover:bg-white/5">
+                    {visibleAttempts.map((a) => (
+                      <tr key={a.key} data-feed-row={a.kind} className="hover:bg-white/5">
                         <td className="px-4 py-3 text-xs font-medium text-slate-200">{displayStudentName(a.studentName) || 'Unknown'}</td>
                         <td className="px-4 py-3 text-xs text-slate-400">
-                          {a.drillTitle || a.drillSlug}
-                          {a.drillSource === 'assignment' && (
+                          {a.drill}
+                          {a.kind === 'assignment' && (
                             <span className="ml-1.5 rounded bg-violet-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-300">Assignment</span>
+                          )}
+                          {a.viaInvite && (
+                            <span title="Taken through your share link" className="ml-1.5 rounded bg-cyan-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-cyan-200">Share link</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          {a.drillSource === 'assignment' ? (
+                          {a.kind === 'assignment' ? (
                             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Pending grade</span>
+                          ) : a.kind === 'waiting' ? (
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
+                              Not scored yet{a.nowTotal ? ` · ${a.nowTotal} questions` : ''}
+                            </span>
                           ) : (
                             <>
-                              <span className={`font-mono font-bold text-xs ${(a.scorePct || 0) >= 80 ? 'text-emerald-300' : (a.scorePct || 0) >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
-                                {a.scorePct || 0}%
+                              <span className={`font-mono font-bold text-xs ${a.scorePct >= 80 ? 'text-emerald-300' : a.scorePct >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
+                                {a.scorePct}%
                               </span>
                               <span className="ml-1 text-[10px] text-slate-600">({a.correctCount}/{a.totalCount})</span>
-                              {a.drillSource === 'biweek-planner'
-                                && isEarlierVersion(Number(a.totalCount), currentTotal(testCounts, String(a.drillSlug || ''))) && (
+                              {a.earlier && (
                                 <span
                                   data-earlier-version
-                                  title={`This result was recorded when the test had ${a.totalCount} questions. It now has ${currentTotal(testCounts, String(a.drillSlug || ''))}.`}
+                                  title={`This is an older result: it was recorded when the test had ${a.totalCount} questions. The test now has ${a.nowTotal}. New results appear above it.`}
                                   className="mt-0.5 block text-[9px] font-semibold uppercase tracking-wider text-amber-300/80"
                                 >
-                                  earlier version · now {currentTotal(testCounts, String(a.drillSlug || ''))} questions
+                                  older result · test had {a.totalCount} questions then
                                 </span>
                               )}
                             </>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-right text-[10px] text-slate-500">
-                          {a.submittedAt?.toDate ? a.submittedAt.toDate().toLocaleDateString() : '—'}
-                        </td>
+                        <td className="px-4 py-3 text-right text-[10px] text-slate-500">{feedWhen(a.at)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               )}
-              {!loading && hiddenAttemptCount > 0 && (
+              {hiddenAttemptCount > 0 && (
                 <div className="border-t border-white/10 px-4 py-2.5 text-center">
                   <button
                     type="button"
                     onClick={() => setShowAllAttempts((v) => !v)}
                     className="text-[11px] font-semibold text-cyan-300 transition hover:text-cyan-200"
                   >
-                    {showAllAttempts ? 'Show less' : `Show all ${scopedAttempts.length} attempts`}
+                    {showAllAttempts ? 'Show less' : `Show all ${feed.length} attempts`}
                   </button>
                 </div>
+              )}
+              {inviteShown && (inviteShown.state === 'denied' || inviteShown.state === 'error' || feedWaiting > 0) && (
+                <p role="status" data-feed-note className="border-t border-white/10 px-4 py-2.5 text-[11px] leading-relaxed text-amber-200/90">
+                  {inviteShown.state === 'denied'
+                    ? 'Results from your share links could not be read: this account is not recognised as a verified teacher by the database.'
+                    : inviteShown.state === 'error'
+                      ? 'Results from your share links could not be loaded just now — press Refresh to try again.'
+                      : `${feedWaiting} result${feedWaiting === 1 ? ' is' : 's are'} saved but not scored yet: the answer key is not open on this account. See “Answer protection” in the Bi-Weekly Tests panel below, then press Refresh.`}
+                </p>
               )}
             </div>
           </div>

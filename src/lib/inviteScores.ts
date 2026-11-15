@@ -17,7 +17,7 @@ import type { AnswerKeyMap } from './answerSeal';
 import type { BiweeklyAttempt } from './biweeklyScores';
 import { loadSealFiles } from './sealFiles';
 import {
-  ensureTeacherRegistration, getAnswerSealCode, getRestAuthUid, listAllInviteAttempts, RestError,
+  countInviteAttempts, ensureTeacherRegistration, getAnswerSealCode, getRestAuthUid, listAllInviteAttempts, RestError,
 } from './testDb';
 import type { InviteAttemptDoc } from './testDb';
 import { testSlug } from './testCounts';
@@ -28,10 +28,21 @@ export type InviteScoresState =
   | 'denied'    // the rules refused this account
   | 'error';    // network / unexpected
 
+/** An attempt that is safely stored but cannot be graded on this device yet
+ *  (the answer key is not open). It has no score — never show one. */
+export interface WaitingAttempt {
+  studentName: string;
+  drillTitle: string;
+  drillSlug: string;
+  submittedAt: string;
+}
+
 export interface InviteScores {
   attempts: BiweeklyAttempt[];
   /** Sealed attempts that are saved but could not be graded (key not open). */
   unscored: number;
+  /** The same attempts, one entry each (unscored === waiting.length). */
+  waiting: WaitingAttempt[];
   state: InviteScoresState;
 }
 
@@ -41,9 +52,9 @@ export interface InviteScores {
 export function inviteRows(
   docs: Array<Partial<InviteAttemptDoc>>,
   keyFor: (slug: string) => AnswerKeyMap | null,
-): { attempts: BiweeklyAttempt[]; unscored: number } {
+): { attempts: BiweeklyAttempt[]; unscored: number; waiting: WaitingAttempt[] } {
   const attempts: BiweeklyAttempt[] = [];
-  let unscored = 0;
+  const waiting: WaitingAttempt[] = [];
   for (const d of docs) {
     const drillSlug = String(d.drillSlug ?? '');
     const base = {
@@ -57,7 +68,10 @@ export function inviteRows(
     if (d.sealed === true) {
       const sheet = parseSheet(d.sheet);
       const key = keyFor(testSlug(drillSlug));
-      if (!sheet || !key) { unscored += 1; continue; }
+      if (!sheet || !key) {
+        waiting.push({ studentName: base.studentName, drillTitle: base.drillTitle, drillSlug, submittedAt: base.submittedAt });
+        continue;
+      }
       const g = gradeSheet(sheet, key);
       attempts.push({ ...base, scorePct: g.pct, correctCount: g.correct, totalCount: g.total });
     } else {
@@ -69,14 +83,14 @@ export function inviteRows(
       });
     }
   }
-  return { attempts, unscored };
+  return { attempts, unscored: waiting.length, waiting };
 }
 
 /** This teacher's invite results, graded. Never throws. */
 export async function fetchInviteScores(): Promise<InviteScores> {
   try {
     const uid = await getRestAuthUid();
-    if (!uid) return { attempts: [], unscored: 0, state: 'signin' };
+    if (!uid) return { attempts: [], unscored: 0, waiting: [], state: 'signin' };
     // The rules know a teacher by the teachers list; make sure we are on it.
     await ensureTeacherRegistration().catch(() => false);
     const docs = await listAllInviteAttempts(uid);
@@ -99,6 +113,20 @@ export async function fetchInviteScores(): Promise<InviteScores> {
     return { ...inviteRows(docs, (slug) => keys.get(slug) ?? null), state: 'ok' };
   } catch (err) {
     const denied = err instanceof RestError && (err.status === 403 || err.status === 401);
-    return { attempts: [], unscored: 0, state: denied ? 'denied' : 'error' };
+    return { attempts: [], unscored: 0, waiting: [], state: denied ? 'denied' : 'error' };
+  }
+}
+
+/** Cheap "has anything new arrived?" probe for the live feed: the number of
+ *  this teacher's invite attempts (one billed read), or null when it cannot
+ *  be told (signed out, offline, refused) — callers then simply keep what
+ *  they show and try again later. Never throws. */
+export async function inviteAttemptCount(): Promise<number | null> {
+  try {
+    const uid = await getRestAuthUid();
+    if (!uid) return null;
+    return await countInviteAttempts(uid);
+  } catch {
+    return null;
   }
 }
