@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play } from 'lucide-react';
 import { useCountUp } from '../hooks/useReveal';
-import { shouldAnimateTitle } from '../lib/titleParticlesMath';
+import { useTitleParticles } from '../hooks/useTitleParticles';
 
 interface HeroProps {
   onExploreTools: () => void;
@@ -85,61 +85,10 @@ export const Hero = ({
   const heroRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const titleCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [titleParticles, setTitleParticles] = useState(false);
-
   // The title drawn as particles (three.js). The <h1> below stays the real
   // text; the effect is fetched only when the browser is idle and only where
-  // it is welcome — see shouldAnimateTitle.
-  useEffect(() => {
-    const section = heroRef.current;
-    const title = titleRef.current;
-    const canvas = titleCanvasRef.current;
-    if (!section || !title || !canvas) return;
-
-    const nav = navigator as Navigator & {
-      deviceMemory?: number;
-      connection?: { saveData?: boolean; effectiveType?: string };
-    };
-    const hasWebgl = () => {
-      try {
-        const probe = document.createElement('canvas');
-        const gl = probe.getContext('webgl2') ?? probe.getContext('webgl');
-        gl?.getExtension('WEBGL_lose_context')?.loseContext();
-        return Boolean(gl);
-      } catch {
-        return false;
-      }
-    };
-    const welcome = shouldAnimateTitle({
-      reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        || window.matchMedia('(forced-colors: active)').matches,
-      saveData: nav.connection?.saveData === true,
-      deviceMemory: nav.deviceMemory,
-      effectiveType: nav.connection?.effectiveType,
-      webgl: true, // probed below, and only when everything else says yes
-    });
-    if (!welcome || !hasWebgl()) return;
-
-    let cancelled = false;
-    let dispose: (() => void) | undefined;
-    const start = () => {
-      import('../lib/titleParticles')
-        .then(({ mountTitleParticles }) => {
-          if (cancelled) return;
-          dispose = mountTitleParticles({ section, title, canvas, onActive: setTitleParticles });
-        })
-        .catch(() => { /* offline or blocked: the plain title stays */ });
-    };
-    const idle = typeof window.requestIdleCallback === 'function';
-    const handle = idle ? window.requestIdleCallback(start, { timeout: 2500 }) : window.setTimeout(start, 900);
-
-    return () => {
-      cancelled = true;
-      if (idle) window.cancelIdleCallback(handle);
-      else window.clearTimeout(handle);
-      dispose?.();
-    };
-  }, []);
+  // it is welcome — see useTitleParticles.
+  const titleParticles = useTitleParticles({ section: heroRef, title: titleRef, canvas: titleCanvasRef });
 
   useEffect(() => {
     const target = shortcutsRef.current;

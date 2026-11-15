@@ -23,8 +23,13 @@
 #   public/mafia-art/mafia-city-day.jpg   page backdrop by DAY (day, vote and
 #                                         a city win); the two cross-fade
 #
-# Applied in two stages, each with its own marker, so a page that already has
-# the first batch only receives the second.
+# Applied in stages, each with its own marker, so a page that already has an
+# earlier batch only receives the later ones.
+#
+# Stage 3 is not artwork: it loads public/mafia-story.js (case files,
+# characters, last words, case report, ranks, case of the day, sentence
+# prompts) and lets the dawn line ask it where the victim was found. The page
+# keeps its old wording whenever that file is missing.
 #
 # Also fixes two bugs met on those screens: (B1) the CASE CLOSED grid of
 # player roles was invisible; (B2) tall modals opened scrolled to the bottom.
@@ -43,6 +48,8 @@ PAGE = os.path.join(ROOT, 'public', 'mafia.html')
 ART = os.path.join(ROOT, 'public', 'mafia-art')
 MARK = '/* ── owner artwork (patch_mafia_art.py) ── */'
 MARK2 = '/* ── owner artwork II: city backdrops (patch_mafia_art.py) ── */'
+MARK3 = '<!-- story: case files (patch_mafia_art.py) -->'
+STORY = os.path.join(ROOT, 'public', 'mafia-story.js')
 
 FILES = ['mafia-cardback.jpg', 'mafia-mafia.jpg', 'mafia-detective.jpg',
          'mafia-doctor.jpg', 'mafia-villager.jpg', 'mafia-town-wins.jpg',
@@ -52,13 +59,15 @@ html = open(PAGE, encoding='utf-8').read()
 
 if '--check' in sys.argv:
     missing = [f for f in FILES if not os.path.exists(os.path.join(ART, f))]
-    if MARK not in html or MARK2 not in html or missing:
+    if not os.path.exists(STORY):
+        missing.append('mafia-story.js')
+    if MARK not in html or MARK2 not in html or MARK3 not in html or missing:
         print('mafia art: NOT wired' + (f' (missing files: {", ".join(missing)})' if missing else ''))
         sys.exit(1)
-    print(f'mafia art: wired, all {len(FILES)} pictures present')
+    print(f'mafia art: wired, all {len(FILES)} pictures present, story script loaded')
     sys.exit(0)
 
-if MARK in html and MARK2 in html:
+if MARK in html and MARK2 in html and MARK3 in html:
     print('mafia art: already wired — nothing to do')
     sys.exit(0)
 
@@ -204,10 +213,27 @@ body[data-phase=day] #bg.has-day~main #twNight{opacity:0}
          label='C3 backdrop loader')
 
 
+def stage3():
+    """Case files: the page asks mafia-story.js for two dawn lines and loads it."""
+    assert os.path.exists(STORY), 'missing public/mafia-story.js'
+    # ── D1: where the victim was found — the case's own places and clues ──
+    swap('was ${pick(["found in the alley behind the Blue Note Club","left under the Fifth Street lamppost","never came home from the docks"])}. Their card reads:',
+         'was ${(window.MNS&&MNS.found())||pick(["found in the alley behind the Blue Note Club","left under the Fifth Street lamppost","never came home from the docks"])}. Their card reads:',
+         label='D1 dawn: found line')
+    # ── D2: the night the Doctor got there first ─────────────────────────
+    swap('fSys("A shot rang out — but the Doctor\'s hands were quicker. <b style=\'color:var(--green)\'>Everyone wakes up alive.</b>",true)',
+         'fSys(((window.MNS&&MNS.saved())||"A shot rang out — but the Doctor\'s hands were quicker.")+" <b style=\'color:var(--green)\'>Everyone wakes up alive.</b>",true)',
+         label='D2 dawn: saved line')
+    # ── D3: the script itself, after everything it builds on ─────────────
+    swap('</body>', MARK3 + '\n<script src="mafia-story.js"></script>\n</body>', label='D3 story script')
+
+
 if MARK not in html:
     stage1()
 if MARK2 not in html:
     stage2()
+if MARK3 not in html:
+    stage3()
 
 open(PAGE, 'w', encoding='utf-8').write(html)
 print(f'mafia art: wired ({len(swaps)} swaps): ' + ', '.join(swaps))

@@ -284,11 +284,16 @@ describe('shouldAnimateTitle', () => {
 describe('how the effect is wired into the page', () => {
   const hero = readFileSync('src/components/Hero.tsx', 'utf8');
   const css = readFileSync('src/index.css', 'utf8');
+  const hook = readFileSync('src/hooks/useTitleParticles.ts', 'utf8');
+  const planner = readFileSync('src/components/BiWeekPlannerCard.tsx', 'utf8');
 
   it('three.js is only ever loaded on demand, never with the first page', () => {
-    expect(hero).toMatch(/import\('\.\.\/lib\/titleParticles'\)/);
-    expect(hero).not.toMatch(/from ['"]three['"]/);
-    expect(hero).not.toMatch(/from ['"]\.\.\/lib\/titleParticles['"]/);
+    expect(hook).toMatch(/import\('\.\.\/lib\/titleParticles'\)/);
+    for (const file of [hero, hook, planner]) {
+      expect(file).not.toMatch(/from ['"]three['"]/);
+      expect(file).not.toMatch(/from ['"]\.\.\/lib\/titleParticles['"]/);
+    }
+    expect(hero).toMatch(/useTitleParticles\(\{ section: heroRef, title: titleRef, canvas: titleCanvasRef \}\)/);
     const math = readFileSync('src/lib/titleParticlesMath.ts', 'utf8');
     expect(math).not.toMatch(/from ['"]three['"]/);
   });
@@ -301,6 +306,27 @@ describe('how the effect is wired into the page', () => {
     const rule = css.match(/\.cmc-title-as-particles \.cmc-title-solid\s*\{([^}]*)\}/);
     expect(rule?.[1]).toMatch(/opacity:\s*0/);
     expect(rule?.[1]).not.toMatch(/display|visibility/);
+  });
+
+  it('the planner heading is drawn the same way and keeps its text', () => {
+    // both lines are real text inside the <h2>, each line a span that starts with its text
+    expect(planner).toMatch(/<h2 id="biweek-title" ref=\{titleRef\} className=\{`cmc-h2\$\{headingAsDots \? ' cmc-dots-on' : ''\}`\}>/);
+    expect(planner).toContain('<span className="cmc-dots-line">TOEFL ITP</span>');
+    expect(planner).toContain('<span className="cmc-dots-line cmc-gradient-text" data-dot-gradient="">Bi-Weekly Planner.</span>');
+    expect(planner).toMatch(/enabled: isTeacher, whenNear: true, letters: '\.cmc-dots-line', gradient: HEADING_DOTS/);
+    expect(planner).toContain('{isTeacher && <canvas ref={canvasRef} className="cmc-title-canvas" aria-hidden="true" />}');
+    const rule = css.match(/\.cmc-dots-on \.cmc-dots-line\s*\{([^}]*)\}/);
+    expect(rule?.[1]).toMatch(/opacity:\s*0/);
+    expect(rule?.[1]).not.toMatch(/display|visibility/);
+  });
+
+  it('the planner dots take the colours of the gradient text they stand for', () => {
+    const stops = (block: string) => [...block.matchAll(/(#[0-9a-f]{6}) (\d+)%/g)].map((m) => [Number(m[2]) / 100, m[1]]);
+    const dark = css.match(/\n\.cmc-gradient-text\s*\{([^}]*)\}/)![1];
+    const light = css.match(/html\.light \.cmc-gradient-text\s*\{([^}]*)\}/)![1];
+    const pick = (name: string) => JSON.parse(planner.match(new RegExp(`${name}: (\\[\\[.*?\\]\\]),`))![1].replace(/'/g, '"'));
+    expect(pick('dark')).toEqual(stops(dark));
+    expect(pick('light')).toEqual(stops(light));
   });
 
   it('the canvas can never swallow a click on the hero buttons', () => {
