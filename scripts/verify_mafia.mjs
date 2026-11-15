@@ -41,7 +41,7 @@ const results = [];
 const ok = (name, cond, detail) => results.push(`${cond ? 'PASS' : 'FAIL'}  ${name}${detail ? ' — ' + detail : ''}`);
 
 /* ---- A. shipped artifacts ---- */
-for (const [f, min] of [['mafia.html', 100000], ['mafia-art/mafia-mafia.jpg', 50000], ['mafia-art/mafia-detective.jpg', 50000], ['mafia-art/mafia-doctor.jpg', 50000], ['mafia-art/mafia-city.jpg', 80000], ['mafia-art/mafia-villager.jpg', 30000], ['mafia-art/mafia-cardback.jpg', 50000], ['mafia-art/mafia-town-wins.jpg', 80000], ['mafia-audio/narr-night.mp3', 5000]]) {
+for (const [f, min] of [['mafia.html', 100000], ['mafia-art/mafia-mafia.jpg', 50000], ['mafia-art/mafia-detective.jpg', 50000], ['mafia-art/mafia-doctor.jpg', 50000], ['mafia-art/mafia-city.jpg', 80000], ['mafia-art/mafia-city-day.jpg', 80000], ['mafia-art/mafia-villager.jpg', 30000], ['mafia-art/mafia-cardback.jpg', 50000], ['mafia-art/mafia-town-wins.jpg', 80000], ['mafia-audio/narr-night.mp3', 5000]]) {
   const s = await stat(`${DIST}/${f}`).catch(() => null);
   ok(`dist asset: ${f}`, !!s && s.size > min, s ? `${s.size}B` : 'missing');
 }
@@ -270,7 +270,44 @@ const fakeEnd = (winner) => {
   await page.evaluate(() => closeModal());
   await page.evaluate(fakeEnd, 'town');
   await page.waitForFunction(() => !document.querySelector('#modalBox .end-art'), null, { timeout: 8000 }).catch(() => {});
+  ok('no pictures: drawn moon and skyline stay as the backdrop', await page.evaluate(() => {
+    const bg = document.getElementById('bg'), moon = document.getElementById('moon');
+    return !bg.classList.contains('has-art') && !bg.classList.contains('has-day') && getComputedStyle(moon).display !== 'none'
+      && getComputedStyle(document.getElementById('bgNight')).opacity === '0' && !!document.querySelector('#skyB svg');
+  }));
   ok('no pictures: city-wins screen drops the empty banner', await page.locator('#modalBox .end-art').count() === 0 && await page.locator('#modalBox .m-title').isVisible());
+  await closeCtx(ctx);
+}
+
+/* ---- F. city backdrops: night city, dawn city, cross-fade with the phase ---- */
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(BASE + '/mafia.html');
+  await page.waitForFunction(() => { const c = document.getElementById('bg').classList; return c.contains('has-art') && c.contains('has-day'); }, null, { timeout: 12000 }).catch(() => {});
+  await page.waitForTimeout(2600); // the fade
+  const look = () => page.evaluate(() => {
+    const o = (id) => Number(getComputedStyle(document.getElementById(id)).opacity), img = (id) => getComputedStyle(document.getElementById(id)).backgroundImage, shown = (id) => getComputedStyle(document.getElementById(id)).display !== 'none';
+    return { bgNight: o('bgNight'), bgDay: o('bgDay'), twNight: o('twNight'), twDay: o('twDay'), nightImg: img('bgNight').includes('mafia-city.jpg') && img('twNight').includes('mafia-city.jpg'), dayImg: img('bgDay').includes('mafia-city-day.jpg') && img('twDay').includes('mafia-city-day.jpg'),
+      moon: shown('moon'), sun: shown('sun'), sky: shown('skyA') || shown('skyB'), wash: shown('dayWash'), heroArt: getComputedStyle(document.querySelector('.hero-art')).display !== 'none' };
+  });
+  const n = await look();
+  ok('backdrop at night: night city behind the page and the table', n.nightImg && n.bgNight > 0.4 && n.twNight > 0.3 && n.bgDay === 0 && n.twDay === 0, JSON.stringify(n));
+  ok('backdrop: drawn moon, skyline and old hero strip step aside', !n.moon && !n.sky && !n.heroArt);
+  await page.evaluate(() => { document.body.dataset.phase = 'day'; });
+  await page.waitForTimeout(2800);
+  const d = await look();
+  ok('backdrop by day: dawn city fades in, night city fades out', d.dayImg && d.bgDay > 0.4 && d.twDay > 0.3 && d.bgNight === 0 && d.twNight === 0 && !d.sun && !d.wash, JSON.stringify(d));
+  await page.evaluate(() => { document.body.dataset.phase = 'night'; });
+  // the table stays readable on top of the picture: seats sit above it
+  await page.click('#soloMode'); await page.selectOption('#paceSel', '0.55'); await page.click('#dealBtn');
+  await page.waitForSelector('#roleCard .back', { timeout: 15000 });
+  await page.click('#roleCard .back'); await page.waitForSelector('#hideCardBtn:not([hidden])', { timeout: 8000 }); await page.click('#hideCardBtn');
+  await page.waitForSelector('.seat', { timeout: 8000 }).catch(() => {});
+  ok('table: every seat is in front of the picture', await page.evaluate(() => {
+    const seats = [...document.querySelectorAll('#table .seat')];
+    return seats.length >= 5 && seats.every(s => { const r = s.getBoundingClientRect(), e = document.elementFromPoint(r.left + r.width / 2, Math.max(r.top + r.height / 2, 70)); return !!e && (s === e || s.contains(e)); });
+  }));
   await closeCtx(ctx);
 }
 
