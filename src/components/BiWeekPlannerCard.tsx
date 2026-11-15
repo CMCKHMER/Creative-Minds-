@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { ArrowUpRight, CalendarCheck, Clock3, FileText, GraduationCap, LockKeyhole } from 'lucide-react';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 import { useTitleParticles } from '../hooks/useTitleParticles';
-import type { DotGradient } from '../lib/titleParticlesMath';
+import { smallTitleSpacing, type DotGradient } from '../lib/titleParticlesMath';
 
 const PLANNER_URL = './biweek-planner/';
 
@@ -97,7 +97,7 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const headingAsDots = useTitleParticles({
     section: sectionRef, title: titleRef, canvas: canvasRef,
-    enabled: isTeacher, whenNear: true, letters: '.cmc-dots-line', gradient: HEADING_DOTS,
+    enabled: isTeacher, whenNear: true, letters: '.cmc-dots-line', gradient: HEADING_DOTS, spacing: smallTitleSpacing,
   });
 
   return (
@@ -118,7 +118,7 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_.86fr] lg:gap-16">
         <div>
           <span className="cmc-eyebrow"><span className="h-px w-8 bg-violet-300" aria-hidden="true" />Aii CAP Campus · 8-Week Study Plan</span>
-          <h2 id="biweek-title" ref={titleRef} className={`cmc-h2${headingAsDots ? ' cmc-dots-on' : ''}`}>
+          <h2 id="biweek-title" ref={titleRef} className={`cmc-h2 cmc-h2-hero${headingAsDots ? ' cmc-dots-on' : ''}`}>
             <span className="cmc-dots-line">TOEFL ITP</span>
             <br />
             <span className="cmc-dots-line cmc-gradient-text" data-dot-gradient="">Bi-Weekly Planner.</span>

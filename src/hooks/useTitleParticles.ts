@@ -16,6 +16,8 @@ export interface UseTitleParticlesOptions {
   letters?: string;
   /** Colours for spans marked `data-dot-gradient`. Pass a constant, not a new object per render. */
   gradient?: { dark: DotGradient; light: DotGradient };
+  /** Distance between dots for a given letter height (default: dotSpacing). Pass a constant function. */
+  spacing?: (fontPx: number) => number;
 }
 
 /**
@@ -28,7 +30,7 @@ export interface UseTitleParticlesOptions {
  *
  * @returns true while the dots are on screen (hide the real letters then).
  */
-export function useTitleParticles({ section, title, canvas, enabled = true, whenNear = false, letters, gradient }: UseTitleParticlesOptions): boolean {
+export function useTitleParticles({ section, title, canvas, enabled = true, whenNear = false, letters, gradient, spacing }: UseTitleParticlesOptions): boolean {
   const [active, setActive] = useState(false);
 
   useEffect(() => {
@@ -72,7 +74,7 @@ export function useTitleParticles({ section, title, canvas, enabled = true, when
       import('../lib/titleParticles')
         .then(({ mountTitleParticles }) => {
           if (cancelled) return;
-          dispose = mountTitleParticles({ section: sectionEl, title: titleEl, canvas: canvasEl, onActive: setActive, letters, gradient });
+          dispose = mountTitleParticles({ section: sectionEl, title: titleEl, canvas: canvasEl, onActive: setActive, letters, gradient, spacing });
         })
         .catch(() => { /* offline or blocked: the plain heading stays */ });
     };
@@ -102,7 +104,7 @@ export function useTitleParticles({ section, title, canvas, enabled = true, when
       }
       dispose?.();
     };
-  }, [section, title, canvas, enabled, whenNear, letters, gradient]);
+  }, [section, title, canvas, enabled, whenNear, letters, gradient, spacing]);
 
   return active;
 }
