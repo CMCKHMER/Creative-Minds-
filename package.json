@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "build": "vite build",
+    "build": "node scripts/build_planner_title.mjs && vite build",
+    "build:planner-title": "node scripts/build_planner_title.mjs",
     "dev": "vite",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
@@ -17,7 +18,8 @@
     "verify:biweek": "node scripts/verify_biweek_results.mjs",
     "verify:kidhw": "node scripts/verify_kid_homework.mjs",
     "verify:title": "node scripts/verify_title_particles.mjs",
-    "verify:planner-title": "node scripts/verify_planner_title.mjs"
+    "verify:planner-title": "node scripts/verify_planner_title.mjs",
+    "verify:planner-page-title": "node scripts/verify_planner_page_title.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -47,6 +49,7 @@
     "@types/react-dom": "19.2.3",
     "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "5.1.1",
+    "esbuild": "^0.28.2",
     "eslint": "^10.13.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",

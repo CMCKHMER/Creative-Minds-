@@ -60,6 +60,15 @@ html[data-theme="light"] .bp-title-solid{color:#0c1a2c;text-shadow:0 8px 35px rg
 html[data-theme="light"] .bp-title-row--accent .bp-title-solid{background-image:linear-gradient(100deg,#0e7490,#0891b2,#6d28d9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 html[data-theme="light"] .bp-title-echo{-webkit-text-stroke-color:rgba(2,132,199,.4)}
 html[data-theme="light"] .bp-title-row--accent .bp-title-echo{-webkit-text-stroke-color:rgba(13,148,136,.35)}
+/* Title as particles (title-dots.js, built from src/standalone/plannerTitle.ts) — the same
+   effect as the home page's hero title. The canvas lies over the whole hero and never takes
+   a click. While the dots are drawn the real letters are only hidden from the eye; they stay
+   in the page for screen readers, search and copy. */
+.bp-title-canvas{position:absolute;inset:0;z-index:3;width:100%;height:100%;pointer-events:none}
+.bp-title-solid,.bp-title-echo{transition:opacity .45s ease-out,transform .65s cubic-bezier(.16,1,.3,1)}
+.bp-title-as-dots .bp-title-solid{opacity:0}
+.bp-title-as-dots .bp-title-echo{opacity:.28}
+@media print{.bp-title-canvas{display:none}.bp-title-as-dots .bp-title-solid,.bp-title-as-dots .bp-title-echo{opacity:1}}
 .bp-sub{max-width:620px;font-size:15px;line-height:1.8;color:rgba(226,232,240,.88);margin:0}
 html[data-theme="light"] .bp-sub{color:#334155}
 /* accent-coded stat chips — hero quick-dock pattern */
@@ -631,7 +640,7 @@ html[data-theme="light"] .hud-footer::before{background:repeating-linear-gradien
     <div class="bp-eyebrow"><i class="fas fa-calendar-check"></i> Aii CAP Campus · Bi-Weekly Study Plan · Weeks 2–8</div>
     <h1 class="bp-title">
       <span class="bp-title-row bp-title-row--first"><span class="bp-title-solid" data-echo>TOEFL ITP</span></span>
-      <span class="bp-title-row bp-title-row--accent"><span class="bp-title-solid">Bi-Weekly Planner</span><span class="bp-title-echo" aria-hidden="true">Bi-Weekly Planner</span></span>
+      <span class="bp-title-row bp-title-row--accent"><span class="bp-title-solid" data-dot-gradient>Bi-Weekly Planner</span><span class="bp-title-echo" aria-hidden="true">Bi-Weekly Planner</span></span>
     </h1>
     <p class="bp-sub">Prepared for Aii CAP Campus teachers: a structured preparation plan covering all three TOEFL ITP sections across Weeks 2–8. Each week includes practice drills with timers, auto-scoring, and individual shareable links you can drop straight into your class group.</p>
     <div class="bp-stats">
@@ -1405,5 +1414,6 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
   });
 })();
 </script>
+<script src="./title-dots.js" defer></script>
 </body>
 </html>
