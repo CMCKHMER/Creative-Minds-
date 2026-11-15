@@ -6539,9 +6539,12 @@ function requireTeacher(){
 }
 
 /* ── Linkable test catalog (kept in sync with the Bi-Weekly Tests panel) ──
-   Only tests that actually exist under /biweek-planner/tests/<slug>.html —
-   the catalog entries 'isec2-w5-grammar' and 'isec2-w4-inference' have no
-   public page file and are deliberately excluded. */
+   Only tests that actually exist under /biweek-planner/tests/<slug>.html.
+   Question counts are not relied on from here: the picker labels each test
+   with the real count from ../biweek-planner/test-counts.json (generated
+   from the pages). `node scripts/test_counts.mjs
+   --check` (part of the unit tests) fails if a slug below has no page or a
+   title states a wrong "(N questions)". */
 var STUDIO_TESTS = [
   { group: 'Orientation', items: [
     { slug: 'diagnostic', title: 'Orientation Diagnostic (Week 2 · All Sections)' } ]},
@@ -6552,7 +6555,7 @@ var STUDIO_TESTS = [
     { slug: 'isec2-w5-listening', title: 'W5 · C1 Listening: Innovation in Business' },
     { slug: 'isec2-w6-grammar', title: 'W6 · C2 Grammar: Modals & Conditionals' },
     { slug: 'isec2-w7-reading', title: 'W7 · C2 Reading: The Algorithmic Enterprise' },
-    { slug: 'week8-mock', title: 'Level 10 TOEFL Mock Test (30 questions)' } ]},
+    { slug: 'week8-mock', title: 'Level 10 TOEFL Mock Test (40 questions)' } ]},
   { group: 'Week 8 recaps', items: [
     { slug: 'week8-recap-grammar', title: 'Grammar Drill — Recap' },
     { slug: 'week8-recap-listening', title: 'Listening Drill — Recap' },
@@ -6564,6 +6567,9 @@ var STUDIO_TESTS = [
     { slug: 'week5-grammar', title: 'Week 5 · Grammar: Conditionals & Agreement' },
     { slug: 'week6-listening', title: 'Week 6 · Listening: Student Athletes' },
     { slug: 'week7-reading', title: 'Week 7 · Reading: How We Name the Stars' } ]},
+  { group: 'Level 11b weekly tests', items: [
+    { slug: 'isec2-w4-inference', title: 'W4 · L11b Reading: Recognizing Inference' },
+    { slug: 'isec2-w5-grammar', title: 'W5 · L11b Grammar: Mysteries & the Unexplained' } ]},
   { group: 'Skills drills', items: [
     { slug: 'grammar', title: 'Level 9b Parallel Structure' },
     { slug: 'structure', title: 'Level 11b Written Expressions' },
@@ -6579,6 +6585,18 @@ function testTitleOf(slug){
   return slug;
 }
 function testPageUrl(slug){ return '../biweek-planner/tests/' + slug + '.html'; }
+/* Question counts of every test page: { slug: { title, total, parts } }.
+   Resolves to null when the file cannot be read (labels then stay as typed). */
+var studioTestCountsPromise = null;
+function studioTestCounts(){
+  if (!studioTestCountsPromise) {
+    studioTestCountsPromise = fetch('../biweek-planner/test-counts.json', { cache: 'no-cache' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ return d && d.tests ? d.tests : null; })
+      .catch(function(){ studioTestCountsPromise = null; return null; });
+  }
+  return studioTestCountsPromise;
+}
 
 /* ── Test page extraction ──
    Reads a bi-week test page (static file, same origin) and pulls out
@@ -6722,6 +6740,17 @@ function studioShare(){
     '<label class="cmc-label">My published docs &amp; worksheets</label>' +
     '<div id="cmcMyDocs" class="cmc-hint">Loading…</div>';
   var dlg = openModal('Share ' + (kind === 'doc' ? 'document' : 'spreadsheet'), 'Publishes a live copy to a shareable link. Your local work stays on this device — publish again after edits to update the live copy.', body);
+  // Real question counts (one shared file, generated from the test pages).
+  studioTestCounts().then(function(counts){
+    var sel = body.querySelector('#cmcLinkTest');
+    if (!sel || !counts) return;
+    Array.prototype.forEach.call(sel.options, function(o){
+      var t = counts[o.value];
+      if (!t) return;
+      var base = testTitleOf(o.value).replace(/\s*\(\d+\s*questions?\)\s*$/i, '');
+      o.textContent = base + ' — ' + t.total + ' question' + (t.total === 1 ? '' : 's');
+    });
+  });
   var chosen = 'view';
   var cards = body.querySelectorAll('.cmc-radio-card');
   function syncCards(){ cards.forEach(function(c){ c.classList.toggle('on', c.dataset.m === chosen); }); if (kind === 'sheet') body.querySelector('#cmcInputHint').textContent = chosen === 'collect' ? ('Currently marked input cells: ' + studioInputCells.size + ' — select cells in the editor and press ✎ Input to mark or unmark them. Students can type only in shaded cells.') : 'Students will see a read-only copy. Mark ✎ Input cells only if you switch to Collect answers.'; }
