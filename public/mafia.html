@@ -197,10 +197,30 @@ main{position:relative;z-index:2;padding:70px 14px 112px;max-width:1500px;margin
 .hr .hr-pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 18%}
 @media(max-width:356px){.rolefront.has-art .rf-art{height:58%}.rolefront.has-art .rf-icon{margin-top:50%}.rolefront.has-art .rf-name{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.end-art img{animation:none}}
+/* ── owner artwork II: city backdrops (patch_mafia_art.py) ── */
+.bg-art{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat;opacity:0;transition:opacity 2.2s ease}
+#bgNight{background-position:58% 50%}#bgDay{background-position:42% 50%}
+#bg.has-art #bgNight{background-image:url(mafia-art/mafia-city.jpg);opacity:.62}
+#bg.has-day #bgDay{background-image:url(mafia-art/mafia-city-day.jpg)}
+body[data-phase=day] #bg.has-day #bgDay{opacity:.6}
+body[data-phase=day] #bg.has-day #bgNight{opacity:0}
+#bgScrim{position:absolute;inset:0;opacity:0;transition:opacity 2.2s ease;background:radial-gradient(120% 85% at 50% 40%,rgba(7,9,18,.25),rgba(7,9,18,.72) 78%),linear-gradient(rgba(7,9,18,.5),rgba(7,9,18,0) 22%,rgba(7,9,18,0) 60%,rgba(7,9,18,.78))}
+#bg.has-art #bgScrim{opacity:1}
+#bg.has-art #moon,#bg.has-art #skyA,#bg.has-art #skyB,#bg.has-day #sun,#bg.has-day #dayWash{display:none}
+#bg.has-art~main .hero-art{display:none}
+.tw-art{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat;opacity:0;transition:opacity 2.2s ease;pointer-events:none}
+#twNight{background-position:60% 42%}#twDay{background-position:44% 40%}
+#twScrim{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 2.2s ease;background:radial-gradient(70% 70% at 50% 47%,rgba(10,13,24,.2),rgba(10,13,24,.7))}
+#bg.has-art~main #twNight{background-image:url(mafia-art/mafia-city.jpg);opacity:.5}
+#bg.has-art~main #twScrim{opacity:1}
+#bg.has-day~main #twDay{background-image:url(mafia-art/mafia-city-day.jpg)}
+body[data-phase=day] #bg.has-day~main #twDay{opacity:.55}
+body[data-phase=day] #bg.has-day~main #twNight{opacity:0}
+@media(prefers-reduced-motion:reduce){.bg-art,#bgScrim,.tw-art,#twScrim{transition:none}}
 </style>
 </head>
 <body data-phase="night">
-<div id="bg"><div id="dayWash"></div><div id="moon"></div><div id="sun"></div><div id="skyA"></div><div id="skyB"></div><div class="fog" id="fogA"></div><div class="fog" id="fogB"></div></div>
+<div id="bg"><div class="bg-art" id="bgNight"></div><div class="bg-art" id="bgDay"></div><div id="bgScrim"></div><div id="dayWash"></div><div id="moon"></div><div id="sun"></div><div id="skyA"></div><div id="skyB"></div><div class="fog" id="fogA"></div><div class="fog" id="fogB"></div></div>
 <canvas id="fx"></canvas><div id="vignette"></div><div id="grain"></div>
 
 <header>
@@ -328,7 +348,7 @@ main{position:relative;z-index:2;padding:70px 14px 112px;max-width:1500px;margin
         <button class="btn gold" id="startBtn">DEAL THE CARDS</button>
         <p class="note" id="lobbyNote"></p>
       </div>
-      <div id="tableWrap" hidden>
+      <div id="tableWrap" hidden><div class="tw-art" id="twNight"></div><div class="tw-art" id="twDay"></div><div id="twScrim"></div>
         <div id="table">
           <div id="medallion">
             <svg class="timer-ring" viewBox="0 0 100 100"><circle class="tr-bg" cx="50" cy="50" r="44"/><circle id="trFg" cx="50" cy="50" r="44"/></svg>
@@ -817,6 +837,7 @@ setInterval(()=>{const V=app.V;if(!V?.room?.phaseEndsAt){$("#countdown").textCon
 buildSkyline($("#skyA"),7,220,true);buildSkyline($("#skyB"),13,180,false);
 $("#heroFan").innerHTML=["mafia","detective","doctor"].map(k=>`<div class="fan-card"><img src="mafia-art/mafia-${k}.jpg" alt="${ROLE[k].name} — AI illustration" loading="eager"><span class="fan-name">${ROLE[k].name.toUpperCase()}</span></div>`).join("");
 (function(){const warm=()=>["mafia-art/mafia-cardback.jpg","mafia-art/mafia-villager.jpg"].forEach(u=>{new Image().src=u});if(document.readyState==="complete")setTimeout(warm,600);else addEventListener("load",()=>setTimeout(warm,600),{once:true})})();
+(function(){const bg=$("#bg"),c=navigator.connection;if(!bg||(c&&c.saveData))return;const get=(u,cls)=>{const i=new Image();i.onload=()=>bg.classList.add(cls);i.src=u};get("mafia-art/mafia-city.jpg","has-art");const day=()=>get("mafia-art/mafia-city-day.jpg","has-day");if(document.readyState==="complete")setTimeout(day,900);else addEventListener("load",()=>setTimeout(day,900),{once:true})})();
 $("#soloIcon").innerHTML=IC.solo;$("#localIcon").innerHTML=IC.local;$("#onlineIcon").innerHTML=IC.online;
 const params=new URLSearchParams(location.search);if(params.get("room"))$("#joinCode").value=params.get("room").toUpperCase().slice(0,4);
 try{$("#nameInput").value=localStorage.getItem("mnName")||""}catch(e){}

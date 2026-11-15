@@ -274,11 +274,25 @@ describe('mafia noir standalone cartridge', () => {
     // every role the game deals has a picture on disk, none of them heavy
     const roles = [...html.matchAll(/^ (\w+):\{name:"/gm)].map((m) => m[1]);
     expect(roles).toEqual(['mafia', 'detective', 'doctor', 'villager']);
-    for (const name of [...roles, 'cardback', 'town-wins', 'city']) {
+    for (const name of [...roles, 'cardback', 'town-wins', 'city', 'city-day']) {
       const size = statSync(resolve(process.cwd(), 'public', 'mafia-art', `mafia-${name}.jpg`)).size;
       expect(size, name).toBeGreaterThan(20_000);
       expect(size, name).toBeLessThan(260_000);
     }
+  });
+
+  it('paints the night city and the dawn city behind the page and the table', () => {
+    const html = readFileSync(resolve(process.cwd(), 'public', 'mafia.html'), 'utf8');
+    // two layers behind the page, two behind the seats
+    expect(html).toContain('<div id="bg"><div class="bg-art" id="bgNight"></div><div class="bg-art" id="bgDay"></div><div id="bgScrim"></div>');
+    expect(html).toContain('<div id="tableWrap" hidden><div class="tw-art" id="twNight"></div><div class="tw-art" id="twDay"></div><div id="twScrim"></div>');
+    // a picture is shown only after it has loaded; the drawn scene is the fallback
+    expect(html).toContain('get("mafia-art/mafia-city.jpg","has-art")');
+    expect(html).toContain('get("mafia-art/mafia-city-day.jpg","has-day")');
+    expect(html).toContain('#bg.has-art #moon,#bg.has-art #skyA,#bg.has-art #skyB,#bg.has-day #sun,#bg.has-day #dayWash{display:none}');
+    // the day picture follows the phase the game already sets on <body>
+    expect(html).toContain('body[data-phase=day] #bg.has-day #bgDay{opacity:.6}');
+    expect(html).toContain('document.body.dataset.phase=');
   });
 
   it('shows the CASE CLOSED role tiles and opens tall modals at the top', () => {
