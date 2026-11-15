@@ -12,8 +12,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "rules:min": "node scripts/build_min_rules.mjs",
-    "seal": "node scripts/seal_tests.mjs",
-    "seal:check": "node scripts/seal_tests.mjs --check"
+    "seal": "node scripts/seal_tests.mjs && node scripts/test_counts.mjs",
+    "seal:check": "node scripts/seal_tests.mjs --check && node scripts/test_counts.mjs --check",
+    "verify:biweek": "node scripts/verify_biweek_results.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

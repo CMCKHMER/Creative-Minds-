@@ -3,7 +3,7 @@
  * verified teacher, and gives students' browsers nothing to read.
  *
  * Loaded by every test page under tests/ right AFTER the engine script, and
- * by the Studio page (library use only).
+ * by the Studio page and the planner hub (library use only).
  *
  * WHY THIS EXISTS
  *   This is a static site built from a public repository, and the teacher
@@ -152,6 +152,15 @@
       return String(p.user_id || p.sub || '');
     } catch (e) { return ''; }
   }
+  /** Library helpers (planner hub): the signed-in teacher's session as
+   *  { token, uid }, or null when nobody is signed in. `refreshSession`
+   *  forces a new token (used once after a 401). */
+  API.session = function () {
+    return currentToken().then(function (token) { return token ? { token: token, uid: uidOf(token) } : null; });
+  };
+  API.refreshSession = function () {
+    return refreshToken().then(function (token) { return token ? { token: token, uid: uidOf(token) } : null; });
+  };
   function fsGet(path, token) {
     return fetch(FS_BASE + path, { headers: { Authorization: 'Bearer ' + token } })
       .catch(function () { throw fail('network', 'Could not reach the server.'); });

@@ -455,6 +455,18 @@ export async function listInviteAttempts(drillSlug: string, teacherUid: string):
   );
 }
 
+/** EVERY invite attempt of this teacher, across all tests, newest first —
+ *  the feed of the dashboard's score sheet. Same owner filter as above. */
+export async function listAllInviteAttempts(teacherUid: string): Promise<InviteAttemptDoc[]> {
+  const docs = await runQuery('invite_attempts', {
+    ...fieldFilter('teacherUid', 'EQUAL', teacherUid),
+    limit: 2000,
+  });
+  return (docs as unknown as InviteAttemptDoc[]).sort((a, b) =>
+    String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')),
+  );
+}
+
 // ── Answer seal (teacher_secrets/answer-seal) ────────────────────────
 //
 // The public bi-weekly test pages carry their answers ENCRYPTED. The one

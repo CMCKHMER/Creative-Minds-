@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { groupByTest, toCsv, toSpreadsheetXml, scoresFileName } from '../lib/biweeklyScores';
+import { annotateVersions, groupByTest, mergeAttempts, toCsv, toSpreadsheetXml, scoresFileName } from '../lib/biweeklyScores';
 import type { BiweeklyAttempt } from '../lib/biweeklyScores';
 
 const attempt = (over: Partial<BiweeklyAttempt> = {}): BiweeklyAttempt => ({
@@ -60,6 +60,37 @@ describe('biweeklyScores — teacher spreadsheet export', () => {
     expect(csv.charCodeAt(0)).toBe(0xfeff);
     expect(csv).toContain('"Doe, Jane ""JD"""');
     expect(csv).toContain('week4-reading.html');
+  });
+
+  it('merges the open drills and the invite results into one list, newest first', () => {
+    const merged = mergeAttempts(
+      [attempt({ studentName: 'open-old', submittedAt: '2026-11-01T00:00:00Z' })],
+      [attempt({ studentName: 'invite-new', submittedAt: '2026-11-14T00:00:00Z', viaInvite: true })],
+    );
+    expect(merged.map((a) => a.studentName)).toEqual(['invite-new', 'open-old']);
+  });
+
+  it('marks results recorded for an earlier version of a test — and only those', () => {
+    const counts = { diagnostic: { title: 'Orientation Diagnostic', kicker: '', total: 23, parts: [] } };
+    const [old, current, unknown] = annotateVersions([
+      attempt({ drillSlug: 'diagnostic.html', correctCount: 4, totalCount: 9 }),
+      attempt({ drillSlug: 'diagnostic.html', correctCount: 17, totalCount: 23 }),
+      attempt({ drillSlug: 'some-game', totalCount: 9 }),
+    ], counts);
+    expect(old.note).toBe('Earlier version of this test (9 questions; it now has 23)');
+    expect(current.note).toBeUndefined();
+    expect(unknown.note).toBeUndefined();
+    // without the counts file nothing is flagged
+    expect(annotateVersions([attempt({ drillSlug: 'diagnostic.html', totalCount: 9 })], null)[0].note).toBeUndefined();
+  });
+
+  it('the remark travels into the spreadsheet and the CSV', () => {
+    const note = 'Earlier version of this test (9 questions; it now has 23)';
+    const rows = [attempt({ note })];
+    expect(toSpreadsheetXml(rows)).toContain(note);
+    expect(toSpreadsheetXml(rows)).toContain('>Note<');
+    expect(toCsv(rows)).toContain(note);
+    expect(toCsv(rows).split('\r\n')[0]).toContain('Note');
   });
 
   it('datestamps the download filename', () => {
