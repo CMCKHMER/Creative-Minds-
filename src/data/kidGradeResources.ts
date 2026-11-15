@@ -116,8 +116,9 @@ const kid7Resources: KidGradeMaterial[] = [
 // completion button that posts the student's name + score to the
 // drill_attempts Firestore collection via the validated guest branch (or the
 // signed-in localStorage session token) — same pipeline as the rfc2/rfc3
-// dictation sheets, so completions reach the teacher dashboard with no rules
-// change. Units 2, 3, 4, 13, 14 and 15 are 3-homework files where EACH
+// dictation sheets, no rules change. The rows carry no class id, so they are
+// NOT in the dashboard's class feed: the teacher reads them on the score sheet
+// behind each homework row's "Scores" button (src/lib/kidHomework.ts). Units 2, 3, 4, 13, 14 and 15 are 3-homework files where EACH
 // homework carries its own shareDoc: the teacher assigns one homework at a
 // time, and hideUntilShared keeps every unshared homework completely
 // invisible to students.
