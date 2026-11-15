@@ -86,7 +86,11 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
           — replaces the old classroom photo background at the owner's
           request so the section reads as Aii CAP Campus branded. */}
       <img src="./images/aii-language-center-logo.png" alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-40" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/85 via-slate-950/60 to-slate-950/85 lg:bg-gradient-to-r lg:from-slate-950/95 lg:via-slate-950/55 lg:to-slate-950/25" />
+      {/* Veil between the logo and the text. Dark here; the light theme swaps
+          it for a pale one (.cmc-planner-veil in index.css) — the gradient
+          stops are not covered by the theme's colour remaps, and a dark veil
+          under the light theme's dark text made the section unreadable. */}
+      <div aria-hidden="true" className="cmc-planner-veil pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/85 via-slate-950/60 to-slate-950/85 lg:bg-gradient-to-r lg:from-slate-950/95 lg:via-slate-950/55 lg:to-slate-950/25" />
       <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[-12rem] h-[34rem] w-[34rem] rounded-full bg-violet-400/[0.11] blur-[125px]" />
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 bottom-[-14rem] h-[35rem] w-[35rem] rounded-full bg-cyan-400/[0.10] blur-[135px]" />
 
@@ -152,7 +156,7 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
       </div>
       ) : (
         <div className="relative mx-auto max-w-2xl px-5 sm:px-8">
-          <div className="rounded-2xl border border-amber-200/15 bg-amber-100/[0.03] p-8 text-center">
+          <div className="cmc-planner-locked rounded-2xl border border-amber-200/15 bg-amber-100/[0.03] p-8 text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-amber-200/20 bg-amber-200/[0.05] text-amber-200">
               <LockKeyhole className="h-6 w-6" aria-hidden="true" />
             </span>
