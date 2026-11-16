@@ -23,7 +23,8 @@
     "verify:pages": "node scripts/verify_pages.mjs",
     "verify:wordcreator": "node scripts/verify_word_creator.mjs",
     "verify:registration": "node scripts/verify_registration.mjs",
-    "verify:profile-photo": "node scripts/verify_profile_photo.mjs"
+    "verify:profile-photo": "node scripts/verify_profile_photo.mjs",
+    "check:lounge": "node scripts/check_brain_lounge_games.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

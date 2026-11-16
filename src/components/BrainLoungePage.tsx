@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState, type ComponentType } from 'react';
-import { ArrowLeft, CalendarClock, Cpu, ExternalLink, Gamepad2, Lightbulb, LockKeyhole, Play, Sparkles, UserPlus, Zap } from 'lucide-react';
+import { ArrowLeft, CalendarClock, Cpu, ExternalLink, Gamepad2, Home, Lightbulb, LockKeyhole, Play, Sparkles, UserPlus, Zap } from 'lucide-react';
 import { GlassFact, GlassPageBar, GlassPageHero } from './GlassPage';
 import { BRAIN_GAMES, liveBrainGames, reservedBays, type BrainGameDef, type BrainGameProps } from '../games/registry';
 import { LoungeLeaderboard } from './LoungeLeaderboard';
@@ -34,8 +34,10 @@ function difficultyBolts(level: 1 | 2 | 3) {
   ));
 }
 
-function Cartridge({ game, playable, sample, onPlay }: {
+function Cartridge({ game, bay, playable, sample, onPlay }: {
   game: BrainGameDef;
+  /** Where the bay sits on the shelf — shown as the cartridge number. */
+  bay: number;
   /** Signed-in accounts: every live cartridge. */
   playable: boolean;
   /** Guests: only the 1-level BrickForge trial is open. */
@@ -43,61 +45,104 @@ function Cartridge({ game, playable, sample, onPlay }: {
   onPlay: (game: BrainGameDef) => void;
 }) {
   const live = game.status === 'live';
+  const badge = !live
+    ? 'border-amber-200/25 bg-amber-200/[0.08] text-amber-200/90'
+    : sample
+      ? 'border-fuchsia-300/30 bg-fuchsia-300/15 text-fuchsia-100'
+      : playable
+        ? 'border-emerald-300/30 bg-emerald-300/15 text-emerald-100'
+        : 'border-cyan-300/30 bg-cyan-300/15 text-cyan-100';
+
   return (
     <article
-      className={`group relative flex min-h-[290px] flex-col overflow-hidden rounded-3xl border p-5 transition-all duration-200 ${
+      className={`group relative flex flex-col overflow-hidden rounded-3xl border transition-all duration-300 ${
         live
-          ? 'border-white/12 bg-gradient-to-br from-slate-900/80 to-slate-950/90 shadow-xl hover:-translate-y-1 hover:border-fuchsia-300/40 hover:shadow-fuchsia-500/10'
+          ? 'border-white/12 bg-gradient-to-br from-slate-900/85 to-slate-950/95 shadow-xl shadow-slate-950/40 hover:-translate-y-1.5 hover:border-fuchsia-300/40 hover:shadow-2xl hover:shadow-fuchsia-900/25'
           : 'border-dashed border-white/12 bg-slate-950/40'
       }`}
     >
-      {/* Cartridge art */}
-      <div className="flex items-start justify-between gap-3">
-        <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-white/15 bg-gradient-to-br text-3xl ${game.gradient} ${live ? '' : 'opacity-60 grayscale'}`} aria-hidden="true">
-          {game.emoji}
-        </span>
-        <div className="flex flex-col items-end gap-1.5">
-          <span className={`rounded-md border px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] ${!live ? 'border-amber-200/25 bg-amber-200/5 text-amber-200/90' : !playable ? 'border-cyan-300/30 bg-cyan-300/10 text-cyan-200' : sample ? 'border-fuchsia-300/30 bg-fuchsia-300/10 text-fuchsia-200' : 'border-emerald-300/30 bg-emerald-300/10 text-emerald-200'}`}>
-            {!live ? 'Coming soon' : !playable ? 'Account required' : sample ? `Free ${GUEST_BRICKFORGE_MAX_LEVEL}-level trial` : 'Ready to play'}
+      {/* Cover art */}
+      <div className="relative aspect-[16/9] w-full overflow-hidden">
+        {game.art ? (
+          <img
+            src={game.art}
+            alt={game.artAlt ?? ''}
+            loading="lazy"
+            decoding="async"
+            className={`h-full w-full object-cover transition duration-700 ${live ? 'group-hover:scale-[1.06]' : 'opacity-40 grayscale'}`}
+          />
+        ) : (
+          <div className={`grid h-full w-full place-items-center bg-gradient-to-br text-5xl ${game.gradient}`} aria-hidden="true">
+            {game.emoji}
+          </div>
+        )}
+        <div className={`absolute inset-0 ${live ? 'bg-gradient-to-t from-slate-950 via-slate-950/30 to-slate-950/5' : 'bg-slate-950/50'}`} />
+
+        {/* Status + difficulty ride on the art */}
+        <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
+          <span className={`rounded-md border px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] backdrop-blur-sm ${badge}`}>
+            {!live ? 'Coming soon' : sample ? `Free ${GUEST_BRICKFORGE_MAX_LEVEL}-level trial` : playable ? 'Ready to play' : 'Account required'}
           </span>
-          <span className="flex items-center gap-0.5" title={`Difficulty ${game.difficulty} of 3`}>{difficultyBolts(game.difficulty)}</span>
+          <span
+            className="flex items-center gap-0.5 rounded-md border border-white/12 bg-slate-950/60 px-1.5 py-1 backdrop-blur-sm"
+            title={`Difficulty ${game.difficulty} of 3`}
+          >
+            {difficultyBolts(game.difficulty)}
+          </span>
+        </div>
+
+        {/* Genre + bay number sit on the cover's lower edge */}
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 px-3 pb-2.5">
+          <span className="flex items-center gap-2">
+            <span className={`grid h-8 w-8 place-items-center rounded-lg border border-white/20 bg-gradient-to-br text-base shadow-lg ${game.gradient}`} aria-hidden="true">
+              {game.emoji}
+            </span>
+            <span className="rounded-md border border-white/12 bg-slate-950/65 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-200 backdrop-blur-sm">
+              {game.genre}
+            </span>
+          </span>
+          <span className="font-[var(--font-display)] text-[10px] font-bold tracking-[0.2em] text-white/45">
+            BAY {String(bay).padStart(2, '0')}
+          </span>
         </div>
       </div>
 
-      <h3 className={`mt-4 font-[var(--font-display)] text-lg font-bold tracking-tight ${live ? 'text-white' : 'text-slate-400'}`}>{game.title}</h3>
-      <p className={`mt-1.5 flex-1 text-xs leading-relaxed ${live ? 'text-slate-400' : 'text-slate-500'}`}>{game.tagline}</p>
+      {/* Copy + action */}
+      <div className="flex flex-1 flex-col p-5 pt-3.5">
+        <h3 className={`font-[var(--font-display)] text-lg font-bold tracking-tight ${live ? 'text-white' : 'text-slate-400'}`}>{game.title}</h3>
+        <p className={`mt-1.5 flex-1 text-xs leading-relaxed ${live ? 'text-slate-400' : 'text-slate-500'}`}>{game.tagline}</p>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/8 pt-3 text-[10px] text-slate-500">
-        <span className="rounded-md border border-white/10 px-2 py-1 font-semibold text-slate-300">{game.genre}</span>
-        {live && <span>{game.controls}</span>}
-        {live && game.scoreLabel && <span aria-hidden="true">·</span>}
-        {live && game.scoreLabel && <span>{game.scoreLabel}</span>}
+        <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-white/8 pt-3 text-[10px] text-slate-500">
+          {live ? <span>{game.controls}</span> : <span>Reserved for the next CMC idea</span>}
+          {live && game.scoreLabel && <span aria-hidden="true">·</span>}
+          {live && game.scoreLabel && <span className="text-slate-400">{game.scoreLabel}</span>}
+        </div>
+
+        {live && game.mode === 'react' && playable && (
+          <button type="button" onClick={() => onPlay(game)} className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:brightness-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300">
+            <Play className="h-3.5 w-3.5" aria-hidden="true" /> {sample ? `Try ${GUEST_BRICKFORGE_MAX_LEVEL} free level` : 'Play now'}
+          </button>
+        )}
+        {live && (game.mode === 'standalone' || game.mode === 'external') && game.launchUrl && playable && (
+          <a href={game.launchUrl} className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:brightness-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300">
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /> Open game
+          </a>
+        )}
+        {live && !playable && (
+          <button
+            type="button"
+            onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to play ${game.title}.` })}
+            className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-5 py-2.5 text-xs font-bold text-cyan-100 transition hover:bg-cyan-300/20 active:scale-95"
+          >
+            <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to play
+          </button>
+        )}
+        {!live && (
+          <span className="mt-4 inline-flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-white/10 px-5 py-2.5 text-xs font-semibold text-slate-500">
+            <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" /> Insert cartridge soon
+          </span>
+        )}
       </div>
-
-      {live && game.mode === 'react' && playable && (
-        <button type="button" onClick={() => onPlay(game)} className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:brightness-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300">
-          <Play className="h-3.5 w-3.5" aria-hidden="true" /> {sample ? `Try ${GUEST_BRICKFORGE_MAX_LEVEL} free level` : 'Play now'}
-        </button>
-      )}
-      {live && (game.mode === 'standalone' || game.mode === 'external') && game.launchUrl && playable && (
-        <a href={game.launchUrl} className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:brightness-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300">
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /> Open game
-        </a>
-      )}
-      {live && !playable && (
-        <button
-          type="button"
-          onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to play ${game.title}.` })}
-          className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-5 py-2.5 text-xs font-bold text-cyan-100 transition hover:bg-cyan-300/20 active:scale-95"
-        >
-          <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to play
-        </button>
-      )}
-      {!live && (
-        <span className="mt-4 inline-flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-white/10 px-5 py-2.5 text-xs font-semibold text-slate-500">
-          <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" /> Insert cartridge soon
-        </span>
-      )}
     </article>
   );
 }
@@ -163,10 +208,11 @@ export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
         </div>
 
         <div className="mt-8 grid gap-x-6 gap-y-7 md:grid-cols-2 xl:grid-cols-3">
-          {BRAIN_GAMES.map((game) => (
+          {BRAIN_GAMES.map((game, index) => (
             <Cartridge
               key={game.id}
               game={game}
+              bay={index + 1}
               playable={signedIn || isSampleBrainGame(game.id)}
               sample={!signedIn && isSampleBrainGame(game.id)}
               onPlay={openGame}
@@ -195,15 +241,29 @@ export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
           <section id="brain-lounge-stage" className="mt-12 scroll-mt-6 overflow-hidden rounded-3xl border border-fuchsia-300/20 bg-slate-900/65 shadow-2xl shadow-fuchsia-950/20">
             <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/8 px-5 py-4 sm:px-7">
               <div className="flex min-w-0 items-center gap-3">
-                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-gradient-to-br text-lg ${activeGame.gradient}`} aria-hidden="true">{activeGame.emoji}</span>
+                {activeGame.art ? (
+                  <img
+                    src={activeGame.art}
+                    alt=""
+                    className="h-11 w-16 shrink-0 rounded-lg border border-white/15 object-cover shadow-lg"
+                  />
+                ) : (
+                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-gradient-to-br text-lg ${activeGame.gradient}`} aria-hidden="true">{activeGame.emoji}</span>
+                )}
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500">Now playing · {activeGame.genre}</p>
                   <h3 className="truncate text-sm font-bold text-white sm:text-base">{activeGame.title}</h3>
                 </div>
               </div>
-              <button type="button" onClick={() => setActiveGame(null)} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white">
-                <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> All cartridges
-              </button>
+              <div className="flex flex-wrap items-center gap-1">
+                <button type="button" onClick={() => setActiveGame(null)} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white">
+                  <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> All cartridges
+                </button>
+                {/* One click out of any cartridge, back to the CMC home page. */}
+                <button type="button" onClick={onBackHome} className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-fuchsia-300/40 hover:bg-white/5 hover:text-white">
+                  <Home className="h-3.5 w-3.5" aria-hidden="true" /> Back to CMC
+                </button>
+              </div>
             </header>
             <div className="p-5 sm:p-8">
               <Suspense fallback={
