@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowUpRight, Clock3, ExternalLink, Globe2, Loader2, Newspaper, RefreshCw, Search, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Clock3, ExternalLink, Globe2, Loader2, Newspaper, RefreshCw, Search, Sparkles } from 'lucide-react';
+import { GlassFact, GlassPageBar, GlassPageHero } from './GlassPage';
 
 /* =========================================================================
    CMC — Cambodia Education News components
@@ -294,82 +295,36 @@ export function NewsPage({ onBackHome }: { onBackHome: () => void }) {
   }, [data?.generated_at]);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070d17] text-slate-100">
-      {/* Sticky top bar — matches LearningGamesPage + TeacherToolsPage */}
-      <div className="sticky top-0 z-40 border-b border-white/8 bg-[#070d17]/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
-          <a href="#news" className="flex items-center gap-3" aria-label="Creative Minds Cambodia Education News">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-300 to-amber-300 text-slate-950">
-              <Newspaper className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <span className="text-sm font-bold tracking-tight text-white">
-              Creative Minds <span className="text-cyan-200">Cambodia News</span>
-            </span>
-          </a>
-          <button
-            type="button"
-            onClick={onBackHome}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/5 hover:text-white"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Back to CMC
-          </button>
-        </div>
-      </div>
+    <main className="cmc-app cmc-subpage min-h-screen overflow-hidden text-slate-100">
+      {/* Sticky top bar — shared with the Play Lab, Brain Lounge and Teacher Tools */}
+      <GlassPageBar href="#news" label="Creative Minds Cambodia Education News" icon={Newspaper} name="Creative Minds" accent="Cambodia News" onBack={onBackHome} />
 
-      {/* Hero band — uses the AI-generated Cambodia education scene */}
-      <section data-keep-dark className="relative isolate overflow-hidden border-b border-white/8">
-        <div className="absolute inset-0 -z-20">
-          <img
-            src="./images/news/news-hero.webp"
-            alt=""
-            aria-hidden="true"
-            className="h-full w-full object-cover opacity-30"
-            decoding="async"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#070d17] via-[#070d17]/85 to-[#070d17]/50" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#070d17]/70 via-transparent to-[#070d17]/70" />
-        </div>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:52px_52px] [mask-image:linear-gradient(90deg,black,transparent_90%)]"
-        />
-        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20 lg:py-24">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/5 px-3 py-1.5 text-[10px] font-bold tracking-[0.17em] text-cyan-100 uppercase">
-              <Globe2 className="h-3.5 w-3.5" aria-hidden="true" /> Daily Cambodia education news
-            </span>
-            <h1 className="mt-5 font-[var(--font-display)] text-4xl leading-[1.04] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              What's happening in<br />
-              <span className="bg-gradient-to-r from-cyan-200 via-teal-200 to-amber-200 bg-clip-text text-transparent">Cambodia education.</span>
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
-              Headlines indexed daily from Khmer Times, UNICEF, UNESCO, Cambodianess, Kiripost, and other
-              sources covering Cambodian schools, universities, scholarships, MoEYS policy, students, and
-              teachers. Refreshed every morning at 8 am Phnom Penh time.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">{data?.count ?? 0} headlines</span>
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">{sources.length - 1} sources</span>
-              {generatedLabel && (
-                <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">
-                  <Clock3 className="mr-1 inline h-3 w-3" aria-hidden="true" />
-                  Updated {generatedLabel}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => setRefreshKey((k) => k + 1)}
-                disabled={isLoading}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5 text-cyan-200 transition hover:bg-cyan-200/10 disabled:opacity-50"
-              >
-                {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                Refresh
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero board — the shared glass board (GlassPage.tsx) */}
+      <GlassPageHero
+        view="d"
+        eyebrow="Daily Cambodia education news"
+        eyebrowIcon={Globe2}
+        title={<>What&apos;s happening in<br /><em>Cambodia education.</em></>}
+        lead="Headlines indexed daily from Khmer Times, UNICEF, UNESCO, Cambodianess, Kiripost, and other sources covering Cambodian schools, universities, scholarships, MoEYS policy, students, and teachers. Refreshed every morning at 8 am Phnom Penh time."
+      >
+        <GlassFact>{data?.count ?? 0} headlines</GlassFact>
+        <GlassFact>{sources.length - 1} sources</GlassFact>
+        {generatedLabel && (
+          <GlassFact>
+            <Clock3 className="mr-1 inline h-3 w-3" aria-hidden="true" />
+            Updated {generatedLabel}
+          </GlassFact>
+        )}
+        <button
+          type="button"
+          onClick={() => setRefreshKey((k) => k + 1)}
+          disabled={isLoading}
+          className="cmc-board-fact cmc-board-fact--button"
+        >
+          {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+          Refresh
+        </button>
+      </GlassPageHero>
 
       {/* Filter + search bar */}
       <section className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">

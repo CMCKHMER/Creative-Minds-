@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Dice3, Dice5, Plus, RefreshCw, RotateCcw, Sparkles, X, Palette, ExternalLink, Layers, FileImage } from 'lucide-react';
+import { ArrowRight, Dice3, Dice5, Plus, RefreshCw, RotateCcw, Sparkles, X, Palette, ExternalLink, Layers, FileImage } from 'lucide-react';
+import { GlassFact, GlassPageBar, GlassPageHero } from './GlassPage';
 import { trackDiceRoll, trackWheelSpin } from '../lib/analytics';
 import { Reveal } from './Reveal';
 import { RoleGate } from './RoleGate';
@@ -369,11 +370,10 @@ function WheelSpinPicker({ size = 240 }: { size?: number }) {
             {names.map((name, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold"
+                className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold text-slate-200"
                 style={{
                   borderColor: WHEEL_COLORS[i % WHEEL_COLORS.length] + '55',
                   background: WHEEL_COLORS[i % WHEEL_COLORS.length] + '15',
-                  color: '#e2e8f0',
                 }}
               >
                 <span className="block h-1.5 w-1.5 rounded-full" style={{ background: WHEEL_COLORS[i % WHEEL_COLORS.length] }} />
@@ -565,65 +565,27 @@ export function TeacherToolsPage({ onBackHome, onOpenAuth }: { onBackHome: () =>
     return () => { document.title = prev; };
   }, []);
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070d17] text-slate-100">
+    <main className="cmc-app cmc-subpage min-h-screen overflow-hidden text-slate-100">
       {/* Sticky top bar — matches LearningGamesPage */}
-      <div className="sticky top-0 z-40 border-b border-white/8 bg-[#070d17]/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
-          <a href="#teacher-tools" className="flex items-center gap-3" aria-label="Creative Minds Teacher Tools">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-300 to-amber-300 text-slate-950">
-              <Dice5 className="h-4 w-4" aria-hidden="true" />
-            </span>
-            <span className="text-sm font-bold tracking-tight text-white">
-              Creative Minds <span className="text-cyan-200">Teacher Tools</span>
-            </span>
-          </a>
-          <button
-            type="button"
-            onClick={onBackHome}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/5 hover:text-white"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Back to CMC
-          </button>
-        </div>
-      </div>
+      <GlassPageBar href="#teacher-tools" label="Creative Minds Teacher Tools" icon={Dice5} name="Creative Minds" accent="Teacher Tools" onBack={onBackHome} />
 
       {/* Auth gate — teacher-only. Non-teachers see a sign-in prompt.
           The top bar stays visible so they can navigate back. */}
       <RoleGate onOpenAuth={onOpenAuth} variant="full">
       {/* Hero band */}
-      <section className="relative isolate overflow-hidden border-b border-white/8">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_72%_34%,rgba(34,211,238,.16),transparent_38%),radial-gradient(ellipse_at_16%_88%,rgba(251,191,36,.14),transparent_38%),linear-gradient(125deg,#091421,#0c1122_60%,#101326)]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:52px_52px] [mask-image:linear-gradient(90deg,black,transparent_90%)]"
-        />
-        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20 lg:py-24">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/5 px-3 py-1.5 text-[10px] font-bold tracking-[0.17em] text-cyan-100 uppercase">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> The CMC Teacher Tools room
-            </span>
-            <h1 className="mt-5 font-[var(--font-display)] text-4xl leading-[1.04] font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Pick a student.<br />
-              <span className="bg-gradient-to-r from-cyan-200 via-teal-200 to-amber-200 bg-clip-text text-transparent">Roll the dice. Create.</span>
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
-              Three instant classroom tools — a 3D dice roller, a fair Wheel of Names, and Creative Minds Studio
-              (a full creative editor with layers, filters, Word + Excel modes, and PDF export). All run entirely
-              in your browser; nothing is saved or sent anywhere.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-2 text-[10px] text-slate-400">
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">1–5 dice</span>
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">Up to 24 names</span>
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">Layers + PDF export</span>
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">No login required</span>
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-1.5">100% in-browser</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <GlassPageHero
+        view="c"
+        eyebrow="The CMC Teacher Tools room"
+        eyebrowIcon={Sparkles}
+        title={<>Pick a student.<br /><em>Roll the dice. Create.</em></>}
+        lead="Three instant classroom tools — a 3D dice roller, a fair Wheel of Names, and Creative Minds Studio (a full creative editor with layers, filters, Word + Excel modes, and PDF export). All run entirely in your browser; nothing is saved or sent anywhere."
+      >
+        <GlassFact>1–5 dice</GlassFact>
+        <GlassFact>Up to 24 names</GlassFact>
+        <GlassFact>Layers + PDF export</GlassFact>
+        <GlassFact>No login required</GlassFact>
+        <GlassFact>100% in-browser</GlassFact>
+      </GlassPageHero>
 
       {/* Tools — compact grid */}
       <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">

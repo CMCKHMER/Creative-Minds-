@@ -319,7 +319,8 @@ await teacherCtx.addInitScript(([token]) => {
   } catch (e) { /* storage blocked */ }
 }, [jwt(TEACHER)]);
 const home = await teacherCtx.newPage();
-await home.goto(`${ORIGIN(0)}/index.html`, { waitUntil: 'domcontentloaded' });
+// The Kid Program is a page of its own (src/lib/sitePages.ts): /#kid-grades.
+await home.goto(`${ORIGIN(0)}/index.html#kid-grades`, { waitUntil: 'domcontentloaded' });
 const toKidSection = (page) => until(() => page.evaluate(() => {
   const s = document.getElementById('kid-grades');
   if (!s) return false;
@@ -447,7 +448,7 @@ await home.close();
 // ── 6. a student on the homepage: no Scores button ──────────────────────
 const visitorCtx = await makeContext('visitor');
 const visitor = await visitorCtx.newPage();
-await visitor.goto(`${ORIGIN(3)}/index.html`, { waitUntil: 'domcontentloaded' });
+await visitor.goto(`${ORIGIN(3)}/index.html#kid-grades`, { waitUntil: 'domcontentloaded' });
 ok('student: the Kid Program section loads', await toKidSection(visitor));
 ok('student: the shared homework row is there', await until(() => visitor.evaluate(() => !!document.querySelector('#kid-grades a[href*="unit13hw.html#hw-a"]'))));
 ok('student: no Scores button anywhere', (await visitor.evaluate(() => document.querySelectorAll('[data-hw-scores]').length)) === 0);

@@ -93,7 +93,8 @@ await ctx.route('**/documents/announcements?*', r => r.fulfill({ status: 200, co
 const page = await ctx.newPage();
 const errors = [];
 page.on('pageerror', e => errors.push('pageerror: ' + e.message.slice(0, 140)));
-await page.goto(`${BASE}/`, { waitUntil: 'load' });
+// The board is a page of its own (src/lib/sitePages.ts): /#announcements.
+await page.goto(`${BASE}/#announcements`, { waitUntil: 'load' });
 await page.waitForTimeout(2200);
 
 // Progressive scroll: LazyMount mounts the board when the viewport nears it.

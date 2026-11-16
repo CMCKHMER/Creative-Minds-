@@ -2,61 +2,62 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { PAGE_GROUPS, SITE_PAGES, resolveRoute } from '../lib/sitePages';
 
 /**
- * Regression guard — homepage placement of the announcement board.
+ * Regression guard — announcements are what a visitor sees first.
  *
- * The site owner asked for the "News & announcements" board to sit at the
- * TOP of the homepage (directly under the hero) because it is news and
- * info that visitors should see first. These invariants stop a future
- * edit from accidentally re-burying the section lower down the page.
+ * The site owner asked for the "News & announcements" board to be at the
+ * TOP of the home page because it is news and info that visitors should see
+ * first. Since Nov 2026 the home page is the hero plus one card per page
+ * (owner request: no long scroll), and the board is a page of its own — so
+ * the wish is now kept by these invariants:
+ *   - the cards come straight after the hero, with nothing in between;
+ *   - the first group of cards is News and its first card is Announcements;
+ *   - that card shows the newest post titles, read live;
+ *   - the board renders once, on its own page, at its old address.
  */
 const here = dirname(fileURLToPath(import.meta.url));
-const appSrc = readFileSync(join(here, '..', 'App.tsx'), 'utf8');
-const boardSrc = readFileSync(join(here, '..', 'components', 'AnnouncementBoard.tsx'), 'utf8');
+const read = (...parts: string[]) => readFileSync(join(here, '..', ...parts), 'utf8');
+const appSrc = read('App.tsx');
+const boardSrc = read('components', 'AnnouncementBoard.tsx');
+const directorySrc = read('components', 'SectionDirectory.tsx');
 
-// Every homepage content section that must render BELOW the announcement
-// board (i.e. appear after it in App.tsx's JSX).
-const SECTIONS_BELOW_BOARD = [
-  '<DailyAssessmentCard',
-  '<TOEFLiBTCard',
-  '<LMSCard',
-  '<FirebaseDashboard',
-  '<BiWeekPlannerCard',
-  '<SocialProof',
-  '<KidGradeHub',
-  '<GEPISecHub',
-  '<InteractiveShowcase',
-  '<FeaturesBento',
-  '<MiniMockTest',
-  '<ToeflJuniorAssessments',
-  '<ResourceLibrary',
-  '<RoiCalculator',
-  '<ComparisonTable',
-  '<Testimonials',
-  '<Pricing',
-  '<FaqSection',
-  '<CtaSection',
-] as const;
-
-describe('homepage announcements placement', () => {
+describe('announcements come first on the home page', () => {
   it('renders the announcement board exactly once', () => {
     expect(appSrc.split('<AnnouncementBoard />').length - 1).toBe(1);
   });
 
-  it('sits directly under the hero — above every other content section', () => {
-    const board = appSrc.indexOf('<AnnouncementBoard />');
-    expect(board).toBeGreaterThan(-1);
-
-    // Anchor on the Hero JSX (its sidePanel prop is unique to that usage):
-    // the board must come after the hero renders.
+  it('puts the cards directly under the hero', () => {
+    // Anchor on the Hero JSX (its sidePanel prop is unique to that usage).
     const heroAnchor = appSrc.indexOf('sidePanel={<NewsSidePanel onSeeAll={openNewsPage} />}');
+    const cards = appSrc.indexOf('<SectionDirectory />');
     expect(heroAnchor).toBeGreaterThan(-1);
-    expect(board, 'board must render after the hero').toBeGreaterThan(heroAnchor);
+    expect(cards, 'the cards must render after the hero').toBeGreaterThan(heroAnchor);
+    // Nothing but the end of the Hero tag and a comment sits between them.
+    const between = appSrc.slice(heroAnchor, cards).replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+    expect(between.match(/<[A-Za-z]+/g) ?? [], 'no element between the hero and the cards').toEqual(['<NewsSidePanel']);
+  });
 
-    for (const usage of SECTIONS_BELOW_BOARD) {
-      expect(appSrc.indexOf(usage), `${usage} must render after the announcement board`).toBeGreaterThan(board);
-    }
+  it('makes Announcements the first card of the first group', () => {
+    expect(PAGE_GROUPS[0].id).toBe('news');
+    expect(SITE_PAGES[0].id).toBe('announcements');
+    expect(SITE_PAGES[0].group).toBe('news');
+  });
+
+  it('shows the newest posts on that card', () => {
+    expect(directorySrc).toContain("page.id === 'announcements'");
+    expect(directorySrc).toContain('<AnnouncementsCard');
+    expect(directorySrc).toContain('fetchTeasers(');
+  });
+
+  it('keeps the board at its old address, with the blog strip under it', () => {
+    expect(resolveRoute('#announcements')).toBe('announcements');
+    expect(resolveRoute('#blog')).toBe('announcements');
+    const page = appSrc.slice(appSrc.indexOf("case 'announcements':"), appSrc.indexOf("case 'daily-assessment':"));
+    expect(page).toContain('<AnnouncementBoard />');
+    expect(page).toContain('<BlogSection />');
+    expect(page.indexOf('<AnnouncementBoard />')).toBeLessThan(page.indexOf('<BlogSection />'));
   });
 
   it('board keeps its public anchor and pinned-first copy', () => {

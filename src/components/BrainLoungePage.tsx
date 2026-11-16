@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useState, type ComponentType } from 'react';
 import { ArrowLeft, CalendarClock, Cpu, ExternalLink, Gamepad2, Lightbulb, Play, Sparkles, Zap } from 'lucide-react';
+import { GlassFact, GlassPageBar, GlassPageHero } from './GlassPage';
 import { BRAIN_GAMES, liveBrainGames, reservedBays, type BrainGameDef, type BrainGameProps } from '../games/registry';
 import { LoungeLeaderboard } from './LoungeLeaderboard';
 
@@ -106,46 +107,22 @@ export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070d17] text-slate-100">
+    <main className="cmc-app cmc-subpage min-h-screen overflow-hidden text-slate-100">
       {/* Top bar */}
-      <div className="sticky top-0 z-40 border-b border-white/8 bg-[#070d17]/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
-          <a href="#brain-lounge" className="flex items-center gap-3" aria-label="The Brain Lounge home">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-400 to-cyan-300 text-slate-950"><Gamepad2 className="h-4 w-4" aria-hidden="true" /></span>
-            <span className="text-sm font-bold tracking-tight text-white">The Brain <span className="text-fuchsia-300">Lounge</span></span>
-          </a>
-          <button type="button" onClick={onBackHome} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/5 hover:text-white">
-            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Back to CMC
-          </button>
-        </div>
-      </div>
+      <GlassPageBar href="#brain-lounge" label="The Brain Lounge home" icon={Gamepad2} name="The Brain" accent="Lounge" onBack={onBackHome} />
 
       {/* Arcade hero */}
-      <section data-keep-dark className="relative isolate overflow-hidden border-b border-white/8">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_20%_20%,rgba(232,121,249,0.16),transparent_42%),radial-gradient(ellipse_at_85%_75%,rgba(34,211,238,0.15),transparent_42%),linear-gradient(125deg,#0a0f1f,#0c1122_55%,#120e24)]" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:linear-gradient(90deg,black,transparent_92%)]" />
-        {/* scanlines */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 opacity-[0.06] [background-image:repeating-linear-gradient(0deg,transparent_0_3px,rgba(255,255,255,0.5)_3px_4px)]" />
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24 lg:py-28">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-fuchsia-300/25 bg-fuchsia-300/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.17em] text-fuchsia-200">
-              <Gamepad2 className="h-3.5 w-3.5" aria-hidden="true" /> CMC Arcade · Insert coin
-            </span>
-            <h1 className="mt-6 font-[var(--font-display)] text-4xl font-bold leading-[1.04] tracking-tight text-white sm:text-6xl lg:text-7xl">
-              The Brain <span className="bg-gradient-to-r from-fuchsia-300 via-violet-200 to-cyan-300 bg-clip-text text-transparent">Lounge</span>
-            </h1>
-            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
-              Arcade games built for Creative Minds — sharpen memory, reflexes and logic between lessons.
-              Pick a cartridge, beat your best, and watch new games drop into the empty bays.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3 text-[10px] text-slate-400">
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">{live.length} playable {live.length === 1 ? 'game' : 'games'}</span>
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">{reserved.length} cartridge bays reserved</span>
-              <span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">Free to play · no account needed</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <GlassPageHero
+        view="b"
+        eyebrow="CMC Arcade · Insert coin"
+        eyebrowIcon={Gamepad2}
+        title={<>The Brain <em>Lounge</em></>}
+        lead="Arcade games built for Creative Minds — sharpen memory, reflexes and logic between lessons. Pick a cartridge, beat your best, and watch new games drop into the empty bays."
+      >
+        <GlassFact>{live.length} playable {live.length === 1 ? 'game' : 'games'}</GlassFact>
+        <GlassFact>{reserved.length} cartridge bays reserved</GlassFact>
+        <GlassFact>Free to play · no account needed</GlassFact>
+      </GlassPageHero>
 
       {/* Cartridge shelf */}
       <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20">

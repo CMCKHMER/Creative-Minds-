@@ -239,13 +239,11 @@ export const Hero = ({
           <p className="cmc-hero-caption"><strong>CMC</strong> is where teachers find tests, games and ready lessons — and the whole classroom is the canvas</p>
         </div>
 
-        {/* Section dots on the right edge: the first is this screen, the others jump down the page. */}
-        <nav className="cmc-hero-dots" aria-label="Jump to a section">
+        {/* Dots on the right edge: this screen, and the cards under it (one
+            card per page — src/components/SectionDirectory.tsx). */}
+        <nav className="cmc-hero-dots" aria-label="On this page">
           <a href="#top" aria-current="true" title="Top"><span className="sr-only">Top</span></a>
-          <a href="#toefl-ibt-mock" title="TOEFL iBT mock test"><span className="sr-only">TOEFL iBT mock test</span></a>
-          <a href="#toefl-junior-assessments" title="Assessments"><span className="sr-only">Assessments</span></a>
-          <a href="#resources" title="Classroom resources"><span className="sr-only">Classroom resources</span></a>
-          <a href="#faq" title="Questions"><span className="sr-only">Questions</span></a>
+          <a href="#sections" title="All pages"><span className="sr-only">All pages</span></a>
         </nav>
 
         {/* The title's particles are drawn here (src/lib/titleParticles.ts). */}
