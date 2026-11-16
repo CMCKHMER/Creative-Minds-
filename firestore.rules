@@ -678,23 +678,37 @@ service cloud.firestore {
     // ONLINE WORD CREATOR ROOMS (Nov 2026): the two-to-four-seat word duel
     // (public/arcade/word-creator/index.html, Brain Lounge bay 05).
     //
+    // HOW A ROOM WORKS. The room doc holds a seed, the seats in joining order,
+    // and an append-only move log. Nothing else is the truth: every device
+    // deals the bag from the seed and replays the log through the same engine
+    // (public/arcade/word-creator/online.js), so board, racks, bag, scores and
+    // whose turn it is come out identical everywhere, also after a reload.
+    // Racks are never written down. `cells`, `scores`, `bagSize` and `result`
+    // are a convenience copy for lobbies and spectators; no device plays from
+    // them, so a tampered copy cannot change a match.
+    //
     // Readable by any verified player (rooms are opened BY code, like
-    // chess_rooms), but the writer discipline is tighter than chess because
-    // the shared doc carries hidden information:
-    //   · seats[]  — uid + display name + host flag. A join may only APPEND
-    //                 one seat, and it must be the joiner's own uid.
-    //   · moves[]  — the public move log. A move may only APPEND one entry,
-    //                 and it must be the author's own seat.
-    //   · cells/scene — the board; only the seat that is actually ON TURN may
-    //                 rewrite them (checked against `turn`).
-    //   · racks are NOT stored. Each device derives the deal from the seed in
-    //     the room doc plus the public move log (see
-    //     src/games/wordcreator/online.ts replayDeal) — so a rack can be
-    //     reconstructed by its owner, and a played tile can be verified by
-    //     everyone, without any rack ever being written down.
-    // The host (creator) alone may patch free-form fields; guests may only
-    // append to seats/moves and rewrite the board while their turn is active.
+    // chess_rooms). There are exactly two kinds of write after create:
+    //   JOIN — somebody without a seat appends their own seat to a waiting
+    //          room that still has one free. Nothing else may change, except
+    //          that the room turns to 'playing' when the last seat fills.
+    //   MOVE — the seat whose turn it is appends ONE move carrying its own
+    //          uid. Earlier moves and all seats must come back untouched.
+    //          The turn is not a free field: it is the log length modulo the
+    //          seat count, before and after. The mover may close the match
+    //          ('finished' + result) with the move that ends it.
+    // The host has no extra powers once the room exists. Every client write
+    // also carries an updateTime precondition, so two writes made from the
+    // same state cannot both land.
     match /word_creator_rooms/{roomId} {
+      // Seats are looked up by position: a room has at most four.
+      function wcSeated(seats, uid) {
+        return (seats.size() > 0 && seats[0].uid == uid)
+          || (seats.size() > 1 && seats[1].uid == uid)
+          || (seats.size() > 2 && seats[2].uid == uid)
+          || (seats.size() > 3 && seats[3].uid == uid);
+      }
+
       allow read: if isVerifiedUser();
 
       allow create: if isVerifiedUser()
@@ -705,51 +719,66 @@ service cloud.firestore {
         && request.resource.data.hostName.size() <= 40
         && request.resource.data.seed is string
         && request.resource.data.seed.size() >= 8
-        && request.resource.data.status in ['waiting', 'playing']
+        && request.resource.data.seatsWanted is int
+        && request.resource.data.seatsWanted >= 2
+        && request.resource.data.seatsWanted <= 4
+        && request.resource.data.status == 'waiting'
         && request.resource.data.seats is list
         && request.resource.data.seats.size() == 1
         && request.resource.data.seats[0].uid == request.auth.uid
         && request.resource.data.seats[0].host == true
         && request.resource.data.moves is list
         && request.resource.data.moves.size() == 0
+        && request.resource.data.turn == 0
         && request.resource.data.result == null;
 
       allow update: if isVerifiedUser()
-        && resource.data.status != 'closed'
-        && resource.data.seats.size() <= 4
         && request.resource.data.code == resource.data.code
         && request.resource.data.hostUid == resource.data.hostUid
+        && request.resource.data.hostName == resource.data.hostName
         && request.resource.data.seed == resource.data.seed
+        && request.resource.data.seatsWanted == resource.data.seatsWanted
         && request.resource.data.seats is list
-        && request.resource.data.seats.size() <= 4
-        // A seat can only ever be ADDED by its own owner: the first
-        // resource.data.seats.size() entries are immutable, so nobody can
-        // rewrite or evict another player.
-        && request.resource.data.seats[0].uid == resource.data.seats[0].uid
+        && request.resource.data.moves is list
         && (
-          request.resource.data.seats.size() == resource.data.seats.size()
-          || (request.resource.data.seats.size() == resource.data.seats.size() + 1
-              && request.resource.data.seats[resource.data.seats.size()].uid == request.auth.uid)
-        )
-        // The move log is append-only, and only ever grows by one move at a
-        // time — the seat named on the new move must be the caller's own.
-        && (request.resource.data.moves.size() == resource.data.moves.size()
-            || (request.resource.data.moves.size() == resource.data.moves.size() + 1
-                && request.resource.data.moves[resource.data.moves.size()].uid == request.auth.uid))
-        && (
-          // the host may move the room along (start, turn, scores, result)
-          request.auth.uid == resource.data.hostUid
-          // or a seated player may act, but only on their own turn
-          || (request.auth.uid in resource.data.seats.map(s, s.uid)
-              && request.resource.data.turn == resource.data.turn
-              && resource.data.seats[resource.data.turn].uid == request.auth.uid)
+          // JOIN
+          (
+            resource.data.status == 'waiting'
+            && !wcSeated(resource.data.seats, request.auth.uid)
+            && resource.data.seats.size() < resource.data.seatsWanted
+            && request.resource.data.seats.size() == resource.data.seats.size() + 1
+            && request.resource.data.seats[0:resource.data.seats.size()] == resource.data.seats
+            && request.resource.data.seats[resource.data.seats.size()].uid == request.auth.uid
+            && request.resource.data.seats[resource.data.seats.size()].host == false
+            && request.resource.data.moves.size() == 0
+            && request.resource.data.turn == 0
+            && request.resource.data.result == null
+            && (
+              (request.resource.data.seats.size() == resource.data.seatsWanted
+                && request.resource.data.status == 'playing')
+              || (request.resource.data.seats.size() < resource.data.seatsWanted
+                && request.resource.data.status == 'waiting')
+            )
+          )
+          // MOVE
+          || (
+            resource.data.status == 'playing'
+            && request.resource.data.seats == resource.data.seats
+            && request.resource.data.moves.size() == resource.data.moves.size() + 1
+            && request.resource.data.moves[0:resource.data.moves.size()] == resource.data.moves
+            && resource.data.seats[resource.data.moves.size() % resource.data.seats.size()].uid == request.auth.uid
+            && request.resource.data.moves[resource.data.moves.size()].uid == request.auth.uid
+            && request.resource.data.turn == request.resource.data.moves.size() % resource.data.seats.size()
+            && (
+              (request.resource.data.status == 'playing' && request.resource.data.result == null)
+              || (request.resource.data.status == 'finished' && request.resource.data.result != null)
+            )
+          )
         );
 
-      // Cleanup: the host can take a dead table down; so can a seated guest
-      // who is the last one left (leaving a two-seat table).
+      // Cleanup: anyone seated at the table may take it down.
       allow delete: if isVerifiedUser()
-        && (resource.data.hostUid == request.auth.uid
-            || request.auth.uid in resource.data.seats.map(s, s.uid));
+        && wcSeated(resource.data.seats, request.auth.uid);
     }
 
     // ── STUDIO SHARED DOCS & WORKSHEETS (Nov 2026) ──

@@ -33,6 +33,17 @@ describe('hero bookshelf buttons', () => {
     expect(hero.match(/>\s*Soon\s*</g)?.length).toBe(2);
   });
 
+  it('stays readable in both themes', () => {
+    // The first version used pale amber / cyan utility text, and "PDF library"
+    // all but vanished on the light hero. The buttons now take the theme's ink
+    // colour from one class with an explicit light rule.
+    const css = read('src/iridescent.css');
+    expect(hero.match(/className="cmc-hero-shelf"/g)?.length).toBe(2);
+    expect(hero).not.toMatch(/text-(amber|cyan)-100/);
+    expect(css).toMatch(/\.cmc-hero-shelf \{[^}]*color: var\(--iri-ink\)/);
+    expect(css).toMatch(/html\.light \.cmc-hero-shelf \{[^}]*color: var\(--iri-ink\)/);
+  });
+
   it('declares both props as required, so a caller cannot silently omit one', () => {
     expect(hero).toMatch(/onOpenPdfLibrary:\s*\(\)\s*=>\s*void/);
     expect(hero).toMatch(/onOpenInteractiveBooks:\s*\(\)\s*=>\s*void/);

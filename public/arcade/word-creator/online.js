@@ -1,30 +1,34 @@
 /* ============ WORD CREATOR — ONLINE PLAY (room codes) ============
    Two to four classmates, each on their own device, on one shared board.
 
-   ── WHO OWNS WHAT ─────────────────────────────────────────────────────
-   The table is HOST-AUTHORITATIVE. The host's device runs the same engine
-   the solo game uses (analyze / commit / draw), so a move is checked and
-   scored by the machine that owns the bag. A guest's device never invents a
-   tile, a score or a turn.
+   ── HOW THE TABLE STAYS IN STEP ───────────────────────────────────────
+   The room document holds ONE thing that matters: the append-only move log
+   (who placed which letters on which squares, or passed). Nothing else is
+   trusted. Every device then does the same three things:
 
-   ── WHY IT CAN BE TRUSTED WITHOUT A SERVER ────────────────────────────
-   Every device derives the SAME bag from the room seed, then replays the
-   published moves in order and refuses the first one that does not hold up:
+     1. DEAL from the room seed. buildBag(seed) below is the same pure
+        function as the one unit-tested in src/games/wordcreator/online.ts,
+        and the seed is write-once at room creation (word_creator_rooms in
+        firestore.rules), so nobody can re-roll the bag after seeing it.
+     2. REPLAY the log, in order, through the page's own engine
+        (WC_ENGINE.applyMove): each move takes its tiles off that seat's
+        rack, is scored from the board, and refills from the shared bag.
+     3. STOP at the first move that does not hold up — tiles the seat never
+        held, an occupied square, a player moving out of turn.
 
-     1. The bag is DEALT, not shuffled locally. buildBag(seed) below is the
-        same pure function as the one unit-tested in
-        src/games/wordcreator/online.ts — so the host and every guest hold
-        byte-identical tiles for the same room.
-     2. The seed is WRITE-ONCE at room creation (word_creator_rooms in
-        firestore.rules), so nobody can re-roll the bag after seeing the
-        board.
-     3. The remainder of that bag is loaded into the engine's own bag in pop
-        order, so the engine's ordinary draw() hands each player exactly the
-        tile the deal says they get next — including after a reconnect.
+   Because every device replays the same moves through the same engine, the
+   board, every score, every rack, the bag and the end of the match come out
+   identical everywhere — and a reload simply replays the log again. (An
+   earlier version copied only the board letters across: scores stayed at 0
+   on the other devices, both players drew the same tiles, a reload dealt the
+   opening rack again, and no online match could ever finish.)
 
-   The room doc carries no private field: it is readable by any verified CMC
-   player, exactly like chess_rooms, and holds only the board everyone is
-   entitled to see. No rack is ever written down.
+   `scores`, `cells`, `bagSize` and `result` are written for display only and
+   are never read back into a match.
+
+   Racks are not secret from a determined player: any device can derive every
+   rack from the seed. The page never shows another seat's tiles, which is the
+   right level for a classroom game — it is not a tournament-grade guarantee.
 
    Everything below is inert when the page is opened without ?online — the
    offline game is untouched. */
@@ -132,7 +136,9 @@ var CMC_WORD_ONLINE = (function () {
         letters: list(m, 'letters').map(function (k) { return String(k.stringValue || ''); }),
         blanks: list(m, 'blanks').map(function (k) { return !!k.booleanValue; }),
         h: str(m, 'h'),
-        at: str(m, 'at')
+        /* stored as a timestamp: read it back as one, or every later save would
+           re-stamp the earlier moves with "now" */
+        at: (m.at && (m.at.timestampValue || m.at.stringValue)) || ''
       };
     });
     return {
@@ -187,15 +193,32 @@ var CMC_WORD_ONLINE = (function () {
     };
   }
 
+  /* Every read remembers the document's updateTime and every write is made
+     against it (currentDocument.updateTime), so two devices writing at once
+     cannot silently overwrite each other — the second write is refused and
+     that device reads the room again. Without it, two classmates joining in
+     the same second each saved "the room plus me" and one of them vanished. */
   function getRoom(code) {
     return api('GET', roomPath(code)).then(function (d) {
-      return d && d.fields ? parseRoom(d.fields) : null;
+      if (!d || !d.fields) return null;
+      var room = parseRoom(d.fields);
+      room._ut = d.updateTime || '';
+      return room;
     });
+  }
+  function isConflict(e) {
+    return !!e && (e.http === 409 || e.http === 412 || e.fsStatus === 'FAILED_PRECONDITION' || e.fsStatus === 'ABORTED');
   }
   function createRoom(r) {
     return api('POST', '/word_creator_rooms?documentId=' + encodeURIComponent(r.code), { fields: roomFields(r) });
   }
-  function saveRoom(r) { return api('PATCH', roomPath(r.code), { fields: roomFields(r) }); }
+  function saveRoom(r) {
+    var q = r._ut ? '?currentDocument.updateTime=' + encodeURIComponent(r._ut) : '';
+    return api('PATCH', roomPath(r.code) + q, { fields: roomFields(r) }).then(function (d) {
+      if (d && d.updateTime) r._ut = d.updateTime;
+      return d;
+    });
+  }
 
   /* ── THE DEAL — the single source of truth for who holds what ───────────
      Mirror of buildBag()/replayDeal() in src/games/wordcreator/online.ts.
@@ -276,7 +299,7 @@ var CMC_WORD_ONLINE = (function () {
       '#wc-online .wco-status.warn{color:#fcd34d}' +
       '#wc-online .wco-status.bad{color:#fda4af}' +
       '#wc-online .wco-status.ok{color:#7ee7c7}' +
-      'body[data-screen="setup"] #wc-online{display:none}';
+      'body[data-screen="setup"] #wc-online,body[data-screen="online"] #wc-online{display:none}';
     document.head.appendChild(style);
 
     var wrap = document.createElement('div');
@@ -307,10 +330,21 @@ var CMC_WORD_ONLINE = (function () {
     return ui;
   }
 
+  var last = { text: '', tone: '' };
   function setStatus(text, tone) {
     var u = buildUI();
     u.status.textContent = text;
     u.status.className = 'wco-status' + (tone ? ' ' + tone : '');
+    last.text = text; last.tone = tone || '';
+    tellLobby();
+  }
+  /* The lobby card (index.html) paints whatever this reports. */
+  function tellLobby() {
+    try {
+      if (window.WC_LOBBY) {
+        window.WC_LOBBY({ mode: S.mode, code: S.code, room: S.room, seat: S.seat, status: last.text, tone: last.tone, me: me });
+      }
+    } catch (e) {}
   }
   function setCode(code) {
     var u = buildUI();
@@ -328,7 +362,9 @@ var CMC_WORD_ONLINE = (function () {
     timer: 0,
     busy: false,
     dead: false,
-    started: false
+    started: false,
+    applied: 0,       // moves of the log already run through the engine
+    local: {}         // move number → true for moves THIS device played (already on its board)
   };
 
   function newSeed() {
@@ -384,134 +420,164 @@ var CMC_WORD_ONLINE = (function () {
   }
 
   /* ── joining an existing table ────────────────────────────────────────── */
-  function join(code) {
+  function join(code, tries) {
     return getRoom(code).then(function (room) {
       if (!room) throw new Error('No table with code ' + code);
       if (room.closed) throw new Error('That table is closed');
       if (room.seats.some(function (s) { return s.uid === me.uid; })) return room; // reconnect
-      if (room.status === 'finished') throw new Error('That match has already ended');
+      if (room.status === 'finished' || room.result) throw new Error('That match has already ended');
+      if (room.status !== 'waiting') throw new Error('That match has already started');
       if (room.seats.length >= room.seatsWanted) throw new Error('That table is full');
       room.seats.push({ uid: me.uid, name: me.name, host: false });
       if (room.seats.length >= room.seatsWanted) room.status = 'playing';
-      return saveRoom(room).then(function () { return room; });
+      return saveRoom(room).then(function () { return room; }, function (e) {
+        /* somebody else took a seat in the same moment: look again */
+        if (isConflict(e) && (tries || 0) < 4) return join(code, (tries || 0) + 1);
+        throw e;
+      });
     });
   }
+
+  function seatOf(room) { return room.seats.findIndex(function (s) { return s.uid === me.uid; }); }
+  function turnName(room) { return (room.seats[room.moves.length % room.seats.length] || {}).name || 'the next player'; }
+  function myTurn(room) { return S.seat === room.moves.length % room.seats.length; }
 
   /* ── polling ──────────────────────────────────────────────────────────── */
   function poll() {
     if (S.dead) return;
     clearTimeout(S.timer);
-    var waiting = (S.room && S.room.status === 'waiting') || !S.started;
+    var waiting = !S.started;
     S.timer = setTimeout(function () {
       getRoom(S.code).then(function (room) {
-        if (!room) { setStatus('The table disappeared', 'bad'); S.dead = true; return; }
-        S.room = room;
-        S.seat = room.seats.findIndex(function (s) { return s.uid === me.uid; });
-        if (room.result) { finish(room); return; }
-        if (room.status === 'waiting') {
-          setStatus('Waiting for players (' + room.seats.length + '/' + room.seatsWanted + ')', 'warn');
-          poll();
-          return;
-        }
-        if (room.seats.length < 2) { setStatus('Waiting for players', 'warn'); poll(); return; }
-        if (!S.started) { startEngine(room); poll(); return; }
-        /* Mid-match: every published move is applied to the live board, and
-           the turn follows the room. */
-        if (applyRoomUpdate(room)) poll();
-      }).catch(function (e) {
+        if (S.dead) return;
+        if (!room) { S.dead = true; setStatus('The table was closed', 'bad'); return; }
+        if (handleRoom(room)) poll();
+      }).catch(function () {
         setStatus('Reconnecting…', 'warn');
         S.timer = setTimeout(poll, 4200);
       });
     }, waiting ? LOBBY_POLL_MS : POLL_MS);
   }
 
+  /* One fresh copy of the room. Returns true while the table should keep
+     polling. */
+  function handleRoom(room) {
+    /* A read that left before this device's own move was saved can arrive
+       after it. Acting on it would hand the turn back and let the same player
+       move twice — so a copy that is behind what this device has already
+       played is simply dropped. */
+    if (room.moves.length < S.applied) return true;
+    S.room = room;
+    S.seat = seatOf(room);
+    if (S.seat < 0) { S.dead = true; setStatus('You are not seated at this table', 'bad'); return false; }
+    if (!S.started) {
+      if (room.status === 'waiting' && !room.result) {
+        setStatus('Waiting for players (' + room.seats.length + '/' + room.seatsWanted + ')', 'warn');
+        return true;
+      }
+      if (room.seats.length < 2) { setStatus('Waiting for players', 'warn'); return true; }
+      if (!startEngine(room)) return false;
+    } else if (!applyRoomUpdate(room)) {
+      return false;
+    }
+    var eng = window.WC_ENGINE;
+    if (room.result || room.status === 'finished' || (eng && eng.isOver && eng.isOver())) { finish(room); return false; }
+    if (eng && eng.syncTurn) eng.syncTurn(room.moves.length % room.seats.length, myTurn(room));
+    if (!S.busy) setStatus(myTurn(room) ? 'Your turn' : 'Waiting for ' + turnName(room), myTurn(room) ? 'ok' : '');
+    return true;
+  }
+
+  /* The cheap checks every device makes on the log before the engine sees
+     it: the board letters replay without collisions (and match each move's
+     hash), and every move was made by the seat whose turn it was. */
+  function logHolds(room) {
+    if (!replayBoard(room.moves)) return 'The published board could not be verified';
+    for (var i = 0; i < room.moves.length; i++) {
+      var seat = room.seats.findIndex(function (s) { return s.uid === room.moves[i].uid; });
+      if (seat !== i % room.seats.length) return 'Move ' + (i + 1) + ' is out of turn';
+    }
+    return '';
+  }
+
   /* ── the engine bridge ────────────────────────────────────────────────── */
   function startEngine(room) {
     var eng = window.WC_ENGINE;
-    if (!eng) { setStatus('Game engine unavailable', 'bad'); S.dead = true; return; }
+    if (!eng) { setStatus('Game engine unavailable', 'bad'); S.dead = true; return false; }
+    var bad = logHolds(room);
+    if (bad) { setStatus(bad + ' — stopping', 'bad'); S.dead = true; return false; }
     var deal = openDeal(room.seed, room.seats.length);
     S.started = true;
-    S.applied = 0;
-    eng.startOnline({
+    S.applied = room.moves.length;
+    var ok = eng.startOnline({
       cfg: room.seats.map(function (s) { return { name: s.name, ai: false, diff: 'normal' }; }),
       racks: deal.racks,
       rest: deal.rest,
       seat: S.seat,
-      turn: room.turn,
-      move: room.moves.length,
-      cells: replayBoard(room.moves) || [],
+      /* the whole log: the engine rebuilds board, scores, racks and bag from it */
+      moves: room.moves,
       /* These closures must read the LIVE S.room, never the `room` argument:
          every poll replaces S.room with a fresh parse, so a captured copy
-         freezes at the opening turn and silently drops every later move —
-         exactly the bug that made the second move of a match vanish. */
-      onPlay: function (mv) {
-        if (!S.room || S.seat !== S.room.turn) { setStatus('Not your turn', 'warn'); return; }
-        mv.h = boardHash(replayBoard(S.room.moves.concat([{ kind: 'play', keys: mv.keys, letters: mv.letters, blanks: mv.blanks }])) || []);
-        publish(mv);
+         freezes at the opening turn and silently drops every later move. */
+      onPlay: function (mv, end) {
+        mv.kind = 'play';
+        mv.h = boardHash(replayBoard(S.room.moves.concat([mv])) || []);
+        publish(mv, end);
       },
-      onPass: function () {
-        if (!S.room || S.seat !== S.room.turn) return;
-        publish({ kind: 'pass', keys: [], letters: [], blanks: [] });
+      onPass: function (end) {
+        publish({ kind: 'pass', keys: [], letters: [], blanks: [] }, end);
       }
     });
-    setStatus(S.seat === room.turn ? 'Your turn' : 'Waiting for ' + (room.seats[room.turn] || {}).name, 'ok');
+    if (ok === false) { setStatus('The move log does not replay — stopping', 'bad'); S.dead = true; return false; }
+    return true;
   }
 
-  /* Publish one move, then let the room's turn pointer do the talking. */
-  function publish(mv) {
+  /* Publish one move this device has ALREADY played on its own board. If the
+     room refuses it, the board here is ahead of the table, and the only
+     honest repair is to rebuild from the log: reload. */
+  function publish(mv, end) {
     var room = S.room;
-    if (!room || S.busy) return;
+    if (!room) return;
+    var eng = window.WC_ENGINE;
     S.busy = true;
-    var before = room.moves.length;
-    mv.n = before;
+    mv.n = room.moves.length;
     mv.uid = me.uid;
     mv.at = nowIso();
+    S.local[mv.n] = true;
+    S.applied = mv.n + 1;
     room.moves = room.moves.concat([mv]);
-    room.turn = (room.turn + 1) % room.seats.length;
+    room.turn = room.moves.length % room.seats.length;
+    var snap = eng && eng.snapshot ? eng.snapshot(end || null) : null;
+    if (snap) { room.scores = snap.scores; room.bagSize = snap.bagSize; }
+    room.cells = replayBoard(room.moves) || [];
+    if (end) { room.status = 'finished'; room.result = { text: (snap && snap.text) || 'Match complete', saved: true }; }
+    setStatus(end ? 'Match complete' : 'Waiting for ' + turnName(room));
     saveRoom(room).then(function () {
       S.busy = false;
-      setStatus('Waiting for ' + (room.seats[room.turn] || {}).name);
+      if (end) finish(room);
     }).catch(function (e) {
-      /* A rejected write must never leave this device ahead of the table:
-         roll the local copy back and say so. */
-      S.busy = false;
-      room.moves = room.moves.slice(0, before);
-      room.turn = before % room.seats.length;
-      setStatus('Move not saved (' + (e.message || 'network') + ')', 'bad');
+      S.busy = false; S.dead = true;
+      clearTimeout(S.timer);
+      setStatus('Your move was not saved (' + (e.message || 'network') + ') — reloading the table…', 'bad');
+      setTimeout(function () { location.reload(); }, 1800);
     });
   }
 
-  /* Apply everything published since the last poll to the running engine.
+  /* Run everything published since the last poll through the engine.
      Returns false when the log stopped making sense (the caller stops). */
   function applyRoomUpdate(room) {
-    var pending = room.moves.slice(S.applied);
-    for (var i = 0; i < pending.length; i++) {
-      var mv = pending[i];
-      /* Only the seat that was on turn may have moved — this is the cheap
-         out-of-turn check, done on the receiving device. */
-      var expectedSeat = (S.applied + i) % room.seats.length;
-      var actualSeat = room.seats.findIndex(function (s) { return s.uid === mv.uid; });
-      if (actualSeat !== expectedSeat) {
-        setStatus('Move ' + (mv.n + 1) + ' is out of turn — stopping', 'bad');
+    var eng = window.WC_ENGINE;
+    if (room.moves.length <= S.applied) return true;
+    var bad = logHolds(room);
+    if (bad) { setStatus(bad + ' — stopping', 'bad'); S.dead = true; return false; }
+    while (S.applied < room.moves.length) {
+      var n = S.applied;
+      /* this device's own moves are on its board already */
+      if (!S.local[n] && !eng.applyMove(room.moves[n], n % room.seats.length)) {
+        setStatus('Move ' + (n + 1) + ' could not be verified — stopping', 'bad');
         S.dead = true;
         return false;
       }
-      S.applied++;
-    }
-    if (pending.length) {
-      /* Rebuild the whole board from the published log rather than applying
-         moves one by one: the result is what every device can verify, and it
-         makes a dropped poll self-healing (the next one paints everything). */
-      var board = replayBoard(room.moves);
-      if (!board) {
-        setStatus('The published board could not be verified — stopping', 'bad');
-        S.dead = true;
-        return false;
-      }
-      if (window.WC_ENGINE && window.WC_ENGINE.adoptBoard) window.WC_ENGINE.adoptBoard(board);
-    }
-    if (window.WC_ENGINE && window.WC_ENGINE.syncTurn) {
-      window.WC_ENGINE.syncTurn(room.turn, me.uid === (room.seats[room.turn] || {}).uid);
+      S.applied = n + 1;
     }
     return true;
   }
@@ -520,15 +586,22 @@ var CMC_WORD_ONLINE = (function () {
   function finish(room) {
     S.dead = true;
     clearTimeout(S.timer);
-    setStatus(room.result ? room.result.text : 'Match over', 'ok');
-    if (window.WC_ENGINE && window.WC_ENGINE.showResult) window.WC_ENGINE.showResult(room);
+    setStatus(room.result && room.result.text ? room.result.text : 'Match over', 'ok');
+    /* The engine ends the match itself: every device replays the same final
+       move and reaches the same result (the player who went out is credited
+       a moment later, after the last word has been shown). Ending it from
+       here as well would get in first and score the finish as "nobody went
+       out". This is only a fallback for a room closed some other way. */
+    setTimeout(function () {
+      if (window.WC_ENGINE && window.WC_ENGINE.showResult) window.WC_ENGINE.showResult(room);
+    }, 4000);
   }
 
-  /* ── boot: ?online=CODE joins, ?online=1 opens a new table ────────────── */
+  /* ── boot: ?online=CODE joins, ?online= opens a new table ─────────────── */
   function boot() {
     var params = new URLSearchParams(location.search);
     if (!params.has('online')) return false;
-    var code = String(params.get('online') || '').toUpperCase().trim();
+    var code = String(params.get('online') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
     me = whoami();
     buildUI();
     if (!me) {
@@ -541,42 +614,40 @@ var CMC_WORD_ONLINE = (function () {
       setStatus('Joining ' + code + '…');
       join(code).then(function (room) {
         setCode(code);
-        S.room = room;
-        S.seat = room.seats.findIndex(function (s) { return s.uid === me.uid; });
-        if (room.result) { finish(room); return; }
-        setStatus('Joined — waiting to start', 'ok');
-        poll();
+        if (handleRoom(room)) poll();
       }).catch(function (e) {
-        setStatus(e.message || 'Could not join', 'bad');
+        S.code = '';
+        setStatus(e.status ? 'This account cannot join online tables yet' : (e.message === 'Failed to fetch' ? 'No connection — check the internet and try again' : (e.message || 'Could not join')), 'bad');
       });
       return true;
     }
-    /* Host: the setup screen's Play button opens the table. */
+    /* Host: the lobby's "Open a room" button opens the table. */
     S.mode = 'host';
-    setStatus('Set up the table, then press Play — you get a code to share', 'warn');
+    setStatus('Choose how many players, then open a room — you get a code to share', 'warn');
     window.WC_ONLINE_HOST = function (playerCount) {
       if (S.code) return Promise.resolve(S.code);
       var code2 = newCode();
       var room = {
         code: code2, hostUid: me.uid, hostName: me.name, seed: newSeed(),
         seatsWanted: Math.max(2, Math.min(4, playerCount || 2)),
-        /* A one-seat table is not a match: stay in the lobby until somebody
-           joins, even if the host tapped Play on their own. */
+        /* A one-seat table is not a match: stay in the lobby until the seats
+           are filled. */
         status: 'waiting',
         seats: [{ uid: me.uid, name: me.name, host: true }],
         moves: [], cells: [], scores: [], turn: 0, bagSize: 0, result: null, closed: false
       };
+      setStatus('Opening a room…');
       return createRoom(room).then(function () {
         S.code = code2;
         S.room = room;
         S.seat = 0;
         setCode(code2);
-        setStatus('Share code ' + code2 + ' — waiting for ' + (room.seatsWanted - 1) + ' more', 'warn');
+        setStatus('Waiting for players (1/' + room.seatsWanted + ')', 'warn');
         try { history.replaceState(null, '', location.pathname + '?online=' + code2); } catch (e) {}
         poll();
         return code2;
       }).catch(function (e) {
-        setStatus('Could not open a table: ' + (e.message || 'network'), 'bad');
+        setStatus(e.status ? 'This account cannot open online tables yet' : 'Could not open a room: ' + (e.message === 'Failed to fetch' ? 'no connection' : (e.message || 'network')), 'bad');
         return null;
       });
     };

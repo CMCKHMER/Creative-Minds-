@@ -391,9 +391,30 @@ describe('word creator standalone cartridge', () => {
     expect(html).toContain("drillSlug:{stringValue:'word-creator'}");
     expect(html).toContain("drillSource:{stringValue:'brain-lounge'}");
     // fired from endGame — the single exit both finishing paths go through
-    expect(html).toMatch(/reportMatch\(s\)/);
+    // (online, the seat is this device's own; offline it is the first human)
+    expect(html).toContain('reportMatch(s,G.online?G.online.seat:null)');
     // only ever reports the signed-in player's own seat
     expect(html).toContain('function cmcMySeat');
+  });
+
+  it('posts the player\'s own row, never whoever came first', () => {
+    // The standings are sorted best-first. cmcMySeat used to hand back the
+    // POSITION of the player's row in that list, and the caller then read
+    // standings[position] as if it were a seat — so a student beaten by the
+    // AI was posted as the winner, with the AI's points. Evaluate the shipped
+    // function against a table the student lost.
+    const src = /function cmcMySeat\([^)]*\)\{[\s\S]*?\n\}/.exec(html)?.[0] ?? '';
+    expect(src).not.toBe('');
+    const cmcMySeat = new Function('window', `${src}; return cmcMySeat;`)({}) as
+      (standings: Array<{ i: number; ai: boolean; score: number }>) => number;
+    const standings = [
+      { i: 1, ai: true, score: 310 },   // Nova (AI) won
+      { i: 0, ai: false, score: 190 },  // the student, seat 0
+    ];
+    expect(cmcMySeat(standings)).toBe(0);
+    // and reportMatch looks the row up BY seat, not by list position
+    const report = html.slice(html.indexOf('function reportMatch'), html.indexOf('function reportMatch') + 900);
+    expect(report).toMatch(/\.i===/);
   });
 
   it('keeps the two audit fixes nailed down', () => {
@@ -422,6 +443,53 @@ describe('word creator standalone cartridge', () => {
     for (const field of ['code', 'hostUid', 'hostName', 'seed', 'seats', 'seatsWanted', 'moves', 'turn', 'closed']) {
       expect(online, `room field ${field}`).toContain(`${field}:`);
     }
+  });
+
+  it('gives Play Online a real lobby: open a table, or join one by code', () => {
+    // Play Online used to land on the offline setup card, with no way to see
+    // a room code. The lobby is its own screen and the transport reports to it.
+    expect(html).toContain('<main id="lobby" class="hide">');
+    for (const id of ['lobOpen', 'lobCode', 'lobJoin', 'lobCodeBig', 'lobCopy', 'lobLink', 'lobPlayers', 'lobStatus', 'lobLeave']) {
+      expect(html, `lobby element #${id}`).toContain(`id="${id}"`);
+    }
+    expect(html).toContain('window.WC_LOBBY=function');
+    expect(online).toContain('WC_ONLINE_HOST');
+    expect(online).toContain('WC_LOBBY');
+  });
+
+  it('shows the size of the dictionary actually in play', () => {
+    // the hub and the in-game chip said "7,302" after the 178,705-word list
+    // had loaded: both now read one helper
+    expect(html).toContain('const lexTotal=()=>');
+    expect(html).toMatch(/id="lexChip">[^;]*lexTotal\(\)/);
+    expect(html).toMatch(/#hubLexCount"\)[^;]*lexTotal\(\)/);
+  });
+
+  it('never points at an icon that is not in the icon table', () => {
+    // a missing entry renders as the text "undefined" (or nothing) in a button
+    const table = html.slice(html.indexOf('const I={'), html.indexOf('};', html.indexOf('const I={')));
+    const known = new Set([...table.matchAll(/(?:^|[{,\n])\s*(\w+):ic\(/g)].map((m) => m[1]));
+    expect(known.size).toBeGreaterThan(25);
+    const used = new Set([...html.matchAll(/\bI\.([a-zA-Z]\w*)/g)].map((m) => m[1]));
+    for (const name of used) expect(known.has(name), `icon I.${name}`).toBe(true);
+  });
+
+  it('plays online from the move log, on every device', () => {
+    // The first online build copied board letters only: scores stayed 0 on
+    // the other device, both players drew the same tiles, and a reload dealt
+    // the opening rack again. Every device now deals from the seed and
+    // replays the log through the page's own engine.
+    expect(html).toContain('window.WC_ENGINE');
+    for (const fn of ['startOnline', 'applyMove', 'snapshot', 'showResult']) {
+      expect(html, `WC_ENGINE.${fn}`).toMatch(new RegExp(`\\b${fn}\\b`));
+    }
+    expect(online).toContain('function logHolds(');
+    expect(online).toContain('moves: room.moves');
+    // a mover hands the turn on at once, so it agrees with a reloaded device
+    const commit = html.slice(html.indexOf('function commit'), html.indexOf('function doPass'));
+    expect(commit).toMatch(/onPlay[\s\S]{0,400}G\.turn=\(G\.turn\+1\)%G\.players\.length/);
+    // two devices writing from the same state cannot both land
+    expect(online).toContain("'?currentDocument.updateTime='");
   });
 
   it('has exactly one deal implementation per codebase, and they agree', () => {

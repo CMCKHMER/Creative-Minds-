@@ -20,7 +20,8 @@
     "verify:title": "node scripts/verify_title_particles.mjs",
     "verify:planner-title": "node scripts/verify_planner_title.mjs",
     "verify:planner-page-title": "node scripts/verify_planner_page_title.mjs",
-    "verify:pages": "node scripts/verify_pages.mjs"
+    "verify:pages": "node scripts/verify_pages.mjs",
+    "verify:wordcreator": "node scripts/verify_word_creator.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

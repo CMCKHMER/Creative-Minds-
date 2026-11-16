@@ -97,6 +97,7 @@ main{position:relative;z-index:3}
 .logoWrap{position:relative;width:100%;display:flex;justify-content:center;padding:14px 0}
 .logo{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;perspective:700px;position:relative;z-index:1}
 .gap{width:12px}
+.lw{display:flex;gap:6px;flex-wrap:nowrap}
 .lt{width:clamp(36px,6.3vw,54px);height:clamp(36px,6.3vw,54px);border-radius:10px;display:grid;place-items:center;position:relative;background:linear-gradient(150deg,#fff,#f0f6ff 50%,#d8e6f8);color:var(--sapphire);font-family:'Fraunces',serif;font-weight:900;font-size:clamp(21px,3.6vw,31px);box-shadow:0 5px 0 #a9c4e4,0 12px 22px rgba(15,58,120,.24),0 0 17px rgba(34,211,238,.42),inset 0 1px 0 #fff;animation:flip .7s cubic-bezier(.2,1.4,.4,1) backwards;animation-delay:calc(var(--i)*.055s)}
 .lt small{position:absolute;right:5px;bottom:3px;font-family:'Outfit';font-size:8.5px;font-weight:800;color:#6b8bb0}
 .lt:nth-child(odd){transform:rotate(-2.4deg)}
@@ -232,7 +233,7 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
 .legend{display:flex;gap:5px;flex-wrap:wrap;cursor:pointer}
 .lg{font-size:9.5px;font-weight:900;padding:4px 7px;border-radius:7px}
 .lg.tw{background:linear-gradient(135deg,#dff5ff,var(--tw));color:#05334d}
-.lg.dw{background:linear-gradient(135deg,#ffe1ec,var(--dw));color:#fff}
+.lg.dw{background:linear-gradient(135deg,#ffe1ec,var(--dw));color:#fff;font-family:inherit;font-size:9.5px;line-height:normal} /* .dw is ALSO the dictionary headword (32px serif) — keep the chip a chip */
 .lg.tl{background:linear-gradient(135deg,#ffeed4,var(--tl));color:#4a2a02}
 .lg.dl{background:linear-gradient(135deg,#efe8ff,var(--dl));color:#fff}
 #log{flex:1;min-height:64px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:9px;border-radius:13px;background:rgba(255,255,255,.62);border:1px solid var(--edge)}
@@ -575,6 +576,7 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
 .hub-card::after{content:"";position:absolute;right:-44px;top:-44px;width:150px;height:150px;border-radius:50%;
  background:radial-gradient(circle,var(--mc),transparent 68%);opacity:.16;pointer-events:none;transition:opacity .24s}
 .hub-card:hover::after{opacity:.3}
+.hub-card .hi svg{width:21px;height:21px}
 .hub-card .hi{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
  background:linear-gradient(150deg,rgba(255,255,255,.95),color-mix(in srgb,var(--mc) 22%,transparent));
  border:1px solid color-mix(in srgb,var(--mc) 36%,transparent);color:color-mix(in srgb,var(--mc) 72%,#0b3a8f);font-size:19px}
@@ -584,9 +586,61 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
 .hub-card:hover .hgo{transform:translateX(4px)}
 
 .hub-links{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:26px}
-.hub-link{padding:9px 15px;border-radius:10px;font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+.hub-link{padding:9px 15px;border-radius:10px;font-family:inherit;font-weight:700;font-size:11px;line-height:1;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
  color:var(--ink2);background:rgba(255,255,255,.55);border:1px solid var(--edge);text-decoration:none;transition:.2s}
 .hub-link:hover{background:rgba(255,255,255,.9);border-color:var(--edge2);color:var(--sapphire)}
+
+/* phones: the tool buttons need the room the wordmark was taking */
+@media(max-width:560px){.brand>div:last-child{display:none}}
+/* the tilted board is lifted so its projected middle sits in the stage's middle (see fitBoard) */
+.persp{transform:translateY(var(--fitY,0px))}
+
+/* ═══ JOIN BY CODE (setup card + online lobby) ═══════════════════════════ */
+.wc-join{margin-top:2px;padding-top:15px;border-top:1px dashed var(--edge2);display:flex;flex-direction:column;gap:9px}
+.wc-join-h{font-size:10px;font-weight:900;letter-spacing:.2em;color:var(--muted)}
+.wc-join-r{display:flex;gap:8px}
+.wc-join-r input{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid var(--edge2);background:rgba(255,255,255,.86);
+ font-family:inherit;font-size:16px;font-weight:900;letter-spacing:.34em;text-transform:uppercase;color:var(--sapphire);outline:none;transition:.16s}
+.wc-join-r input::placeholder{font-size:11px;letter-spacing:.2em;font-weight:800;color:#93a5c0}
+.wc-join-r input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.16)}
+.wc-join-b{flex:none;padding:0 20px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+ color:#fff;background:linear-gradient(135deg,var(--blue),var(--violet));border:none;box-shadow:0 6px 16px rgba(37,99,235,.28);transition:.16s}
+.wc-join-b:hover{transform:translateY(-1px);box-shadow:0 9px 20px rgba(37,99,235,.36)}
+.wc-join-n{font-size:12px;line-height:1.5;color:var(--muted);min-height:18px}
+.wc-join-n.bad{color:#be123c;font-weight:700}
+
+/* ═══ ONLINE LOBBY — the screen behind ?online= ═════════════════════════
+   Opening a room, sharing its code and waiting for classmates all happen
+   here. Before this screen existed an online link showed an empty page. */
+#lobby{position:relative;z-index:2;min-height:100dvh;padding:calc(var(--hdr) + 34px) 16px 54px;display:flex;justify-content:center;align-items:flex-start}
+#lobby .wrap{max-width:560px}
+.lob{gap:15px}
+.lob-eye{display:inline-flex;align-items:center;gap:8px;font-size:10px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:var(--sapphire);opacity:.78}
+.lob h2{font-size:25px}
+.lob h2::after{display:none}
+.lob-sub{font-size:13.5px;line-height:1.6;color:var(--ink2);margin-top:-8px}
+.lob-seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,.7);border:1px solid var(--edge)}
+.lob-seg button{min-width:44px;padding:8px 0;border-radius:8px;font-family:inherit;font-size:14px;font-weight:900;color:var(--muted);background:none;border:none;cursor:pointer;transition:.16s}
+.lob-seg button.on{background:linear-gradient(135deg,var(--blue),var(--neon));color:#fff;box-shadow:0 4px 10px rgba(37,99,235,.28)}
+.lob .cta[disabled]{opacity:.55;cursor:default;transform:none}
+.lob-code{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 14px;border-radius:17px;background:linear-gradient(150deg,rgba(255,255,255,.95),rgba(224,242,254,.8));border:1px solid var(--edge2);box-shadow:inset 0 1px 0 #fff}
+.lob-code small{font-size:9.5px;font-weight:900;letter-spacing:.24em;color:var(--muted)}
+.lob-code b{font-family:'Fraunces',serif;font-size:clamp(38px,11vw,56px);line-height:1;font-weight:900;letter-spacing:.2em;padding-left:.2em;color:var(--sapphire);user-select:all}
+.lob-code div{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.lob-btn{padding:9px 14px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:10.5px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);background:rgba(255,255,255,.85);border:1px solid var(--edge2);transition:.16s}
+.lob-btn:hover{color:var(--blue);border-color:var(--blue);transform:translateY(-1px)}
+.lob-seats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.lob-seats li{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:12px;font-size:14px;font-weight:800;color:var(--ink);background:rgba(255,255,255,.78);border:1px solid var(--edge)}
+.lob-seats li i{width:13px;height:13px;border-radius:50%;flex:none;background:radial-gradient(circle at 34% 30%,#fff,hsl(var(--h) 88% 56%) 62%);box-shadow:0 0 9px hsl(var(--h) 90% 60%/.7)}
+.lob-seats li em{margin-left:auto;font-style:normal;font-size:9px;font-weight:900;letter-spacing:.14em;color:var(--muted)}
+.lob-seats li.open{color:var(--muted);font-weight:600;border-style:dashed;background:rgba(255,255,255,.4)}
+.lob-seats li.open i{background:none;box-shadow:none;border:2px dashed #a9bcd6}
+.lob-status{padding:11px 14px;border-radius:12px;font-size:12.5px;font-weight:700;line-height:1.5;color:var(--ink2);background:rgba(255,255,255,.66);border:1px solid var(--edge)}
+.lob-status:empty{display:none}
+.lob-status.warn{color:#92400e;background:rgba(254,243,199,.8);border-color:rgba(245,158,11,.4)}
+.lob-status.bad{color:#9f1239;background:rgba(255,228,230,.86);border-color:rgba(244,63,94,.4)}
+.lob-status.ok{color:#065f46;background:rgba(209,250,229,.8);border-color:rgba(16,185,129,.4)}
+.lob-foot{display:flex;justify-content:center}
 
 @media(prefers-reduced-motion:reduce){
  .hub-tile,.hub-dot{animation:none}
@@ -711,6 +765,37 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
  </section>
 </div></main>
 
+<main id="lobby" class="hide"><div class="wrap">
+ <div class="card lob">
+  <p class="lob-eye"><span class="hub-dot"></span> Play online</p>
+  <h2 id="lobTitle">Open a table</h2>
+  <p class="lob-sub" id="lobSub">Every player uses their own device and their own CMC account. Open a room, then share its five-character code.</p>
+  <div id="lobHost" class="hide">
+   <div class="row">PLAYERS
+    <div class="lob-seg" id="lobSeats"><button data-n="2" class="on">2</button><button data-n="3">3</button><button data-n="4">4</button></div>
+    <span class="note">the match starts by itself when everyone is in</span>
+   </div>
+   <button class="cta" id="lobOpen"></button>
+  </div>
+  <div id="lobJoinBox" class="wc-join hide">
+   <div class="wc-join-h" id="lobJoinHead">HAVE A CODE? JOIN A CLASSMATE'S TABLE</div>
+   <div class="wc-join-r">
+    <input id="lobCode" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="ROOM CODE" aria-label="Room code">
+    <button class="wc-join-b" id="lobJoin">Join</button>
+   </div>
+   <div class="wc-join-n" id="lobJoinNote"></div>
+  </div>
+  <div id="lobRoom" class="hide">
+   <div class="lob-code"><small>ROOM CODE</small><b id="lobCodeBig"></b>
+    <div><button class="lob-btn" id="lobCopy">Copy code</button><button class="lob-btn" id="lobLink">Copy invite link</button></div>
+   </div>
+  </div>
+  <ul class="lob-seats hide" id="lobPlayers"></ul>
+  <div class="lob-status" id="lobStatus" role="status" aria-live="polite"></div>
+  <div class="lob-foot"><button class="link" id="lobLeave">← Back to the start screen</button></div>
+ </div>
+</div></main>
+
 <main id="setup" class="hide"><div class="wrap">
  <div class="logoWrap"><img id="art-letters" class="hide" alt=""><div class="logo" id="logo"></div></div>
  <p class="tagline">A glass table under neon light. <b>Drag a tile — it snaps to the square.</b> Build words, ignite doubles and triples, verify new words online and keep them forever.</p>
@@ -730,10 +815,10 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
   <div class="wc-join">
    <div class="wc-join-h">PLAY A CLASSMATE ONLINE</div>
    <div class="wc-join-r">
-    <input id="wc-code" maxlength="5" inputmode="latin" autocomplete="off" spellcheck="false" placeholder="ROOM CODE" aria-label="Room code">
+    <input id="wc-code" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="ROOM CODE" aria-label="Room code">
     <button class="wc-join-b" id="wc-join">Join</button>
    </div>
-   <div class="wc-join-n" id="wc-join-note">Press Play above to open a room of your own and share its code.</div>
+   <div class="wc-join-n" id="wc-join-note">Got a code from a classmate? Enter it here. To open a room of your own, choose Play Online on the start screen.</div>
   </div>
  </div>
  <div class="foot"><span>Up to 4 players</span>·<span>Drag to rotate · scroll to zoom</span>·<button class="link" id="setupArt">Add your art</button>·<button class="link" id="setupRules">How to play</button></div>
@@ -885,6 +970,7 @@ function rebuildPrefix(){PREFIX=new Set();for(const w of DICT)for(let i=1;i<=w.l
    big list without paying for a second full-prefix structure. */
 const LEXI=[];
 let LEX_TOURNEY=false,LEX_PENDING=null;
+const lexTotal=()=>DICT.size+(LEX_TOURNEY?LEXI.reduce((a,x)=>a+(x?x.size:0),0):0);
 function lexHas(w){if(DICT.has(w))return true;const L=LEXI[w.length];return !!(L&&L.has(w));}
 function lexLoad(list){
  for(const w of list){if(!DICT.has(w)){const L=LEXI[w.length]||(LEXI[w.length]=new Set());L.add(w);}}
@@ -974,6 +1060,10 @@ const G={screen:"setup",cfg:[{name:"You",ai:false,diff:"normal"},{name:"Nova",ai
  players:[],bag:[],board:[],turn:0,pend:new Map(),passes:0,over:false,lock:false,first:true,move:0,
  last:[],log:[],swap:false,swapSel:new Set(),sel:null,handoff:false,lastHuman:-1,hintT:null,blankK:null};
 const cur=()=>G.players[G.turn];
+/* ONLINE: every device holds every rack (the deal is derived from the room
+   seed), so the rack on screen must be this player's own seat — never
+   "whoever is on turn", which would show a classmate's tiles face up. */
+const mine=()=>G.online?G.players[G.online.seat]:cur();
 const inB=(r,c)=>r>=0&&r<N&&c>=0&&c<N;
 const cname=k=>String.fromCharCode(65+(k%N))+(((k/N)|0)+1);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1118,9 +1208,22 @@ const grid=$("#grid"),cells=[],cache=[];
  grid.querySelectorAll(".cell").forEach(el=>{cells[+el.dataset.k]=el;cache[+el.dataset.k]="";});
  $("#cTop").innerHTML="ABCDEFGHIJKLMNO".split("").map(l=>"<span>"+l+"</span>").join("");
  $("#cLeft").innerHTML=Array.from({length:15},(_,i)=>"<span>"+(i+1)+"</span>").join("");})();
+/* What the tilted board really covers on screen. The stage tilts the board
+   42° under a 1250px perspective whose origin sits 32% down the board, so the
+   near edge is drawn BIGGER and LOWER than its layout box: the old flat .78
+   factor let the bottom three rows slide under the rack on a laptop. */
+function boardView(S){const th=42*Math.PI/180,d=1250,y0=.18*S,yc=S/2*Math.cos(th),zc=S/2*Math.sin(th);
+ const bot=(y0+yc)*d/(d-zc),top=(y0-yc)*d/(d+zc);
+ return{h:bot-top,w:S*d/(d-zc),mid:(bot+top)/2-y0};}
 function fitBoard(){const w=$("#stageWrap");if(G.screen!=="game"||!w.clientWidth)return;
- const aw=w.clientWidth-26,ah=w.clientHeight-18,f=prefs.view==="3d"?.78:1;
- let c=Math.floor((Math.min(aw,ah/f)-46-34)/N);c=clamp(c,15,46);
+ const three=prefs.view==="3d",FRAME=80; /* board padding + coordinate gutters */
+ /* 3D keeps a strip free at the bottom for the camera bar and the hint line */
+ const aw=w.clientWidth-26,ah=w.clientHeight-18-(three?44:0);
+ let c=clamp(Math.floor((Math.min(aw,ah)-FRAME)/N),15,46),lift=0;
+ if(three){c=46;while(c>15){const v=boardView(c*N+FRAME);if(v.h<=ah&&v.w<=aw)break;c--;}
+  /* a layout box taller than the stage is laid out from the stage's top edge, not centred on it */
+  const S=c*N+FRAME;lift=-boardView(S).mid-16-Math.max(0,(S-w.clientHeight)/2);}
+ document.documentElement.style.setProperty("--fitY",lift.toFixed(1)+"px");
  document.body.classList.toggle("compact",c<26);
  document.documentElement.style.setProperty("--cell",c+"px");
  document.documentElement.style.setProperty("--rs",clamp(Math.round(c*1.4),42,58)+"px");}
@@ -1140,7 +1243,7 @@ function paintBoard(){const last=new Set(G.last);
 function at(r,c,pm){const k=r*N+c,p=pm.get(k);
  if(p)return{ch:p.ch||"",v:p.tile.bl?0:(VAL[p.ch]||0),nw:true};
  const b=G.board[r][c];return b?{ch:b.ch,v:b.v,nw:false}:null;}
-function analyze(pm){
+function analyze(pm,trusted){
  const ks=[...pm.keys()];if(!ks.length)return{empty:true};
  for(const k of ks){const p=pm.get(k);if(p.tile.bl&&!p.ch)return{err:"Choose a letter for the blank tile"};}
  const rs=ks.map(k=>(k/N)|0),cs=ks.map(k=>k%N);
@@ -1164,7 +1267,10 @@ function analyze(pm){
   if(pm.size<2||!words.length)return{err:"Play at least two tiles to open"};}
  else{if(!words.length)return{err:"Tiles must form a word of 2+ letters"};
   if(!words.some(w=>w.cells.some(x=>!x.t.nw)))return{err:"Connect to tiles already on the board"};}
- if(!prefs.casual)for(const w of words)if(!lexHas(w.word.toLowerCase()))return{err:"“"+w.word+"” isn't in the lexicon",bad:w.word};
+ /* `trusted` = a move another device already published: its player's own
+    word list accepted it (lists differ — saved words, Casual, a tournament
+    list still loading), so here it is only placed and scored. */
+ if(!prefs.casual&&!trusted)for(const w of words)if(!lexHas(w.word.toLowerCase()))return{err:"“"+w.word+"” isn't in the lexicon",bad:w.word};
  let total=0;
  for(const w of words){let sum=0,mul=1,tier=0;w.mine=custom.has(w.word.toLowerCase());
   for(const x of w.cells){let v=x.t.v;const pr=PREM[x.r][x.c];
@@ -1254,13 +1360,13 @@ function renderPlayers(){
   return '<div class="pc'+(on?" on":"")+'" style="--h:'+p.hue+'"><div class="gem"></div><div class="info"><div class="nm">'+esc(p.name)+(p.ai?I.bot:"")+'</div><div class="sb">'+sub+'</div></div>'+(on?'<span class="pill">TURN</span>':'')+'<div class="sc" id="sc'+i+'">'+p.score+'</div></div>';}).join("");}
 function bump(i){const e=$("#sc"+i);if(e){e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump");}}
 function renderMeta(){$("#meta").innerHTML='<span class="chip">'+I.bag+'Bag <b>'+G.bag.length+'</b></span>'+
- '<button class="chip" id="lexChip">'+I.book+'Lexicon <b>'+DICT.size.toLocaleString()+'</b>'+(custom.size?' <span class="mine">'+custom.size+' yours</span>':'')+'</button>'+
+ '<button class="chip" id="lexChip">'+I.book+'Lexicon <b>'+lexTotal().toLocaleString()+'</b>'+(custom.size?' <span class="mine">'+custom.size+' yours</span>':'')+'</button>'+
  '<span class="chip">'+I.redo+'Round <b>'+(((G.move/G.players.length)|0)+1)+'</b></span>';}
 $("#meta").onclick=e=>{if(e.target.closest("#lexChip")){audio();SFX.click();openDict(null,{tab:"lex"});}};
 function renderTurn(){const p=cur();if(!p)return;
  $("#turn").innerHTML='<span class="gem" style="--h:'+p.hue+'"></span><span>'+esc(p.name)+'</span>'+(p.ai?'<span class="ai">AI</span>':'');}
 const rackImg=$("#art-rack");
-function renderRack(){const p=cur();if(!p)return;const r=$("#rack");
+function renderRack(){const p=mine();if(!p)return;const r=$("#rack");
  r.querySelectorAll(".rt").forEach(n=>n.remove());
  const html=(p.ai||G.handoff)?p.rack.map(()=>'<div class="rt back'+(p.ai?" th":"")+'"><div class="top"><span class="ch">W</span></div><div class="fr"></div><div class="sd"></div></div>').join(""):
   p.rack.map(t=>'<div class="rt'+(t.bl?" blank":"")+(G.sel===t.id?" sel":"")+(G.swapSel.has(t.id)?" sw":"")+'" data-id="'+t.id+'"><div class="top"><span class="ch">'+(t.bl?"?":t.letter)+'</span><span class="vl">'+(t.bl?0:VAL[t.letter])+'</span></div><div class="fr"></div><div class="sd"></div></div>').join("");
@@ -1286,13 +1392,15 @@ function buttons(){const p=cur(),h=p&&!p.ai&&!G.lock&&!G.over&&!G.handoff;
  $("#a-play").disabled=!h||!G.pend.size||G.swap;
  $("#a-shuffle").disabled=!h||G.swap||p.rack.length<2;
  $("#a-recall").disabled=!h||!G.pend.size||G.swap;
- $("#a-swap").disabled=!h||G.bag.length<7||!p.rack.length;
+ /* ONLINE: a swap reshuffles the bag, and a private shuffle cannot be replayed on the other devices */
+ $("#a-swap").disabled=!h||G.bag.length<7||!p.rack.length||!!G.online;
+ $("#a-swap").title=G.online?"Swapping is switched off in online matches":"";
  $("#a-swap").classList.toggle("arm",G.swap);
  $("#a-pass").disabled=!h||G.swap;
  $("#a-hint").disabled=!h||G.swap;
  $("#swapBar").classList.toggle("hide",!G.swap);
  $("#swapGo").disabled=!G.swapSel.size;$("#swapGo").textContent="Swap "+G.swapSel.size;
- $("#rackLabel").textContent=p?(p.ai?"AI RACK":"RACK · "+p.name.toUpperCase()):"RACK";}
+ const rp=mine();$("#rackLabel").textContent=rp?(rp.ai?"AI RACK":"RACK · "+rp.name.toUpperCase()):"RACK";}
 function renderAll(){paintBoard();renderRack();renderPlayers();renderMeta();renderTurn();renderPreview();buttons();}
 
 function toast(msg,type,act){const box=$("#toasts");while(box.children.length>=3)box.firstChild.remove();
@@ -1353,7 +1461,7 @@ function start(cfg){
  G.turn=0;G.pend=new Map();G.passes=0;G.over=false;G.lock=false;G.first=true;G.move=0;
  G.last=[];G.log=[];G.swap=false;G.swapSel=new Set();G.sel=null;G.handoff=false;G.lastHuman=-1;G.screen="game";
  document.body.dataset.screen="game";
- $("#setup").classList.add("hide");$("#game").classList.remove("hide");
+ $("#setup").classList.add("hide");$("#hub").classList.add("hide");$("#lobby").classList.add("hide");$("#game").classList.remove("hide");
  $("#turn").classList.remove("hide");$("#newBtn").classList.remove("hide");
  ["#over","#handoff","#think","#bingo"].forEach(s=>$(s).classList.add("hide"));
  $("#cast").classList.remove("go");$("#trophyWrap").classList.remove("go");$("#raysWrap").classList.remove("go");
@@ -1389,9 +1497,13 @@ function commit(res){
  renderAll();renderLog();bump(G.turn);castFX(res,snap);
  toast(esc(p.name)+" created <b>"+res.words.map(w=>w.word).join(" + ")+"</b> for "+res.total+" pts",res.bingo?"warn":"ok");
  const pub=G.online?captureOnlineMove(ks,snap):null;
- if(!p.rack.length&&!G.bag.length&&!G.online){later(()=>endGame(G.turn),1400);return;}
+ if(!p.rack.length&&!G.bag.length){
+  /* going out ends the match online too — and the room is told, so it closes for everyone */
+  if(G.online){G.move++;G.lock=true;G.online.onPlay(pub,{fin:G.turn});}
+  const fin=G.turn;later(()=>endGame(fin),1400);return;}
  p.rack.push(...draw(7-p.rack.length));renderRack();renderMeta();renderPlayers();
- if(G.online){G.lock=true;renderAll();buttons();G.online.onPlay(pub);return;}
+ /* online: publish, then hand the turn on at once — the room confirms it on the next poll */
+ if(G.online){G.move++;G.lock=true;G.online.onPlay(pub,null);G.turn=(G.turn+1)%G.players.length;renderAll();buttons();return;}
  later(nextTurn,res.bingo?1900:Math.max(900,res.words[0].cells.length*95+500));}
 /* ONLINE: the move as the room records it — squares, letters, and which of
    them spent a blank. Everything a guest needs to rebuild the same board.
@@ -1412,32 +1524,47 @@ function doPass(ai){const p=cur();if(!ai&&(G.lock||G.over||p.ai))return;
  if(G.pend.size)recall(true);
  G.log.push({type:"x",name:p.name,hue:p.hue,msg:"passed"});SFX.pass();renderLog();
  toast(esc(p.name)+" passed","info");
- if(G.online){G.lock=true;buttons();G.online.onPass();return;}
+ if(G.online){G.passes++;G.move++;G.lock=true;buttons();
+  const dead=G.passes>=G.players.length*2;G.online.onPass(dead?{fin:null}:null);
+  if(dead)endGame(null);else{G.turn=(G.turn+1)%G.players.length;renderAll();buttons();}return;}
  G.passes++;if(G.passes>=G.players.length*2){endGame(null);return;}nextTurn();}
 function doSwap(ids){const p=cur(),t=p.rack.filter(x=>ids.includes(x.id));if(!t.length)return;
  p.rack=p.rack.filter(x=>!ids.includes(x.id));G.bag.push(...t);shuffle(G.bag);p.rack.push(...draw(t.length));
  G.log.push({type:"x",name:p.name,hue:p.hue,msg:"swapped "+t.length+" tile"+(t.length>1?"s":"")});
  SFX.shuf();renderLog();renderMeta();toast(esc(p.name)+" swapped "+t.length,"info");
  nextTurn();}
-function endGame(fin){
- if(G.over)return;G.over=true;G.lock=true;endDragHard();$("#think").classList.add("hide");
+/* The end-of-match rack adjustment, without touching anything: each player
+   loses what is left on their rack, and whoever went out collects it all. */
+function finalDeltas(fin){
  const sums=G.players.map(p=>p.rack.reduce((a,t)=>a+(t.bl?0:VAL[t.letter]),0)),d=sums.map(s=>-s);
  if(fin!=null)d[fin]=sums.reduce((a,s,i)=>i===fin?a:a+s,0);
+ return d;}
+function endGame(fin){
+ if(G.over)return;G.over=true;G.lock=true;endDragHard();$("#think").classList.add("hide");
+ const d=finalDeltas(fin);
  G.players.forEach((p,i)=>{p.score+=d[i];p.delta=d[i];});
  G.log.push({type:"x",name:"Match",hue:196,msg:fin!=null?G.players[fin].name+" went out!":"All players passed twice"});
  renderAll();renderLog();
  const s=G.players.map((p,i)=>({...p,i})).sort((a,b)=>b.score-a.score),top=s[0],tie=s.filter(p=>p.score===top.score).length>1;
  $("#crown").innerHTML=I.crown;
  $("#winName").textContent=tie?"Dead Heat!":top.name+" Wins!";
- $("#winSub").textContent=fin!=null?top.name+(tie?" tie":"")+" at "+top.score+" points · "+G.players[fin].name+" cleared their rack":"Ended on passes · "+top.score+" points leads";
- $("#stand").innerHTML=s.map((p,i)=>'<div class="sr'+(i===0?" first":"")+'" style="--h:'+p.hue+'"><span class="rk">'+(i+1)+'</span><div class="gem"></div><div class="si"><div class="sn">'+esc(p.name)+(p.ai?" 🤖":"")+'</div><div class="ss">'+p.wp+" words"+(p.best?" · best "+p.best.w+" "+p.best.s:"")+" · rack "+(p.delta>=0?"+":"")+p.delta+'</div></div><span class="sp">'+p.score+'</span></div>').join("");
+ $("#winSub").textContent=fin!=null?top.name+(tie?" tie":"")+" at "+top.score+" points · "+G.players[fin].name+" cleared their rack":"Ended on passes · top score "+top.score;
+ /* online, these two leave the room: say where they go */
+ $("#overAgain").textContent=G.online?"New room":"Rematch";$("#overSetup").textContent=G.online?"Start screen":"Change Players";
+ $("#stand").innerHTML=s.map((p,i)=>'<div class="sr'+(i===0?" first":"")+'" style="--h:'+p.hue+'"><span class="rk">'+(i+1)+'</span><div class="gem"></div><div class="si"><div class="sn">'+esc(p.name)+(p.ai?" 🤖":"")+'</div><div class="ss">'+p.wp+(p.wp===1?" word":" words")+(p.best?" · best "+p.best.w+" "+p.best.s:"")+" · rack "+(p.delta>=0?"+":"")+p.delta+'</div></div><span class="sp">'+p.score+'</span></div>').join("");
  later(()=>{$("#over").classList.remove("hide");confetti();SFX.win();$("#trophyWrap").classList.add("go");fireRays();},600);
- reportMatch(s);}
-$("#overAgain").onclick=()=>{SFX.click();$("#trophyWrap").classList.remove("go");start(G.cfg);};
+ /* A finished room that is merely re-opened replays to this same line: it
+    must not post the same match to the leaderboard a second time. */
+ if(!G._replaying)reportMatch(s,G.online?G.online.seat:null);}
+$("#overAgain").onclick=()=>{SFX.click();$("#trophyWrap").classList.remove("go");
+ if(G.online){location.href=location.pathname+"?online=";return;} /* online: a fresh room, not a local rematch */
+ start(G.cfg);};
 $("#overSetup").onclick=()=>{SFX.click();$("#trophyWrap").classList.remove("go");toSetup();};
-function toSetup(){G.screen="setup";G.over=true;G.lock=true;clearTimers();endDragHard();
+function toSetup(){
+ if(G.online){location.href=location.pathname;return;} /* leaving an online table = back to the start screen, off the room */
+ G.screen="setup";G.over=true;G.lock=true;clearTimers();endDragHard();
  sparks=[];rings=[];glyphs=[];beams=[];document.body.dataset.screen="setup";
- $("#game").classList.add("hide");$("#hub").classList.add("hide");$("#setup").classList.remove("hide");
+ $("#game").classList.add("hide");$("#hub").classList.add("hide");$("#lobby").classList.add("hide");$("#setup").classList.remove("hide");
  $("#turn").classList.add("hide");$("#newBtn").classList.add("hide");
  ["#over","#handoff","#confirm","#think","#bingo"].forEach(s=>$(s).classList.add("hide"));
  $("#cast").classList.remove("go");$("#trophyWrap").classList.remove("go");$("#raysWrap").classList.remove("go");renderSeats();}
@@ -1735,6 +1862,8 @@ $("#dgo").innerHTML=I.find+'LOOK UP';
 $("#lexExp").innerHTML=I.down+'EXPORT';$("#lexImpBtn").innerHTML=I.up+'IMPORT';$("#lexClr").innerHTML=I.trash+'CLEAR ALL';
 function syncLex(){
  const n=$("#lexN");if(n)n.textContent=custom.size;
+ /* the hub is usually on screen when the big list lands — its count must follow */
+ const hc=$("#hubLexCount");if(hc)hc.textContent=lexTotal().toLocaleString();
  const b=$("#dictBtn").querySelector(".cnt");
  if(custom.size){if(b)b.textContent=custom.size;else{const s=document.createElement("span");s.className="cnt";s.textContent=custom.size;$("#dictBtn").appendChild(s);}}
  else if(b)b.remove();
@@ -1886,7 +2015,7 @@ $("#setupRules").onclick=()=>{audio();SFX.click();openRules();};
 $("#legend").onclick=()=>openRules();
 $("#newBtn").onclick=()=>{audio();SFX.click();if(G.over){toSetup();return;}
  confirmBox("Abandon this match?","Scores and the board will be lost. Your lexicon and art are kept.","Abandon",toSetup);};
-function rulesLex(){$("#rulesLex").innerHTML="Built-in: <b>"+BASE_N.toLocaleString()+" words</b> (official 2- and 3-letter plays plus common English and inflections). You've added <b>"+custom.size+"</b>, giving <b>"+DICT.size.toLocaleString()+"</b> playable words. "+
+function rulesLex(){$("#rulesLex").innerHTML=(LEX_TOURNEY?"The full tournament word list is loaded on top of the built-in "+BASE_N.toLocaleString()+" words.":"Built-in: <b>"+BASE_N.toLocaleString()+" words</b> (official 2- and 3-letter plays plus common English and inflections); the full tournament list is still loading.")+" You've added <b>"+custom.size+"</b>, giving <b>"+lexTotal().toLocaleString()+"</b> playable words. "+
  (prefs.casual?"<b>Casual</b> is on: any spelling is accepted.":"<b>Strict</b> is on: use <b>Look up</b> to verify and save new words.");}
 function openRules(){$("#rulesTitle").innerHTML=I.book+"How to Play";$("#rulesX").innerHTML=I.x;
  $("#valGrid").innerHTML=Object.keys(VAL).map(L=>'<div class="vc"><div class="l">'+L+'</div><div class="v">'+VAL[L]+'</div></div>').join("")+'<div class="vc"><div class="l">?</div><div class="v">0</div></div>';
@@ -1916,9 +2045,12 @@ document.addEventListener("keydown",e=>{
   const t=cur().rack.find(x=>L==="?"?x.bl:(!x.bl&&x.letter===L&&x.id!==G.sel))||cur().rack.find(x=>L==="?"?x.bl:(!x.bl&&x.letter===L));
   if(t){G.sel=t.id;SFX.pick();renderRack();}}});
 
-$("#logo").innerHTML="WORD".split("").map((L,i)=>'<div class="lt" style="--i:'+i+'">'+L+'<small>'+VAL[L]+'</small></div>').join("")+'<div class="gap"></div>'+
- "CREATOR".split("").map((L,i)=>'<div class="lt" style="--i:'+(i+4)+'">'+L+'<small>'+VAL[L]+'</small></div>').join("");
+/* each word is its own unbreakable group, so a narrow screen wraps WORD / CREATOR and never CREA / TOR */
+$("#logo").innerHTML='<div class="lw">'+"WORD".split("").map((L,i)=>'<div class="lt" style="--i:'+i+'">'+L+'<small>'+VAL[L]+'</small></div>').join("")+'</div><div class="gap"></div><div class="lw">'+
+ "CREATOR".split("").map((L,i)=>'<div class="lt" style="--i:'+(i+4)+'">'+L+'<small>'+VAL[L]+'</small></div>').join("")+'</div>';
 $("#startBtn").innerHTML=I.play+"Deal Tiles &amp; Start";
+$("#rulesBtn").innerHTML=I.help;$("#newBtn").innerHTML=I.redo;
+$("#hubSoloIcon").innerHTML=I.bot;$("#hubPassIcon").innerHTML=I.user;$("#hubOnlineIcon").innerHTML=I.globe;
 $("#minus").innerHTML=I.minus;$("#plus").innerHTML=I.plus;
 const PRESETS=[{id:"solo",l:"Solo vs AI",i:I.bot,s:[{name:"You",ai:false},{name:"Nova",ai:true,diff:"normal"}]},
  {id:"duo",l:"Duo",i:I.user,s:[{name:"Player 1",ai:false},{name:"Player 2",ai:false}]},
@@ -1936,7 +2068,7 @@ function renderSeats(){
   '<input maxlength="12" value="'+esc(c.name)+'" data-i="'+i+'" placeholder="Player '+(i+1)+'">'+
   '<div class="seg" data-i="'+i+'"><button data-t="h" class="'+(!c.ai?"on":"")+'">'+I.user+'HUMAN</button><button data-t="a" class="'+(c.ai?"on":"")+'">'+I.bot+'AI</button></div>'+
   (c.ai?'<select data-i="'+i+'">'+["easy","normal","hard"].map(d=>'<option value="'+d+'"'+(c.diff===d?" selected":"")+'>'+d.toUpperCase()+'</option>').join("")+'</select>':'')+'</div>').join("");
- $("#lexNote").textContent=(DICT.size+(LEX_TOURNEY?LEXI.reduce((a,x)=>a+(x?x.size:0),0):0)).toLocaleString()+" playable words"+(LEX_TOURNEY?" · tournament":"")+(custom.size?" · "+custom.size+" yours":"")+(prefs.casual?" · casual accepts anything":"");
+ $("#lexNote").textContent=lexTotal().toLocaleString()+" playable words"+(LEX_TOURNEY?" · tournament":"")+(custom.size?" · "+custom.size+" yours":"")+(prefs.casual?" · casual accepts anything":"");
  document.querySelectorAll("#dictSeg button").forEach(b=>b.classList.toggle("on",(b.dataset.v==="casual")===prefs.casual));}
 $("#seats").addEventListener("input",e=>{
  if(e.target.tagName==="INPUT")G.cfg[+e.target.dataset.i].name=e.target.value;
@@ -1955,9 +2087,9 @@ $("#dictSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;audio(
 function showHub(){
  G.screen="hub";G.over=true;G.lock=true;clearTimers();endDragHard();
  document.body.dataset.screen="hub";
- $("#game").classList.add("hide");$("#setup").classList.add("hide");$("#hub").classList.remove("hide");
+ $("#game").classList.add("hide");$("#setup").classList.add("hide");$("#lobby").classList.add("hide");$("#hub").classList.remove("hide");
  $("#turn").classList.add("hide");$("#newBtn").classList.add("hide");
- $("#hubLexCount").textContent=(DICT.size+(LEX_TOURNEY?LEXI.reduce((a,x)=>a+(x?x.size:0),0):0)).toLocaleString();
+ $("#hubLexCount").textContent=lexTotal().toLocaleString();
 }
 function openSetup(cfg){
  $("#hub").classList.add("hide");$("#setup").classList.remove("hide");
@@ -1973,10 +2105,10 @@ $("#modeSolo").onclick=()=>{audio();SFX.click();
 $("#modePass").onclick=()=>{audio();SFX.click();
  openSetup([{name:"Player 1",ai:false,diff:"normal"},{name:"Player 2",ai:false,diff:"normal"}]);
  renderSeats();};
-$("#modeOnline").onclick=()=>{audio();SFX.click();
- openSetup([{name:(window.CMC_NG?CMC_NG.get():"You")||"You",ai:false,diff:"normal"},{name:"Player 2",ai:false,diff:"normal"}]);
- $("#wc-join-note").textContent="Press Play above to open a room, or enter a classmate's code below.";
- $("#wc-code").focus();};
+/* Play Online leaves for the online lobby (?online=), where a room is opened
+   or joined. It used to open the ordinary setup card, whose Play button then
+   dealt a LOCAL two-player match — the room code never appeared. */
+$("#modeOnline").onclick=()=>{audio();SFX.click();location.href=location.pathname+"?online=";};
 $("#hubRules").onclick=()=>openRules();
 $("#hubLex").onclick=()=>openDict("",{tab:"lex"});
 /* A back-to-hub affordance from the setup card: the logo is the home button,
@@ -1993,15 +2125,59 @@ $("#startBtn").onclick=()=>{audio();SFX.shuf();
 /* ── JOIN A CLASSMATE'S TABLE: the code field on the setup card. Bouncing to
       ?online=CODE is what tells the page to run the online transport, so the
       offline game keeps its zero-network path. ── */
-$("#wc-join").onclick=()=>{
- const box=$("#wc-code"),note=$("#wc-join-note");
+/* ═══ ONLINE LOBBY ══════════════════════════════════════════════════════
+   online.js owns the room; this paints what it reports. WC_LOBBY is called
+   on every status change with {mode, code, room, seat, status, tone, me}. */
+const LOB={n:2,busy:false};
+$("#lobOpen").innerHTML=I.globe+"Open a room";
+$("#lobSeats").onclick=e=>{const b=e.target.closest("button");if(!b)return;audio();SFX.click();LOB.n=+b.dataset.n;
+ $("#lobSeats").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));};
+$("#lobOpen").onclick=()=>{if(LOB.busy||!window.WC_ONLINE_HOST)return;audio();SFX.shuf();
+ LOB.busy=true;$("#lobOpen").disabled=true;
+ Promise.resolve(window.WC_ONLINE_HOST(LOB.n)).then(()=>{LOB.busy=false;$("#lobOpen").disabled=false;});};
+function joinByCode(box,note){
  const code=(box.value||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,5);
- box.value=code;
- if(code.length!==5){note.textContent="A room code is 5 letters or numbers.";note.style.color="#fda4af";return;}
- if(!localStorage.getItem("cmc-student-uid")){
-  note.textContent="Sign in with your CMC account to play online.";note.style.color="#fda4af";return;}
- location.href=location.pathname+"?online="+code;
+ box.value=code;note.classList.add("bad");
+ if(code.length!==5){note.textContent="A room code is 5 letters or numbers.";return;}
+ if(!localStorage.getItem("cmc-student-uid")){note.textContent="Sign in with your CMC account to play online.";return;}
+ note.classList.remove("bad");note.textContent="Joining "+code+"…";
+ location.href=location.pathname+"?online="+code;}
+$("#lobJoin").onclick=()=>{audio();SFX.click();joinByCode($("#lobCode"),$("#lobJoinNote"));};
+$("#lobCode").addEventListener("keydown",e=>{if(e.key==="Enter")$("#lobJoin").click();});
+$("#lobLeave").onclick=()=>{location.href=location.pathname;};
+function lobCopy(btn,text,done){const back=btn.textContent;
+ const ok=()=>{btn.textContent=done;setTimeout(()=>{btn.textContent=back;},1500);};
+ try{navigator.clipboard.writeText(text).then(ok,()=>{});}catch(e){}}
+$("#lobCopy").onclick=()=>lobCopy($("#lobCopy"),$("#lobCodeBig").textContent,"Copied");
+$("#lobLink").onclick=()=>lobCopy($("#lobLink"),location.origin+location.pathname+"?online="+$("#lobCodeBig").textContent,"Link copied");
+window.WC_LOBBY=function(s){
+ if(G.screen==="game")return; /* the table is up: the strip at the top takes over */
+ const room=s.room,inRoom=!!(s.code&&room),host=s.mode==="host";
+ $("#lobHost").classList.toggle("hide",!host||inRoom||!s.me);
+ $("#lobJoinBox").classList.toggle("hide",inRoom||!s.me);
+ $("#lobRoom").classList.toggle("hide",!inRoom);
+ $("#lobPlayers").classList.toggle("hide",!inRoom);
+ $("#lobJoinHead").textContent=host?"HAVE A CODE? JOIN A CLASSMATE'S TABLE":"TRY ANOTHER CODE";
+ if(inRoom){
+  const want=Math.max(room.seatsWanted||2,room.seats.length),left=want-room.seats.length;
+  $("#lobCodeBig").textContent=s.code;
+  $("#lobTitle").textContent=left>0?"Share this code":"Everyone is in";
+  $("#lobSub").textContent=left>0?("Waiting for "+left+" more player"+(left>1?"s":"")+". Classmates choose Play Online, type this code and press Join — the match starts by itself when the table is full."):"Dealing the tiles…";
+  let h="";
+  for(let i=0;i<want;i++){const p=room.seats[i];
+   h+=p?'<li style="--h:'+HUES[i%4]+'"><i></i>'+esc(p.name)+'<em>'+(i===s.seat?"YOU":(p.host?"HOST":"IN"))+'</em></li>':'<li class="open"><i></i>Open seat<em>WAITING</em></li>';}
+  $("#lobPlayers").innerHTML=h;
+ }else{
+  $("#lobTitle").textContent=!s.me?"Sign in to play online":(host?"Open a table":"Joining a table");
+  $("#lobSub").textContent=!s.me?"Online matches use your CMC account, so your classmates see your real name.":
+   (host?"Every player uses their own device and their own CMC account. Open a room, then share its five-character code.":"Looking for table "+(s.code||"")+"…");
+ }
+ /* the host's opening line is already said by the card itself */
+ const quiet=host&&!inRoom&&s.tone!=="bad";
+ const st=$("#lobStatus");st.textContent=quiet?"":(s.status||"");st.className="lob-status"+(s.tone?" "+s.tone:"");
 };
+
+$("#wc-join").onclick=()=>{audio();SFX.click();joinByCode($("#wc-code"),$("#wc-join-note"));};
 $("#wc-code").addEventListener("keydown",e=>{if(e.key==="Enter")$("#wc-join").click();});
 syncSound();syncView();renderSeats();syncLex();applyAll();fitBoard();
 /* Land on the hub. An ?online= deep link skips straight into its room flow,
@@ -2010,48 +2186,103 @@ syncSound();syncView();renderSeats();syncLex();applyAll();fitBoard();
    behind the online flow — but every other entry starts on the hub. */
 if(new URLSearchParams(location.search).has("online")){
  document.body.dataset.screen="online";$("#hub").classList.add("hide");
+ /* the lobby is the screen for this state — without it the page was empty */
+ G.screen="online";G.over=true;G.lock=true;$("#lobby").classList.remove("hide");
 }else showHub();
 /* Tournament lexicon: fetched in the background so the page never waits on it. */
 lexFetch();
+/* ONLINE: put one PUBLISHED move from the room's log onto this device.
+   Every device runs the same moves in the same order through the same
+   engine, so boards, scores, racks and the bag stay identical everywhere
+   without any of them being written to the room:
+     · the tiles come off THAT seat's rack (the deal is derived from the seed),
+     · the words are scored here, from this board — a number in the room is
+       never trusted,
+     · the seat refills from the shared bag, which keeps every later draw in step,
+     · and the end of the match (a player going out, or everyone passing
+       twice) is reached by every device at the same move.
+   Returns false when the move cannot be honest (tiles the seat never held, an
+   occupied square, no legal word shape) — the caller stops the table.
+   `quiet` = rebuilding after a reload: no sound, no toasts, no repaint per move. */
+function applyOnlineMove(mv,seat,quiet){
+ const p=G.players[seat];if(!p||G.over||!mv)return false;
+ if(mv.kind==="pass"){
+  G.passes++;G.move++;G.log.push({type:"x",name:p.name,hue:p.hue,msg:"passed"});
+  if(!quiet){SFX.pass();renderLog();toast(esc(p.name)+" passed","info");}
+  if(G.passes>=G.players.length*2)endGame(null);
+  return true;}
+ const keys=mv.keys||[],pm=new Map(),left=p.rack.slice();
+ if(!keys.length||keys.length>7)return false;
+ for(let i=0;i<keys.length;i++){
+  const k=keys[i],L=String((mv.letters||[])[i]||"").toUpperCase(),bl=!!(mv.blanks||[])[i];
+  if(!(k>=0&&k<N*N)||pm.has(k)||!/^[A-Z]$/.test(L)||G.board[(k/N)|0][k%N])return false;
+  const ix=left.findIndex(t=>bl?t.bl:(!t.bl&&t.letter===L));
+  if(ix<0)return false;
+  pm.set(k,{tile:left.splice(ix,1)[0],ch:L});}
+ const res=analyze(pm,true);if(!res.ok)return false;
+ p.rack=left;
+ for(const [k,v] of pm)G.board[(k/N)|0][k%N]={ch:v.ch,v:v.tile.bl?0:VAL[v.ch],bl:v.tile.bl,own:seat};
+ const mw=res.words[0];
+ G.log.push({type:"play",name:p.name,hue:p.hue,words:res.words,total:res.total,bingo:res.bingo,pos:cname(keys[0]),dir:mw?mw.dir:"H"});
+ if(!p.best||res.total>p.best.s)p.best={w:res.main||res.words[0].word,s:res.total};
+ p.wp+=res.words.length;p.score+=res.total;G.passes=0;G.first=false;G.last=keys.slice();G.move++;
+ const out=!p.rack.length&&!G.bag.length;
+ if(!out)p.rack.push(...draw(7-p.rack.length));
+ if(!quiet){renderAll();renderLog();bump(seat);SFX.turn();
+  toast(esc(p.name)+" created <b>"+res.words.map(w=>w.word).join(" + ")+"</b> for "+res.total+" pts",res.bingo?"warn":"ok");}
+ if(out)endGame(seat);
+ return true;}
 /* ── online hook (used by the CMC_WORD_ONLINE block at the bottom of the page;
       offline play never touches it) ── */
 window.WC_ENGINE={
+ /* Open the table for a room. `moves` is the room's whole log: the match is
+    rebuilt by replaying it from the deal, so a reload or a second device
+    lands on the true board, scores and RACK — not on the opening hand.
+    Returns false if the log does not replay honestly. */
  startOnline:function(o){
   G.online={seat:o.seat,onPlay:o.onPlay,onPass:o.onPass};
   G._onlineDeal={racks:o.racks,rest:o.rest};
   start(o.cfg);
-  /* start() rewinds to seat 0; the room may be mid-match (a reconnect), so
-     land on the room's current turn and rebuild what is already on the board.
-     A lowercase letter in the room's cells is a blank. */
-  if(o.cells) for(let i=0;i<225;i++){const ch=o.cells[i];if(!ch)continue;
-    const up=ch.toUpperCase(),bl=ch!==up;
-    G.board[(i/N)|0][i%N]={ch:up,v:bl?0:(VAL[up]||0),bl,own:-1};}
-  G.first=!(o.move>0);G.move=o.move||0;G.turn=o.turn||0;
-  G.lastHuman=-1;G.lock=false;
-  renderAll();renderRack();renderPreview();buttons();beginTurn(false);
-  G.first=!(o.move>0);
+  const log=o.moves||[];let ok=true;
+  G._replaying=true;
+  for(let i=0;i<log.length&&!G.over;i++){if(!applyOnlineMove(log[i],i%G.players.length,true)){ok=false;break;}}
+  G._replaying=false;
+  if(!ok)return false;
+  if(!G.over){
+   G.turn=log.length%G.players.length;G.move=log.length;G.lastHuman=-1;
+   G.lock=G.turn!==G.online.seat;G.handoff=false;
+   renderAll();renderLog();}
+  return true;
+ },
+ /* One move another player just published. */
+ applyMove:function(mv,seat){
+  if(!G.online||G.screen!=="game")return false;
+  if(G.pend.size)recall(true); /* my half-placed tiles go back to the rack before the board changes */
+  return applyOnlineMove(mv,seat,false);
  },
  /* Follow the room's turn pointer. Called on every poll, so it is written to
     be a no-op unless something actually changed (no flicker, no lost tiles). */
  syncTurn:function(turn,mine){
-  if(!G.online||G.screen!=="game")return;
-  const moved=turn!==G.turn;
+  if(!G.online||G.screen!=="game"||G.over)return;
+  const moved=turn!==G.turn,was=G.lock;
   if(moved){G.turn=turn;G.pend.clear();G.sel=null;G.swap=false;G.swapSel=new Set();clearHint();}
   G.lock=!mine;G.handoff=false;
-  if(moved||G.lock!==!mine){renderAll();renderRack();renderPreview();buttons();}
+  if(moved||was!==G.lock){renderAll();renderRack();renderPreview();buttons();}
   if(moved)toast(mine?"Your turn":esc((G.players[turn]||{}).name||"")+"'s turn","info");
  },
- /* Adopt a board the room has verified: 225 cells, lowercase = a blank.
-    Rebuilt wholesale each poll, so a skipped poll cannot leave half a board. */
- adoptBoard:function(cells){
-  if(!G.online||!cells||cells.length!==225)return;
-  G.board=Array.from({length:N},()=>Array(N).fill(null));
-  for(let i=0;i<225;i++){const ch=cells[i];if(!ch)continue;
-   const up=ch.toUpperCase(),bl=ch!==up;
-   G.board[(i/N)|0][i%N]={ch:up,v:bl?0:(VAL[up]||0),bl,own:-1};}
-  G.first=!G.board.flat().some(Boolean);renderAll();
+ /* What the room records beside the move log: display-only numbers for the
+    lobby and the lounge — never read back into a match. `end` = {fin} when
+    this move finishes the match, so the final rack adjustment is included. */
+ snapshot:function(end){
+  const d=end?finalDeltas(end.fin):G.players.map(()=>0);
+  const scores=G.players.map((p,i)=>p.score+d[i]);
+  let text="";
+  if(end){const top=Math.max(...scores),win=G.players.filter((p,i)=>scores[i]===top);
+   text=win.length>1?"Dead heat at "+top+" points":win[0].name+" wins with "+top+" points";}
+  return{scores,bagSize:G.bag.length,text};
  },
- showResult:function(room){if(G.over)return;endGame(null);}
+ isOver:function(){return !!G.over;},
+ showResult:function(room){if(G.over||!G.players.length)return;endGame(null);}
 };
 </script>
 <script>
@@ -2114,20 +2345,25 @@ var CMC_WORD_CREATOR_SUBMIT=(function(){
     }catch(e){}
   };
 })();
-/* Which seat is you? In pass & play the local player is the first HUMAN seat; when
-   signed in their account name matches their seat outright. Falls back to seat 0. */
+/* Which seat is you? `players` is the STANDINGS — sorted by score, each row
+   carrying its seat number in `.i` — so the answer must be that `.i`, never the
+   row's position in the list. (Returning the position reported whoever finished
+   in that place: a player beaten by the AI was posted to the leaderboard as the
+   winner, with the AI's points.) A signed-in name that matches a human seat wins
+   outright; otherwise it is the human in the lowest seat. Falls back to seat 0. */
 function cmcMySeat(players){
   var name=(window.CMC_NG?window.CMC_NG.get():null)||'';
   var norm=function(v){return String(v||'').trim().toLowerCase()};
-  var byName=players.findIndex(function(p){return !p.ai&&norm(p.name)===norm(name)});
-  if(byName>=0)return byName;
-  var human=players.findIndex(function(p){return !p.ai});
-  return human>=0?human:0;
+  var humans=players.filter(function(p){return !p.ai}).sort(function(a,b){return a.i-b.i});
+  var byName=name?humans.filter(function(p){return norm(p.name)===norm(name)})[0]:null;
+  if(byName)return byName.i;
+  return humans.length?humans[0].i:0;
 }
-function reportMatch(standings){
+function reportMatch(standings,seat){
   try{
     if(!standings||!standings.length)return;
-    var me=cmcMySeat(standings);
+    /* online: the seat is known outright (two classmates can share a first name) */
+    var me=typeof seat==='number'?seat:cmcMySeat(standings);
     var mine=standings.find(function(p){return p.i===me});
     if(!mine)return;
     var top=standings[0];
