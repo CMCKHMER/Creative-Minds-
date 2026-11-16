@@ -10,8 +10,8 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { KID_GRADE_RESOURCES } from '../data/kidGradeResources';
 import {
-  attemptsForHomework, homeworkNumberFromTitle, homeworkRefFromHref, parseHomeworkAttempt,
-  scoresByStudent, scoresToCsv, sortScores, summarizeScores,
+  attemptsForHomework, homeworkNumberFromTitle, homeworkRefFromHref, myHomeworkScore,
+  parseHomeworkAttempt, scoreBandLabel, scoresByStudent, scoresToCsv, sortScores, summarizeScores,
 } from '../lib/kidHomework';
 import type { FsDoc, HomeworkAttempt } from '../lib/kidHomework';
 
@@ -40,7 +40,7 @@ function attempt(name: string, correct: number, atHours: number, extra: Partial<
   return {
     id: `${name}-${atHours}`, studentName: name, signedIn: false, homework: 1,
     correct, total: 30, pct: Math.round((correct / 30) * 100), at: T0 + atHours * HOUR,
-    firstCorrect: null, firstAnswered: null, checks: null, ...extra,
+    firstCorrect: null, firstAnswered: null, checks: null, studentUid: '', ...extra,
   };
 }
 
@@ -185,6 +185,109 @@ describe('kid homework — one line per student', () => {
     ]);
     // first tries 90, 40, 17 → 49 · best 90, 40, 73 → 68
     expect(summarizeScores(rows)).toEqual({ students: 3, submissions: 4, avgFirstTry: 49, avgBest: 68, below50: 2 });
+  });
+});
+
+describe('kid homework — a student sees their OWN score', () => {
+  const ID = { uid: 'uid-dara', name: 'Sok Dara' };
+
+  it('finds the line of the signed-in account, whatever name was typed', () => {
+    const rows = [
+      attempt('Dara 7A', 18, 0, { studentUid: 'uid-dara' }),
+      attempt('dara', 27, 2, { studentUid: 'uid-dara' }),
+      attempt('Sok Dara', 9, 1),            // another student, same-ish name
+      attempt('Sok Dara', 12, 1),           // handed in without an account
+    ];
+    const mine = myHomeworkScore(rows, ID);
+    expect(mine).not.toBeNull();
+    // Both of the account's spellings pool into ONE line.
+    expect(mine!.submissions).toBe(2);
+    expect(mine!.best.pct).toBe(90);
+    expect(mine!.firstTry.pct).toBe(60); // first submission: 18/30
+  });
+
+  it('falls back to the typed name when the row carries no account', () => {
+    const rows = [
+      attempt('  SOK   dara ', 21, 0),
+      attempt('Someone Else', 3, 1),
+    ];
+    const mine = myHomeworkScore(rows, { uid: 'uid-not-used', name: 'Sok Dara' });
+    // The name matches, but the row belongs to no account — allowed, because
+    // the account has no rows of its own on this homework.
+    expect(mine!.best.correct).toBe(21);
+    expect(mine!.name).toBe('SOK dara');
+  });
+
+  it('never shows a row that belongs to another ACCOUNT', () => {
+    // A namesake signed in with a different account: their row is claimed by
+    // that uid, so it can never be served to this student.
+    const rows = [attempt('Sok Dara', 30, 0, { studentUid: 'uid-someone-else' })];
+    expect(myHomeworkScore(rows, ID)).toBeNull();
+
+    // An account-less row under the typed name is still found (most homework
+    // is handed in without an account) — but the other account's perfect
+    // score is not counted into this student's line.
+    const mixed = [
+      attempt('Sok Dara', 30, 0, { studentUid: 'uid-someone-else' }),
+      attempt('Sok Dara', 6, 1),
+    ];
+    const mine = myHomeworkScore(mixed, ID);
+    expect(mine!.submissions).toBe(1);
+    expect(mine!.best.correct).toBe(6);
+  });
+
+  it('ignores other students entirely — one line, never a class list', () => {
+    const rows = [
+      attempt('Sok Dara', 24, 0, { studentUid: 'uid-dara' }),
+      attempt('A B', 30, 0, { studentUid: 'uid-a' }),
+      attempt('C D', 30, 0, { studentUid: 'uid-c' }),
+    ];
+    const mine = myHomeworkScore(rows, ID);
+    expect(mine!.name.toLowerCase()).toContain('dara');
+    expect(mine!.best.correct).toBe(24);
+    // The other students' perfect scores do not change my "best".
+    expect(mine!.best.pct).toBe(80);
+  });
+
+  it('nobody handed in → null, so the card says "nothing yet" instead of 0%', () => {
+    expect(myHomeworkScore([], ID)).toBeNull();
+    expect(myHomeworkScore([attempt('Other Kid', 10, 0)], ID)).toBeNull();
+  });
+
+  it('an empty identity matches nothing (no accidental "first student")', () => {
+    const rows = [attempt('Sok Dara', 10, 0), attempt('', 5, 1)];
+    expect(myHomeworkScore(rows, { uid: '', name: '' })).toBeNull();
+    expect(myHomeworkScore(rows, { uid: '   ', name: '   ' })).toBeNull();
+  });
+
+  it('labels the score in words a student can act on', () => {
+    expect(scoreBandLabel(100)).toBe('Excellent');
+    expect(scoreBandLabel(90)).toBe('Excellent');
+    expect(scoreBandLabel(80)).toBe('Great work');
+    expect(scoreBandLabel(75)).toBe('Great work');
+    expect(scoreBandLabel(60)).toBe('Getting there');
+    expect(scoreBandLabel(50)).toBe('Getting there');
+    expect(scoreBandLabel(20)).toBe('Keep practising');
+    expect(scoreBandLabel(0)).toBe('Keep practising');
+  });
+
+  it('matches a name the same way the rows were stored (emails prettified)', () => {
+    // Rows sent by a Gmail sign-in without a display name store the email;
+    // parseHomeworkAttempt prettifies it to "Mam Ry". The identity must be
+    // normalized identically or the student would never find their own row.
+    const rows = [parseHomeworkAttempt(doc({ studentName: { stringValue: 'mam.ry@aii.edu.kh' } }))!];
+    expect(myHomeworkScore(rows, { uid: '', name: 'Mam Ry' })!.submissions).toBe(1);
+    expect(myHomeworkScore(rows, { uid: '', name: 'mam.ry@aii.edu.kh' })!.submissions).toBe(1);
+  });
+
+  it('reads the account uid off the stored row', () => {
+    const parsed = parseHomeworkAttempt(doc({ studentUid: { stringValue: 'uid-dara' } }));
+    expect(parsed!.studentUid).toBe('uid-dara');
+    expect(parseHomeworkAttempt(doc())!.studentUid).toBe('');
+    // A row without the field at all (older rows) is still safe.
+    const bare = doc();
+    delete (bare.fields as Record<string, unknown>).studentUid;
+    expect(parseHomeworkAttempt(bare)!.studentUid).toBe('');
   });
 });
 

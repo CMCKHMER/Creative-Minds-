@@ -766,6 +766,268 @@ html.light #toefl-junior-assessments article:hover {
     var(--iri-edge-soft) border-box !important;
 }
 
+
+/* ============================================================
+   8c. DIRECTORY CARDS — the cards under the hero (home page)
+   Owner request (16 Nov 2026): "lets do these to the cards on the
+   hero page", with a screenshot of the home directory — pale glass
+   cards, a filled circular icon, a tight title, a one-line blurb and
+   a hairline corner arrow. These are .cmc-page-card (SectionDirectory),
+   which the earlier pass never targeted.
+   ============================================================ */
+
+.cmc-page-card {
+  border: 1px solid transparent !important;
+  border-radius: 1.15rem !important;
+  background:
+    var(--iri-face) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  box-shadow:
+    var(--iri-lip),
+    0 14px 30px -26px rgba(4, 8, 20, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.02) !important;
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.cmc-page-card:hover,
+.cmc-page-card:focus-visible {
+  border: 1px solid transparent !important;
+  background:
+    var(--iri-face-hover) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow: var(--iri-lip), var(--iri-bloom) !important;
+  transform: translateY(-2px);
+}
+
+html.light .cmc-page-card {
+  box-shadow:
+    var(--iri-lip),
+    0 14px 28px -24px rgba(15, 23, 42, 0.28) !important;
+}
+html.light .cmc-page-card:hover,
+html.light .cmc-page-card:focus-visible {
+  box-shadow: var(--iri-lip), var(--iri-bloom) !important;
+}
+
+/* The icon: a filled disc in the reference, not an outlined ring. */
+.cmc-page-card-icon {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)) padding-box,
+    var(--iri-edge) border-box !important;
+  color: var(--iri-ink) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 6px 16px -10px rgba(255, 94, 210, 0.6),
+    0 8px 18px -12px rgba(34, 211, 238, 0.6) !important;
+}
+
+html.light .cmc-page-card-icon {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(238, 243, 252, 0.96)) padding-box,
+    var(--iri-edge) border-box !important;
+  color: #0f172d !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 6px 14px -10px rgba(219, 39, 119, 0.45),
+    0 8px 18px -12px rgba(8, 145, 178, 0.45) !important;
+}
+
+/* Title + blurb read at the reference's weights. */
+.cmc-page-card-title { font-weight: 700 !important; letter-spacing: -0.015em !important; }
+.cmc-page-card-blurb { color: var(--iri-body) !important; }
+
+/* The corner arrow is a hairline in the reference until you hover. */
+.cmc-page-card-arrow {
+  color: var(--iri-mute) !important;
+  opacity: 0.5 !important;
+}
+.cmc-page-card:hover .cmc-page-card-arrow,
+.cmc-page-card:focus-visible .cmc-page-card-arrow {
+  color: var(--iri-c) !important;
+  opacity: 1 !important;
+}
+html.light .cmc-page-card:hover .cmc-page-card-arrow,
+html.light .cmc-page-card:focus-visible .cmc-page-card-arrow {
+  color: #0e7490 !important;
+}
+
+/* Badges (MEMBERS / TEACHERS) keep their meaning but join the edge system. */
+.cmc-page-card-badge {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  color: var(--iri-eyebrow) !important;
+}
+html.light .cmc-page-card-badge {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(240, 245, 253, 0.92)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  color: #0e7490 !important;
+}
+
+/* The group heading rule (the line beside PROGRAMS & MATERIALS). */
+.cmc-directory-rule {
+  background: var(--iri-edge-soft) !important;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   8d. MY HOMEWORK SCORE — the student's own score sheet
+   Owner request (16 Nov 2026): "students should be able to see
+   their score on the homework kid section". The sheet reuses the
+   same glass + edge system as everything else, in both themes:
+   .cmc-score-sheet is the dialog, .cmc-score-face the pale panes
+   inside it, .cmc-score-cta the small actions, .cmc-my-score-btn
+   the row button that opens it.
+   ============================================================ */
+
+.cmc-my-score-btn {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 94, 210, 0.16), rgba(34, 211, 238, 0.12)) padding-box,
+    var(--iri-edge) border-box !important;
+  color: var(--iri-ink) !important;
+  box-shadow: 0 8px 20px -14px rgba(255, 94, 210, 0.7);
+}
+.cmc-my-score-btn:hover,
+.cmc-my-score-btn:focus-visible {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 94, 210, 0.26), rgba(34, 211, 238, 0.2)) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow: 0 10px 24px -12px rgba(34, 211, 238, 0.65);
+}
+html.light .cmc-my-score-btn {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(253, 242, 250, 0.98), rgba(236, 254, 255, 0.98)) padding-box,
+    var(--iri-edge) border-box !important;
+  color: #86198f !important;
+  box-shadow: 0 8px 18px -14px rgba(219, 39, 119, 0.45);
+}
+html.light .cmc-my-score-btn:hover,
+html.light .cmc-my-score-btn:focus-visible {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(253, 242, 250, 1), rgba(224, 247, 250, 0.99)) padding-box,
+    var(--iri-edge) border-box !important;
+  color: #701a75 !important;
+}
+
+/* The dialog itself: smoked glass with the iridescent edge, same as a card.
+   A real border so the gradient has something to paint on (see the header
+   note in this file and the audit in iridescentDesign.test.ts). */
+.cmc-score-sheet {
+  border: 1px solid transparent !important;
+  background:
+    var(--iri-face) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow:
+    var(--iri-lip),
+    0 40px 90px -40px rgba(4, 8, 20, 0.9) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  backdrop-filter: blur(24px) saturate(140%);
+}
+html.light .cmc-score-sheet {
+  border: 1px solid transparent !important;
+  background:
+    var(--iri-face) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow:
+    var(--iri-lip),
+    0 40px 80px -44px rgba(15, 23, 42, 0.35) !important;
+}
+
+/* Panes inside the sheet: quieter edge, never a hard white slab. */
+.cmc-score-face {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.82)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+html.light .cmc-score-face {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(248, 250, 253, 0.98), rgba(235, 241, 249, 0.97)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 22px -20px rgba(15, 23, 42, 0.3);
+  color: var(--iri-ink);
+}
+
+/* Small actions inside the sheet. */
+.cmc-score-cta {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.96)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  color: var(--iri-body) !important;
+}
+.cmc-score-cta:hover:not(:disabled) {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(39, 52, 74, 0.96), rgba(20, 31, 54, 0.98)) padding-box,
+    var(--iri-edge) border-box !important;
+  color: var(--iri-ink) !important;
+}
+html.light .cmc-score-cta {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(238, 243, 252, 0.94)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  color: #334155 !important;
+  box-shadow: 0 8px 18px -16px rgba(15, 23, 42, 0.3);
+}
+html.light .cmc-score-cta:hover:not(:disabled) {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 1), rgba(240, 246, 255, 0.98)) padding-box,
+    var(--iri-edge) border-box !important;
+  color: var(--iri-ink) !important;
+}
+
+/* The name field (no account on this device): glass, with a dark-ink value
+   in light mode so a typed name is readable. */
+.cmc-score-input {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.96)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  color: var(--iri-ink) !important;
+}
+.cmc-score-input::placeholder { color: var(--iri-mute) !important; }
+html.light .cmc-score-input {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(240, 245, 253, 0.96)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  color: #0f172d !important;
+}
+html.light .cmc-score-input::placeholder { color: #64748b !important; }
+
+/* The "could not load" pane keeps its warning tone in both themes. */
+.cmc-score-alert {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(76, 5, 25, 0.55), rgba(60, 7, 22, 0.6)) padding-box,
+    linear-gradient(135deg, rgba(244, 63, 94, 0.55), rgba(251, 113, 133, 0.3)) border-box !important;
+  color: #fda4af !important;
+}
+html.light .cmc-score-alert {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 241, 243, 0.98), rgba(255, 228, 233, 0.96)) padding-box,
+    linear-gradient(135deg, rgba(190, 18, 60, 0.45), rgba(244, 63, 94, 0.3)) border-box !important;
+  color: #9f1239 !important;
+}
+
 /* ============================================================
    9. ACCESSIBILITY + MOTION
    ============================================================ */
@@ -780,6 +1042,9 @@ html.light #toefl-junior-assessments article:hover {
   .cmc-quick-chip,
   .cmc-icon-ring,
   #kid-grades article,
+  .cmc-page-card,
+  .cmc-score-sheet,
+  .cmc-my-score-btn,
   .iri-card,
   .iri-btn {
     transition: box-shadow 0.2s ease !important;
@@ -788,6 +1053,8 @@ html.light #toefl-junior-assessments article:hover {
   .cmc-quick:hover,
   .cmc-glass:hover,
   #kid-grades article:hover,
+  .cmc-page-card:hover,
+  .cmc-my-score-btn:hover,
   .iri-card:hover {
     transform: none !important;
   }
@@ -811,6 +1078,8 @@ html.light #toefl-junior-assessments article:hover {
 .iri-btn:focus-visible,
 .cmc-card:focus-visible,
 .cmc-quick:focus-visible,
+.cmc-page-card:focus-visible,
+.cmc-my-score-btn:focus-visible,
 .iri-card:focus-visible {
   outline: 2px solid var(--iri-c);
   outline-offset: 3px;
