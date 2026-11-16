@@ -35,8 +35,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // The page can open already scrolled (/#sections shows the cards), and
+    // that scroll happens before this listener exists — read it once.
+    const frame = window.requestAnimationFrame(handleScroll);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   // Close the user dropdown on outside click / Escape

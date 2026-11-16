@@ -5,7 +5,7 @@
  * is permitted without the express written permission of the copyright owner.
  */
 
-import { Suspense, lazy, memo, useCallback, useEffect, useState, type ComponentType } from 'react';
+import { Suspense, lazy, memo, useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { Navbar } from './components/Navbar';
 import { TestThanksOverlay } from './components/TestThanksOverlay';
 import { QuickDrawer } from './components/QuickDrawer';
@@ -22,14 +22,16 @@ import { useFirebaseAuth } from './hooks/useFirebaseAuth';
 import { restoreSession } from './lib/firebaseAuth';
 import { supabase } from './lib/supabase';
 import { TickerBanner } from './components/TickerBanner';
+import { SectionDirectory, PageBar, MoreInGroup } from './components/SectionDirectory';
+import { DIRECTORY_HASH, findPage, hashKey, isInPageAnchor, resolveRoute } from './lib/sitePages';
 
 /**
- * Below-the-fold homepage sections: each is (a) its own async chunk — the
- * code leaves the initial bundle and downloads only when the section
- * approaches the viewport, and (b) memoized — App-level state changes
- * (Quick Drawer, modals, hash routes) no longer re-render the whole page.
- * Paired with <LazyMount> in the JSX, which also defers every effect
- * (Firestore reads, image loads) until the section is near the viewport.
+ * The sections that used to be stacked on the one-page home. Each is now a
+ * page of its own (see src/lib/sitePages.ts) and still (a) its own async
+ * chunk — the code downloads only when its page is opened, and (b) memoized —
+ * App-level state changes (Quick Drawer, modals) do not re-render it.
+ * Paired with <LazyMount> in the JSX, which keeps the per-section error
+ * boundary and the placeholder that carries the section's anchor id.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any -- `pick` projects each
  * module's export; memo() re-wraps it. (ComponentType<any> avoids React's
@@ -75,6 +77,17 @@ const LearningGamesPage = lazy(() => retryImport(() => import('./components/Lear
 const BrainLoungePage = lazy(() => retryImport(() => import('./components/BrainLoungePage')).then(m => ({ default: m.BrainLoungePage })));
 const FirebaseDashboard = lazy(() => retryImport(() => import('./components/FirebaseDashboard')).then(m => ({ default: memo(m.FirebaseDashboard) })));
 
+const HOME_TITLE = typeof document !== 'undefined' ? document.title : '';
+
+interface NavState {
+  /** 'home' or the id of a page in SITE_PAGES. */
+  route: string;
+  /** The hash that produced it — also names an anchor to scroll to. */
+  hash: string;
+  /** Counts navigations, so the scroll effect runs on every one. */
+  tick: number;
+}
+
 export function App() {
   const [quickDrawerOpen, setQuickDrawerOpen] = useState(false);
   const [teacherPassModalOpen, setTeacherPassModalOpen] = useState(false);
@@ -87,10 +100,15 @@ export function App() {
   // sees the misleading "Secure membership is not configured" gate even
   // though they're fully authenticated.
   const firebaseAuth = useFirebaseAuth();
-  const [isGamesPage, setIsGamesPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#games');
-  const [isTeacherToolsPage, setIsTeacherToolsPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#teacher-tools');
-  const [isNewsPage, setIsNewsPage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#news');
-  const [isBrainLoungePage, setIsBrainLoungePage] = useState(() => typeof window !== 'undefined' && window.location.hash === '#brain-lounge');
+
+  // Which page is open. The hash is the address: `/#pricing` is the Pricing
+  // page, `/#games` the Play Lab, no hash (or #top / #sections) the home page.
+  const [nav, setNav] = useState<NavState>(() => {
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    return { route: resolveRoute(hash), hash, tick: 0 };
+  });
+  const route = nav.route;
+  const page = route === 'home' ? undefined : findPage(route);
 
   const openMemberAuth = useCallback((mode: 'sign-up' | 'sign-in' = 'sign-up') => {
     setAuthInitialMode(mode);
@@ -101,148 +119,126 @@ export function App() {
     void supabase?.auth.signOut();
   }, []);
 
-  const openGamesPage = useCallback(() => {
-    window.location.hash = 'games';
+  /** Open a page by its id — the hashchange listener below does the rest. */
+  const openPage = useCallback((id: string) => {
+    window.location.hash = id;
   }, []);
 
-  const openTeacherToolsPage = useCallback(() => {
-    window.location.hash = 'teacher-tools';
-  }, []);
+  const openGamesPage = useCallback(() => openPage('games'), [openPage]);
+  const openTeacherToolsPage = useCallback(() => openPage('teacher-tools'), [openPage]);
+  const openNewsPage = useCallback(() => openPage('news'), [openPage]);
 
-  const openNewsPage = useCallback(() => {
-    window.location.hash = 'news';
-  }, []);
-
-  const openBrainLoungePage = useCallback(() => {
-    window.location.hash = 'brain-lounge';
-  }, []);
-
-  const returnHome = useCallback(() => {
-    setIsGamesPage(false);
-    setIsTeacherToolsPage(false);
-    setIsNewsPage(false);
-    setIsBrainLoungePage(false);
-    window.location.hash = 'top';
-  }, []);
-
-  // Smooth scroll handler
-  const scrollToSection = useCallback((id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, []);
+  // "Back" on a page with its own header: return to the cards on the home
+  // page — that is where the visitor chose the page.
+  const returnHome = useCallback(() => openPage(DIRECTORY_HASH), [openPage]);
 
   const handleQuickLinkSelect = useCallback((toolId: string) => {
     if (toolId === 'learning-games') {
-      openGamesPage();
+      openPage('games');
     } else if (toolId === 'daily-assessment') {
-      scrollToSection('daily-assessment');
-    } else if (toolId === 'kid-grades') {
-      scrollToSection('kid-grades');
+      openPage('daily-assessment');
+    } else if (toolId === 'kid-grades' || toolId === 'kid-program') {
+      openPage('kid-grades');
     } else if (toolId === 'toefl-assessments') {
-      scrollToSection('toefl-junior-assessments');
+      openPage('toefl-junior-assessments');
     } else if (toolId === 'toefl-suite') {
-      scrollToSection('toefl-mini-test');
+      openPage('toefl-mini-test');
     } else if (toolId === 'toefl-ibt-mock') {
-      // The Quick Link declares path '#toefl-ibt-mock' — scroll to the full
-      // mock-test card instead of falling through to the generic features grid.
-      scrollToSection('toefl-ibt-mock');
+      // The Quick Link declares path '#toefl-ibt-mock' — the full mock-test
+      // page, not the generic features page.
+      openPage('toefl-ibt-mock');
     } else if (toolId === 'toefl-itp-planner') {
       // Declared path './biweek-planner/' — open the standalone planner hub.
       window.location.assign('./biweek-planner/');
-    } else if (toolId === 'worksheet-uploads' || toolId === 'prefix-suffix') {
+    } else if (toolId === 'worksheet-uploads' || toolId === 'prefix-suffix' || toolId === 'pre-kid' || toolId === 'chinese-language') {
       // Declared path '#resources': printable handouts + the morphology
       // assignment with its teacher key live in the Resource Library vault.
-      scrollToSection('resources');
+      openPage('resources');
     } else if (toolId === 'auto-grading' || toolId === 'worksheets') {
-      scrollToSection('interactive-demo');
-    } else if (toolId === 'kid-program') {
-      scrollToSection('kid-grades');
+      openPage('interactive-demo');
     } else if (toolId === 'gep-program' || toolId === 'isec-program') {
-      scrollToSection('gep-isec');
+      openPage('gep-isec');
     } else if (toolId === 'teacher-tools') {
-      openTeacherToolsPage();
+      openPage('teacher-tools');
     } else if (toolId === 'cm-studio') {
       window.location.assign('./studio/');
     } else if (toolId === 'lms-workspace') {
-      scrollToSection('lms-workspace');
+      openPage('lms-workspace');
     } else if (toolId === 'cambodia-news') {
-      openNewsPage();
+      openPage('news');
     } else if (toolId === 'brain-lounge') {
-      openBrainLoungePage();
-    } else if (toolId === 'pre-kid' || toolId === 'chinese-language') {
-      scrollToSection('resources');
+      openPage('brain-lounge');
     } else {
-      scrollToSection('features');
+      openPage('features');
     }
-  }, [openBrainLoungePage, openGamesPage, openNewsPage, openTeacherToolsPage, scrollToSection]);
+  }, [openPage]);
 
   const handleHeroFeatureSelect = useCallback((feature: string) => {
     if (feature === 'auto-grading' || feature === 'prefix-suffix' || feature === 'analytics') {
-      scrollToSection('interactive-demo');
+      openPage('interactive-demo');
     } else if (feature === 'resources') {
-      scrollToSection('resources');
+      openPage('resources');
     } else if (feature === 'kid-grades') {
-      scrollToSection('kid-grades');
+      openPage('kid-grades');
     } else if (feature === 'toefl-ibt-mock') {
-      // Quick-launch card promises the full mock test — there is a dedicated
-      // section for it (falling through to 'features' was a dead end).
-      scrollToSection('toefl-ibt-mock');
+      // Quick-launch card promises the full mock test — it has its own page.
+      openPage('toefl-ibt-mock');
     } else if (feature === 'games') {
       // Quick-launch card promises the games — open the Play Lab page.
-      openGamesPage();
+      openPage('games');
     } else {
-      scrollToSection('features');
+      openPage('features');
     }
-  }, [openGamesPage, scrollToSection]);
+  }, [openPage]);
 
+  // An anchor inside a page (`#privacy-notice`) does not say which page it
+  // belongs to, so the page is written into that history entry: going Back
+  // to it later, from anywhere, shows the page it was opened on.
+  const routeRef = useRef(route);
   useEffect(() => {
     const syncRoute = () => {
-      setIsGamesPage(window.location.hash === '#games');
-      setIsTeacherToolsPage(window.location.hash === '#teacher-tools');
-      setIsNewsPage(window.location.hash === '#news');
-      setIsBrainLoungePage(window.location.hash === '#brain-lounge');
+      const hash = window.location.hash;
+      let base = routeRef.current;
+      if (isInPageAnchor(hash)) {
+        const remembered: unknown = window.history.state?.cmcPage;
+        if (typeof remembered === 'string' && (remembered === 'home' || findPage(remembered))) {
+          base = remembered;
+        } else {
+          try {
+            window.history.replaceState({ ...(window.history.state ?? {}), cmcPage: base }, '');
+          } catch {
+            /* history unavailable — the anchor still works */
+          }
+        }
+      }
+      const next = resolveRoute(hash, base);
+      routeRef.current = next;
+      setNav((prev) => ({ route: next, hash, tick: prev.tick + 1 }));
     };
     window.addEventListener('hashchange', syncRoute);
     return () => window.removeEventListener('hashchange', syncRoute);
   }, []);
 
-  // Deep links to a homepage section (/#pricing, /#resources, …). main.tsx
-  // pins the scroll position to the top on load, and the sections below the
-  // fold are LazyMount placeholders whose real height is only known once
-  // they render, so the browser's own "scroll to the hash" never lands.
-  // Jump to the target, then re-align a few times while the sections above
-  // it mount and settle. Any user input cancels the follow-up jumps.
+  // Where the window sits after a navigation. Every page opens at its top
+  // (main.tsx turns the browser's own scroll restoration off); `#sections`
+  // shows the home page at its cards; any other hash that is not a page is an
+  // anchor inside the page already open (`#privacy-notice` in the footer).
   // behavior 'instant': the stylesheet sets scroll-behavior: smooth, and a
-  // smooth scroll restarted every few hundred ms never arrives.
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (['', '#', '#top', '#games', '#teacher-tools', '#news', '#brain-lounge'].includes(hash)) return;
-    let id = '';
-    try {
-      id = decodeURIComponent(hash.slice(1));
-    } catch {
-      return;
+  // page change must not glide down from wherever the last page was left.
+  useLayoutEffect(() => {
+    const key = hashKey(nav.hash);
+    const anchor = key === DIRECTORY_HASH || isInPageAnchor(nav.hash) ? document.getElementById(key) : null;
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'instant', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }
-    if (!id || !document.getElementById(id)) return;
+  }, [nav.tick, nav.hash]);
 
-    let cancelled = false;
-    const cancel = () => { cancelled = true; };
-    const jump = () => {
-      if (cancelled) return;
-      document.getElementById(id)?.scrollIntoView({ behavior: 'instant', block: 'start' });
-    };
-    jump();
-    const timers = [120, 350, 700, 1200, 2000, 3000].map((ms) => window.setTimeout(jump, ms));
-    const inputs = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
-    inputs.forEach((type) => window.addEventListener(type, cancel, { passive: true, once: true }));
-    return () => {
-      cancelled = true;
-      timers.forEach((t) => window.clearTimeout(t));
-      inputs.forEach((type) => window.removeEventListener(type, cancel));
-    };
-  }, []);
+  // The tab title names the page that is open.
+  useEffect(() => {
+    document.title = page ? `${page.title} · CMC Network Hub` : HOME_TITLE;
+  }, [page]);
 
   // Deep-link support for the teacher-only planner hub: the locked screen
   // on public/biweek-planner/ (teacher-gate.js) sends unauthenticated
@@ -281,7 +277,8 @@ export function App() {
     </ErrorBoundary>
   );
 
-  if (isGamesPage) return (
+  // ── Pages that bring their own header ──────────────────────────────
+  if (route === 'games') return (
     <>
       <Suspense fallback={null}>
         <LearningGamesPage onBackHome={returnHome} />
@@ -290,7 +287,7 @@ export function App() {
     </>
   );
 
-  if (isTeacherToolsPage) return (
+  if (route === 'teacher-tools') return (
     <>
       <Suspense fallback={null}>
         <TeacherToolsPage onBackHome={returnHome} onOpenAuth={() => openMemberAuth('sign-up')} />
@@ -299,7 +296,7 @@ export function App() {
     </>
   );
 
-  if (isNewsPage) return (
+  if (route === 'news') return (
     <>
       <Suspense fallback={null}>
         <NewsPage onBackHome={returnHome} />
@@ -310,8 +307,8 @@ export function App() {
 
   // The Brain Lounge — dedicated arcade page for CMC-built games
   // (cartridge registry in src/games/registry.ts). Reachable from the
-  // navbar, Quick Links, or directly via #brain-lounge.
-  if (isBrainLoungePage) return (
+  // navbar, Quick Links, its card, or directly via #brain-lounge.
+  if (route === 'brain-lounge') return (
     <>
       <Suspense fallback={null}>
         <BrainLoungePage onBackHome={returnHome} />
@@ -320,116 +317,100 @@ export function App() {
     </>
   );
 
-  return (
-    <div className="cmc-app min-h-screen bg-slate-950 text-slate-100 flex flex-col relative selection:bg-cyan-500 selection:text-white">
-      {/* Thank-you overlay after an invited bi-weekly test submission (?thanks=1) */}
-      <TestThanksOverlay />
-
-      {/* Sticky Top Navbar */}
-      <Navbar
-        onOpenQuickLinks={() => setQuickDrawerOpen(true)}
-        onOpenTeacherPass={() => openMemberAuth('sign-up')}
-        onOpenStudentDemo={() => setStudentDemoModalOpen(true)}
-      />
-
-      {/* Main Content Sections */}
-      <main className="flex-1">
-        {/* Hero Section with Quick Feature Cards + News side panel (lg+) */}
-        <Hero
-          onExploreTools={openTeacherToolsPage}
-          onOpenStudentDemo={() => setStudentDemoModalOpen(true)}
-          onOpenTeacherPass={() => openMemberAuth('sign-up')}
-          onSelectFeatureCard={handleHeroFeatureSelect}
-          sidePanel={<NewsSidePanel onSeeAll={openNewsPage} />}
-        />
-
-        {/* Blog-style announcement board — FIRST content section on the
-            homepage: news & info that visitors should see first, right under
-            the hero. Public to read. Only approved admins (site owner +
-            accounts approved in board's "Approve admins" panel, stored in
-            site_config/admins) can publish/edit/pin/delete posts.
-            LazyMount: mount + its Firestore read defer until it nears the
-            viewport; the placeholder keeps the anchor id so links still work. */}
-        <LazyMount id="announcements" minHeight={620}>
-          <AnnouncementBoard />
-        </LazyMount>
-
-        {/* "From the Blog" — the personal stream on Blogger, kept deliberately
-            quiet: one small Blogger-style badge linking to
-            creativemindscambodia.blogspot.com instead of a large card grid.
-            The educational announcements stay on the board above; this strip
-            only marks the director's own writings, songs & videos. */}
-        <LazyMount id="blog" minHeight={96}>
-          <BlogSection />
-        </LazyMount>
-
-        {/* Main-hero themed link to the separate daily student record workspace */}
+  // ── Section pages: one former home section each ────────────────────
+  // LazyMount keeps what it gave the long page: a per-section error
+  // boundary, a placeholder of about the right height while the chunk
+  // downloads, and the section's anchor id.
+  const sectionBody = (id: string): ReactNode => {
+    switch (id) {
+      // Blog-style announcement board. Public to read. Only approved admins
+      // (site owner + accounts approved in the board's "Approve admins"
+      // panel, stored in site_config/admins) can publish/edit/pin/delete.
+      // Under it, "From the Blog": one small Blogger-style badge linking to
+      // creativemindscambodia.blogspot.com — the director's own writings.
+      case 'announcements': return (
+        <>
+          <LazyMount id="announcements" minHeight={620}>
+            <AnnouncementBoard />
+          </LazyMount>
+          <LazyMount id="blog" minHeight={96}>
+            <BlogSection />
+          </LazyMount>
+        </>
+      );
+      // Link to the separate daily student record workspace
+      case 'daily-assessment': return (
         <LazyMount id="daily-assessment" minHeight={480}>
           <DailyAssessmentCard onOpenAuth={() => openMemberAuth('sign-up')} />
         </LazyMount>
-
-        {/* Full TOEFL iBT mock test card — opens 4-section practice exam */}
+      );
+      // Full TOEFL iBT mock test card — opens 4-section practice exam
+      case 'toefl-ibt-mock': return (
         <LazyMount id="toefl-ibt-mock" minHeight={460}>
           <TOEFLiBTCard />
         </LazyMount>
-
-        {/* LMS Workspace — teacher-only gated feature (requires signup) */}
+      );
+      // Creative Minds Studio — teacher-only gated feature (requires signup)
+      case 'lms-workspace': return (
         <LazyMount id="lms-workspace" minHeight={480}>
           <LMSCard onOpenAuth={() => openMemberAuth('sign-up')} />
         </LazyMount>
-
-        {/* Firebase real-time dashboard — live class results + student score tracking.
-            Lazy chunk (Firebase SDK stays out of the initial load) AND now
-            lazy-MOUNTED: the chunk download and its live listeners start only
-            when the dashboard approaches the viewport. */}
+      );
+      // Firebase real-time dashboard — live class results + student score
+      // tracking. Lazy chunk: the Firebase SDK and its live listeners start
+      // only when this page is opened.
+      case 'live-results': return (
         <LazyMount minHeight={240}>
           <FirebaseDashboard />
         </LazyMount>
-
-        {/* TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15 test pages.
-            Teacher-account-only: the planner content is gated inside the card
-            (RoleGate); the standalone planner hub is gated
-            by public/biweek-planner/teacher-gate.js. */}
+      );
+      // TOEFL ITP Bi-Weekly Planner card — opens 8-week study plan with 15
+      // test pages. Teacher-account-only: the planner content is gated inside
+      // the card (RoleGate); the standalone planner hub is gated by
+      // public/biweek-planner/teacher-gate.js.
+      case 'toefl-itp-planner': return (
         <LazyMount id="toefl-itp-planner" minHeight={560}>
           <BiWeekPlannerCard onOpenAuth={() => openMemberAuth('sign-in')} />
         </LazyMount>
-
-        {/* Available learning materials and skills */}
-        <LazyMount minHeight={520}>
+      );
+      // Available learning materials and skills
+      case 'toolkit': return (
+        <LazyMount id="toolkit" minHeight={520}>
           <SocialProof />
         </LazyMount>
-
-        {/* Kid Program grade 5-12 resource pathway; Kid 6 + Kid 11 currently linked. */}
+      );
+      // Kid Program grade 5-12 resource pathway; Kid 6 + Kid 11 currently linked.
+      case 'kid-grades': return (
         <LazyMount id="kid-grades" minHeight={640}>
           <KidGradeHub onOpenAuth={() => openMemberAuth('sign-in')} />
         </LazyMount>
-
-        {/* GEP & ISEC adult-level program resources (Bi-Weekly Planner + ISEC drills). */}
+      );
+      // GEP & ISEC adult-level program resources (Bi-Weekly Planner + ISEC drills).
+      case 'gep-isec': return (
         <LazyMount id="gep-isec" minHeight={640}>
           <GEPISecHub />
         </LazyMount>
-
-        {/* Teacher Tools: Dice, Wheel, and Studio — available at #teacher-tools
-            (via Quick Drawer, navbar, or direct URL). Not shown inline on the
-            homepage to keep it focused on content, not tools. */}
-
-        {/* Live Interactive Sandbox: Auto-Grader, Worksheet Generator & Roster */}
+      );
+      // Live Interactive Sandbox: Auto-Grader, Worksheet Generator & Roster
+      case 'interactive-demo': return (
         <LazyMount id="interactive-demo" minHeight={720}>
           <InteractiveShowcase />
         </LazyMount>
-
-        {/* Core Features Bento Grid */}
+      );
+      // Core Features Bento Grid
+      case 'features': return (
         <LazyMount id="features" minHeight={640}>
           <FeaturesBento
-            onExploreMockTest={() => scrollToSection('toefl-mini-test')}
-            onExploreJuniorAssessments={() => scrollToSection('toefl-junior-assessments')}
+            onExploreMockTest={() => openPage('toefl-mini-test')}
+            onExploreJuniorAssessments={() => openPage('toefl-junior-assessments')}
             onExploreGames={openGamesPage}
-            onExploreDailyAssessment={() => scrollToSection('daily-assessment')}
-            onExploreKidGrades={() => scrollToSection('kid-grades')}
+            onExploreDailyAssessment={() => openPage('daily-assessment')}
+            onExploreKidGrades={() => openPage('kid-grades')}
           />
         </LazyMount>
-
-        {/* Member-gated timed TOEFL-style mini mock */}
+      );
+      // Member-gated timed TOEFL-style mini mock
+      case 'toefl-mini-test': return (
         <LazyMount id="toefl-mini-test" minHeight={560}>
           <MiniMockTest
             key={memberAuth.member?.userId ?? firebaseAuth.session?.localId ?? 'guest'}
@@ -440,56 +421,103 @@ export function App() {
             onSignOut={handleMemberSignOut}
           />
         </LazyMount>
-
+      );
+      case 'toefl-junior-assessments': return (
         <LazyMount id="toefl-junior-assessments" minHeight={620}>
           <ToeflJuniorAssessments />
         </LazyMount>
-
-        {/* Teacher Resource Library & Download Vault */}
+      );
+      // Teacher Resource Library & Download Vault
+      case 'resources': return (
         <LazyMount id="resources" minHeight={560}>
           <ResourceLibrary />
         </LazyMount>
-
-        {/* Time Savings / ROI Calculator */}
+      );
+      // Time Savings / ROI Calculator
+      case 'roi-calc': return (
         <LazyMount id="roi-calc" minHeight={520}>
-          <RoiCalculator
-            onOpenTeacherPass={() => openMemberAuth('sign-up')}
-          />
+          <RoiCalculator onOpenTeacherPass={() => openMemberAuth('sign-up')} />
         </LazyMount>
-
-        {/* Traditional vs. CMC Comparison Matrix */}
-        <LazyMount minHeight={560}>
-          <ComparisonTable
-            onOpenTeacherPass={() => openMemberAuth('sign-up')}
-          />
+      );
+      // Honest product status: what is live and what is planned
+      case 'whats-live': return (
+        <LazyMount id="whats-live" minHeight={560}>
+          <ComparisonTable onOpenTeacherPass={() => openMemberAuth('sign-up')} />
         </LazyMount>
-
-        {/* What educators can explore in the current build */}
-        <LazyMount minHeight={520}>
+      );
+      // What educators can explore in the current build
+      case 'practice-notes': return (
+        <LazyMount id="practice-notes" minHeight={520}>
           <Testimonials />
         </LazyMount>
-
-        {/* Transparent Teacher & School Pricing */}
+      );
+      // Teacher & School Pricing
+      case 'pricing': return (
         <LazyMount id="pricing" minHeight={560}>
-          <Pricing
-            onOpenTeacherPass={() => openMemberAuth('sign-up')}
-          />
+          <Pricing onOpenTeacherPass={() => openMemberAuth('sign-up')} />
         </LazyMount>
-
-        {/* Searchable FAQ */}
+      );
+      // Searchable FAQ
+      case 'faq': return (
         <LazyMount id="faq" minHeight={560}>
-          <FaqSection
-            onOpenTeacherPass={() => openMemberAuth('sign-up')}
-          />
+          <FaqSection onOpenTeacherPass={() => openMemberAuth('sign-up')} />
         </LazyMount>
+      );
+      // Teacher account call-to-action
+      case 'get-started': return (
+        <LazyMount id="get-started" minHeight={420}>
+          <CtaSection onSuccess={() => openMemberAuth('sign-up')} />
+        </LazyMount>
+      );
+      default: return null;
+    }
+  };
 
-        {/* High-Impact Final CTA */}
-        <LazyMount minHeight={420}>
-          <CtaSection
-            onSuccess={() => openMemberAuth('sign-up')}
+  const body = page ? sectionBody(page.id) : null;
+
+  return (
+    <div
+      className="cmc-app min-h-screen bg-slate-950 text-slate-100 flex flex-col relative selection:bg-cyan-500 selection:text-white"
+      data-route={page && body ? page.id : 'home'}
+    >
+      {/* Thank-you overlay after an invited bi-weekly test submission (?thanks=1) */}
+      <TestThanksOverlay />
+
+      {/* Sticky Top Navbar */}
+      <Navbar
+        onOpenQuickLinks={() => setQuickDrawerOpen(true)}
+        onOpenTeacherPass={() => openMemberAuth('sign-up')}
+        onOpenStudentDemo={() => setStudentDemoModalOpen(true)}
+      />
+
+      {page && body ? (
+        /* A section page: the strip that says where you are, the section,
+           and the neighbouring pages. `key` remounts the body on every page
+           change so one page's state never leaks into the next. */
+        <main className="cmc-page flex-1" key={page.id}>
+          <PageBar page={page} />
+          <div className="cmc-page-body">{body}</div>
+          <MoreInGroup page={page} />
+        </main>
+      ) : (
+        /* The home page: the hero and one card per page — nothing else, so
+           there is no long scroll to hunt through. */
+        <main className="flex-1">
+          {/* Hero Section with Quick Feature Cards + News side panel (lg+) */}
+          <Hero
+            onExploreTools={openTeacherToolsPage}
+            onOpenStudentDemo={() => setStudentDemoModalOpen(true)}
+            onOpenTeacherPass={() => openMemberAuth('sign-up')}
+            onSelectFeatureCard={handleHeroFeatureSelect}
+            sidePanel={<NewsSidePanel onSeeAll={openNewsPage} />}
           />
-        </LazyMount>
-      </main>
+
+          {/* One card per page, in groups. The News group is first and its
+              Announcements card shows the newest posts, so news is still
+              what a visitor sees first (owner request). */}
+          <SectionDirectory />
+        </main>
+      )}
 
       {/* Footer */}
       <Footer
@@ -506,13 +534,12 @@ export function App() {
 
       {/* Teacher Free Pass Modal — uses Firebase Authentication (Email/Password
           + Google), independent of the Supabase member-entitlement flow that
-          gates the MiniMockTest below. */}
+          gates the MiniMockTest. */}
       {authModal}
 
       {/* Live stats + Top Teachers ticker — fixed at the bottom of the
-          viewport. Shown on the homepage only (sub-pages render their own
-          full-screen layout via early returns above). */}
-      <TickerBanner onOpenTeacherPass={() => openMemberAuth('sign-up')} />
+          viewport. Shown on the home page only. */}
+      {!page && <TickerBanner onOpenTeacherPass={() => openMemberAuth('sign-up')} />}
 
       {/* Live Student Experience Demo Modal */}
       <ErrorBoundary variant="silent" label="student-demo-modal">
@@ -527,7 +554,7 @@ export function App() {
 
       {/* Floating Quick Action Dock — sits above the TickerBanner so
           neither overlaps the other. */}
-      <div className="fixed bottom-24 right-6 z-40 flex items-center gap-2">
+      <div className={`cmc-dock fixed right-6 z-40 flex items-center gap-2 ${page ? 'bottom-6' : 'bottom-24'}`}>
         <button
           onClick={() => setQuickDrawerOpen(true)}
           className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-cyan-500/40 text-cyan-300 text-xs font-semibold shadow-xl backdrop-blur-md transition hover:scale-105 active:scale-95"

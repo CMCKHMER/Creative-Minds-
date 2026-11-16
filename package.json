@@ -19,7 +19,8 @@
     "verify:kidhw": "node scripts/verify_kid_homework.mjs",
     "verify:title": "node scripts/verify_title_particles.mjs",
     "verify:planner-title": "node scripts/verify_planner_title.mjs",
-    "verify:planner-page-title": "node scripts/verify_planner_page_title.mjs"
+    "verify:planner-page-title": "node scripts/verify_planner_page_title.mjs",
+    "verify:pages": "node scripts/verify_pages.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

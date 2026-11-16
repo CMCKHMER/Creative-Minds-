@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, Mic, RotateCcw, Share2, Sparkles, XCircle, Volume2, VolumeX } from 'lucide-react';
+import { GlassFact, GlassPageBar, GlassPageHero } from './GlassPage';
 import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 import { GameLeaderboard, submitGameScore, useSignedInPlayerName } from './GameLeaderboard';
@@ -216,29 +217,20 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070d17] text-slate-100">
-      <div className="sticky top-0 z-40 border-b border-white/8 bg-[#070d17]/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
-          <a href="#games" className="flex items-center gap-3" aria-label="Creative Minds Learning Games home"><span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-300 to-violet-400 text-slate-950"><Sparkles className="h-4 w-4" aria-hidden="true" /></span><span className="text-sm font-bold tracking-tight text-white">Creative Minds <span className="text-cyan-200">Play Lab</span></span></a>
-          <button type="button" onClick={onBackHome} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/5 hover:text-white"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Back to CMC</button>
-        </div>
-      </div>
+    <main className="cmc-app cmc-subpage min-h-screen overflow-hidden text-slate-100">
+      <GlassPageBar href="#games" label="Creative Minds Learning Games home" icon={Sparkles} name="Creative Minds" accent="Play Lab" onBack={onBackHome} />
 
-      <section data-keep-dark className="relative isolate overflow-hidden border-b border-white/8">
-        {/* Full-bleed semi-transparent hero background image */}
-        <img src="./images/card-games.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_72%_34%,rgba(34,211,238,.16),transparent_38%),radial-gradient(ellipse_at_16%_88%,rgba(139,92,246,.18),transparent_38%),linear-gradient(125deg,#091421,#0c1122_60%,#101326)]" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:52px_52px] [mask-image:linear-gradient(90deg,black,transparent_90%)]" />
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24 lg:py-28">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-teal-200/20 bg-teal-200/5 px-3 py-1.5 text-[10px] font-bold tracking-[0.17em] text-teal-100 uppercase"><Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> The CMC Learning Games room</span>
-            <h1 className="mt-6 font-[var(--font-display)] text-4xl leading-[1.04] font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">Pick a game.<br /><span className="bg-gradient-to-r from-cyan-200 via-teal-200 to-violet-200 bg-clip-text text-transparent">Follow the clues.</span></h1>
-            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Short, original learning games for vocabulary, reading, grammar, listening, and early literacy. Read the game brief, choose a challenge, and get feedback as you play.</p>
-            <div className="mt-8 flex flex-wrap items-center gap-3 text-[10px] text-slate-400"><span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">8 playable games</span><span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">3–5 minutes each</span><span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">No student account required</span></div>
-          </div>
-        </div>
-      </section>
+      <GlassPageHero
+        view="a"
+        eyebrow="The CMC Learning Games room"
+        eyebrowIcon={Sparkles}
+        title={<>Pick a game.<br /><em>Follow the clues.</em></>}
+        lead="Short, original learning games for vocabulary, reading, grammar, listening, and early literacy. Read the game brief, choose a challenge, and get feedback as you play."
+      >
+        <GlassFact>8 playable games</GlassFact>
+        <GlassFact>3–5 minutes each</GlassFact>
+        <GlassFact>No student account required</GlassFact>
+      </GlassPageHero>
 
       {/* Developer's Picks — the developer's own featured reading & quiz
           (owner request, Nov 2026: the Creativeminds Canva worksheet "Ghost
