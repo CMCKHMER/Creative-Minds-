@@ -14,7 +14,7 @@ import {
   MAX_ENTRIES,
   type ScoreEntry,
 } from '../games/brickforge/highscores';
-import { aggregateMafia } from '../lib/brainLoungeStats';
+import { aggregateMafia, aggregateWordCreator } from '../lib/brainLoungeStats';
 
 /** Minimal localStorage stub — vitest runs in a node environment, but the
  * highscore module (and the game itself) touches localStorage everywhere. */
@@ -79,10 +79,16 @@ describe('brain lounge registry', () => {
     expect(reservedBays().length).toBeGreaterThanOrEqual(1);
   });
 
-  it('leads the shelf with BrickForge, Galica in bay 2, Mafia Noir in bay 4, Neon Sequence retired', () => {
+  it('leads the shelf with BrickForge, Galica in bay 2, Mafia Noir in bay 4, Word Creator in bay 5', () => {
     expect(BRAIN_GAMES[0]?.id).toBe('brickforge');
     expect(BRAIN_GAMES.some((g) => g.id === 'neon-sequence')).toBe(false);
-    expect(liveBrainGames().map((g) => g.id)).toEqual(['brickforge', 'chess3d', 'galica', 'mafia']);
+    expect(liveBrainGames().map((g) => g.id)).toEqual(['brickforge', 'chess3d', 'galica', 'mafia', 'word-creator']);
+    // Word Creator takes the bay-05 slot and the reserved bay moves down one,
+    // so a new game still has somewhere to land.
+    const ids = BRAIN_GAMES.map((g) => g.id);
+    expect(ids.indexOf('word-creator')).toBe(ids.indexOf('mafia') + 1);
+    expect(BRAIN_GAMES.find((g) => g.id === 'bay-05')).toBeUndefined();
+    expect(BRAIN_GAMES.filter((g) => g.status === 'coming-soon').map((g) => g.id)).toEqual(['bay-06']);
   });
 
   it('react cartridges load a default component', async () => {
@@ -345,5 +351,128 @@ describe('mafia lounge aggregation', () => {
     ]);
     expect(rows.map((r) => r.name)).toEqual(['A', 'B']);
     expect(rows[0]).toMatchObject({ wins: 1, losses: 1, cases: 2 });
+  });
+});
+
+/** Word Creator cartridge — the lounge's full 15×15 word duel, and the first
+ * standalone cartridge with BOTH an online room transport and a match
+ * leaderboard. Pins the shipped files together with the two bugs the audit
+ * found (hints firing behind a modal; a swap counting as a pass) and the
+ * deal/transport contract the online mode depends on. */
+describe('word creator standalone cartridge', () => {
+  const wc = BRAIN_GAMES.find((g) => g.id === 'word-creator');
+  const html = readFileSync(resolve(process.cwd(), 'public', 'arcade', 'word-creator', 'index.html'), 'utf8');
+  const online = readFileSync(resolve(process.cwd(), 'public', 'arcade', 'word-creator', 'online.js'), 'utf8');
+
+  it('is live in the bay-05 slot that used to be reserved', () => {
+    expect(wc).toBeDefined();
+    expect(wc!.status).toBe('live');
+    expect(wc!.mode).toBe('standalone');
+    expect(wc!.launchUrl).toBe('./arcade/word-creator/index.html');
+    expect(wc!.genre).toBe('Word');
+    // bay-05 is gone: the cartridge that owned the slot is now the game
+    expect(BRAIN_GAMES.some((g) => g.id === 'bay-05')).toBe(false);
+  });
+
+  it('ships a complete page, not a fragment', () => {
+    expect(html).toContain('</html>');
+    expect(html).toContain('<title>Word Creator');
+    // the 15×15 board and the standard 100-tile bag
+    expect(html).toContain('id="grid"');
+  });
+
+  it('gates on a CMC account like every other standalone page', () => {
+    expect(html).toContain("CMC_GATE.guard('account', 'Sign up free to play Word Creator.')");
+    expect(html).toContain('../../assets/js/cmc-auth-gate.js');
+  });
+
+  it('posts finished matches to the lounge leaderboard', () => {
+    expect(html).toContain('var CMC_WORD_CREATOR_SUBMIT');
+    expect(html).toContain("drillSlug:{stringValue:'word-creator'}");
+    expect(html).toContain("drillSource:{stringValue:'brain-lounge'}");
+    // fired from endGame — the single exit both finishing paths go through
+    expect(html).toMatch(/reportMatch\(s\)/);
+    // only ever reports the signed-in player's own seat
+    expect(html).toContain('function cmcMySeat');
+  });
+
+  it('keeps the two audit fixes nailed down', () => {
+    // 1. a swap must not count toward the pass-out limit (it used to end a
+    //    healthy game after a few swaps)
+    const swap = html.slice(html.indexOf('function doSwap'), html.indexOf('function doSwap') + 700);
+    expect(swap).not.toContain('G.passes++');
+    // …while a pass still does
+    const pass = html.slice(html.indexOf('function doPass'), html.indexOf('function doPass') + 600);
+    expect(pass).toContain('G.passes++');
+    // 2. every action must respect an open modal (hints used to paint behind it)
+    expect(html).toContain('function modalOpen()');
+    expect(html).toMatch(/function canAct\(\)\{[^}]*!modalOpen\(\)/);
+  });
+
+  it('wires online play behind ?online without touching the offline path', () => {
+    // the transport is a separate file, inert unless the query asks for it
+    expect(html).toContain('<script src="./online.js" defer></script>');
+    expect(online).toContain('function boot()');
+    expect(online).toContain("params.has('online')");
+    // the collection the rules file gates
+    expect(online).toContain("word_creator_rooms");
+    // create posts to the COLLECTION path, never the doc path
+    expect(online).toContain("'/word_creator_rooms?documentId='");
+    // and the room shape carries the fields firestore.rules requires
+    for (const field of ['code', 'hostUid', 'hostName', 'seed', 'seats', 'seatsWanted', 'moves', 'turn', 'closed']) {
+      expect(online, `room field ${field}`).toContain(`${field}:`);
+    }
+  });
+
+  it('has exactly one deal implementation per codebase, and they agree', () => {
+    // the page cannot import TypeScript, so the deal is duplicated — the
+    // parity suite in wordCreatorOnline.test.ts is what keeps the two equal.
+    expect(online).toContain('function buildBag(seed)');
+    expect(online).toContain('function openDeal(seed, seats)');
+    expect(online).toContain('900000 + ix'); // ids outside the engine's own range
+  });
+});
+
+describe('word creator leaderboard decoding', () => {
+  const attempt = (over: Partial<Parameters<typeof aggregateWordCreator>[0][number]> = {}) => ({
+    studentName: 'Sok Dara', drillSlug: 'word-creator', drillSource: 'brain-lounge',
+    scorePct: 2, correctCount: 240, totalCount: 1, submittedAt: 1000, ...over,
+  });
+
+  it('ranks by the raw match score carried in correctCount', () => {
+    const rows = aggregateWordCreator([
+      attempt({ studentName: 'A', correctCount: 240 }),
+      attempt({ studentName: 'B', correctCount: 410, submittedAt: 1200 }),
+      attempt({ studentName: 'A', correctCount: 180, submittedAt: 1400 }),
+    ]);
+    expect(rows.map((r) => r.name)).toEqual(['B', 'A']);
+    expect(rows[0]).toMatchObject({ bestScore: 410, matches: 1, wins: 1 });
+    // A's best is kept, not their average — and both matches count
+    expect(rows[1]).toMatchObject({ bestScore: 240, matches: 2, wins: 2, lastPlayed: 1400 });
+  });
+
+  it('reads a win from totalCount, never from the score', () => {
+    // a 1-point match would decode as a "win" if this used the chess/mafia
+    // correct/total pair — that is exactly why totalCount carries the flag
+    const rows = aggregateWordCreator([attempt({ correctCount: 1, totalCount: 0 })]);
+    expect(rows[0]).toMatchObject({ matches: 1, wins: 0, bestScore: 1 });
+  });
+
+  it('ignores every other cartridge and every other source', () => {
+    const rows = aggregateWordCreator([
+      attempt({ studentName: 'A' }),
+      attempt({ studentName: 'B', drillSlug: 'galica' }),
+      attempt({ studentName: 'C', drillSource: 'learning-games' }),
+      attempt({ studentName: 'D', drillSlug: 'word-creator', drillSource: 'homework' }),
+    ]);
+    expect(rows.map((r) => r.name)).toEqual(['A']);
+  });
+
+  it('keeps the best percentage alongside the best score', () => {
+    const rows = aggregateWordCreator([
+      attempt({ scorePct: 2, correctCount: 240 }),
+      attempt({ scorePct: 6, correctCount: 410, submittedAt: 2000 }),
+    ]);
+    expect(rows[0]).toMatchObject({ bestPct: 6, bestScore: 410 });
   });
 });

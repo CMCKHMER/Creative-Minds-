@@ -1,11 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Crown, Flame, RefreshCw, Rocket, Swords, TrendingUp, Trophy, VenetianMask } from 'lucide-react';
+import { Crown, Flame, RefreshCw, Rocket, SpellCheck, Swords, TrendingUp, Trophy, VenetianMask } from 'lucide-react';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import {
   aggregateBrickforge,
   aggregateChess,
   aggregateGalica,
   aggregateMafia,
+  aggregateWordCreator,
   chessPoints,
   timeAgo,
   type BrickEntry,
@@ -13,6 +14,7 @@ import {
   type GalicaEntry,
   type LoungeAttempt,
   type MafiaRecord,
+  type WordCreatorEntry,
 } from '../lib/brainLoungeStats';
 import { useSignedInPlayerName } from './GameLeaderboard';
 
@@ -71,19 +73,26 @@ function BoardShell({
   icon: ReactNode;
   title: string;
   subtitle: string;
-  accent: 'brick' | 'chess' | 'galica' | 'mafia';
+  accent: 'brick' | 'chess' | 'galica' | 'mafia' | 'word';
   loading: boolean;
   lastFetch: number;
   children: ReactNode;
 }) {
-  const accentRing = accent === 'brick' ? 'border-orange-400/25' : accent === 'galica' ? 'border-cyan-300/25' : accent === 'mafia' ? 'border-rose-300/25' : 'border-emerald-300/25';
+  const accentRing =
+    accent === 'brick' ? 'border-orange-400/25'
+      : accent === 'galica' ? 'border-cyan-300/25'
+        : accent === 'mafia' ? 'border-rose-300/25'
+          : accent === 'word' ? 'border-sky-300/25'
+            : 'border-emerald-300/25';
   const accentIcon = accent === 'brick'
     ? 'from-orange-300/15 to-amber-500/10 text-orange-200'
     : accent === 'galica'
       ? 'from-cyan-300/15 to-sky-500/10 text-cyan-200'
       : accent === 'mafia'
         ? 'from-rose-300/15 to-red-500/10 text-rose-200'
-        : 'from-emerald-300/15 to-teal-500/10 text-emerald-200';
+        : accent === 'word'
+          ? 'from-sky-300/15 to-indigo-500/10 text-sky-200'
+          : 'from-emerald-300/15 to-teal-500/10 text-emerald-200';
   return (
     <div className={`flex flex-col rounded-2xl border ${accentRing} bg-slate-950/60 p-5 backdrop-blur-xl`}>
       <div className="flex items-center justify-between gap-3 border-b border-white/8 pb-3.5">
@@ -266,6 +275,53 @@ function GalicaBoard({ entries, you, loading, lastFetch }: { entries: GalicaEntr
   );
 }
 
+function WordCreatorBoard({ entries, you, loading, lastFetch }: { entries: WordCreatorEntry[]; you: string | null; loading: boolean; lastFetch: number }) {
+  return (
+    <BoardShell
+      icon={<SpellCheck className="h-4.5 w-4.5" aria-hidden="true" />}
+      title="Word Creator"
+      subtitle="Word duel · highest match score"
+      accent="word"
+      loading={loading}
+      lastFetch={lastFetch}
+    >
+      {entries.length === 0 ? (
+        <EmptyBoard line="No matches scored yet." />
+      ) : (
+        <ol className="space-y-1.5">
+          {entries.slice(0, MAX_ROWS).map((entry, index) => {
+            const isYou = you && entry.name === you;
+            return (
+              <li
+                key={entry.name}
+                className={`flex items-center gap-3 rounded-lg border px-3 py-2 transition ${
+                  isYou
+                    ? 'border-sky-300/40 bg-sky-300/[0.06] shadow-[0_0_0_1px_rgba(125,211,252,0.25)]'
+                    : 'border-white/8 bg-slate-950/40 hover:bg-slate-950/60'
+                }`}
+              >
+                <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-bold ${rankColor(index)} ${index < 3 ? 'bg-white/5' : ''}`}>
+                  {index < 3 ? <Crown className="h-3.5 w-3.5" aria-hidden="true" /> : index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-white">
+                    {entry.name}
+                    {isYou && <span className="ml-1.5 rounded bg-sky-300/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-sky-200">You</span>}
+                  </p>
+                  <p className="text-[9px] text-slate-500">
+                    {entry.matches} {entry.matches === 1 ? 'match' : 'matches'} · {entry.wins}W · last {timeAgo(entry.lastPlayed)}
+                  </p>
+                </div>
+                <span className="shrink-0 font-mono text-xs font-bold text-sky-200">{entry.bestScore.toLocaleString()}</span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </BoardShell>
+  );
+}
+
 function MafiaBoard({ records, you, loading, lastFetch }: { records: MafiaRecord[]; you: string | null; loading: boolean; lastFetch: number }) {
   return (
     <BoardShell
@@ -357,12 +413,14 @@ export function LoungeLeaderboard() {
   const chess = aggregateChess(attempts);
   const galica = aggregateGalica(attempts);
   const mafia = aggregateMafia(attempts);
+  const word = aggregateWordCreator(attempts);
   const totalRuns =
     brick.reduce((sum, e) => sum + e.plays, 0) +
     chess.reduce((sum, r) => sum + r.wins + r.draws + r.losses, 0) +
     galica.reduce((sum, e) => sum + e.plays, 0) +
-    mafia.reduce((sum, r) => sum + r.cases, 0);
-  const players = new Set([...brick, ...chess, ...galica, ...mafia].map((e) => e.name)).size;
+    mafia.reduce((sum, r) => sum + r.cases, 0) +
+    word.reduce((sum, e) => sum + e.matches, 0);
+  const players = new Set([...brick, ...chess, ...galica, ...mafia, ...word].map((e) => e.name)).size;
   const firstLoad = lastFetch === 0 && !error;
 
   return (
@@ -373,7 +431,7 @@ export function LoungeLeaderboard() {
         </p>
         <h2 className="mt-2 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">Lounge leaderboard</h2>
         <p className="mt-2 max-w-2xl text-xs leading-relaxed text-slate-400">
-          Signed-in players track their record here automatically — the deepest BrickForge run, the Arena Chess 3D duel ladder, the Galica high-score table and the Mafia Noir case record.
+          Signed-in players track their record here automatically — the deepest BrickForge run, the Arena Chess 3D duel ladder, the Galica high-score table, the Mafia Noir case record and the Word Creator match table.
           {!you && ' Sign in with your CMC account to claim your spot.'}
         </p>
       </div>
@@ -395,6 +453,7 @@ export function LoungeLeaderboard() {
         <ChessBoard records={chess} you={you} loading={firstLoad} lastFetch={lastFetch} />
         <GalicaBoard entries={galica} you={you} loading={firstLoad} lastFetch={lastFetch} />
         <MafiaBoard records={mafia} you={you} loading={firstLoad} lastFetch={lastFetch} />
+        <WordCreatorBoard entries={word} you={you} loading={firstLoad} lastFetch={lastFetch} />
       </div>
 
       {!you && (
