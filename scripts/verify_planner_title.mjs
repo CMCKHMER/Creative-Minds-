@@ -150,9 +150,9 @@ async function linesPainted(page) {
   const [one, two] = rest;
   const grey = (c) => !!c && Math.max(...c) - Math.min(...c) < 26;
   check(grey(one.left) && grey(one.right) && one.left[0] > 150, 'line 1 rests in the plain letter colour (near white)', `${one.left} | ${one.right}`);
-  // gradient: cyan and teal on the left half (green well above red, blue no
-  // higher than green), turning indigo on the right half (blue above green)
-  check(!!two.left && !!two.right && two.left[1] - two.left[0] > 25 && two.left[2] - two.left[1] < 8 && two.right[2] - two.right[1] > 15, 'line 2 runs from teal on the left to indigo on the right', `${two.left} → ${two.right}`);
+  // gradient (glass theme): the spheres' pale blue on the left half (blue well
+  // above red), turning to the warm light on the right half (red catches up)
+  check(!!two.left && !!two.right && two.left[2] - two.left[0] > 25 && (two.right[0] - two.right[2]) - (two.left[0] - two.left[2]) > 20, 'line 2 runs from pale blue on the left to warm light on the right', `${two.left} → ${two.right}`);
 
   // the cursor opens a clearing; the dots come home when it leaves
   const box = await page.evaluate(() => { const r = document.querySelector('#biweek-title .cmc-dots-line').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });

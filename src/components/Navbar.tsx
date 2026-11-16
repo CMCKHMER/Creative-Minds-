@@ -78,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       {/* Top Announcement Bar */}
       {bannerVisible && (
-        <div data-keep-dark className="bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium relative z-50 flex items-center justify-center gap-2">
+        <div data-keep-dark className="cmc-topbar bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium relative z-50 flex items-center justify-center gap-2">
           <span className="inline-flex items-center gap-1.5 bg-white/20 px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase">
             <Sparkles className="w-3 h-3 text-cyan-200" /> New
           </span>
@@ -102,9 +102,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       )}
 
       {/* Main Sticky Navbar */}
-      <header className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+      <header className={`cmc-nav sticky top-0 z-40 w-full transition-all duration-300 ${
         isScrolled 
-          ? 'bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 shadow-2xl shadow-cyan-950/20 py-3' 
+          ? 'cmc-nav-scrolled bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 shadow-2xl shadow-cyan-950/20 py-3' 
           : 'bg-slate-950/50 backdrop-blur-sm border-b border-white/5 py-4'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -176,7 +176,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div ref={userMenuRef} className="relative">
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="inline-flex items-center gap-2 !min-h-0 !rounded-xl !px-3 !py-2 !text-xs sm:!text-sm font-semibold transition active:scale-95 border border-cyan-300/30 bg-gradient-to-r from-cyan-300/10 to-emerald-300/10 text-cyan-100 hover:from-cyan-300/20 hover:to-emerald-300/20"
+                    className="inline-flex items-center gap-2 !min-h-0 !rounded-full !px-3 !py-2 !text-xs sm:!text-sm font-semibold transition active:scale-95 border border-cyan-300/30 bg-gradient-to-r from-cyan-300/10 to-emerald-300/10 text-cyan-100 hover:from-cyan-300/20 hover:to-emerald-300/20"
                     aria-label={`Signed in as ${session.email}. Click to open user menu.`}
                     aria-expanded={userMenuOpen}
                   >
@@ -246,7 +246,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <button
                   onClick={onOpenTeacherPass}
-                  className="cmc-btn-primary !min-h-0 !rounded-xl !px-4 !py-2 !text-xs sm:!text-sm"
+                  className="cmc-btn-primary !min-h-0 !rounded-full !px-5 !py-2.5 !text-[0.68rem]"
                 >
                   <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Join CMC</span>

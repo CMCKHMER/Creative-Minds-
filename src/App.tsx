@@ -321,7 +321,7 @@ export function App() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col relative selection:bg-cyan-500 selection:text-white">
+    <div className="cmc-app min-h-screen bg-slate-950 text-slate-100 flex flex-col relative selection:bg-cyan-500 selection:text-white">
       {/* Thank-you overlay after an invited bi-weekly test submission (?thanks=1) */}
       <TestThanksOverlay />
 

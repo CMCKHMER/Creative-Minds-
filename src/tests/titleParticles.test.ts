@@ -299,7 +299,8 @@ describe('how the effect is wired into the page', () => {
       expect(file).not.toMatch(/from ['"]three['"]/);
       expect(file).not.toMatch(/from ['"]\.\.\/lib\/titleParticles['"]/);
     }
-    expect(hero).toMatch(/useTitleParticles\(\{ section: heroRef, title: titleRef, canvas: titleCanvasRef \}\)/);
+    // the glass board sets the title smaller, so it takes the finer dot spacing of the small titles
+    expect(hero).toMatch(/useTitleParticles\(\{ section: heroRef, title: titleRef, canvas: titleCanvasRef, spacing: smallTitleSpacing \}\)/);
     const math = readFileSync('src/lib/titleParticlesMath.ts', 'utf8');
     expect(math).not.toMatch(/from ['"]three['"]/);
   });
@@ -340,8 +341,10 @@ describe('how the effect is wired into the page', () => {
 
   it('the planner dots take the colours of the gradient text they stand for', () => {
     const stops = (block: string) => [...block.matchAll(/(#[0-9a-f]{6}) (\d+)%/g)].map((m) => [Number(m[2]) / 100, m[1]]);
-    const dark = css.match(/\n\.cmc-gradient-text\s*\{([^}]*)\}/)![1];
-    const light = css.match(/html\.light \.cmc-gradient-text\s*\{([^}]*)\}/)![1];
+    // the glass theme (src/glass.css, loaded after index.css) sets the gradient text
+    const glass = readFileSync('src/glass.css', 'utf8');
+    const dark = glass.match(/\n\.cmc-gradient-text\s*\{([^}]*)\}/)![1];
+    const light = glass.match(/\nhtml\.light \.cmc-gradient-text\s*\{([^}]*)\}/)![1];
     const pick = (name: string) => JSON.parse(planner.match(new RegExp(`${name}: (\\[\\[.*?\\]\\]),`))![1].replace(/'/g, '"'));
     expect(pick('dark')).toEqual(stops(dark));
     expect(pick('light')).toEqual(stops(light));

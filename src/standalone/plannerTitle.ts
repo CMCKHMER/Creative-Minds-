@@ -17,8 +17,8 @@ import { shouldAnimateTitle, smallTitleSpacing, type DotGradient } from '../lib/
 // The second line's colours — the stops of .bp-title-row--accent .bp-title-solid
 // in the page's own CSS (dark page / light page).
 const GRADIENT: { dark: DotGradient; light: DotGradient } = {
-  dark: [[0, '#a5f3fc'], [0.5, '#5eead4'], [1, '#a5b4fc']],
-  light: [[0, '#0e7490'], [0.5, '#0891b2'], [1, '#6d28d9']],
+  dark: [[0, '#dfe6ff'], [0.5, '#a9baff'], [1, '#f3c296']],
+  light: [[0, '#2433c9'], [0.5, '#5a4be0'], [1, '#b3643c']],
 };
 
 function start(): void {

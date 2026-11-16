@@ -48,14 +48,14 @@
 
     <!-- PWA — installable app + offline support (see public/sw.js) -->
     <link rel="manifest" href="./manifest.webmanifest" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#0b1220" />
     <!-- Theme pre-paint: apply the saved light-mode choice before first
          paint so reloading in light mode never flashes dark. Default dark. -->
     <script>
       try {
         if (localStorage.getItem('cmc-theme') === 'light') {
           document.documentElement.classList.add('light');
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#e2e8f0');
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#d3d9e3');
         }
       } catch (e) { /* storage unavailable — stay dark */ }
     </script>
@@ -64,9 +64,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="CMC" />
     <link rel="apple-touch-icon" href="./icons/icon-maskable-192.png" />
-    <script type="module" crossorigin src="./assets/index-gtE4XPGN.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/vendor-AXaQXWRj.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-Vald8hjj.css">
+    <script type="module" crossorigin src="./assets/index-2b8_ewFN.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/vendor-7N2cVRwz.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-DGDn9WOI.css">
   </head>
   <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-white">
     <div id="root"></div>

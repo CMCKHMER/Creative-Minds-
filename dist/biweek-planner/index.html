@@ -52,12 +52,12 @@ html[data-theme="light"] .bp-eyebrow i{color:#0891b2}
 .bp-title-row{display:block;position:relative;width:fit-content}
 .bp-title-row--first{font-size:.62em;letter-spacing:-.03em;margin-bottom:.14em}
 .bp-title-solid{position:relative;z-index:1;display:block;color:#f4faff;text-shadow:0 8px 35px rgba(4,18,30,.2)}
-.bp-title-row--accent .bp-title-solid{background:linear-gradient(100deg,#a5f3fc,#5eead4,#a5b4fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.bp-title-row--accent .bp-title-solid{background:linear-gradient(100deg,#dfe6ff,#a9baff,#f3c296);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .bp-title-echo{position:absolute;top:0;left:0;z-index:0;transform:translate3d(6px,6px,0);transition:transform .65s cubic-bezier(.16,1,.3,1);pointer-events:none;color:transparent;-webkit-text-stroke:1.25px rgba(127,225,232,.5)}
 .bp-title-row--accent .bp-title-echo{-webkit-text-stroke-color:rgba(190,255,243,.42)}
 .bp-hero:hover .bp-title-echo{transform:translate3d(9px,9px,0)}
 html[data-theme="light"] .bp-title-solid{color:#0c1a2c;text-shadow:0 8px 35px rgba(203,212,224,.9)}
-html[data-theme="light"] .bp-title-row--accent .bp-title-solid{background-image:linear-gradient(100deg,#0e7490,#0891b2,#6d28d9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+html[data-theme="light"] .bp-title-row--accent .bp-title-solid{background-image:linear-gradient(100deg,#2433c9,#5a4be0,#b3643c);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 html[data-theme="light"] .bp-title-echo{-webkit-text-stroke-color:rgba(2,132,199,.4)}
 html[data-theme="light"] .bp-title-row--accent .bp-title-echo{-webkit-text-stroke-color:rgba(13,148,136,.35)}
 /* Title as particles (title-dots.js, built from src/standalone/plannerTitle.ts) — the same
@@ -561,6 +561,144 @@ html[data-theme="light"] .hud-footer::before{background:repeating-linear-gradien
   .hud-globe{width:56vw;left:-20vw;opacity:.35}
   .hud-strip{letter-spacing:.14em}
 }
+/* ===== GLASS THEME (Nov 2026) — owner: "change the design and the theme of the page
+   to something similar to this" (a board with a pale blurred backdrop, a frosted pane
+   carrying the text on the left, glass spheres on the right, thin uppercase lettering,
+   white pill buttons). Same look as the home page (src/glass.css): dark = a slate-blue
+   studio at night with smoked glass, light = a pale grey-blue studio with milk glass —
+   grey-blue on purpose, never white.
+   Appended last so it wins its ties. The HUD furniture (runway floor, corner frame,
+   scanner ring, globe, circuit traces, neon text glow, card brackets) is only switched
+   off here — its markup and rules above are untouched, so deleting this block brings
+   the HUD skin back. The 3D float of the week cards is kept. ===== */
+:root{--bg:#0b1220;--hero-bg:#0e182b;--card:rgba(255,255,255,.055);--border:rgba(255,255,255,.12);--accent:#a9baff;--text:#f3f6fb;--muted:#8f9bae;--shadow:rgba(0,0,0,.3);
+  --g-body:#c7d0dd;--g-pane:rgba(13,21,37,.5);--g-glass:rgba(255,255,255,.055);--g-glass-2:rgba(255,255,255,.095);--g-line:rgba(255,255,255,.12);--g-line-2:rgba(255,255,255,.3);--g-shadow:0 44px 80px -48px rgba(0,0,0,.75);--g-pill:#fff;--g-pill-ink:#10151d}
+html[data-theme="light"]{--bg:#d3d9e3;--hero-bg:#dfe4ec;--card:rgba(255,255,255,.46);--border:rgba(17,21,28,.1);--accent:#2b3fd6;--text:#11151c;--muted:#626d7e;--shadow:rgba(40,56,98,.12);
+  --g-body:#37404d;--g-pane:rgba(240,243,247,.5);--g-glass:rgba(255,255,255,.46);--g-glass-2:rgba(255,255,255,.68);--g-line:rgba(255,255,255,.7);--g-line-2:rgba(255,255,255,.95);--g-shadow:0 44px 80px -50px rgba(40,56,98,.5)}
+html{background:var(--bg)}
+body,html[data-theme="light"] body{background:transparent;color:var(--text)}
+body::before{background:
+  radial-gradient(60vmax 46vmax at 88% 8%,rgba(90,114,255,.2),transparent 62%),
+  radial-gradient(52vmax 40vmax at 48% 104%,rgba(243,176,124,.13),transparent 60%),
+  radial-gradient(48vmax 44vmax at 4% 38%,rgba(72,164,214,.12),transparent 62%),
+  linear-gradient(165deg,#0e182b 0%,#0b1220 55%,#090e19 100%)}
+html[data-theme="light"] body::before{background:
+  radial-gradient(60vmax 46vmax at 90% 6%,rgba(122,146,255,.24),transparent 62%),
+  radial-gradient(54vmax 40vmax at 46% 104%,rgba(255,199,150,.5),transparent 60%),
+  radial-gradient(50vmax 46vmax at 2% 30%,rgba(255,255,255,.7),transparent 60%),
+  linear-gradient(165deg,#e4e8ef 0%,#d3d9e3 52%,#c6cedb 100%)}
+body::after,.hud-floor,.hud-frame,.hud-circuit,.hud-scanner,.hud-globe,.bp-hero-glow,.bp-hero-orbit{display:none}
+:focus-visible{outline-color:var(--accent)}
+::-webkit-scrollbar-track{background:#0b1220}::-webkit-scrollbar-thumb{background:#2a3650}
+html[data-theme="light"] ::-webkit-scrollbar-track{background:#cfd6e0}html[data-theme="light"] ::-webkit-scrollbar-thumb{background:#9aa6b8}
+::selection,html[data-theme="light"] ::selection{background:#5a72ff;color:#fff}
+.font-display{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.02em}
+
+/* — the board — */
+.bp-hero,html[data-theme="light"] .bp-hero{margin:10px 10px 0;border-radius:28px;padding:108px 0 88px;background:var(--hero-bg);box-shadow:var(--g-shadow),0 0 0 1px var(--g-line);isolation:isolate}
+.bp-hero::before,.bp-hero::after,html[data-theme="light"] .bp-hero::before,html[data-theme="light"] .bp-hero::after{display:none}
+.bp-hero-photo,html[data-theme="light"] .bp-hero-photo{inset:-2%;width:auto;height:auto;filter:none;background:url('../images/glass-hero-dark.jpg') 60% 42%/cover no-repeat;animation:bpGlassBreathe 28s ease-in-out infinite alternate}
+html[data-theme="light"] .bp-hero-photo{background-image:url('../images/glass-hero-light.jpg')}
+@keyframes bpGlassBreathe{from{transform:scale(1)}to{transform:scale(1.045)}}
+.bp-hero-veil,html[data-theme="light"] .bp-hero-veil{inset:0 auto 0 0;width:100%;background:var(--g-pane);-webkit-backdrop-filter:blur(30px) saturate(125%);backdrop-filter:blur(30px) saturate(125%);border-right:1px solid var(--g-line)}
+@media(min-width:1024px){
+  .bp-hero-veil,html[data-theme="light"] .bp-hero-veil{width:calc(max(0px,(100% - 72rem)/2) + 1.5rem + 35rem + 2.75rem)}
+  .bp-hero-inner>*{max-width:35rem}
+}
+.bp-eyebrow,html[data-theme="light"] .bp-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.24em;color:var(--muted);line-height:1.7}
+.bp-eyebrow::before,html[data-theme="light"] .bp-eyebrow::before{flex:0 0 36px;background:currentColor;opacity:.6}
+.bp-eyebrow i,html[data-theme="light"] .bp-eyebrow i{display:none}
+.bp-title{font-size:clamp(1.7rem,2.85vw,2.45rem);line-height:1.04;margin-bottom:20px}
+.bp-title-solid,html[data-theme="light"] .bp-title-solid{color:var(--text);text-shadow:none}
+.bp-title-echo{transform:translate3d(3px,3px,0);-webkit-text-stroke:1px rgba(169,186,255,.5)}
+.bp-title-row--accent .bp-title-echo{-webkit-text-stroke-color:rgba(169,186,255,.42)}
+.bp-hero:hover .bp-title-echo{transform:translate3d(4px,4px,0)}
+html[data-theme="light"] .bp-title-echo,html[data-theme="light"] .bp-title-row--accent .bp-title-echo{-webkit-text-stroke-color:rgba(43,63,214,.34)}
+.bp-sub,html[data-theme="light"] .bp-sub{font-size:14px;line-height:1.75;color:var(--g-body)}
+.bp-stats{gap:8px;margin-top:24px}
+.bp-stat,html[data-theme="light"] .bp-stat{padding:6px 14px 6px 6px;gap:9px;border-radius:999px;border-color:var(--g-line);background:var(--g-glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);font-size:12px;font-weight:600;color:var(--text)}
+html[data-theme="light"] .bp-stat{border-color:rgba(17,21,28,.1)}
+.bp-stat::after{display:none}
+.bp-stat-chip{width:30px;height:30px;border-radius:50%;font-size:12px}
+.bp-stat-num{font-size:15px}
+
+/* — accents: the old cyan becomes the spheres' blue — */
+.acc-cyan{--chip:#9ccbff;--chip-br:rgba(156,203,255,.32);--chip-bg:rgba(156,203,255,.11);--glow:rgba(90,114,255,.5);--b1:rgba(205,215,255,.95);--b2:rgba(156,203,255,.95);--edge:#3142c4;--eglow:rgba(63,85,232,.5)}
+html[data-theme="light"] .acc-cyan{--chip:#2b3fd6;--chip-br:rgba(43,63,214,.28);--chip-bg:rgba(90,114,255,.1);--glow:rgba(43,63,214,.3)}
+
+/* — fixed buttons: glass pills — */
+.bp-topbtn,html[data-theme="light"] .bp-topbtn{top:26px;right:28px;padding:10px 18px;border-radius:999px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text);border:1px solid var(--g-line-2);background:var(--g-glass);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:none}
+.bp-topbtn:hover,html[data-theme="light"] .bp-topbtn:hover{color:var(--text);border-color:var(--accent);background:var(--g-glass-2)}
+.theme-toggle,html[data-theme="light"] .theme-toggle{top:26px;right:196px;width:38px;height:38px;border-radius:50%;color:var(--text);border:1px solid var(--g-line-2);background:var(--g-glass);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.theme-toggle:hover{border-color:var(--accent)}
+html[data-theme="light"] .bp-topbtn,html[data-theme="light"] .theme-toggle{border-color:rgba(17,21,28,.16)}
+.bp-topbtn:active,.theme-toggle:active,html[data-theme="light"] .bp-topbtn:active,html[data-theme="light"] .theme-toggle:active{border-color:var(--accent);color:var(--text);box-shadow:none}
+#cmc-share-btn{border-radius:50%}
+/* the Student / Teacher mode badge (cmc-shared.js sets it inline) */
+#cmc-role-badge{top:74px!important;right:28px!important;padding:6px 14px!important;border-radius:999px!important;border:1px solid var(--g-line-2)!important;background:var(--g-glass)!important;color:var(--g-body)!important;font-family:'Plus Jakarta Sans',sans-serif!important;font-size:9.5px!important;font-weight:700!important;letter-spacing:.14em!important;text-transform:uppercase!important;box-shadow:none!important;text-shadow:none!important;-webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important}
+html[data-theme="light"] #cmc-role-badge{border-color:rgba(17,21,28,.16)!important}
+
+/* — headings and small capitals — */
+h2.font-display{font-weight:400;letter-spacing:-.04em}
+.hud-eyebrow,html[data-theme="light"] .hud-eyebrow{gap:0;font-size:10.5px;font-weight:700;letter-spacing:.24em;color:var(--muted)!important}
+.hud-eyebrow i,.hud-eyebrow::after{display:none}
+
+/* — glass cards — */
+.glass,html[data-theme="light"] .glass{border-radius:1.5rem;border-color:var(--g-line);background:linear-gradient(160deg,var(--g-glass-2),var(--g-glass));-webkit-backdrop-filter:blur(22px) saturate(135%);backdrop-filter:blur(22px) saturate(135%);box-shadow:inset 0 1px 0 var(--g-line),var(--g-shadow)}
+.glass:hover,html[data-theme="light"] .glass:hover{border-color:var(--g-line-2);box-shadow:inset 0 1px 0 var(--g-line-2),0 40px 70px -40px rgba(60,86,220,.45)}
+.glass :is(h2,h3,p,.btn-label,.week-chip,.drill-count),html[data-theme="light"] .glass :is(h2,h3,p,.btn-label,.week-chip,.drill-count){text-shadow:none}
+.glass:not(.week-card)::after,html[data-theme="light"] .glass:not(.week-card)::after,.week-card .holo-sheen::after,html[data-theme="light"] .week-card .holo-sheen::after{display:none}
+.week-card{background-image:linear-gradient(160deg,var(--g-glass-2),var(--g-glass));border-left-width:3px;
+  box-shadow:inset 0 1px 0 var(--g-line),0 40px 76px -40px rgba(0,0,0,.8)}
+.week-card:hover{border-color:var(--g-line-2);border-left-color:var(--line);box-shadow:inset 0 1px 0 var(--g-line-2),0 54px 96px -40px rgba(0,0,0,.85),0 30px 60px -34px var(--hglow,rgba(60,86,220,.45))}
+.week-card::before,html[data-theme="light"] .week-card::before{background:radial-gradient(42% 34% at var(--gx,50%) var(--gy,16%),rgba(255,255,255,.1),transparent 72%)}
+.week-card .holo-sheen::before{background:linear-gradient(100deg,transparent 8%,rgba(255,255,255,.06) 42%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.06) 58%,transparent 92%)}
+html[data-theme="light"] .week-card{background:linear-gradient(160deg,rgba(255,255,255,.68),rgba(255,255,255,.46))!important;border-color:rgba(255,255,255,.72)!important;border-left-color:var(--line-l,var(--line))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 40px 76px -44px rgba(40,56,98,.5)}
+html[data-theme="light"] .week-card:hover{border-color:rgba(255,255,255,.95)!important;border-left-color:var(--line-l,var(--line))!important;box-shadow:inset 0 1px 0 #fff,0 54px 96px -44px rgba(40,56,98,.55),0 30px 60px -34px var(--hglow-l,rgba(60,86,220,.35))}
+.hud-strip,html[data-theme="light"] .hud-strip{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.24em;color:var(--muted);text-shadow:none}
+.hud-strip .fas,html[data-theme="light"] .hud-strip .fas{color:var(--muted)}
+.hud-strip .hud-lead,html[data-theme="light"] .hud-strip .hud-lead{background:var(--border)}
+.hud-strip b,html[data-theme="light"] .hud-strip b{color:var(--muted)}
+
+/* — filter pills: the chosen one is the white pill — */
+.filter-btn,html[data-theme="light"] .filter-btn{clip-path:none;padding:8px 16px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--g-body);border:1px solid var(--g-line);background:var(--g-glass)}
+html[data-theme="light"] .filter-btn{border-color:rgba(17,21,28,.12)}
+.filter-btn:hover,html[data-theme="light"] .filter-btn:hover{color:var(--text);border-color:var(--accent);background:var(--g-glass-2)}
+.filter-btn.active,html[data-theme="light"] .filter-btn.active{border:1px solid #fff;color:var(--g-pill-ink);background:var(--g-pill);box-shadow:0 18px 34px -18px rgba(8,14,30,.55);filter:none}
+.filter-btn.active:hover,html[data-theme="light"] .filter-btn.active:hover{color:var(--g-pill-ink);background:var(--g-pill)}
+.filter-btn:active,html[data-theme="light"] .filter-btn:active{border-color:var(--accent);color:var(--text);box-shadow:none}
+
+/* — drill keys: small glass caps, no glow — */
+.drill-btn .btn-ic{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.03)),var(--chip-bg);border-color:var(--chip-br);text-shadow:none;
+  box-shadow:0 10px 18px -10px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.2)}
+.drill-btn:hover .btn-ic{box-shadow:0 14px 22px -10px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.28)}
+.drill-btn:active .btn-ic{background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,.1)),var(--chip-bg);border-color:var(--chip);box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
+.drill-btn:active .btn-label,html[data-theme="light"] .drill-btn:active .btn-label{color:var(--text);text-shadow:none}
+html[data-theme="light"] .drill-btn .btn-ic{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.55)),var(--chip-bg);border-color:var(--chip-br);box-shadow:0 10px 18px -10px rgba(40,56,98,.45),inset 0 1px 0 #fff}
+html[data-theme="light"] .drill-btn:hover .btn-ic{box-shadow:0 14px 22px -10px rgba(40,56,98,.5),inset 0 1px 0 #fff}
+html[data-theme="light"] .drill-btn:active .btn-ic{background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,.4)),var(--chip-bg);border-color:var(--chip);box-shadow:inset 0 2px 6px rgba(40,56,98,.25)}
+.bp-share:hover{background:var(--g-glass-2)}
+.bp-share:active,html[data-theme="light"] .bp-share:active{border-color:var(--accent);background:var(--g-glass-2);color:var(--accent);box-shadow:none}
+
+/* — teacher tip and footer, without the hazard tape — */
+.hud-alert::before,html[data-theme="light"] .hud-alert::before{display:none}
+.hud-alert-tag{letter-spacing:.24em;text-shadow:none}
+.hud-footer::before,html[data-theme="light"] .hud-footer::before{background:var(--border)}
+.hud-warn,html[data-theme="light"] .hud-warn{border-radius:999px;color:var(--muted);border-color:var(--border);background:var(--g-glass);text-shadow:none;clip-path:none}
+.hud-warn i,html[data-theme="light"] .hud-warn i{color:var(--muted)}
+
+/* — phones and tablets: the scene shows above the pane, the pane is a sheet — */
+@media(max-width:1023px){
+  .bp-hero,html[data-theme="light"] .bp-hero{margin:8px 8px 0;border-radius:22px;padding:224px 0 48px}
+  .bp-hero-photo,html[data-theme="light"] .bp-hero-photo{inset:-2% -2% auto -2%;height:330px;background-position:82% 30%;background-size:auto 150%}
+  .bp-hero-veil,html[data-theme="light"] .bp-hero-veil{inset:176px 0 0 0;width:auto;border-right:0;border-top:1px solid var(--g-line-2);border-radius:22px 22px 0 0}
+}
+@media(max-width:640px){
+  .bp-topbtn,html[data-theme="light"] .bp-topbtn{top:20px;right:20px;padding:9px 14px}
+  .theme-toggle,html[data-theme="light"] .theme-toggle{top:20px;right:172px}
+  #cmc-role-badge{top:64px!important;right:20px!important}
+}
+@media (prefers-reduced-motion:reduce){.bp-hero-photo{animation:none!important}}
 </style>
 
 <!-- Google Analytics 4 (gtag.js) -->
@@ -579,7 +717,7 @@ html[data-theme="light"] .hud-footer::before{background:repeating-linear-gradien
 
 <!-- ===== HERO BAND — same stack as the main site hero ===== -->
 <header class="bp-hero">
-  <img class="bp-hero-photo" src="../images/hero-toefl-blue.jpg" alt="" aria-hidden="true">
+  <div class="bp-hero-photo" aria-hidden="true"></div>
   <div class="bp-hero-veil"></div>
   <div class="bp-hero-glow"></div>
   <svg class="bp-hero-orbit" viewBox="0 0 600 600" fill="none" aria-hidden="true">
@@ -804,7 +942,7 @@ WEEKS.forEach((w,idx)=>{
       <span class="hud-strip" aria-hidden="true"><i class="fas fa-microchip"></i><span>MDL-W${String(w.n).padStart(2,'0')}</span><i class="hud-lead"></i><b>ONLINE</b></span>
       <div class="flex items-center justify-between mb-3">
         <span class="week-chip" style="font-size:11px;padding:6px 12px"><i class="fas ${icon}"></i> Week ${w.n} · ${CAT_LABELS[w.cat]}</span>
-        <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-3.5 py-2 rounded-full" style="color:#04141f;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),linear-gradient(135deg,rgba(103,232,249,.95),rgba(125,211,252,.95));box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 0 #0e7490,0 10px 22px -10px rgba(8,145,178,.6)">
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest px-3.5 py-2 rounded-full" style="color:#10151d;background:#fff;box-shadow:0 14px 26px -14px rgba(8,14,30,.55),inset 0 0 0 1px rgba(255,255,255,.9)">
           <i class="fas fa-flag-checkered text-xs"></i> Start here
         </span>
       </div>
