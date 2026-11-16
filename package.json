@@ -21,7 +21,8 @@
     "verify:planner-title": "node scripts/verify_planner_title.mjs",
     "verify:planner-page-title": "node scripts/verify_planner_page_title.mjs",
     "verify:pages": "node scripts/verify_pages.mjs",
-    "verify:wordcreator": "node scripts/verify_word_creator.mjs"
+    "verify:wordcreator": "node scripts/verify_word_creator.mjs",
+    "verify:registration": "node scripts/verify_registration.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

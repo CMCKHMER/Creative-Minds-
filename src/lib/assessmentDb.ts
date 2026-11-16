@@ -57,7 +57,7 @@ export class RestError extends Error {
   }
 }
 
-async function fsCall<T = Record<string, unknown>>(path: string, init?: RequestInit): Promise<T> {
+export async function fsCall<T = Record<string, unknown>>(path: string, init?: RequestInit): Promise<T> {
   const token = await getValidIdToken();
   if (!token) {
     throw new RestError(401, 'Your session has expired — sign in again to reconnect to the records database.');
@@ -105,7 +105,7 @@ export function enc(value: unknown): Record<string, unknown> {
   return { stringValue: String(value) };
 }
 
-function encodeFields(record: Record<string, unknown>): { fields: Fields } {
+export function encodeFields(record: Record<string, unknown>): { fields: Fields } {
   const fields: Fields = {};
   for (const [k, v] of Object.entries(record)) fields[k] = enc(v);
   return { fields };
