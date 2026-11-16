@@ -46,6 +46,9 @@
     }
   } catch (e) { /* keep the relative fallback */ }
   var SIGNIN_URL = APP_ROOT + '?auth=teacher#toefl-itp-planner';
+  // Sign-up lands back on the teacher gate (which then asks them to sign in
+  // with the freshly verified account).
+  var SIGNUP_URL = APP_ROOT + '?auth=teacher';
   var HOME_URL = APP_ROOT;
 
   /* ── 1. Session check — mirrors restoreSession() in firebaseAuth.ts ── */
@@ -56,11 +59,43 @@
     var domain = (String(email || '').split('@')[1] || '').toLowerCase();
     return domain && domain.indexOf('edu') !== -1 ? 'teacher' : 'student';
   }
-  function isTeacher() {
-    if (!ls('cmc-student-token')) return false; // no Firebase session at all
-    var role = ls('cmc-student-role') || detectRoleFromEmail(ls('cmc-student-email'));
-    return role === 'teacher';
+  /** Decode the `email_verified` claim of an ID token (no network call). */
+  function tokenVerified(token) {
+    try {
+      var payload = String(token || '').split('.')[1] || '';
+      var padded = payload.replace(/-/g, '+').replace(/_/g, '/');
+      while (padded.length % 4) padded += '=';
+      var json = decodeURIComponent(atob(padded).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      var claim = JSON.parse(json).email_verified;
+      return typeof claim === 'boolean' ? claim : null;
+    } catch (e) { return null; }
   }
+  /**
+   * VERIFIED teacher only (Nov 2026): the role written by the app's
+   * resolveEffectiveAccess() plus the explicit `cmc-teacher-verified` flag.
+   * Students, general users, PENDING teachers (Gmail awaiting admin
+   * approval / unverified .edu) and revoked teachers are all locked out —
+   * the same rule Firestore enforces for the answer keys.
+   */
+  function isTeacher() {
+    var token = ls('cmc-student-token');
+    if (!token) return false; // no Firebase session at all
+    var claimed = tokenVerified(token);
+    var verified = claimed === null ? ls('cmc-student-verified') === '1' : claimed;
+    if (!verified) return false;
+    var uid = ls('cmc-student-uid') || '';
+    if (uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63') return true; // site owner
+    var role = ls('cmc-student-role') || detectRoleFromEmail(ls('cmc-student-email'));
+    if (role !== 'teacher') return false;
+    // `cmc-teacher-verified` is '0' for a pending/revoked teacher on the new
+    // session shape; older sessions have no key and fall back to the role.
+    var flag = ls('cmc-teacher-verified');
+    return flag === null || flag === '' || flag === '1';
+  }
+  // Student share links (?invite=CODE) are honoured for SIGNED-IN accounts
+  // only — student-invite.js shows a sign-up card to guests.
   // Exposed so the page's own scripts can branch on the gate result.
   // Invite links (student-invite.js, loaded before this script) set
   // window.CMC_INVITE_OK when the URL carries a valid ?invite=<teacher-code>
@@ -114,18 +149,21 @@
       'border:1px solid rgba(139,92,246,.35);color:#a78bfa;font-size:24px">' +
       '<i class="fas fa-user-graduate" aria-hidden="true"></i></div>' +
       '<h1 style="margin:20px 0 0;font-family:Syne,Plus Jakarta Sans,sans-serif;font-size:24px;line-height:1.2;' +
-      'font-weight:800;letter-spacing:-0.02em;color:' + text + '">Teacher access required</h1>' +
+      'font-weight:800;letter-spacing:-0.02em;color:' + text + '">Verified teacher access</h1>' +
       '<p style="margin:14px auto 0;max-width:360px;font-size:13px;line-height:1.65;color:' + muted + '">' +
-      'This TOEFL ITP Bi-Weekly Planner content is reserved for Aii CAP Campus teacher accounts. ' +
-      'Sign in with your school email containing <b>&ldquo;edu&rdquo;</b> (e.g., you@school.edu.kh) to unlock the full 8-week study plan and its tests.</p>' +
+      'This TOEFL ITP Bi-Weekly Planner content is reserved for verified teacher accounts. ' +
+      'A school address containing <b>&ldquo;edu&rdquo;</b> (e.g., you@school.edu.kh) verifies automatically once the email is confirmed; ' +
+      'other addresses unlock after the site admin approves the account.</p>' +
       '<a id="cmc-teacher-gate-signin" href="' + SIGNIN_URL + '" ' +
       'style="margin-top:24px;display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;' +
       'background:linear-gradient(100deg,#c4b5fd,#67e8f9);color:#0f172a;font-size:13px;font-weight:700;' +
       'text-decoration:none;box-shadow:0 12px 36px -14px rgba(139,92,246,.75);transition:transform .2s,box-shadow .2s"' +
       ' onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">' +
       '<i class="fas fa-graduation-cap" aria-hidden="true"></i> Sign in as teacher</a>' +
-      '<p style="margin:18px 0 0;font-size:10.5px;line-height:1.6;color:' + muted + ';opacity:.85">' +
-      'Students: this section is locked to teacher accounts — your homepage drills and games stay open as usual.</p>' +
+      '<p style="margin:12px 0 0;font-size:11.5px;line-height:1.6;color:' + muted + '">' +
+      'New here? <a href="' + SIGNUP_URL + '" style="color:#67e8f9;font-weight:700;text-decoration:none">Create a free account</a>.</p>' +
+      '<p style="margin:14px 0 0;font-size:10.5px;line-height:1.6;color:' + muted + ';opacity:.85">' +
+      'Students and general users: this planner stays locked, but every game, worksheet, test and student-copy download is yours.</p>' +
       '<a href="' + HOME_URL + '" style="margin-top:16px;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;' +
       'color:#67e8f9;text-decoration:none"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to CMC homepage</a>' +
       '</div>';

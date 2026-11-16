@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
 <head>
+<script src="../../assets/js/cmc-auth-gate.js"></script>
 <script>/* CMC_NG_NO_EMAIL_AS_NAME: an email is never a display name — Gmail sign-ins showed
    addresses on the completion ticker. Heals cmc-student-name in place
    ("mam.ry@aii.edu.kh" -> "Mam Ry") and guards every read; real names are
@@ -38,6 +39,7 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
 </style>
 </head>
 <body>
+<script>CMC_GATE.guard('account', 'Sign up free to play Galica.');</script>
 <div id="wrap">
   <canvas id="c"></canvas>
   <div class="scanlines"></div>

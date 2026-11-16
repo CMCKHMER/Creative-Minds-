@@ -31,11 +31,9 @@ interface MiniMockTestProps {
   onOpenAuth: (mode: 'sign-up' | 'sign-in') => void;
   onSignOut: () => void;
   /**
-   * Firebase REST session (from useFirebaseAuth). When Supabase member-auth
-   * is not configured (no VITE_SUPABASE_* env vars), a valid Firebase
-   * session is treated as 'active' access — the user has authenticated,
-   * so the practice room should unlock regardless of which auth
-   * backend issued the session.
+   * Firebase REST session (from useFirebaseAuth) — the CMC account. A valid
+   * session is treated as 'active' access, so the practice room unlocks for
+   * any signed-in CMC account regardless of the legacy Supabase flow.
    */
   firebaseSession?: RestoredSession | null;
 }
@@ -61,13 +59,16 @@ function AccessGate({
   status: MemberAccessStatus;
   onOpenAuth: (mode: 'sign-up' | 'sign-in') => void;
 }) {
-  const configured = status !== 'not-configured';
+  // ACCOUNT RULE: this deployment uses the Firebase-backed CMC account, so a
+  // signed-out visitor is treated as 'signed-out' (not "not configured") —
+  // the gate always offers the real account flow.
   const title = status === 'pending' ? 'Your email is verified; access is still pending.'
     : status === 'unverified' ? 'Verify your email to unlock your practice room.'
     : status === 'error' ? 'We could not verify member access.'
+    : status === 'signed-out' ? 'Sign up free to open the mini mock.'
     : 'Your next practice round starts here.';
-  const copy = status === 'not-configured'
-    ? 'Secure membership is not configured for this deployment yet. No browser-only member ID can unlock these questions.'
+  const copy = status === 'loading'
+    ? 'Checking your CMC account…'
     : status === 'pending'
       ? 'This account does not have an active server-side entitlement yet. Ask your site administrator to grant access; the browser cannot self-assign membership.'
       : status === 'unverified'
@@ -87,7 +88,7 @@ function AccessGate({
           </div>
           <h3 className="mt-5 max-w-xl font-[var(--font-display)] text-3xl leading-tight font-bold tracking-tight text-white sm:text-4xl">{title}</h3>
           <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-300">{copy}</p>
-          {configured && status !== 'pending' && status !== 'loading' && (
+          {status !== 'pending' && status !== 'loading' && (
             <button
               type="button"
               onClick={() => onOpenAuth(status === 'signed-out' ? 'sign-up' : 'sign-in')}
@@ -96,11 +97,6 @@ function AccessGate({
               {status === 'signed-out' ? 'Create a member account' : 'Sign in to continue'}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </button>
-          )}
-          {!configured && (
-            <div className="mt-6 rounded-xl border border-amber-200/15 bg-amber-100/[0.04] p-4 text-xs leading-relaxed text-amber-100/80">
-              Configure the Supabase URL and publishable key, apply the migration, deploy the member function, and add the private question-bank secret. See the setup steps in <code>README.md</code>.
-            </div>
           )}
           {status === 'pending' && <p className="mt-4 text-xs text-slate-500">Access is granted only by server-side membership records after email verification.</p>}
         </div>
@@ -161,16 +157,19 @@ function ResultsQuestion({ question, index, answer }: { question: MiniMockQuesti
 }
 
 export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut, firebaseSession }: MiniMockTestProps) {
-  // Compute the EFFECTIVE access status: when the Supabase member-auth
-  // flow is not configured (which is the case for this deployment —
-  // we're using Firebase), a valid Firebase REST session is treated as
-  // 'active'. This lets a Firebase-signed-in user actually access the
-  // practice room instead of seeing the misleading "Secure membership
-  // is not configured" gate.
+  // ACCOUNT RULE: the CMC account is the Firebase-backed one. A verified
+  // Firebase session always unlocks the room (any status other than 'active'
+  // from the Supabase flow is stale); with no session, 'not-configured' is
+  // reported as 'signed-out' so visitors get the real sign-up gate instead
+  // of Supabase setup instructions.
   const effectiveAccessStatus: MemberAccessStatus =
-    accessStatus === 'not-configured' && firebaseSession
+    accessStatus === 'active'
       ? 'active'
-      : accessStatus;
+      : firebaseSession
+        ? 'active'
+        : accessStatus === 'not-configured'
+          ? 'signed-out'
+          : accessStatus;
 
   // Synthetic member profile from the Firebase session, so downstream
   // code that reads `member.userId / .name / .email` still works.
@@ -437,7 +436,7 @@ export function MiniMockTest({ accessStatus, member, onOpenAuth, onSignOut, fire
           )}
         </div>
 
-        <p className="mx-auto mt-5 flex max-w-3xl items-start justify-center gap-2 text-center text-[10px] leading-relaxed text-slate-600"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />Verified membership and question delivery use Supabase. Candidate answers and practice scores are not transmitted or stored.</p>
+        <p className="mx-auto mt-5 flex max-w-3xl items-start justify-center gap-2 text-center text-[10px] leading-relaxed text-slate-600"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />Access is checked against your verified CMC account. Candidate answers and practice scores are not transmitted or stored.</p>
       </div>
     </section>
   );

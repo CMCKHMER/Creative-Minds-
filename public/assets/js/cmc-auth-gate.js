@@ -121,6 +121,15 @@
     global.location.assign(authUrl(mode));
   }
 
+  /**
+   * Send the visitor straight to the account flow for this page. Same
+   * destination as the gate overlay's buttons — `/?auth=…&next=<here>` —
+   * so a static page can prompt for an account from anywhere in its UI.
+   */
+  function requestAuth(mode) {
+    goAuth(mode === 'signin' || mode === 'sign-in' ? 'signin' : 'signup');
+  }
+
   var OVERLAY_ID = 'cmc-account-gate-overlay';
 
   function removeOverlay() {
@@ -310,6 +319,7 @@
     unlock: unlock,
     showOverlay: showOverlay,
     authUrl: authUrl,
+    requestAuth: requestAuth,
     downloadAllowed: isSignedIn,
     ADMIN_UIDS: ADMIN_UIDS
   };
