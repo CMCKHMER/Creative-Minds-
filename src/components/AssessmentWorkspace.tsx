@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertTriangle, ArrowLeftRight, BookOpen, Bot, CalendarDays, ClipboardCheck, ClipboardList, Copy, Download, FileText,
   Gamepad2, Headphones, Home, Loader2, Plus, Printer, RefreshCw, Search, Trash2,
-  Users, Wand2, X,
+  UserCheck, Users, Wand2, X,
 } from 'lucide-react';
 import {
   addAssessmentStudent,
@@ -35,15 +35,18 @@ import { AssessmentInsights, type TutorAgentBridge } from './AssessmentInsights'
 import type { TutorIntent } from '../lib/tutorAgent';
 import { TransferStudentModal } from './TransferStudentModal';
 import { csvSafeText } from '../lib/csvSafe';
+import { KidClassesModal, RegistrationTab } from './RosterRegistrationPanel';
+import { compareClassNames, type KidClassPreset, type PastedRow } from '../lib/roster';
 
 // ── Tab + field definitions (drive the whole UI) ─────────────────────
 
 type TabKey =
-  | 'roster' | 'insights' | 'listening' | 'reading' | 'pbl' | 'quiz'
+  | 'roster' | 'registration' | 'insights' | 'listening' | 'reading' | 'pbl' | 'quiz'
   | 'homework' | 'participation' | 'overall' | 'report';
 
 const TABS: Array<{ key: TabKey; label: string; icon: React.ElementType }> = [
   { key: 'roster', label: 'Roster', icon: ClipboardList },
+  { key: 'registration', label: 'Registration', icon: UserCheck },
   { key: 'insights', label: 'AI Tutor', icon: Bot },
   { key: 'listening', label: 'Listening & Speaking', icon: Headphones },
   { key: 'reading', label: 'Reading', icon: BookOpen },
@@ -72,7 +75,7 @@ interface TabDef {
   notesLabel?: string;
 }
 
-const TAB_DEFS: Record<Exclude<TabKey, 'roster' | 'overall' | 'report' | 'insights'>, TabDef> = {
+const TAB_DEFS: Record<Exclude<TabKey, 'roster' | 'registration' | 'overall' | 'report' | 'insights'>, TabDef> = {
   listening: {
     title: 'Listening & Speaking',
     blurb: 'Rate each skill 0–5. Unrated skills are skipped, not counted as zero.',
@@ -333,6 +336,7 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
   const [tab, setTab] = useState<TabKey>('roster');
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
+  const [showKidClasses, setShowKidClasses] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -566,6 +570,47 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
     setBusy(false);
   }, [classId, email, busy]);
 
+  // Registration tab: add a pasted class list (school ID + name per student).
+  // Not guarded by `busy` — the tab runs it inside its own busy state.
+  const addPastedStudents = useCallback(async (rows: PastedRow[]): Promise<number> => {
+    if (!classId) return 0;
+    let added = 0;
+    for (const r of rows) {
+      const record = { ...newStudentRow(), name: r.name, schoolId: r.schoolId };
+      const id = await addAssessmentStudent(classId, record, email);
+      if (!id) continue;
+      added++;
+      setStudents((prev) => [...prev, { ...record, id, updatedAt: Date.now(), updatedBy: email } as AssessmentStudentDoc]);
+    }
+    return added;
+  }, [classId, email]);
+
+  // Kid 5 to Kid 11, morning and afternoon: create the classes that are missing.
+  const createKidClasses = useCallback(async (
+    list: KidClassPreset[], schoolName: string, teacherName: string, onProgress: (done: number) => void,
+  ) => {
+    let firstId: string | null = null;
+    try {
+      for (let i = 0; i < list.length; i++) {
+        const id = await createAssessmentClass({ teacherUid: uid, teacherEmail: email, schoolName, name: list[i].name, teacherName });
+        firstId = firstId ?? id;
+        onProgress(i + 1);
+      }
+    } catch (e) {
+      // say it in plain words, and keep the original underneath
+      const plain: Error & { cause?: unknown } = new Error(humanizeError(e));
+      plain.cause = e;
+      throw plain;
+    } finally {
+      // show whatever was created, also when a later one failed
+      const rows = await listAssessmentClasses(uid).catch(() => null);
+      if (rows) {
+        setClasses(rows);
+        setClassId((prev) => prev ?? firstId ?? rows[0]?.id ?? null);
+      }
+    }
+  }, [uid, email]);
+
   const duplicateRow = useCallback(async (s: AssessmentStudentDoc) => {
     if (!classId || busy) return;
     setBusy(true);
@@ -747,11 +792,16 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
               className="max-w-52 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-slate-100 outline-none transition focus:border-cyan-300/50"
               aria-label="Select assessment class"
             >
-              {(classes ?? []).map((c) => <option key={c.id} value={c.id}>{c.name || 'Untitled class'}</option>)}
+              {[...(classes ?? [])]
+                .sort((a, b) => compareClassNames(a.name, b.name))
+                .map((c) => <option key={c.id} value={c.id}>{c.name || 'Untitled class'}</option>)}
               {(classes ?? []).length === 0 && <option value="">No classes yet</option>}
             </select>
             <button type="button" onClick={() => setShowCreate(true)} className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-3 py-2 text-[11px] font-bold text-slate-950 transition hover:-translate-y-0.5">
               <Plus className="h-3.5 w-3.5" aria-hidden="true" /> New class
+            </button>
+            <button type="button" onClick={() => setShowKidClasses(true)} disabled={classes === null} className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-[11px] font-bold text-cyan-100 transition hover:-translate-y-0.5 disabled:opacity-40" data-testid="kid-classes-open">
+              <Users className="h-3.5 w-3.5" aria-hidden="true" /> Kid 5–11 classes
             </button>
             <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold ${saveStatusChip.cls}`}>
               <StatusIcon className={`h-3 w-3 ${saveStatusChip.spin ? 'animate-spin' : ''}`} aria-hidden="true" /> {saveStatusChip.text}
@@ -872,7 +922,7 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
         </div>
 
         {/* Toolbar */}
-        {tab !== 'report' && (
+        {tab !== 'report' && tab !== 'registration' && (
           <div className="flex flex-wrap items-center gap-2 border-b border-white/8 bg-white/[0.015] px-5 py-3">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" aria-hidden="true" />
@@ -903,7 +953,7 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
               body="Create your first class to start recording daily assessments. Each class keeps its own roster, scores, remarks, and report — stored in this site's Firebase and visible only to signed-in teacher accounts."
             />
           )}
-          {classId && rosterError === null && students.length === 0 && classes !== null && (
+          {classId && rosterError === null && students.length === 0 && classes !== null && tab !== 'registration' && (
             <EmptyState
               title="Empty roster"
               body="Add your first student, then record scores across listening, reading, PBL, quizzes, homework, and participation. Everything saves automatically and syncs to your other devices in real time."
@@ -919,6 +969,17 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
               onDelete={(s) => void deleteRow(s)}
               onTransfer={(s) => { setTransferError(null); setTransferStudent(s); }}
               transferDisabled={(classes?.length ?? 0) < 2}
+            />
+          )}
+
+          {tab === 'registration' && classId && activeClass && (
+            <RegistrationTab
+              key={classId}
+              classDoc={activeClass}
+              students={effectiveStudents}
+              teacherUid={uid}
+              onAddStudents={addPastedStudents}
+              describeError={humanizeError}
             />
           )}
 
@@ -981,6 +1042,16 @@ export function AssessmentWorkspace({ session }: { session: WorkspaceSession }) 
           }}
           onClose={() => { setShowCreate(false); setCreateError(null); }}
           error={createError}
+        />
+      )}
+
+      {showKidClasses && (
+        <KidClassesModal
+          existingNames={(classes ?? []).map((c) => c.name)}
+          defaultSchool={classMeta.schoolName || activeClass?.schoolName || ''}
+          defaultTeacher={classMeta.teacherName || activeClass?.teacherName || session.displayName || ''}
+          onCreate={createKidClasses}
+          onClose={() => setShowKidClasses(false)}
         />
       )}
 

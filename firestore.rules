@@ -394,6 +394,55 @@ service cloud.firestore {
       }
     }
 
+    // ── SCHOOL ROSTER + REGISTRATION (Nov 2026) ──
+    //
+    // Ties an account to a real student on a class list, so every score,
+    // homework and attendance mark can land on one student record. Classes
+    // and their lists live in assessment_classes (teachers only, above).
+    //
+    //   roster_seats/{seatKey}  one per student on a PUBLISHED class list.
+    //       The id is a SHA-256 of the school ID and the name
+    //       (src/lib/roster.ts seatKeyOf). A student can GET their own seat
+    //       because they know both; nobody but a teacher can LIST seats, so
+    //       the class list cannot be browsed.
+    //   student_links/{uid}     the seat an account is registered as.
+    //
+    // A registration is ONE commit of two writes, each checked against the
+    // other with getAfter():
+    //   · the seat takes the account — only a free seat, only the caller's
+    //     own uid, only the four claim fields change, and the caller's link
+    //     must point at this seat when the commit lands;
+    //   · the account takes the seat — a link is created once, under the
+    //     caller's uid, and the seat must name the caller when the commit
+    //     lands.
+    // A link cannot be changed or removed by its student, so an account holds
+    // one seat for good; a seat names one account. A teacher can release a
+    // seat (wrong person registered) and re-publish the list.
+    match /roster_seats/{seatKey} {
+      allow get: if isVerifiedUser();
+      allow list: if isCmcTeacher();
+      allow create, delete: if isCmcTeacher();
+      allow update: if isCmcTeacher()
+        || (isVerifiedUser()
+            && resource.data.claimedBy == null
+            && request.resource.data.claimedBy == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['claimedBy', 'claimedEmail', 'claimedName', 'claimedAt'])
+            && getAfter(/databases/$(database)/documents/student_links/$(request.auth.uid)).data.seatKey == seatKey);
+    }
+
+    match /student_links/{uid} {
+      allow get: if isVerifiedUser() && (request.auth.uid == uid || isCmcTeacher());
+      allow list: if isCmcTeacher();
+      allow create: if isVerifiedUser()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.seatKey is string
+        && request.resource.data.keys().hasOnly(['uid', 'seatKey', 'linkedAt'])
+        && getAfter(/databases/$(database)/documents/roster_seats/$(request.resource.data.seatKey)).data.claimedBy == uid;
+      allow update, delete: if isCmcTeacher();
+    }
+
     // ── Private bi-weekly test system (Option A: teacher-side grading) ──
     //
     // PRIVACY MODEL (Nov 2026): private-test data is visible ONLY to the

@@ -184,6 +184,29 @@ service cloud.firestore {
         allow delete: if isCmcTeacher();
       }
     }
+    match /roster_seats/{seatKey} {
+      allow get: if isVerifiedUser();
+      allow list: if isCmcTeacher();
+      allow create, delete: if isCmcTeacher();
+      allow update: if isCmcTeacher()
+        || (isVerifiedUser()
+            && resource.data.claimedBy == null
+            && request.resource.data.claimedBy == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['claimedBy', 'claimedEmail', 'claimedName', 'claimedAt'])
+            && getAfter(/databases/$(database)/documents/student_links/$(request.auth.uid)).data.seatKey == seatKey);
+    }
+    match /student_links/{uid} {
+      allow get: if isVerifiedUser() && (request.auth.uid == uid || isCmcTeacher());
+      allow list: if isCmcTeacher();
+      allow create: if isVerifiedUser()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.seatKey is string
+        && request.resource.data.keys().hasOnly(['uid', 'seatKey', 'linkedAt'])
+        && getAfter(/databases/$(database)/documents/roster_seats/$(request.resource.data.seatKey)).data.claimedBy == uid;
+      allow update, delete: if isCmcTeacher();
+    }
     match /teachers/{uid} {
       allow read: if request.auth != null;
       allow create: if request.auth != null

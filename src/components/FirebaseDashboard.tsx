@@ -10,6 +10,7 @@ import { useStudentAttempts } from '../hooks/useDrillAttempts';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import { displayStudentName } from '../lib/studentName';
 import { StudentAuthModal } from './StudentAuthModal';
+import { StudentRegistrationCard } from './StudentRegistrationCard';
 import { BiWeeklyScoresCard } from './BiWeeklyScoresCard';
 import { BiWeeklyTestsPanel } from './BiWeeklyTestsPanel';
 import { loadTestCounts } from '../lib/testCounts';
@@ -618,6 +619,17 @@ export function FirebaseDashboard() {
             open drills already record every score to drill_attempts. */}
         {isTeacher && (
           <BiWeeklyScoresCard />
+        )}
+
+        {/* Student view: register against the class list (school ID + name).
+            This is what ties the account to one student record. */}
+        {isStudent && studentUid && (
+          <StudentRegistrationCard
+            key={studentUid}
+            uid={studentUid}
+            email={studentAuth.student?.email || firebaseAuth.session?.email || ''}
+            displayName={studentAuth.student?.displayName || firebaseAuth.session?.displayName || ''}
+          />
         )}
 
         {/* Student view: class join + own attempts */}
