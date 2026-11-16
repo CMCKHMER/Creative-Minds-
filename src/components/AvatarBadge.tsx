@@ -5,7 +5,7 @@ import {
 import { presetById, type Avatar } from '../lib/avatar';
 
 // The drawing for each built-in avatar id (src/lib/avatar.ts → AVATAR_PRESETS).
-export const AVATAR_ICONS: Record<string, LucideIcon> = {
+const AVATAR_ICONS: Record<string, LucideIcon> = {
   cat: Cat, dog: Dog, rabbit: Rabbit, bird: Bird, fish: Fish, turtle: Turtle, squirrel: Squirrel, panda: Panda,
   rocket: Rocket, star: Star, book: BookOpen, palette: Palette, music: Music, robot: Bot, flower: Flower2, trophy: Trophy,
 };

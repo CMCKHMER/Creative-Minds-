@@ -8,7 +8,6 @@
 //   assessment_classes (+ students)   private per teacher
 //   roster_seats, student_links       registration
 //   user_avatars                      profile picture
-//   hw_keys, hw_sheets                locked homework
 // A write the real rules would refuse is refused here too, so the app and the
 // rules are checked against each other. It is a mirror: the real rules still
 // have to be published and tried once in Firebase.
