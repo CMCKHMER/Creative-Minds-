@@ -75,6 +75,11 @@ const CtaSection = lazySection(() => import('./components/CtaSection'), (m) => m
 // hold up the first paint nor blank the page.
 const TeacherPassModal = lazy(() => retryImport(() => import('./components/TeacherPassModal')).then(m => ({ default: m.TeacherPassModal })));
 const StudentDemoModal = lazy(() => retryImport(() => import('./components/StudentDemoModal')).then(m => ({ default: m.StudentDemoModal })));
+const BookshelfComingSoonModal = lazy(() =>
+  retryImport(() => import('./components/BookshelfComingSoonModal')).then(m => ({
+    default: m.BookshelfComingSoonModal,
+  })),
+);
 const MiniMockTest = lazy(() => retryImport(() => import('./components/MiniMockTest')).then(m => ({ default: memo(m.MiniMockTest) })));
 const LearningGamesPage = lazy(() => retryImport(() => import('./components/LearningGamesPage')).then(m => ({ default: m.LearningGamesPage })));
 const BrainLoungePage = lazy(() => retryImport(() => import('./components/BrainLoungePage')).then(m => ({ default: m.BrainLoungePage })));
@@ -96,6 +101,8 @@ export function App() {
   const [quickDrawerOpen, setQuickDrawerOpen] = useState(false);
   const [teacherPassModalOpen, setTeacherPassModalOpen] = useState(false);
   const [studentDemoModalOpen, setStudentDemoModalOpen] = useState(false);
+  /** Which bookshelf shelf the hero asked about; null = panel closed. */
+  const [bookshelfShelf, setBookshelfShelf] = useState<'pdf' | 'interactive' | null>(null);
   const [authInitialMode, setAuthInitialMode] = useState<'sign-up' | 'sign-in'>('sign-up');
   const [authAccountType, setAuthAccountType] = useState<AccountType | null>(null);
   const [authContext, setAuthContext] = useState<string | null>(null);
@@ -568,6 +575,8 @@ export function App() {
             onOpenStudentDemo={() => setStudentDemoModalOpen(true)}
             onOpenTeacherPass={() => openMemberAuth('sign-up')}
             onSelectFeatureCard={handleHeroFeatureSelect}
+            onOpenPdfLibrary={() => setBookshelfShelf('pdf')}
+            onOpenInteractiveBooks={() => setBookshelfShelf('interactive')}
             sidePanel={<NewsSidePanel onSeeAll={openNewsPage} />}
           />
 
@@ -608,6 +617,14 @@ export function App() {
             onClose={() => setStudentDemoModalOpen(false)}
             onOpenTeacherPass={() => openMemberAuth('sign-up')}
           />
+        </Suspense>
+      </ErrorBoundary>
+
+      {/* Bookshelf shelves (PDF packs + interactive books) — both still being
+          uploaded, so the hero asks here rather than linking nowhere. */}
+      <ErrorBoundary variant="silent" label="bookshelf-modal">
+        <Suspense fallback={null}>
+          <BookshelfComingSoonModal kind={bookshelfShelf} onClose={() => setBookshelfShelf(null)} />
         </Suspense>
       </ErrorBoundary>
 

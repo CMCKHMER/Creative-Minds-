@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
-import { ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, FileText, Gamepad2, GraduationCap, Play } from 'lucide-react';
 import { useCountUp } from '../hooks/useReveal';
 import { useTitleParticles } from '../hooks/useTitleParticles';
 import { smallTitleSpacing } from '../lib/titleParticlesMath';
@@ -9,6 +9,13 @@ interface HeroProps {
   onOpenStudentDemo: () => void;
   onOpenTeacherPass: () => void;
   onSelectFeatureCard: (feature: string) => void;
+  /**
+   * The two bookshelf shelves. Both are products still being uploaded, so
+   * the buttons open the "opening soon" panel instead of a dead link — see
+   * BookshelfComingSoonModal. Swap these for real URLs when the shelf opens.
+   */
+  onOpenPdfLibrary: () => void;
+  onOpenInteractiveBooks: () => void;
   /**
    * Optional side panel rendered on the right side of the hero on lg+
    * screens (mobile/tablet stacks it below the text). Used to host the
@@ -98,6 +105,8 @@ export const Hero = ({
   onOpenStudentDemo,
   onOpenTeacherPass,
   onSelectFeatureCard,
+  onOpenPdfLibrary,
+  onOpenInteractiveBooks,
   sidePanel,
 }: HeroProps) => {
   const shortcutsRef = useRef<HTMLElement>(null);
@@ -225,6 +234,34 @@ export const Hero = ({
                 <button type="button" onClick={onOpenTeacherPass} className="cmc-btn-ghost group">
                   Create a teacher account
                   <ArrowRight className="h-4 w-4 text-cyan-200 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                </button>
+              </div>
+
+              {/* The bookshelf — two products in progress. They render as full
+                  buttons so the hero's final layout is settled now, and each
+                  opens the "opening soon" panel rather than a dead link. */}
+              <div className="cmc-hero-enter mt-3 flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={onOpenPdfLibrary}
+                  className="group inline-flex items-center gap-2 rounded-xl border border-amber-200/25 bg-amber-200/[0.06] px-3.5 py-2 text-[11.5px] font-semibold text-amber-100/90 transition hover:border-amber-200/50 hover:bg-amber-200/[0.12] hover:text-white"
+                >
+                  <FileText className="h-3.5 w-3.5 text-amber-200" aria-hidden="true" />
+                  PDF library
+                  <span className="rounded bg-amber-200/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-amber-200">
+                    Soon
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenInteractiveBooks}
+                  className="group inline-flex items-center gap-2 rounded-xl border border-cyan-200/25 bg-cyan-200/[0.06] px-3.5 py-2 text-[11.5px] font-semibold text-cyan-100/90 transition hover:border-cyan-200/50 hover:bg-cyan-200/[0.12] hover:text-white"
+                >
+                  <BookOpen className="h-3.5 w-3.5 text-cyan-200" aria-hidden="true" />
+                  Interactive books
+                  <span className="rounded bg-cyan-200/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-cyan-200">
+                    Soon
+                  </span>
                 </button>
               </div>
 

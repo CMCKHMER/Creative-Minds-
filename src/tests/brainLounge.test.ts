@@ -476,3 +476,60 @@ describe('word creator leaderboard decoding', () => {
     expect(rows[0]).toMatchObject({ bestPct: 6, bestScore: 410 });
   });
 });
+
+/** Hub + lexicon upgrade (Nov 2026). The game gained a visual start screen and
+ * a lazy tournament dictionary; both are load-bearing, so both are pinned. */
+describe('word creator — hub screen and tournament lexicon', () => {
+  const html = readFileSync(resolve(process.cwd(), 'public', 'arcade', 'word-creator', 'index.html'), 'utf8');
+
+  it('opens on a hub with one card per way to play', () => {
+    expect(html).toContain('<main id="hub"');
+    expect(html).toContain('<body data-screen="hub">');
+    for (const id of ['modeSolo', 'modePass', 'modeOnline']) {
+      expect(html, `hub card ${id}`).toContain(`id="${id}"`);
+    }
+    // the setup card still exists — it is one step in, not replaced
+    expect(html).toContain('<main id="setup" class="hide">');
+  });
+
+  it('sends each hub card to a table that fits it', () => {
+    // solo pre-fills an AI seat, pass & play pre-fills two humans
+    expect(html).toMatch(/\$\("#modeSolo"\)\.onclick=[^]*?G\.cfg\[1\]\.ai=true/);
+    expect(html).toMatch(/\$\("#modePass"\)\.onclick=[^]*?ai:false[^]*?ai:false/);
+    // online goes to the join field, not straight into a local match
+    expect(html).toMatch(/\$\("#modeOnline"\)\.onclick=[^]*?wc-code/);
+    // the logo is the way home
+    expect(html).toMatch(/\$\("#logo"\)\.onclick=[^]*?showHub\(\)/);
+  });
+
+  it('keeps an ?online= deep link out of the hub', () => {
+    expect(html).toMatch(/has\("online"\)\)\{\s*document\.body\.dataset\.screen="online"/);
+  });
+
+  it('upgrades to the tournament lexicon in the background', () => {
+    expect(html).toContain('function lexHas(');   // the one lookup everything uses
+    expect(html).toContain('function lexFetch('); // the background fetch
+    expect(html).toContain('lexicon.txt.gz');
+    expect(html).toContain('lexFetch();');        // kicked at boot, not awaited
+    // scoring AND the AI both consult it (a word the AI cannot see is a word
+    // the player can be beaten by unfairly)
+    expect(html).toContain('if(!lexHas(w.word.toLowerCase()))');
+    expect(html).toContain('if(lexHas(up+L+dn))s.add(L);');
+    expect(html).toContain('if(pl.length&&lexHas(s)&&conn(pl,ext))rec(pl);');
+  });
+
+  it('handles a server that already decompressed the .gz', () => {
+    // the dev server sends Content-Encoding: gzip, so the body arrives inflated
+    // and a second DecompressionStream throws. Sniff the magic bytes instead.
+    expect(html).toContain('bytes[0]===0x1f&&bytes[1]===0x8b');
+  });
+
+  it('ships the lexicon asset with its provenance', () => {
+    const gz = resolve(process.cwd(), 'public', 'arcade', 'word-creator', 'lexicon.txt.gz');
+    expect(statSync(gz).size).toBeGreaterThan(300_000); // a real list, not a stub
+    const source = readFileSync(
+      resolve(process.cwd(), 'public', 'arcade', 'word-creator', 'lexicon-SOURCE.txt'), 'utf8');
+    expect(source).toContain('scrabble-dictionary');
+    expect(source).toContain('MIT');
+  });
+});
