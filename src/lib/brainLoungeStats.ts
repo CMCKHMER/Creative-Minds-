@@ -17,6 +17,11 @@
  *    team won (0 on a loss), totalCount = 1; scorePct carries the margin
  *    (100 team win, 50 loss-but-survived, 25 eliminated in a loss)
  *    (see public/mafia.html CMC integration block).
+ *  • word-creator — one finished word duel: correctCount carries the RAW
+ *    match score (points), scorePct = floor(score / 100) capped at 100,
+ *    totalCount = 1 when YOU won the table (0 otherwise) — the fourth
+ *    cartridge that keeps a win/loss record as well as a high score
+ *    (see public/arcade/word-creator/index.html CMC_WORD_CREATOR_SUBMIT).
  */
 
 export interface LoungeAttempt {
@@ -99,6 +104,42 @@ export function aggregateMafia(attempts: LoungeAttempt[]): MafiaRecord[] {
   }
   return [...byName.values()].sort(
     (x, y) => y.wins - x.wins || x.losses - y.losses || y.cases - x.cases || y.lastPlayed - x.lastPlayed,
+  );
+}
+
+export interface WordCreatorEntry {
+  name: string;
+  matches: number;
+  wins: number;
+  /** Highest single-match raw score (match points). */
+  bestScore: number;
+  bestPct: number;
+  lastPlayed: number;
+}
+
+export function isWordCreatorAttempt(a: LoungeAttempt): boolean {
+  return a.drillSource === "brain-lounge" && a.drillSlug === "word-creator";
+}
+
+export function aggregateWordCreator(attempts: LoungeAttempt[]): WordCreatorEntry[] {
+  const byName = new Map<string, WordCreatorEntry>();
+  for (const a of attempts) {
+    if (!isWordCreatorAttempt(a)) continue;
+    let entry = byName.get(a.studentName);
+    if (!entry) {
+      entry = { name: a.studentName, matches: 0, wins: 0, bestScore: 0, bestPct: 0, lastPlayed: 0 };
+      byName.set(a.studentName, entry);
+    }
+    entry.matches += 1;
+    // A win is totalCount 1 (+ correctCount is the raw score, so never read
+    // the pair the mafia/chess way — a 1-point match would look like a win).
+    if (a.totalCount === 1) entry.wins += 1;
+    entry.bestScore = Math.max(entry.bestScore, a.correctCount);
+    entry.bestPct = Math.max(entry.bestPct, a.scorePct);
+    entry.lastPlayed = Math.max(entry.lastPlayed, a.submittedAt);
+  }
+  return [...byName.values()].sort(
+    (x, y) => y.bestScore - x.bestScore || y.wins - x.wins || y.matches - x.matches || y.lastPlayed - x.lastPlayed,
   );
 }
 

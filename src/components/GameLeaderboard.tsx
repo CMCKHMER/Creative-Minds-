@@ -89,6 +89,7 @@ function gameNameFromSlug(slug: string): string {
     'voice-quest-custom': 'Talk to me · Custom level',
     'tense-master': 'Tense Master',
     'galica': 'Galica · Arcade Shooter',
+    'word-creator': 'Word Creator · Brain Lounge',
     'dictation.html': 'Dictation Sheet',
     'unit-test.html': 'Unit Test',
     'unscramble.html': 'Unscramble Sheet',
