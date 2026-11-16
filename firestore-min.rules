@@ -151,6 +151,26 @@ service cloud.firestore {
       allow list: if isCmcAdmin();
       allow delete: if isCmcAdmin() || (isVerifiedUser() && request.auth.uid == uid);
     }
+    match /user_avatars/{uid} {
+      allow get: if isVerifiedUser() && (request.auth.uid == uid || isCmcAdmin());
+      allow list: if isCmcAdmin();
+      allow create, update: if isVerifiedUser()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'kind', 'photo', 'preset', 'updatedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.kind in ['photo', 'preset']
+        && request.resource.data.photo is string
+        && request.resource.data.photo.size() <= 90000
+        && request.resource.data.preset is string
+        && request.resource.data.preset.size() <= 40
+        && ((request.resource.data.kind == 'preset'
+              && request.resource.data.photo == ''
+              && request.resource.data.preset.matches('^[a-z0-9-]{1,40}$'))
+            || (request.resource.data.kind == 'photo'
+              && request.resource.data.preset == ''
+              && request.resource.data.photo.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$')));
+      allow delete: if isVerifiedUser() && (request.auth.uid == uid || isCmcAdmin());
+    }
     match /students/{uid} {
       allow create: if request.auth != null && request.auth.uid == uid;
       allow read, update, delete: if isVerifiedUser() && request.auth.uid == uid;

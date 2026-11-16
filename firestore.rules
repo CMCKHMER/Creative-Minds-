@@ -335,6 +335,33 @@ service cloud.firestore {
       allow delete: if isCmcAdmin() || (isVerifiedUser() && request.auth.uid == uid);
     }
 
+    // ── PROFILE PICTURE (Nov 2026) ──
+    // One small document per account: a built-in avatar id, or a photo the
+    // browser has already shrunk to a 160 px square (a base64 data: URL, a
+    // few kilobytes — src/lib/avatar.ts). Many users are children, so the
+    // picture is PRIVATE: only the account itself reads it. The site owner
+    // can read and remove one (moderation) but cannot write one.
+    match /user_avatars/{uid} {
+      allow get: if isVerifiedUser() && (request.auth.uid == uid || isCmcAdmin());
+      allow list: if isCmcAdmin();
+      allow create, update: if isVerifiedUser()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'kind', 'photo', 'preset', 'updatedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.kind in ['photo', 'preset']
+        && request.resource.data.photo is string
+        && request.resource.data.photo.size() <= 90000
+        && request.resource.data.preset is string
+        && request.resource.data.preset.size() <= 40
+        && ((request.resource.data.kind == 'preset'
+              && request.resource.data.photo == ''
+              && request.resource.data.preset.matches('^[a-z0-9-]{1,40}$'))
+            || (request.resource.data.kind == 'photo'
+              && request.resource.data.preset == ''
+              && request.resource.data.photo.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$')));
+      allow delete: if isVerifiedUser() && (request.auth.uid == uid || isCmcAdmin());
+    }
+
     match /students/{uid} {
       // CREATE with just sign-in: the signup flow writes the profile doc
       // while the brand-new (still unverified) auth context exists. Every

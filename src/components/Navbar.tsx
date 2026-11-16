@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import {
   Menu, X, Sparkles,
   ExternalLink, ArrowRight,
   Compass, GraduationCap,
-  User as UserIcon, LogOut, ChevronDown,
+  User as UserIcon, LogOut, ChevronDown, ImagePlus,
 } from 'lucide-react';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 import { clearPersistedSession } from '../lib/firebaseAuth';
@@ -11,6 +11,11 @@ import { sessionAccountTitle, sessionBadgeLabel } from '../lib/userProfile';
 import { requestAuth } from '../lib/authPrompt';
 import { ThemeToggle } from './ThemeToggle';
 import { SpinLogo } from './SpinLogo';
+import { AvatarBadge } from './AvatarBadge';
+import { useAvatar } from '../hooks/useAvatar';
+
+// The profile-picture panel is opened rarely: keep it out of the first load.
+const ProfilePhotoModal = lazy(() => import('./ProfilePhotoModal').then((m) => ({ default: m.ProfilePhotoModal })));
 
 interface NavbarProps {
   onOpenQuickLinks: () => void;
@@ -31,6 +36,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   // `cmc-auth-changed` events (fired by TeacherPassModal / useFirebaseAuth).
   const session = useSignedInSession();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  // Profile picture: a photo or a built-in avatar, chosen from the account menu.
+  const [photoPanelOpen, setPhotoPanelOpen] = useState(false);
+  const avatar = useAvatar(session?.localId, Boolean(session?.emailVerified));
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -209,9 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     aria-label={`Signed in as ${session.email}. Click to open user menu.`}
                     aria-expanded={userMenuOpen}
                   >
-                    <span className={`grid h-6 w-6 place-items-center rounded-full text-[10px] font-bold ${avatarTone}`}>
-                      {firstName.slice(0, 1).toUpperCase() || 'U'}
-                    </span>
+                    <AvatarBadge avatar={avatar} initial={firstName} size={24} toneClass={avatarTone} />
                     <span className="hidden sm:inline max-w-[120px] truncate">
                       Hi, {firstName}
                     </span>
@@ -226,13 +232,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                       className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-700/80 bg-slate-900/95 backdrop-blur-xl p-2 shadow-2xl z-50"
                     >
                       <div className="px-3 py-2 border-b border-slate-700/60 mb-1">
-                        <div className="flex items-center gap-2">
-                          <UserIcon className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" />
-                          <span className="text-xs font-semibold text-white truncate">{session.displayName || session.email}</span>
+                        <div className="flex items-center gap-2.5">
+                          <AvatarBadge avatar={avatar} initial={firstName} size={36} toneClass={avatarTone} />
+                          <div className="min-w-0">
+                            <span className="block text-xs font-semibold text-white truncate">{session.displayName || session.email}</span>
+                            {session.email && session.email !== session.displayName && (
+                              <p className="text-[10px] text-slate-500 truncate">{session.email}</p>
+                            )}
+                          </div>
                         </div>
-                        {session.email && session.email !== session.displayName && (
-                          <p className="mt-1 pl-6 text-[10px] text-slate-500 truncate">{session.email}</p>
-                        )}
                         <div className="mt-2 flex flex-wrap items-center gap-1.5">
                           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badgeTone}`}>
                             {accountTitle}
@@ -244,6 +252,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                           )}
                         </div>
                       </div>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => { setUserMenuOpen(false); setPhotoPanelOpen(true); }}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                        data-testid="profile-photo-open"
+                      >
+                        <ImagePlus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        {avatar ? 'Change profile picture' : 'Add a profile picture'}
+                      </button>
                       <a
                         href="#toefl-mini-test"
                         onClick={() => setUserMenuOpen(false)}
@@ -411,9 +429,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       dropdown menu's content. */}
                   <div className="rounded-xl border border-slate-700/80 bg-slate-900/60 p-3">
                     <div className="flex items-center gap-2">
-                      <span className={`grid h-9 w-9 place-items-center rounded-full text-xs font-bold ${avatarTone}`}>
-                        {firstName.slice(0, 1).toUpperCase() || 'U'}
-                      </span>
+                      <AvatarBadge avatar={avatar} initial={firstName} size={36} toneClass={avatarTone} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-white">{session.displayName || session.email}</p>
                         {session.email && session.email !== session.displayName && (
@@ -432,6 +448,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                       )}
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => { setMobileMenuOpen(false); setPhotoPanelOpen(true); }}
+                    className="flex w-full items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-800/40 px-3 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-slate-800/80"
+                    data-testid="profile-photo-open-mobile"
+                  >
+                    <ImagePlus className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" />
+                    {avatar ? 'Change profile picture' : 'Add a profile picture'}
+                  </button>
                   <a
                     href="#toefl-mini-test"
                     onClick={() => setMobileMenuOpen(false)}
@@ -484,6 +509,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
       </header>
+
+      {photoPanelOpen && session && (
+        <Suspense fallback={null}>
+          <ProfilePhotoModal
+            uid={session.localId}
+            name={session.displayName && !session.displayName.includes('@') ? session.displayName : firstName}
+            current={avatar}
+            toneClass={avatarTone}
+            onClose={() => setPhotoPanelOpen(false)}
+          />
+        </Suspense>
+      )}
     </>
   );
 };
