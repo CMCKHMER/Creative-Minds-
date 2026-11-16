@@ -59,6 +59,12 @@ export interface BrainGameDef {
   emoji: string;
   /** Tailwind gradient classes for the cartridge shell. */
   gradient: string;
+  /** Cover art shipped in public/ (e.g. './arcade/art/cover-galica.jpg').
+   *  Shown on the cartridge and on the stage header; the emoji is the
+   *  fallback for bays that have no art yet. */
+  art?: string;
+  /** Alt text for the cover. Decorative covers can stay empty. */
+  artAlt?: string;
   status: 'live' | 'coming-soon';
   mode?: BrainGameMode;
   /** mode 'react': dynamic import returning { default: GameComponent }. */
@@ -85,6 +91,8 @@ export const BRAIN_GAMES: BrainGameDef[] = [
     difficulty: 2,
     emoji: '⚒️',
     gradient: 'from-orange-400/25 via-amber-500/10 to-red-400/15',
+    art: './arcade/art/cover-brickforge.jpg',
+    artAlt: 'Molten embers bursting from a shattered forge wall',
     status: 'live',
     mode: 'react',
     load: () => import('./brickforge/BrickForge'),
@@ -99,6 +107,8 @@ export const BRAIN_GAMES: BrainGameDef[] = [
     difficulty: 3,
     emoji: '♟️',
     gradient: 'from-amber-300/25 via-amber-500/10 to-emerald-400/15',
+    art: './arcade/art/cover-chess3d.jpg',
+    artAlt: 'Hand-sculpted chess pieces on a battlefield board at dusk',
     status: 'live',
     mode: 'react',
     load: () => import('./chess3d/Chess3D'),
@@ -113,6 +123,8 @@ export const BRAIN_GAMES: BrainGameDef[] = [
     difficulty: 2,
     emoji: '🚀',
     gradient: 'from-emerald-300/25 via-cyan-500/10 to-indigo-400/15',
+    art: './arcade/art/cover-galica.jpg',
+    artAlt: 'Three starfighters diving past an insectoid alien mothership',
     status: 'live',
     mode: 'standalone',
     launchUrl: './arcade/galica/index.html',
@@ -127,6 +139,8 @@ export const BRAIN_GAMES: BrainGameDef[] = [
     difficulty: 3,
     emoji: '🎩',
     gradient: 'from-rose-300/25 via-red-500/10 to-amber-400/15',
+    art: './arcade/art/cover-mafia.jpg',
+    artAlt: 'Two figures in fedoras at a lamplit card table, noir city behind',
     status: 'live',
     mode: 'standalone',
     launchUrl: './mafia.html',
@@ -141,6 +155,8 @@ export const BRAIN_GAMES: BrainGameDef[] = [
     difficulty: 3,
     emoji: '🔤',
     gradient: 'from-sky-300/25 via-indigo-500/10 to-fuchsia-400/15',
+    art: './arcade/art/cover-word-creator.jpg',
+    artAlt: 'Glowing glass word-game board with letter tiles in the air',
     status: 'live',
     mode: 'standalone',
     launchUrl: './arcade/word-creator/index.html',

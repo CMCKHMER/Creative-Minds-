@@ -44,6 +44,11 @@ jobs:
         run: npx tsc --noEmit
       - name: Unit tests (vitest)
         run: npx vitest run
+      # Every Brain Lounge cartridge: the launch target, the account gate, the
+      # score sync, the way back to CMC, and that every local image it points
+      # at really exists (scripts/check_brain_lounge_games.mjs).
+      - name: Brain Lounge cartridge audit
+        run: npm run check:lounge
       # After the tests (which validate the committed data files) and before
       # the build. The script keeps the committed copy of any feed it cannot
       # regenerate and always exits 0, so a feed outage never blocks a deploy.

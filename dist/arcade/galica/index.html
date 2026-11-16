@@ -141,7 +141,7 @@ function normKey(e){let c=e.code;
   return c;}
 function pressKey(c){if(!c)return;keys[c]=true;gotKey=true;ensureAudio();startHum();}
 const GAME_KEYS=['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'];
-function onKeyDown(e){const c=normKey(e);pressKey(c);if(GAME_KEYS.includes(c))e.preventDefault();}
+function onKeyDown(e){if(galicaPaused)return;const c=normKey(e);pressKey(c);if(GAME_KEYS.includes(c))e.preventDefault();}
 function onKeyUp(e){const c=normKey(e);if(c)keys[c]=false;}
 window.addEventListener('keydown',onKeyDown,true);document.addEventListener('keydown',onKeyDown,true);
 window.addEventListener('keyup',onKeyUp,true);document.addEventListener('keyup',onKeyUp,true);
@@ -755,6 +755,12 @@ function hitPl(){pl.hp--;dmgFlash=28;pl.hitFx=8;sparks(pl.x,pl.y,SHIP_DEFS[pl.sh
 
 /* ================= STATE ================= */
 let state='TITLE',score=0,hi=0,lives=3,titleT=0,overT=0,selectIdx=0,slowmo=0,fc=0,gt=0;
+/* Pause flag — the CMC chrome (briefing, how-to-play, share) sets this while a
+   sheet is open, so the ship never flies on without the player. */
+let galicaPaused=false;
+window.__galicaSetPaused=function(v){galicaPaused=!!v;if(galicaPaused){for(const k in keys)keys[k]=false;ts.l=ts.r=ts.f=ts.b=false;try{setHum(0);}catch(e){}}};
+/* The briefing's LAUNCH button drops the player straight into ship select. */
+window.__galicaOpenSelect=function(){state='SELECT';selectIdx=0;titleT=0;keys.Space=false;keys.KeyZ=false;ts.f=false;};
 try{hi=parseInt(localStorage.getItem('galica_hi'))||0;}catch(e){}
 function reset(){score=0;lives=3;waveN=1;currentZone=0;isBossWave=false;isBonusWave=false;combo=1;comboTimer=0;maxCombo=1;kills=0;
   upgrades={hp:0,bomb:0,spd:0,mag:0};dualShip=false;
@@ -922,6 +928,9 @@ function drwGame(){drwBg(false);
 let lastT=0,errCount=0;
 function loop(t){
   try{
+    /* frozen while the CMC briefing / help / share sheet is open: the last
+       painted frame simply stays on screen */
+    if(galicaPaused){requestAnimationFrame(loop);return;}
     fc++;
     const run=slowmo>0?(fc%2===0):true;
     if(slowmo>0)slowmo--;
@@ -1005,37 +1014,215 @@ var CMC_GALICA_SUBMIT=(function(){
   };
 })();
 </script>
-<!-- CMC share-with-class kit (owner: a share button for each game or assignment) -->
-<style>#cmc-share-fab{position:fixed;left:14px;bottom:14px;z-index:99990;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:17px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;border:1px solid rgba(255,255,255,.18)}
-#cmc-share-fab:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 12px 30px rgba(56,189,248,.4)}
-#cmc-share-fab-panel{position:fixed;left:14px;bottom:68px;z-index:99990;min-width:230px;padding:10px;border-radius:14px;background:rgba(15,23,42,.96);backdrop-filter:blur(16px);border:1px solid rgba(56,189,248,.25);box-shadow:0 12px 40px rgba(0,0,0,.5);color:#f1f5f9;font-family:'Inter',system-ui,sans-serif;display:none}
-#cmc-share-fab-panel.open{display:block}
-#cmc-share-fab-panel button{display:block;width:100%;text-align:left;padding:10px 12px;margin-top:6px;border-radius:9px;border:1px solid rgba(148,163,184,.22);background:rgba(255,255,255,.04);color:#e2e8f0;font:600 13px 'Inter',system-ui,sans-serif;cursor:pointer}
-#cmc-share-fab-panel button:hover{border-color:#38bdf8}
-#cmc-share-fab-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(10px);z-index:99995;background:#0d1930;color:#e2e8f0;border:1px solid rgba(56,189,248,.4);border-radius:999px;padding:9px 18px;font:600 13px 'Inter',system-ui,sans-serif;opacity:0;pointer-events:none;transition:.25s;max-width:92vw}
-#cmc-share-fab-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-@media print{#cmc-share-fab,#cmc-share-fab-panel,#cmc-share-fab-toast{display:none!important}}</style>
-<button id="cmc-share-fab" aria-label="Share this game with your class" aria-haspopup="true">📣</button>
-<div id="cmc-share-fab-panel" role="menu" aria-label="Share options">
-  <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#67e8f9;padding:4px 8px 2px">Share with class</div>
-  <button type="button" data-c="copy">🔗 Copy game link</button>
-  <button type="button" data-c="wa">💬 WhatsApp</button>
-  <button type="button" data-c="tg">✈️ Telegram</button>
-  <button type="button" data-c="em">✉️ Email</button>
-  <button type="button" data-c="close">✕ Close</button>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     THE BRIEFING — the game's front door.
+     Key art, the three ships, the four sectors and the controls, in
+     plain type, before a single shot is fired. The canvas game starts
+     underneath only when the player inserts a coin.
+     ═══════════════════════════════════════════════════════════════════ -->
+<style>
+  #boot{position:fixed;inset:0;z-index:999000;overflow-y:auto;background:#02060a;color:#dff7ee;
+    font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;-webkit-font-smoothing:antialiased}
+  #boot[hidden]{display:none!important}
+  #boot .b-bg{position:fixed;inset:0;background:url('../art/galica-keyart.jpg') center/cover no-repeat;opacity:.5}
+  #boot .b-veil{position:fixed;inset:0;background:
+    radial-gradient(110% 80% at 12% 0%,rgba(0,255,170,.18),transparent 58%),
+    linear-gradient(180deg,rgba(2,6,10,.45),rgba(2,6,10,.9) 55%,#02060a 92%)}
+  #boot .b-scan{position:fixed;inset:0;pointer-events:none;opacity:.45;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px)}
+  #boot .b-inner{position:relative;z-index:2;width:min(1100px,100%);margin:0 auto;padding:76px 20px 48px}
+  #boot .b-kick{display:inline-flex;align-items:center;gap:8px;margin:0;font-family:'Press Start 2P',monospace;
+    font-size:8px;letter-spacing:.22em;color:#6cffc9;text-transform:uppercase}
+  #boot .b-dot{width:6px;height:6px;border-radius:50%;background:#00ffaa;box-shadow:0 0 10px #00ffaa;animation:bPulse 2.2s ease-in-out infinite}
+  @keyframes bPulse{50%{opacity:.35}}
+  #boot h1{margin:16px 0 0;font-family:'Press Start 2P',monospace;font-size:clamp(30px,6.4vw,58px);letter-spacing:.06em;
+    color:#eafff6;text-shadow:0 0 24px rgba(0,255,170,.55),0 0 70px rgba(0,255,170,.25),0 4px 0 #064a36}
+  #boot .b-sub{max-width:56ch;margin:14px 0 0;font-size:13.5px;line-height:1.75;color:#a9d8c8}
+  #boot .b-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  #boot .b-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;font-size:10.5px;
+    font-weight:700;letter-spacing:.05em;color:#bff5e3;background:rgba(0,255,170,.07);border:1px solid rgba(0,255,170,.26)}
+  #boot .b-chip b{color:#fff;font-size:11.5px}
+  #boot .b-grid{display:grid;gap:18px;grid-template-columns:1.02fr .98fr;margin-top:26px}
+  #boot .b-card{padding:16px;border-radius:14px;border:1px solid rgba(0,255,170,.2);background:rgba(3,14,12,.72);
+    box-shadow:0 18px 44px rgba(0,0,0,.45);backdrop-filter:blur(6px)}
+  #boot h2{margin:0 0 12px;font-family:'Press Start 2P',monospace;font-size:9px;letter-spacing:.18em;color:#ffd23d;text-transform:uppercase}
+  #boot .b-ship{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:11px;border:1px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.03)}
+  #boot .b-ship+.b-ship{margin-top:8px}
+  #boot .b-ship img{width:44px;height:44px;flex:none;image-rendering:pixelated;filter:drop-shadow(0 0 10px rgba(0,255,170,.35))}
+  #boot .b-ship .n{font-family:'Press Start 2P',monospace;font-size:10px;letter-spacing:.06em;color:#eafff6}
+  #boot .b-ship .d{margin-top:5px;font-size:10.5px;color:#8fc7b5}
+  #boot .b-bars{display:flex;gap:10px;margin-top:7px;flex-wrap:wrap}
+  #boot .b-bar{display:flex;align-items:center;gap:5px;font-size:8px;letter-spacing:.08em;color:#79ad9c}
+  #boot .b-bar i{display:block;width:30px;height:4px;border-radius:3px;background:rgba(255,255,255,.12);position:relative;overflow:hidden}
+  #boot .b-bar i::after{content:'';position:absolute;inset:0;width:var(--f,50%);background:var(--c,#00ffaa)}
+  #boot .b-sectors{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+  #boot .b-sector{position:relative;overflow:hidden;border-radius:11px;border:1px solid rgba(255,255,255,.14);aspect-ratio:1.15;
+    background:#04100d}
+  #boot .b-sector img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .4s}
+  #boot .b-sector:hover img{transform:scale(1.06)}
+  #boot .b-sector .cap{position:absolute;inset:auto 0 0;padding:22px 8px 7px;text-align:left;
+    background:linear-gradient(transparent,rgba(2,6,10,.92))}
+  #boot .b-sector b{display:block;font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:.1em;color:#eafff6}
+  #boot .b-sector span{display:block;margin-top:3px;font-size:9.5px;color:#8fc7b5}
+  #boot .b-keys{display:grid;gap:7px;margin:14px 0 0;padding:0;list-style:none;font-size:11px;color:#a9d8c8}
+  #boot .b-keys li{display:flex;gap:9px;align-items:flex-start;line-height:1.5}
+  #boot .b-keys kbd{flex:none;min-width:78px;padding:4px 7px;border-radius:6px;border:1px solid rgba(0,255,170,.3);
+    background:rgba(0,255,170,.08);font-family:inherit;font-size:9.5px;color:#d6fff0;text-align:center}
+  #boot .b-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:24px}
+  #boot .b-launch{cursor:pointer;border:0;border-radius:12px;padding:16px 26px;font-family:'Press Start 2P',monospace;
+    font-size:11px;letter-spacing:.1em;color:#03231a;background:linear-gradient(160deg,#7bffd0,#00ffaa 55%,#00b37a);
+    box-shadow:0 10px 30px rgba(0,255,170,.34);transition:transform .16s,box-shadow .16s}
+  #boot .b-launch:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(0,255,170,.5)}
+  #boot .b-launch:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  #boot .b-ghost{display:inline-flex;align-items:center;gap:7px;cursor:pointer;text-decoration:none;border-radius:11px;
+    padding:13px 16px;font-size:11px;font-weight:700;letter-spacing:.05em;color:#bff5e3;
+    border:1px solid rgba(0,255,170,.3);background:rgba(0,255,170,.05)}
+  #boot .b-ghost:hover{border-color:#00ffaa;background:rgba(0,255,170,.12)}
+  #boot .b-note{margin:18px 0 0;font-size:10.5px;line-height:1.7;color:#6f9c8d}
+  #boot .b-note a{color:#6cffc9}
+  @media(max-width:760px){
+    #boot .b-grid{grid-template-columns:1fr}
+    #boot .b-inner{padding:70px 14px 40px}
+    #boot .b-ship img{width:38px;height:38px}
+  }
+  @media(prefers-reduced-motion:reduce){#boot *{animation:none!important;transition:none!important}}
+</style>
+
+<div id="boot" role="dialog" aria-modal="true" aria-labelledby="bootTitle">
+  <div class="b-bg" aria-hidden="true"></div><div class="b-veil" aria-hidden="true"></div><div class="b-scan" aria-hidden="true"></div>
+  <div class="b-inner">
+    <p class="b-kick"><span class="b-dot"></span> CMC Arcade · Brain Lounge · Bay 03</p>
+    <h1 id="bootTitle">GALICA</h1>
+    <p class="b-sub">Deep-space combat in four scrolling sectors. Pick a ship, dodge the swarm, capture what you can and
+      hold your nerve through the boss waves — then see where your run lands on the class leaderboard.</p>
+    <div class="b-chips">
+      <span class="b-chip">🏆 Best <b id="bootBest">—</b></span>
+      <span class="b-chip">🛰️ <b>4</b> sectors</span>
+      <span class="b-chip">🚀 <b>3</b> ships</span>
+      <span class="b-chip">🎯 <b>1</b> free CMC account</span>
+    </div>
+
+    <div class="b-grid">
+      <section class="b-card">
+        <h2 id="bootShipsHead">Choose your ship</h2>
+        <div id="bootShips"></div>
+        <ul class="b-keys">
+          <li><kbd>← → / A D</kbd><span>Fly. The hull has inertia — tap, don't hold.</span></li>
+          <li><kbd>Z / SPACE</kbd><span>Fire. Watch the heat bar; overheating freezes your guns.</span></li>
+          <li><kbd>X / SHIFT</kbd><span>Smart bomb — clears the screen and saves a life.</span></li>
+          <li><kbd>TOUCH</kbd><span>On a phone, use the four on-screen pads.</span></li>
+        </ul>
+      </section>
+
+      <section class="b-card">
+        <h2>Four sectors, one run</h2>
+        <div class="b-sectors" id="bootSectors">
+          <div class="b-sector"><img src="../art/galica-sector-1.jpg" alt="Sector 1: Deep Space" loading="lazy"><div class="cap"><b>SECTOR 1</b><span>Deep Space · learn the swarm</span></div></div>
+          <div class="b-sector"><img src="../art/galica-sector-2.jpg" alt="Sector 2: Inferno" loading="lazy"><div class="cap"><b>SECTOR 2</b><span>Inferno · dive-bombers</span></div></div>
+          <div class="b-sector"><img src="../art/galica-sector-3.jpg" alt="Sector 3: Quantum Void" loading="lazy"><div class="cap"><b>SECTOR 3</b><span>Quantum Void · spliters</span></div></div>
+          <div class="b-sector"><img src="../art/galica-sector-4.jpg" alt="Sector 4: Cyber Dimension" loading="lazy"><div class="cap"><b>SECTOR 4</b><span>Cyber Dimension · the wall</span></div></div>
+        </div>
+        <p class="b-note">Every fourth wave ends at the <b>Orbital Dock</b>: spend credits on hull, bombs, thrusters or a magnet.
+          A rescue run can hand back a lost life — the medal is worth chasing.</p>
+      </section>
+    </div>
+
+    <div class="b-actions">
+      <button type="button" class="b-launch" id="bootLaunch">▶ INSERT COIN · LAUNCH</button>
+      <a class="b-ghost" href="https://cmckhmer.github.io/Creative-Minds-/#brain-lounge">← Back to CMC</a>
+      <button type="button" class="b-ghost" id="bootShipsBtn">🛰️ Full briefing</button>
+    </div>
+    <p class="b-note">Your run posts to the Brain Lounge board while you are signed in.
+      <a href="https://cmckhmer.github.io/Creative-Minds-/#brain-lounge">Compare scores in the lounge →</a></p>
+  </div>
 </div>
-<div id="cmc-share-fab-toast" role="status" aria-live="polite"></div>
-<script>(function(){var T=document.title.split('—')[0].trim()||document.title;var U=location.href;var TXT='🎮 '+T+' — play on CMC';
-function toast(m){var t=document.getElementById('cmc-share-fab-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('show')},2600);}
-var fab=document.getElementById('cmc-share-fab'),panel=document.getElementById('cmc-share-fab-panel');
-fab.addEventListener('click',function(){if(navigator.share){navigator.share({title:T,text:TXT,url:U}).catch(function(){});return;}panel.classList.toggle('open');});
-panel.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var c=b.getAttribute('data-c');
-if(c==='close'){panel.classList.remove('open');}
-else if(c==='copy'){var done=function(){toast('Game link copied \u2713');panel.classList.remove('open');};
-if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(U).then(done,function(){try{var ta=document.createElement('textarea');ta.value=U;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(err){toast('Copy failed \u2014 long-press the URL');}});}else{try{var ta2=document.createElement('textarea');ta2.value=U;document.body.appendChild(ta2);ta2.select();document.execCommand('copy');ta2.remove();done();}catch(err2){toast('Copy failed \u2014 long-press the URL');}}}
-else if(c==='wa'){window.open('https://wa.me/?text='+encodeURIComponent(TXT+' '+U),'_blank','noopener');panel.classList.remove('open');}
-else if(c==='tg'){window.open('https://t.me/share/url?url='+encodeURIComponent(U)+'&text='+encodeURIComponent(TXT),'_blank','noopener');panel.classList.remove('open');}
-else if(c==='em'){location.href='mailto:?subject='+encodeURIComponent(T)+'&body='+encodeURIComponent(TXT+'\n'+U);panel.classList.remove('open');}});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')panel.classList.remove('open');});})();</script>
+
+<script>
+/* ── The briefing: paint the real ship sprites into the cards, restore the
+      saved high score, and hand control to the canvas only on LAUNCH. ── */
+(function(){
+  var boot=document.getElementById('boot'); if(!boot)return;
+  var briefed=false; try{briefed=sessionStorage.getItem('cmc-galica-briefed')==='1';}catch(e){}
+  var skip=/[?&](play|skipbrief)=1/.test(location.search);
+  function fill(){
+    try{
+      var host=document.getElementById('bootShips');
+      if(host&&host.childElementCount===0&&typeof SHIP_DEFS!=='undefined'&&typeof SPR!=='undefined'){
+        host.innerHTML=SHIP_DEFS.map(function(d,i){
+          var img=''; try{img=SPR.ships[i].toDataURL();}catch(e){}
+          var bars=[['SPD',d.spd/6,'#00ffcc'],['ROF',10/d.rate,'#ffe93d'],['HULL',d.maxHp/5,'#ff8a3d'],['BOMB',d.maxBombs/3,'#8fb3ff']]
+            .map(function(b){return '<span class="b-bar">'+b[0]+'<i style="--f:'+Math.round(Math.min(1,b[1])*100)+'%;--c:'+b[2]+'"></i></span>';}).join('');
+          return '<div class="b-ship"><img alt="" src="'+img+'"><div><div class="n">'+d.name+'</div>'
+            +'<div class="d">'+d.desc+' · '+d.maxHp+' hull · gun heat '+d.heat+'</div><div class="b-bars">'+bars+'</div></div></div>';
+        }).join('');
+      }
+      var best=document.getElementById('bootBest');
+      var hi=0; try{hi=Number(localStorage.getItem('galica_hi')||0);}catch(e){}
+      if(best&&hi>0)best.textContent=hi.toLocaleString();
+    }catch(e){}
+  }
+  function launch(asTitle){
+    boot.hidden=true;
+    document.documentElement.removeAttribute('data-galica-boot');
+    try{sessionStorage.setItem('cmc-galica-briefed','1');}catch(e){}
+    if(window.__galicaSetPaused)window.__galicaSetPaused(false);
+    try{ensureAudio();startHum();}catch(e){}
+    if(!asTitle&&window.__galicaOpenSelect)window.__galicaOpenSelect();
+    try{window.focus();document.body.focus({preventScroll:true});}catch(e){}
+  }
+  fill();
+  document.getElementById('bootLaunch').addEventListener('click',function(){launch(false);});
+  var more=document.getElementById('bootShipsBtn');
+  if(more)more.addEventListener('click',function(){ if(window.CMC_CHROME)window.CMC_CHROME.help(); });
+  document.addEventListener('keydown',function(e){
+    if(boot.hidden)return;
+    if(e.key==='Escape'){launch(true);}
+  });
+  if(briefed||skip){ boot.hidden=true; }
+  else {
+    document.documentElement.setAttribute('data-galica-boot','1');
+    if(window.__galicaSetPaused)window.__galicaSetPaused(true);
+  }
+})();
+</script>
+
+<!-- The shared CMC chrome: ← Back to CMC, class board, share and the how-to-play
+     sheet (the same sheet the briefing's "Full briefing" button opens). -->
+<script>
+window.CMC_GAME_CHROME={
+  theme:'neon',
+  title:'Galica',
+  bay:'Bay 03',
+  help:{
+    intro:'A vertical arcade shooter in four sectors. Shoot the swarm, chain fast kills for combos, and spend credits at the Orbital Dock.',
+    sections:[
+      {h:'Flying',items:['← → or A / D to move — the hull has inertia, so tap rather than hold','Z / Space fires, X / Shift drops a smart bomb','On a phone use the four on-screen pads; keys only work after one click on the game']},
+      {h:'Scoring',items:['Every kill scores; an enemy shot down mid-dive is worth double','Chain kills quickly to raise the combo multiplier','Boss waves end every fourth wave — the dock opens after the boss']},
+      {h:'Staying alive',items:['One hit costs a hull point; losing all of them ends the run','The heat bar locks your guns when it fills — feather the trigger','Collect medals to bank credits and the occasional extra life']}
+    ],
+    artTitle:'The four sectors',
+    art:[
+      {src:'../art/galica-sector-1.jpg',title:'Sector 1',sub:'Deep Space'},
+      {src:'../art/galica-sector-2.jpg',title:'Sector 2',sub:'Inferno'},
+      {src:'../art/galica-sector-3.jpg',title:'Sector 3',sub:'Quantum Void'},
+      {src:'../art/galica-sector-4.jpg',title:'Sector 4',sub:'Cyber Dimension'}
+    ]
+  }
+};
+</script>
+<script src="../../assets/js/cmc-game-chrome.js"></script>
+<script>
+/* Freeze the run whenever a CMC sheet (briefing / help / share) is open. */
+window.addEventListener('cmc-chrome:modal',function(e){
+  try{
+    var boot=document.getElementById('boot');
+    // Closing a sheet while the briefing is still up must not release the game.
+    var open=!!(e.detail&&e.detail.open) || !!(boot&&!boot.hidden);
+    if(window.__galicaSetPaused) window.__galicaSetPaused(open);
+  }catch(err){}
+});
+</script>
 </body>
 </html>

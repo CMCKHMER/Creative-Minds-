@@ -14,6 +14,7 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Word Creator — Aurora Glass</title>
+<meta name="description" content="Word Creator — the 15×15 word duel in the CMC Brain Lounge. Build words on a glass board, play up to three AI rivals on one device, or open a room code and take on a classmate live.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -519,6 +520,10 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
  .drop{height:92px}
 }
 @media(max-width:700px){#turn{display:none!important}.tools{gap:5px}.tb{width:33px;height:33px}.tb svg{width:16px;height:16px}}
+/* The CMC back button shares the header with the tools. Under 520px the
+   wordmark keeps its tile and drops the long title, so the header never
+   pushes the page sideways. */
+@media(max-width:520px){.brand .bn{display:none}.brand .bg{display:none}}
 @media(max-width:420px){.bt{width:28px;height:28px;font-size:16px}.bn{font-size:13.5px}.seat{flex-wrap:wrap}.seat input{flex:1 1 100%;order:3}.dsearch{flex-wrap:wrap}.dgo{width:100%;justify-content:center;padding:11px}}
 @media(prefers-reduced-motion:reduce){.sway,.blob,.lt,.cell.star .pl,.pill,.crown,#sheen,#trophyWrap{animation:none!important}*{transition-duration:.01ms!important}}
 
@@ -585,6 +590,11 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
 .hub-card .hgo{margin-top:4px;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb,var(--mc) 78%,#0b3a8f);transition:transform .2s}
 .hub-card:hover .hgo{transform:translateX(4px)}
 
+.cmc-gc-slot{display:flex;align-items:center;flex-shrink:0}
+.cmc-gc-slot:empty{display:none}
+/* the shared chrome's back button lines up with this page's own tool buttons */
+#cmcGcSlot #cmc-gc-back{height:39px;min-width:39px;border-radius:11px;font-size:10.5px}
+@media(max-width:700px){#cmcGcSlot #cmc-gc-back{height:33px;min-width:33px;padding:0 9px}}
 .hub-links{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:26px}
 .hub-link{padding:9px 15px;border-radius:10px;font-family:inherit;font-weight:700;font-size:11px;line-height:1;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
  color:var(--ink2);background:rgba(255,255,255,.55);border:1px solid var(--edge);text-decoration:none;transition:.2s}
@@ -707,6 +717,7 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
 
 <header>
  <div class="brand"><div class="bt">W</div><div><div class="bn">WORD CREATOR</div><div class="bg">AURORA GLASS</div></div></div>
+ <div id="cmcGcSlot" class="cmc-gc-slot"></div>
  <div id="turn" class="hide"></div>
  <div class="tools">
   <button class="tb on" id="soundBtn" aria-label="Sound"></button>
@@ -761,7 +772,9 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
  <section class="hub-links">
   <button class="hub-link" id="hubRules">How to play</button>
   <button class="hub-link" id="hubLex">Lexicon</button>
-  <a class="hub-link" href="https://cmckhmer.github.io/Creative-Minds-/#brain-lounge">← Back to the lounge</a>
+  <button class="hub-link" id="hubShare">📣 Share with class</button>
+  <a class="hub-link" href="https://cmckhmer.github.io/Creative-Minds-/#brain-lounge">🏆 Class leaderboard</a>
+  <a class="hub-link" href="https://cmckhmer.github.io/Creative-Minds-/">← Back to CMC</a>
  </section>
 </div></main>
 
@@ -2373,5 +2386,24 @@ function reportMatch(standings,seat){
 }
 </script>
 <script src="./online.js" defer></script>
+
+<script>
+window.CMC_GAME_CHROME={
+  theme:'aurora',
+  title:'Word Creator',
+  bay:'Bay 05',
+  mount:'#cmcGcSlot',
+  inline:true,
+  actions:['back']
+};
+</script>
+<script src="../../assets/js/cmc-game-chrome.js"></script>
+<script>
+/* Hub "share with class" rides on the shared chrome's share sheet. */
+(function(){
+  var b=document.getElementById('hubShare');
+  if(b&&window.CMC_CHROME)b.addEventListener('click',function(){window.CMC_CHROME.share();});
+})();
+</script>
 </body>
 </html>
