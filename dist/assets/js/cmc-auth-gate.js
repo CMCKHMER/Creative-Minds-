@@ -22,7 +22,7 @@
  *
  * The guard renders a full-page overlay with Sign up / Sign in buttons that
  * round-trip through the React app:
- *   /?auth=signup&next=<this page>&context=<reason>
+ *   <app-root>/?auth=signup&next=<this page>&context=<reason>
  * After a successful sign-in the app returns here (authLinks.safeReturnUrl).
  *
  * It ALSO blocks downloads and prints for guests: every <a download>, every
@@ -41,6 +41,24 @@
   var LS_TYPE = 'cmc-account-type';
   var LS_VERIFIED = 'cmc-student-verified';
   var LS_EXPIRES = 'cmc-student-token-expires';
+
+  // This site is published under /Creative-Minds-/ on GitHub Pages, rather
+  // than at the domain root. Derive the app root from this shared script's
+  // URL so the same links also work on a custom domain or local root deploy.
+  var GATE_SCRIPT_URL = document.currentScript && document.currentScript.src;
+  function appRoot() {
+    if (GATE_SCRIPT_URL) {
+      try {
+        var root = new URL('../../', GATE_SCRIPT_URL).pathname;
+        return root.charAt(root.length - 1) === '/' ? root : root + '/';
+      } catch (e) { /* use the root fallback below */ }
+    }
+    // `document.currentScript` is available for the normal script include;
+    // keep a project-site fallback for older embedded browsers that omit it.
+    var host = String(global.location && global.location.hostname || '');
+    var firstSegment = String(global.location && global.location.pathname || '/').split('/')[1];
+    return /(^|\.)github\.io$/i.test(host) && firstSegment ? '/' + firstSegment + '/' : '/';
+  }
 
   var ADMIN_UIDS = ['5iLvnjzmV8QY7WFZhyTq6PIgcI63'];
   var DOWNLOAD_EXT = /\.(pdf|docx?|pptx?|xlsx?|zip|rar|7z|csv|txt|rtf|odt|ods|epub|mp3|mp4|png|jpe?g|gif|svg|html?)$/i;
@@ -114,7 +132,7 @@
     var next = global.location.pathname + global.location.search + global.location.hash;
     // Keep it relative — the React app validates this (authLinks.safeReturnUrl).
     if (next.charAt(0) !== '/') next = '/' + next.replace(/^\.?\//, '');
-    return '/?auth=' + encodeURIComponent(mode || 'signup') + '&next=' + encodeURIComponent(next);
+    return appRoot() + '?auth=' + encodeURIComponent(mode || 'signup') + '&next=' + encodeURIComponent(next);
   }
 
   function goAuth(mode) {

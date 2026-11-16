@@ -57,6 +57,22 @@
 (function () {
   'use strict';
 
+  // The shared tests live below the app's deployment prefix on GitHub Pages.
+  // Resolve that prefix from this script URL instead of sending students to
+  // the domain root (which is a GitHub Pages 404 for project sites).
+  var INVITE_SCRIPT_URL = document.currentScript && document.currentScript.src;
+  function appRoot() {
+    if (INVITE_SCRIPT_URL) {
+      try {
+        var root = new URL('../', INVITE_SCRIPT_URL).pathname;
+        return root.charAt(root.length - 1) === '/' ? root : root + '/';
+      } catch (e) { /* use the path-based fallback below */ }
+    }
+    var path = window.location.pathname || '/';
+    var plannerAt = path.indexOf('/biweek-planner/');
+    return plannerAt >= 0 ? path.slice(0, plannerAt + 1) : '/';
+  }
+
   /* ── 0. Session helpers (mirrors teacher-gate.js) ─────────────────── */
   function ls(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
   function setLs(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
@@ -787,8 +803,8 @@
     var id = 'cmc-invite-needs-account';
     if (document.getElementById(id)) return;
     var next = window.location.pathname + window.location.search;
-    var signup = '/' + '?auth=signup&next=' + encodeURIComponent(next);
-    var signin = '/' + '?auth=signin&next=' + encodeURIComponent(next);
+    var signup = appRoot() + '?auth=signup&next=' + encodeURIComponent(next);
+    var signin = appRoot() + '?auth=signin&next=' + encodeURIComponent(next);
     var wrap = document.createElement('div');
     wrap.id = id;
     wrap.setAttribute('role', 'dialog');
