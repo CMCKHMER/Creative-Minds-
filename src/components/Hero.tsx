@@ -37,6 +37,9 @@ interface HeroShortcut {
    *  theme via the .cmc-quick-bg rule — the light theme turns the strip
    *  white, so the dark-navy art would clash). */
   image?: string;
+  /** Optional divided stat pair, like the reference board's
+   *  "48 Premium · 14.2k Followers" block. Rendered by .cmc-stat-row. */
+  stats?: { value: string; label: string }[];
 }
 
 const shortcuts: HeroShortcut[] = [
@@ -47,6 +50,10 @@ const shortcuts: HeroShortcut[] = [
     icon: GraduationCap,
     accent: 'cyan',
     image: './images/quick-toefl.webp',
+    stats: [
+      { value: '4', label: 'Sections' },
+      { value: '~3h', label: 'Full exam' },
+    ],
   },
   {
     id: 'games',
@@ -55,6 +62,10 @@ const shortcuts: HeroShortcut[] = [
     icon: Gamepad2,
     accent: 'violet',
     image: './images/quick-games.webp',
+    stats: [
+      { value: '8', label: 'Games' },
+      { value: '5', label: 'Skill areas' },
+    ],
   },
   {
     id: 'resources',
@@ -63,6 +74,10 @@ const shortcuts: HeroShortcut[] = [
     icon: BookOpen,
     accent: 'amber',
     image: './images/quick-assignments.webp',
+    stats: [
+      { value: '15', label: 'Packs' },
+      { value: 'Keys', label: 'Included' },
+    ],
   },
   {
     id: 'kid-grades',
@@ -71,6 +86,10 @@ const shortcuts: HeroShortcut[] = [
     icon: ClipboardCheck,
     accent: 'emerald',
     image: './images/quick-kids.png',
+    stats: [
+      { value: '5–12', label: 'Kid grades' },
+      { value: '2', label: 'Live now' },
+    ],
   },
 ];
 
@@ -288,6 +307,16 @@ export const Hero = ({
                     <ArrowUpRight className="cmc-quick-arrow relative mt-0.5 h-3.5 w-3.5 shrink-0 opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />
                   </span>
                   <span className="relative text-xs leading-relaxed text-slate-400">{shortcut.description}</span>
+                  {shortcut.stats && shortcut.stats.length > 0 && (
+                    <span className="cmc-stat-row relative w-full">
+                      {shortcut.stats.map((stat) => (
+                        <span key={stat.label} className="cmc-stat">
+                          <span className="cmc-stat-num">{stat.value}</span>
+                          <span className="cmc-stat-label">{stat.label}</span>
+                        </span>
+                      ))}
+                    </span>
+                  )}
                 </>
               );
 
