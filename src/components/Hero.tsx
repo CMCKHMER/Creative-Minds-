@@ -239,27 +239,23 @@ export const Hero = ({
 
               {/* The bookshelf — two products in progress. They render as full
                   buttons so the hero's final layout is settled now, and each
-                  opens the "opening soon" panel rather than a dead link. */}
-              <div className="cmc-hero-enter mt-3 flex flex-wrap items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={onOpenPdfLibrary}
-                  className="group inline-flex items-center gap-2 rounded-xl border border-amber-200/25 bg-amber-200/[0.06] px-3.5 py-2 text-[11.5px] font-semibold text-amber-100/90 transition hover:border-amber-200/50 hover:bg-amber-200/[0.12] hover:text-white"
-                >
-                  <FileText className="h-3.5 w-3.5 text-amber-200" aria-hidden="true" />
+                  opens the "opening soon" panel rather than a dead link.
+                  Styled by .cmc-hero-shelf (iridescent.css): the same glass
+                  pill as the button above, one size down, readable in both
+                  themes — pale amber/cyan utility text vanished on the light
+                  hero. */}
+              <div className="cmc-hero-enter cmc-hero-shelves">
+                <button type="button" onClick={onOpenPdfLibrary} className="cmc-hero-shelf" data-shelf="pdf">
+                  <FileText className="cmc-hero-shelf-icon" aria-hidden="true" />
                   PDF library
-                  <span className="rounded bg-amber-200/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-amber-200">
+                  <span className="cmc-hero-shelf-soon">
                     Soon
                   </span>
                 </button>
-                <button
-                  type="button"
-                  onClick={onOpenInteractiveBooks}
-                  className="group inline-flex items-center gap-2 rounded-xl border border-cyan-200/25 bg-cyan-200/[0.06] px-3.5 py-2 text-[11.5px] font-semibold text-cyan-100/90 transition hover:border-cyan-200/50 hover:bg-cyan-200/[0.12] hover:text-white"
-                >
-                  <BookOpen className="h-3.5 w-3.5 text-cyan-200" aria-hidden="true" />
+                <button type="button" onClick={onOpenInteractiveBooks} className="cmc-hero-shelf" data-shelf="books">
+                  <BookOpen className="cmc-hero-shelf-icon" aria-hidden="true" />
                   Interactive books
-                  <span className="rounded bg-cyan-200/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-cyan-200">
+                  <span className="cmc-hero-shelf-soon">
                     Soon
                   </span>
                 </button>

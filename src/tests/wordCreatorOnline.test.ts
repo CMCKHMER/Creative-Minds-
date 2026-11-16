@@ -486,3 +486,104 @@ describe('word creator — the shipped online module matches this deal', () => {
     expect(page._internals.boardHash(a)).not.toBe(page._internals.boardHash(Array(N * N).fill('')));
   });
 });
+
+// ── the room document: what goes over the wire, and who may write it ───────
+// Online play is a replay: the room holds a seed, the seats and an append-only
+// move log, and every device rebuilds the table from those. Two things would
+// break that silently, and both happened in the first build:
+//   · a stored move that comes back changed (the rules then refuse the save);
+//   · rules that let somebody other than the seat on turn write.
+describe('word creator — the room document', () => {
+  const source = readFileSync(
+    new URL('../../public/arcade/word-creator/online.js', import.meta.url), 'utf8');
+  const rules = readFileSync(new URL('../../firestore.rules', import.meta.url), 'utf8');
+  const block = rules.slice(rules.indexOf('match /word_creator_rooms/{roomId}'),
+    rules.indexOf('STUDIO SHARED DOCS'));
+
+  type Fields = Record<string, unknown>;
+  const page = (() => {
+    const run = new Function('window', 'document', 'localStorage', 'location', 'URLSearchParams',
+      'console', 'Promise', 'Math', 'Date', 'String', 'Number', 'Array', 'Object', 'JSON', 'Error',
+      `${source}\nreturn CMC_WORD_ONLINE;`);
+    return run({}, { getElementById: () => null }, { getItem: () => null, setItem: () => {} },
+      { search: '' }, URLSearchParams, console, Promise, Math, Date, String, Number, Array, Object, JSON, Error) as {
+        _internals: { parseRoom: (f: Fields) => Record<string, unknown>; roomFields: (r: Record<string, unknown>) => Fields };
+      };
+  })();
+
+  /** A room as Firestore hands it back: note `at` is a TIMESTAMP, not a string. */
+  const stored = (): Fields => {
+    const S = (v: string) => ({ stringValue: v });
+    const I = (v: number) => ({ integerValue: String(v) });
+    const B = (v: boolean) => ({ booleanValue: v });
+    const A = (values: unknown[]) => ({ arrayValue: { values } });
+    const M = (fields: Fields) => ({ mapValue: { fields } });
+    const move = (n: number, uid: string, at: string) => M({
+      n: I(n), uid: S(uid), kind: S('play'), keys: A([I(112), I(113)]), letters: A([S('A'), S('T')]),
+      blanks: A([B(false), B(false)]), h: S('abc123'), at: { timestampValue: at },
+    });
+    return {
+      code: S('ABCDE'), hostUid: S('u1'), hostName: S('Sokha'), seed: S('seed-seed-seed'), seatsWanted: I(2),
+      status: S('playing'),
+      seats: A([M({ uid: S('u1'), name: S('Sokha'), host: B(true) }), M({ uid: S('u2'), name: S('Dara'), host: B(false) })]),
+      moves: A([move(0, 'u1', '2026-11-14T03:00:00.120Z'), move(1, 'u2', '2026-11-14T03:01:10.450Z')]),
+      cells: A([]), scores: A([I(2), I(2)]), turn: I(0), bagSize: I(82), result: { nullValue: null }, closed: B(false),
+    };
+  };
+
+  it('writes earlier moves back exactly as they were read', () => {
+    // `at` was read with the string helper, came back empty, and was stamped
+    // with "now" on the next save — every earlier move looked rewritten.
+    const before = stored();
+    const after = page._internals.roomFields(page._internals.parseRoom(before));
+    expect(after.moves).toEqual(before.moves);
+    expect(after.seats).toEqual(before.seats);
+  });
+
+  it('saves against the version it read', () => {
+    expect(source).toContain("'?currentDocument.updateTime='");
+    expect(source).toContain('function isConflict(');
+  });
+
+  it('lets exactly two things happen to a room: a join and a move', () => {
+    expect(block).toContain('// JOIN');
+    expect(block).toContain('// MOVE');
+    // a joiner takes one free seat of their own in a waiting room
+    expect(block).toContain("resource.data.status == 'waiting'");
+    expect(block).toContain('!wcSeated(resource.data.seats, request.auth.uid)');
+    expect(block).toContain('resource.data.seats.size() < resource.data.seatsWanted');
+    expect(block).toContain('request.resource.data.seats[resource.data.seats.size()].uid == request.auth.uid');
+    // seats and earlier moves come back untouched
+    expect(block).toContain('request.resource.data.seats[0:resource.data.seats.size()] == resource.data.seats');
+    expect(block).toContain('request.resource.data.moves[0:resource.data.moves.size()] == resource.data.moves');
+    // one move at a time, by the seat the LOG says is on turn — not a field a client can set
+    expect(block).toContain('request.resource.data.moves.size() == resource.data.moves.size() + 1');
+    expect(block).toContain('resource.data.seats[resource.data.moves.size() % resource.data.seats.size()].uid == request.auth.uid');
+    expect(block).toContain('request.resource.data.turn == request.resource.data.moves.size() % resource.data.seats.size()');
+  });
+
+  it('gives the host no powers beyond their own seat', () => {
+    // the old rule let the host rewrite anything, and made guests leave `turn`
+    // alone — which is why a guest could never hand the turn on
+    const update = block.slice(block.indexOf('allow update'), block.indexOf('allow delete'));
+    expect(update).not.toContain('request.auth.uid == resource.data.hostUid');
+    expect(update).not.toContain('request.resource.data.turn == resource.data.turn');
+  });
+
+  it('uses only list operations the rules language has', () => {
+    // rules lists have no map(): seats are checked by position
+    expect(block).not.toMatch(/\.map\(/);
+    expect(block).toContain('function wcSeated(seats, uid)');
+  });
+
+  it('matches what the client writes on a join and on a move', () => {
+    // join: seat appended with host:false; room starts when the last seat fills
+    expect(source).toContain('room.seats.push({ uid: me.uid, name: me.name, host: false })');
+    expect(source).toContain("if (room.seats.length >= room.seatsWanted) room.status = 'playing'");
+    // move: turn derived from the log, and the closing move carries the result
+    expect(source).toContain('room.turn = room.moves.length % room.seats.length');
+    expect(source).toMatch(/if \(end\) \{ room\.status = 'finished'; room\.result = \{/);
+    // a new room is created waiting, on turn 0, with no result
+    expect(source).toMatch(/status: 'waiting',[\s\S]{0,200}turn: 0,[\s\S]{0,80}result: null/);
+  });
+});

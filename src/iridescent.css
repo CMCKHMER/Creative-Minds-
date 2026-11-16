@@ -1070,6 +1070,106 @@ html.light .cmc-score-alert {
   }
 }
 
+/* ── Hero bookshelf buttons ("PDF library", "Interactive books") ────────
+   Two products that are not on sale yet. They sit under the two main hero
+   buttons as the same glass pill, one size down, each with its own accent
+   (--shelf) on the icon and the "Soon" chip. Ink text in both themes: the
+   first version used pale amber/cyan utility colours, and "PDF library" was
+   unreadable on the light hero. */
+.cmc-hero-shelves {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+}
+.cmc-hero-shelf {
+  --shelf: #fbbf24;
+  --shelf-ink: #fde68a;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.95rem 0.55rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--iri-ink);
+  background:
+    linear-gradient(160deg, rgba(22, 28, 48, 0.72), rgba(13, 20, 36, 0.8)) padding-box,
+    linear-gradient(120deg, color-mix(in srgb, var(--shelf) 62%, transparent), rgba(255, 255, 255, 0.14) 55%, color-mix(in srgb, var(--shelf) 28%, transparent)) border-box;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--iri-lip), 0 10px 24px -20px rgba(4, 8, 20, 0.8);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.cmc-hero-shelf[data-shelf='books'] {
+  --shelf: #22d3ee;
+  --shelf-ink: #a5f3fc;
+}
+.cmc-hero-shelf:hover {
+  transform: translateY(-1px);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(160deg, rgba(30, 36, 60, 0.86), rgba(18, 28, 48, 0.9)) padding-box,
+    linear-gradient(120deg, var(--shelf), rgba(255, 255, 255, 0.3) 55%, color-mix(in srgb, var(--shelf) 55%, transparent)) border-box;
+  box-shadow: var(--iri-lip), 0 14px 30px -18px color-mix(in srgb, var(--shelf) 55%, transparent);
+}
+.cmc-hero-shelf:active { transform: scale(0.98); }
+.cmc-hero-shelf:focus-visible { outline: 2px solid var(--shelf); outline-offset: 3px; }
+.cmc-hero-shelf-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+  color: var(--shelf);
+}
+.cmc-hero-shelf-soon {
+  margin-left: 0.1rem;
+  padding: 0.2rem 0.42rem;
+  border-radius: 999px;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--shelf-ink);
+  background: color-mix(in srgb, var(--shelf) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--shelf) 34%, transparent);
+}
+html.light .cmc-hero-shelf {
+  border: 1px solid transparent;
+  --shelf: #b45309;
+  --shelf-ink: #92400e;
+  color: var(--iri-ink);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(240, 244, 252, 0.86)) padding-box,
+    linear-gradient(120deg, color-mix(in srgb, var(--shelf) 55%, transparent), rgba(15, 23, 42, 0.12) 55%, color-mix(in srgb, var(--shelf) 26%, transparent)) border-box;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 22px -20px rgba(15, 23, 42, 0.35);
+}
+html.light .cmc-hero-shelf[data-shelf='books'] {
+  --shelf: #0e7490;
+  --shelf-ink: #155e75;
+}
+html.light .cmc-hero-shelf:hover {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(160deg, #fff, rgba(244, 248, 255, 0.96)) padding-box,
+    linear-gradient(120deg, var(--shelf), rgba(15, 23, 42, 0.16) 55%, color-mix(in srgb, var(--shelf) 55%, transparent)) border-box;
+}
+html.light .cmc-hero-shelf-soon {
+  background: color-mix(in srgb, var(--shelf) 12%, #fff);
+}
+@media (max-width: 420px) {
+  .cmc-hero-shelf { font-size: 0.74rem; padding-inline: 0.75rem 0.8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmc-hero-shelf { transition: none; }
+  .cmc-hero-shelf:hover { transform: none; }
+}
+
 /* Focus rings stay visible on the new surfaces — the gradient edge can
    swallow a 1px border, so focus is drawn as an offset ring. */
 .cmc-btn-primary:focus-visible,
