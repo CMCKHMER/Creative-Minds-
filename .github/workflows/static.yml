@@ -61,6 +61,12 @@ jobs:
         run: python3 scripts/refresh_feeds.py
       - name: Build
         run: npm run build
+        env:
+          # Optional: switches on the Google Drive + Classroom client
+          # (docs/google-classroom-drive.md). Unset → the app ships with every
+          # Google feature off and needs no Google project at all.
+          # Add it under Settings → Secrets and variables → Actions → Variables.
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

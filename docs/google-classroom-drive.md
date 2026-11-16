@@ -1,164 +1,197 @@
-# Google Drive & "share to Google Classroom" — what we can do, in order
+# Google Drive & "share to Google Classroom" — how to wire it up
 
-Short answer: **yes, all of it is possible**, and part of it already ships.
-The work splits into four levels that are very different in cost, so this file
-puts the cheapest, highest-value one first.
+Four levels, cheapest first. **Level 0 already ships.** Levels 1–2 are coded:
+`public/assets/js/cmc-google.js` (+ typed facade `src/lib/google.ts`) does the
+OAuth, the Drive upload and the Classroom calls — it just needs a Google Cloud
+project and one env value to switch on.
 
-| Level | What the student/teacher sees | Google setup needed | Effort |
+| Level | What the teacher/student sees | Google setup | State |
 |---|---|---|---|
-| **0 — Share link (shipped)** | “Share → Google Classroom” opens Classroom's own dialog; the game/worksheet is posted as an announcement or assignment | none | done |
-| **1 — Classroom API** | Teacher signs in with Google once, then CMC can create the assignment *and* receive grades back | Cloud project + Classroom API + OAuth consent + sensitive-scope verification (or Internal) | ~1–2 weeks |
-| **2 — Drive** | “Save to Drive”: results CSV, worksheets, certificates; teacher picks a Drive file to attach | Cloud project + Drive API; `drive.file` needs no review | ~3–5 days |
-| **3 — Classroom add-on** | CMC opens *inside* Classroom, with a studentWork review pane and grades | Workspace Marketplace review + Education Plus / Teaching & Learning licences | ~4–8 weeks |
+| **0 — Share dialog** | “Share → Google Classroom” opens Classroom's own dialog; pick a class, post as announcement/assignment/material | **none** | shipped in every game's share sheet |
+| **1 — Classroom API** | “Post as assignment” with due date + points, and grades pushed back to Classroom | Cloud project, Classroom API, OAuth consent, sensitive-scope review *(skipped if Internal)* | code ready, needs client id |
+| **2 — Drive** | “Save results to Drive” (CSV → Google Sheet), attach a file to the assignment | Cloud project, Drive API; `drive.file` needs **no** review | code ready, needs client id |
+| **3 — Classroom add-on** | CMC runs *inside* Classroom with a student-work review pane | Marketplace review + Education Plus / Teaching & Learning licences | not started (licence decision) |
 
 ---
 
-## Level 0 — what is live in the repo now
+## Turn it on — the 10-minute runbook
 
-`public/assets/js/cmc-game-chrome.js` and Mafia Noir's own share kit both offer:
+Do this once, in the Google Cloud project that already owns the Firebase app
+(`creative-minds-…`), so billing/quota stay in one place.
 
+1. **Create or pick a project** — <https://console.cloud.google.com/project>.
+   *If CMC has Google Workspace for Education:* create the project **inside that
+   organisation**. It is the difference between “no review” and “up to 10
+   business days”.
+2. **Enable the two APIs** — *APIs & Services → Library*:
+   - **Google Classroom API**
+   - **Google Drive API**
+3. **Consent screen** — *APIs & Services → OAuth consent screen*:
+   - User type: **Internal** (Workspace org) or **External** (personal Gmail).
+   - App name `Creative Minds`, support email, developer email.
+   - **Authorised domains:** `cmckhmer.github.io`.
+   - **Privacy policy:** a page on the same domain (e.g. the site's privacy
+     section). Google requires it before any review.
+   - **Scopes** — add exactly these four and nothing else:
+     ```
+     https://www.googleapis.com/auth/drive.file
+     https://www.googleapis.com/auth/classroom.courses.readonly
+     https://www.googleapis.com/auth/classroom.coursework.students
+     https://www.googleapis.com/auth/classroom.announcements
+     ```
+4. **OAuth client** — *APIs & Services → Credentials → Create credentials →
+   OAuth client ID → Web application*:
+   - **Authorised JavaScript origins:**
+     ```
+     https://cmckhmer.github.io
+     http://localhost:5173
+     ```
+   - No redirect URI is needed: this flow is a browser token, not a redirect.
+5. **Copy the client id** (`…apps.googleusercontent.com`) into `.env.local`:
+   ```
+   VITE_GOOGLE_CLIENT_ID=1234567890-abc123.apps.googleusercontent.com
+   ```
+   With the variable set, the React app loads the client by itself on the next
+   build. Any static page (a worksheet, a game) includes it directly:
+   ```html
+   <script>window.CMC_GOOGLE_APP = { clientId: '1234567890-abc123.apps.googleusercontent.com' };</script>
+   <script src="../../assets/js/cmc-google.js"></script>
+   ```
+   The id is a **public** value; it ships in the bundle either way. Protect the
+   project with API-key referrer restrictions, not by hiding this.
+6. **Rebuild** (`npm run build`) and deploy. On GitHub Pages the build runs in
+   Actions, so add the same value under *Settings → Secrets and variables →
+   Actions → Variables* as `VITE_GOOGLE_CLIENT_ID` (the workflow already passes
+   it to `npm run build`; unset means every Google feature stays off). Until step 5 the script is inert:
+   it loads nothing from Google and every call rejects with
+   `code: 'not-configured'`.
+
+> **Publishing:** with User type **Internal** you are done — no verification, no
+> test-user cap. With **External**, the app stays in *Testing* (100 users) until
+> Google approves the sensitive scopes: home page, privacy policy, per-scope
+> justification and a short demo video.
+
+## Use it
+
+The script exposes one global, `CMCG` (alias `CMC_GOOGLE`). Nothing loads from
+Google until `connect()` runs, so it costs nothing on page load.
+
+```js
+// 0 · share dialog — always works, no credentials, no scopes
+CMCG.shareToClassroom(location.href, 'Word Creator');
+
+// 2 · Drive: a class's scores as a real Google Sheet (drive.file)
+const sheet = await CMCG.drive.saveCsvAsSheet({
+  name: 'CMC Week 8 — 7A',
+  csv: 'name,score\nRy,9\nDara,8\n',
+});
+console.log(sheet.webViewLink);      // https://docs.google.com/spreadsheets/…
+
+// 1 · Classroom: an assignment with the game link, a due date and points
+const courses = await CMCG.classroom.listCourses();
+await CMCG.classroom.postAssignment({
+  courseId: courses[0].id,
+  title: 'Brain Lounge · Word Creator',
+  description: 'Play one match, post your score to the lounge board.',
+  url: location.href,
+  dueDate: '2026-11-20',             // YYYY-MM-DD (UTC)
+  maxPoints: 10,
+});
+
+// 1 · grade passback
+await CMCG.classroom.setGrade({
+  courseId, courseWorkId: work.id, submissionId: sub.id, grade: 9,
+});
 ```
-https://classroom.google.com/share?url=<page>&title=<title>
-```
 
-That endpoint is Google's own documented Classroom share flow — the teacher (or
-student) picks a class and posts the link as an announcement, assignment or
-material. **No API key, no OAuth client, no scopes, no verification.** It is
-deliberately the lowest-risk win, and it is what “share to Google Classroom”
-means for most classroom tools.
+Errors are structured — show `err.message` to the teacher:
 
-What it cannot do: it cannot pre-pick a class, attach a file, or return grades.
-That is where an API starts.
-
-## Level 1 — Classroom API (assignments + grades)
-
-### What it buys
-
-- Teacher signs in with Google → CMC lists **their** classes (`courses.list`).
-- One click creates a real assignment (`courses.courseWork.create`) with the
-  game link or worksheet attached, a due date, max points and a rubric.
-- `studentSubmissions.list` brings the student's score/state back, and
-  `studentSubmissions.patch` (or `return`) pushes the graded score Classroom
-  shows — this is the “grade passback” teachers actually ask for.
-- Optionally mirror CMC's own class lists to Classroom rosters.
-
-### Scopes (Classroom)
-
-| Scope | Why |
+| `err.code` | Meaning |
 |---|---|
-| `classroom.courses.readonly` | list the teacher's classes |
-| `classroom.coursework.students` | create/modify assignments and grades in classes they teach |
-| `classroom.coursework.students.readonly` | read submissions (or `student-submissions.students.readonly`) |
-| `classroom.rosters.readonly` | only if we import rosters |
+| `not-configured` | no client id — fall back to `shareToClassroom()` |
+| `consent` | the teacher closed / refused the Google prompt |
+| `http` | Google answered 4xx/5xx; `err.status`, `err.body`. 403 usually means “not a teacher of that class”, or the API/scope is not enabled on the project |
+| `network` | Google could not be reached |
 
-Classroom scopes are **sensitive**, not restricted: Google review, no CASA audit.
-Review is quoted at up to ~10 business days once the consent screen, homepage,
-privacy policy and a demo video are in place.
+## Use it from React
 
-### The shortcut worth checking first
+`src/main.tsx` calls `loadGoogleClient()`, which injects the script **only when
+`VITE_GOOGLE_CLIENT_ID` is set**, and `src/lib/google.ts` gives it types:
 
-If CMC's teachers use **Google Workspace for Education** and the Google Cloud
-project is created *inside that organisation*, set the OAuth consent screen user
-type to **Internal**. Google's own policy: internal apps "do not require further
-review" — no verification queue, no CASA, no 100-user test cap. That is the
-single decision that changes the schedule, so confirm it before writing code.
-The catch: only accounts inside that Workspace can authorise the app.
+```tsx
+import { googleClient } from '../lib/google';
 
-### Flow in this repo
-
-```
-Teacher (CMC teacher account)
-  → "Connect Google Classroom" in the dashboard
-  → GIS token client: https://www.googleapis.com/auth/classroom.coursework.students …
-  → CMC POSTs { classId, title, description, link, points, dueDate } to
-    https://classroom.googleapis.com/v1/courses/{id}/courseWork  (Bearer token)
-  → Classroom shows the assignment to the class
-  → student finishes the game / worksheet in CMC, run lands in drill_attempts
-  → Cloud Function maps attempt → courseWorkId + student email and PATCHes
-    studentSubmissions/{id}  { assignedGrade, draftGrade, state: 'TURNED_IN' }
+async function postGameAsAssignment(gameUrl: string, title: string) {
+  const g = googleClient();
+  if (!g) throw new Error('Google client not loaded');
+  if (!g.configured) {
+    // no Google Cloud project yet — the zero-setup path
+    g.shareToClassroom(gameUrl, title);
+    return;
+  }
+  const [course] = await g.classroom.listCourses();
+  if (!course) throw new Error('No active Classroom classes on this account.');
+  return g.classroom.postAssignment({
+    courseId: course.id, title, url: gameUrl, maxPoints: 10,
+  });
+}
 ```
 
-Two ways to hold the token:
+Put the button behind a teacher check (`useSignedInSession` + role) — students
+must never see it, and Google would refuse the call anyway.
 
-1. **Browser-only (fastest).** Google Identity Services returns an access token
-   for ~1 hour, no refresh token, so the teacher reauthorises per session. Fine
-   for “create assignment now”; bad for overnight grade sync.
-2. **Cloud Functions (recommended).** Existing `functions/` project exchanges
-   the code for a refresh token and stores it encrypted per teacher
-   (`teacher_google_tokens/{uid}`, teacher-only rules, never readable by the
-   client). All Classroom calls happen server-side, so scopes never touch a
-   student browser and grade passback runs from a scheduled function.
+Suggested first homes for the buttons:
 
-## Level 2 — Drive
-
-| Job | Scope | Tier |
+| Surface | Button | Call |
 |---|---|---|
-| Create CMC files (results CSV, worksheet PDF, certificate), then read/write only those | `drive.file` | **non-sensitive — no review, no CASA** |
-| Attach a file the teacher picked in the Google Picker | `drive.file` (+ Picker) | non-sensitive |
-| Browse or search the teacher's whole Drive | `drive.readonly` / `drive` | **restricted → verification + CASA audit, repeated every 12 months** |
+| `BiWeeklyTestsPanel` / results sheet | “Save results to Drive” | `drive.saveCsvAsSheet` |
+| Assignment preview / `ResourceLibrary` | “Post as Classroom assignment” | `classroom.postAssignment` |
+| Brain Lounge game pages | “Share to class” (already there) | `shareToClassroom` |
 
-So: build the Drive features on `drive.file` only. “Save results to Drive”,
-“export this class's scores as a Sheet”, “attach this worksheet to the
-assignment” all fit; “search Mr. Ry's Drive” does not, and is not worth an
-annual security audit.
+## Design for grade passback
 
-Practical details:
+The browser token lasts ~1 hour, so **push grades from the browser only while
+the teacher is on the page**. For overnight sync, move the calls into
+`functions/` and store a refresh token server-side:
 
-- Create files with `files.create` (multipart or resumable upload); a Google
-  Sheet can be created directly with `mimeType: application/vnd.google-apps.spreadsheet`.
-- Share with `permissions.create` (`type: 'user' | 'anyone'`) — that is how a
-  teacher gets a link they can post in Classroom.
-- Drive and Classroom pair naturally: upload the CSV with `drive.file`, then set
-  it as `materials.driveFile` on the courseWork in the same request.
+```
+Firestore
+  teacher_google_tokens/{teacherUid}     server-only (rules: read/write false, admin SDK only)
+  classroom_links/{teacherUid}_{drill}   { courseId, courseWorkId, courseName, createdAt }
+  drill_attempts/{id}                    existing rows; add classroomSync: { courseId, courseWorkId, pushedAt }
+```
 
-## Level 3 — Classroom add-on (only if CMC wants to live inside Classroom)
+Flow: teacher posts the assignment → the mapping is saved → a scheduled function
+reads unsynced attempts, matches the CMC student to a Classroom `userId` (only
+possible if we imported rosters — otherwise let the teacher paste the email or
+let students submit through Classroom's own link), then calls
+`studentSubmissions.patch`. Anything that needs the student's Google identity
+should stay inside Classroom's own submission flow rather than us matching
+emails.
 
-An add-on embeds CMC in an iframe inside Classroom (assignment creation,
-student view, teacher review) and needs `classroom.addons.teacher` /
-`classroom.addons.student`, a Marketplace listing, and the add-on requirements
-checklist. Teachers need **Education Plus** or the **Teaching & Learning
-upgrade** — so this is a school-licence decision, not a coding one. Park it
-until levels 1–2 are in daily use.
+## What this refuses to do — on purpose
 
----
+| Want | Scope | Tier |
+|---|---|---|
+| Create CMC files, edit files the app made | `drive.file` | non-sensitive — **what we use** |
+| List/search the teacher's whole Drive | `drive.readonly` / `drive` | **restricted** → verification **+ annual CASA security assessment** |
+| Read class rosters, students' emails | `classroom.rosters.*`, `profile.emails` | sensitive + a real privacy decision |
+| Act as the student | `classroom.coursework.me` | not needed; students submit in Classroom |
 
-## Privacy, consent and policy (do not skip)
+If someone asks for “pick any file from my Drive”, the answer is the **Google
+Picker** with `drive.file` — the teacher hands one file over, we never see the
+rest.
 
-- Publish a **privacy policy on the same domain** as the app before submitting
-  any scope for verification, describing exactly what is read and stored.
-- Store the minimum: class id, courseWork id, the student's CMC uid and the
-  score. Never store Classroom rosters wholesale.
-- Under-13 students: parental/school consent for the Google data flow, and the
-  Workspace-for-Education data terms, apply on top of CMC's own consent.
-- Students never authorise Google scopes in the recommended design — only
-  teachers do, and only for their own classes.
-- Use `include_granted_scopes` and narrow, incremental authorisation: ask for
-  Drive when the teacher exports, not when they sign in.
+## Testing without Google
 
-## Suggested build order
-
-1. ✅ Level 0 — shipped, in every share sheet.
-2. Confirm the Google Cloud project can be **Internal** to a CMC Workspace org.
-   If yes, level 1 loses its review queue and becomes a one-week job.
-3. Level 1 read-only first: “Connect Classroom” → list classes → create an
-   assignment with a link (`coursework.students`). Ship it, let teachers use it.
-4. Level 1 write: grade passback from `drill_attempts` through Cloud Functions.
-5. Level 2 with `drive.file`: export results CSV / attach worksheets.
-6. Only then consider level 3 (add-on) if the school holds the licences.
-
-## Files this touches when we build it
-
-| Area | File |
-|---|---|
-| Connect / list / create UI | `src/components/TeacherTools.tsx`, `src/components/AdminUsersPanel.tsx` |
-| OAuth + tokens | `functions/src/` (new `classroom.ts`), Firestore `teacher_google_tokens/{uid}` |
-| Scopes + client id | `.env.example`, Google Cloud console |
-| Server-side Classroom calls | `functions/src/classroom.ts` |
-| Score source | `src/lib/submitScore.ts` → `drill_attempts` |
-| Rules | `firestore.rules` (teacher-only token doc) |
-
-Scopes are quoted from Google's Classroom auth guide
-(`developers.google.com/workspace/classroom/guides/auth`); the verification
-tiers and the Internal-user-type exemption come from Google's sensitive-scope
-verification policy page, and the `drive.file` vs `drive` split from the Drive
-scope docs.
+- **Inert mode** (no client id): `CMCG.configured === false`, no script tag is
+  added to the page, no request leaves the browser. `src/lib/cmcGoogle.test.ts`
+  pins this plus the Drive multipart body, the assignment payload, the grade
+  patch and the 403 message, against a fake `google.accounts.oauth2` and a fake
+  `fetch`.
+- **Real smoke test** (after step 5): open the site → console →
+  `await CMCG.connect()` → `await CMCG.classroom.listCourses()`. A 403 here means
+  the Classroom API or the scope is missing from the project; `access_denied`
+  means the account is outside an **Internal** app.
+- Classroom has no test sandbox: use a real class you teach, and prefer
+  `draft: true` when trying assignment creation.
