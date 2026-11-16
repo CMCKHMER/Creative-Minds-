@@ -14,6 +14,8 @@
 //   publish   paste a class list, open registration
 //   register  wrong name refused; right ID + name lands in the right class;
 //             a second account cannot take the same student
+//   private   a second teacher sees none of the first teacher's classes,
+//             students or seats, and cannot take a student over
 //   teacher   the teacher sees who registered; a corrected spelling keeps the
 //             account; release frees a seat; close withdraws the open ones
 //   phone     no sideways scroll on a phone, teacher tab and student card
@@ -104,14 +106,25 @@ function makeFake() {
     return [...keys].filter((k) => JSON.stringify(before.fields[k]) !== JSON.stringify(after.fields[k]));
   };
 
-  /** op: get | list | create | update | delete. `getAfter` reads the state the commit would leave. */
-  function allowed(op, path, a, before, after, getAfter) {
+  // Private per teacher (Nov 2026): a class, its students and its seats
+  // belong to the teacher stamped on them.
+  const ownsClass = (c, a) => !!c && !!a && (get(c, 'teacherUid') === a.user_id || (!!get(c, 'teacherEmail') && get(c, 'teacherEmail') === a.email));
+  const ownsSeat = (d, a) => !!d && !!a && get(d, 'teacherUid') === a.user_id;
+  /** A list is allowed only when the query itself is limited to the caller's own documents. */
+  const filteredOn = (filters, field, value) => (filters || []).some((f) => f.field === field && f.value === value);
+
+  /** op: get | list | create | update | delete. `getAfter` reads the state the
+   *  commit would leave; `docs` is the state before it. `filters` are the
+   *  equality filters of a list query. */
+  function allowed(op, path, a, before, after, getAfter, filters) {
     const id = path.split('/').pop();
     switch (collOf(path)) {
       case 'roster_seats': {
         if (op === 'get') return isVerifiedUser(a);
-        if (op === 'list' || op === 'create' || op === 'delete') return isCmcTeacher(a);
-        if (isCmcTeacher(a)) return true;
+        if (op === 'list') return isCmcTeacher(a) && filteredOn(filters, 'teacherUid', a.user_id);
+        if (op === 'create') return isCmcTeacher(a) && ownsSeat(after, a);
+        if (op === 'delete') return isCmcTeacher(a) && ownsSeat(before, a);
+        if (isCmcTeacher(a) && ownsSeat(before, a) && ownsSeat(after, a)) return true;
         const link = getAfter(`student_links/${a && a.user_id}`);
         return (
           isVerifiedUser(a) &&
@@ -124,7 +137,11 @@ function makeFake() {
       }
       case 'student_links': {
         if (op === 'get') return isVerifiedUser(a) && (a.user_id === id || isCmcTeacher(a));
-        if (op === 'list' || op === 'update' || op === 'delete') return isCmcTeacher(a);
+        if (op === 'list') return false;
+        if (op === 'update' || op === 'delete') {
+          const pointed = docs.get(`roster_seats/${get(before, 'seatKey')}`) || null;
+          return isCmcTeacher(a) && (!pointed || ownsSeat(pointed, a));
+        }
         const seatKey = get(after, 'seatKey');
         const seat = typeof seatKey === 'string' ? getAfter(`roster_seats/${seatKey}`) : null;
         return (
@@ -140,9 +157,11 @@ function makeFake() {
       case 'assessment_classes':
         if (op === 'delete') return false;
         if (op === 'create') return isCmcTeacher(a) && get(after, 'teacherUid') === a.user_id;
-        return isCmcTeacher(a);
+        if (op === 'list') return isCmcTeacher(a) && (filteredOn(filters, 'teacherUid', a.user_id) || filteredOn(filters, 'teacherEmail', a.email));
+        if (op === 'get') return isCmcTeacher(a) && ownsClass(before, a);
+        return isCmcTeacher(a) && ownsClass(before, a) && (get(after, 'teacherUid') === get(before, 'teacherUid') || get(after, 'teacherUid') === a.user_id);
       case 'assessment_classes/*/students':
-        return isCmcTeacher(a);
+        return isCmcTeacher(a) && ownsClass(docs.get(path.split('/').slice(0, 2).join('/')) || null, a);
       default:
         return null; // not modelled here
     }
@@ -210,7 +229,7 @@ function makeFake() {
       const out = [];
       for (const name of body.documents || []) {
         const path = pathOfName(name);
-        if (allowed('get', path, a) === false) return deny();
+        if (allowed('get', path, a, docs.get(path) || null) === false) return deny();
         out.push(docs.has(path) ? { found: wire(path) } : { missing: name });
       }
       return json(200, out);
@@ -218,11 +237,16 @@ function makeFake() {
     if (tail === ':runQuery') {
       const q = body.structuredQuery || {};
       const coll = q.from && q.from[0] && q.from[0].collectionId;
-      if (allowed('list', `${coll}/x`, a) === false) return deny();
-      const f = q.where && q.where.fieldFilter;
+      const where = q.where || {};
+      const filters = (where.compositeFilter ? where.compositeFilter.filters : where.fieldFilter ? [where] : [])
+        .map((x) => ({ field: x.fieldFilter.field.fieldPath, value: plain(x.fieldFilter.value) }));
+      if (allowed('list', `${coll}/x`, a, null, null, null, filters) === false) {
+        log.push({ denied: 'list', path: coll, uid: a && a.user_id });
+        return deny();
+      }
       const rows = [...docs.keys()]
         .filter((p) => p.split('/').length === 2 && p.startsWith(`${coll}/`))
-        .filter((p) => !f || plain(docs.get(p).fields[f.field.fieldPath]) === plain(f.value))
+        .filter((p) => filters.every((f) => plain(docs.get(p).fields[f.field]) === f.value))
         .map((p) => ({ document: wire(p) }));
       return json(200, rows.length ? rows : [{ readTime: stamp() }]);
     }
@@ -230,7 +254,8 @@ function makeFake() {
     const parts = path.split('/');
     const isDoc = parts.length % 2 === 0;
     if (method === 'GET' && isDoc) {
-      if (allowed('get', path, a) === false) return deny();
+      // a document that is not there is "not found" for whoever may read the collection
+      if (docs.has(path) && allowed('get', path, a, docs.get(path)) === false) return deny();
       return docs.has(path) ? json(200, wire(path)) : json(404, { error: { code: 404, message: 'NOT_FOUND' } });
     }
     if (method === 'GET') {
@@ -362,6 +387,7 @@ const waitFor = async (fn, ms = 12000) => {
 const sideways = (page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
 const TEACHER = { uid: 'teacher-1', email: 'sreyneang@cmc.edu.kh', name: 'Teacher Sreyneang', type: 'teacher' };
+const TEACHER2 = { uid: 'teacher-2', email: 'vannak@cmc.edu.kh', name: 'Teacher Vannak', type: 'teacher' };
 const DARA = { uid: 'stu-dara', email: 'dara.family@gmail.com', name: 'Dara', type: 'student' };
 const SOPHEA = { uid: 'stu-sophea', email: 'sophea.home@gmail.com', name: 'Sophea', type: 'student' };
 const UNVERIFIED = { uid: 'stu-new', email: 'new@gmail.com', name: 'New', type: 'student', verified: false };
@@ -412,6 +438,34 @@ function checkRules() {
   ok(commit(TEACHER, [{ delete: name('roster_seats/seatB'), currentDocument: { updateTime: seen } }]) === 400 && fake.link(SOPHEA.uid) !== null, 'a seat taken a moment ago is not withdrawn from under the student');
   ok(commit(TEACHER, [{ update: { name: name('roster_seats/seatA'), fields: { claimedBy: N } }, updateMask: { fieldPaths: ['claimedBy'] } }, { delete: name(`student_links/${DARA.uid}`) }]) === 200, 'a teacher can release a seat');
   ok(fake.link(DARA.uid) === null, 'the release removes the link');
+
+  // private per teacher
+  const q = (user, coll, filters) => fake.call(user, 'POST', ':runQuery', {
+    structuredQuery: { from: [{ collectionId: coll }], where: { compositeFilter: { op: 'AND', filters: filters.map(([f, v]) => ({ fieldFilter: { field: { fieldPath: f }, op: 'EQUAL', value: S(v) } })) } } },
+  });
+  const cls = fake.call(TEACHER, 'POST', '/assessment_classes', { fields: { name: S('Kid 7 — Morning'), teacherUid: S(TEACHER.uid), teacherEmail: S(TEACHER.email) } });
+  const cid = cls.json.name.split('/').pop();
+  ok(cls.status === 200, 'a teacher creates a class of their own');
+  ok(fake.call(TEACHER, 'POST', `/assessment_classes/${cid}/students`, { fields: { name: S('Sok Dara'), quiz: S('18') } }).status === 200, 'and records a student in it');
+  ok(fake.call(TEACHER2, 'POST', '/assessment_classes', { fields: { name: S('Mine'), teacherUid: S(TEACHER.uid) } }).status === 403, 'a class cannot be created in another teacher\'s name');
+  ok(fake.call(TEACHER2, 'GET', `/assessment_classes/${cid}`).status === 403, 'another teacher cannot open the class');
+  ok(fake.call(TEACHER2, 'GET', `/assessment_classes/${cid}/students`).status === 403, 'nor read its student records');
+  ok(fake.call(TEACHER2, 'POST', `/assessment_classes/${cid}/students`, { fields: { name: S('X') } }).status === 403, 'nor add to them');
+  ok(q(TEACHER2, 'assessment_classes', [['teacherUid', TEACHER.uid]]).status === 403, 'nor list the classes of that teacher');
+  ok(fake.call(TEACHER2, 'POST', ':runQuery', { structuredQuery: { from: [{ collectionId: 'assessment_classes' }] } }).status === 403, 'nor list every class');
+  ok(fake.call(TEACHER2, 'PATCH', `/assessment_classes/${cid}?updateMask.fieldPaths=teacherUid`, { fields: { teacherUid: S(TEACHER2.uid) } }).status === 403, 'nor take the class over');
+  const own = q(TEACHER2, 'assessment_classes', [['teacherUid', TEACHER2.uid]]);
+  ok(own.status === 200 && !own.json.some((r) => r.document), 'their own list is simply empty');
+  ok(q(TEACHER, 'assessment_classes', [['teacherUid', TEACHER.uid]]).json.filter((r) => r.document).length === 1, 'the owner still sees the class');
+  ok(fake.call(TEACHER, 'GET', `/assessment_classes/${cid}/students`).json.documents.length === 1, 'and its records');
+  ok(q(TEACHER2, 'roster_seats', [['classId', 'c1']]).status === 403, 'another teacher cannot list the seats of a class');
+  ok(q(TEACHER2, 'roster_seats', [['classId', 'c1'], ['teacherUid', TEACHER.uid]]).status === 403, 'not even by naming the owner');
+  ok(q(TEACHER, 'roster_seats', [['classId', 'c1'], ['teacherUid', TEACHER.uid]]).json.filter((r) => r.document).length === 2, 'the owner lists their own seats');
+  ok(commit(TEACHER2, [{ delete: name('roster_seats/seatA') }]) === 403, 'another teacher cannot withdraw a seat');
+  ok(commit(TEACHER2, [{ update: { name: name('roster_seats/seatB'), fields: { claimedBy: N } }, updateMask: { fieldPaths: ['claimedBy'] } }, { delete: name(`student_links/${SOPHEA.uid}`) }]) === 403, 'nor release another teacher\'s student');
+  ok(commit(TEACHER2, [{ update: { name: name('roster_seats/seatA'), fields: { teacherUid: S(TEACHER2.uid), classId: S('c9') } }, updateMask: { fieldPaths: ['teacherUid', 'classId'] } }]) === 403, 'nor move a seat into their own class');
+  ok(commit(TEACHER2, [{ update: { name: name('roster_seats/seatZ'), fields: seatFields() }, currentDocument: { exists: false } }]) === 403, 'nor publish a seat under another teacher\'s name');
+  ok(fake.link(SOPHEA.uid) !== null, 'the student of the first teacher is untouched');
 }
 
 // ── 2 · the whole path in browsers ──────────────────────────────────────────
@@ -513,6 +567,42 @@ async function walk(browser) {
   await D.locator('[data-testid="student-registration"][data-state]').waitFor({ timeout: 20000 });
   ok((await cardState(D)) === 'registered', 'the registration is still there after a reload');
 
+  console.log('\nprivate');
+  const T2 = await openPage(browser, fake, TEACHER2);
+  await openWorkspace(T2);
+  const menu2 = await waitFor(async () => {
+    const o = await T2.$$eval('select[aria-label="Select assessment class"] option', (x) => x.map((y) => y.textContent));
+    return o.length ? o : null;
+  });
+  ok(menu2 && menu2.length === 1 && /no classes/i.test(menu2[0]), 'a second teacher sees none of the first teacher\'s classes', menu2);
+  ok(!(await T2.getByTestId('assessment-workspace').textContent()).includes('Sok Dara'), 'and none of the students');
+  await T2.getByTestId('kid-classes-open').click();
+  await T2.getByTestId('kid-classes-list').waitFor();
+  await T2.getByTestId('kid-classes-create').click();
+  await waitFor(() => fake.classes().length === 28);
+  ok(fake.classes().filter((c) => c.teacherUid === TEACHER2.uid).length === 14, 'the second teacher sets up their own fourteen classes');
+  await T2.getByTestId('kid-classes-list').waitFor({ state: 'detached', timeout: 10000 }).catch(() => {});
+  const menu2b = await T2.$$eval('select[aria-label="Select assessment class"] option', (x) => x.length);
+  ok(menu2b === 14, 'and sees exactly those fourteen', menu2b);
+  const kid7b = fake.classes().find((c) => c.name === 'Kid 7 — Morning' && c.teacherUid === TEACHER2.uid);
+  await T2.selectOption('select[aria-label="Select assessment class"]', kid7b.id);
+  await T2.getByRole('button', { name: 'Registration', exact: true }).click();
+  await T2.getByTestId('registration-tab').waitFor();
+  await T2.getByTestId('roster-paste').fill('S0701, Sok Dara\nS0799, Pich Ratana');
+  await T2.getByTestId('roster-paste-add').click();
+  await waitFor(async () => (await rowStates(T2)).length === 2);
+  const states2 = await waitFor(async () => {
+    const st = await rowStates(T2);
+    return st.includes('Sok Dara=problem') ? st : null;
+  });
+  ok(!!states2 && states2.includes('Pich Ratana=not-published'), 'a student who is on the first teacher\'s list is flagged, not taken over', states2 || (await rowStates(T2)));
+  ok(/another teacher/i.test(await T2.getByTestId('registration-tab').textContent()), 'and the reason is given');
+  await T2.getByTestId('registration-publish').click();
+  await waitFor(() => fake.seats().some((x) => x.schoolId === 'S0799'));
+  ok(fake.seats().filter((x) => x.teacherUid === TEACHER2.uid).length === 1, 'only the second teacher\'s own student is published');
+  ok(fake.seats().find((x) => x.schoolId === 'S0701').teacherUid === TEACHER.uid && fake.seats().find((x) => x.schoolId === 'S0701').claimedBy === DARA.uid, 'the first teacher\'s student keeps seat and account');
+  ok(!(await T2.getByTestId('registration-tab').textContent()).includes(DARA.email), 'the second teacher is not shown the account behind it');
+
   console.log('\nteacher');
   await T.getByRole('button', { name: 'Refresh registration' }).click();
   await waitFor(async () => (await rowStates(T)).filter((s) => s.endsWith('=registered')).length === 2);
@@ -533,7 +623,7 @@ async function walk(browser) {
   ok(!!moved && moved.claimedBy === DARA.uid && moved.key !== daraSeat.key, 'the corrected seat keeps the account');
   ok(!fake.seats().some((s) => s.key === daraSeat.key), 'the old seat is gone');
   ok(fake.link(DARA.uid).seatKey === (moved && moved.key), 'the account follows to the corrected seat');
-  ok(fake.seats().length === 3, 'still three seats', fake.seats().length);
+  ok(fake.seats().filter((x) => x.teacherUid === TEACHER.uid).length === 3, 'still three seats', fake.seats().length);
   await D.reload({ waitUntil: 'domcontentloaded' });
   await D.locator('[data-testid="student-registration"][data-state]').waitFor({ timeout: 20000 });
   ok((await cardState(D)) === 'registered' && /Sok Darra/.test(await D.getByTestId('student-registration').textContent()), 'the student is still registered, under the corrected name');
@@ -551,14 +641,16 @@ async function walk(browser) {
   // close
   await waitFor(async () => !(await T.getByRole('button', { name: 'Close registration' }).isDisabled()));
   await T.getByRole('button', { name: 'Close registration' }).click();
-  await waitFor(() => fake.seats().length === 1);
-  ok(fake.seats().length === 1 && fake.seats()[0].claimedBy === DARA.uid, 'closing withdraws the open seats and keeps the registered student', fake.seats().map((s) => s.studentName));
+  const mine = () => fake.seats().filter((x) => x.teacherUid === TEACHER.uid);
+  await waitFor(() => mine().length === 1);
+  ok(mine().length === 1 && mine()[0].claimedBy === DARA.uid, 'closing withdraws the open seats and keeps the registered student', mine().map((x) => x.studentName));
+  ok(fake.seats().some((x) => x.teacherUid === TEACHER2.uid), 'and leaves the other teacher\'s seats alone');
   await register(P, 'S0702', 'Chan Sophea');
   await P.getByTestId('student-registration-error').waitFor({ timeout: 10000 });
   ok(/could not find/i.test(await P.getByTestId('student-registration-error').textContent()), 'after closing, a late student is told to ask the teacher');
 
   ok(fake.log.length === 0, 'the app never sent a write the rules refuse', fake.log);
-  for (const [who, page] of [['teacher', T], ['student 1', D], ['student 2', P]]) ok(page.errors.length === 0, `no page errors (${who})`, page.errors);
+  for (const [who, page] of [['teacher', T], ['teacher 2', T2], ['student 1', D], ['student 2', P]]) ok(page.errors.length === 0, `no page errors (${who})`, page.errors);
 
   console.log('\nphone');
   const fake2 = makeFake();

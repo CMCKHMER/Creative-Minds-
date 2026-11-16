@@ -171,24 +171,43 @@ service cloud.firestore {
               || resource.data.teacherUid == request.auth.uid);
       }
     }
+    function ownsAssessmentClassDoc(c) {
+      return c.teacherUid == request.auth.uid
+        || ('teacherEmail' in c
+            && c.teacherEmail is string
+            && c.teacherEmail.size() > 0
+            && c.teacherEmail == request.auth.token.email)
+        || isCmcAdmin();
+    }
+    function ownsAssessmentClass(classId) {
+      return ownsAssessmentClassDoc(
+        get(/databases/$(database)/documents/assessment_classes/$(classId)).data);
+    }
     match /assessment_classes/{classId} {
-      allow read: if isCmcTeacher();
+      allow read: if isCmcTeacher() && ownsAssessmentClassDoc(resource.data);
       allow create: if isCmcTeacher()
         && request.resource.data.teacherUid == request.auth.uid
         && request.resource.data.teacherUid is string;
-      allow update: if isCmcTeacher();
+      allow update: if isCmcTeacher()
+        && ownsAssessmentClassDoc(resource.data)
+        && (request.resource.data.teacherUid == resource.data.teacherUid
+            || request.resource.data.teacherUid == request.auth.uid);
       allow delete: if false;
       match /students/{studentId} {
-        allow read: if isCmcTeacher();
-        allow create, update: if isCmcTeacher();
-        allow delete: if isCmcTeacher();
+        allow read, write: if isCmcTeacher() && ownsAssessmentClass(classId);
       }
+    }
+    function ownsSeatDoc(d) {
+      return d.teacherUid == request.auth.uid || isCmcAdmin();
     }
     match /roster_seats/{seatKey} {
       allow get: if isVerifiedUser();
-      allow list: if isCmcTeacher();
-      allow create, delete: if isCmcTeacher();
-      allow update: if isCmcTeacher()
+      allow list: if isCmcTeacher() && ownsSeatDoc(resource.data);
+      allow create: if isCmcTeacher() && ownsSeatDoc(request.resource.data);
+      allow delete: if isCmcTeacher() && ownsSeatDoc(resource.data);
+      allow update: if (isCmcTeacher()
+            && ownsSeatDoc(resource.data)
+            && ownsSeatDoc(request.resource.data))
         || (isVerifiedUser()
             && resource.data.claimedBy == null
             && request.resource.data.claimedBy == request.auth.uid
@@ -198,14 +217,16 @@ service cloud.firestore {
     }
     match /student_links/{uid} {
       allow get: if isVerifiedUser() && (request.auth.uid == uid || isCmcTeacher());
-      allow list: if isCmcTeacher();
+      allow list: if isCmcAdmin();
       allow create: if isVerifiedUser()
         && request.auth.uid == uid
         && request.resource.data.uid == uid
         && request.resource.data.seatKey is string
         && request.resource.data.keys().hasOnly(['uid', 'seatKey', 'linkedAt'])
         && getAfter(/databases/$(database)/documents/roster_seats/$(request.resource.data.seatKey)).data.claimedBy == uid;
-      allow update, delete: if isCmcTeacher();
+      allow update, delete: if isCmcTeacher()
+        && (!exists(/databases/$(database)/documents/roster_seats/$(resource.data.seatKey))
+            || ownsSeatDoc(get(/databases/$(database)/documents/roster_seats/$(resource.data.seatKey)).data));
     }
     match /teachers/{uid} {
       allow read: if request.auth != null;

@@ -88,14 +88,23 @@ const withdraw = (seat: SeatDoc) => ({
 
 // ── teacher side ────────────────────────────────────────────────────────
 
-/** Every seat filed under a class. Teachers only (the rules refuse a student). */
-export async function listClassSeats(classId: string): Promise<SeatDoc[]> {
+/** Every seat filed under a class. Only the teacher who published them: the
+ *  rules refuse a list that is not filtered on the caller's own uid. */
+export async function listClassSeats(classId: string, teacherUid: string): Promise<SeatDoc[]> {
   const rows = await fsCall<unknown[]>(':runQuery', {
     method: 'POST',
     body: JSON.stringify({
       structuredQuery: {
         from: [{ collectionId: 'roster_seats' }],
-        where: { fieldFilter: { field: { fieldPath: 'classId' }, op: 'EQUAL', value: { stringValue: classId } } },
+        where: {
+          compositeFilter: {
+            op: 'AND',
+            filters: [
+              { fieldFilter: { field: { fieldPath: 'classId' }, op: 'EQUAL', value: { stringValue: classId } } },
+              { fieldFilter: { field: { fieldPath: 'teacherUid' }, op: 'EQUAL', value: { stringValue: teacherUid } } },
+            ],
+          },
+        },
         limit: 500,
       },
     }),
@@ -139,14 +148,15 @@ export interface RegistrationSnapshot {
 export async function readRegistration(input: {
   classId: string;
   className: string;
+  teacherUid: string;
   students: Array<{ id: string; name: string; schoolId: string }>;
 }): Promise<RegistrationSnapshot> {
   const rows = await keyRoster(input.students);
-  const seats = await listClassSeats(input.classId);
+  const seats = await listClassSeats(input.classId, input.teacherUid);
   const have = new Set(seats.map((s) => s.key));
   const unknown = [...new Set(rows.map((r) => r.key).filter((k) => k && !have.has(k)))];
   const foreignSeats = unknown.length ? await getSeatsByKey(unknown) : [];
-  const plan = planSeatSync({ classId: input.classId, className: input.className, rows, classSeats: seats, foreignSeats });
+  const plan = planSeatSync({ classId: input.classId, className: input.className, rows, classSeats: seats, foreignSeats, teacherUid: input.teacherUid });
   return { rows, seats, plan };
 }
 
@@ -221,9 +231,9 @@ export async function releaseSeat(seat: SeatDoc): Promise<void> {
 }
 
 /** Close registration: seats nobody has taken are withdrawn; registered students stay. */
-export async function closeRegistration(classId: string): Promise<number> {
+export async function closeRegistration(classId: string, teacherUid: string): Promise<number> {
   // read now, not from the screen: a student may have registered since the last refresh
-  const open = (await listClassSeats(classId)).filter((s) => !s.claimedBy);
+  const open = (await listClassSeats(classId, teacherUid)).filter((s) => !s.claimedBy);
   await commit(open.map(withdraw));
   return open.length;
 }

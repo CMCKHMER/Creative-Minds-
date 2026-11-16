@@ -222,7 +222,7 @@ describe('the database rules for registration', () => {
 
   it('lets a student fetch a seat but never browse the list', () => {
     expect(seats).toContain('allow get: if isVerifiedUser();');
-    expect(seats).toContain('allow list: if isCmcTeacher();');
+    expect(seats).toContain('allow list: if isCmcTeacher() && ownsSeatDoc(resource.data);');
     expect(seats).not.toMatch(/allow (read|list): if (true|isVerifiedUser\(\))/);
   });
 
@@ -240,7 +240,8 @@ describe('the database rules for registration', () => {
   });
 
   it('gives an account one seat for good: only a teacher can change or remove a link', () => {
-    expect(links).toContain('allow update, delete: if isCmcTeacher();');
+    expect(links).toMatch(/allow update, delete: if isCmcTeacher\(\)\s+&& \(!exists\(/);
+    expect(links).toContain('allow list: if isCmcAdmin();');
     expect(links).toContain("request.resource.data.keys().hasOnly(['uid', 'seatKey', 'linkedAt'])");
     expect(links).toContain('request.auth.uid == uid');
     expect(links).not.toMatch(/allow (update|delete)[^;]*request\.auth\.uid == uid/);
@@ -252,6 +253,53 @@ describe('the database rules for registration', () => {
     expect(db).toContain('encodeFields({ uid: input.uid, seatKey: key, linkedAt: now })');
     // the claim and the link travel in one commit
     expect(db).toMatch(/writes\.push\(\{\s*update: \{ name: docName\(`student_links\/\$\{input\.uid\}`\)[\s\S]{0,200}currentDocument: \{ exists: false \}/);
+  });
+});
+
+describe('private per teacher', () => {
+  // Owner decision, Nov 2026: "Teachers can not see other teachers'
+  // assessment records for their students."
+  const rules = read('firestore.rules');
+  const classes = rules.slice(rules.indexOf('function ownsAssessmentClassDoc'), rules.indexOf('SCHOOL ROSTER + REGISTRATION'));
+  const seats = rules.slice(rules.indexOf('function ownsSeatDoc'), rules.indexOf('match /student_links/{uid}'));
+
+  it('opens a class and its student records only to the teacher who owns it', () => {
+    expect(classes).toContain('allow read: if isCmcTeacher() && ownsAssessmentClassDoc(resource.data);');
+    expect(classes).toContain('allow read, write: if isCmcTeacher() && ownsAssessmentClass(classId);');
+    expect(classes).toContain('c.teacherUid == request.auth.uid');
+    // the old staff-room rule must not come back
+    expect(classes).not.toMatch(/allow (read|update|create, update|delete): if isCmcTeacher\(\);/);
+  });
+
+  it('does not let a class be handed to anybody but the caller', () => {
+    expect(classes).toMatch(/request\.resource\.data\.teacherUid == resource\.data\.teacherUid\s+\|\| request\.resource\.data\.teacherUid == request\.auth\.uid/);
+  });
+
+  it('keeps every seat with the teacher who published it', () => {
+    expect(seats).toContain('allow create: if isCmcTeacher() && ownsSeatDoc(request.resource.data);');
+    expect(seats).toContain('allow delete: if isCmcTeacher() && ownsSeatDoc(resource.data);');
+    expect(seats).toMatch(/ownsSeatDoc\(resource\.data\)\s+&& ownsSeatDoc\(request\.resource\.data\)/);
+  });
+
+  it('asks the database only for the caller\'s own seats (an unfiltered list is refused)', () => {
+    const db = read('src/lib/rosterDb.ts');
+    expect(db).toMatch(/fieldPath: 'classId' \}[\s\S]{0,160}fieldPath: 'teacherUid' \}, op: 'EQUAL', value: \{ stringValue: teacherUid \}/);
+  });
+
+  it('never takes a student over from another teacher\'s list', () => {
+    const theirs: SeatDoc = {
+      key: 'k-S1', classId: 'c9', studentId: 'x', className: 'Kid 7 — Morning', studentName: 'Sok Dara', schoolId: 'S1',
+      teacherUid: 'other', claimedBy: 'u1', claimedEmail: 'dara@example.com', claimedName: '', claimedAt: null,
+    };
+    const row: RosterRow = { studentId: 'a', schoolId: 'S1', name: 'Sok Dara', key: 'k-S1' };
+    const p = planSeatSync({ classId: 'c1', className: 'Kid 7 — Morning', rows: [row], classSeats: [], foreignSeats: [theirs], teacherUid: 'me' });
+    expect(p.adopt).toEqual([]);
+    expect(p.create).toEqual([]);
+    expect(p.problems).toEqual([{ row, reason: 'elsewhere' }]);
+    expect(planSize(p)).toBe(0);
+    // the same seat in another class of MINE still moves with its account
+    const own = planSeatSync({ classId: 'c1', className: 'Kid 7 — Morning', rows: [row], classSeats: [], foreignSeats: [{ ...theirs, teacherUid: 'me' }], teacherUid: 'me' });
+    expect(own.adopt).toHaveLength(1);
   });
 });
 

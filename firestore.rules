@@ -374,23 +374,45 @@ service cloud.firestore {
       }
     }
 
-    // Daily Student Assessment Records — teachers-only workspace.
-    // Read: any teacher (staff-room visibility of rosters/averages).
-    // Write: any teacher (collegial editing — every write is stamped with
-    // updatedBy + server updatedAt in the client data layer, so edits are
-    // attributable). Classes are archived, never deleted, from the client.
+    // Daily Student Assessment Records — each teacher's own workspace.
+    //
+    // PRIVATE PER TEACHER (owner decision, Nov 2026: "teachers can not see
+    // other teachers' assessment records for their students"). A class and
+    // every student record under it are readable and writable only by the
+    // teacher who owns the class (teacherUid). It used to be "any teacher".
+    //   · A LIST query must filter on teacherUid == the caller (or on
+    //     teacherEmail == the caller's address, the account-recovery path in
+    //     assessmentDb.listAssessmentClasses); an unfiltered list is refused.
+    //   · teacherEmail also opens the class to the same person under a
+    //     re-created account, who may then re-stamp teacherUid with their
+    //     own uid — and with nobody else's.
+    //   · The site owner (isCmcAdmin) keeps access for support.
+    // Classes are archived, never deleted, from the client.
+    function ownsAssessmentClassDoc(c) {
+      return c.teacherUid == request.auth.uid
+        || ('teacherEmail' in c
+            && c.teacherEmail is string
+            && c.teacherEmail.size() > 0
+            && c.teacherEmail == request.auth.token.email)
+        || isCmcAdmin();
+    }
+    function ownsAssessmentClass(classId) {
+      return ownsAssessmentClassDoc(
+        get(/databases/$(database)/documents/assessment_classes/$(classId)).data);
+    }
     match /assessment_classes/{classId} {
-      allow read: if isCmcTeacher();
+      allow read: if isCmcTeacher() && ownsAssessmentClassDoc(resource.data);
       allow create: if isCmcTeacher()
         && request.resource.data.teacherUid == request.auth.uid
         && request.resource.data.teacherUid is string;
-      allow update: if isCmcTeacher();
+      allow update: if isCmcTeacher()
+        && ownsAssessmentClassDoc(resource.data)
+        && (request.resource.data.teacherUid == resource.data.teacherUid
+            || request.resource.data.teacherUid == request.auth.uid);
       allow delete: if false;
 
       match /students/{studentId} {
-        allow read: if isCmcTeacher();
-        allow create, update: if isCmcTeacher();
-        allow delete: if isCmcTeacher();
+        allow read, write: if isCmcTeacher() && ownsAssessmentClass(classId);
       }
     }
 
@@ -418,11 +440,22 @@ service cloud.firestore {
     // A link cannot be changed or removed by its student, so an account holds
     // one seat for good; a seat names one account. A teacher can release a
     // seat (wrong person registered) and re-publish the list.
+    //
+    // PRIVATE PER TEACHER, like the class lists: a teacher lists, creates,
+    // changes and withdraws only the seats stamped with their own uid, and
+    // touches a link only when the seat it points at is theirs. Anyone who
+    // knows a seat's key (school ID + name) can still GET that one seat.
+    function ownsSeatDoc(d) {
+      return d.teacherUid == request.auth.uid || isCmcAdmin();
+    }
     match /roster_seats/{seatKey} {
       allow get: if isVerifiedUser();
-      allow list: if isCmcTeacher();
-      allow create, delete: if isCmcTeacher();
-      allow update: if isCmcTeacher()
+      allow list: if isCmcTeacher() && ownsSeatDoc(resource.data);
+      allow create: if isCmcTeacher() && ownsSeatDoc(request.resource.data);
+      allow delete: if isCmcTeacher() && ownsSeatDoc(resource.data);
+      allow update: if (isCmcTeacher()
+            && ownsSeatDoc(resource.data)
+            && ownsSeatDoc(request.resource.data))
         || (isVerifiedUser()
             && resource.data.claimedBy == null
             && request.resource.data.claimedBy == request.auth.uid
@@ -433,14 +466,18 @@ service cloud.firestore {
 
     match /student_links/{uid} {
       allow get: if isVerifiedUser() && (request.auth.uid == uid || isCmcTeacher());
-      allow list: if isCmcTeacher();
+      allow list: if isCmcAdmin();
       allow create: if isVerifiedUser()
         && request.auth.uid == uid
         && request.resource.data.uid == uid
         && request.resource.data.seatKey is string
         && request.resource.data.keys().hasOnly(['uid', 'seatKey', 'linkedAt'])
         && getAfter(/databases/$(database)/documents/roster_seats/$(request.resource.data.seatKey)).data.claimedBy == uid;
-      allow update, delete: if isCmcTeacher();
+      // the teacher of the seat the link points at (as it stood before this write)
+      // (a link left pointing at no seat at all may be cleared by any teacher)
+      allow update, delete: if isCmcTeacher()
+        && (!exists(/databases/$(database)/documents/roster_seats/$(resource.data.seatKey))
+            || ownsSeatDoc(get(/databases/$(database)/documents/roster_seats/$(resource.data.seatKey)).data));
     }
 
     // ── Private bi-weekly test system (Option A: teacher-side grading) ──
