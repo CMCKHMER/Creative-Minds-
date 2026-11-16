@@ -11,6 +11,9 @@ import {
 } from "./highscores";
 import { MILESTONE_STAGES, milestonePct } from "./scoring";
 import { submitScore } from "../../lib/submitScore";
+import { restoreSession } from "../../lib/firebaseAuth";
+import { GUEST_BRICKFORGE_MAX_LEVEL, hasActiveAccount } from "../../lib/gameAccess";
+import { requestAuth } from "../../lib/authPrompt";
 import type { BrainGameProps } from "../registry";
 import "./brickforge.css";
 
@@ -37,6 +40,12 @@ export default function BrickForge({ onExit }: BrainGameProps) {
   const [muted, setMuted] = useState(false);
   const [scores, setScores] = useState<ScoreEntry[]>(() => loadScores());
   const [tick, setTick] = useState(0);
+  // GUEST TRIAL (owner directive): visitors without an account play ONE level
+  // as a sample. Reaching the milestone that ends level 1 shows the sign-up
+  // wall; nothing they do is submitted to the shared scoreboard.
+  const [signedIn] = useState(() => hasActiveAccount(restoreSession()));
+  const [guestWall, setGuestWall] = useState(false);
+  const guestWallShown = useRef(false);
 
   // Create the engine once
   useEffect(() => {
@@ -48,8 +57,9 @@ export default function BrickForge({ onExit }: BrainGameProps) {
       setPhase(p);
       setTick((t) => t + 1);
       if (p === "gameover") {
+        // Guests keep their trial run on the device — no scoreboard rows.
+        if (!hasActiveAccount(restoreSession())) return;
         // Shared scoreboard: levels cleared of 10 milestone stages.
-        // Guests submit too — submitScore asks their name once (Nov 2026).
         void submitScore({
           drillSlug: "brickforge",
           drillTitle: "BrickForge · Brain Lounge",
@@ -92,6 +102,17 @@ export default function BrickForge({ onExit }: BrainGameProps) {
     game?.resize(size.w, size.h);
   }, [game, size]);
 
+  // Guest trial wall: the moment the sample level is cleared (level > 1), stop
+  // the run and ask for a free account.
+  useEffect(() => {
+    if (signedIn || !game || guestWallShown.current) return;
+    if (game.level > GUEST_BRICKFORGE_MAX_LEVEL) {
+      guestWallShown.current = true;
+      game.pause?.();
+      setGuestWall(true);
+    }
+  }, [signedIn, game, tick]);
+
   const start = useCallback(() => {
     game?.sfx.select();
     game?.start();
@@ -102,6 +123,32 @@ export default function BrickForge({ onExit }: BrainGameProps) {
     game.sfx.unlock();
     setMuted(game.toggleMute());
   };
+
+  if (guestWall) {
+    return (
+      <div className="brickforge-root mx-auto flex w-full max-w-xl flex-col items-center overflow-hidden rounded-2xl forge-bg p-8 text-center text-white">
+        <span className="grid h-14 w-14 place-items-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 text-2xl" aria-hidden="true">🔒</span>
+        <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.17em] text-cyan-200">Free trial complete</p>
+        <h3 className="mt-2 text-2xl font-bold">That was level 1 — sign up to keep forging</h3>
+        <p className="mt-2 text-sm leading-relaxed text-white/70">
+          Visitors get one free level of BrickForge. Create a free account (student or general user — same access)
+          to play every level, save your best score and join the Brain Lounge leaderboard.
+        </p>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to keep playing BrickForge and save your score.' })}
+            className="rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-5 py-2.5 text-xs font-bold text-slate-950"
+          >
+            Create a free account
+          </button>
+          <button type="button" onClick={onExit} className="rounded-xl border border-white/15 px-5 py-2.5 text-xs font-semibold text-white/80 hover:bg-white/5">
+            Back to the Lounge
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="brickforge-root mx-auto flex w-full flex-col items-center overflow-hidden rounded-2xl forge-bg text-white select-none">
@@ -323,13 +370,16 @@ function GameOverOverlay({
   game,
   onRestart,
   onScoresChanged,
+  allowSave = true,
 }: {
   game: Game;
   onRestart: () => void;
   onScoresChanged: () => void;
+  /** Guests keep their trial run out of the saved high-score table. */
+  allowSave?: boolean;
 }) {
   const score = game.score;
-  const [canSave] = useState(() => qualifies(score));
+  const [canSave] = useState(() => allowSave && qualifies(score));
   const [saved, setSaved] = useState(false);
   const [rank, setRank] = useState<number | undefined>(undefined);
   const [name, setName] = useState(() => loadLastName());

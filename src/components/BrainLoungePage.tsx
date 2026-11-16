@@ -1,8 +1,11 @@
 import { Suspense, lazy, useEffect, useState, type ComponentType } from 'react';
-import { ArrowLeft, CalendarClock, Cpu, ExternalLink, Gamepad2, Lightbulb, Play, Sparkles, Zap } from 'lucide-react';
+import { ArrowLeft, CalendarClock, Cpu, ExternalLink, Gamepad2, Lightbulb, LockKeyhole, Play, Sparkles, UserPlus, Zap } from 'lucide-react';
 import { GlassFact, GlassPageBar, GlassPageHero } from './GlassPage';
 import { BRAIN_GAMES, liveBrainGames, reservedBays, type BrainGameDef, type BrainGameProps } from '../games/registry';
 import { LoungeLeaderboard } from './LoungeLeaderboard';
+import { useSignedInSession } from '../hooks/useSignedInSession';
+import { requestAuth } from '../lib/authPrompt';
+import { GUEST_BRICKFORGE_MAX_LEVEL, hasActiveAccount, isSampleBrainGame } from '../lib/gameAccess';
 
 /**
  * THE BRAIN LOUNGE — dedicated arcade page (#brain-lounge).
@@ -31,7 +34,14 @@ function difficultyBolts(level: 1 | 2 | 3) {
   ));
 }
 
-function Cartridge({ game, onPlay }: { game: BrainGameDef; onPlay: (game: BrainGameDef) => void }) {
+function Cartridge({ game, playable, sample, onPlay }: {
+  game: BrainGameDef;
+  /** Signed-in accounts: every live cartridge. */
+  playable: boolean;
+  /** Guests: only the 1-level BrickForge trial is open. */
+  sample: boolean;
+  onPlay: (game: BrainGameDef) => void;
+}) {
   const live = game.status === 'live';
   return (
     <article
@@ -47,8 +57,8 @@ function Cartridge({ game, onPlay }: { game: BrainGameDef; onPlay: (game: BrainG
           {game.emoji}
         </span>
         <div className="flex flex-col items-end gap-1.5">
-          <span className={`rounded-md border px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] ${live ? 'border-emerald-300/30 bg-emerald-300/10 text-emerald-200' : 'border-amber-200/25 bg-amber-200/5 text-amber-200/90'}`}>
-            {live ? 'Ready to play' : 'Coming soon'}
+          <span className={`rounded-md border px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] ${!live ? 'border-amber-200/25 bg-amber-200/5 text-amber-200/90' : !playable ? 'border-cyan-300/30 bg-cyan-300/10 text-cyan-200' : sample ? 'border-fuchsia-300/30 bg-fuchsia-300/10 text-fuchsia-200' : 'border-emerald-300/30 bg-emerald-300/10 text-emerald-200'}`}>
+            {!live ? 'Coming soon' : !playable ? 'Account required' : sample ? `Free ${GUEST_BRICKFORGE_MAX_LEVEL}-level trial` : 'Ready to play'}
           </span>
           <span className="flex items-center gap-0.5" title={`Difficulty ${game.difficulty} of 3`}>{difficultyBolts(game.difficulty)}</span>
         </div>
@@ -64,15 +74,24 @@ function Cartridge({ game, onPlay }: { game: BrainGameDef; onPlay: (game: BrainG
         {live && game.scoreLabel && <span>{game.scoreLabel}</span>}
       </div>
 
-      {live && game.mode === 'react' && (
+      {live && game.mode === 'react' && playable && (
         <button type="button" onClick={() => onPlay(game)} className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:brightness-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300">
-          <Play className="h-3.5 w-3.5" aria-hidden="true" /> Play now
+          <Play className="h-3.5 w-3.5" aria-hidden="true" /> {sample ? `Try ${GUEST_BRICKFORGE_MAX_LEVEL} free level` : 'Play now'}
         </button>
       )}
-      {live && (game.mode === 'standalone' || game.mode === 'external') && game.launchUrl && (
+      {live && (game.mode === 'standalone' || game.mode === 'external') && game.launchUrl && playable && (
         <a href={game.launchUrl} className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:brightness-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300">
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /> Open game
         </a>
+      )}
+      {live && !playable && (
+        <button
+          type="button"
+          onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to play ${game.title}.` })}
+          className="mt-4 inline-flex items-center justify-center gap-2 self-start rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-5 py-2.5 text-xs font-bold text-cyan-100 transition hover:bg-cyan-300/20 active:scale-95"
+        >
+          <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to play
+        </button>
       )}
       {!live && (
         <span className="mt-4 inline-flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-white/10 px-5 py-2.5 text-xs font-semibold text-slate-500">
@@ -92,11 +111,23 @@ export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
     return () => { document.title = prev; };
   }, []);
   const [activeGame, setActiveGame] = useState<BrainGameDef | null>(null);
+  // ACCOUNT RULE: signed-in accounts unlock every live cartridge; visitors may
+  // sample exactly one level of BrickForge. Everything else asks for a sign-up.
+  const session = useSignedInSession();
+  const signedIn = hasActiveAccount(session);
   const live = liveBrainGames();
   const reserved = reservedBays();
   const ActiveGame = activeGame ? cartridgeComponent(activeGame) : null;
 
   const openGame = (game: BrainGameDef) => {
+    const allowed = signedIn || isSampleBrainGame(game.id);
+    if (!allowed) {
+      requestAuth({
+        mode: 'sign-up',
+        contextPrompt: `Sign up free to play ${game.title}. Visitors can try ${GUEST_BRICKFORGE_MAX_LEVEL} level of BrickForge.`,
+      });
+      return;
+    }
     if (game.mode === 'standalone' || game.mode === 'external') {
       // Standalone/external cartridges navigate in the same tab.
       if (game.launchUrl) window.location.assign(game.launchUrl);
@@ -121,7 +152,7 @@ export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
       >
         <GlassFact>{live.length} playable {live.length === 1 ? 'game' : 'games'}</GlassFact>
         <GlassFact>{reserved.length} cartridge bays reserved</GlassFact>
-        <GlassFact>Free to play · no account needed</GlassFact>
+        <GlassFact>Free account · 1-level guest trial</GlassFact>
       </GlassPageHero>
 
       {/* Cartridge shelf */}
@@ -133,9 +164,31 @@ export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
 
         <div className="mt-8 grid gap-x-6 gap-y-7 md:grid-cols-2 xl:grid-cols-3">
           {BRAIN_GAMES.map((game) => (
-            <Cartridge key={game.id} game={game} onPlay={openGame} />
+            <Cartridge
+              key={game.id}
+              game={game}
+              playable={signedIn || isSampleBrainGame(game.id)}
+              sample={!signedIn && isSampleBrainGame(game.id)}
+              onPlay={openGame}
+            />
           ))}
         </div>
+
+        {!signedIn && (
+          <div className="mt-8 flex flex-col items-start gap-3 rounded-2xl border border-cyan-300/25 bg-cyan-300/[0.06] p-5 sm:flex-row sm:items-center">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-cyan-200"><UserPlus className="h-4 w-4" aria-hidden="true" /></span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-white">One free level of BrickForge, then your account unlocks everything</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-slate-300">
+                Create a free account — student or general user, same access — to play every cartridge, save your best
+                scores and join the Lounge leaderboard.
+              </p>
+            </div>
+            <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to unlock every Brain Lounge cartridge.' })} className="shrink-0 rounded-xl bg-gradient-to-r from-fuchsia-300 to-cyan-300 px-4 py-2.5 text-xs font-bold text-slate-950">
+              Sign up free
+            </button>
+          </div>
+        )}
 
         {/* Game stage — lazy-mounted cartridge */}
         {activeGame && (
@@ -165,8 +218,17 @@ export function BrainLoungePage({ onBackHome }: { onBackHome: () => void }) {
           </section>
         )}
 
-        {/* Player stats — leaderboard for the cartridges above */}
-        <LoungeLeaderboard />
+        {/* Player stats — leaderboard for the cartridges above (accounts only;
+            a guest's trial run is never submitted). */}
+        {signedIn ? (
+          <LoungeLeaderboard />
+        ) : (
+          <div className="mt-12 rounded-2xl border border-cyan-200/20 bg-cyan-100/[0.05] p-6 text-center">
+            <LockKeyhole className="mx-auto h-6 w-6 text-cyan-200" aria-hidden="true" />
+            <p className="mt-3 text-sm font-bold text-white">Leaderboard needs a free account</p>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-slate-300">Sign up to save your runs and see how the Lounge is doing.</p>
+          </div>
+        )}
 
         {/* Creator note */}
         <aside className="mt-12 flex flex-col items-start gap-3 rounded-2xl border border-dashed border-white/12 bg-slate-950/40 p-6 sm:flex-row sm:items-center">
