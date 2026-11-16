@@ -1,0 +1,15 @@
+Word Creator — tournament lexicon (lexicon.txt.gz)
+
+Generated 2026-11-16 by scripts/build_word_lexicon.mjs.
+Words: 178,691 (2–15 letters, lowercase, one per line).
+
+Source: scrabble-dictionary v1.3.0 — en/twl.txt (NASPA Word List / TWL06)
+        https://github.com/FlandersBurger/scrabble-dictionary
+        MIT License, Copyright (c) 2026 Laurent Debacker
+        Upstream: kamilmielnik/scrabble-dictionaries, originally wordgamedictionary.com
+
+The word list itself is distributed under the MIT licence of the package that
+ships it. Rebuild it with:
+
+  npm install --no-save scrabble-dictionary
+  node scripts/build_word_lexicon.mjs

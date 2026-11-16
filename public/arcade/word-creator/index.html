@@ -520,9 +520,81 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
 @media(max-width:700px){#turn{display:none!important}.tools{gap:5px}.tb{width:33px;height:33px}.tb svg{width:16px;height:16px}}
 @media(max-width:420px){.bt{width:28px;height:28px;font-size:16px}.bn{font-size:13.5px}.seat{flex-wrap:wrap}.seat input{flex:1 1 100%;order:3}.dsearch{flex-wrap:wrap}.dgo{width:100%;justify-content:center;padding:11px}}
 @media(prefers-reduced-motion:reduce){.sway,.blob,.lt,.cell.star .pl,.pill,.crown,#sheen,#trophyWrap{animation:none!important}*{transition-duration:.01ms!important}}
+
+/* ═══ HUB — the visual start screen ═══════════════════════════════════════
+   Sits in front of Table Setup the way Mafia Noir's lobby sits in front of
+   its table: a big wordmark, one line of what the game is, and three cards
+   that each start a different kind of match. The setup card is still there —
+   it is simply one step in, behind whichever mode you pick. Every colour
+   comes from the game's own Aurora Glass palette, so the hub and the table
+   read as one product. */
+#hub{position:relative;z-index:2;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:calc(var(--hdr) + 26px) 20px 48px}
+.hub-wrap{width:min(1080px,100%)}
+.hub-hero{position:relative;display:flex;align-items:center;gap:34px;flex-wrap:wrap;margin-bottom:30px}
+
+.hub-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:var(--sapphire);opacity:.75}
+.hub-dot{width:7px;height:7px;border-radius:50%;background:var(--neon);box-shadow:0 0 12px var(--neon);animation:hubPulse 2.2s ease-in-out infinite}
+@keyframes hubPulse{50%{opacity:.35;transform:scale(.85)}}
+
+.hub-title{font-family:var(--disp,inherit);font-size:clamp(42px,7.4vw,84px);line-height:.9;letter-spacing:-.03em;font-weight:900;margin:14px 0 0;color:var(--sapphire)}
+.hub-title span{display:block;background:linear-gradient(96deg,var(--blue) 0%,var(--violet) 46%,var(--neon) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 6px 18px rgba(37,99,235,.22))}
+.hub-tag{max-width:520px;margin-top:16px;font-size:14.5px;line-height:1.72;color:var(--ink2)}
+.hub-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.hub-stats span{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:9px;font-size:11px;color:var(--muted);background:var(--glass);border:1px solid var(--edge);backdrop-filter:blur(14px)}
+.hub-stats b{color:var(--sapphire);font-weight:800}
+
+/* three glass tiles, fanned like a rack — pure decoration */
+.hub-fan{display:flex;justify-content:center;align-items:center;flex:1;min-width:220px;perspective:700px}
+.hub-tile{position:relative;width:86px;height:86px;margin:0 -10px;border-radius:16px;display:grid;place-items:center;
+ transform:rotate(var(--r)) translateY(calc(var(--i,0) * 6px));
+ background:linear-gradient(158deg,rgba(255,255,255,.92),rgba(226,238,253,.72));
+ border:1px solid rgba(255,255,255,.9);
+ box-shadow:0 20px 46px rgba(15,58,120,.22),0 0 0 1px rgba(37,99,235,.10) inset,0 2px 0 rgba(255,255,255,.9) inset;
+ animation:hubFloat 7s ease-in-out infinite}
+.hub-tile:nth-child(1){animation-delay:0s}
+.hub-tile:nth-child(2){animation-delay:1.1s;z-index:2}
+.hub-tile:nth-child(3){animation-delay:2.2s}
+@keyframes hubFloat{50%{transform:rotate(var(--r)) translateY(-11px)}}
+.hub-tile .hc{font-size:44px;font-weight:900;line-height:1;color:hsl(var(--h) 62% 38%);text-shadow:0 1px 0 rgba(255,255,255,.9)}
+.hub-tile .hv{position:absolute;right:9px;bottom:6px;font-size:13px;font-weight:800;color:hsl(var(--h) 40% 52%);opacity:.75}
+.hub-tile::after{content:"";position:absolute;inset:0;border-radius:16px;background:radial-gradient(circle at 30% 18%,rgba(255,255,255,.95),transparent 62%);pointer-events:none}
+
+/* the three ways in */
+.hub-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:820px){.hub-modes{grid-template-columns:1fr}.hub-fan{display:none}}
+.hub-card{position:relative;overflow:hidden;text-align:left;cursor:pointer;padding:24px 22px 22px;border-radius:20px;
+ display:flex;flex-direction:column;gap:11px;min-height:216px;
+ background:linear-gradient(162deg,rgba(255,255,255,.88),rgba(232,241,253,.62));
+ border:1px solid var(--edge);backdrop-filter:blur(20px);
+ box-shadow:var(--lift),0 1px 0 rgba(255,255,255,.9) inset;
+ transition:transform .24s cubic-bezier(.2,.8,.2,1),box-shadow .24s,border-color .24s;
+ font-family:inherit;color:inherit}
+.hub-card:hover,.hub-card:focus-visible{transform:translateY(-6px);border-color:var(--mc);outline:none;
+ box-shadow:0 26px 60px rgba(15,58,120,.26),0 0 0 1px var(--mc) inset,0 0 34px -6px var(--mc)}
+.hub-card:focus-visible{box-shadow:0 0 0 3px color-mix(in srgb,var(--mc) 42%,transparent),0 26px 60px rgba(15,58,120,.26)}
+.hub-card::after{content:"";position:absolute;right:-44px;top:-44px;width:150px;height:150px;border-radius:50%;
+ background:radial-gradient(circle,var(--mc),transparent 68%);opacity:.16;pointer-events:none;transition:opacity .24s}
+.hub-card:hover::after{opacity:.3}
+.hub-card .hi{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+ background:linear-gradient(150deg,rgba(255,255,255,.95),color-mix(in srgb,var(--mc) 22%,transparent));
+ border:1px solid color-mix(in srgb,var(--mc) 36%,transparent);color:color-mix(in srgb,var(--mc) 72%,#0b3a8f);font-size:19px}
+.hub-card h3{margin:0;font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--sapphire)}
+.hub-card p{margin:0;font-size:12.5px;line-height:1.6;color:var(--muted);flex:1}
+.hub-card .hgo{margin-top:4px;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb,var(--mc) 78%,#0b3a8f);transition:transform .2s}
+.hub-card:hover .hgo{transform:translateX(4px)}
+
+.hub-links{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:26px}
+.hub-link{padding:9px 15px;border-radius:10px;font:700 11px/1 inherit;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+ color:var(--ink2);background:rgba(255,255,255,.55);border:1px solid var(--edge);text-decoration:none;transition:.2s}
+.hub-link:hover{background:rgba(255,255,255,.9);border-color:var(--edge2);color:var(--sapphire)}
+
+@media(prefers-reduced-motion:reduce){
+ .hub-tile,.hub-dot{animation:none}
+ .hub-card,.hub-card .hgo{transition:none}
+}
 </style>
 </head>
-<body data-screen="setup">
+<body data-screen="hub">
 <script>CMC_GATE.guard('account', 'Sign up free to play Word Creator.');</script>
 <canvas id="fx"></canvas>
 
@@ -592,7 +664,54 @@ button.chip:hover{border-color:var(--edge2);color:var(--ink);transform:translate
  </div>
 </header>
 
-<main id="setup"><div class="wrap">
+<main id="hub"><div class="hub-wrap">
+ <section class="hub-hero">
+  <div class="hub-hero-text">
+   <p class="hub-eyebrow"><span class="hub-dot"></span> Brain Lounge · Bay 05</p>
+   <h1 class="hub-title">WORD<span>CREATOR</span></h1>
+   <p class="hub-tag">The full 15×15 word duel on a glass table under neon light. Build words, ignite doubles and triples, and take the whole board — alone against thinking rivals, or live against a classmate.</p>
+   <div class="hub-stats">
+    <span><b id="hubLexCount">7,302</b> words</span>
+    <span><b>15×15</b> board</span>
+    <span><b>2–4</b> players</span>
+   </div>
+  </div>
+  <div class="hub-fan" aria-hidden="true">
+   <div class="hub-tile" style="--h:196;--r:-11deg"><span class="hc">W</span><span class="hv">4</span></div>
+   <div class="hub-tile" style="--h:262;--r:0deg"><span class="hc">O</span><span class="hv">1</span></div>
+   <div class="hub-tile" style="--h:330;--r:11deg"><span class="hc">R</span><span class="hv">1</span></div>
+  </div>
+ </section>
+
+ <section class="hub-modes" aria-label="Choose how to play">
+  <button class="hub-card" id="modeSolo" style="--mc:#22d3ee">
+   <span class="hi" id="hubSoloIcon"></span>
+   <h3>Solo Table</h3>
+   <p>One human against one to three AI rivals with their own word-finding and difficulty. The fastest way to learn the board.</p>
+   <span class="hgo">Take a seat →</span>
+  </button>
+  <button class="hub-card" id="modePass" style="--mc:#8b5cf6">
+   <span class="hi" id="hubPassIcon"></span>
+   <h3>Pass &amp; Play</h3>
+   <p>Up to four people on one device. A private hand-off screen keeps every rack secret between turns.</p>
+   <span class="hgo">Gather the table →</span>
+  </button>
+  <button class="hub-card" id="modeOnline" style="--mc:#ff3d8b">
+   <span class="hi" id="hubOnlineIcon"></span>
+   <h3>Play Online</h3>
+   <p>Open a private room, share a five-character code, and play a classmate live across devices. One shared board.</p>
+   <span class="hgo">Open the network →</span>
+  </button>
+ </section>
+
+ <section class="hub-links">
+  <button class="hub-link" id="hubRules">How to play</button>
+  <button class="hub-link" id="hubLex">Lexicon</button>
+  <a class="hub-link" href="https://cmckhmer.github.io/Creative-Minds-/#brain-lounge">← Back to the lounge</a>
+ </section>
+</div></main>
+
+<main id="setup" class="hide"><div class="wrap">
  <div class="logoWrap"><img id="art-letters" class="hide" alt=""><div class="logo" id="logo"></div></div>
  <p class="tagline">A glass table under neon light. <b>Drag a tile — it snaps to the square.</b> Build words, ignite doubles and triples, verify new words online and keep them forever.</p>
  <div class="card">
@@ -746,6 +865,62 @@ const BASE=new Set((W2+" "+W3+" "+W4+" "+W5+" "+W6+" "+W7+" "+WX).split(/\s+/).f
 const BASE_N=BASE.size,DICT=new Set(BASE);
 let PREFIX=new Set();
 function rebuildPrefix(){PREFIX=new Set();for(const w of DICT)for(let i=1;i<=w.length;i++)PREFIX.add(w.slice(0,i));}
+
+/* ═══ TOURNAMENT LEXICON (lazy) ═══════════════════════════════════════════
+   The built-in word list above is ~7,300 hand-curated words — enough to play
+   the moment the page paints, but it refuses real plays (REACTOR among
+   them). The official tournament list is 178,691 words: far too much to put
+   in the page, so it ships as a 455 KB gzipped asset and is fetched in the
+   BACKGROUND. Play never waits on it.
+
+   When it lands, every word it carries becomes legal — including for the
+   game in progress and for a move already on the board (each analyze()
+   re-validates against the live DICT). Until then the page is simply
+   stricter, which is the safe direction: it can reject a word that the
+   tournament list would allow, but it can never accept one that the list
+   does not.
+
+   Indexed by length (LEXI[n] is a Set of n-letter words) so the AI's move
+   generator — which rebuilds its prefix set per turn — can extend from the
+   big list without paying for a second full-prefix structure. */
+const LEXI=[];
+let LEX_TOURNEY=false,LEX_PENDING=null;
+function lexHas(w){if(DICT.has(w))return true;const L=LEXI[w.length];return !!(L&&L.has(w));}
+function lexLoad(list){
+ for(const w of list){if(!DICT.has(w)){const L=LEXI[w.length]||(LEXI[w.length]=new Set());L.add(w);}}
+ LEX_TOURNEY=true;LEX_PENDING=null;syncLex();
+ // A match already on the board keeps a stale "not a word" preview pinned in
+ // the UI; re-run it so the newly legal word shows as legal without a click.
+ if(G.screen==="game"&&G.pend.size)renderPreview();
+}
+function lexFetch(){
+ if(LEX_TOURNEY||LEX_PENDING)return LEX_PENDING||Promise.resolve();
+ /* 455 KB gz -> 1.7 MB of text. TWO TRAPS, both handled below:
+      1. Some servers see the .gz extension and send Content-Encoding: gzip,
+         so the browser has ALREADY decompressed the body by the time fetch
+         resolves. Feeding that to DecompressionStream a second time throws
+         (and the first version of this loader silently fell back to the
+         7,300-word list because of exactly that).
+      2. Other servers send the raw gzip bytes. So: sniff the gzip magic
+         (0x1f 0x8b) on the first two bytes and only decompress when it is
+         actually compressed. Never assume from the extension.
+    A failure of any kind leaves the built-in list in place — an upgrade that
+    does not arrive must never break a match. */
+ const url="./lexicon.txt.gz";
+ const toList=txt=>txt?txt.split("\n").map(w=>w.trim()).filter(w=>w.length>1):null;
+ const finish=txt=>{const list=toList(txt);if(list&&list.length)lexLoad(list);return list;};
+ const decode=async(buf)=>{
+  const bytes=new Uint8Array(buf);
+  const isGzip=bytes.length>2&&bytes[0]===0x1f&&bytes[1]===0x8b;
+  if(!isGzip)return new TextDecoder("utf-8").decode(bytes);
+  if(typeof DecompressionStream==="undefined")return null;
+  const stream=new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return new Response(stream).text();
+ };
+ LEX_PENDING=fetch(url).then(r=>r.ok?r.arrayBuffer():null).then(buf=>buf?decode(buf):null)
+  .then(finish).catch(()=>null);
+ return LEX_PENDING;
+}
 const LEXK="wc_lex_v3",RECK="wc_recent_v3";
 let custom=new Map();
 try{const raw=JSON.parse(localStorage.getItem(LEXK)||"[]");if(Array.isArray(raw))for(const e of raw){const w=String(e&&e.word||"").toLowerCase();if(/^[a-z]{2,15}$/.test(w))custom.set(w,{word:w,def:String(e.def||"").slice(0,400),pos:String(e.pos||"").slice(0,30),phon:String(e.phonetic||"").slice(0,60),src:String(e.source||"manual").slice(0,60),at:e.added||Date.now()});}}catch(e){}
@@ -989,7 +1164,7 @@ function analyze(pm){
   if(pm.size<2||!words.length)return{err:"Play at least two tiles to open"};}
  else{if(!words.length)return{err:"Tiles must form a word of 2+ letters"};
   if(!words.some(w=>w.cells.some(x=>!x.t.nw)))return{err:"Connect to tiles already on the board"};}
- if(!prefs.casual)for(const w of words)if(!DICT.has(w.word.toLowerCase()))return{err:"“"+w.word+"” isn't in the lexicon",bad:w.word};
+ if(!prefs.casual)for(const w of words)if(!lexHas(w.word.toLowerCase()))return{err:"“"+w.word+"” isn't in the lexicon",bad:w.word};
  let total=0;
  for(const w of words){let sum=0,mul=1,tier=0;w.mine=custom.has(w.word.toLowerCase());
   for(const x of w.cells){let v=x.t.v;const pr=PREM[x.r][x.c];
@@ -1008,10 +1183,10 @@ function genMoves(rack){
   if(G.board[r][c])continue;const k=r*N+c;
   let up="",dn="",i=r-1;while(inB(i,c)&&G.board[i][c]){up=G.board[i][c].ch.toLowerCase()+up;i--;}
   i=r+1;while(inB(i,c)&&G.board[i][c]){dn+=G.board[i][c].ch.toLowerCase();i++;}
-  lH[k]=up.length+dn.length;if(lH[k]){const s=new Set();for(const L of AZ)if(DICT.has(up+L+dn))s.add(L);cH[k]=s;}
+  lH[k]=up.length+dn.length;if(lH[k]){const s=new Set();for(const L of AZ)if(lexHas(up+L+dn))s.add(L);cH[k]=s;}
   let lf="",rt="",j=c-1;while(inB(r,j)&&G.board[r][j]){lf=G.board[r][j].ch.toLowerCase()+lf;j--;}
   j=c+1;while(inB(r,j)&&G.board[r][j]){rt+=G.board[r][j].ch.toLowerCase();j++;}
-  lV[k]=lf.length+rt.length;if(lV[k]){const s=new Set();for(const L of AZ)if(DICT.has(lf+L+rt))s.add(L);cV[k]=s;}}
+  lV[k]=lf.length+rt.length;if(lV[k]){const s=new Set();for(const L of AZ)if(lexHas(lf+L+rt))s.add(L);cV[k]=s;}}
  const anchors=[];
  if(!any)anchors.push([7,7]);
  else for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(G.board[r][c])continue;
@@ -1024,10 +1199,10 @@ function genMoves(rack){
   for(const [ar,ac] of anchors){
    if(over())return;
    const right=(s,pl,r,c,ext)=>{
-    if(!inB(r,c)){if(pl.length&&DICT.has(s)&&conn(pl,ext))rec(pl);return;}
+    if(!inB(r,c)){if(pl.length&&lexHas(s)&&conn(pl,ext))rec(pl);return;}
     const b=G.board[r][c];
     if(b){const ns=s+b.ch.toLowerCase();if(PREFIX.has(ns))right(ns,pl,r+dr,c+dc,true);return;}
-    if(pl.length&&DICT.has(s)&&conn(pl,ext))rec(pl);
+    if(pl.length&&lexHas(s)&&conn(pl,ext))rec(pl);
     const k=r*N+c,allow=cross[k];
     const put=(L,bl)=>{const ns=s+L;if(!PREFIX.has(ns))return;if(allow&&!allow.has(L))return;
      pl.push({k,ch:L,bl});right(ns,pl,r+dr,c+dc,ext);pl.pop();};
@@ -1262,7 +1437,7 @@ $("#overAgain").onclick=()=>{SFX.click();$("#trophyWrap").classList.remove("go")
 $("#overSetup").onclick=()=>{SFX.click();$("#trophyWrap").classList.remove("go");toSetup();};
 function toSetup(){G.screen="setup";G.over=true;G.lock=true;clearTimers();endDragHard();
  sparks=[];rings=[];glyphs=[];beams=[];document.body.dataset.screen="setup";
- $("#game").classList.add("hide");$("#setup").classList.remove("hide");
+ $("#game").classList.add("hide");$("#hub").classList.add("hide");$("#setup").classList.remove("hide");
  $("#turn").classList.add("hide");$("#newBtn").classList.add("hide");
  ["#over","#handoff","#confirm","#think","#bingo"].forEach(s=>$(s).classList.add("hide"));
  $("#cast").classList.remove("go");$("#trophyWrap").classList.remove("go");$("#raysWrap").classList.remove("go");renderSeats();}
@@ -1755,12 +1930,13 @@ $("#presets").onclick=e=>{const b=e.target.closest(".ps");if(!b)return;audio();S
  G.cfg=PRESETS.find(x=>x.id===preset).s.map(s=>({name:s.name,ai:s.ai,diff:s.diff||"normal"}));
  document.querySelectorAll(".ps").forEach(x=>x.classList.toggle("on",x.dataset.p===preset));renderSeats();};
 function renderSeats(){
+ if(!$("#seats"))return;
  $("#seatN").textContent=G.cfg.length;$("#minus").disabled=G.cfg.length<=2;$("#plus").disabled=G.cfg.length>=4;
  $("#seats").innerHTML=G.cfg.map((c,i)=>'<div class="seat" style="--h:'+HUES[i%4]+'"><div class="gem"></div>'+
   '<input maxlength="12" value="'+esc(c.name)+'" data-i="'+i+'" placeholder="Player '+(i+1)+'">'+
   '<div class="seg" data-i="'+i+'"><button data-t="h" class="'+(!c.ai?"on":"")+'">'+I.user+'HUMAN</button><button data-t="a" class="'+(c.ai?"on":"")+'">'+I.bot+'AI</button></div>'+
   (c.ai?'<select data-i="'+i+'">'+["easy","normal","hard"].map(d=>'<option value="'+d+'"'+(c.diff===d?" selected":"")+'>'+d.toUpperCase()+'</option>').join("")+'</select>':'')+'</div>').join("");
- $("#lexNote").textContent=DICT.size.toLocaleString()+" playable words"+(custom.size?" · "+custom.size+" yours":"")+(prefs.casual?" · casual accepts anything":"");
+ $("#lexNote").textContent=(DICT.size+(LEX_TOURNEY?LEXI.reduce((a,x)=>a+(x?x.size:0),0):0)).toLocaleString()+" playable words"+(LEX_TOURNEY?" · tournament":"")+(custom.size?" · "+custom.size+" yours":"")+(prefs.casual?" · casual accepts anything":"");
  document.querySelectorAll("#dictSeg button").forEach(b=>b.classList.toggle("on",(b.dataset.v==="casual")===prefs.casual));}
 $("#seats").addEventListener("input",e=>{
  if(e.target.tagName==="INPUT")G.cfg[+e.target.dataset.i].name=e.target.value;
@@ -1772,6 +1948,42 @@ $("#seats").addEventListener("click",e=>{const b=e.target.closest(".seg button")
 $("#minus").onclick=()=>{if(G.cfg.length>2){audio();SFX.click();G.cfg.pop();renderSeats();}};
 $("#plus").onclick=()=>{if(G.cfg.length<4){audio();SFX.click();G.cfg.push({name:"Player "+(G.cfg.length+1),ai:false,diff:"normal"});renderSeats();}};
 $("#dictSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;audio();SFX.click();prefs.casual=b.dataset.v==="casual";savePrefs();renderSeats();};
+/* ═══ HUB ROUTING ═══════════════════════════════════════════════════════
+   Three doors, one setup card behind them. Picking a mode pre-fills the
+   table the way that mode wants it and then hands over to the existing setup
+   screen — no second setup UI to keep in sync with this one. */
+function showHub(){
+ G.screen="hub";G.over=true;G.lock=true;clearTimers();endDragHard();
+ document.body.dataset.screen="hub";
+ $("#game").classList.add("hide");$("#setup").classList.add("hide");$("#hub").classList.remove("hide");
+ $("#turn").classList.add("hide");$("#newBtn").classList.add("hide");
+ $("#hubLexCount").textContent=(DICT.size+(LEX_TOURNEY?LEXI.reduce((a,x)=>a+(x?x.size:0),0):0)).toLocaleString();
+}
+function openSetup(cfg){
+ $("#hub").classList.add("hide");$("#setup").classList.remove("hide");
+ document.body.dataset.screen="setup";
+ G.screen="setup";G.over=false;G.lock=false;
+ G.cfg=cfg.map(c=>({...c}));
+ $("#seatN").textContent=G.cfg.length;
+ [["#presets",G.cfg.length]].forEach(([sel])=>{});renderSeats();syncLex();
+}
+$("#modeSolo").onclick=()=>{audio();SFX.click();
+ openSetup([{name:"You",ai:false,diff:"normal"},{name:"Nova",ai:true,diff:"normal"}]);
+ G.cfg[1].ai=true;renderSeats();};
+$("#modePass").onclick=()=>{audio();SFX.click();
+ openSetup([{name:"Player 1",ai:false,diff:"normal"},{name:"Player 2",ai:false,diff:"normal"}]);
+ renderSeats();};
+$("#modeOnline").onclick=()=>{audio();SFX.click();
+ openSetup([{name:(window.CMC_NG?CMC_NG.get():"You")||"You",ai:false,diff:"normal"},{name:"Player 2",ai:false,diff:"normal"}]);
+ $("#wc-join-note").textContent="Press Play above to open a room, or enter a classmate's code below.";
+ $("#wc-code").focus();};
+$("#hubRules").onclick=()=>openRules();
+$("#hubLex").onclick=()=>openDict("",{tab:"lex"});
+/* A back-to-hub affordance from the setup card: the logo is the home button,
+   the same convention the rest of the lounge uses. */
+$("#logo").style.cursor="pointer";
+$("#logo").onclick=()=>{audio();SFX.click();showHub();};
+
 $("#startBtn").onclick=()=>{audio();SFX.shuf();
  /* ONLINE host: pressing Play opens the table and publishes a room code
     instead of dealing a local match. The poll starts the engine once the
@@ -1792,6 +2004,15 @@ $("#wc-join").onclick=()=>{
 };
 $("#wc-code").addEventListener("keydown",e=>{if(e.key==="Enter")$("#wc-join").click();});
 syncSound();syncView();renderSeats();syncLex();applyAll();fitBoard();
+/* Land on the hub. An ?online= deep link skips straight into its room flow,
+   which lives in online.js and drives the engine itself. */
+/* ?online= is a deep link straight into a room, so the hub must NOT sit
+   behind the online flow — but every other entry starts on the hub. */
+if(new URLSearchParams(location.search).has("online")){
+ document.body.dataset.screen="online";$("#hub").classList.add("hide");
+}else showHub();
+/* Tournament lexicon: fetched in the background so the page never waits on it. */
+lexFetch();
 /* ── online hook (used by the CMC_WORD_ONLINE block at the bottom of the page;
       offline play never touches it) ── */
 window.WC_ENGINE={
