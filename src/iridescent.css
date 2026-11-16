@@ -1,0 +1,826 @@
+/* ============================================================
+   IRIDESCENT — premium glass, gradient edges, neon rings.
+
+   Owner request (16 Nov 2026): "make all button and card designs like
+   this in light and dark mode. extend design to kid pages section and
+   all cards on hero and linked pages", with a reference board showing a
+   dark card with a magenta→cyan iridescent border, a glowing avatar
+   ring, micro uppercase labels, a divided stat row, and a gradient
+   pill CTA.
+
+   HOW THIS FILE WORKS
+   main.tsx loads index.css → glass.css → iridescent.css. This file is
+   last and unlayered, so on equal specificity it beats both. That is
+   deliberate: the components (55 of them, plus the static pages under
+   public/) are NOT rewritten. They keep their existing class names and
+   markup, and this layer restyles the surfaces those names describe:
+
+     .cmc-card .cmc-quick .cmc-glass .cmc-hero-pane  → iridescent cards
+     .cmc-btn-primary .cmc-btn-3d .cmc-btn-ghost    → gradient pills
+     .cmc-quick-chip (and any .cmc-icon-ring)       → glowing icon rings
+     .cmc-stat-row / .cmc-stat                      → divided stat row
+
+   THE GRADIENT EDGE. A border cannot hold a gradient, so each card is
+   drawn as two stacked backgrounds: a gradient `border-box` clipped to
+   the padding box, and a dark/light glass fill clipped to the content
+   box. One element, no extra DOM, no layout shift, and it works with
+   `border-radius` on every card shape already in use.
+
+   TWO THEMES, ONE SOURCE. Dark is the default (:root). `html.light`
+   swaps the same tokens for pale iridescent glass. Nothing here is
+   dark-only, so light mode gets the identical treatment rather than a
+   dimmed copy.
+   ============================================================ */
+
+:root {
+  /* The iridescent stops — magenta → violet → cyan, as on the reference. */
+  --iri-a: #ff5ed2;   /* magenta */
+  --iri-b: #a78bfa;   /* violet  */
+  --iri-c: #22d3ee;   /* cyan    */
+  --iri-d: #5eead4;   /* mint    */
+
+  /* The edge: 135deg so the magenta catches the top-left corner and the
+     cyan the bottom-right — the reference's diagonal light direction. */
+  --iri-edge: linear-gradient(
+    135deg,
+    rgba(255, 94, 210, 0.95) 0%,
+    rgba(167, 139, 250, 0.85) 32%,
+    rgba(34, 211, 238, 0.9) 68%,
+    rgba(94, 234, 212, 0.95) 100%
+  );
+  /* A muted edge for resting cards that must not shout. */
+  --iri-edge-soft: linear-gradient(
+    135deg,
+    rgba(255, 94, 210, 0.42) 0%,
+    rgba(167, 139, 250, 0.30) 35%,
+    rgba(34, 211, 238, 0.38) 70%,
+    rgba(94, 234, 212, 0.42) 100%
+  );
+
+  /* Card face: smoked glass over the page art. */
+  --iri-face: linear-gradient(
+    160deg,
+    rgba(28, 18, 46, 0.88) 0%,
+    rgba(13, 20, 38, 0.90) 55%,
+    rgba(10, 26, 40, 0.92) 100%
+  );
+  --iri-face-hover: linear-gradient(
+    160deg,
+    rgba(38, 22, 60, 0.92) 0%,
+    rgba(17, 26, 48, 0.93) 55%,
+    rgba(12, 34, 50, 0.94) 100%
+  );
+
+  /* The bloom that sits under a hovered/focus card. */
+  --iri-bloom:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 18px 40px -24px rgba(255, 94, 210, 0.55),
+    0 30px 70px -40px rgba(34, 211, 238, 0.55);
+  --iri-bloom-strong:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 22px 48px -26px rgba(255, 94, 210, 0.7),
+    0 38px 84px -42px rgba(34, 211, 238, 0.7);
+
+  /* Inset top highlight — the glass lip that makes cards read as panes. */
+  --iri-lip: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+
+  /* Text on the card face. */
+  --iri-ink: #f6f4ff;
+  --iri-body: #ccd3e6;
+  --iri-mute: #94a3b8;
+  --iri-eyebrow: #8ff3ff;
+
+  --iri-radius: 1.5rem;
+  --iri-radius-sm: 1rem;
+}
+
+html.light {
+  /* Same design, pale glass. The owner's standing rule is that light mode
+     must not glare, so the fill is a soft blue-grey rather than white and
+     the edge keeps its colour while losing its neon. */
+  --iri-edge: linear-gradient(
+    135deg,
+    rgba(219, 39, 119, 0.72) 0%,
+    rgba(124, 58, 237, 0.60) 32%,
+    rgba(8, 145, 178, 0.66) 68%,
+    rgba(13, 148, 136, 0.72) 100%
+  );
+  --iri-edge-soft: linear-gradient(
+    135deg,
+    rgba(219, 39, 119, 0.34) 0%,
+    rgba(124, 58, 237, 0.26) 35%,
+    rgba(8, 145, 178, 0.30) 70%,
+    rgba(13, 148, 136, 0.34) 100%
+  );
+  --iri-face: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(244, 246, 252, 0.88) 55%,
+    rgba(232, 238, 248, 0.90) 100%
+  );
+  --iri-face-hover: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(246, 249, 255, 0.93) 55%,
+    rgba(236, 243, 253, 0.95) 100%
+  );
+  --iri-bloom:
+    0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 16px 36px -22px rgba(219, 39, 119, 0.30),
+    0 28px 60px -38px rgba(8, 145, 178, 0.32);
+  --iri-bloom-strong:
+    0 0 0 1px rgba(255, 255, 255, 0.65),
+    0 20px 44px -24px rgba(219, 39, 119, 0.38),
+    0 34px 74px -40px rgba(8, 145, 178, 0.40);
+  --iri-lip: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  --iri-ink: #0f172d;
+  --iri-body: #334155;
+  --iri-mute: #5b6b80;
+  --iri-eyebrow: #0e7490;
+}
+
+/* ============================================================
+   1. CARDS — the gradient-edge glass surface
+   ============================================================ */
+
+/**
+ * The shared surface. Applies the double-background edge + face.
+ * `border: 0` is required so no existing border competes with the
+ * gradient; the 1px visual edge comes from the background layers.
+ */
+.cmc-card,
+.cmc-quick,
+.cmc-glass,
+.glass-panel,
+.glass-panel-light,
+.glass-card-interactive {
+  --iri-edge-current: var(--iri-edge-soft);
+  position: relative;
+  /* A REAL 1px border is required: the gradient paints the border box, so
+     a zero-width border leaves nothing for it to show through. */
+  border: 1px solid transparent !important;
+  border-radius: var(--iri-radius) !important;
+  background:
+    var(--iri-face) padding-box,
+    var(--iri-edge-current) border-box !important;
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+  backdrop-filter: blur(22px) saturate(145%);
+  box-shadow: var(--iri-lip), 0 20px 50px -34px rgba(4, 8, 20, 0.85);
+  transition: box-shadow 0.35s ease, background 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cmc-card:hover,
+.cmc-quick:hover,
+.cmc-glass:hover,
+.glass-card-interactive:hover {
+  --iri-edge-current: var(--iri-edge);
+  border: 1px solid transparent !important;
+  background:
+    var(--iri-face-hover) padding-box,
+    var(--iri-edge-current) border-box !important;
+  box-shadow: var(--iri-lip), var(--iri-bloom);
+  transform: translateY(-3px);
+}
+
+/* Light theme: the face tokens already carry the pale palette; the edge
+   swaps via the :root override above, so no extra rule is needed here. */
+
+/* The feature bento panels and other dark-gradient slabs inside sections
+   get the same treatment, so a page reads as one system. Excluded:
+   data-keep-dark artwork zones (game/news/CTA photo bands). */
+.cmc-section [class*='bg-gradient-to-br']:is([class*='from-slate-9'], [class*='from-[#0'], [class*='from-[#1']):not([data-keep-dark], [data-keep-dark] *) {
+  border-radius: var(--iri-radius);
+}
+
+/* ============================================================
+   2. THE GLOWING ICON RING (.cmc-quick-chip and friends)
+   The reference's avatar: a bright ring with a coloured halo.
+   ============================================================ */
+
+.cmc-quick-chip,
+.cmc-icon-ring {
+  position: relative;
+  isolation: isolate;
+  border: 1.5px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(20, 26, 44, 0.9), rgba(12, 20, 36, 0.95)) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 8px 22px -10px rgba(255, 94, 210, 0.55),
+    0 10px 26px -12px rgba(34, 211, 238, 0.55);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+/* The halo behind the ring: a soft radial bloom, as on the reference. */
+.cmc-quick-chip::before,
+.cmc-icon-ring::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at 30% 25%,
+    rgba(255, 94, 210, 0.45),
+    rgba(167, 139, 250, 0.28) 40%,
+    rgba(34, 211, 238, 0.32) 70%,
+    transparent 75%
+  );
+  filter: blur(10px);
+  opacity: 0.55;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.cmc-card:hover .cmc-quick-chip::before,
+.cmc-quick:hover .cmc-quick-chip::before,
+.cmc-card:hover .cmc-icon-ring::before {
+  opacity: 0.95;
+}
+
+html.light .cmc-quick-chip,
+html.light .cmc-icon-ring {
+  border: 1.5px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(238, 243, 252, 0.94)) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    0 8px 20px -12px rgba(219, 39, 119, 0.30),
+    0 10px 24px -14px rgba(8, 145, 178, 0.32);
+}
+html.light .cmc-quick-chip::before,
+html.light .cmc-icon-ring::before {
+  opacity: 0.30;
+}
+html.light .cmc-card:hover .cmc-quick-chip::before,
+html.light .cmc-quick:hover .cmc-quick-chip::before {
+  opacity: 0.55;
+}
+
+/* The per-accent chip tints keep their icon colour; only the ring and
+   halo come from this layer. Existing .cmc-quick--{accent} rules in
+   index.css still set `color`, and colour is not touched here. */
+
+/* ============================================================
+   3. BUTTONS — gradient pills with a lit edge
+   The reference's CTA: a saturated gradient pill with a glass
+   highlight along its top edge and a coloured shadow underneath.
+   ============================================================ */
+
+.cmc-btn-primary,
+.cmc-btn-3d,
+.cmc-btn-3d--violet,
+.cmc-btn-3d--emerald {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 0 !important; /* solid gradient fill — no border area needed */
+  border-radius: 999px !important;
+  padding: 0.9rem 1.75rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: #080d18 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(105deg, var(--iri-a) 0%, var(--iri-b) 38%, var(--iri-c) 72%, var(--iri-d) 100%) !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14),
+    0 10px 26px -12px rgba(255, 94, 210, 0.65),
+    0 14px 34px -16px rgba(34, 211, 238, 0.65) !important;
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.18s ease,
+    filter 0.2s ease;
+}
+
+/* A travelling sheen — the "premium" glint on the reference button. */
+.cmc-btn-primary::after,
+.cmc-btn-3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.45) 45%,
+    rgba(255, 255, 255, 0.12) 55%,
+    transparent 75%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+
+.cmc-btn-primary:hover::after,
+.cmc-btn-3d:hover::after {
+  transform: translateX(120%);
+}
+
+.cmc-btn-primary:hover,
+.cmc-btn-3d:hover,
+.cmc-btn-3d--violet:hover,
+.cmc-btn-3d--emerald:hover {
+  transform: translateY(-2px) !important;
+  filter: saturate(1.12) brightness(1.05) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+    0 14px 32px -12px rgba(255, 94, 210, 0.8),
+    0 20px 44px -18px rgba(34, 211, 238, 0.8) !important;
+}
+
+.cmc-btn-primary:active,
+.cmc-btn-3d:active,
+.cmc-btn-3d--violet:active,
+.cmc-btn-3d--emerald:active {
+  transform: translateY(1px) scale(0.99) !important;
+  filter: brightness(0.98) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 4px 12px -6px rgba(255, 94, 210, 0.55) !important;
+}
+
+html.light .cmc-btn-primary,
+html.light .cmc-btn-3d,
+html.light .cmc-btn-3d--violet,
+html.light .cmc-btn-3d--emerald {
+  color: #080d18 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.10),
+    0 10px 24px -14px rgba(219, 39, 119, 0.45),
+    0 14px 30px -18px rgba(8, 145, 178, 0.45) !important;
+}
+
+/* Ghost buttons: a glass pill whose edge lights up in the same gradient. */
+.cmc-btn-ghost {
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  padding: 0.9rem 1.6rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: var(--iri-ink) !important;
+  background:
+    linear-gradient(160deg, rgba(22, 28, 48, 0.82), rgba(13, 20, 36, 0.88)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--iri-lip), 0 12px 28px -20px rgba(4, 8, 20, 0.8);
+  transition: box-shadow 0.25s ease, transform 0.18s ease;
+}
+
+.cmc-btn-ghost:hover {
+  --iri-edge-soft: var(--iri-edge);
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(30, 36, 60, 0.9), rgba(18, 28, 48, 0.92)) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow: var(--iri-lip), var(--iri-bloom);
+  transform: translateY(-1px);
+}
+
+html.light .cmc-btn-ghost {
+  border: 1px solid transparent !important;
+  color: var(--iri-ink) !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(240, 244, 252, 0.88)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 26px -20px rgba(15, 23, 42, 0.35);
+}
+html.light .cmc-btn-ghost:hover {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 255, 0.94)) padding-box,
+    var(--iri-edge) border-box !important;
+}
+
+/* The arrow inside a ghost pill keeps the reference's accent instead of
+   the hard-coded cyan-200, which loses contrast on light glass. */
+.cmc-btn-ghost svg { color: currentColor; opacity: 0.72; }
+
+/* ============================================================
+   4. MICRO LABELS — the reference's uppercase eyebrow
+   ============================================================ */
+
+.cmc-eyebrow {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(20, 26, 44, 0.7), rgba(12, 20, 36, 0.78)) padding-box,
+    var(--iri-edge) border-box !important;
+  border-radius: 999px !important;
+  padding: 0.45rem 0.95rem !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: var(--iri-eyebrow) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 18px -12px rgba(34, 211, 238, 0.7);
+}
+
+html.light .cmc-eyebrow {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(240, 245, 253, 0.92)) padding-box,
+    var(--iri-edge) border-box !important;
+  color: var(--iri-eyebrow) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 6px 16px -12px rgba(219, 39, 119, 0.35);
+}
+
+/* ============================================================
+   5. GRADIENT HEADINGS
+   One word of the heading carries the iridescent sweep, like
+   "IRIDESCENT" on the reference board.
+   ============================================================ */
+
+.cmc-gradient-text {
+  background: linear-gradient(100deg, var(--iri-a) 0%, var(--iri-b) 35%, var(--iri-c) 70%, var(--iri-d) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+html.light .cmc-gradient-text {
+  background: linear-gradient(100deg, #be185d 0%, #6d28d9 35%, #0e7490 70%, #0f766e 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* Keep the photographic hero title readable: it must not inherit the
+   gradient sweep. data-keep-dark zones keep their own ink. */
+html.light [data-keep-dark] .cmc-gradient-text {
+  background: linear-gradient(100deg, #ff5ed2 0%, #a78bfa 35%, #22d3ee 70%, #5eead4 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* ============================================================
+   6. STAT ROW — the reference's divided "48 Premium | 14.2k" block
+   Cards that render a stat pair get a hairline divider and the
+   gradient numerals.
+   ============================================================ */
+
+.cmc-stat-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  margin-top: 1.15rem;
+  padding-top: 0.95rem;
+}
+
+.cmc-stat-row > .cmc-stat {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 0.9rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.10);
+}
+.cmc-stat-row > .cmc-stat:first-child { border-left: 0; padding-left: 0; }
+
+.cmc-stat-num {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(100deg, var(--iri-a), var(--iri-c));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cmc-stat-label {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--iri-mute);
+}
+
+html.light .cmc-stat-row { border-top-color: rgba(15, 23, 42, 0.10); }
+html.light .cmc-stat-row > .cmc-stat { border-left-color: rgba(15, 23, 42, 0.10); }
+html.light .cmc-stat-num {
+  background: linear-gradient(100deg, #be185d, #0e7490);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+html.light .cmc-stat-label { color: var(--iri-mute); }
+
+/* ============================================================
+   7. HERO — the board carries the same edge
+   ============================================================ */
+
+.cmc-hero {
+  border-radius: 28px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 40px 80px -50px rgba(0, 0, 0, 0.8),
+    0 0 90px -60px rgba(255, 94, 210, 0.55),
+    0 0 120px -70px rgba(34, 211, 238, 0.55);
+}
+
+/* A hairline iridescent frame drawn just inside the hero's radius. */
+.cmc-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--iri-edge);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.cmc-hero:hover::before { opacity: 0.9; }
+
+/* The frosted pane the hero copy sits on picks up the same edge. */
+.cmc-hero-pane {
+  border-right: 0;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
+}
+html.light .cmc-hero-pane { box-shadow: inset -1px 0 0 rgba(15, 23, 42, 0.06); }
+
+/* ============================================================
+   8. KID PAGES + SUBPAGES — the same cards on every linked page
+   The React kid hub and the static worksheet pages share these
+   shells, so one rule set covers both.
+   ============================================================ */
+
+/* Kid grade articles (src/components/KidGradeHub.tsx) */
+#kid-grades article {
+  border-radius: var(--iri-radius) !important;
+  border: 1px solid transparent !important;
+  background:
+    var(--iri-face) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  box-shadow: var(--iri-lip), 0 18px 44px -32px rgba(4, 8, 20, 0.8);
+  transition: box-shadow 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.35s ease;
+}
+#kid-grades article:hover {
+  border: 1px solid transparent !important;
+  background:
+    var(--iri-face-hover) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow: var(--iri-lip), var(--iri-bloom);
+  transform: translateY(-3px);
+}
+html.light #kid-grades article {
+  box-shadow: var(--iri-lip), 0 16px 36px -28px rgba(15, 23, 42, 0.30);
+}
+
+/* Worksheet rows inside a kid card keep a quiet inner edge. */
+#kid-grades article a[class*='rounded-lg'],
+#kid-grades article div[class*='rounded-lg'] {
+  border-color: rgba(255, 255, 255, 0.10);
+}
+html.light #kid-grades article a[class*='rounded-lg'],
+html.light #kid-grades article div[class*='rounded-lg'] {
+  border-color: rgba(15, 23, 42, 0.10);
+}
+
+/* Subpages (GlassPage) — the wrapper every linked page renders inside. */
+.cmc-subpage .cmc-card,
+.cmc-subpage .cmc-quick,
+.cmc-subpage .cmc-glass {
+  border-radius: var(--iri-radius) !important;
+}
+
+/* Static worksheet pages under public/ load cmc-iridescent.css. Their
+   cards use these three hooks; the pages keep their own markup. */
+.iri-card {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: var(--iri-radius);
+  background:
+    var(--iri-face) padding-box,
+    var(--iri-edge-soft) border-box;
+  box-shadow: var(--iri-lip), 0 18px 44px -32px rgba(4, 8, 20, 0.8);
+  transition: box-shadow 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.iri-card:hover {
+  border: 1px solid transparent;
+  background:
+    var(--iri-face-hover) padding-box,
+    var(--iri-edge) border-box;
+  box-shadow: var(--iri-lip), var(--iri-bloom);
+  transform: translateY(-3px);
+}
+
+.iri-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #080d18;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(105deg, var(--iri-a) 0%, var(--iri-b) 38%, var(--iri-c) 72%, var(--iri-d) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 10px 26px -12px rgba(255, 94, 210, 0.65),
+    0 14px 34px -16px rgba(34, 211, 238, 0.65);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease, filter 0.2s ease;
+}
+.iri-btn:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.12) brightness(1.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 14px 32px -12px rgba(255, 94, 210, 0.8),
+    0 20px 44px -18px rgba(34, 211, 238, 0.8);
+}
+.iri-btn:active { transform: translateY(1px) scale(0.99); filter: brightness(0.98); }
+
+.iri-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(160deg, rgba(20, 26, 44, 0.9), rgba(12, 20, 36, 0.95)) padding-box,
+    var(--iri-edge) border-box;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 8px 22px -10px rgba(255, 94, 210, 0.55),
+    0 10px 26px -12px rgba(34, 211, 238, 0.55);
+}
+html.light .iri-ring {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(238, 243, 252, 0.94)) padding-box,
+    var(--iri-edge) border-box;
+}
+
+
+/* ============================================================
+   8b. HAND-BUILT CARDS — the sections that never used .cmc-card
+   ResourceLibrary, GEP/ISEC and the TOEFL Junior list each paint
+   their own card. These selectors give them the same edge without
+   editing the components' markup.
+   ============================================================ */
+
+/* Resource library packs */
+#resources .group.rounded-3xl {
+  border: 1px solid transparent !important;
+  border-radius: var(--iri-radius) !important;
+  background:
+    var(--iri-face) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  box-shadow: var(--iri-lip), 0 18px 44px -32px rgba(4, 8, 20, 0.8) !important;
+}
+#resources .group.rounded-3xl:hover {
+  border: 1px solid transparent !important;
+  background:
+    var(--iri-face-hover) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow: var(--iri-lip), var(--iri-bloom) !important;
+}
+
+/* GEP / ISEC program cards */
+#gep-isec article {
+  border: 1px solid transparent !important;
+  border-radius: var(--iri-radius) !important;
+  background:
+    var(--iri-face) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  box-shadow: var(--iri-lip), 0 18px 44px -32px rgba(4, 8, 20, 0.8) !important;
+}
+#gep-isec article:hover {
+  border: 1px solid transparent !important;
+  background:
+    var(--iri-face-hover) padding-box,
+    var(--iri-edge) border-box !important;
+  box-shadow: var(--iri-lip), var(--iri-bloom) !important;
+}
+
+/* Assessment packs — the list rows, which are cards without a fill */
+#toefl-junior-assessments article {
+  border: 1px solid transparent !important;
+  border-radius: var(--iri-radius-sm) !important;
+  padding-inline: 1rem;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)) padding-box,
+    linear-gradient(135deg, rgba(148, 163, 184, 0.20), rgba(148, 163, 184, 0.06)) border-box !important;
+  transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+#toefl-junior-assessments article:hover {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+  box-shadow: 0 18px 40px -30px rgba(34, 211, 238, 0.6);
+  transform: translateY(-2px);
+}
+
+html.light #resources .group.rounded-3xl,
+html.light #gep-isec article {
+  box-shadow: var(--iri-lip), 0 16px 36px -28px rgba(15, 23, 42, 0.30) !important;
+}
+html.light #toefl-junior-assessments article {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(244, 247, 252, 0.88)) padding-box,
+    linear-gradient(135deg, rgba(15, 23, 42, 0.14), rgba(15, 23, 42, 0.05)) border-box !important;
+}
+html.light #toefl-junior-assessments article:hover {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(246, 250, 255, 0.94)) padding-box,
+    var(--iri-edge-soft) border-box !important;
+}
+
+/* ============================================================
+   9. ACCESSIBILITY + MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .cmc-card,
+  .cmc-quick,
+  .cmc-glass,
+  .cmc-btn-primary,
+  .cmc-btn-3d,
+  .cmc-btn-ghost,
+  .cmc-quick-chip,
+  .cmc-icon-ring,
+  #kid-grades article,
+  .iri-card,
+  .iri-btn {
+    transition: box-shadow 0.2s ease !important;
+  }
+  .cmc-card:hover,
+  .cmc-quick:hover,
+  .cmc-glass:hover,
+  #kid-grades article:hover,
+  .iri-card:hover {
+    transform: none !important;
+  }
+  .cmc-btn-primary:hover,
+  .cmc-btn-3d:hover,
+  .cmc-btn-ghost:hover,
+  .iri-btn:hover {
+    transform: none !important;
+  }
+  .cmc-btn-primary::after,
+  .cmc-btn-3d::after {
+    display: none;
+  }
+}
+
+/* Focus rings stay visible on the new surfaces — the gradient edge can
+   swallow a 1px border, so focus is drawn as an offset ring. */
+.cmc-btn-primary:focus-visible,
+.cmc-btn-3d:focus-visible,
+.cmc-btn-ghost:focus-visible,
+.iri-btn:focus-visible,
+.cmc-card:focus-visible,
+.cmc-quick:focus-visible,
+.iri-card:focus-visible {
+  outline: 2px solid var(--iri-c);
+  outline-offset: 3px;
+}
+html.light .cmc-btn-primary:focus-visible,
+html.light .cmc-btn-3d:focus-visible,
+html.light .cmc-btn-ghost:focus-visible,
+html.light .iri-btn:focus-visible,
+html.light .cmc-card:focus-visible,
+html.light .cmc-quick:focus-visible,
+html.light .iri-card:focus-visible {
+  outline-color: #0e7490;
+}
