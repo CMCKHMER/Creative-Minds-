@@ -69,6 +69,10 @@ export interface HomeworkAttempt {
   firstAnswered: number | null;
   /** How many times the student pressed "Check answers" — null on older rows. */
   checks: number | null;
+  /** Firebase uid of the signed-in account that sent the row ('' when the
+   *  row was handed in without an account). Lets a student find THEIR OWN
+   *  submission even if they typed their name differently. */
+  studentUid: string;
 }
 
 interface FsValue {
@@ -117,6 +121,7 @@ export function parseHomeworkAttempt(doc: FsDoc): HomeworkAttempt | null {
     firstCorrect: first !== null && first >= 0 && (total === 0 || first <= total) ? first : null,
     firstAnswered: first !== null && answered !== null && answered >= 0 ? Math.min(answered, total || answered) : null,
     checks: checks !== null && checks >= 1 ? checks : null,
+    studentUid: (f.studentUid?.stringValue || '').trim(),
   };
 }
 
@@ -169,30 +174,79 @@ export function scoresByStudent(attempts: HomeworkAttempt[]): StudentScore[] {
   }
   const out: StudentScore[] = [];
   for (const [key, list] of groups) {
-    // Oldest first; rows without a time keep their order at the front.
-    const sorted = list.map((a, i) => ({ a, i })).sort((x, y) => (x.a.at - y.a.at) || (x.i - y.i)).map((x) => x.a);
-    const first = sorted[0];
-    const last = sorted[sorted.length - 1];
-    const best = sorted.reduce((b, a) => (a.pct > b.pct || (a.pct === b.pct && a.correct > b.correct) ? a : b), first);
-    // The first check of the EARLIEST submission that recorded one — a later
-    // submission's "first check" is from a fresh visit, after the answers
-    // were already seen.
-    const measured = first.firstCorrect !== null;
-    const firstCorrect = measured ? (first.firstCorrect as number) : first.correct;
-    out.push({
-      key,
-      name: bestSpelling(sorted.map((a) => a.studentName)),
-      submissions: sorted.length,
-      best: { correct: best.correct, total: best.total, pct: best.pct },
-      firstTry: { correct: firstCorrect, total: first.total, pct: measured ? pctOf(firstCorrect, first.total) : first.pct },
-      firstTryMeasured: measured,
-      firstAnswered: measured ? first.firstAnswered : null,
-      checks: first.checks,
-      firstAt: first.at,
-      lastAt: last.at,
-    });
+    const score = scoreForAttempts(list);
+    if (score) out.push({ ...score, key });
   }
   return sortScores(out, 'name');
+}
+
+/** One score line from one student's submissions (in any order). */
+export function scoreForAttempts(list: HomeworkAttempt[]): StudentScore | null {
+  if (list.length === 0) return null;
+  // Oldest first; rows without a time keep their order at the front.
+  const sorted = list.map((a, i) => ({ a, i })).sort((x, y) => (x.a.at - y.a.at) || (x.i - y.i)).map((x) => x.a);
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  const best = sorted.reduce((b, a) => (a.pct > b.pct || (a.pct === b.pct && a.correct > b.correct) ? a : b), first);
+  // The first check of the EARLIEST submission that recorded one — a later
+  // submission's "first check" is from a fresh visit, after the answers
+  // were already seen.
+  const measured = first.firstCorrect !== null;
+  const firstCorrect = measured ? (first.firstCorrect as number) : first.correct;
+  return {
+    key: nameKey(first.studentName),
+    name: bestSpelling(sorted.map((a) => a.studentName)),
+    submissions: sorted.length,
+    best: { correct: best.correct, total: best.total, pct: best.pct },
+    firstTry: { correct: firstCorrect, total: first.total, pct: measured ? pctOf(firstCorrect, first.total) : first.pct },
+    firstTryMeasured: measured,
+    firstAnswered: measured ? first.firstAnswered : null,
+    checks: first.checks,
+    firstAt: first.at,
+    lastAt: last.at,
+  };
+}
+
+/**
+ * What ONE student should see on their own homework row.
+ *
+ * Matching, strongest signal first:
+ *   1. the signed-in uid (rows sent from an account carry `studentUid`),
+ *   2. otherwise the name they are known by on this device.
+ * A uid match wins outright — a student who typed "Dara 7A" on Monday and
+ * "dara" on Friday is still one person to us, because the account is the
+ * same. Without an account, the name is all there is (case/spacing ignored,
+ * exactly like scoresByStudent groups the teacher's sheet).
+ *
+ * Returns null when this student has not handed in anything yet, so the card
+ * can say "not submitted" instead of showing a zero.
+ */
+export function myHomeworkScore(
+  attempts: HomeworkAttempt[],
+  identity: { uid?: string | null; name?: string | null },
+): StudentScore | null {
+  const uid = (identity.uid || '').trim();
+  // Rows are stored with displayStudentName applied (an email is never a
+  // name), so the identity is normalized the same way before it is compared.
+  const key = nameKey(displayStudentName(identity.name || ''));
+  // 1. The account. Rows sent from it are this student's whatever name they
+  //    typed, so they are pooled into ONE line (best score, every submission).
+  const mine = uid ? attempts.filter((a) => a.studentUid === uid) : [];
+  // 2. No account rows: fall back to the name, case and spacing ignored —
+  //    but only rows that no OTHER account claimed, so signing in as one
+  //    student never surfaces another account's private score.
+  const byName = mine.length > 0
+    ? mine
+    : key ? attempts.filter((a) => !a.studentUid && nameKey(a.studentName) === key) : [];
+  return scoreForAttempts(byName);
+}
+
+/** A short, non-judgemental label for a score — used on the student card. */
+export function scoreBandLabel(pct: number): string {
+  if (pct >= 90) return 'Excellent';
+  if (pct >= 75) return 'Great work';
+  if (pct >= 50) return 'Getting there';
+  return 'Keep practising';
 }
 
 export type ScoreSort = 'name' | 'lowest' | 'newest';
@@ -316,6 +370,24 @@ export async function fetchHomeworkPageAttempts(slug: string): Promise<HomeworkP
     attempts: docs.map((r) => parseHomeworkAttempt(r.document)).filter((a): a is HomeworkAttempt => a !== null),
     capped: docs.length >= HOMEWORK_FETCH_CAP,
   };
+}
+
+/**
+ * The signed-in student's own score on ONE homework of `slug`.
+ *
+ * Reads the page's rows (public, same single-field query the ticker uses —
+ * no composite index) and hands them to `myHomeworkScore`, so only this
+ * student's line comes back. Resolves to `null` when they have not handed
+ * anything in yet; rejects only if the network read fails, so the caller can
+ * show "couldn't load" instead of "not submitted".
+ */
+export async function fetchMyHomeworkScore(
+  slug: string,
+  identity: { uid?: string | null; name?: string | null },
+  number: number,
+): Promise<StudentScore | null> {
+  const { attempts } = await fetchHomeworkPageAttempts(slug);
+  return myHomeworkScore(attemptsForHomework(attempts, number), identity);
 }
 
 /** How many rows the page has — one cheap read, used to notice new

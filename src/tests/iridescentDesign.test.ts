@@ -127,6 +127,34 @@ describe('iridescent layer — coverage across surfaces', () => {
     expect(appCss).toContain('#kid-grades article');
   });
 
+  // Owner request 16 Nov 2026: "lets do these to the cards on the hero page".
+  // The cards under the hero are .cmc-page-card (SectionDirectory), a class
+  // family the first pass never targeted — the miss this test exists for.
+  it('reaches the home directory cards under the hero', () => {
+    const directory = read('src/components/SectionDirectory.tsx');
+    expect(directory).toContain('cmc-page-card');
+    for (const part of ['cmc-page-card-icon', 'cmc-page-card-title', 'cmc-page-card-blurb', 'cmc-page-card-arrow', 'cmc-page-card-badge']) {
+      expect(directory, part).toContain(part);
+      expect(appCss, part).toContain(`.${part}`);
+    }
+    // Both themes, not a dark-only pass.
+    expect(appCss).toMatch(/html\.light \.cmc-page-card-icon/);
+    expect(appCss).toMatch(/html\.light \.cmc-page-card-badge/);
+  });
+
+  // Owner request 16 Nov 2026: "students should be able to see their score on
+  // the homework kid section". The student sheet is its own surface, so it
+  // gets the same edge/glass treatment in both themes.
+  it('styles the student score sheet on the kid section', () => {
+    const mine = read('src/components/KidMyHomeworkScore.tsx');
+    for (const cls of ['cmc-score-sheet', 'cmc-score-face', 'cmc-score-cta', 'cmc-my-score-btn']) {
+      expect(mine + read('src/components/KidGradeHub.tsx'), cls).toContain(cls);
+      expect(appCss, cls).toContain(`.${cls}`);
+    }
+    expect(appCss).toMatch(/html\.light \.cmc-score-sheet/);
+    expect(appCss).toMatch(/html\.light \.cmc-score-face/);
+  });
+
   it('exposes a stat row for the reference’s divided numbers', () => {
     expect(appCss).toContain('.cmc-stat-row');
     expect(appCss).toContain('.cmc-stat-num');
@@ -234,6 +262,10 @@ describe('iridescent layer — wins the cascade', () => {
     ['.cmc-card:hover', 'background', true],
     ['.cmc-glass', 'background', true],
     ['.cmc-quick', 'background', true],
+    ['.cmc-page-card', 'background', true],
+    ['.cmc-page-card:hover', 'background', true],
+    ['.cmc-score-sheet', 'background', true],
+    ['.cmc-my-score-btn', 'background', true],
     ['.cmc-btn-ghost', 'background', true],
     ['.cmc-eyebrow', 'background', true],
     ['.cmc-quick-chip', 'background', true],

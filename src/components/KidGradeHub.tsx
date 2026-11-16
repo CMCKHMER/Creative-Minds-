@@ -1,11 +1,12 @@
 import { Fragment, useEffect, useState } from 'react';
-import { ArrowUpRight, BarChart3, BookOpen, CheckCircle2, Check, ChevronDown, ChevronUp, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles } from 'lucide-react';
+import { ArrowUpRight, BarChart3, BookOpen, CheckCircle2, Check, ChevronDown, ChevronUp, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles, Trophy } from 'lucide-react';
 import { KID_GRADE_RESOURCES, type KidGradeMaterial } from '../data/kidGradeResources';
 import { getProjectId, getValidIdToken, restoreSession } from '../lib/firebaseAuth';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 import { requestAuth } from '../lib/authPrompt';
 import { hasActiveAccount } from '../lib/gameAccess';
 import { KidHomeworkScores } from './KidHomeworkScores';
+import { KidMyHomeworkScore } from './KidMyHomeworkScore';
 import { Reveal } from './Reveal';
 
 // Every online-homework share state lives in Firestore under biweekly_tests —
@@ -75,6 +76,11 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
   // The submissions were stored all along, but no screen listed them per
   // homework — the ticker and the games board only show "N drills · X% avg".
   const [scoresFor, setScoresFor] = useState<{ material: KidGradeMaterial; grade: number } | null>(null);
+  // STUDENT-ONLY (owner request 16 Nov 2026): "students should be able to see
+  // their score on the homework kid section". The teacher's sheet above shows
+  // the whole class; this one shows a signed-in student their OWN line and
+  // nothing else. Same row, different audience.
+  const [myScoreFor, setMyScoreFor] = useState<{ material: KidGradeMaterial; grade: number } | null>(null);
 
   // All homework share docs across the grade cards (deduped).
   const shareDocIds = Array.from(new Set(
@@ -326,6 +332,12 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
                                       {copiedId === material.id ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Share2 className="h-3.5 w-3.5" aria-hidden="true" />}
                                     </button>
                                   )}
+                                  {/* Student-only: my own score for this homework. */}
+                                  {isOpen && !isTeacher && (
+                                    <button type="button" data-hw-my-score={material.id} onClick={() => setMyScoreFor({ material, grade: resource.grade })} aria-label={`See my score on ${material.title}`} title="See my own score" className="cmc-my-score-btn inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-[10px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--iri-c)]">
+                                      <Trophy className="h-3.5 w-3.5" aria-hidden="true" /> My score
+                                    </button>
+                                  )}
                                   {isTeacher && (
                                     <button type="button" onClick={() => toggleHomeworkShare(material)} disabled={toggling || isPending} aria-label={isOpen ? `Close ${material.title} homework for students` : `Share ${material.title} homework with students`} title={isOpen ? 'Homework is open — select to close it again' : 'Share with students — opens this homework for the class'} className={`shrink-0 rounded-md border p-1.5 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200 disabled:opacity-60 ${isOpen ? 'border-emerald-200/25 bg-slate-950/50 text-emerald-100 hover:border-emerald-100/50 hover:bg-emerald-200/10' : 'border-amber-200/30 bg-amber-200/[0.08] text-amber-100 hover:border-amber-100/60 hover:bg-amber-200/[0.16]'}`}>
                                       {isOpen ? <Lock className="h-3.5 w-3.5" aria-hidden="true" /> : <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -394,6 +406,17 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
           href={scoresFor.material.href}
           gradeLabel={`Kid ${scoresFor.grade}`}
           onClose={() => setScoresFor(null)}
+        />
+      )}
+      {!isTeacher && myScoreFor && (
+        <KidMyHomeworkScore
+          title={myScoreFor.material.title}
+          href={myScoreFor.material.href}
+          gradeLabel={`Kid ${myScoreFor.grade}`}
+          uid={session?.localId ?? ''}
+          name={session?.displayName ?? ''}
+          onOpenAuth={onOpenAuth}
+          onClose={() => setMyScoreFor(null)}
         />
       )}
     </section>
