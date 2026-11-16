@@ -25,6 +25,7 @@ const PROBLEM_TEXT: Record<SeatProblem, string> = {
   'no-id': 'Add a school ID',
   'no-name': 'Add a name',
   'duplicate': 'Same ID and name as another row',
+  'elsewhere': 'Already on another teacher’s class list',
 };
 
 const btn = 'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-40';
@@ -55,15 +56,15 @@ export function RegistrationTab(props: {
     () => students.map((s) => `${s.id}|${s.name}|${s.schoolId}`).join('\n'),
     [students],
   );
-  const latest = useRef({ students, classDoc });
-  useEffect(() => { latest.current = { students, classDoc }; }, [students, classDoc]);
+  const latest = useRef({ students, classDoc, teacherUid });
+  useEffect(() => { latest.current = { students, classDoc, teacherUid }; }, [students, classDoc, teacherUid]);
   const run = useRef(0);
   const reload = useCallback(async () => {
     const mine = ++run.current;
-    const { students: list, classDoc: cls } = latest.current;
+    const { students: list, classDoc: cls, teacherUid: owner } = latest.current;
     try {
       const next = await readRegistration({
-        classId: cls.id, className: cls.name,
+        classId: cls.id, className: cls.name, teacherUid: owner,
         students: list.map((s) => ({ id: s.id, name: s.name, schoolId: s.schoolId })),
       });
       if (mine !== run.current) return;
@@ -123,7 +124,7 @@ export function RegistrationTab(props: {
     )) return 'Nothing was changed.';
     // read again right before writing, so the plan is not stale
     const fresh = await readRegistration({
-      classId: classDoc.id, className: classDoc.name,
+      classId: classDoc.id, className: classDoc.name, teacherUid,
       students: latest.current.students.map((s) => ({ id: s.id, name: s.name, schoolId: s.schoolId })),
     });
     await publishRegistration({ classId: classDoc.id, className: classDoc.name, teacherUid, plan: fresh.plan });
@@ -136,7 +137,7 @@ export function RegistrationTab(props: {
   const close = () => act(async () => {
     if (!snap) return '';
     if (!window.confirm('Close registration for this class? Students who have not registered yet will not be able to. Registered students stay registered.')) return 'Nothing was changed.';
-    const n = await closeRegistration(classDoc.id);
+    const n = await closeRegistration(classDoc.id, teacherUid);
     return `Registration closed. ${n} unused place${n === 1 ? '' : 's'} withdrawn.`;
   });
 

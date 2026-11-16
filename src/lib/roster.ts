@@ -178,14 +178,15 @@ export interface SeatDoc {
   updateTime?: string;
 }
 
-export type SeatProblem = 'no-id' | 'no-name' | 'duplicate';
+/** `elsewhere`: the same ID and name is already on ANOTHER teacher's class list. */
+export type SeatProblem = 'no-id' | 'no-name' | 'duplicate' | 'elsewhere';
 
 export interface SeatPlan {
   /** New students: a seat is created. */
   create: RosterRow[];
   /** Same student, details changed (class renamed, name re-cased …). */
   update: RosterRow[];
-  /** The student has a seat under ANOTHER class (transferred): it moves here and keeps its account. */
+  /** The student has a seat under ANOTHER class of the same teacher (transferred): it moves here and keeps its account. */
   adopt: Array<{ row: RosterRow; from: SeatDoc }>;
   /** The ID or the name was corrected: the seat moves to the new key and keeps its account. */
   rekey: Array<{ row: RosterRow; from: SeatDoc }>;
@@ -200,6 +201,8 @@ export interface SeatPlan {
  * Work out what has to change so the published seats match the class list.
  * `classSeats` are the seats currently filed under this class; `foreignSeats`
  * are seats that already exist under one of this list's keys in another class.
+ * A foreign seat of ANOTHER teacher is never taken over: class lists are
+ * private per teacher, so that row is reported as a problem instead.
  * Pure: the caller turns the plan into writes.
  */
 export function planSeatSync(input: {
@@ -208,8 +211,10 @@ export function planSeatSync(input: {
   rows: RosterRow[];
   classSeats: SeatDoc[];
   foreignSeats: SeatDoc[];
+  /** The teacher publishing the list. Left out: every foreign seat counts as their own. */
+  teacherUid?: string;
 }): SeatPlan {
-  const { classId, className, rows, classSeats, foreignSeats } = input;
+  const { classId, className, rows, classSeats, foreignSeats, teacherUid } = input;
   const plan: SeatPlan = { create: [], update: [], adopt: [], rekey: [], remove: [], problems: [], unchanged: 0 };
   const byKey = new Map(classSeats.map((s) => [s.key, s]));
   const byStudent = new Map(classSeats.map((s) => [s.studentId, s]));
@@ -240,7 +245,11 @@ export function planSeatSync(input: {
       continue;
     }
     const elsewhere = foreign.get(row.key);
-    if (elsewhere) { plan.adopt.push({ row, from: elsewhere }); continue; }
+    if (elsewhere) {
+      if (teacherUid && elsewhere.teacherUid && elsewhere.teacherUid !== teacherUid) plan.problems.push({ row, reason: 'elsewhere' });
+      else plan.adopt.push({ row, from: elsewhere });
+      continue;
+    }
     const old = byStudent.get(row.studentId);
     if (old && !wanted.has(old.key) && !kept.has(old.key)) {
       kept.add(old.key);

@@ -14,6 +14,8 @@
 //   publish   paste a class list, open registration
 //   register  wrong name refused; right ID + name lands in the right class;
 //             a second account cannot take the same student
+//   private   a second teacher sees none of the first teacher's classes,
+//             students or seats, and cannot take a student over
 //   teacher   the teacher sees who registered; a corrected spelling keeps the
 //             account; release frees a seat; close withdraws the open ones
 //   phone     no sideways scroll on a phone, teacher tab and student card
@@ -22,317 +24,17 @@
 //   REG_DIST=dir        serve another folder (default ../dist)
 //   REG_SHOTS=dir       also save screenshots
 //   PW_CHROMIUM=/path   use this Chromium binary (with playwright-core)
-import { createReadStream, existsSync, mkdirSync, statSync } from 'node:fs';
-import { createServer } from 'node:http';
-import { dirname, extname, join, resolve } from 'node:path';
+import { existsSync, mkdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { makeFake, makeOpener } from './qa/school_fake.mjs';
 const { chromium } = await import('playwright').catch(() => import('playwright-core'));
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = resolve(process.env.REG_DIST || join(HERE, '..', 'dist'));
 const SHOTS = process.env.REG_SHOTS ? resolve(process.env.REG_SHOTS) : null;
 const PORT = 8990;
-const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript',
-  '.css': 'text/css',
-  '.json': 'application/json',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.svg': 'image/svg+xml',
-  '.woff2': 'font/woff2',
-  '.webp': 'image/webp',
-};
-
-function serve(port) {
-  const srv = createServer((req, res) => {
-    let p = decodeURIComponent((req.url || '/').split('?')[0]);
-    if (p.endsWith('/')) p += 'index.html';
-    const f = join(DIST, p);
-    if (!f.startsWith(DIST) || !existsSync(f) || statSync(f).isDirectory()) {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
-    res.writeHead(200, { 'Content-Type': MIME[extname(f)] || 'application/octet-stream' });
-    createReadStream(f).pipe(res);
-  });
-  return new Promise((done) => srv.listen(port, '127.0.0.1', () => done(srv)));
-}
-
-// ── the database, with the registration rules written out ───────────────────
-const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64').replace(/=+$/, '');
-const tokenOf = (user) => `${b64({ alg: 'none' })}.${b64({ user_id: user.uid, email: user.email, email_verified: user.verified !== false })}.x`;
-const claimsOf = (header) => {
-  try {
-    return JSON.parse(Buffer.from((header || '').replace(/^Bearer /, '').split('.')[1] || '', 'base64').toString('utf8'));
-  } catch {
-    return null;
-  }
-};
-/** One Firestore value → a plain JS value (enough for the rules below). */
-const plain = (v) => {
-  if (!v) return undefined;
-  if ('nullValue' in v) return null;
-  if ('stringValue' in v) return v.stringValue;
-  if ('timestampValue' in v) return v.timestampValue;
-  if ('booleanValue' in v) return v.booleanValue;
-  if ('integerValue' in v) return Number(v.integerValue);
-  if ('doubleValue' in v) return v.doubleValue;
-  return v;
-};
-
-function makeFake() {
-  const docs = new Map(); // "collection/id[/sub/id]" → { fields, createTime, updateTime }
-  let auto = 0;
-  const log = [];
-  const ROOT = '/v1/projects/';
-  // every change gets its own time, as in the real database
-  let tick = 0;
-  const stamp = () => `2026-11-14T02:00:00.${String(++tick).padStart(6, '0')}Z`;
-  const collOf = (path) => {
-    const s = path.split('/');
-    return s.length === 2 ? s[0] : s.length === 4 ? `${s[0]}/*/${s[2]}` : '?';
-  };
-
-  // firestore.rules helpers
-  const isVerifiedUser = (a) => !!a && a.email_verified === true;
-  const isCmcTeacher = (a) => isVerifiedUser(a) && typeof a.email === 'string' && /@[^@]*edu[^@]*$/i.test(a.email);
-  const get = (d, k) => (d ? plain(d.fields[k]) : undefined);
-  const affectedKeys = (before, after) => {
-    const keys = new Set([...Object.keys(before.fields), ...Object.keys(after.fields)]);
-    return [...keys].filter((k) => JSON.stringify(before.fields[k]) !== JSON.stringify(after.fields[k]));
-  };
-
-  /** op: get | list | create | update | delete. `getAfter` reads the state the commit would leave. */
-  function allowed(op, path, a, before, after, getAfter) {
-    const id = path.split('/').pop();
-    switch (collOf(path)) {
-      case 'roster_seats': {
-        if (op === 'get') return isVerifiedUser(a);
-        if (op === 'list' || op === 'create' || op === 'delete') return isCmcTeacher(a);
-        if (isCmcTeacher(a)) return true;
-        const link = getAfter(`student_links/${a && a.user_id}`);
-        return (
-          isVerifiedUser(a) &&
-          get(before, 'claimedBy') === null &&
-          get(after, 'claimedBy') === a.user_id &&
-          affectedKeys(before, after).every((k) => ['claimedBy', 'claimedEmail', 'claimedName', 'claimedAt'].includes(k)) &&
-          !!link &&
-          get(link, 'seatKey') === id
-        );
-      }
-      case 'student_links': {
-        if (op === 'get') return isVerifiedUser(a) && (a.user_id === id || isCmcTeacher(a));
-        if (op === 'list' || op === 'update' || op === 'delete') return isCmcTeacher(a);
-        const seatKey = get(after, 'seatKey');
-        const seat = typeof seatKey === 'string' ? getAfter(`roster_seats/${seatKey}`) : null;
-        return (
-          isVerifiedUser(a) &&
-          a.user_id === id &&
-          get(after, 'uid') === id &&
-          typeof seatKey === 'string' &&
-          Object.keys(after.fields).every((k) => ['uid', 'seatKey', 'linkedAt'].includes(k)) &&
-          !!seat &&
-          get(seat, 'claimedBy') === id
-        );
-      }
-      case 'assessment_classes':
-        if (op === 'delete') return false;
-        if (op === 'create') return isCmcTeacher(a) && get(after, 'teacherUid') === a.user_id;
-        return isCmcTeacher(a);
-      case 'assessment_classes/*/students':
-        return isCmcTeacher(a);
-      default:
-        return null; // not modelled here
-    }
-  }
-
-  const wire = (path) => {
-    const d = docs.get(path);
-    return { name: `projects/p/databases/(default)/documents/${path}`, fields: d.fields, createTime: d.createTime, updateTime: d.updateTime };
-  };
-  const pathOfName = (name) => name.split('/documents/')[1];
-
-  /** Apply writes atomically, the way :commit does. Returns { status, message }. */
-  function commit(writes, a) {
-    const staged = new Map(docs);
-    const steps = [];
-    for (const w of writes) {
-      const path = pathOfName(w.delete || w.update.name);
-      const before = staged.get(path) || null;
-      const want = w.currentDocument;
-      if (want && want.exists === true && !before) return { status: 404, message: 'NOT_FOUND: no document to update' };
-      if (want && want.exists === false && before) return { status: 409, message: 'ALREADY_EXISTS: document already exists' };
-      if (want && want.updateTime && (!before || before.updateTime !== want.updateTime)) return { status: 400, message: 'FAILED_PRECONDITION: the stored document was changed' };
-      let after = null;
-      if (w.update) {
-        const mask = w.updateMask && w.updateMask.fieldPaths;
-        let fields;
-        if (mask) {
-          fields = { ...(before ? before.fields : {}) };
-          for (const k of mask) {
-            if (k in (w.update.fields || {})) fields[k] = w.update.fields[k];
-            else delete fields[k];
-          }
-        } else fields = { ...(w.update.fields || {}) };
-        after = { fields, createTime: before ? before.createTime : stamp(), updateTime: stamp() };
-        staged.set(path, after);
-      } else staged.delete(path);
-      steps.push({ path, before, after, op: w.delete ? 'delete' : before ? 'update' : 'create' });
-    }
-    for (const s of steps) {
-      if (s.op === 'delete' && !s.before) continue; // deleting nothing is not an error
-      const verdict = allowed(s.op, s.path, a, s.before, s.after, (p) => staged.get(p) || null);
-      if (verdict === false) {
-        log.push({ denied: s.op, path: s.path, uid: a && a.user_id });
-        return { status: 403, message: 'PERMISSION_DENIED: Missing or insufficient permissions.' };
-      }
-    }
-    docs.clear();
-    for (const [k, v] of staged) docs.set(k, v);
-    return { status: 200 };
-  }
-
-  function respond(method, url, headers, bodyText) {
-    const u = new URL(url);
-    const a = claimsOf(headers.authorization);
-    const body = bodyText ? JSON.parse(bodyText) : {};
-    const tail = decodeURIComponent(u.pathname).split('/documents')[1] || '';
-    const json = (status, o) => ({ status, body: JSON.stringify(o) });
-    const deny = () => json(403, { error: { code: 403, message: 'Missing or insufficient permissions.', status: 'PERMISSION_DENIED' } });
-
-    if (tail === ':commit') {
-      const r = commit(body.writes || [], a);
-      return r.status === 200 ? json(200, { writeResults: [] }) : json(r.status, { error: { code: r.status, message: r.message } });
-    }
-    if (tail === ':batchGet') {
-      const out = [];
-      for (const name of body.documents || []) {
-        const path = pathOfName(name);
-        if (allowed('get', path, a) === false) return deny();
-        out.push(docs.has(path) ? { found: wire(path) } : { missing: name });
-      }
-      return json(200, out);
-    }
-    if (tail === ':runQuery') {
-      const q = body.structuredQuery || {};
-      const coll = q.from && q.from[0] && q.from[0].collectionId;
-      if (allowed('list', `${coll}/x`, a) === false) return deny();
-      const f = q.where && q.where.fieldFilter;
-      const rows = [...docs.keys()]
-        .filter((p) => p.split('/').length === 2 && p.startsWith(`${coll}/`))
-        .filter((p) => !f || plain(docs.get(p).fields[f.field.fieldPath]) === plain(f.value))
-        .map((p) => ({ document: wire(p) }));
-      return json(200, rows.length ? rows : [{ readTime: stamp() }]);
-    }
-    const path = tail.replace(/^\//, '');
-    const parts = path.split('/');
-    const isDoc = parts.length % 2 === 0;
-    if (method === 'GET' && isDoc) {
-      if (allowed('get', path, a) === false) return deny();
-      return docs.has(path) ? json(200, wire(path)) : json(404, { error: { code: 404, message: 'NOT_FOUND' } });
-    }
-    if (method === 'GET') {
-      if (allowed('list', `${path}/x`, a) === false) return deny();
-      const rows = [...docs.keys()].filter((p) => p.startsWith(`${path}/`) && p.split('/').length === parts.length + 1).map(wire);
-      return json(200, rows.length ? { documents: rows } : {});
-    }
-    if (method === 'POST') {
-      const id = `auto${String(++auto).padStart(4, '0')}`;
-      const r = commit([{ update: { name: `x/documents/${path}/${id}`, fields: body.fields || {} }, currentDocument: { exists: false } }], a);
-      return r.status === 200 ? json(200, wire(`${path}/${id}`)) : json(r.status, { error: { code: r.status, message: r.message } });
-    }
-    if (method === 'PATCH') {
-      const mask = u.searchParams.getAll('updateMask.fieldPaths');
-      const w = { update: { name: `x/documents/${path}`, fields: body.fields || {} } };
-      if (mask.length) w.updateMask = { fieldPaths: mask };
-      const r = commit([w], a);
-      return r.status === 200 ? json(200, wire(path)) : json(r.status, { error: { code: r.status, message: r.message } });
-    }
-    if (method === 'DELETE') {
-      const r = commit([{ delete: `x/documents/${path}` }], a);
-      return r.status === 200 ? json(200, {}) : json(r.status, { error: { code: r.status, message: r.message } });
-    }
-    return json(400, { error: { code: 400, message: 'unsupported' } });
-  }
-
-  return {
-    docs,
-    log,
-    /** Call the database as this user, the way the page does. */
-    call(user, method, tail, body) {
-      const r = respond(method, `https://firestore.googleapis.com${ROOT}p/databases/(default)/documents${tail}`, { authorization: `Bearer ${tokenOf(user)}` }, body ? JSON.stringify(body) : '');
-      return { status: r.status, json: JSON.parse(r.body) };
-    },
-    route(route, u) {
-      if (u.hostname !== 'firestore.googleapis.com' || !u.pathname.startsWith(ROOT)) return false;
-      const req = route.request();
-      const r = respond(req.method(), req.url(), req.headers(), req.postData());
-      route.fulfill({ status: r.status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: r.body });
-      return true;
-    },
-    seats: () => [...docs.keys()].filter((p) => p.startsWith('roster_seats/')).map((p) => ({ key: p.split('/')[1], ...Object.fromEntries(Object.entries(docs.get(p).fields).map(([k, v]) => [k, plain(v)])) })),
-    link: (uid) => {
-      const d = docs.get(`student_links/${uid}`);
-      return d ? Object.fromEntries(Object.entries(d.fields).map(([k, v]) => [k, plain(v)])) : null;
-    },
-    classes: () => [...docs.keys()].filter((p) => p.split('/').length === 2 && p.startsWith('assessment_classes/')).map((p) => ({ id: p.split('/')[1], ...Object.fromEntries(Object.entries(docs.get(p).fields).map(([k, v]) => [k, plain(v)])) })),
-    students: (classId) => [...docs.keys()].filter((p) => p.startsWith(`assessment_classes/${classId}/students/`)).map((p) => ({ id: p.split('/')[3], path: p, ...Object.fromEntries(Object.entries(docs.get(p).fields).map(([k, v]) => [k, plain(v)])) })),
-  };
-}
-
-// ── a signed-in browser page with the outside network blocked ───────────────
-// One origin per person: a single-process Chromium shares localStorage between
-// contexts on the same origin, and the sign-in lives in localStorage.
-let nextPort = PORT;
-const servers = [];
-async function openPage(browser, fake, user, { w = 1366, h = 860 } = {}) {
-  const port = nextPort++;
-  servers.push(await serve(port));
-  const ctx = await browser.newContext({ viewport: { width: w, height: h }, serviceWorkers: 'block' });
-  await ctx.addInitScript(
-    ([user, tok]) => {
-      try {
-        const set = (k, v) => {
-          if (!localStorage.getItem(k)) localStorage.setItem(k, v);
-        };
-        set('cmc-theme', 'dark');
-        set('cmc-student-token', tok);
-        set('cmc-student-uid', user.uid);
-        set('cmc-student-email', user.email);
-        set('cmc-student-name', user.name);
-        set('cmc-student-token-expires', String(Date.now() + 3600e3));
-        set('cmc-student-verified', '1');
-        set('cmc-account-type', user.type);
-        set('cmc-student-role', user.type === 'teacher' ? 'teacher' : 'student');
-      } catch {
-        /* storage is off */
-      }
-    },
-    [user, tokenOf(user)],
-  );
-  await ctx.route('**/*', (route) => {
-    const u = new URL(route.request().url());
-    if (route.request().method() === 'OPTIONS' && u.hostname === 'firestore.googleapis.com') {
-      return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' } });
-    }
-    if (fake.route(route, u)) return undefined;
-    if (u.hostname === '127.0.0.1' || u.protocol === 'data:' || u.protocol === 'blob:') return route.continue();
-    return route.abort();
-  });
-  const page = await ctx.newPage();
-  page.base = `http://127.0.0.1:${port}`;
-  page.errors = [];
-  page.on('pageerror', (e) => page.errors.push(String(e.stack || e).slice(0, 400)));
-  // the teacher is asked before anything is removed; say yes, and keep the question
-  page.asked = [];
-  page.on('dialog', (d) => {
-    page.asked.push(d.message());
-    d.accept().catch(() => {});
-  });
-  return page;
-}
+const { openPage, close: closeServers } = makeOpener(DIST, PORT);
 
 let pass = 0;
 let fail = 0;
@@ -362,6 +64,7 @@ const waitFor = async (fn, ms = 12000) => {
 const sideways = (page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
 const TEACHER = { uid: 'teacher-1', email: 'sreyneang@cmc.edu.kh', name: 'Teacher Sreyneang', type: 'teacher' };
+const TEACHER2 = { uid: 'teacher-2', email: 'vannak@cmc.edu.kh', name: 'Teacher Vannak', type: 'teacher' };
 const DARA = { uid: 'stu-dara', email: 'dara.family@gmail.com', name: 'Dara', type: 'student' };
 const SOPHEA = { uid: 'stu-sophea', email: 'sophea.home@gmail.com', name: 'Sophea', type: 'student' };
 const UNVERIFIED = { uid: 'stu-new', email: 'new@gmail.com', name: 'New', type: 'student', verified: false };
@@ -412,6 +115,34 @@ function checkRules() {
   ok(commit(TEACHER, [{ delete: name('roster_seats/seatB'), currentDocument: { updateTime: seen } }]) === 400 && fake.link(SOPHEA.uid) !== null, 'a seat taken a moment ago is not withdrawn from under the student');
   ok(commit(TEACHER, [{ update: { name: name('roster_seats/seatA'), fields: { claimedBy: N } }, updateMask: { fieldPaths: ['claimedBy'] } }, { delete: name(`student_links/${DARA.uid}`) }]) === 200, 'a teacher can release a seat');
   ok(fake.link(DARA.uid) === null, 'the release removes the link');
+
+  // private per teacher
+  const q = (user, coll, filters) => fake.call(user, 'POST', ':runQuery', {
+    structuredQuery: { from: [{ collectionId: coll }], where: { compositeFilter: { op: 'AND', filters: filters.map(([f, v]) => ({ fieldFilter: { field: { fieldPath: f }, op: 'EQUAL', value: S(v) } })) } } },
+  });
+  const cls = fake.call(TEACHER, 'POST', '/assessment_classes', { fields: { name: S('Kid 7 — Morning'), teacherUid: S(TEACHER.uid), teacherEmail: S(TEACHER.email) } });
+  const cid = cls.json.name.split('/').pop();
+  ok(cls.status === 200, 'a teacher creates a class of their own');
+  ok(fake.call(TEACHER, 'POST', `/assessment_classes/${cid}/students`, { fields: { name: S('Sok Dara'), quiz: S('18') } }).status === 200, 'and records a student in it');
+  ok(fake.call(TEACHER2, 'POST', '/assessment_classes', { fields: { name: S('Mine'), teacherUid: S(TEACHER.uid) } }).status === 403, 'a class cannot be created in another teacher\'s name');
+  ok(fake.call(TEACHER2, 'GET', `/assessment_classes/${cid}`).status === 403, 'another teacher cannot open the class');
+  ok(fake.call(TEACHER2, 'GET', `/assessment_classes/${cid}/students`).status === 403, 'nor read its student records');
+  ok(fake.call(TEACHER2, 'POST', `/assessment_classes/${cid}/students`, { fields: { name: S('X') } }).status === 403, 'nor add to them');
+  ok(q(TEACHER2, 'assessment_classes', [['teacherUid', TEACHER.uid]]).status === 403, 'nor list the classes of that teacher');
+  ok(fake.call(TEACHER2, 'POST', ':runQuery', { structuredQuery: { from: [{ collectionId: 'assessment_classes' }] } }).status === 403, 'nor list every class');
+  ok(fake.call(TEACHER2, 'PATCH', `/assessment_classes/${cid}?updateMask.fieldPaths=teacherUid`, { fields: { teacherUid: S(TEACHER2.uid) } }).status === 403, 'nor take the class over');
+  const own = q(TEACHER2, 'assessment_classes', [['teacherUid', TEACHER2.uid]]);
+  ok(own.status === 200 && !own.json.some((r) => r.document), 'their own list is simply empty');
+  ok(q(TEACHER, 'assessment_classes', [['teacherUid', TEACHER.uid]]).json.filter((r) => r.document).length === 1, 'the owner still sees the class');
+  ok(fake.call(TEACHER, 'GET', `/assessment_classes/${cid}/students`).json.documents.length === 1, 'and its records');
+  ok(q(TEACHER2, 'roster_seats', [['classId', 'c1']]).status === 403, 'another teacher cannot list the seats of a class');
+  ok(q(TEACHER2, 'roster_seats', [['classId', 'c1'], ['teacherUid', TEACHER.uid]]).status === 403, 'not even by naming the owner');
+  ok(q(TEACHER, 'roster_seats', [['classId', 'c1'], ['teacherUid', TEACHER.uid]]).json.filter((r) => r.document).length === 2, 'the owner lists their own seats');
+  ok(commit(TEACHER2, [{ delete: name('roster_seats/seatA') }]) === 403, 'another teacher cannot withdraw a seat');
+  ok(commit(TEACHER2, [{ update: { name: name('roster_seats/seatB'), fields: { claimedBy: N } }, updateMask: { fieldPaths: ['claimedBy'] } }, { delete: name(`student_links/${SOPHEA.uid}`) }]) === 403, 'nor release another teacher\'s student');
+  ok(commit(TEACHER2, [{ update: { name: name('roster_seats/seatA'), fields: { teacherUid: S(TEACHER2.uid), classId: S('c9') } }, updateMask: { fieldPaths: ['teacherUid', 'classId'] } }]) === 403, 'nor move a seat into their own class');
+  ok(commit(TEACHER2, [{ update: { name: name('roster_seats/seatZ'), fields: seatFields() }, currentDocument: { exists: false } }]) === 403, 'nor publish a seat under another teacher\'s name');
+  ok(fake.link(SOPHEA.uid) !== null, 'the student of the first teacher is untouched');
 }
 
 // ── 2 · the whole path in browsers ──────────────────────────────────────────
@@ -513,6 +244,42 @@ async function walk(browser) {
   await D.locator('[data-testid="student-registration"][data-state]').waitFor({ timeout: 20000 });
   ok((await cardState(D)) === 'registered', 'the registration is still there after a reload');
 
+  console.log('\nprivate');
+  const T2 = await openPage(browser, fake, TEACHER2);
+  await openWorkspace(T2);
+  const menu2 = await waitFor(async () => {
+    const o = await T2.$$eval('select[aria-label="Select assessment class"] option', (x) => x.map((y) => y.textContent));
+    return o.length ? o : null;
+  });
+  ok(menu2 && menu2.length === 1 && /no classes/i.test(menu2[0]), 'a second teacher sees none of the first teacher\'s classes', menu2);
+  ok(!(await T2.getByTestId('assessment-workspace').textContent()).includes('Sok Dara'), 'and none of the students');
+  await T2.getByTestId('kid-classes-open').click();
+  await T2.getByTestId('kid-classes-list').waitFor();
+  await T2.getByTestId('kid-classes-create').click();
+  await waitFor(() => fake.classes().length === 28);
+  ok(fake.classes().filter((c) => c.teacherUid === TEACHER2.uid).length === 14, 'the second teacher sets up their own fourteen classes');
+  await T2.getByTestId('kid-classes-list').waitFor({ state: 'detached', timeout: 10000 }).catch(() => {});
+  const menu2b = await T2.$$eval('select[aria-label="Select assessment class"] option', (x) => x.length);
+  ok(menu2b === 14, 'and sees exactly those fourteen', menu2b);
+  const kid7b = fake.classes().find((c) => c.name === 'Kid 7 — Morning' && c.teacherUid === TEACHER2.uid);
+  await T2.selectOption('select[aria-label="Select assessment class"]', kid7b.id);
+  await T2.getByRole('button', { name: 'Registration', exact: true }).click();
+  await T2.getByTestId('registration-tab').waitFor();
+  await T2.getByTestId('roster-paste').fill('S0701, Sok Dara\nS0799, Pich Ratana');
+  await T2.getByTestId('roster-paste-add').click();
+  await waitFor(async () => (await rowStates(T2)).length === 2);
+  const states2 = await waitFor(async () => {
+    const st = await rowStates(T2);
+    return st.includes('Sok Dara=problem') ? st : null;
+  });
+  ok(!!states2 && states2.includes('Pich Ratana=not-published'), 'a student who is on the first teacher\'s list is flagged, not taken over', states2 || (await rowStates(T2)));
+  ok(/another teacher/i.test(await T2.getByTestId('registration-tab').textContent()), 'and the reason is given');
+  await T2.getByTestId('registration-publish').click();
+  await waitFor(() => fake.seats().some((x) => x.schoolId === 'S0799'));
+  ok(fake.seats().filter((x) => x.teacherUid === TEACHER2.uid).length === 1, 'only the second teacher\'s own student is published');
+  ok(fake.seats().find((x) => x.schoolId === 'S0701').teacherUid === TEACHER.uid && fake.seats().find((x) => x.schoolId === 'S0701').claimedBy === DARA.uid, 'the first teacher\'s student keeps seat and account');
+  ok(!(await T2.getByTestId('registration-tab').textContent()).includes(DARA.email), 'the second teacher is not shown the account behind it');
+
   console.log('\nteacher');
   await T.getByRole('button', { name: 'Refresh registration' }).click();
   await waitFor(async () => (await rowStates(T)).filter((s) => s.endsWith('=registered')).length === 2);
@@ -533,7 +300,7 @@ async function walk(browser) {
   ok(!!moved && moved.claimedBy === DARA.uid && moved.key !== daraSeat.key, 'the corrected seat keeps the account');
   ok(!fake.seats().some((s) => s.key === daraSeat.key), 'the old seat is gone');
   ok(fake.link(DARA.uid).seatKey === (moved && moved.key), 'the account follows to the corrected seat');
-  ok(fake.seats().length === 3, 'still three seats', fake.seats().length);
+  ok(fake.seats().filter((x) => x.teacherUid === TEACHER.uid).length === 3, 'still three seats', fake.seats().length);
   await D.reload({ waitUntil: 'domcontentloaded' });
   await D.locator('[data-testid="student-registration"][data-state]').waitFor({ timeout: 20000 });
   ok((await cardState(D)) === 'registered' && /Sok Darra/.test(await D.getByTestId('student-registration').textContent()), 'the student is still registered, under the corrected name');
@@ -551,14 +318,16 @@ async function walk(browser) {
   // close
   await waitFor(async () => !(await T.getByRole('button', { name: 'Close registration' }).isDisabled()));
   await T.getByRole('button', { name: 'Close registration' }).click();
-  await waitFor(() => fake.seats().length === 1);
-  ok(fake.seats().length === 1 && fake.seats()[0].claimedBy === DARA.uid, 'closing withdraws the open seats and keeps the registered student', fake.seats().map((s) => s.studentName));
+  const mine = () => fake.seats().filter((x) => x.teacherUid === TEACHER.uid);
+  await waitFor(() => mine().length === 1);
+  ok(mine().length === 1 && mine()[0].claimedBy === DARA.uid, 'closing withdraws the open seats and keeps the registered student', mine().map((x) => x.studentName));
+  ok(fake.seats().some((x) => x.teacherUid === TEACHER2.uid), 'and leaves the other teacher\'s seats alone');
   await register(P, 'S0702', 'Chan Sophea');
   await P.getByTestId('student-registration-error').waitFor({ timeout: 10000 });
   ok(/could not find/i.test(await P.getByTestId('student-registration-error').textContent()), 'after closing, a late student is told to ask the teacher');
 
   ok(fake.log.length === 0, 'the app never sent a write the rules refuse', fake.log);
-  for (const [who, page] of [['teacher', T], ['student 1', D], ['student 2', P]]) ok(page.errors.length === 0, `no page errors (${who})`, page.errors);
+  for (const [who, page] of [['teacher', T], ['teacher 2', T2], ['student 1', D], ['student 2', P]]) ok(page.errors.length === 0, `no page errors (${who})`, page.errors);
 
   console.log('\nphone');
   const fake2 = makeFake();
@@ -610,7 +379,7 @@ try {
   ok(false, 'the walk ran to the end', String(e.stack || e).slice(0, 600));
 } finally {
   await browser.close().catch(() => {});
-  for (const s of servers) s.close();
+  closeServers();
 }
 console.log(`\n${pass} passed, ${fail} failed`);
 for (const f of fails) console.log('  FAIL ' + f);
