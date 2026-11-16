@@ -1,17 +1,26 @@
 import { useState, useEffect } from 'react';
 import { GraduationCap, LockKeyhole, Mail, User, ArrowRight } from 'lucide-react';
 import { studentSignUp, studentSignIn, studentGoogleSignIn } from '../lib/studentAuth';
+import type { AccountType } from '../lib/userProfile';
+import { AccountTypePicker } from './AccountTypePicker';
 
 export function StudentAuthModal({
   isOpen,
   onClose,
   initialMode = 'sign-in',
+  initialAccountType = null,
+  contextPrompt = null,
 }: {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: 'sign-in' | 'sign-up';
+  /** Preselected Student / Teacher / General-user choice. */
+  initialAccountType?: AccountType | null;
+  /** One-line reason shown at the top ("Sign up to save your scores"). */
+  contextPrompt?: string | null;
 }) {
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>(initialMode);
+  const [accountType, setAccountType] = useState<AccountType | null>(initialAccountType);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,8 +31,13 @@ export function StudentAuthModal({
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (isOpen) { setError(''); setNotice(''); setMode(initialMode); }
-  }, [isOpen, initialMode]);
+    if (isOpen) {
+      setError('');
+      setNotice('');
+      setMode(initialMode);
+      setAccountType(initialAccountType);
+    }
+  }, [isOpen, initialMode, initialAccountType]);
 
   if (!isOpen) return null;
 
@@ -32,6 +46,11 @@ export function StudentAuthModal({
     setBusy(true);
     setError('');
 
+    if (!accountType) {
+      setError('Please choose Student, Teacher, or General user so we know how to set up your account.');
+      setBusy(false);
+      return;
+    }
     if (mode === 'sign-up') {
       if (!name.trim()) { setError('Please enter your name.'); setBusy(false); return; }
       if (!email.trim()) { setError('Please enter your email.'); setBusy(false); return; }
@@ -39,6 +58,7 @@ export function StudentAuthModal({
       const res = await studentSignUp(email, password, name, {
         grade: grade ? parseInt(grade) : undefined,
         school: school || undefined,
+        accountType,
       });
       if (!res.ok) { setError(res.error || 'Sign up failed.'); setBusy(false); return; }
       // SECURITY: the account exists but has NO session until the email is
@@ -49,7 +69,7 @@ export function StudentAuthModal({
       return;
     } else {
       if (!email.trim() || !password) { setError('Please enter your email and password.'); setBusy(false); return; }
-      const res = await studentSignIn(email, password);
+      const res = await studentSignIn(email, password, accountType);
       if (!res.ok) {
         if (res.needsVerification) {
           // Instructional, not an error — cyan notice with next steps.
@@ -68,7 +88,7 @@ export function StudentAuthModal({
   const handleGoogle = async () => {
     setBusy(true);
     setError('');
-    const res = await studentGoogleSignIn();
+    const res = await studentGoogleSignIn(accountType ?? undefined);
     if (!res.ok) { setError(res.error || 'Google sign in failed.'); }
     setBusy(false);
     if (res.ok) onClose();
@@ -86,12 +106,18 @@ export function StudentAuthModal({
             <GraduationCap className="h-7 w-7" />
           </span>
           <h2 className="font-[var(--font-display)] text-xl font-bold text-white">
-            {mode === 'sign-up' ? 'Student Sign Up' : 'Student Sign In'}
+            {mode === 'sign-up' ? 'Create your account' : 'Sign in'}
           </h2>
           <p className="mt-1 text-xs text-slate-500">
-            {mode === 'sign-up' ? 'Create a free student account to track your drill scores' : 'Sign in to see your drill history and scores'}
+            {mode === 'sign-up' ? 'A free account unlocks every game, worksheet and your score history' : 'Sign in to play, download and see your scores'}
           </p>
         </div>
+
+        {contextPrompt && (
+          <p className="mb-4 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-2.5 text-[11px] leading-relaxed text-cyan-50" data-cmc-auth-context="true">
+            {contextPrompt}
+          </p>
+        )}
 
         {notice && (
           <div className="mb-4 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-xs leading-relaxed text-cyan-100">
@@ -106,6 +132,9 @@ export function StudentAuthModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="rounded-xl border border-slate-700/70 bg-slate-950/70 p-3">
+            <AccountTypePicker value={accountType} onChange={setAccountType} disabled={busy} compact />
+          </div>
           {mode === 'sign-up' && (
             <>
               <div>
@@ -141,7 +170,7 @@ export function StudentAuthModal({
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full rounded-lg border border-slate-700 bg-slate-900 pl-10 pr-3 py-2.5 text-sm text-white placeholder-slate-600 focus:border-cyan-500 focus:outline-none" />
             </div>
           </div>
-          <button type="submit" disabled={busy} className="w-full rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60">
+          <button type="submit" disabled={busy || !accountType} className="w-full rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60">
             {busy ? 'Please wait…' : mode === 'sign-up' ? 'Create Account' : 'Sign In'}
             {!busy && <ArrowRight className="inline ml-1 h-4 w-4" />}
           </button>

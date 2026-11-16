@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
 <head>
+<script src="../assets/js/cmc-auth-gate.js"></script>
 <script>/* CMC_NG_NO_EMAIL_AS_NAME: an email is never a display name — Gmail sign-ins showed
    addresses on the completion ticker. Heals cmc-student-name in place
    ("mam.ry@aii.edu.kh" -> "Mam Ry") and guards every read; real names are
@@ -645,6 +646,7 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
 </script>
 </head>
 <body>
+<script>CMC_GATE.guard('account', 'Sign up free to open Creative Minds Studio.');</script>
   <h1 style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Creative Minds Studio</h1>
 <!-- Back to CMC floating button (visible in the top-right corner — same
      pattern as every other standalone HTML worksheet on the site). -->
@@ -6323,8 +6325,10 @@ openInput.onchange = e => {
      ?doc=<id>            — opens the shared copy (read-only, or a worksheet)
      ?doc=<id>&results=1  — teacher's response dashboard
    Backed by Firestore REST (studio_docs / studio_submissions), same auth
-   conventions as the biweek test pages: cmc-student-token (+ silent refresh),
-   guests post validated writes with no Authorization header.
+   conventions as the biweek test pages: cmc-student-token (+ silent refresh).
+   Submitting a collect worksheet needs a signed-in, verified CMC account; a
+   guest gets the sign-in prompt instead of a write. Publishing and Results
+   stay teacher-only.
    Modes:
      view    — read-only for everyone
      collect — students fill only the shaded ✎ Input cells (sheets) or type
@@ -6360,8 +6364,9 @@ function ensureToken(cb){
   if (tokenExp && tokenExp <= Date.now()) { refresh(function(t){ if (t) token = t; cb(token); }); }
   else cb(token);
 }
-/* opts.noAuth → never send Authorization (anonymous reads / guest writes)
-   opts.anon  → allowed to run without a token (still sends one if present) */
+/* opts.noAuth → never send Authorization (public reads only).
+   ACCOUNT RULE: no anonymous writes — every write needs a verified CMC
+   account, so a missing token fails closed instead of posting as a guest. */
 function rest(path, opts, cb){
   var go = function(tok){
     var headers = { 'Content-Type': 'application/json' };
@@ -6372,7 +6377,7 @@ function rest(path, opts, cb){
   };
   if (opts.noAuth) { go(null); return; }
   ensureToken(function(tok){
-    if (!tok && !opts.anon) { cb({ status: 0, error: 'Not signed in' }); return; }
+    if (!tok) { cb({ status: 0, error: 'Not signed in' }); return; }
     go(tok);
   });
 }
@@ -7194,7 +7199,7 @@ function studioSubmit(){
     var send = function(studentUid, subId){
       var sub = { docId: shareDocId, docTitle: String(shareMeta.title || '').slice(0, 200), ownerUid: String(shareMeta.ownerUid || '').slice(0, 100),
         kind: kind, studentUid: studentUid, studentName: finalName, submittedAt: nowIso(), answers: answers };
-      rest('/studio_submissions?documentId=' + encodeURIComponent(subId), { method: 'POST', body: JSON.stringify({ fields: toFs(sub).mapValue.fields }), anon: true }, function(r){
+      rest('/studio_submissions?documentId=' + encodeURIComponent(subId), { method: 'POST', body: JSON.stringify({ fields: toFs(sub).mapValue.fields }) }, function(r){
         if (r.ok) {
           submittedLocal = true;
           lsSet('studio-submitted-' + shareDocId, '1');
@@ -7210,8 +7215,14 @@ function studioSubmit(){
       });
     };
     ensureToken(function(tok){
-      if (tok && uid) send(uid, shareDocId + '__' + uid);
-      else send('', shareDocId + '__guest_' + randId(16));
+      // ACCOUNT REQUIRED (Nov 2026): the rules pin every submission to
+      // "{docId}__{uid}" of a verified account, so there is no guest path.
+      if (!tok || !uid) {
+        statusFlash('Sign in with a free CMC account to submit — ask your teacher for the sign-up link.');
+        if (window.CMC_GATE && window.CMC_GATE.requestAuth) window.CMC_GATE.requestAuth();
+        return;
+      }
+      send(uid, shareDocId + '__' + uid);
     });
   };
   if (sname && uid) proceed(sname.slice(0, 40));

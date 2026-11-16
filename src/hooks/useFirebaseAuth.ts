@@ -7,8 +7,11 @@ import {
   signInWithEmail,
   signUpWithEmail,
   toRestoredSession,
+  updateSessionAccountType,
+  type AccountType,
   type RestoredSession,
 } from '../lib/firebaseAuth';
+import { sessionBadgeLabel } from '../lib/userProfile';
 
 export interface FirebaseAuthState {
   isConfigured: boolean;
@@ -16,14 +19,23 @@ export interface FirebaseAuthState {
   // Convenience booleans derived from session.role.
   isTeacher: boolean;
   isStudent: boolean;
+  /** True when signed in but the account has no recorded type yet — the UI
+   *  should ask Student / Teacher / User once. */
+  needsAccountTypePrompt: boolean;
+  /** Admin-only grant (never granted to verified teachers). */
+  isAdmin: boolean;
+  /** Short badge text ('Admin' | 'Verified Teacher' | 'Teacher · Pending' | 'Student' | 'User'). */
+  badgeLabel: string | null;
   // True once we've checked localStorage on mount. Use this to gate any
   // first-paint UI that depends on knowing whether a user is signed in.
   hydrated: boolean;
 }
 
 export interface FirebaseAuthActions {
-  signUp: (input: { email: string; password: string; displayName?: string; school?: string; role?: 'teacher' | 'student'; teachingRole?: string }) => Promise<RestoredSession>;
-  signIn: (input: { email: string; password: string }) => Promise<RestoredSession>;
+  signUp: (input: { email: string; password: string; displayName?: string; school?: string; grade?: string; accountType?: AccountType; role?: 'teacher' | 'student'; teachingRole?: string }) => Promise<RestoredSession>;
+  signIn: (input: { email: string; password: string; accountType?: AccountType }) => Promise<RestoredSession>;
+  /** Persist/confirm the signed-in user's Student / Teacher / User choice. */
+  setAccountType: (accountType: AccountType) => Promise<RestoredSession | null>;
   signOut: () => void;
 }
 
@@ -81,6 +93,16 @@ export function useFirebaseAuth(): FirebaseAuthState & FirebaseAuthActions {
     session,
     isTeacher,
     isStudent,
+    needsAccountTypePrompt: Boolean(session?.needsAccountTypePrompt),
+    isAdmin: Boolean(session?.isAdmin),
+    badgeLabel: session
+      ? sessionBadgeLabel({
+        localId: session.localId,
+        role: session.role,
+        accountType: session.accountType,
+        teacherVerified: session.teacherVerified,
+      })
+      : null,
     hydrated,
 
     async signUp(input) {
@@ -97,6 +119,13 @@ export function useFirebaseAuth(): FirebaseAuthState & FirebaseAuthActions {
       const session = await signInWithEmail(input);
       const restored = toRestoredSession(session);
       setSession(restored);
+      window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
+      return restored;
+    },
+
+    async setAccountType(accountType) {
+      const restored = await updateSessionAccountType(accountType);
+      if (restored) setSession(restored);
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
       return restored;
     },

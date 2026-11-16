@@ -1,4 +1,7 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
+import { useSignedInSession } from '../hooks/useSignedInSession';
+import { requestAuth } from '../lib/authPrompt';
+import { hasActiveAccount } from '../lib/gameAccess';
 import { ArrowDownToLine, ArrowRight, BookOpen, CheckCircle2, Headphones, Mic2, PenLine, Volume2 } from 'lucide-react';
 import { TOEFL_JUNIOR_ASSESSMENTS, type JuniorAssessment, type JuniorAssessmentSkill } from '../data/toeflJuniorAssessments';
 
@@ -28,6 +31,10 @@ function questionCount(assessment: JuniorAssessment) {
 export function ToeflJuniorAssessments() {
   const [activeSkill, setActiveSkill] = useState<'All' | JuniorAssessmentSkill>('All');
   const [selectedAssessment, setSelectedAssessment] = useState<JuniorAssessment | null>(null);
+  // ACCOUNT RULE: opening an assessment (and therefore its preview, print and
+  // download actions) needs a signed-in CMC account.
+  const session = useSignedInSession();
+  const canOpen = hasActiveAccount(session);
 
   // Derived lists are recomputed only when the filter changes instead of on every render.
   const assessments = useMemo(
@@ -103,8 +110,22 @@ export function ToeflJuniorAssessments() {
               </div>
               <div className="mt-4 flex items-center justify-between gap-3">
                 <span className="text-[10px] text-slate-500">{assessment.assignment.gradeBand}</span>
-                <button type="button" onClick={() => setSelectedAssessment(assessment)} className="group/button inline-flex items-center gap-2 rounded-lg border border-white/12 px-3 py-2 text-[10px] font-semibold text-slate-200 transition hover:border-cyan-200/35 hover:bg-cyan-200/5 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
-                  Open assessment <ArrowRight className="h-3 w-3 transition-transform group-hover/button:translate-x-0.5" aria-hidden="true" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!canOpen) {
+                      requestAuth({
+                        mode: 'sign-up',
+                        contextPrompt: 'Sign up free to open TOEFL Junior assessments and print the student copies.',
+                      });
+                      return;
+                    }
+                    setSelectedAssessment(assessment);
+                  }}
+                  className="group/button inline-flex items-center gap-2 rounded-lg border border-white/12 px-3 py-2 text-[10px] font-semibold text-slate-200 transition hover:border-cyan-200/35 hover:bg-cyan-200/5 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+                >
+                  {canOpen ? 'Open assessment' : 'Sign up to open'}
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover/button:translate-x-0.5" aria-hidden="true" />
                 </button>
               </div>
             </article>

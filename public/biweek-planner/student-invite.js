@@ -35,12 +35,12 @@
  *      invite mode — the reveal/grading UI is skipped; the teacher hands
  *      students their results personally.
  *
- * Recording identity: anonymous Firebase sign-in is NOT enabled on the
- * project, but email/password sign-up is. The first attempt on a device
- * creates a throwaway "invite-…@cmc-invite.example" account (stored in
- * localStorage) and every later attempt reuses it — the invite_attempts
- * rules require a signed-in device, which this satisfies without any
- * teacher action.
+ * Recording identity (Nov 2026): a REAL CMC account is required. The attempt
+ * is written with the signed-in session's own verified ID token
+ * (cmc-student-token, created by the React app); the old throwaway
+ * "invite-…@cmc-invite.example" identity is gone, and a visitor without an
+ * account sees a sign-up card instead of the test. The invite_attempts
+ * rules require a verified account pinned to its own uid.
  *
  * PRIVACY (Nov 2026): every attempt is stamped with the OWNING teacher's
  * uid, copied from the public invite_codes/{code} registry doc. The create
@@ -633,7 +633,13 @@
 
     showSending(function () {
       ensureInviteToken(function (token, uid) {
-        if (!token || !uid) { queueAttempt(fields); goHome({ cloud: false }); return; }
+        if (!token || !uid) {
+          // Signed out mid-test (session cleared): keep the answers, ask for
+          // an account instead of silently posting anonymously.
+          queueAttempt(fields);
+          requireAccountCard();
+          return;
+        }
         fields.studentUid = { stringValue: uid };
         fields.inviteUid = { stringValue: uid };
         stampAndPost(token, fields, function (ok) {
@@ -709,44 +715,101 @@
 
   function saveAuth(a) { authCache = a; setLs(AUTH_STORE, JSON.stringify(a)); }
 
-  /** cb(idToken|null, uid|null) */
+  /* ── ACCOUNT REQUIRED (Nov 2026) ─────────────────────────────────────
+   * Shared/invite links used to mint a throwaway "invite-…@cmc-invite.example"
+   * Firebase identity so anonymous devices could submit. The owner's rule is
+   * now: EVERYTHING needs a real CMC account, so the identity comes from the
+   * same verified session the React app creates (cmc-student-token in
+   * localStorage) and the throwaway branch is gone. A visitor without an
+   * account gets a sign-up card instead of the test. */
+
+  /** Decode the `email_verified` claim of an ID token. */
+  function tokenVerified(token) {
+    try {
+      var payload = String(token || '').split('.')[1] || '';
+      var padded = payload.replace(/-/g, '+').replace(/_/g, '/');
+      while (padded.length % 4) padded += '=';
+      var json = decodeURIComponent(atob(padded).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      var claim = JSON.parse(json).email_verified;
+      return typeof claim === 'boolean' ? claim : null;
+    } catch (e) { return null; }
+  }
+
+  /** The signed-in CMC account, or null. Mirrors restoreSession(). */
+  function cmcSession() {
+    var token = ls('cmc-student-token') || '';
+    if (!token) return null;
+    var uid = ls('cmc-student-uid') || '';
+    if (!uid) return null;
+    var verifiedClaim = tokenVerified(token);
+    var verified = verifiedClaim === null ? ls('cmc-student-verified') === '1' : verifiedClaim;
+    if (!verified) return null;
+    return { token: token, uid: uid, email: ls('cmc-student-email') || '', name: ls('cmc-student-name') || '' };
+  }
+
+  /** cb(idToken|null, uid|null) — session token only; no throwaway accounts. */
   function ensureInviteToken(cb) {
+    var session = cmcSession();
+    if (!session) { cb(null, null); return; }
     var a = loadAuth();
-    if (a && a.refresh) {
+    if (a && a.uid === session.uid && a.token === session.token && a.expiresAt > Date.now() + 60000) {
+      cb(session.token, session.uid);
+      return;
+    }
+    // Refresh through the persisted refresh token so long tests keep working.
+    var refresh = ls('cmc-student-refresh-token') || '';
+    if (refresh) {
       try {
         fetch('https://securetoken.googleapis.com/v1/token?key=' + FB_API_KEY, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(a.refresh)
+          body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(refresh)
         }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
           if (d && d.id_token) {
-            a.uid = d.user_id || a.uid; a.refresh = d.refresh_token || a.refresh;
-            a.expiresAt = Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000;
-            saveAuth(a);
-            cb(d.id_token, a.uid);
-          } else { createIdentity(cb); }
-        }).catch(function () { cb(null, null); });
+            setLs('cmc-student-token', d.id_token);
+            saveAuth({ uid: session.uid, token: d.id_token, expiresAt: Date.now() + ((Number(d.expires_in) || 3600) * 1000) - 60000 });
+            cb(d.id_token, session.uid);
+          } else {
+            cb(session.token, session.uid);
+          }
+        }).catch(function () { cb(session.token, session.uid); });
         return;
-      } catch (e) { /* fall through to create */ }
+      } catch (e) { /* fall through */ }
     }
-    createIdentity(cb);
+    saveAuth({ uid: session.uid, token: session.token, expiresAt: Date.now() + 60000 });
+    cb(session.token, session.uid);
   }
 
-  function createIdentity(cb) {
-    var email = 'invite-' + rand(14).toLowerCase() + '@cmc-invite.example';
-    var password = rand(12) + 'aA7';
-    try {
-      fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + FB_API_KEY, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, password: password, returnSecureToken: true })
-      }).then(function (r) { return r.ok ? r.json() : r.json().then(function (j) { throw new Error(j && j.error && j.error.message || 'SIGNUP_FAILED'); }); })
-        .then(function (d) {
-          saveAuth({ uid: d.localId, email: email, refresh: d.refreshToken, expiresAt: Date.now() + ((Number(d.expiresIn) || 3600) * 1000) - 60000 });
-          cb(d.idToken, d.localId);
-        })
-        .catch(function () { cb(null, null); });
-    } catch (e) { cb(null, null); }
+  /** Show the "create a free account" card and stop. */
+  function requireAccountCard() {
+    var id = 'cmc-invite-needs-account';
+    if (document.getElementById(id)) return;
+    var next = window.location.pathname + window.location.search;
+    var signup = '/' + '?auth=signup&next=' + encodeURIComponent(next);
+    var signin = '/' + '?auth=signin&next=' + encodeURIComponent(next);
+    var wrap = document.createElement('div');
+    wrap.id = id;
+    wrap.setAttribute('role', 'dialog');
+    wrap.setAttribute('aria-modal', 'true');
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:18px;' +
+      'background:radial-gradient(ellipse 60% 40% at 15% 10%,rgba(56,189,248,.14),transparent 55%),#020617;' +
+      "font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;color:#f1f5f9";
+    wrap.innerHTML =
+      '<div style="max-width:430px;width:100%;text-align:center;padding:32px 26px;border-radius:18px;' +
+      'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10)">' +
+      '<div style="width:56px;height:56px;margin:0 auto;border-radius:16px;display:flex;align-items:center;justify-content:center;' +
+      'background:linear-gradient(135deg,rgba(56,189,248,.16),rgba(139,92,246,.12));border:1px solid rgba(56,189,248,.35);font-size:24px">🔒</div>' +
+      '<h1 style="margin:18px 0 0;font-size:22px;font-weight:800">Create a free account to take this test</h1>' +
+      '<p style="margin:12px auto 0;max-width:340px;font-size:13px;line-height:1.65;color:#94a3b8">' +
+      'Shared tests, homework and worksheets need a CMC account so your teacher can see your result. It takes a minute and it is free.</p>' +
+      '<a href="' + signup + '" style="margin-top:22px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;' +
+      'border-radius:12px;background:linear-gradient(100deg,#c4b5fd,#67e8f9);color:#0f172a;font-size:13px;font-weight:800;text-decoration:none">Sign up free</a>' +
+      '<p style="margin:14px 0 0;font-size:12px;color:#94a3b8">Already have an account? <a href="' + signin + '" style="color:#67e8f9;font-weight:700;text-decoration:none">Sign in</a></p>' +
+      '</div>';
+    document.body.appendChild(wrap);
+    try { document.documentElement.setAttribute('data-cmc-invite-blocked', '1'); } catch (e) {}
   }
 
   function postAttempt(token, fields, cb) {
@@ -829,6 +892,12 @@
   var alreadyDone = false;
   try { alreadyDone = !!(ls(LOCK_KEY) && JSON.parse(ls(LOCK_KEY))); } catch (e) { alreadyDone = false; }
   function mount() {
+    // ACCOUNT REQUIRED: an invite link only works for a signed-in, verified
+    // CMC account. Guests get a sign-up card instead of the test.
+    if (!cmcSession()) {
+      requireAccountCard();
+      return;
+    }
     lockQuizInputs();
     buildOverlay(alreadyDone);
   }

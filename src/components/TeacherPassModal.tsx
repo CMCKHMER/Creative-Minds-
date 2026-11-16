@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
-import { ArrowRight, CheckCircle2, Eye, EyeOff, KeyRound, LockKeyhole, Mail, School, Sparkles, User, X, GraduationCap, BookOpen } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import {
+  ArrowRight, CheckCircle2, Clock, Eye, EyeOff, GraduationCap, KeyRound, LockKeyhole,
+  Mail, School, ShieldCheck, Sparkles, User, X,
+} from 'lucide-react';
 import {
   clearPersistedSession,
-  detectRoleFromEmail,
   firebaseConfigured,
   isAdminUid,
-  isTeacherEmail,
   restoreSession,
   sendEmailVerification,
   sendPasswordReset,
@@ -13,13 +14,17 @@ import {
   signInWithGoogle,
   signUpWithEmail,
   toRestoredSession,
+  updateSessionAccountType,
   type FirebaseAuthError,
   type RestoredSession,
 } from '../lib/firebaseAuth';
+import { navigateToReturnUrl, safeReturnUrl } from '../lib/authLinks';
+import { ACCOUNT_TYPE_OPTIONS, isEduEmailDomain, sessionAccountTitle, type AccountType } from '../lib/userProfile';
+import { AccountTypePicker } from './AccountTypePicker';
 
 type AuthMode = 'sign-up' | 'sign-in' | 'reset' | 'check-email' | 'authenticated';
 
-interface TeacherPassModalProps {
+export interface TeacherPassModalProps {
   isOpen: boolean;
   onClose: () => void;
   /** Kept for backwards-compat with App.tsx — Firebase path doesn't need
@@ -27,6 +32,12 @@ interface TeacherPassModalProps {
   accessStatus?: string;
   member?: { name?: string } | null;
   initialMode?: 'sign-up' | 'sign-in';
+  /** Preselected Student / Teacher / General-user choice (deep links, gates). */
+  initialAccountType?: AccountType | null;
+  /** One-line reason shown at the top — "Sign up to download this worksheet." */
+  contextPrompt?: string | null;
+  /** Validated relative URL to return to after a successful sign-in. */
+  returnUrl?: string | null;
 }
 
 function emailRedirectUrl(): string {
@@ -50,12 +61,16 @@ export const TeacherPassModal = ({
   isOpen,
   onClose,
   initialMode = 'sign-up',
+  initialAccountType = null,
+  contextPrompt = null,
+  returnUrl = null,
 }: TeacherPassModalProps) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [school, setSchool] = useState('');
+  const [grade, setGrade] = useState('');
   const [role, setRole] = useState('ESL / TOEFL Teacher');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -64,16 +79,25 @@ export const TeacherPassModal = ({
   const [error, setError] = useState('');
   const [resendAvailable, setResendAvailable] = useState(false);
   const [activeSession, setActiveSession] = useState<RestoredSession | null>(() => restoreSession());
+  const [accountType, setAccountType] = useState<AccountType | null>(initialAccountType);
   const dialogRef = useRef<HTMLDivElement>(null);
   const firstControlRef = useRef<HTMLButtonElement>(null);
+
+  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  const eduEmail = isEduEmailDomain(normalizedEmail);
+  /** Sign-in for an existing account whose type was never recorded. */
+  const needsTypePrompt = mode === 'authenticated' && Boolean(activeSession?.needsAccountTypePrompt);
 
   useEffect(() => {
     if (!isOpen) return;
     setMode(initialMode);
     setMessage('');
     setError('');
+    setErrorCode(null);
+    setPassword('');
     setActiveSession(restoreSession());
-  }, [isOpen, initialMode]);
+    setAccountType(initialAccountType);
+  }, [isOpen, initialMode, initialAccountType]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -116,9 +140,20 @@ export const TeacherPassModal = ({
     setErrorCode(null);
   };
 
+  const finishAndReturn = () => {
+    window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
+    const target = safeReturnUrl(returnUrl);
+    onClose();
+    if (target) navigateToReturnUrl(target);
+  };
+
   const handleSignUp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     resetFeedback();
+    if (!accountType) {
+      setError('Please choose Student, Teacher, or General user so we know how to set up your account.');
+      return;
+    }
     if (!firebaseConfigured) {
       setError('Account creation is not configured yet. Add VITE_FIREBASE_API_KEY to your .env.local (Firebase Console → Project Settings → Web API Key), then redeploy.');
       return;
@@ -127,33 +162,28 @@ export const TeacherPassModal = ({
       setError('Use a password with at least 8 characters.');
       return;
     }
-    // Email determines role automatically: domain containing "edu"
-    // (e.g., .edu.kh, .edu) → teacher; anything else → student. The
-    // form below shows a live indicator so the user knows before submit.
-    const detectedRole = detectRoleFromEmail(email.trim().toLowerCase());
 
     setBusy(true);
     try {
       const session = await signUpWithEmail({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password,
         displayName: name.trim() || undefined,
         school: school.trim() || undefined,
-        // Account role must be the 'teacher' | 'student' enum so the
-        // persisted `cmc-student-role` gates teacher features correctly.
-        role: detectedRole,
-        // The free-text select value is profile metadata only.
-        teachingRole: role,
+        grade: grade.trim() || undefined,
+        accountType,
+        // Free-text teaching role is profile metadata only.
+        teachingRole: accountType === 'teacher' ? role : undefined,
         continueUrl: emailRedirectUrl(),
       });
       // SECURITY: no session is persisted until the email is verified.
       // The session object lives in React state only (powering "Resend").
       setResendAvailable(true);
-      setActiveSession(toRestoredSession(session));
+      setActiveSession(toRestoredSession({ ...session, accountType: session.accountType ?? accountType }));
       setMode('check-email');
       setMessage(session.verificationSent === false
-        ? `Your account was created, but the verification email could not be sent just now. Tap "Resend verification link" below in a moment, then click the link and sign in.`
-        : `We sent a verification link to ${email.trim().toLowerCase()}. Open the email, click “Verify”, then come back and sign in. This proves the address is yours — accounts that never verify stay locked out.`);
+        ? 'Your account was created, but the verification email could not be sent just now. Tap "Resend verification link" below in a moment, then click the link and sign in.'
+        : `We sent a verification link to ${normalizedEmail}. Open the email, click “Verify”, then come back and sign in. This proves the address is yours — accounts that never verify stay locked out.`);
     } catch (e) {
       const authErr = e as FirebaseAuthError;
       setError(authErr instanceof Error ? authErr.message : 'Sign-up failed. Please try again.');
@@ -166,6 +196,10 @@ export const TeacherPassModal = ({
   const handleSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     resetFeedback();
+    if (!accountType) {
+      setError('Please choose Student, Teacher, or General user so we know which account you are signing in to.');
+      return;
+    }
     if (!firebaseConfigured) {
       setError('Sign-in is not configured yet. Add VITE_FIREBASE_API_KEY to your .env.local (Firebase Console → Project Settings → Web API Key), then redeploy.');
       return;
@@ -174,16 +208,14 @@ export const TeacherPassModal = ({
     setBusy(true);
     try {
       const session = await signInWithEmail({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password,
+        accountType,
       });
-      setActiveSession(toRestoredSession(session));
+      const restored = toRestoredSession(session);
+      setActiveSession(restored);
       setMode('authenticated');
-      setMessage(isAdminUid(session.localId)
-        ? 'You\'re signed in as the site admin. Everything — Teacher Tools, answer keys, assignments, grading, assessment records — is unlocked across the whole site.'
-        : session.role === 'teacher'
-          ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the practice room are unlocked — explore them whenever you like.'
-          : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like.');
+      setMessage(welcomeFor(restored));
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
     } catch (e) {
       const authErr = e as FirebaseAuthError;
@@ -192,11 +224,26 @@ export const TeacherPassModal = ({
       // session token that powers it).
       if (authErr?.code === 'EMAIL_NOT_VERIFIED') {
         if (authErr.pendingSession) {
-          setActiveSession(toRestoredSession(authErr.pendingSession));
+          const pending = authErr.pendingSession;
+          setActiveSession({
+            idToken: pending.idToken,
+            localId: pending.localId,
+            email: pending.email,
+            displayName: pending.displayName || pending.email,
+            emailVerified: false,
+            isExpired: false,
+            role: 'student',
+            accountType: accountType ?? 'student',
+            teacherVerified: false,
+            isPendingTeacher: accountType === 'teacher',
+            isRevokedTeacher: false,
+            isAdmin: isAdminUid(pending.localId),
+            needsAccountTypePrompt: false,
+          });
           setResendAvailable(true);
         }
         setMode('check-email');
-        setMessage(`We just sent a fresh verification link to ${email.trim().toLowerCase()}. Open the email, click “Verify”, then sign in again. Didn't get it? Use “Resend verification link” below.`);
+        setMessage(`We just sent a fresh verification link to ${normalizedEmail}. Open the email, click “Verify”, then sign in again. Didn't get it? Use “Resend verification link” below.`);
         return;
       }
       setError(authErr instanceof Error ? authErr.message : 'Sign-in failed. Please check your email and password.');
@@ -216,7 +263,7 @@ export const TeacherPassModal = ({
 
     setBusy(true);
     try {
-      await sendPasswordReset(email.trim().toLowerCase());
+      await sendPasswordReset(normalizedEmail);
       setMessage('If an account exists for this address, a password-reset link has been sent.');
     } catch (e) {
       const authErr = e as FirebaseAuthError;
@@ -244,28 +291,68 @@ export const TeacherPassModal = ({
   const handleSignOut = () => {
     clearPersistedSession();
     setActiveSession(null);
+    setAccountType(initialAccountType);
     setMode('sign-in');
     setMessage('Signed out.');
     setError('');
     window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
   };
 
+  /** Persist the Student / Teacher / General-user choice for a session that
+   *  was created before the picker existed (or via Google sign-in). */
+  const saveAccountType = async () => {
+    if (!accountType) {
+      setError('Please choose Student, Teacher, or General user.');
+      return;
+    }
+    resetFeedback();
+    setBusy(true);
+    try {
+      const restored = await updateSessionAccountType(accountType);
+      if (!restored) {
+        setError('Your session has expired — sign in again to save your account type.');
+        return;
+      }
+      setActiveSession(restored);
+      setMessage(welcomeFor(restored));
+      window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not save your account type.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   /** Shared welcome copy for both sign-in paths (password + Google). */
-  const welcomeFor = (session: RestoredSession): string =>
-    isAdminUid(session.localId)
-      ? 'You\'re signed in as the site admin. Everything — Teacher Tools, answer keys, assignments, grading, assessment records — is unlocked across the whole site.'
-      : session.role === 'teacher'
-        ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the practice room are unlocked — explore them whenever you like.'
-        : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like.';
+  const welcomeFor = (session: RestoredSession): string => {
+    if (isAdminUid(session.localId)) {
+      return 'You\'re signed in as the site admin. Everything — Teacher Tools, answer keys, assignments, grading, assessment records — is unlocked across the whole site.';
+    }
+    if (session.role === 'teacher') {
+      return 'You\'re signed in as a verified teacher. Answer keys, Teacher Tools, the Resource Library and every download are unlocked.';
+    }
+    if (session.accountType === 'teacher') {
+      return session.isRevokedTeacher
+        ? 'Your teacher access was revoked by the site admin. Student access still works — contact the admin if you think this is a mistake.'
+        : `Your account is a Teacher account pending verification. Everything students get is unlocked now; teacher tools unlock once ${
+          eduEmail ? 'your email is verified' : 'the site admin approves your account'
+        }.`;
+    }
+    if (session.accountType === 'user') {
+      return 'You\'re signed in as a general user. Games, worksheets, tests and your score history are unlocked — explore them whenever you like.';
+    }
+    return 'You\'re signed in as a student. Worksheets, drills, tests and your score history are unlocked — explore them whenever you like.';
+  };
 
   const handleGoogleSignIn = async () => {
     resetFeedback();
     setBusy(true);
     try {
-      const session = await signInWithGoogle();
-      setActiveSession(toRestoredSession(session));
+      const session = await signInWithGoogle(accountType ?? undefined);
+      const restored = toRestoredSession(session);
+      setActiveSession(restored);
       setMode('authenticated');
-      setMessage(welcomeFor(toRestoredSession(session)));
+      setMessage(welcomeFor(restored));
       window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Google sign-in failed. Please try again.');
@@ -290,6 +377,10 @@ export const TeacherPassModal = ({
     : mode === 'authenticated' ? 'You\'re signed in'
     : 'Verify your email';
 
+  const typeLabel = accountType
+    ? ACCOUNT_TYPE_OPTIONS.find((option) => option.id === accountType)?.label ?? null
+    : null;
+
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/85 p-3 backdrop-blur-md sm:p-5" onClick={(event) => event.target === event.currentTarget && onClose()} onKeyDown={handleBackdropKeyDown}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="member-auth-heading" className="relative max-h-[94dvh] w-full max-w-lg overflow-y-auto rounded-3xl border border-slate-700/80 bg-slate-900 p-6 shadow-2xl sm:p-8">
@@ -303,6 +394,12 @@ export const TeacherPassModal = ({
         </div>
         <h2 id="member-auth-heading" className="mt-5 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white">{heading}</h2>
 
+        {contextPrompt && mode !== 'authenticated' && (
+          <p className="mt-3 rounded-xl border border-cyan-300/25 bg-cyan-300/[0.08] px-3.5 py-2.5 text-xs leading-relaxed text-cyan-50" data-cmc-auth-context="true">
+            {contextPrompt}
+          </p>
+        )}
+
         {!firebaseConfigured ? (
           <div className="cmc-role-gate mt-5 rounded-xl border border-amber-200/20 bg-amber-100/5 p-4 text-sm text-amber-50">
             <p className="font-semibold">Live sign-in is one env var away.</p>
@@ -312,34 +409,41 @@ export const TeacherPassModal = ({
 
         {mode === 'sign-up' && (
           <form onSubmit={handleSignUp} className="mt-5 space-y-3.5">
-            {/* Live role indicator: email domain determines whether this is
-                a teacher or student account. Visible to set expectations
-                before the user submits. */}
-            {email.includes('@') && (
-              <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${isTeacherEmail(email) ? 'border-emerald-200/25 bg-emerald-200/[0.06] text-emerald-100' : 'border-cyan-200/25 bg-cyan-200/[0.06] text-cyan-100'}`}>
-                {isTeacherEmail(email)
-                  ? <><GraduationCap className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span><strong className="font-semibold">Teacher account</strong> — answer keys, teacher tools, and Resource Library will be unlocked.</span></>
-                  : <><BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span><strong className="font-semibold">Student account</strong> — take worksheets, track scores. Answer keys and teacher tools stay locked.</span></>}
-              </div>
+            <div className="rounded-xl border border-slate-700/70 bg-slate-950/60 p-3">
+              <AccountTypePicker value={accountType} onChange={setAccountType} disabled={busy} />
+            </div>
+            {eduEmail && accountType !== 'teacher' && (
+              <p className="text-[10.5px] leading-relaxed text-cyan-100/80">
+                This looks like a school email. Teachers get answer keys, Teacher Tools and every
+                download — choose <strong>Teacher</strong> if that is you.
+              </p>
             )}
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block text-xs font-semibold text-slate-300">Full name
                 <span className="relative mt-1.5 block"><User className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={80} autoComplete="name" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-3 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder="Your name" /></span>
               </label>
-              {isTeacherEmail(email) && (
+              {accountType === 'teacher' ? (
                 <label className="block text-xs font-semibold text-slate-300">School / center <span className="font-normal text-slate-500">(teachers)</span>
                   <span className="relative mt-1.5 block"><School className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={school} onChange={(event) => setSchool(event.target.value)} maxLength={120} autoComplete="organization" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-3 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder="School name" /></span>
+                </label>
+              ) : (
+                <label className="block text-xs font-semibold text-slate-300">Grade <span className="font-normal text-slate-500">(optional)</span>
+                  <span className="relative mt-1.5 block"><GraduationCap className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={grade} onChange={(event) => setGrade(event.target.value)} maxLength={24} className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-3 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder="e.g. Grade 11" /></span>
                 </label>
               )}
             </div>
             <label className="block text-xs font-semibold text-slate-300">Email address
-              <span className="relative mt-1.5 block"><Mail className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} autoComplete="email" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-3 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder={isTeacherEmail(email) ? 'you@school.edu.kh' : 'you@school.org or you@school.edu.kh'} /></span>
-              <span className="mt-1 block text-[10px] text-slate-500">Teachers must use a work email containing "edu" (e.g., .edu.kh, .edu). Students can use any email.</span>
+              <span className="relative mt-1.5 block"><Mail className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} autoComplete="email" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-3 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder={accountType === 'teacher' ? 'you@school.edu.kh' : 'you@example.com'} /></span>
+              <span className="mt-1 block text-[10px] text-slate-500">
+                {accountType === 'teacher'
+                  ? 'Use your school address (contains "edu", e.g. .edu.kh) for automatic verification. Gmail teachers can still sign up — an admin approves the account.'
+                  : 'Any email works. You verify it once by clicking the link we send.'}
+              </span>
             </label>
             <label className="block text-xs font-semibold text-slate-300">Password
               <span className="relative mt-1.5 block"><KeyRound className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={password} onChange={(event) => setPassword(event.target.value)} required type={showPassword ? 'text' : 'password'} minLength={8} maxLength={128} autoComplete="new-password" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-12 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder="At least 8 characters" /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-500 hover:text-white">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></span>
             </label>
-            {isTeacherEmail(email) && (
+            {accountType === 'teacher' && (
               <label className="block text-xs font-semibold text-slate-300">Teaching role
                 <select value={role} onChange={(event) => setRole(event.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15">
                   <option>ESL / TOEFL Teacher</option>
@@ -351,7 +455,7 @@ export const TeacherPassModal = ({
               </label>
             )}
             <label className="flex items-start gap-2.5 text-[11px] leading-relaxed text-slate-400"><input required type="checkbox" className="mt-0.5 accent-cyan-300" /><span>I agree to the <a className="underline decoration-cyan-300/50 underline-offset-2 hover:text-white" href="#privacy-notice" onClick={onClose}>privacy notice</a> and to receive account verification and service messages. Newsletter opt-in is separate.</span></label>
-            <button disabled={busy} type="submit" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-cyan-200">
+            <button disabled={busy || !accountType} type="submit" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-cyan-200">
               {busy ? 'Creating account…' : 'Create account'} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
             <div className="flex items-center gap-3" aria-hidden="true">
@@ -362,21 +466,26 @@ export const TeacherPassModal = ({
             <button type="button" disabled={busy} onClick={() => void handleGoogleSignIn()} className="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50">
               <GoogleIcon /> Sign up with Google
             </button>
-            <p className="text-center text-[10px] leading-relaxed text-slate-500">Faster path: a Google account skips the email-verification step — the role still follows the "edu" email rule.</p>
+            <p className="text-center text-[10px] leading-relaxed text-slate-500">
+              Google accounts are verified automatically. Your Student / Teacher / General-user choice is saved to your profile.
+            </p>
             <p className="text-center text-xs text-slate-500">Already a member? <button type="button" onClick={() => switchMode('sign-in')} className="font-semibold text-cyan-200 hover:text-white">Sign in</button></p>
           </form>
         )}
 
         {mode === 'sign-in' && (
           <form onSubmit={handleSignIn} className="mt-5 space-y-4">
+            <div className="rounded-xl border border-slate-700/70 bg-slate-950/60 p-3">
+              <AccountTypePicker value={accountType} onChange={setAccountType} disabled={busy} label="Signing in as a…" />
+            </div>
             <label className="block text-xs font-semibold text-slate-300">Email address
-              <span className="relative mt-1.5 block"><Mail className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} autoComplete="email" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-3 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder="you@school.org" /></span>
+              <span className="relative mt-1.5 block"><Mail className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} autoComplete="email" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-3 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder="you@example.com" /></span>
             </label>
             <label className="block text-xs font-semibold text-slate-300">Password
               <span className="relative mt-1.5 block"><LockKeyhole className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={password} onChange={(event) => setPassword(event.target.value)} required type={showPassword ? 'text' : 'password'} autoComplete="current-password" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-12 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder="Your password" /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-500 hover:text-white">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></span>
             </label>
             <div className="flex justify-end"><button type="button" onClick={() => switchMode('reset')} className="text-xs text-cyan-200 hover:text-white">Forgot password?</button></div>
-            <button disabled={busy} type="submit" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
+            <button disabled={busy || !accountType} type="submit" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
               {busy ? 'Signing in…' : 'Sign in'} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
             <div className="flex items-center gap-3" aria-hidden="true">
@@ -387,7 +496,7 @@ export const TeacherPassModal = ({
             <button type="button" disabled={busy} onClick={() => void handleGoogleSignIn()} className="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-50">
               <GoogleIcon /> Continue with Google
             </button>
-            <p className="text-center text-[10px] leading-relaxed text-slate-500">Google / Gmail accounts are verified automatically — the same teacher/student rules apply ("edu" email → teacher tools).</p>
+            <p className="text-center text-[10px] leading-relaxed text-slate-500">Google / Gmail accounts are verified automatically. Teachers with Gmail addresses are approved by the site admin.</p>
             <p className="text-center text-xs text-slate-500">New to CMC? <button type="button" onClick={() => switchMode('sign-up')} className="font-semibold text-cyan-200 hover:text-white">Create an account</button></p>
           </form>
         )}
@@ -395,7 +504,7 @@ export const TeacherPassModal = ({
         {mode === 'reset' && (
           <form onSubmit={handlePasswordReset} className="mt-5 space-y-4">
             <p className="text-sm leading-relaxed text-slate-400">Enter your member email and, if an account exists, we’ll send a secure reset link.</p>
-            <label className="block text-xs font-semibold text-slate-300">Email address<input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} autoComplete="email" className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-3 text-sm text-white outline-none focus:border-cyan-300/60" placeholder="you@school.org" /></label>
+            <label className="block text-xs font-semibold text-slate-300">Email address<input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} autoComplete="email" className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-3 text-sm text-white outline-none focus:border-cyan-300/60" placeholder="you@example.com" /></label>
             <button disabled={busy} type="submit" className="min-h-12 w-full rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-5 py-3 text-sm font-bold text-slate-950 disabled:opacity-50">{busy ? 'Sending…' : 'Send reset link'}</button>
             <button type="button" onClick={() => switchMode('sign-in')} className="w-full text-center text-xs text-cyan-200 hover:text-white">Back to sign in</button>
           </form>
@@ -409,6 +518,11 @@ export const TeacherPassModal = ({
             {activeSession?.email && (
               <p className="mt-2 text-[11px] font-semibold text-cyan-200">Verification sent to: {activeSession.email}</p>
             )}
+            {typeLabel && (
+              <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-bold text-slate-200">
+                Account type: {typeLabel}
+              </p>
+            )}
             <button type="button" disabled={!resendAvailable || busy} onClick={resendVerification} className="mt-4 text-xs font-semibold text-cyan-200 hover:text-white disabled:opacity-50">{busy ? 'Sending…' : 'Resend verification link'}</button>
             <button type="button" onClick={() => switchMode('sign-in')} className="mt-4 block w-full rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5">I've verified — sign in</button>
           </div>
@@ -416,24 +530,54 @@ export const TeacherPassModal = ({
 
         {mode === 'authenticated' && (
           <div className="mt-5 rounded-xl border border-cyan-200/20 bg-cyan-100/5 p-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <CheckCircle2 className="h-5 w-5 shrink-0 text-cyan-200" aria-hidden="true" />
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${isAdminUid(activeSession?.localId) ? 'bg-amber-300/15 text-amber-200' : activeSession?.role === 'teacher' ? 'bg-emerald-300/15 text-emerald-200' : 'bg-cyan-300/15 text-cyan-200'}`}>
-                {isAdminUid(activeSession?.localId) ? 'Admin account' : activeSession?.role === 'teacher' ? 'Teacher account' : 'Student account'}
+              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                activeSession?.isAdmin ? 'bg-amber-300/15 text-amber-200'
+                  : activeSession?.role === 'teacher' ? 'bg-emerald-300/15 text-emerald-200'
+                  : activeSession?.accountType === 'teacher' ? 'bg-amber-200/15 text-amber-100'
+                  : 'bg-cyan-300/15 text-cyan-200'}`}>
+                {activeSession?.isAdmin ? <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                  : activeSession?.role === 'teacher' ? <GraduationCap className="h-3 w-3" aria-hidden="true" />
+                  : activeSession?.accountType === 'teacher' ? <Clock className="h-3 w-3" aria-hidden="true" />
+                  : <User className="h-3 w-3" aria-hidden="true" />}
+                {activeSession ? sessionAccountTitle(activeSession) : 'Account'}
               </span>
             </div>
             <p className="mt-3 text-sm font-semibold text-white">{activeSession?.email ? `Signed in as ${activeSession.email}.` : 'Account session established.'}</p>
-            <p className="mt-2 text-xs leading-relaxed text-slate-300">
-              {message || (activeSession?.emailVerified
-                ? (isAdminUid(activeSession?.localId)
-                    ? 'You\'re signed in as the site admin. Every tool, key, assignment and grading surface on the site is unlocked — explore them whenever you like.'
-                    : activeSession?.role === 'teacher'
-                      ? 'You\'re signed in as a teacher. Answer keys, Teacher Tools, and the Resource Library are unlocked — explore them whenever you like.'
-                      : 'You\'re signed in as a student. Worksheets, drills, and your score history are unlocked — explore them whenever you like. Answer keys and teacher tools stay locked.')
-                : 'You can keep using the site while your email verifies. Member-only features unlock after email confirmation.')}
-            </p>
+
+            {needsTypePrompt ? (
+              <div className="mt-3 rounded-xl border border-amber-200/25 bg-amber-100/[0.06] p-3">
+                <p className="text-xs font-semibold text-amber-50">One quick question</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-amber-100/80">
+                  Tell us whether you are a Student, Teacher, or General user so the site owner can
+                  set your account up correctly.
+                </p>
+                <div className="mt-2.5">
+                  <AccountTypePicker value={accountType} onChange={setAccountType} compact disabled={busy} label="I am a…" />
+                </div>
+                <button type="button" onClick={() => void saveAccountType()} disabled={busy || !accountType} className="mt-2.5 w-full rounded-lg bg-gradient-to-r from-amber-300 to-amber-200 px-3 py-2 text-xs font-bold text-amber-950 disabled:opacity-50">
+                  {busy ? 'Saving…' : 'Save account type'}
+                </button>
+              </div>
+            ) : (
+              <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                {message || (activeSession ? welcomeFor(activeSession) : '')}
+              </p>
+            )}
+
+            {activeSession?.accountType === 'teacher' && !activeSession.teacherVerified && !activeSession.isAdmin && (
+              <p className="mt-2 rounded-lg border border-amber-200/20 bg-amber-100/[0.05] px-3 py-2 text-[11px] leading-relaxed text-amber-100/90">
+                {activeSession.isRevokedTeacher
+                  ? 'Teacher access was revoked by the admin. Student access still works.'
+                  : 'Teacher verification pending: teacher tools unlock automatically once your school (.edu) email is verified, or after the admin approves your account.'}
+              </p>
+            )}
+
             <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={onClose} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950">Done — back to site <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></button>
+              <button type="button" onClick={finishAndReturn} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950">
+                {returnUrl ? 'Continue' : 'Done — back to site'} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
               <button type="button" onClick={handleSignOut} className="rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/5">Sign out</button>
             </div>
           </div>
@@ -476,7 +620,7 @@ export const TeacherPassModal = ({
           </div>
         )}
 
-        {mode === 'sign-up' && <p className="mt-4 text-center text-[10px] leading-relaxed text-slate-600">Accounts are created with Firebase Authentication (Email/Password). Role is detected automatically from your email domain: any email containing "edu" (e.g., .edu.kh, .edu) becomes a teacher account; anything else becomes a student account. The session token + role are stored locally and recognized by every connected app on the site.</p>}
+        {mode === 'sign-up' && <p className="mt-4 text-center text-[10px] leading-relaxed text-slate-600">Accounts are created with Firebase Authentication (Email/Password). Your Student / Teacher / General-user choice is stored on your profile for the site owner. Teachers are verified automatically with a verified school "edu" email — otherwise an admin approves the account. Your session is recognized by every connected app on the site.</p>}
       </div>
     </div>
   );

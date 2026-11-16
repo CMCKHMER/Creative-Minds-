@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { ArrowDownToLine, ArrowRight, BookOpen, Check, ClipboardList, Pause, Play, Printer, Volume2, X, LockKeyhole } from 'lucide-react';
 import type { AssignmentQuestion, AssignmentSection, ClassroomAssignment } from '../types/assignment';
 import { downloadAssignment, openAssignmentPrintView, type AssignmentCopy } from '../utils/assignmentDocument';
+import { requestAuth } from '../lib/authPrompt';
+import { canDownloadCopy } from '../lib/gameAccess';
 import { assignmentAudioPrompt } from '../utils/assignmentAudio';
 import { resolveListeningAudio, splitSpeechTurns } from '../utils/listeningAudio';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
@@ -332,6 +334,8 @@ export function AssignmentPreview({ assignment, onClose }: AssignmentPreviewProp
   // "Teacher key — sign in as teacher" prompt.
   const session = useSignedInSession();
   const isTeacher = session?.role === 'teacher';
+  // Guests can never preview, download or print a pack (owner directive).
+  const canDownload = canDownloadCopy(session, 'student');
 
   // If the user is a student or signed-out, never let `copy` become
   // 'teacher' — even if they try to set it via devtools, the rendering
@@ -375,11 +379,19 @@ export function AssignmentPreview({ assignment, onClose }: AssignmentPreviewProp
   }, [onClose]);
 
   const handleDownload = () => {
+    if (!canDownload) {
+      requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to download this worksheet pack.' });
+      return;
+    }
     downloadAssignment(assignment, effectiveCopy);
     setStatus(`${effectiveCopy === 'student' ? 'Student copy' : 'Teacher key'} downloaded as a printable HTML file.`);
   };
 
   const handlePrint = () => {
+    if (!canDownload) {
+      requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to print this worksheet pack.' });
+      return;
+    }
     const opened = openAssignmentPrintView(assignment, effectiveCopy);
     setStatus(opened
       ? 'Print view opened in a new tab. Choose Print / Save as PDF there.'

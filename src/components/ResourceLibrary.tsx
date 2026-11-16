@@ -1,6 +1,6 @@
 import React, { useState, lazy } from 'react';
 import { 
-  Search, Download,
+  Search, Download, LockKeyhole, UserPlus,
   Sparkles, GraduationCap, ArrowRight, BookOpen
 } from 'lucide-react';
 import { RESOURCE_CATALOG } from '../data/landingData';
@@ -8,6 +8,9 @@ import { CLASSROOM_ASSIGNMENTS } from '../data/assignments';
 import { downloadAssignment } from '../utils/assignmentDocument';
 import type { ClassroomAssignment } from '../types/assignment';
 import type { ResourceCategory } from '../types';
+import { useSignedInSession } from '../hooks/useSignedInSession';
+import { requestAuth } from '../lib/authPrompt';
+import { canDownloadCopy, hasActiveAccount } from '../lib/gameAccess';
 
 // Only fetched when a teacher opens a pack preview, keeping the (large) assignment
 // renderer and its audio/print helpers out of the initial bundle.
@@ -20,6 +23,11 @@ export const ResourceLibrary: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAssignment, setSelectedAssignment] = useState<ClassroomAssignment | null>(null);
   const [downloadFeedback, setDownloadFeedback] = useState<string | null>(null);
+  // ACCOUNT RULE: guests can look through the catalogue but can never preview
+  // or download a pack — every locked action asks for a free account.
+  const session = useSignedInSession();
+  const canDownload = canDownloadCopy(session, 'student');
+  const canPreview = hasActiveAccount(session);
 
   const categories: ResourceCategory[] = [
     'All',
@@ -41,6 +49,14 @@ export const ResourceLibrary: React.FC = () => {
   const handleDownload = (resourceId: string) => {
     const assignment = CLASSROOM_ASSIGNMENTS[resourceId];
     if (!assignment) return;
+
+    if (!canDownloadCopy(session, 'student')) {
+      requestAuth({
+        mode: 'sign-up',
+        contextPrompt: 'Downloads need a free CMC account — sign up and the student copy unlocks immediately.',
+      });
+      return;
+    }
 
     downloadAssignment(assignment, 'student');
     setDownloadFeedback(resourceId);
@@ -147,12 +163,22 @@ export const ResourceLibrary: React.FC = () => {
               {/* Actions */}
               <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between gap-2">
                 <button
-                  onClick={() => assignment && setSelectedAssignment(assignment)}
+                  onClick={() => {
+                    if (!assignment) return;
+                    if (!canPreview) {
+                      requestAuth({
+                        mode: 'sign-up',
+                        contextPrompt: 'Sign up free to preview and download this worksheet pack.',
+                      });
+                      return;
+                    }
+                    setSelectedAssignment(assignment);
+                  }}
                   disabled={!assignment}
                   className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 py-1.5 px-3 rounded-lg hover:bg-slate-800 transition cursor-pointer"
                 >
-                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Preview worksheet</span>
+                  {canPreview ? <BookOpen className="w-3.5 h-3.5 text-cyan-400" /> : <LockKeyhole className="w-3.5 h-3.5 text-cyan-400" />}
+                  <span>{canPreview ? 'Preview worksheet' : 'Sign up to preview'}</span>
                 </button>
 
                 <button
@@ -170,10 +196,15 @@ export const ResourceLibrary: React.FC = () => {
                       <BookOpen className="w-3.5 h-3.5" />
                       <span>Student copy saved</span>
                     </>
-                  ) : (
+                  ) : canDownload ? (
                     <>
                       <Download className="w-3.5 h-3.5" />
                       <span>Download student copy</span>
+                    </>
+                  ) : (
+                    <>
+                      <LockKeyhole className="w-3.5 h-3.5" />
+                      <span>Sign up to download</span>
                     </>
                   )}
                 </button>
@@ -187,6 +218,22 @@ export const ResourceLibrary: React.FC = () => {
             </p>
           )}
         </div>
+
+        {!canPreview && (
+          <div className="mt-10 flex flex-col items-start gap-3 rounded-2xl border border-cyan-500/30 bg-cyan-950/40 p-5 sm:flex-row sm:items-center">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-cyan-300/25 bg-cyan-300/10 text-cyan-200"><UserPlus className="h-4 w-4" aria-hidden="true" /></span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-white">Downloads need a free account</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-300">
+                Create a free account to preview packs, download student copies and print them. Students and general
+                users get the same access — teacher answer keys stay with verified teachers.
+              </p>
+            </div>
+            <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to download worksheets and assignments.' })} className="shrink-0 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white">
+              Sign up free
+            </button>
+          </div>
+        )}
 
         {/* Bottom Banner */}
         <div className="mt-14 rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-cyan-950/70 via-slate-900 to-indigo-950/70 border border-cyan-500/30 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">

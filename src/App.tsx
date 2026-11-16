@@ -20,6 +20,9 @@ import { Sparkles, ArrowUp } from 'lucide-react';
 import { useMemberAuth } from './hooks/useMemberAuth';
 import { useFirebaseAuth } from './hooks/useFirebaseAuth';
 import { restoreSession } from './lib/firebaseAuth';
+import { AUTH_PROMPT_EVENT, type AuthPromptRequest } from './lib/authPrompt';
+import { currentRelativeUrl, parseAuthSearch, safeReturnUrl, stripAuthParams } from './lib/authLinks';
+import type { AccountType } from './lib/userProfile';
 import { supabase } from './lib/supabase';
 import { TickerBanner } from './components/TickerBanner';
 import { SectionDirectory, PageBar, MoreInGroup } from './components/SectionDirectory';
@@ -76,6 +79,7 @@ const MiniMockTest = lazy(() => retryImport(() => import('./components/MiniMockT
 const LearningGamesPage = lazy(() => retryImport(() => import('./components/LearningGamesPage')).then(m => ({ default: m.LearningGamesPage })));
 const BrainLoungePage = lazy(() => retryImport(() => import('./components/BrainLoungePage')).then(m => ({ default: m.BrainLoungePage })));
 const FirebaseDashboard = lazy(() => retryImport(() => import('./components/FirebaseDashboard')).then(m => ({ default: memo(m.FirebaseDashboard) })));
+const AdminUsersPanel = lazy(() => retryImport(() => import('./components/AdminUsersPanel')).then(m => ({ default: memo(m.AdminUsersPanel) })));
 
 const HOME_TITLE = typeof document !== 'undefined' ? document.title : '';
 
@@ -93,6 +97,9 @@ export function App() {
   const [teacherPassModalOpen, setTeacherPassModalOpen] = useState(false);
   const [studentDemoModalOpen, setStudentDemoModalOpen] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<'sign-up' | 'sign-in'>('sign-up');
+  const [authAccountType, setAuthAccountType] = useState<AccountType | null>(null);
+  const [authContext, setAuthContext] = useState<string | null>(null);
+  const [authReturnUrl, setAuthReturnUrl] = useState<string | null>(null);
   const memberAuth = useMemberAuth();
   // Firebase REST session — used as a fallback for the MiniMockTest
   // access gate when Supabase member-auth is not configured (which is the
@@ -112,6 +119,9 @@ export function App() {
 
   const openMemberAuth = useCallback((mode: 'sign-up' | 'sign-in' = 'sign-up') => {
     setAuthInitialMode(mode);
+    setAuthAccountType(null);
+    setAuthContext(null);
+    setAuthReturnUrl(null);
     setTeacherPassModalOpen(true);
   }, []);
 
@@ -240,25 +250,63 @@ export function App() {
     document.title = page ? `${page.title} · CMC Network Hub` : HOME_TITLE;
   }, [page]);
 
-  // Deep-link support for the teacher-only planner hub: the locked screen
-  // on public/biweek-planner/ (teacher-gate.js) sends unauthenticated
-  // visitors here with ?auth=teacher so the teacher sign-in modal opens
-  // immediately. The param is stripped after handling so a refresh doesn't
-  // re-pop the modal, and already-signed-in teachers are skipped.
+  // Deep-link support for every locked surface: `?auth=signup|signin|student|
+  // teacher|user` opens the account dialog in the right mode, and a validated
+  // relative `next=` target is remembered so the visitor lands where they were
+  // headed (a hash route inside the SPA, or a static page path). The params are
+  // stripped after handling so a refresh does not re-pop the dialog. Visitors
+  // who are ALREADY signed in skip straight to the target.
   useEffect(() => {
     try {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('auth') !== 'teacher') return;
-      params.delete('auth');
-      const qs = params.toString();
-      window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
-      if (restoreSession()?.role === 'teacher') return;
-      openMemberAuth('sign-in');
+      const request = parseAuthSearch(window.location.search);
+      const cleaned = stripAuthParams(window.location.search);
+      if (cleaned !== window.location.search.replace(/^\?/, '')) {
+        window.history.replaceState(
+          null,
+          '',
+          window.location.pathname + (cleaned ? `?${cleaned}` : '') + window.location.hash,
+        );
+      }
+      if (!request.mode && !request.returnUrl) return;
+
+      const existing = restoreSession();
+      if (existing?.emailVerified) {
+        // Already signed in — honour the destination and never re-open auth.
+        if (request.returnUrl?.startsWith('#')) window.location.hash = request.returnUrl.slice(1);
+        else if (request.returnUrl) window.location.assign(request.returnUrl);
+        return;
+      }
+      if (request.accountType === 'teacher') {
+        // Teacher links only make sense on the teacher sign-in screen.
+        setAuthInitialMode('sign-in');
+      } else if (request.mode) {
+        setAuthInitialMode(request.mode);
+      }
+      setAuthAccountType(request.accountType ?? null);
+      setAuthContext(request.contextPrompt ?? null);
+      setAuthReturnUrl(safeReturnUrl(request.returnUrl));
+      setTeacherPassModalOpen(true);
     } catch {
       /* noop */
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openMemberAuth]);
+
+  // Global "open the account dialog" channel — locked cards, download buttons
+  // and games call requestAuth()/requestSignUp() instead of prop-drilling a
+  // callback through every component.
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<AuthPromptRequest>).detail ?? {};
+      setAuthInitialMode(detail.mode ?? 'sign-up');
+      setAuthAccountType(detail.accountType ?? null);
+      setAuthContext(detail.contextPrompt ?? null);
+      setAuthReturnUrl(safeReturnUrl(detail.returnUrl) ?? currentRelativeUrl());
+      setTeacherPassModalOpen(true);
+    };
+    window.addEventListener(AUTH_PROMPT_EVENT, handler as EventListener);
+    return () => window.removeEventListener(AUTH_PROMPT_EVENT, handler as EventListener);
+  }, []);
 
   // The teacher sign-in / sign-up modal is rendered on EVERY route. It used
   // to live only in the landing-page tree, so "Sign in as teacher" on the
@@ -272,6 +320,9 @@ export function App() {
           isOpen={teacherPassModalOpen}
           onClose={() => setTeacherPassModalOpen(false)}
           initialMode={authInitialMode}
+          initialAccountType={authAccountType}
+          contextPrompt={authContext}
+          returnUrl={authReturnUrl}
         />
       </Suspense>
     </ErrorBoundary>
@@ -348,6 +399,14 @@ export function App() {
       case 'toefl-ibt-mock': return (
         <LazyMount id="toefl-ibt-mock" minHeight={460}>
           <TOEFLiBTCard />
+        </LazyMount>
+      );
+      // Admin-only: every registered account + one-click teacher verification.
+      // The panel itself renders the strict `isCmcAdmin()` check (a verified
+      // teacher who opens the hash gets the "admin only" screen, never data).
+      case 'users-admin': return (
+        <LazyMount id="users-admin" minHeight={420}>
+          <AdminUsersPanel />
         </LazyMount>
       );
       // Creative Minds Studio — teacher-only gated feature (requires signup)

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
 <head>
+<script src="assets/js/cmc-auth-gate.js"></script>
 <script>/* CMC_NG_NO_EMAIL_AS_NAME: an email is never a display name — Gmail sign-ins showed
    addresses on the completion ticker. Heals cmc-student-name in place
    ("mam.ry@aii.edu.kh" -> "Mam Ry") and guards every read; real names are
@@ -217,6 +218,7 @@ header { position:sticky; top:0; z-index:50; background:rgba(19,17,16,0.85); bac
   <link rel="stylesheet" href="assets/css/cmc-utilities.css">
 </head>
 <body>
+<script>CMC_GATE.guard('account', 'Sign up free to play WriteQuest.');</script>
 <!-- CMC-GAME-BG (writequest) -->
 <img src="./images/games/writequest-bg.jpg" alt="" aria-hidden="true" class="cmc-game-bg-img" />
 <div class="cmc-game-bg-overlay" aria-hidden="true"></div>
@@ -1044,7 +1046,7 @@ function showLevelComplete(title, msg, score) {
     var _score = score || 0;
     var _total = 100; /* points out of a 100-point reference scale */
     var _pct = Math.min(100, Math.round(_score));
-try{var _st=localStorage.getItem('cmc-student-token');var _sn=(window.CMC_NG?window.CMC_NG.get():localStorage.getItem('cmc-student-name'))||(function(){try{var _pn=JSON.parse(localStorage.getItem('cmc-player-name')||'null');return _pn&&_pn.name?String(_pn.name).slice(0,40):''}catch(_pe){return ''}})()||'';if(!_sn){try{_sn=(prompt("Who's playing? Enter a name to appear on the leaderboard & ticker:")||'').trim().slice(0,40)}catch(_pe){_sn=''}if(_sn)try{localStorage.setItem('cmc-player-name',JSON.stringify({name:_sn,at:Date.now()}))}catch(_pe2){}}if(!_sn)_sn='Guest';var _suid=_st?localStorage.getItem('cmc-student-uid')||'':'';if(true){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:Object.assign({'Content-Type':'application/json'},_st?{'Authorization':'Bearer '+_st}:{}),body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},studentUid:{stringValue:_suid},classId:{nullValue:null},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
+try{var _st=localStorage.getItem('cmc-student-token');var _sn=(window.CMC_NG?window.CMC_NG.get():localStorage.getItem('cmc-student-name'))||(function(){try{var _pn=JSON.parse(localStorage.getItem('cmc-player-name')||'null');return _pn&&_pn.name?String(_pn.name).slice(0,40):''}catch(_pe){return ''}})()||'';if(!_sn){try{_sn=(prompt("Who's playing? Enter a name to appear on the leaderboard & ticker:")||'').trim().slice(0,40)}catch(_pe){_sn=''}if(_sn)try{localStorage.setItem('cmc-player-name',JSON.stringify({name:_sn,at:Date.now()}))}catch(_pe2){}}if(!_sn)_sn='Guest';var _suid=_st?localStorage.getItem('cmc-student-uid')||'':'';/* ACCOUNT RULE: no guest score writes (rules require a verified account). */if(_st&&_suid){var _fs='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';fetch(_fs,{method:'POST',headers:Object.assign({'Content-Type':'application/json'},_st?{'Authorization':'Bearer '+_st}:{}),body:JSON.stringify({fields:{drillSlug:{stringValue:_slug},drillTitle:{stringValue:_title},drillSource:{stringValue:_source},studentName:{stringValue:_sn},studentUid:{stringValue:_suid},classId:{nullValue:null},scorePct:{integerValue:String(_pct)},correctCount:{integerValue:String(_score)},totalCount:{integerValue:String(_total)},submittedAt:{timestampValue:new Date().toISOString()}}})}).catch(function(e){})}}catch(e){}
   } catch (e) {}
 }
 

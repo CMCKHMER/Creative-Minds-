@@ -13,6 +13,23 @@ service cloud.firestore {
         && (request.auth.token.email.matches('.*@[^@]*[eE][dD][uU][^@]*')
             || isCmcAdmin());
     }
+    function teacherAccessDoc() {
+      return get(/databases/$(database)/documents/site_config/teacher_access).data;
+    }
+    function teacherAccessList(field) {
+      return exists(/databases/$(database)/documents/site_config/teacher_access)
+        && field in teacherAccessDoc()
+        && request.auth.uid in teacherAccessDoc()[field];
+    }
+    function isAdminApprovedTeacher() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && teacherAccessList('approvedUids')
+        && !teacherAccessList('revokedUids');
+    }
+    function isRevokedTeacher() {
+      return request.auth != null && teacherAccessList('revokedUids');
+    }
     function isVerifiedUser() {
       return request.auth != null
         && request.auth.token.email_verified == true;
@@ -23,47 +40,21 @@ service cloud.firestore {
         return !('inviteMode' in request.resource.data)
           || request.resource.data.inviteMode == false;
       }
-      allow create: if notInviteMode() && (
-          isVerifiedUser()
-          && request.resource.data.studentUid == request.auth.uid
-          && request.resource.data.studentUid is string
-          && request.resource.data.studentName is string
-          && request.resource.data.drillSlug is string
-          && request.resource.data.drillTitle is string
-          && request.resource.data.drillSource is string
-          && request.resource.data.scorePct is int
-          && request.resource.data.scorePct >= 0
-          && request.resource.data.scorePct <= 100
-          && request.resource.data.correctCount is int
-          && request.resource.data.correctCount >= 0
-          && request.resource.data.totalCount is int
-          && request.resource.data.totalCount >= 0
-        ) || (
-          request.auth == null
-          && request.resource.data.studentUid == ''
-          && request.resource.data.studentName is string
-          && request.resource.data.studentName.size() >= 1
-          && request.resource.data.studentName.size() <= 40
-          && request.resource.data.drillSlug is string
-          && request.resource.data.drillSlug.size() >= 1
-          && request.resource.data.drillSlug.size() <= 80
-          && request.resource.data.drillTitle is string
-          && request.resource.data.drillTitle.size() >= 1
-          && request.resource.data.drillTitle.size() <= 120
-          && request.resource.data.drillSource is string
-          && request.resource.data.drillSource.size() >= 1
-          && request.resource.data.drillSource.size() <= 40
-          && request.resource.data.scorePct is int
-          && request.resource.data.scorePct >= 0
-          && request.resource.data.scorePct <= 100
-          && request.resource.data.correctCount is int
-          && request.resource.data.correctCount >= 0
-          && request.resource.data.correctCount <= 10000
-          && request.resource.data.totalCount is int
-          && request.resource.data.totalCount >= 0
-          && request.resource.data.totalCount <= 10000
-          && (!('classId' in request.resource.data) || request.resource.data.classId == null)
-        );
+      allow create: if notInviteMode()
+        && isVerifiedUser()
+        && request.resource.data.studentUid == request.auth.uid
+        && request.resource.data.studentUid is string
+        && request.resource.data.studentName is string
+        && request.resource.data.drillSlug is string
+        && request.resource.data.drillTitle is string
+        && request.resource.data.drillSource is string
+        && request.resource.data.scorePct is int
+        && request.resource.data.scorePct >= 0
+        && request.resource.data.scorePct <= 100
+        && request.resource.data.correctCount is int
+        && request.resource.data.correctCount >= 0
+        && request.resource.data.totalCount is int
+        && request.resource.data.totalCount >= 0;
       allow update, delete: if false;
     }
     match /invite_codes/{code} {
@@ -81,7 +72,7 @@ service cloud.firestore {
     match /invite_attempts/{attemptId} {
       allow read: if isVerifiedTeacher()
         && resource.data.teacherUid == request.auth.uid;
-      allow create: if request.auth != null
+      allow create: if isVerifiedUser()
         && request.resource.data.teacherUid is string
         && request.resource.data.teacherUid.size() > 0
         && request.resource.data.inviteCode is string
@@ -151,13 +142,22 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isCmcAdmin();
     }
+    match /users/{uid} {
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.accountType in ['student', 'teacher', 'user'];
+      allow get, update: if isVerifiedUser() && request.auth.uid == uid;
+      allow list: if isCmcAdmin();
+      allow delete: if isCmcAdmin() || (isVerifiedUser() && request.auth.uid == uid);
+    }
     match /students/{uid} {
       allow create: if request.auth != null && request.auth.uid == uid;
       allow read, update, delete: if isVerifiedUser() && request.auth.uid == uid;
     }
     match /classes/{classId} {
       allow read: if true;
-      allow create: if isVerifiedUser();
+      allow create: if isVerifiedTeacher();
       allow update: if isVerifiedUser()
         && resource.data.teacherUid == request.auth.uid
         && request.resource.data.teacherUid == resource.data.teacherUid;
@@ -192,9 +192,11 @@ service cloud.firestore {
       allow update, delete: if false;
     }
     function isVerifiedTeacher() {
-      return request.auth.uid is string
+      return request.auth != null
         && (isCmcAdmin()
+            || (isAdminApprovedTeacher())
             || (isCmcTeacher()
+                && !isRevokedTeacher()
                 && exists(/databases/$(database)/documents/teachers/$(request.auth.uid))));
     }
     match /biweekly_tests/{testId} {
@@ -445,17 +447,10 @@ service cloud.firestore {
       allow get: if isCmcTeacher()
         || (isVerifiedUser() && resource.data.studentUid == request.auth.uid);
       allow list: if isCmcTeacher();
-      allow create: if (
-          isVerifiedUser()
-          && request.resource.data.studentUid == request.auth.uid
-          && subId == (request.resource.data.docId + '__' + request.auth.uid)
-          && studioSubFieldsOk(request.resource.data)
-        ) || (
-          request.auth == null
-          && request.resource.data.studentUid == ''
-          && subId.matches(request.resource.data.docId + '__guest_[a-zA-Z0-9]{8,20}')
-          && studioSubFieldsOk(request.resource.data)
-        );
+      allow create: if isVerifiedUser()
+        && request.resource.data.studentUid == request.auth.uid
+        && subId == (request.resource.data.docId + '__' + request.auth.uid)
+        && studioSubFieldsOk(request.resource.data);
       allow update, delete: if false;
     }
     match /{document=**} {
