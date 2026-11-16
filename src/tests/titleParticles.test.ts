@@ -4,6 +4,7 @@ import {
   LOOK_SIZE,
   Look,
   dotSpacing,
+  smallTitleSpacing,
   hslToRgb,
   letterPoints,
   paramsForFont,
@@ -248,6 +249,11 @@ describe('look, colour and size helpers', () => {
     expect(dotSpacing(20)).toBe(2);
     expect(dotSpacing(102)).toBeCloseTo(2.856, 3);
     expect(dotSpacing(400)).toBe(2.9);
+    // a smaller title keeps a visible grain: wider than dotSpacing from about 34 px up, never past 2.6
+    expect(smallTitleSpacing(20)).toBe(2);
+    expect(smallTitleSpacing(41.6)).toBeCloseTo(2.496, 3);
+    expect(smallTitleSpacing(59)).toBe(2.6);
+    for (const px of [16, 28, 34, 42, 59, 80]) expect(smallTitleSpacing(px)).toBeGreaterThanOrEqual(dotSpacing(px));
     expect(particleBudget(390)).toBeLessThan(particleBudget(800));
     expect(particleBudget(800)).toBeLessThan(particleBudget(1440));
   });
@@ -293,7 +299,8 @@ describe('how the effect is wired into the page', () => {
       expect(file).not.toMatch(/from ['"]three['"]/);
       expect(file).not.toMatch(/from ['"]\.\.\/lib\/titleParticles['"]/);
     }
-    expect(hero).toMatch(/useTitleParticles\(\{ section: heroRef, title: titleRef, canvas: titleCanvasRef \}\)/);
+    // the glass board sets the title smaller, so it takes the finer dot spacing of the small titles
+    expect(hero).toMatch(/useTitleParticles\(\{ section: heroRef, title: titleRef, canvas: titleCanvasRef, spacing: smallTitleSpacing \}\)/);
     const math = readFileSync('src/lib/titleParticlesMath.ts', 'utf8');
     expect(math).not.toMatch(/from ['"]three['"]/);
   });
@@ -310,20 +317,34 @@ describe('how the effect is wired into the page', () => {
 
   it('the planner heading is drawn the same way and keeps its text', () => {
     // both lines are real text inside the <h2>, each line a span that starts with its text
-    expect(planner).toMatch(/<h2 id="biweek-title" ref=\{titleRef\} className=\{`cmc-h2\$\{headingAsDots \? ' cmc-dots-on' : ''\}`\}>/);
+    expect(planner).toMatch(/<h2 id="biweek-title" ref=\{titleRef\} className=\{`cmc-h2 cmc-h2-hero\$\{headingAsDots \? ' cmc-dots-on' : ''\}`\}>/);
     expect(planner).toContain('<span className="cmc-dots-line">TOEFL ITP</span>');
     expect(planner).toContain('<span className="cmc-dots-line cmc-gradient-text" data-dot-gradient="">Bi-Weekly Planner.</span>');
-    expect(planner).toMatch(/enabled: isTeacher, whenNear: true, letters: '\.cmc-dots-line', gradient: HEADING_DOTS/);
+    expect(planner).toMatch(/enabled: isTeacher, whenNear: true, letters: '\.cmc-dots-line', gradient: HEADING_DOTS, spacing: smallTitleSpacing/);
     expect(planner).toContain('{isTeacher && <canvas ref={canvasRef} className="cmc-title-canvas" aria-hidden="true" />}');
     const rule = css.match(/\.cmc-dots-on \.cmc-dots-line\s*\{([^}]*)\}/);
     expect(rule?.[1]).toMatch(/opacity:\s*0/);
     expect(rule?.[1]).not.toMatch(/display|visibility/);
   });
 
+  it('the planner heading is set in the hero title\'s lettering', () => {
+    const fontOf = (selector: string) => css.match(new RegExp(`\\n${selector} \\{([^}]*)\\}`))![1].match(/font-family:\s*([^;]+);/)![1];
+    // the hero title and the planner heading name the same font; a plain heading does not
+    expect(fontOf('\\.cmc-title')).toBe('var(--font-hero)');
+    expect(fontOf('\\.cmc-h2-hero')).toBe('var(--font-hero)');
+    expect(fontOf('\\.cmc-h2')).toBe('var(--font-display)');
+    expect(css).toMatch(/--font-hero:\s*'Syne'/);
+    // the first line is the smaller one, as in the hero (0.62 of the second)
+    expect(css.match(/\.cmc-title-row-first \{([^}]*)\}/)![1]).toMatch(/font-size:\s*0\.62em/);
+    expect(css.match(/\.cmc-h2-hero > span:first-child \{([^}]*)\}/)![1]).toMatch(/font-size:\s*0\.62em/);
+  });
+
   it('the planner dots take the colours of the gradient text they stand for', () => {
     const stops = (block: string) => [...block.matchAll(/(#[0-9a-f]{6}) (\d+)%/g)].map((m) => [Number(m[2]) / 100, m[1]]);
-    const dark = css.match(/\n\.cmc-gradient-text\s*\{([^}]*)\}/)![1];
-    const light = css.match(/html\.light \.cmc-gradient-text\s*\{([^}]*)\}/)![1];
+    // the glass theme (src/glass.css, loaded after index.css) sets the gradient text
+    const glass = readFileSync('src/glass.css', 'utf8');
+    const dark = glass.match(/\n\.cmc-gradient-text\s*\{([^}]*)\}/)![1];
+    const light = glass.match(/\nhtml\.light \.cmc-gradient-text\s*\{([^}]*)\}/)![1];
     const pick = (name: string) => JSON.parse(planner.match(new RegExp(`${name}: (\\[\\[.*?\\]\\]),`))![1].replace(/'/g, '"'));
     expect(pick('dark')).toEqual(stops(dark));
     expect(pick('light')).toEqual(stops(light));

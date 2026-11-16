@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
 <head>
+<script src="../assets/js/cmc-auth-gate.js"></script>
     <!-- English-only site: block browser auto-translate -->
     <meta name="google" content="notranslate" />
 <script>/* Pre-paint theme restore — synced with the main site "cmc-theme" toggle. */
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded',function(){document.documentElement
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reading Future Change 1 — Unscramble Sheet</title>
+<link rel="stylesheet" href="../assets/css/cmc-iridescent.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
 :root{--bg:#05070f;--s2:#0d1526;--bd:rgba(148,163,184,.14);--cy:#22d3ee;--cyl:#67e8f9;--vi:#8b5cf6;--vil:#c4b5fd;--tx:#e2e8f0;--mu:#8fa3b8;--ok:#34d399;--er:#f87171;color-scheme:dark}
@@ -120,6 +122,7 @@ body.light .placeholder{border-color:#c3cfdd}
 </style>
 </head>
 <body>
+<script>CMC_GATE.guard('account', 'Sign up free to open this worksheet.');</script>
 <div class="bg-grid"></div>
 <div class="container">
   <!-- Aii Language Center sponsor banner (screen + print) -->

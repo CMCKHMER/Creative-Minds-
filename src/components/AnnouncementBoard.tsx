@@ -3,8 +3,7 @@ import {
   CalendarDays, ChevronDown, ChevronUp, ImagePlus, Loader2, LockKeyhole, Megaphone, Pencil, Pin, PinOff,
   Plus, ShieldCheck, Trash2, Users, X,
 } from 'lucide-react';
-import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
-import { isAdminUid } from '../lib/firebaseAuth';
+import { FIREBASE_PROJECT_ID, getValidIdToken, isAdminUid, tokenEmailVerified } from '../lib/firebaseAuth';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 
 /**
@@ -188,6 +187,30 @@ async function requireOk(res: Response, fallback: string): Promise<void> {
   throw new Error(err?.error?.message || `${fallback} (HTTP ${res.status})`);
 }
 
+/**
+ * ID token for a board WRITE.
+ *
+ * The stored `session.idToken` only lives about an hour: Firebase mints it at
+ * sign-in and nothing refreshes it in localStorage until some other surface
+ * asks. Publishing with that stale string made Firestore reject the write
+ * with `permission-denied` — the rules see an expired token as no auth at
+ * all, so even the site owner could not post after browsing for a while.
+ * `getValidIdToken()` refreshes the stored token from the refresh token
+ * first (and falls back to the live SDK session), which is what every other
+ * writer on the site already does. An unverified account is refused here
+ * with a readable message instead of an opaque rules denial.
+ */
+async function announceToken(): Promise<string> {
+  const token = await getValidIdToken().catch(() => null);
+  if (!token) {
+    throw new Error('Your sign-in has expired. Sign in again, then publish.');
+  }
+  if (tokenEmailVerified(token) === false) {
+    throw new Error('Verify your email address first — publishing needs a verified account.');
+  }
+  return token;
+}
+
 // ── API calls ────────────────────────────────────────────────────────
 
 async function fetchAnnouncements(): Promise<Announcement[]> {
@@ -325,7 +348,6 @@ export function AnnouncementBoard() {
   const session = useSignedInSession();
   const localId = session?.localId || null;
   const isOwner = !!localId && isAdminUid(localId);
-  const idToken = session?.idToken || '';
 
   const [posts, setPosts] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(false);
@@ -344,6 +366,18 @@ export function AnnouncementBoard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canPost = !!localId && (isOwner || approvedUids.includes(localId));
+  // Why the composer is missing — the three reasons an admin can actually
+  // hit, each with its own fix. Prevents the old dead end where the site
+  // owner saw nothing at all and had no way to tell what was wrong.
+  const blockReason: 'unverified' | 'expired' | 'not-admin' | null = canPost
+    ? null
+    : !session
+      ? null
+      : !session.emailVerified
+        ? 'unverified'
+        : session.isExpired
+          ? 'expired'
+          : 'not-admin';
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -373,6 +407,14 @@ export function AnnouncementBoard() {
   useEffect(() => {
     if (localId) void refreshAdmins();
   }, [localId, refreshAdmins]);
+
+  // Silently renew an aging ID token when the board opens: the write helpers
+  // below refresh on demand, and this keeps the composer's own
+  // `session.isExpired`/verification state honest after a long idle tab.
+  useEffect(() => {
+    if (!localId) return;
+    void getValidIdToken().catch(() => null);
+  }, [localId]);
 
   const openComposer = (post?: Announcement) => {
     setFormError(null);
@@ -416,12 +458,13 @@ export function AnnouncementBoard() {
     setBusy(true);
     setFormError(null);
     try {
+      const token = await announceToken();
       if (editingId) {
         const post = posts.find((p) => p.id === editingId);
         if (!post) throw new Error('That announcement no longer exists — refresh and try again.');
-        await updateAnnouncement(idToken, post, { ...draft, title, body });
+        await updateAnnouncement(token, post, { ...draft, title, body });
       } else {
-        await createAnnouncement(idToken, {
+        await createAnnouncement(token, {
           title, body, imageUrl: draft.imageUrl, pinned: draft.pinned,
           authorName: session.displayName || session.email,
           authorUid: session.localId,
@@ -442,7 +485,7 @@ export function AnnouncementBoard() {
     setBusy(true);
     setError(null);
     try {
-      await updateAnnouncement(idToken, post, {
+      await updateAnnouncement(await announceToken(), post, {
         title: post.title, body: post.body, imageUrl: post.imageUrl, pinned: !post.pinned,
       });
       await refresh();
@@ -459,7 +502,7 @@ export function AnnouncementBoard() {
     setBusy(true);
     setError(null);
     try {
-      await deleteAnnouncement(idToken, post.id);
+      await deleteAnnouncement(await announceToken(), post.id);
       if (editingId === post.id) closeComposer();
       await refresh();
     } catch (e) {
@@ -477,7 +520,7 @@ export function AnnouncementBoard() {
     setAdminListError(null);
     try {
       const next = approvedUids.includes(uid) ? approvedUids : [...approvedUids, uid];
-      await writeApprovedUids(idToken, next);
+      await writeApprovedUids(await announceToken(), next);
       setApprovedUids(next);
       setNewAdminUid('');
     } catch (e) {
@@ -494,7 +537,7 @@ export function AnnouncementBoard() {
     setAdminListError(null);
     try {
       const next = approvedUids.filter((u) => u !== uid);
-      await writeApprovedUids(idToken, next);
+      await writeApprovedUids(await announceToken(), next);
       setApprovedUids(next);
     } catch (e) {
       setAdminListError(e instanceof Error ? e.message : 'Could not save the admin list.');
@@ -781,11 +824,26 @@ export function AnnouncementBoard() {
           </div>
         )}
 
-        {/* Owner tools shortcut when not an approved poster (impossible today, future-proof) */}
-        {!canPost && isOwner && (
-          <p className="mb-8 rounded-xl border border-amber-200/20 bg-amber-100/[0.04] px-4 py-3 text-xs text-amber-100/80">
-            Your account is the site owner but posting failed to unlock — make sure you are signed in
-            with a verified email, then reload the page.
+        {/* Signing in is not enough to post: say exactly what is missing. */}
+        {blockReason === 'unverified' && (
+          <p className="mb-8 rounded-xl border border-amber-200/20 bg-amber-100/[0.04] px-4 py-3 text-xs leading-relaxed text-amber-100/90">
+            <strong className="font-bold">Verify your email to publish.</strong> Your account is signed in
+            but the address is not verified yet, and Firestore only accepts board writes from verified
+            accounts. Open the verification link in your inbox (check spam), then reload this page.
+          </p>
+        )}
+        {blockReason === 'expired' && (
+          <p className="mb-8 rounded-xl border border-amber-200/20 bg-amber-100/[0.04] px-4 py-3 text-xs leading-relaxed text-amber-100/90">
+            <strong className="font-bold">Your sign-in expired.</strong> Publishing will not work until the
+            session is renewed — reload the page, and if this note stays, sign in again.
+          </p>
+        )}
+        {blockReason === 'not-admin' && (
+          <p className="mb-8 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-xs leading-relaxed text-slate-400">
+            <strong className="font-bold text-slate-200">Publishing is for approved admins.</strong> This
+            account is signed in as <code className="rounded bg-white/5 px-1">{session?.email || 'a member'}</code>,
+            but it is not on the board's admin list. Ask the site owner to approve its UID
+            <code className="ml-1 rounded bg-white/5 px-1">{localId || '…'}</code> under “Approve admins”.
           </p>
         )}
 

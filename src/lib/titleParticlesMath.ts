@@ -131,6 +131,17 @@ export function dotSpacing(fontPx: number): number {
   return Math.min(2.9, Math.max(2, fontPx * 0.028));
 }
 
+/**
+ * The same for a title a good deal smaller than the hero's (the TOEFL ITP
+ * Bi-Weekly Planner headings: 42–59 px against the hero's 102 px on a desktop
+ * screen). At dotSpacing() their dots sit so close that the letters look
+ * solid, or — on a screen with one device pixel per CSS pixel — faint; this
+ * keeps the hero's visible grain. Small letters (a phone) still get 2.
+ */
+export function smallTitleSpacing(fontPx: number): number {
+  return Math.min(2.6, Math.max(2, fontPx * 0.06));
+}
+
 /** How the dots react — every length is in CSS pixels. */
 export interface ParticleParams {
   /** Radius of the clearing the cursor opens in the letters. */

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="assets/js/cmc-auth-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d18">
@@ -220,6 +221,7 @@ body[data-phase=day] #bg.has-day~main #twNight{opacity:0}
 </style>
 </head>
 <body data-phase="night">
+<script>CMC_GATE.guard('account', 'Sign up free to play Mafia Noir.');</script>
 <div id="bg"><div class="bg-art" id="bgNight"></div><div class="bg-art" id="bgDay"></div><div id="bgScrim"></div><div id="dayWash"></div><div id="moon"></div><div id="sun"></div><div id="skyA"></div><div id="skyB"></div><div class="fog" id="fogA"></div><div class="fog" id="fogB"></div></div>
 <canvas id="fx"></canvas><div id="vignette"></div><div id="grain"></div>
 

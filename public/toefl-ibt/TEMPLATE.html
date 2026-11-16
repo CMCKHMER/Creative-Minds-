@@ -5,6 +5,8 @@
     <meta name="google" content="notranslate" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ACCOUNT RULE: every TOEFL iBT practice page needs a free CMC account. -->
+    <script src="../assets/js/cmc-auth-gate.js"></script>
     <title>TOEFL iBT - [SECTION NAME]</title>
     
     <!-- Google Fonts -->
@@ -28,6 +30,7 @@
 <!-- Add the appropriate section class to body -->
 <!-- Options: section-reading | section-listening | section-speaking | section-writing -->
 <body class="section-[SECTION NAME]">
+    <script>CMC_GATE.guard('account', 'Sign up free to open the TOEFL iBT section practice.');</script>
 
     <!-- ========================================
          HEADER (Consistent across all sections)

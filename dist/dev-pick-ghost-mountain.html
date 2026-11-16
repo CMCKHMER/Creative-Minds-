@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="assets/js/cmc-auth-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ghost Mountain · Reading &amp; Quiz — CMC Developer's Picks</title>
@@ -171,6 +172,7 @@ footer{margin-top:52px;border-top:1px solid var(--line-soft);padding-top:18px;te
 </head>
 <body>
 
+<script>CMC_GATE.guard('account', 'Sign up free to play Ghost Mountain.');</script>
 <!-- Back to CMC home (same fixture as the other standalone games) -->
 <a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" aria-label="Back to CMC home">
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" stroke="#c9a45c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>

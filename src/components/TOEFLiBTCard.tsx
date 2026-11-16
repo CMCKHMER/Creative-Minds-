@@ -1,4 +1,7 @@
-import { ArrowUpRight, BookOpen, Headphones, Mic, PenLine, LockKeyhole, Clock3 } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Headphones, Mic, PenLine, LockKeyhole, Clock3, UserPlus } from 'lucide-react';
+import { useSignedInSession } from '../hooks/useSignedInSession';
+import { requestAuth } from '../lib/authPrompt';
+import { hasActiveAccount } from '../lib/gameAccess';
 
 // TOEFL iBT mock test files ship in the same CMC repo's public/toefl-ibt/
 // folder, so the URL is relative (./toefl-ibt/index.html). When deployed
@@ -72,6 +75,10 @@ const previewSvg = `data:image/svg+xml,${encodeURIComponent(`
 `)}`;
 
 export function TOEFLiBTCard() {
+  // ACCOUNT RULE: the mock test is a signed-in activity. Guests see a
+  // sign-up CTA instead of the link (the standalone page gates itself too).
+  const session = useSignedInSession();
+  const open = hasActiveAccount(session);
   return (
     <section id="toefl-ibt-mock" aria-labelledby="toefl-ibt-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-cyan-100/10 bg-[#07131f] py-20 sm:py-24 lg:py-28">
       {/* Full-bleed semi-transparent card background image */}
@@ -87,12 +94,22 @@ export function TOEFLiBTCard() {
           <h2 id="toefl-ibt-title" className="cmc-h2">TOEFL iBT<br /><span className="cmc-gradient-text">Full Mock Test.</span></h2>
           <p className="cmc-lead">Run the complete four-section TOEFL iBT mock test in your browser — Reading, Listening, Speaking (with microphone recording), and Writing. Includes audio playback, a per-section timer, progress tracking, and a security-notice flow that simulates the real exam experience.</p>
           <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-            <a href={TOEFL_IBT_URL} aria-label="Open the TOEFL iBT full mock test" className="cmc-btn-3d group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">
-              Start the mock test <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
-            </a>
+            {open ? (
+              <a href={TOEFL_IBT_URL} aria-label="Open the TOEFL iBT full mock test" className="cmc-btn-3d group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">
+                Start the mock test <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+              </a>
+            ) : (
+              <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to open the full TOEFL iBT mock test.' })} className="cmc-btn-3d group inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200">
+                <UserPlus className="h-4 w-4" aria-hidden="true" /> Sign up free to start
+              </button>
+            )}
             <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"><Clock3 className="h-3 w-3 text-cyan-300/70" aria-hidden="true" />Full test runs ~3 hours</span>
           </div>
-          <a href={TOEFL_IBT_URL} className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-slate-500 underline decoration-slate-700 underline-offset-4 transition hover:text-cyan-100">cmckhmer.github.io/Creative-Minds-/toefl-ibt <ArrowUpRight className="h-3 w-3" aria-hidden="true" /></a>
+          {open ? (
+            <a href={TOEFL_IBT_URL} className="mt-4 inline-flex items-center gap-1.5 text-[10px] text-slate-500 underline decoration-slate-700 underline-offset-4 transition hover:text-cyan-100">cmckhmer.github.io/Creative-Minds-/toefl-ibt <ArrowUpRight className="h-3 w-3" aria-hidden="true" /></a>
+          ) : (
+            <p className="mt-4 text-[10px] text-slate-500">Free account required — <button type="button" onClick={() => requestAuth({ mode: 'sign-in', contextPrompt: 'Sign in to open the TOEFL iBT mock test.' })} className="font-semibold text-cyan-200 underline underline-offset-2 hover:text-white">sign in</button> if you already have one.</p>
+          )}
           <p className="mt-4 flex max-w-xl items-start gap-2 text-[10px] leading-relaxed text-slate-500"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/70" aria-hidden="true" /><span>Test responses stay in your browser tab — nothing is submitted or saved to a server. Audio files (MP3s) load from the same CMC deploy.</span></p>
         </div>
 

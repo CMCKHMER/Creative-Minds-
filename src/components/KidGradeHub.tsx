@@ -2,6 +2,9 @@ import { Fragment, useEffect, useState } from 'react';
 import { ArrowUpRight, BarChart3, BookOpen, CheckCircle2, Check, ChevronDown, ChevronUp, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles } from 'lucide-react';
 import { KID_GRADE_RESOURCES, type KidGradeMaterial } from '../data/kidGradeResources';
 import { getProjectId, getValidIdToken, restoreSession } from '../lib/firebaseAuth';
+import { useSignedInSession } from '../hooks/useSignedInSession';
+import { requestAuth } from '../lib/authPrompt';
+import { hasActiveAccount } from '../lib/gameAccess';
 import { KidHomeworkScores } from './KidHomeworkScores';
 import { Reveal } from './Reveal';
 
@@ -53,6 +56,10 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
   // so a homework the teacher shares WHILE someone is looking appears by
   // itself: re-check every 20s + on tab focus. No reload.
   const [shareStatus, setShareStatus] = useState<Record<string, HomeworkShareStatus>>({});
+  // ACCOUNT RULE: worksheet links need a free CMC account (the worksheet
+  // pages gate themselves too, but asking here keeps the visitor in-app).
+  const session = useSignedInSession();
+  const canOpen = hasActiveAccount(session);
   const [isTeacher, setIsTeacher] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [toggleError, setToggleError] = useState<ToggleErrorKind | null>(null);
@@ -260,10 +267,23 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
                     <div className="relative z-10 mt-4"><h3 className="text-sm font-semibold leading-snug text-cyan-50">{GRADE_BOOK_NAMES[resource.grade] ?? `Kid ${resource.grade} learning materials`}</h3><p className="mt-1.5 text-[10px] leading-relaxed text-slate-500">Select an existing resource to open its worksheet page:</p></div>
                     <div className="relative z-10 mt-3 space-y-2">
                       {sheets.map((material) => (
-                        <a key={material.id} href={material.href} aria-label={`Open Kid ${resource.grade}: ${material.title}`} className="group/link flex items-start gap-2 rounded-lg border border-white/7 bg-slate-950/50 p-2.5 transition hover:border-cyan-200/25 hover:bg-cyan-200/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200">
+                        <a
+                          key={material.id}
+                          href={canOpen ? material.href : undefined}
+                          onClick={canOpen ? undefined : (event) => {
+                            event.preventDefault();
+                            requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to open Kid grade worksheets.' });
+                          }}
+                          role="link"
+                          aria-disabled={!canOpen}
+                          aria-label={canOpen ? `Open Kid ${resource.grade}: ${material.title}` : `Sign up to open Kid ${resource.grade}: ${material.title}`}
+                          className="group/link flex items-start gap-2 rounded-lg border border-white/7 bg-slate-950/50 p-2.5 transition hover:border-cyan-200/25 hover:bg-cyan-200/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
+                        >
                           <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-200" aria-hidden="true" />
                           <span className="min-w-0 flex-1"><span className="block text-[10px] font-semibold leading-snug text-slate-200 group-hover/link:text-cyan-100">{material.title}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-500">{material.kind}{material.units ? ` · ${material.units} units` : ''}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-600">{material.description}</span></span>
-                          <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-200/75" aria-hidden="true" />
+                          {canOpen
+                            ? <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-200/75" aria-hidden="true" />
+                            : <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />}
                         </a>
                       ))}
                     </div>

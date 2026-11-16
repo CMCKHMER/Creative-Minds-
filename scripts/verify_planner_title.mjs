@@ -1,7 +1,7 @@
 // TOEFL ITP Bi-Weekly Planner heading as particles — browser check.
 //
 // Owner request: "make a change to the weekly toefl text like in the hero
-// area". The heading of the planner section on the home page (teachers only)
+// area". The heading of the planner page (/#toefl-itp-planner, teachers only)
 // is drawn as dots by the same effect as the hero title
 // (src/lib/titleParticles.ts through src/hooks/useTitleParticles.ts).
 // This loads the built site as a signed-in teacher and checks:
@@ -61,7 +61,7 @@ const browser = await chromium.launch({
 const b64u = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const TOKEN = `${b64u({ alg: 'none' })}.${b64u({ user_id: 'teacher-1', email: 'bora@school.edu.kh', email_verified: true })}.sig`;
 
-/** The home page, scrolled to the planner. `who`: 'teacher' or 'visitor'. */
+/** The planner page. `who`: 'teacher' or 'visitor'. */
 async function open({ who = 'teacher', theme = 'dark', width = 1280, height = 900, reducedMotion = 'no-preference' } = {}) {
   // serviceWorkers 'block': the sandboxed single-process Chromium dies when a
   // second context registers the site's service worker. It also shares
@@ -82,9 +82,13 @@ async function open({ who = 'teacher', theme = 'dark', width = 1280, height = 90
     if (m.type() === 'warning' && /THREE|WebGL/.test(text) && !/ReadPixels/.test(text)) problems.push(`warning: ${text}`);
   });
   await page.route('**/*', (route) => (route.request().url().startsWith(ORIGIN) ? route.continue() : route.abort()));
-  await page.goto(`${ORIGIN}/`, { waitUntil: 'load' });
-  await page.waitForSelector('#toefl-itp-planner', { state: 'attached', timeout: 20000 });
-  await page.evaluate(() => document.getElementById('toefl-itp-planner').scrollIntoView({ block: 'start' }));
+  // The planner is a page of its own since the home page became one card per
+  // page (src/lib/sitePages.ts); its address is the anchor it always had.
+  await page.goto(`${ORIGIN}/#toefl-itp-planner`, { waitUntil: 'load' });
+  // `section#…`: the placeholder that holds the id while the chunk downloads
+  // is a <div>, and it gives the id up a moment before the section takes it.
+  await page.waitForSelector('section#toefl-itp-planner', { state: 'attached', timeout: 30000 });
+  await page.evaluate(() => document.getElementById('toefl-itp-planner')?.scrollIntoView({ block: 'start' }));
   return { page, problems };
 }
 
@@ -150,9 +154,9 @@ async function linesPainted(page) {
   const [one, two] = rest;
   const grey = (c) => !!c && Math.max(...c) - Math.min(...c) < 26;
   check(grey(one.left) && grey(one.right) && one.left[0] > 150, 'line 1 rests in the plain letter colour (near white)', `${one.left} | ${one.right}`);
-  // gradient: cyan and teal on the left half (green well above red, blue no
-  // higher than green), turning indigo on the right half (blue above green)
-  check(!!two.left && !!two.right && two.left[1] - two.left[0] > 25 && two.left[2] - two.left[1] < 8 && two.right[2] - two.right[1] > 15, 'line 2 runs from teal on the left to indigo on the right', `${two.left} → ${two.right}`);
+  // gradient (glass theme): the spheres' pale blue on the left half (blue well
+  // above red), turning to the warm light on the right half (red catches up)
+  check(!!two.left && !!two.right && two.left[2] - two.left[0] > 25 && (two.right[0] - two.right[2]) - (two.left[0] - two.left[2]) > 20, 'line 2 runs from pale blue on the left to warm light on the right', `${two.left} → ${two.right}`);
 
   // the cursor opens a clearing; the dots come home when it leaves
   const box = await page.evaluate(() => { const r = document.querySelector('#biweek-title .cmc-dots-line').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });

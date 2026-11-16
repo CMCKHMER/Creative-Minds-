@@ -259,7 +259,9 @@ async function dotsOnLetters(page, label) {
       `resized to ${w}: the drawing buffer follows`, JSON.stringify(sizes));
     await dotsOnLetters(page, `resized to ${w}`);
   }
-  await page.evaluate(() => window.scrollTo(0, 180));
+  // 90px, not more: on the glass board the title sits higher, and a longer
+  // scroll slides it under the frosted menu bar, which hides part of it
+  await page.evaluate(() => window.scrollTo(0, 90));
   await page.waitForTimeout(600);
   await dotsOnLetters(page, 'page scrolled');
   await page.evaluate(() => window.scrollTo(0, 0));

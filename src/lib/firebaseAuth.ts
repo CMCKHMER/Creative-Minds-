@@ -21,6 +21,24 @@
 
 import { firebaseConfig, firebaseConfigured as sdkFirebaseConfigured } from './firebase';
 import { selfHealStoredStudentName } from './studentName';
+import {
+  ADMIN_UIDS,
+  checkIsAdminUid,
+  clearPendingSignupMeta,
+  ensureTeacherAllowlist,
+  fetchOwnUserProfile,
+  fetchTeacherAccessConfig,
+  isAccountType,
+  isEduEmailDomain,
+  loadPendingSignupMeta,
+  readCachedTeacherAccess,
+  resolveEffectiveAccess,
+  savePendingSignupMeta,
+  upsertUserProfileDoc,
+  type AccountType,
+} from './userProfile';
+
+export { ADMIN_UIDS, type AccountType };
 
 const API_KEY = (firebaseConfig.apiKey || '').trim();
 export const FIREBASE_PROJECT_ID = (firebaseConfig.projectId || '').trim() || 'creative-minds-cambodia';
@@ -44,13 +62,19 @@ export interface FirebaseSession {
    *  sign-up; false means the UI should steer the user to "Resend". */
   verificationSent?: boolean;
   /**
-   * Role — populated by signUpWithEmail / signInWithEmail after the
-   * session is persisted to localStorage. Auto-detected from the email
-   * domain (contains "edu" → 'teacher', else 'student'). Callers should
-   * prefer `session.role` for UI affordances; `restoreSession()` is the
-   * canonical source for non-React code.
+   * Effective gating role ('teacher' = verified teacher or admin;
+   * 'student' = student, general user, or unverified teacher).
    */
   role?: 'teacher' | 'student';
+  /** Self-identified user category ('student' | 'teacher' | 'user'). */
+  accountType?: AccountType;
+  /** True when the account holds verified teacher (or admin) privileges. */
+  teacherVerified?: boolean;
+  /** True when the user selected 'teacher' but awaits admin verification. */
+  isPendingTeacher?: boolean;
+  /** True when Google/REST sign-in found no recorded accountType yet and
+   *  the UI should prompt the user to identify as Student / Teacher / User. */
+  needsAccountTypePrompt?: boolean;
 }
 
 interface RawAuthResponse {
@@ -186,9 +210,10 @@ export interface SignUpInput {
   password: string;
   displayName?: string;
   school?: string;
-  /** Account role ('teacher' | 'student'). Callers should pass the
-   *  email-detected role here — NOT the free-text teaching-role select
-   *  value — so the persisted `cmc-student-role` stays a clean enum. */
+  grade?: string;
+  /** Explicit user category selected at sign-up ('student' | 'teacher' | 'user'). */
+  accountType?: AccountType;
+  /** Legacy fallback role — prefer `accountType`. */
   role?: 'teacher' | 'student';
   /** Where the email-verification link should send the user. */
   continueUrl?: string;
@@ -198,44 +223,170 @@ export interface SignUpInput {
 }
 
 export async function signUpWithEmail(input: SignUpInput): Promise<FirebaseSession> {
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const chosenType: AccountType = isAccountType(input.accountType)
+    ? input.accountType
+    : input.role === 'teacher'
+      ? 'teacher'
+      : 'student';
+
   const session = await authFetch('/accounts:signUp', {
-    email: input.email,
+    email: normalizedEmail,
     password: input.password,
     returnSecureToken: true,
     displayName: input.displayName || undefined,
   });
+
+  // Remember the chosen account type + profile fields locally AND write the
+  // initial `users/{uid}` document while the brand-new auth token exists so
+  // the site owner knows immediately whether this signup is a student,
+  // teacher, or general user.
+  savePendingSignupMeta(normalizedEmail, {
+    accountType: chosenType,
+    displayName: input.displayName?.trim() || undefined,
+    school: input.school?.trim() || undefined,
+    grade: input.grade?.trim() || undefined,
+    teachingRole: input.teachingRole?.trim() || undefined,
+  });
+  void upsertUserProfileDoc({
+    uid: session.localId,
+    idToken: session.idToken,
+    email: session.email,
+    displayName: input.displayName?.trim() || session.displayName,
+    accountType: chosenType,
+    emailVerified: false,
+    school: input.school,
+    grade: input.grade,
+    teachingRole: input.teachingRole,
+    isNewSignup: true,
+  });
+
   // SECURITY: every account starts unverified. A usable session is NOT
   // persisted to localStorage and NOT mirrored into the SDK auth state —
   // the user must first prove the address is theirs by clicking the
-  // verification link in their inbox. The returned session exists only so
-  // the calling UI can show the check-your-inbox state and offer "Resend".
+  // verification link in their inbox.
   try {
     await sendEmailVerification(session.idToken, input.continueUrl);
     session.verificationSent = true;
   } catch {
     session.verificationSent = false; // UI steers the user to "Resend"
   }
-  // Role detection (email domain contains "edu" → teacher) so callers can
-  // tailor the success message. Profile fields (school, teaching role) are
-  // re-collected by persistSession on the first VERIFIED sign-in.
-  // Admin accounts always resolve to the teacher role — every gate opens.
-  session.role = isAdminUid(session.localId)
-    ? 'teacher'
-    : input.role || detectRoleFromEmail(session.email);
+
+  // Preview the effective access the account will hold after email verification.
+  const preview = resolveEffectiveAccess({
+    uid: session.localId,
+    email: session.email,
+    emailVerified: true,
+    accountType: chosenType,
+    teacherAccess: readCachedTeacherAccess(),
+  });
+  session.role = preview.role;
+  session.accountType = preview.accountType;
+  session.teacherVerified = preview.isVerifiedTeacher;
+  session.isPendingTeacher = preview.isPendingTeacher;
   return session;
 }
 
 export interface SignInInput {
   email: string;
   password: string;
+  /** User type selected in the sign-in prompt ('student' | 'teacher' | 'user'). */
+  accountType?: AccountType;
   /** Where a fresh verification email should land the user (unverified
    *  sign-ins only). */
   continueUrl?: string;
 }
 
+/** Resolve account type + live teacher verification status, persist localStorage,
+ *  and sync Firestore `users/{uid}` (+ `teachers/{uid}` allowlist when verified). */
+async function finalizeAuthenticatedSession(
+  session: FirebaseSession,
+  explicitAccountType?: AccountType,
+): Promise<FirebaseSession> {
+  const stored = loadStoredProfile(session.localId);
+  const pending = loadPendingSignupMeta(session.email);
+  const [teacherAccess, remoteProfile] = await Promise.all([
+    fetchTeacherAccessConfig(),
+    fetchOwnUserProfile(session.localId, session.idToken),
+  ]);
+
+  const knownType: AccountType | null = isAccountType(explicitAccountType)
+    ? explicitAccountType
+    : pending?.accountType
+      ?? remoteProfile?.accountType
+      ?? (isAccountType(stored.accountType) ? stored.accountType : null);
+
+  const access = resolveEffectiveAccess({
+    uid: session.localId,
+    email: session.email,
+    emailVerified: session.emailVerified,
+    accountType: knownType,
+    teacherAccess,
+  });
+
+  const mergedDisplayName =
+    session.displayName
+    || pending?.displayName
+    || stored.displayName
+    || remoteProfile?.displayName
+    || undefined;
+  const mergedSchool = pending?.school || stored.school || remoteProfile?.school || undefined;
+  const mergedGrade = pending?.grade || stored.grade || remoteProfile?.grade || undefined;
+  const mergedTeachingRole =
+    pending?.teachingRole || stored.teachingRole || remoteProfile?.teachingRole || undefined;
+
+  persistSession(session, {
+    displayName: mergedDisplayName,
+    school: mergedSchool,
+    grade: mergedGrade,
+    role: access.role,
+    accountType: access.accountType,
+    accountTypeConfirmed: Boolean(knownType) || access.isAdmin,
+    teacherVerified: access.isVerifiedTeacher,
+    teachingRole: mergedTeachingRole,
+  });
+
+  if (pending) clearPendingSignupMeta(session.email);
+
+  // Sync profile record to Firestore so admin always has up-to-date user classification.
+  if (knownType || access.isAdmin || remoteProfile) {
+    void upsertUserProfileDoc({
+      uid: session.localId,
+      idToken: session.idToken,
+      email: session.email,
+      displayName: mergedDisplayName,
+      accountType: access.accountType,
+      emailVerified: session.emailVerified,
+      school: mergedSchool,
+      grade: mergedGrade,
+      teachingRole: mergedTeachingRole,
+      isNewSignup: !remoteProfile,
+      countSignIn: true,
+    });
+  }
+  if (access.isVerifiedTeacher && !access.isAdmin) {
+    void ensureTeacherAllowlist(
+      session.localId,
+      session.email,
+      mergedDisplayName || '',
+      session.idToken,
+    );
+  }
+
+  return {
+    ...session,
+    displayName: mergedDisplayName ?? session.displayName,
+    role: access.role,
+    accountType: access.accountType,
+    teacherVerified: access.isVerifiedTeacher,
+    isPendingTeacher: access.isPendingTeacher,
+    needsAccountTypePrompt: !knownType && !access.isAdmin,
+  };
+}
+
 export async function signInWithEmail(input: SignInInput): Promise<FirebaseSession> {
   const session = await authFetch('/accounts:signInWithPassword', {
-    email: input.email,
+    email: input.email.trim().toLowerCase(),
     password: input.password,
     returnSecureToken: true,
   });
@@ -244,20 +395,18 @@ export async function signInWithEmail(input: SignInInput): Promise<FirebaseSessi
   // mirrored into the SDK, and a fresh verification link is sent so the
   // user is never stuck with a dead one.
   if (!session.emailVerified) {
+    if (isAccountType(input.accountType)) {
+      savePendingSignupMeta(session.email, { accountType: input.accountType });
+    }
     void sendEmailVerification(session.idToken, input.continueUrl).catch(() => { /* best-effort */ });
     const err = toAuthError({ error: { message: 'EMAIL_NOT_VERIFIED' } });
     err.pendingSession = session;
     throw err;
   }
-  // Load any previously saved profile fields from localStorage.
-  const profile = loadStoredProfile(session.localId);
-  persistSession(session, profile);
+  const enriched = await finalizeAuthenticatedSession(session, input.accountType);
   // Mirror the session into the SDK auth state (dashboard/listeners).
-  bridgeToSdk(input.email, input.password);
-  // Enrich the returned session with the role (see signUpWithEmail for
-  // the full explanation — FirebaseSession itself doesn't include role).
-  const restored = restoreSession();
-  return restored ? { ...session, role: restored.role } : session;
+  bridgeToSdk(input.email.trim().toLowerCase(), input.password);
+  return enriched;
 }
 
 // ── Google (Gmail) sign-in ───────────────────────────────────────────
@@ -324,7 +473,7 @@ function googleIdentityEmail(claims: Record<string, unknown>): string {
  * passes naturally — the role still comes from the email domain (contains
  * "edu" → teacher), exactly like password accounts.
  */
-export async function signInWithGoogle(): Promise<FirebaseSession> {
+export async function signInWithGoogle(accountType?: AccountType): Promise<FirebaseSession> {
   const { getFirebaseAuth } = await import('./firebase');
   const auth = await getFirebaseAuth();
   if (!auth) throw new Error('Firebase is not configured.');
@@ -399,9 +548,74 @@ export async function signInWithGoogle(): Promise<FirebaseSession> {
     // the verification invariant can never be bypassed by any provider.
     throw new Error('Your Google account email is not verified — confirm it with Google first, then try again.');
   }
-  persistSession(session, loadStoredProfile(session.localId));
-  const restored = restoreSession();
-  return restored ? { ...session, role: restored.role } : session;
+  return finalizeAuthenticatedSession(session, accountType);
+}
+
+/** Update or confirm the signed-in user's account type ('student' | 'teacher' | 'user')
+ *  and sync both localStorage and Firestore `users/{uid}`. */
+export async function updateSessionAccountType(
+  accountType: AccountType,
+  extra?: { school?: string; grade?: string; teachingRole?: string },
+): Promise<RestoredSession | null> {
+  const current = restoreSession();
+  if (!current) return null;
+  const token = (await getValidIdToken().catch(() => null)) || current.idToken;
+  const [teacherAccess, remoteProfile] = await Promise.all([
+    fetchTeacherAccessConfig(),
+    fetchOwnUserProfile(current.localId, token),
+  ]);
+  const stored = loadStoredProfile(current.localId);
+  const access = resolveEffectiveAccess({
+    uid: current.localId,
+    email: current.email,
+    emailVerified: current.emailVerified,
+    accountType,
+    teacherAccess,
+  });
+
+  const school = extra?.school?.trim() || stored.school || remoteProfile?.school || undefined;
+  const grade = extra?.grade?.trim() || stored.grade || remoteProfile?.grade || undefined;
+  const teachingRole = extra?.teachingRole?.trim() || stored.teachingRole || remoteProfile?.teachingRole || undefined;
+  const cleanName = storedValue('cmc-student-name') || stored.displayName || remoteProfile?.displayName || '';
+
+  try {
+    localStorage.setItem('cmc-student-role', access.role);
+    localStorage.setItem('cmc-account-type', access.accountType);
+    localStorage.setItem('cmc-teacher-verified', access.isVerifiedTeacher ? '1' : '0');
+    localStorage.setItem(
+      profileKey(current.localId),
+      JSON.stringify({
+        displayName: cleanName || undefined,
+        school,
+        grade,
+        role: access.role,
+        accountType: access.accountType,
+        accountTypeConfirmed: true,
+        teacherVerified: access.isVerifiedTeacher,
+        teachingRole,
+      }),
+    );
+  } catch { /* best-effort */ }
+
+  await upsertUserProfileDoc({
+    uid: current.localId,
+    idToken: token,
+    email: current.email,
+    displayName: cleanName || undefined,
+    accountType: access.accountType,
+    emailVerified: current.emailVerified,
+    school,
+    grade,
+    teachingRole,
+    isNewSignup: !remoteProfile,
+  });
+
+  if (access.isVerifiedTeacher && !access.isAdmin) {
+    void ensureTeacherAllowlist(current.localId, current.email, cleanName, token);
+  }
+
+  try { window.dispatchEvent(new CustomEvent('cmc-auth-changed')); } catch { /* non-DOM */ }
+  return restoreSession();
 }
 
 export async function sendEmailVerification(idToken: string, continueUrl?: string): Promise<void> {
@@ -444,53 +658,27 @@ export async function sendPasswordReset(email: string): Promise<void> {
 interface StoredProfile {
   displayName?: string;
   school?: string;
+  grade?: string;
   role?: string;
+  accountType?: AccountType;
+  accountTypeConfirmed?: boolean;
+  teacherVerified?: boolean;
   teachingRole?: string;
 }
 
-/**
- * Site-owner admin grant (Oct 2026).
- *
- * Keyed by Firebase UID — not email — because the UID is immutable across
- * email changes and is already public (it appears on the live `classes`
- * docs as teacherUid). The listed account owns every class on the project
- * (verified via the public classes collection, Oct 2026).
- *
- * Role VALUE stays the existing 'teacher' enum on purpose: every gate on
- * the site — the React `session.role === 'teacher'` checks AND the static
- * pages' `localStorage['cmc-student-role'] === 'teacher'` check — opens
- * with zero per-consumer changes, and no static page can be missed.
- * Server-side, firestore.rules ORs the same UID into isCmcTeacher() and
- * waives the teachers/{uid} allowlist requirement (isCmcAdmin).
- */
-export const ADMIN_UIDS: readonly string[] = ['5iLvnjzmV8QY7WFZhyTq6PIgcI63'];
-
 /** True when the given uid carries the site-owner admin grant. */
 export function isAdminUid(uid?: string | null): boolean {
-  return !!uid && ADMIN_UIDS.includes(uid);
+  return checkIsAdminUid(uid);
 }
 
 /**
- * Detect role from email domain. Per the user's rule:
+ * Detect whether an email domain qualifies for automatic teacher verification:
  *   - Email domain contains "edu" (e.g., `.edu.kh`, `.edu`, `education.*`)
- *     → teacher
- *   - Anything else → student
- *
- * Examples:
- *   teacher@school.edu.kh → teacher
- *   teacher@university.edu → teacher
- *   jane@gmail.com → student
- *   john@example.com → student
- *
- * This is a soft check — the role is also persisted to Firestore
- * `users/{uid}.role` so the server has the authoritative record.
+ *     → 'teacher'
+ *   - Anything else → 'student'
  */
 export function detectRoleFromEmail(email: string): 'teacher' | 'student' {
-  const domain = (email.split('@')[1] || '').toLowerCase();
-  if (!domain) return 'student';
-  // Domain contains "edu" anywhere → teacher.
-  // Catches `.edu`, `.edu.kh`, `.edu.au`, `education.*`, etc.
-  return domain.includes('edu') ? 'teacher' : 'student';
+  return isEduEmailDomain(email) ? 'teacher' : 'student';
 }
 
 /** Check whether an email is acceptable for a teacher signup. */
@@ -513,24 +701,18 @@ function loadStoredProfile(localId: string): StoredProfile {
 
 function persistSession(session: FirebaseSession, profile: StoredProfile): void {
   try {
-    // Auto-detect role from email if not explicitly provided. This is the
-    // canonical rule: email domain contains "edu" → teacher, else student.
-    // `profile.role` must be the account enum ('teacher' | 'student') —
-    // free-text teaching roles are stored separately as `teachingRole`.
-    // Admin accounts are pinned to 'teacher' regardless of what a stale
-    // stored profile says, so the persisted role never downgrades them.
-    const role = isAdminUid(session.localId)
-      ? 'teacher'
-      : profile.role === 'teacher' || profile.role === 'student'
-        ? profile.role
-        : detectRoleFromEmail(session.email);
+    const access = resolveEffectiveAccess({
+      uid: session.localId,
+      email: session.email,
+      emailVerified: session.emailVerified,
+      accountType: isAccountType(profile.accountType) ? profile.accountType : null,
+      teacherAccess: readCachedTeacherAccess(),
+    });
+    const role = access.role;
     localStorage.setItem('cmc-student-token', session.idToken);
     // An email is NEVER a display name (Gmail/Google sign-ins can return an
     // empty displayName — supervised child accounts, Workspace directory
-    // privacy). Storing the email here poisoned every submission and made
-    // the homepage completion ticker show raw emails instead of names.
-    // When no real name is known we store '' — submitScore will ask once
-    // (or derive "Mam Ry" from mam.ry@aii.edu.kh) and self-heal this key.
+    // privacy). When no real name is known we store ''.
     localStorage.setItem(
       'cmc-student-name',
       session.displayName || profile.displayName || '',
@@ -538,6 +720,8 @@ function persistSession(session: FirebaseSession, profile: StoredProfile): void 
     localStorage.setItem('cmc-student-uid', session.localId);
     localStorage.setItem('cmc-student-email', session.email);
     localStorage.setItem('cmc-student-role', role);
+    localStorage.setItem('cmc-account-type', access.accountType);
+    localStorage.setItem('cmc-teacher-verified', access.isVerifiedTeacher ? '1' : '0');
     localStorage.setItem('cmc-student-token-expires', String(session.expiresAt));
     localStorage.setItem('cmc-student-verified', session.emailVerified ? '1' : '0');
     // Keep the refresh token so expired ID tokens can be silently renewed
@@ -548,7 +732,11 @@ function persistSession(session: FirebaseSession, profile: StoredProfile): void 
       JSON.stringify({
         displayName: profile.displayName || session.displayName || undefined,
         school: profile.school,
+        grade: profile.grade,
         role,
+        accountType: access.accountType,
+        accountTypeConfirmed: profile.accountTypeConfirmed ?? isAccountType(profile.accountType),
+        teacherVerified: access.isVerifiedTeacher,
         teachingRole: profile.teachingRole,
       }),
     );
@@ -724,6 +912,8 @@ export function clearPersistedSession(): void {
     localStorage.removeItem('cmc-student-token-expires');
     localStorage.removeItem('cmc-student-verified');
     localStorage.removeItem('cmc-student-refresh-token');
+    localStorage.removeItem('cmc-account-type');
+    localStorage.removeItem('cmc-teacher-verified');
     if (uid) localStorage.removeItem(profileKey(uid));
   } catch {
     /* noop */
@@ -731,6 +921,7 @@ export function clearPersistedSession(): void {
   // Keep the SDK auth state in sync — a lingering SDK session would make
   // the dashboard still show the user after the REST session is gone.
   signOutSdk();
+  try { window.dispatchEvent(new CustomEvent('cmc-auth-changed')); } catch { /* non-DOM */ }
 }
 
 export interface RestoredSession {
@@ -740,7 +931,21 @@ export interface RestoredSession {
   displayName: string;
   emailVerified: boolean;
   isExpired: boolean;
+  /** Effective gating role: 'teacher' only for verified teachers + admins. */
   role: 'teacher' | 'student';
+  /** Self-identified category ('student' | 'teacher' | 'user'). */
+  accountType: AccountType;
+  /** Whether the account holds verified teacher (or admin) privileges. */
+  teacherVerified: boolean;
+  /** Selected 'teacher' but still awaiting .edu email verification or admin approval. */
+  isPendingTeacher: boolean;
+  /** Admin revoked teacher access for this uid. */
+  isRevokedTeacher: boolean;
+  /** Site owner / admin grant. */
+  isAdmin: boolean;
+  /** True when the account has never recorded its type (legacy / Google
+   *  sign-in) and the UI should ask Student / Teacher / User. */
+  needsAccountTypePrompt: boolean;
 }
 
 /** Decode the `email_verified` claim from a Firebase ID token (JWT) with
@@ -789,7 +994,26 @@ export function restoreSession(): RestoredSession | null {
     // ALREADY signed-in pre-grant session (stored role 'student') without
     // requiring a fresh sign-in.
     const storedRole = localStorage.getItem('cmc-student-role') as 'teacher' | 'student' | null;
-    const role = isAdminUid(localId) ? 'teacher' : storedRole || detectRoleFromEmail(email);
+    const rawType = localStorage.getItem('cmc-account-type');
+    // A legacy session that predates the account-type prompt has no stored
+    // type — `resolveEffectiveAccess` then falls back to the .edu heuristic.
+    const storedType: AccountType | null = isAccountType(rawType) ? rawType : null;
+    const access = resolveEffectiveAccess({
+      uid: localId,
+      email,
+      emailVerified,
+      accountType: storedType,
+      teacherAccess: readCachedTeacherAccess(),
+    });
+    const role = access.role;
+    // Keep the cached keys honest when a legacy/revoked session is restored.
+    if (storedRole !== role) {
+      try { localStorage.setItem('cmc-student-role', role); } catch { /* noop */ }
+    }
+    try {
+      localStorage.setItem('cmc-account-type', access.accountType);
+      localStorage.setItem('cmc-teacher-verified', access.isVerifiedTeacher ? '1' : '0');
+    } catch { /* noop */ }
     return {
       idToken,
       localId,
@@ -798,6 +1022,12 @@ export function restoreSession(): RestoredSession | null {
       emailVerified,
       isExpired: expiresAt > 0 && Date.now() >= expiresAt,
       role,
+      accountType: access.accountType,
+      teacherVerified: access.isVerifiedTeacher,
+      isPendingTeacher: access.isPendingTeacher,
+      isRevokedTeacher: access.isRevokedTeacher,
+      isAdmin: access.isAdmin,
+      needsAccountTypePrompt: access.needsAccountTypePrompt,
     };
   } catch {
     return null;
@@ -807,6 +1037,13 @@ export function restoreSession(): RestoredSession | null {
 /** Normalize a fresh (in-memory) FirebaseSession into the persisted-session
  *  shape shared by the hook and the auth modal. */
 export function toRestoredSession(session: FirebaseSession): RestoredSession {
+  const access = resolveEffectiveAccess({
+    uid: session.localId,
+    email: session.email,
+    emailVerified: session.emailVerified,
+    accountType: session.accountType ?? null,
+    teacherAccess: readCachedTeacherAccess(),
+  });
   return {
     idToken: session.idToken,
     localId: session.localId,
@@ -814,11 +1051,13 @@ export function toRestoredSession(session: FirebaseSession): RestoredSession {
     displayName: session.displayName || session.email,
     emailVerified: session.emailVerified,
     isExpired: session.expiresAt > 0 && Date.now() >= session.expiresAt,
-    role: isAdminUid(session.localId)
-      ? 'teacher'
-      : session.role === 'teacher' || session.role === 'student'
-        ? session.role
-        : detectRoleFromEmail(session.email),
+    role: access.role,
+    accountType: access.accountType,
+    teacherVerified: access.isVerifiedTeacher,
+    isPendingTeacher: access.isPendingTeacher,
+    isRevokedTeacher: access.isRevokedTeacher,
+    isAdmin: access.isAdmin,
+    needsAccountTypePrompt: (session.needsAccountTypePrompt ?? false) || access.needsAccountTypePrompt,
   };
 }
 

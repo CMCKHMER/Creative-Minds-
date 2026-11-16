@@ -1,9 +1,18 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, Mic, RotateCcw, Share2, Sparkles, XCircle, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, LockKeyhole, Mic, RotateCcw, Share2, Sparkles, UserPlus, XCircle, Volume2, VolumeX } from 'lucide-react';
+import { GlassFact, GlassPageBar, GlassPageHero } from './GlassPage';
 import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 import { GameLeaderboard, submitGameScore, useSignedInPlayerName } from './GameLeaderboard';
 import { playCorrectSound, playWrongSound, playCompleteSound, toggleGameSound, isGameSoundMuted, fireConfetti, ensureConfettiCSS } from '../lib/gameSound';
+import { useSignedInSession } from '../hooks/useSignedInSession';
+import { requestAuth } from '../lib/authPrompt';
+import {
+  GUEST_SAMPLE_QUESTION_LIMIT,
+  canPlayGameRound,
+  hasActiveAccount,
+  isSampleLearningGame,
+} from '../lib/gameAccess';
 
 const skillOptions: Array<'All games' | LearningGameSkill> = ['All games', 'Vocabulary', 'Reading', 'Grammar', 'Early literacy', 'Listening', 'Speaking'];
 
@@ -72,6 +81,12 @@ async function shareGame(game: LearningGame): Promise<void> {
 }
 
 function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) {
+  const session = useSignedInSession();
+  const signedIn = hasActiveAccount(session);
+  // GUEST SAMPLE (owner directive): a non-signed-up visitor may answer the
+  // first couple of rounds of a sample game, then hits the sign-up wall.
+  const guestLocked = !signedIn && !isSampleLearningGame(game.id);
+  const maxRounds = signedIn ? game.questions.length : GUEST_SAMPLE_QUESTION_LIMIT;
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [finished, setFinished] = useState(false);
@@ -108,6 +123,14 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
   // Called when the user clicks "See results" — flips to the finished view,
   // plays a victory fanfare + fires confetti, AND submits the score to Firestore.
   const finishGame = () => {
+    // Guests never submit scores — the sample run stays on their device.
+    if (!signedIn) {
+      requestAuth({
+        mode: 'sign-up',
+        contextPrompt: `Sign up free to finish ${game.title}, save your score and climb the class leaderboard.`,
+      });
+      return;
+    }
     setFinished(true);
     playCompleteSound();
     ensureConfettiCSS();
@@ -124,6 +147,28 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
     const muted = toggleGameSound();
     setSoundMuted(muted);
   };
+
+  if (guestLocked) {
+    return (
+      <section id="game-playground" className="scroll-mt-6 mt-10 overflow-hidden rounded-3xl border border-cyan-200/20 bg-gradient-to-br from-cyan-100/[0.05] via-slate-900/80 to-slate-950/90 p-6 shadow-2xl sm:p-9">
+        <div className="mx-auto max-w-xl text-center">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-cyan-200/25 bg-cyan-200/10 text-cyan-200"><LockKeyhole className="h-6 w-6" aria-hidden="true" /></span>
+          <p className="mt-5 text-[10px] font-bold tracking-[0.17em] text-cyan-200 uppercase">Free account required</p>
+          <h3 className="mt-2 font-[var(--font-display)] text-2xl font-bold text-white">{game.title} unlocks with a free account</h3>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300">
+            Visitors can sample {GUEST_SAMPLE_QUESTION_LIMIT} rounds of a few games. Create a free account — student or
+            general user, same access — to play {game.title} in full and save your score.
+          </p>
+          <div className="mt-6 flex flex-col items-center justify-center gap-2 sm:flex-row">
+            <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to play ${game.title} in full.` })} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950">
+              <UserPlus className="h-3.5 w-3.5" aria-hidden="true" /> Create a free account
+            </button>
+            <button type="button" onClick={onExit} className="min-h-11 rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5">Back to the sample games</button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (finished) {
     const percent = Math.round((score / game.questions.length) * 100);
@@ -163,7 +208,7 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_260px]">
         <div className="p-5 sm:p-8">
-          <div className="mb-5 flex items-center justify-between gap-4"><div><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Round {questionIndex + 1} of {game.questions.length}</p><p className="mt-1 text-xs text-slate-400">{game.instructions}</p></div><span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 font-mono text-[10px] text-slate-300"><Clock3 className="h-3.5 w-3.5 text-cyan-200" aria-hidden="true" />{game.duration.split('·')[0].trim()}</span></div>
+          <div className="mb-5 flex items-center justify-between gap-4"><div><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Round {questionIndex + 1} of {maxRounds}{!signedIn ? ' · free sample' : ''}</p><p className="mt-1 text-xs text-slate-400">{game.instructions}</p></div><span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 font-mono text-[10px] text-slate-300"><Clock3 className="h-3.5 w-3.5 text-cyan-200" aria-hidden="true" />{game.duration.split('·')[0].trim()}</span></div>
 
           {gamePassage && <div className="mb-5 rounded-xl border border-cyan-300/10 bg-[#071522] p-4"><p className="text-[9px] font-bold tracking-[0.14em] text-cyan-200 uppercase">Reading clue</p><div className="mt-2 space-y-2 font-serif text-sm leading-relaxed text-slate-300">{gamePassage.map((part, index) => <p key={`${game.id}-passage-${questionIndex}-${index}`}>{part}</p>)}</div></div>}
 
@@ -186,10 +231,14 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
             return <button key={`${game.id}-${questionIndex}-${index}`} type="button" aria-pressed={chosen} onClick={() => handleAnswer(index)} className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left text-xs leading-relaxed transition ${style}`}><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current/25 font-mono text-[9px] font-bold">{answered && correct ? <Check className="h-3 w-3" aria-hidden="true" /> : String.fromCharCode(65 + index)}</span><span>{choice}</span></button>;
           })}</div>
           {answered && <div role="status" aria-live="polite" className={`mt-4 rounded-xl border p-4 ${selectedIndex === question.correctIndex ? 'border-emerald-300/20 bg-emerald-300/[0.05]' : 'border-amber-200/20 bg-amber-200/[0.04]'}`}><p className="text-xs font-bold text-white">{selectedIndex === question.correctIndex ? 'Correct. Nice reasoning.' : 'Not quite. Look at the clue again.'}</p><p className="mt-1.5 text-xs leading-relaxed text-slate-300">{question.feedback}</p></div>}
-          <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4"><button type="button" disabled={questionIndex === 0} onClick={() => setQuestionIndex((index) => Math.max(0, index - 1))} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-30"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Previous</button><span className="font-mono text-[10px] text-slate-500">{score} points</span>{questionIndex < game.questions.length - 1 ? <button type="button" disabled={!answered} onClick={() => setQuestionIndex((index) => index + 1)} className="inline-flex items-center gap-2 rounded-lg bg-white/[0.07] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Next clue <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></button> : <button type="button" disabled={!answered} onClick={finishGame} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">See results <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /></button>}</div>
+          <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4"><button type="button" disabled={questionIndex === 0} onClick={() => setQuestionIndex((index) => Math.max(0, index - 1))} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-30"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Previous</button><span className="font-mono text-[10px] text-slate-500">{score} points</span>{questionIndex < maxRounds - 1 && canPlayGameRound(session, game.id, questionIndex + 1) ? <button type="button" disabled={!answered} onClick={() => setQuestionIndex((index) => index + 1)} className="inline-flex items-center gap-2 rounded-lg bg-white/[0.07] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Next clue <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></button> : <button type="button" disabled={!answered} onClick={finishGame} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">{signedIn ? 'See results' : 'Sign up to finish'} <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /></button>}</div>
         </div>
 
-        <aside className="border-t border-white/8 bg-slate-950/35 p-5 lg:border-t-0 lg:border-l lg:p-6"><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Progress</p><div className="mt-4 grid grid-cols-5 gap-2">{game.questions.map((_, index) => <button key={`${game.id}-step-${index}`} type="button" onClick={() => setQuestionIndex(index)} aria-label={`Go to round ${index + 1}${answers[index] !== undefined ? ', answered' : ', unanswered'}`} className={`grid h-9 place-items-center rounded-lg border font-mono text-[10px] font-bold ${questionIndex === index ? 'border-cyan-200 bg-cyan-200 text-slate-950' : answers[index] !== undefined ? 'border-teal-200/20 bg-teal-200/5 text-teal-100' : 'border-white/10 text-slate-500'}`}>{index + 1}</button>)}</div><p className="mt-5 text-xs leading-relaxed text-slate-400">{game.description}</p><div className="mt-5 border-t border-white/8 pt-4 text-[10px] leading-relaxed text-slate-500">Practice-only activity. Your answers stay in this browser tab.</div></aside>
+        <aside className="border-t border-white/8 bg-slate-950/35 p-5 lg:border-t-0 lg:border-l lg:p-6"><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Progress</p><div className="mt-4 grid grid-cols-5 gap-2">{game.questions.slice(0, maxRounds).map((_, index) => <button key={`${game.id}-step-${index}`} type="button" onClick={() => setQuestionIndex(index)} aria-label={`Go to round ${index + 1}${answers[index] !== undefined ? ', answered' : ', unanswered'}`} className={`grid h-9 place-items-center rounded-lg border font-mono text-[10px] font-bold ${questionIndex === index ? 'border-cyan-200 bg-cyan-200 text-slate-950' : answers[index] !== undefined ? 'border-teal-200/20 bg-teal-200/5 text-teal-100' : 'border-white/10 text-slate-500'}`}>{index + 1}</button>)}</div><p className="mt-5 text-xs leading-relaxed text-slate-400">{game.description}</p><div className="mt-5 border-t border-white/8 pt-4 text-[10px] leading-relaxed text-slate-500">
+            {signedIn
+              ? 'Practice-only activity. Your score is saved to your account.'
+              : `Free sample: ${GUEST_SAMPLE_QUESTION_LIMIT} rounds. Sign up to play every round and save your score.`}
+          </div></aside>
       </div>
     </section>
   );
@@ -209,6 +258,8 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
   // Highlight the signed-in player's row in the leaderboard so they can
   // spot their own score at a glance.
   const signedInPlayer = useSignedInPlayerName();
+  // Account state for the page-level gates (cards, Ghost Mountain, leaderboard).
+  const session = useSignedInSession();
 
   const chooseGame = (game: LearningGame) => {
     setSelectedGame(game);
@@ -216,29 +267,20 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070d17] text-slate-100">
-      <div className="sticky top-0 z-40 border-b border-white/8 bg-[#070d17]/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
-          <a href="#games" className="flex items-center gap-3" aria-label="Creative Minds Learning Games home"><span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-300 to-violet-400 text-slate-950"><Sparkles className="h-4 w-4" aria-hidden="true" /></span><span className="text-sm font-bold tracking-tight text-white">Creative Minds <span className="text-cyan-200">Play Lab</span></span></a>
-          <button type="button" onClick={onBackHome} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/5 hover:text-white"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Back to CMC</button>
-        </div>
-      </div>
+    <main className="cmc-app cmc-subpage min-h-screen overflow-hidden text-slate-100">
+      <GlassPageBar href="#games" label="Creative Minds Learning Games home" icon={Sparkles} name="Creative Minds" accent="Play Lab" onBack={onBackHome} />
 
-      <section data-keep-dark className="relative isolate overflow-hidden border-b border-white/8">
-        {/* Full-bleed semi-transparent hero background image */}
-        <img src="./images/card-games.jpg" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-slate-950/55" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_72%_34%,rgba(34,211,238,.16),transparent_38%),radial-gradient(ellipse_at_16%_88%,rgba(139,92,246,.18),transparent_38%),linear-gradient(125deg,#091421,#0c1122_60%,#101326)]" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:52px_52px] [mask-image:linear-gradient(90deg,black,transparent_90%)]" />
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24 lg:py-28">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-teal-200/20 bg-teal-200/5 px-3 py-1.5 text-[10px] font-bold tracking-[0.17em] text-teal-100 uppercase"><Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> The CMC Learning Games room</span>
-            <h1 className="mt-6 font-[var(--font-display)] text-4xl leading-[1.04] font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">Pick a game.<br /><span className="bg-gradient-to-r from-cyan-200 via-teal-200 to-violet-200 bg-clip-text text-transparent">Follow the clues.</span></h1>
-            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Short, original learning games for vocabulary, reading, grammar, listening, and early literacy. Read the game brief, choose a challenge, and get feedback as you play.</p>
-            <div className="mt-8 flex flex-wrap items-center gap-3 text-[10px] text-slate-400"><span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">8 playable games</span><span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">3–5 minutes each</span><span className="rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2">No student account required</span></div>
-          </div>
-        </div>
-      </section>
+      <GlassPageHero
+        view="a"
+        eyebrow="The CMC Learning Games room"
+        eyebrowIcon={Sparkles}
+        title={<>Pick a game.<br /><em>Follow the clues.</em></>}
+        lead="Short, original learning games for vocabulary, reading, grammar, listening, and early literacy. Read the game brief, choose a challenge, and get feedback as you play."
+      >
+        <GlassFact>8 playable games</GlassFact>
+        <GlassFact>3–5 minutes each</GlassFact>
+        <GlassFact>Free account · 2-round sample for guests</GlassFact>
+      </GlassPageHero>
 
       {/* Developer's Picks — the developer's own featured reading & quiz
           (owner request, Nov 2026: the Creativeminds Canva worksheet "Ghost
@@ -253,10 +295,16 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">The developer&apos;s own pick, rebuilt 1:1 from the Creativeminds Canva worksheet: a respectful, evidence-first reading on Ghost Mountain (Phnom Khmaoch) near Preah Vihear — displacement, the June 1979 forced return, and why the name is remembered. Eight short reading sections, a 1975–1979 timeline, a schematic border map, a labelled-visuals guide and an eight-term vocabulary box lead into the eight-question quiz with instant feedback and a class-leaderboard score. Think-and-write prompts (Parts B and C) save on your device for teacher review; the sources section links the UNHCR and DC-Cam evidence. A content note is shown up front: the topic involves displacement, violence, landmines, death and grief, handled without graphic descriptions — suited to older students.</p>
           <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>Grades 8–12</span><span aria-hidden="true">·</span><span>Reading + 8-question quiz · 15–20 min</span></div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <a href="./dev-pick-ghost-mountain.html" className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-amber-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">
-              Open the reading &amp; quiz
-              <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
-            </a>
+            {hasActiveAccount(session) ? (
+              <a href="./dev-pick-ghost-mountain.html" className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-amber-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">
+                Open the reading &amp; quiz
+                <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
+              </a>
+            ) : (
+              <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to open the Ghost Mountain reading & quiz.' })} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-amber-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">
+                <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to open the reading &amp; quiz
+              </button>
+            )}
             <button type="button" onClick={() => { const panels = document.querySelectorAll('.cmc-game-leaderboard'); const target = Array.prototype.find.call(panels, (n) => n.offsetParent !== null) || panels[0]; if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-amber-200/25 bg-amber-200/[0.07] px-3 py-2.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-200/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Scroll to the class leaderboard">🏆 Class leaderboard</button>
             <button type="button" onClick={() => { const url = new URL('./dev-pick-ghost-mountain.html', window.location.href).toString(); const text = 'Ghost Mountain · A Reading on Memory, History & Human Courage — the Developer\'s Pick reading & quiz on CMC'; if (navigator.share) { navigator.share({ title: 'Ghost Mountain · Reading & Quiz', text, url }).catch(() => {}); return; } navigator.clipboard?.writeText(`${text} ${url}`).then(() => { const t = document.querySelector<HTMLElement>('[data-cmc-share-toast]'); if (t) { t.textContent = 'Reading & quiz link copied ✓'; t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; window.clearTimeout((t as any)._cmcShareToastT); (t as any)._cmcShareToastT = window.setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(10px)'; }, 2600); } }).catch(() => {}); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-amber-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Share the Ghost Mountain reading & quiz">
               <Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share
@@ -286,10 +334,16 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
                     <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>{game.level}</span><span aria-hidden="true">·</span><span>{game.duration}</span></div>
                                    {game.externalUrl ? (
                       <div className="mt-4 flex flex-wrap items-center gap-2">
-                        <a href={game.externalUrl} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
-                          Open game
-                          <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
-                        </a>
+                        {hasActiveAccount(session) ? (
+                          <a href={game.externalUrl} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+                            Open game
+                            <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
+                          </a>
+                        ) : (
+                          <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to open ${game.title}.` })} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+                            <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to open game
+                          </button>
+                        )}
                         {game.leaderboardLink && (
                           <button type="button" onClick={() => { const panels = document.querySelectorAll('.cmc-game-leaderboard'); const target = Array.prototype.find.call(panels, (n) => n.offsetParent !== null) || panels[0]; if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-cyan-200/25 bg-cyan-200/[0.07] px-3 py-2.5 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-200/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300" aria-label="Scroll to the class leaderboard">
                             🏆 Class leaderboard
@@ -301,7 +355,12 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
                       </div>
                     ) : (
                       <div className="mt-4 flex flex-wrap items-center gap-2">
-                        <button type="button" onClick={() => chooseGame(game)} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">Read &amp; play <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" /></button>
+                        <button type="button" onClick={() => chooseGame(game)} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+                          {hasActiveAccount(session) ? 'Read & play' : isSampleLearningGame(game.id) ? 'Try 2 free rounds' : 'Sign up to play'}
+                          {hasActiveAccount(session) || isSampleLearningGame(game.id)
+                            ? <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" />
+                            : <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />}
+                        </button>
                         <button type="button" onClick={() => void shareGame(game)} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-cyan-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300" aria-label={`Share ${game.title} with your class`}>
                           <Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share
                         </button>
@@ -322,7 +381,20 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
               from lg breakpoint up. */}
           <div className="hidden lg:block">
             <div className="sticky top-20 cmc-game-leaderboard">
-              <GameLeaderboard highlightPlayer={signedInPlayer} />
+              {hasActiveAccount(session) ? (
+                <GameLeaderboard highlightPlayer={signedInPlayer} />
+              ) : (
+                <div className="rounded-2xl border border-cyan-200/20 bg-cyan-100/[0.05] p-5 text-center">
+                  <LockKeyhole className="mx-auto h-6 w-6 text-cyan-200" aria-hidden="true" />
+                  <p className="mt-3 text-sm font-bold text-white">Leaderboard needs an account</p>
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-slate-300">
+                    Sign up free to save your scores, join your class and see how everyone is doing.
+                  </p>
+                  <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to save your game scores and join the leaderboard.' })} className="mt-4 w-full rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-3 py-2 text-xs font-bold text-slate-950">
+                    Sign up free
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -330,7 +402,17 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
         {/* Mobile / tablet fallback: leaderboard panel rendered below the
             grid so users on small screens still see the live activity. */}
         <div className="mt-8 lg:hidden cmc-game-leaderboard">
-          <GameLeaderboard highlightPlayer={signedInPlayer} />
+          {hasActiveAccount(session) ? (
+            <GameLeaderboard highlightPlayer={signedInPlayer} />
+          ) : (
+            <div className="rounded-2xl border border-cyan-200/20 bg-cyan-100/[0.05] p-5 text-center">
+              <LockKeyhole className="mx-auto h-6 w-6 text-cyan-200" aria-hidden="true" />
+              <p className="mt-3 text-sm font-bold text-white">Leaderboard needs an account</p>
+              <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to save your game scores and join the leaderboard.' })} className="mt-3 w-full rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-3 py-2 text-xs font-bold text-slate-950">
+                Sign up free
+              </button>
+            </div>
+          )}
         </div>
       </section>
     </main>

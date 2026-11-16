@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
 <head>
+<script src="../assets/js/cmc-auth-gate.js"></script>
 <script>/* CMC_NG_NO_EMAIL_AS_NAME: an email is never a display name — Gmail sign-ins showed
    addresses on the completion ticker. Heals cmc-student-name in place
    ("mam.ry@aii.edu.kh" -> "Mam Ry") and guards every read; real names are
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded',function(){document.documentElement
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reading Future Connect 2 — Unit Test</title>
+<link rel="stylesheet" href="../assets/css/cmc-iridescent.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
 :root{--bg:#05070f;--surface-2:#0d1526;--border:rgba(148,163,184,.14);--cyan:#22d3ee;--cyan-lt:#67e8f9;--violet:#8b5cf6;--violet-lt:#c4b5fd;--text:#e2e8f0;--muted:#8fa3b8;--success:#34d399;--error:#f87171;color-scheme:dark}
@@ -167,6 +169,7 @@ body.light .footer{border-top-color:#dbe3ec}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+<script>CMC_GATE.guard('account', 'Sign up free to open this worksheet.');</script>
 <a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:\'Plus Jakarta Sans\',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor=\'rgba(34,211,238,0.6)\';this.style.background=\'rgba(34,211,238,0.08)\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'rgba(34,211,238,0.3)\';this.style.background=\'rgba(15,23,42,0.9)\';this.style.transform=\'\'" aria-label="Back to CMC home">
     <i class="fas fa-arrow-left" style="font-size:12px;"></i> Back to CMC
 </a>

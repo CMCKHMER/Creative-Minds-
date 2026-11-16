@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
-import { ArrowDown, ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, Gamepad2, GraduationCap, Play } from 'lucide-react';
 import { useCountUp } from '../hooks/useReveal';
 import { useTitleParticles } from '../hooks/useTitleParticles';
+import { smallTitleSpacing } from '../lib/titleParticlesMath';
 
 interface HeroProps {
   onExploreTools: () => void;
@@ -36,6 +37,9 @@ interface HeroShortcut {
    *  theme via the .cmc-quick-bg rule — the light theme turns the strip
    *  white, so the dark-navy art would clash). */
   image?: string;
+  /** Optional divided stat pair, like the reference board's
+   *  "48 Premium · 14.2k Followers" block. Rendered by .cmc-stat-row. */
+  stats?: { value: string; label: string }[];
 }
 
 const shortcuts: HeroShortcut[] = [
@@ -46,6 +50,10 @@ const shortcuts: HeroShortcut[] = [
     icon: GraduationCap,
     accent: 'cyan',
     image: './images/quick-toefl.webp',
+    stats: [
+      { value: '4', label: 'Sections' },
+      { value: '~3h', label: 'Full exam' },
+    ],
   },
   {
     id: 'games',
@@ -54,6 +62,10 @@ const shortcuts: HeroShortcut[] = [
     icon: Gamepad2,
     accent: 'violet',
     image: './images/quick-games.webp',
+    stats: [
+      { value: '8', label: 'Games' },
+      { value: '5', label: 'Skill areas' },
+    ],
   },
   {
     id: 'resources',
@@ -62,6 +74,10 @@ const shortcuts: HeroShortcut[] = [
     icon: BookOpen,
     accent: 'amber',
     image: './images/quick-assignments.webp',
+    stats: [
+      { value: '15', label: 'Packs' },
+      { value: 'Keys', label: 'Included' },
+    ],
   },
   {
     id: 'kid-grades',
@@ -70,6 +86,10 @@ const shortcuts: HeroShortcut[] = [
     icon: ClipboardCheck,
     accent: 'emerald',
     image: './images/quick-kids.png',
+    stats: [
+      { value: '5–12', label: 'Kid grades' },
+      { value: '2', label: 'Live now' },
+    ],
   },
 ];
 
@@ -88,7 +108,7 @@ export const Hero = ({
   // The title drawn as particles (three.js). The <h1> below stays the real
   // text; the effect is fetched only when the browser is idle and only where
   // it is welcome — see useTitleParticles.
-  const titleParticles = useTitleParticles({ section: heroRef, title: titleRef, canvas: titleCanvasRef });
+  const titleParticles = useTitleParticles({ section: heroRef, title: titleRef, canvas: titleCanvasRef, spacing: smallTitleSpacing });
 
   useEffect(() => {
     const target = shortcutsRef.current;
@@ -138,28 +158,17 @@ export const Hero = ({
         onPointerMove={handlePointerMove}
         onPointerLeave={resetPointer}
       >
-        <div className="cmc-hero-photo-plane" aria-hidden="true">
-          <img
-            src="./images/hero-toefl-blue.jpg"
-            alt=""
-            className="cmc-hero-photo"
-            fetchPriority="high"
-            decoding="async"
-            loading="eager"
-          />
+        {/* The scene: soft studio backdrop with glass spheres (one picture per
+            theme, set in glass.css so only the one in use is downloaded) and a
+            few glass discs drawn in CSS that drift over it. */}
+        <div className="cmc-hero-art" aria-hidden="true">
+          <div className="cmc-hero-art-img" />
+          <span className="cmc-hero-disc cmc-hero-disc--a" />
+          <span className="cmc-hero-disc cmc-hero-disc--b" />
+          <span className="cmc-hero-disc cmc-hero-disc--c" />
         </div>
-        <div className="cmc-hero-veil" aria-hidden="true" />
-        <div className="cmc-hero-light" aria-hidden="true" />
-
-        <div className="cmc-hero-orbit" aria-hidden="true">
-          <svg viewBox="0 0 620 620" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="310" cy="310" r="256" stroke="#8EE6E4" strokeOpacity=".29" strokeWidth="1" strokeDasharray="2 12" />
-            <circle cx="310" cy="310" r="204" stroke="#BAF4F0" strokeOpacity=".24" strokeWidth="1" />
-            <path d="M65 220A256 256 0 0 1 500 139" stroke="#AAFFED" strokeOpacity=".75" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="504" cy="144" r="4" fill="#A5F3EA" />
-            <circle cx="504" cy="144" r="14" fill="#67E8F9" fillOpacity=".15" />
-          </svg>
-        </div>
+        {/* The frosted pane the title and the buttons sit on. */}
+        <div className="cmc-hero-pane" aria-hidden="true" />
 
         <div className="cmc-hero-content relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
           <div className={sidePanel ? 'grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start' : ''}>
@@ -194,7 +203,7 @@ export const Hero = ({
               </div>
 
               {/* Stats row */}
-              <div className="cmc-hero-enter mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-slate-300/90 sm:text-sm">
+              <div className="cmc-hero-enter cmc-hero-stats mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-slate-300/90 sm:text-sm">
                 <span className="inline-flex items-center gap-1.5">
                   <AnimatedStat target={8} className="text-base font-bold text-cyan-300" /> learning games
                 </span>
@@ -242,15 +251,25 @@ export const Hero = ({
           </div>
         </div>
 
-        <div className="cmc-scroll-hint absolute bottom-9 left-1/2 z-10 hidden -translate-x-1/2 items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white/55 md:flex">
-          <span>See what's inside</span>
-          <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
+        {/* Lower edge of the scene: a large thin numeral and one line about
+            the site, as on a magazine spread. */}
+        <div className="cmc-hero-foot">
+          <span className="cmc-hero-num" aria-hidden="true">01</span>
+          <p className="cmc-hero-caption"><strong>CMC</strong> is where teachers find tests, games and ready lessons — and the whole classroom is the canvas</p>
         </div>
+
+        {/* Dots on the right edge: this screen, and the cards under it (one
+            card per page — src/components/SectionDirectory.tsx). */}
+        <nav className="cmc-hero-dots" aria-label="On this page">
+          <a href="#top" aria-current="true" title="Top"><span className="sr-only">Top</span></a>
+          <a href="#sections" title="All pages"><span className="sr-only">All pages</span></a>
+        </nav>
+
         {/* The title's particles are drawn here (src/lib/titleParticles.ts). */}
         <canvas ref={titleCanvasRef} className="cmc-title-canvas" aria-hidden="true" />
       </section>
 
-      <section ref={shortcutsRef} className="border-y border-white/10 bg-[#081622]/95 backdrop-blur" aria-label="Explore Creative Minds Network tools">
+      <section ref={shortcutsRef} className="cmc-quickstrip border-y border-white/10 bg-[#081622]/95 backdrop-blur" aria-label="Explore Creative Minds Network tools">
         <div className="mx-auto max-w-7xl px-5 py-5 sm:px-8 sm:py-6 lg:px-12 lg:py-7">
           {/* Strip header — labels the row as an intentional quick-launch dock */}
           <div className={`cmc-shortcut mb-4 flex items-center gap-3 sm:mb-5 ${shortcutsVisible ? 'is-visible' : ''}`}>
@@ -288,6 +307,16 @@ export const Hero = ({
                     <ArrowUpRight className="cmc-quick-arrow relative mt-0.5 h-3.5 w-3.5 shrink-0 opacity-0 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />
                   </span>
                   <span className="relative text-xs leading-relaxed text-slate-400">{shortcut.description}</span>
+                  {shortcut.stats && shortcut.stats.length > 0 && (
+                    <span className="cmc-stat-row relative w-full">
+                      {shortcut.stats.map((stat) => (
+                        <span key={stat.label} className="cmc-stat">
+                          <span className="cmc-stat-num">{stat.value}</span>
+                          <span className="cmc-stat-label">{stat.label}</span>
+                        </span>
+                      ))}
+                    </span>
+                  )}
                 </>
               );
 

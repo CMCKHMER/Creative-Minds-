@@ -161,6 +161,25 @@
   font-size: clamp(1.875rem, 4.5vw, 3.25rem);
   text-wrap: balance;
 }
+/* A section heading in the hero title's lettering (Syne 800, tight, the
+   first line smaller) — the TOEFL ITP Bi-Weekly Planner heading, which then
+   matches both the hero above it and the title of the planner page it opens.
+   Syne runs wide, so the size is smaller than .cmc-h2's: on a desktop screen
+   "Bi-Weekly Planner." has to fit the left column, (100vw − 128px) / 1.86 wide
+   and about 14 letter-heights long. Where it does not fit it wraps. */
+.cmc-h2-hero {
+  font-family: var(--font-hero);
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  font-size: clamp(1.75rem, 5.2vw, 2.6rem);
+}
+.cmc-h2-hero > span:first-child {
+  font-size: 0.62em;
+  letter-spacing: -0.03em;
+}
+@media (min-width: 1024px) {
+  .cmc-h2-hero { font-size: clamp(1.75rem, calc((100vw - 128px) / 27.5), 2.6rem); }
+}
 .cmc-lead {
   margin-top: 1rem;
   max-width: 42rem;

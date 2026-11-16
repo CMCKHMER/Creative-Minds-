@@ -14,6 +14,16 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   base: "./",
   plugins: [react(), tailwindcss()],
+  // Live-preview hosts (Arena sandboxes and their derived subdomains) must be
+  // allowed by name, or Vite answers 403 "Blocked request" and the preview
+  // never loads. Allowing the e2b.app suffix keeps the dev server usable from
+  // the preview pane without opening it to arbitrary hosts.
+  server: {
+    allowedHosts: [".e2b.app", "localhost", "127.0.0.1"],
+  },
+  preview: {
+    allowedHosts: [".e2b.app", "localhost", "127.0.0.1"],
+  },
   build: {
     chunkSizeWarningLimit: 900,
     rollupOptions: {

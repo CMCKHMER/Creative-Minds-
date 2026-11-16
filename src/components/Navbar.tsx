@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 import { clearPersistedSession } from '../lib/firebaseAuth';
+import { sessionAccountTitle, sessionBadgeLabel } from '../lib/userProfile';
+import { requestAuth } from '../lib/authPrompt';
 import { ThemeToggle } from './ThemeToggle';
 import { SpinLogo } from './SpinLogo';
 
@@ -35,8 +37,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // The page can open already scrolled (/#sections shows the cards), and
+    // that scroll happens before this listener exists — read it once.
+    const frame = window.requestAnimationFrame(handleScroll);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   // Close the user dropdown on outside click / Escape
@@ -66,6 +74,27 @@ export const Navbar: React.FC<NavbarProps> = ({
       ? session.email.split('@')[0]
       : '';
   const isTeacher = session?.role === 'teacher';
+  const isAdmin = Boolean(session?.isAdmin);
+  const badgeLabel = session
+    ? sessionBadgeLabel({ localId: session.localId, role: session.role, accountType: session.accountType, teacherVerified: session.teacherVerified })
+    : '';
+  const accountTitle = session
+    ? sessionAccountTitle({ localId: session.localId, role: session.role, accountType: session.accountType, teacherVerified: session.teacherVerified })
+    : '';
+  /** Amber for admin, emerald for verified teachers, cyan for everyone else,
+   *  amber-outline for a teacher awaiting verification. */
+  const badgeTone = isAdmin
+    ? 'bg-amber-300/15 text-amber-200'
+    : isTeacher
+      ? 'bg-emerald-400/15 text-emerald-200'
+      : session?.accountType === 'teacher'
+        ? 'bg-amber-200/15 text-amber-100'
+        : 'bg-cyan-400/15 text-cyan-200';
+  const avatarTone = isAdmin
+    ? 'bg-amber-300/20 text-amber-200'
+    : isTeacher
+      ? 'bg-emerald-400/20 text-emerald-200'
+      : 'bg-cyan-400/20 text-cyan-200';
 
   const handleSignOut = () => {
     clearPersistedSession();
@@ -78,7 +107,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       {/* Top Announcement Bar */}
       {bannerVisible && (
-        <div data-keep-dark className="bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium relative z-50 flex items-center justify-center gap-2">
+        <div data-keep-dark className="cmc-topbar bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium relative z-50 flex items-center justify-center gap-2">
           <span className="inline-flex items-center gap-1.5 bg-white/20 px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase">
             <Sparkles className="w-3 h-3 text-cyan-200" /> New
           </span>
@@ -102,9 +131,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       )}
 
       {/* Main Sticky Navbar */}
-      <header className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+      <header className={`cmc-nav sticky top-0 z-40 w-full transition-all duration-300 ${
         isScrolled 
-          ? 'bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 shadow-2xl shadow-cyan-950/20 py-3' 
+          ? 'cmc-nav-scrolled bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 shadow-2xl shadow-cyan-950/20 py-3' 
           : 'bg-slate-950/50 backdrop-blur-sm border-b border-white/5 py-4'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -176,18 +205,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div ref={userMenuRef} className="relative">
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="inline-flex items-center gap-2 !min-h-0 !rounded-xl !px-3 !py-2 !text-xs sm:!text-sm font-semibold transition active:scale-95 border border-cyan-300/30 bg-gradient-to-r from-cyan-300/10 to-emerald-300/10 text-cyan-100 hover:from-cyan-300/20 hover:to-emerald-300/20"
+                    className="inline-flex items-center gap-2 !min-h-0 !rounded-full !px-3 !py-2 !text-xs sm:!text-sm font-semibold transition active:scale-95 border border-cyan-300/30 bg-gradient-to-r from-cyan-300/10 to-emerald-300/10 text-cyan-100 hover:from-cyan-300/20 hover:to-emerald-300/20"
                     aria-label={`Signed in as ${session.email}. Click to open user menu.`}
                     aria-expanded={userMenuOpen}
                   >
-                    <span className={`grid h-6 w-6 place-items-center rounded-full text-[10px] font-bold ${isTeacher ? 'bg-emerald-400/20 text-emerald-200' : 'bg-cyan-400/20 text-cyan-200'}`}>
+                    <span className={`grid h-6 w-6 place-items-center rounded-full text-[10px] font-bold ${avatarTone}`}>
                       {firstName.slice(0, 1).toUpperCase() || 'U'}
                     </span>
                     <span className="hidden sm:inline max-w-[120px] truncate">
                       Hi, {firstName}
                     </span>
-                    <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${isTeacher ? 'bg-emerald-400/15 text-emerald-200' : 'bg-cyan-400/15 text-cyan-200'}`}>
-                      {isTeacher ? 'Teacher' : 'Student'}
+                    <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badgeTone}`} data-cmc-badge={badgeLabel}>
+                      {badgeLabel}
                     </span>
                     <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
                   </button>
@@ -204,9 +233,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                         {session.email && session.email !== session.displayName && (
                           <p className="mt-1 pl-6 text-[10px] text-slate-500 truncate">{session.email}</p>
                         )}
-                        <div className="mt-2 flex items-center gap-1.5">
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${isTeacher ? 'bg-emerald-400/15 text-emerald-200' : 'bg-cyan-400/15 text-cyan-200'}`}>
-                            {isTeacher ? 'Teacher account' : 'Student account'}
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badgeTone}`}>
+                            {accountTitle}
                           </span>
                           {session.emailVerified && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
@@ -233,6 +262,29 @@ export const Navbar: React.FC<NavbarProps> = ({
                           Teacher Tools (Dice, Wheel, Studio)
                         </a>
                       )}
+                      {isAdmin && (
+                        <a
+                          href="#users-admin"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-300/10 hover:text-amber-100 transition"
+                        >
+                          <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          Users &amp; Teacher Verification
+                        </a>
+                      )}
+                      {session.needsAccountTypePrompt && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            requestAuth({ mode: 'sign-in', contextPrompt: 'Confirm whether you are a Student, Teacher, or General user.' });
+                          }}
+                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-300/10 transition"
+                        >
+                          <UserIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          Confirm account type
+                        </button>
+                      )}
                       <button
                         onClick={handleSignOut}
                         className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-rose-200 hover:bg-rose-300/10 hover:text-rose-100 transition"
@@ -245,11 +297,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               ) : (
                 <button
-                  onClick={onOpenTeacherPass}
-                  className="cmc-btn-primary !min-h-0 !rounded-xl !px-4 !py-2 !text-xs sm:!text-sm"
+                  onClick={() => { onOpenTeacherPass(); requestAuth({ mode: 'sign-up' }); }}
+                  className="cmc-btn-primary !min-h-0 !rounded-full !px-5 !py-2.5 !text-[0.68rem]"
                 >
                   <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>Join CMC</span>
+                  <span>Sign up free</span>
                 </button>
               )}
 
@@ -359,7 +411,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       dropdown menu's content. */}
                   <div className="rounded-xl border border-slate-700/80 bg-slate-900/60 p-3">
                     <div className="flex items-center gap-2">
-                      <span className={`grid h-9 w-9 place-items-center rounded-full text-xs font-bold ${isTeacher ? 'bg-emerald-400/20 text-emerald-200' : 'bg-cyan-400/20 text-cyan-200'}`}>
+                      <span className={`grid h-9 w-9 place-items-center rounded-full text-xs font-bold ${avatarTone}`}>
                         {firstName.slice(0, 1).toUpperCase() || 'U'}
                       </span>
                       <div className="min-w-0 flex-1">
@@ -370,8 +422,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                       </div>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${isTeacher ? 'bg-emerald-400/15 text-emerald-200' : 'bg-cyan-400/15 text-cyan-200'}`}>
-                        {isTeacher ? 'Teacher account' : 'Student account'}
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badgeTone}`}>
+                        {accountTitle}
                       </span>
                       {session.emailVerified && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
@@ -398,6 +450,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                       Teacher Tools (Dice, Wheel, Studio)
                     </a>
                   )}
+                  {isAdmin && (
+                    <a
+                      href="#users-admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-xl border border-amber-300/30 bg-amber-300/5 px-3 py-2.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-300/10"
+                    >
+                      <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      Users &amp; Teacher Verification
+                    </a>
+                  )}
                   <button
                     onClick={handleSignOut}
                     className="flex w-full items-center gap-2 rounded-xl border border-rose-300/30 bg-rose-300/5 px-3 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-300/10"
@@ -415,7 +477,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="cmc-btn-primary w-full"
                 >
                   <Sparkles className="w-4 h-4" aria-hidden="true" />
-                  Claim Free Teacher Access
+                  Create a free account
                 </button>
               )}
             </div>

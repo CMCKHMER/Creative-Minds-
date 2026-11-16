@@ -431,7 +431,8 @@ if (existsSync(join(DIST, 'assets'))) {
     localStorage.setItem('cmc.liveSheet.v1.diagnostic.html', JSON.stringify({ v: 1, rows }));
   });
   const dash = await teacherCtx.newPage();
-  await dash.goto(`${ORIGIN(0)}/index.html`, { waitUntil: 'domcontentloaded' });
+  // Live class results is a page of its own (src/lib/sitePages.ts): /#live-results.
+  await dash.goto(`${ORIGIN(0)}/index.html#live-results`, { waitUntil: 'domcontentloaded' });
   const found = await until(async () => {
     await dash.evaluate(() => {
       const el = document.querySelector('.cmc-scores-card') || document.getElementById('firebase-dashboard');
