@@ -87,10 +87,12 @@ interface Palette { rest: Rgb; spark: Rgb; pushed: Rgb; flying: Rgb; far: Rgb; p
 
 const hex = (h: string): Rgb => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
 
-// Dark page: near-white letters, warm sparks. Light page: ink letters and
-// deeper accents — pale dots vanish on the light background.
-const DARK: Palette = { rest: hex('#f4faff'), spark: hex('#ffd24a'), pushed: hex('#ffffff'), flying: hex('#ffc933'), far: hex('#ffc933'), pressHue: 0.5, pressSat: 1, pressLight: 0.62 };
-const LIGHT: Palette = { rest: hex('#0c1a2c'), spark: hex('#c2410c'), pushed: hex('#0c1a2c'), flying: hex('#c2410c'), far: hex('#c2410c'), pressHue: 0.52, pressSat: 0.9, pressLight: 0.36 };
+// The glass theme's colours (src/glass.css): letters in the page's ink, sparks
+// in the warm light leak, dots in flight in the spheres' blue.
+// Dark page: near-white letters. Light page: ink letters and deeper accents —
+// pale dots vanish on the light background.
+const DARK: Palette = { rest: hex('#f3f6fb'), spark: hex('#ffd0a8'), pushed: hex('#ffffff'), flying: hex('#a9baff'), far: hex('#8198ff'), pressHue: 0.64, pressSat: 1, pressLight: 0.74 };
+const LIGHT: Palette = { rest: hex('#11151c'), spark: hex('#c8622c'), pushed: hex('#11151c'), flying: hex('#2b3fd6'), far: hex('#2b3fd6'), pressHue: 0.65, pressSat: 0.85, pressLight: 0.42 };
 
 interface Sampled {
   points: Float32Array;

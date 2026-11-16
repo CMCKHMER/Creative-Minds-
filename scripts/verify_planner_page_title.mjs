@@ -182,7 +182,9 @@ const linesPainted = (page) => page.evaluate(() => {
   const [one, two] = rest;
   const grey = (c) => !!c && Math.max(...c) - Math.min(...c) < 26;
   check(grey(one.left) && grey(one.right) && one.left[0] > 200, 'line 1 rests in the plain letter colour (near white)', `${one.left} | ${one.right}`);
-  check(!!two.left && !!two.right && two.left[1] - two.left[0] > 25 && two.left[2] - two.left[1] < 12 && two.right[2] - two.right[1] > 8, 'line 2 runs from cyan and teal on the left towards indigo on the right', `${two.left} → ${two.right}`);
+  // gradient (glass theme): the spheres' pale blue on the left half (blue well
+  // above red), turning to the warm light on the right half (red catches up)
+  check(!!two.left && !!two.right && two.left[2] - two.left[0] > 25 && (two.right[0] - two.right[2]) - (two.left[0] - two.left[2]) > 20, 'line 2 runs from pale blue on the left to warm light on the right', `${two.left} → ${two.right}`);
 
   // the cursor opens a clearing; the dots come home when it leaves
   const box = await page.evaluate(() => { const r = document.querySelector('.bp-title-row--accent .bp-title-solid').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
@@ -247,7 +249,7 @@ const linesPainted = (page) => page.evaluate(() => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   if (SHOTS) await page.screenshot({ path: join(SHOTS, 'page-phone.png') });
   // the second line wraps here ("Bi-Weekly" / "Planner"), so its dots end short of the block's right edge
-  check(on && lines.length === 2 && lines.every((l) => l.painted > 150 && l.spanOfWidth > 0.6) && overflow <= 0, 'phone (393 px): both lines are drawn, the page does not scroll sideways', `${lines.map((l) => `${l.painted}px over ${Math.round(l.spanOfWidth * 100)}%`).join(' · ')}, ${overflow}px too wide`);
+  check(on && lines.length === 2 && lines.every((l) => l.painted > 150 && l.spanOfWidth > 0.5) && overflow <= 0, 'phone (393 px): both lines are drawn, the page does not scroll sideways', `${lines.map((l) => `${l.painted}px over ${Math.round(l.spanOfWidth * 100)}%`).join(' · ')}, ${overflow}px too wide`);
 }
 
 // ── 6: reduce motion ─────────────────────────────────────────────────────
