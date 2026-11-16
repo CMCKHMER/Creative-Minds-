@@ -120,6 +120,103 @@ body.light .placeholder{border-color:#c3cfdd}
 @media print{body{background:#fff;padding:0}.bg-grid,.topbar,.action-row,.score-display,.footer,.share-panel,.toast,#themeToggle{display:none!important}.container{box-shadow:none;border:none;background:#fff}*{color:#111!important;background:transparent!important;border-color:#ccc!important}.passage-card,.option-card{break-inside:avoid}.build-line{border:1px solid #999!important}.chip{padding:2px 6px!important;font-size:12px!important;border:1px solid #999!important}.unit-qr{width:72px;height:72px;border:1px solid #ccc;background:#fff!important}}
 @page{margin:12mm}
 </style>
+<!-- CMC Simple Print (auto-generated; see scripts/print-simple/) -->
+<style id="cmcPrintSimpleCss">
+/* ============================================================
+   CMC Simple Print — paper stylesheet, shared by every Creative
+   Minds live worksheet. On screen the sheet node is hidden; when
+   the page prints / saves as PDF, ONLY #cmcPrintSheet renders —
+   plain black on white, no dark theme, buttons, banners or QR.
+   Injected per worksheet by scripts/print-simple/inject.py.
+   ============================================================ */
+#cmcPrintSheet{display:none}
+@media print{
+  /* The whole live page makes way for the generated sheet. Doubled ID
+     selectors out-rank page CSS like `html.hw-pending body>*:not(#hwGate)`
+     (which carries an ID inside :not) without needing !important wars. */
+  #cmcPrintSheet#cmcPrintSheet{display:block!important}
+  body>*:not(#cmcPrintSheet){display:none!important}
+  /* Overlay-style gates (e.g. the account gate hides page content with
+     visibility:hidden) must not blank the printed sheet. */
+  #cmcPrintSheet#cmcPrintSheet,#cmcPrintSheet#cmcPrintSheet *{visibility:visible!important}
+  html,body{background:#fff!important;margin:0!important;padding:0!important;min-height:0!important}
+  /* The worksheets set color-scheme:dark on <html> for the dark UI; that
+     paints the whole print canvas (margins included) dark in Chromium.
+     Force the light scheme for paper. */
+  html{color-scheme:light!important}
+  @page{size:A4;margin:13mm 12mm 15mm}
+  #cmcPrintSheet{
+    color:#000!important;background:#fff!important;
+    font-family:Arial,'Helvetica Neue',Helvetica,sans-serif!important;
+    font-size:11.5pt!important;line-height:1.5!important;
+  }
+  #cmcPrintSheet *{
+    color:#000!important;background:transparent!important;
+    box-shadow:none!important;text-shadow:none!important;
+    border-radius:0!important;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
+  .cps-wrap{width:100%}
+
+  /* Header block */
+  .cps-banner{text-align:center;margin:0 0 2.5mm}
+  .cps-banner img{height:12mm;max-width:60%}
+  .cps-doctitle{text-align:center;font-size:15.5pt;font-weight:800;margin:0 0 1mm;letter-spacing:.2pt}
+  .cps-sub{display:flex;justify-content:space-between;font-size:9pt;margin:0 0 2.5mm;border-bottom:.8pt solid #000;padding-bottom:1.5mm}
+  .cps-idrow{display:flex;gap:5mm;margin:2.5mm 0 3.5mm;font-size:11pt;font-weight:700}
+  .cps-idrow .f{flex:1 1 0;white-space:nowrap}
+  .cps-idrow .v{display:inline-block;min-width:26mm;border-bottom:.8pt solid #000;min-height:5mm;font-weight:400;padding:0 2mm}
+
+  /* One unit per section; whole packs put each unit on its own page. */
+  .cps-unit+.cps-unit{page-break-before:always}
+  .cps-utitle{font-size:13.5pt;font-weight:800;border-bottom:1.3pt solid #000;padding-bottom:1.5mm;margin:0 0 2mm}
+  .cps-track{font-size:10pt;margin:0 0 1.5mm}
+  .cps-instr{font-size:10pt;font-style:italic;margin:0 0 3mm}
+  .cps-sec{font-size:12pt;font-weight:800;margin:4mm 0 2mm;border-bottom:.8pt solid #000;padding-bottom:1mm}
+  .cps-note{font-size:9pt;font-style:italic;font-weight:400}
+  .cps-bank{border:.9pt solid #000;padding:2mm 3mm;margin:0 0 3mm;font-size:11pt;font-weight:700;text-align:center}
+
+  /* Questions */
+  .cps-item{margin:0 0 3mm;font-size:11.5pt;break-inside:avoid}
+  .cps-item .n{font-weight:800;margin-right:1mm}
+  .o{margin:0 0 1.2mm 8mm;font-size:11pt;break-inside:avoid}
+  .cps-blank{display:inline-block;min-width:32mm;border-bottom:.8pt solid #000;height:4.8mm;margin:0 1mm}
+  .cps-box{display:inline-block;min-width:11mm;border:.9pt solid #000;height:5.6mm;vertical-align:middle;margin:0 1mm}
+  .cps-gap{white-space:nowrap}
+  .cps-gap .gn{font-size:8.5pt;font-weight:800}
+  .cps-gap .ln{display:inline-block;min-width:24mm;border-bottom:.8pt solid #000;height:4.8mm;margin:0 1mm}
+  .cps-gap .ln.long{min-width:42mm}
+  .cps-gap .ln.short{min-width:12mm}
+  .cps-lines{margin:1mm 0 2mm}
+  .cps-lines .wl{border-bottom:.8pt solid #000;height:8.5mm}
+  .cps-tf{letter-spacing:2pt}
+  .cps-legend{font-size:10pt;margin:0 0 2.5mm;border:.6pt solid #000;padding:2mm 3mm}
+  .cps-legend div{margin:0 0 .6mm 4mm}
+
+  /* Passages — left-aligned: justify cannot stretch lines that contain
+     nowrap blanks, and the overfull lines would clip at the page edge. */
+  .cps-pass{font-size:12pt;line-height:2.45;text-align:left;margin:0 0 3mm}
+  .cps-read{font-size:11pt;line-height:1.65;margin:1.5mm 0 2.5mm;text-align:left}
+  .cps-chips{font-weight:700}
+
+  /* Tables (word list / matching) */
+  .cps-table{width:100%;border-collapse:collapse;font-size:9.5pt;margin:0 0 2mm}
+  .cps-table th,.cps-table td{border:.6pt solid #000;padding:1.3mm 1.8mm;vertical-align:top;text-align:left}
+  .cps-table th{background:#e9e9e9;font-size:9.5pt;text-transform:uppercase;letter-spacing:.4pt}
+  .cps-table thead{display:table-header-group}
+  .cps-table tr{break-inside:avoid}
+  .cps-table td.c,.c{text-align:center}
+  .cps-match{width:100%;border-collapse:collapse;font-size:11pt;margin:0 0 2.5mm}
+  .cps-match td{border:.6pt solid #000;padding:2mm 2.4mm;vertical-align:middle}
+  .cps-match td:last-child{width:46%}
+
+  /* Score + footer */
+  .cps-score{margin-top:2mm;font-size:11pt;font-weight:700}
+  .cps-score .v{display:inline-block;min-width:24mm;border-bottom:.8pt solid #000}
+  .cps-foot{margin-top:6mm;border-top:.6pt solid #000;padding-top:1.5mm;font-size:8.5pt;text-align:center}
+}
+
+</style>
 </head>
 <body>
 <script>CMC_GATE.guard('account', 'Sign up free to open this worksheet.');</script>
@@ -352,6 +449,562 @@ try{window.addEventListener('storage',function(e){if(e.key==='cmc-theme'&&(e.new
 <a id="cmc-back-btn" href="https://cmckhmer.github.io/Creative-Minds-/" target="_self" rel="noopener noreferrer" style="position:fixed; top:16px; right:16px; z-index:99995; display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(8px); border:1px solid rgba(34,211,238,0.3); color:#67e8f9; font-family:'Plus Jakarta Sans','Inter',sans-serif; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s ease; box-shadow:0 4px 20px rgba(0,0,0,0.3);" onmouseover="this.style.borderColor='rgba(34,211,238,0.6)';this.style.background='rgba(34,211,238,0.08)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(34,211,238,0.3)';this.style.background='rgba(15,23,42,0.9)';this.style.transform=''" aria-label="Back to CMC home">
     <span style="font-size:13px; line-height:1;">&#8592;</span> Back to CMC
 </a>
+<!-- CMC Simple Print (auto-generated; see scripts/print-simple/) -->
+<script id="cmcPrintSimpleJs">
+window.CMC_PRINT_CONFIG={family:'unscramble',data:'UNITS',sel:'unitSelect',book:'Reading Future Change 1',sheetTitle:'Unscramble Sheet'};
+/* ============================================================
+   CMC Simple Print — engine shared by every Creative Minds live
+   worksheet (Kid 6 / 7 / 11 sheets + online homework pages).
+
+   WHAT IT DOES
+   The interactive page keeps its live look on screen. The moment
+   the page is printed or saved as PDF — the on-page
+   "Print / Save PDF" button, Ctrl/Cmd+P, or the browser menu —
+   the `beforeprint` event builds a plain, paper-friendly version
+   of the current unit (or the whole pack when no unit is
+   selected) into a hidden `#cmcPrintSheet` node, and the print
+   CSS shows ONLY that node: no dark theme, no buttons, no
+   banners or QR codes — just title, name/date line, questions
+   and writing lines. `afterprint` removes the sheet again.
+
+   The builder for each worksheet family is chosen by
+   window.CMC_PRINT_CONFIG.family, injected per file:
+     dictation  — UNITS { track, text [n] blanks, ans }
+     wordlist   — WORDS/wordData { unit: [{w|word, p|pos, d|def, s|sent}] }
+     unscramble — UNITS { passage [1-4], options A–D scrambled, answers }
+     unittest1  — Reading Future Change 1 unit tests (T array)
+     unittest2  — Reading Future Connect 2 unit tests (UNITS object)
+     reviewtest — Create 3 review tests (TESTS object)
+     homework   — Kid 11 online homework pages (static DOM)
+   ============================================================ */
+(function () {
+  'use strict';
+  if (window.__cmcPrintSimpleLoaded) return;
+  window.__cmcPrintSimpleLoaded = true;
+
+  var CFG = window.CMC_PRINT_CONFIG || {};
+
+  /* ---------- small helpers ---------- */
+  /* Emoji & symbol ranges stripped from printed text (they turn into
+     empty boxes on paper). Circled digits ①–④ (U+2460+) are KEPT —
+     the unscramble/reading passages use them as gap markers. */
+  var EMOJI_RE = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{2B00}-\u{2BFF}\u{23E9}-\u{23FA}]/gu;
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  /* Plain text for the sheet: escaped + emoji-free. */
+  function txt(s) { return esc(String(s == null ? '' : s).replace(EMOJI_RE, '')); }
+
+  /* Data objects are declared with top-level `const` in each worksheet,
+     so they are NOT on `window`. Indirect eval resolves them through the
+     shared global lexical scope (works for const/let/var alike). */
+  function gvar(name) {
+    if (!name) return null;
+    try { return (0, eval)('(' + name + ')'); } catch (e) { return null; }
+  }
+
+  function selectedKey() {
+    if (!CFG.sel) return '';
+    var s = document.getElementById(CFG.sel);
+    return s ? String(s.value || '') : '';
+  }
+  function entries(data) {
+    return Object.keys(data).map(function (k) { return [k, data[k]]; });
+  }
+  function today() {
+    try { return new Date().toLocaleDateString('en-GB'); } catch (e) { return ''; }
+  }
+
+  /* ---------- sheet building blocks ---------- */
+  function banner() {
+    var b = document.querySelector('.aii-banner img');
+    return b ? '<div class="cps-banner"><img src="' + esc(b.getAttribute('src')) + '"></div>' : '';
+  }
+  function idRow(scoreLabel) {
+    var f =
+      '<div class="f"><b>Name:</b><span class="v"></span></div>' +
+      '<div class="f"><b>Date:</b><span class="v"></span></div>' +
+      '<div class="f"><b>Class:</b><span class="v"></span></div>';
+    if (scoreLabel) f += '<div class="f"><b>' + txt(scoreLabel) + ':</b><span class="v"></span></div>';
+    return '<div class="cps-idrow">' + f + '</div>';
+  }
+  function docHead() {
+    return banner() +
+      '<div class="cps-doctitle">' + txt(CFG.sheetTitle || 'Worksheet') + '</div>' +
+      '<div class="cps-sub"><span>Creative Minds Network' + (CFG.book ? ' · ' + txt(CFG.book) : '') + '</span>' +
+      '<span>Print edition · ' + today() + '</span></div>';
+  }
+  function unitHead(label, sub, instr) {
+    return '<div class="cps-utitle">' + txt(label) + '</div>' +
+      (sub ? '<div class="cps-track">' + txt(sub) + '</div>' : '') +
+      (instr ? '<div class="cps-instr">' + txt(instr) + '</div>' : '');
+  }
+  function foot() {
+    return '<div class="cps-foot">' + txt(CFG.book || '') + ' · ' + txt(CFG.sheetTitle || '') +
+      ' — printed from Creative Minds Network</div>';
+  }
+  function sheet(inner) { return '<div class="cps-wrap">' + inner + '</div>'; }
+
+  /* One-line notice sheet (guests, locked homework). */
+  function noticeSheet(msg) {
+    return sheet(docHead() +
+      '<div class="cps-utitle">' + txt(CFG.sheetTitle || 'Worksheet') + '</div>' +
+      '<div class="cps-read">' + txt(msg) + '</div>' + foot());
+  }
+  function mount(html) {
+    var sh = document.getElementById('cmcPrintSheet');
+    if (!sh) {
+      sh = document.createElement('div');
+      sh.id = 'cmcPrintSheet';
+      document.body.appendChild(sh);
+    }
+    sh.innerHTML = html;
+    return true;
+  }
+
+  function gapSpan(n, cls) {
+    return '<span class="cps-gap"><span class="gn">(' + n + ')</span>' +
+      '<span class="ln' + (cls ? ' ' + cls : '') + '"></span></span>';
+  }
+  /* Escape text, then turn its [1] [2] … markers into numbered blanks.
+     `longAt(i)` returns truthy when blank i should print extra wide. */
+  function passageGaps(text, longAt, blankHtml) {
+    return txt(text).replace(/\[(\d+)\]/g, function (m, n) {
+      var i = parseInt(n, 10);
+      return blankHtml(n, longAt && longAt(i));
+    });
+  }
+  function wl(n) {
+    var s = '';
+    for (var i = 0; i < n; i++) s += '<div class="wl"></div>';
+    return '<div class="cps-lines">' + s + '</div>';
+  }
+  function mcItem(m) {
+    var h = '<div class="cps-item">' + txt(m.q) + ' <span class="cps-box"></span></div>';
+    (m.o || []).forEach(function (o, k) {
+      h += '<div class="o">' + String.fromCharCode(97 + k) + '. ' + txt(o) + '</div>';
+    });
+    return h;
+  }
+  /* Review-test gap sentences: [g1] [g2] … become blanks with their own
+     word choices printed in small type right after the blank. */
+  function gapInPassage(T) {
+    return function (m, tag) {
+      var i = parseInt(tag.slice(1), 10) - 1;
+      var gg = (T.gaps || [])[i];
+      return '<span class="cps-blank"></span>' +
+        (gg ? ' <span class="cps-note">(' + (gg.o || []).map(txt).join(' / ') + ')</span>' : '');
+    };
+  }
+  /* Fill-in sentence: "___" (3+ underscores) becomes a blank. */
+  function fillBlank(t) {
+    var parts = String(t).split(/_{3,}/);
+    if (parts.length === 1) return txt(t) + ' <span class="cps-blank"></span>';
+    var h = txt(parts[0]) + '<span class="cps-blank"></span>';
+    for (var i = 1; i < parts.length; i++) h += (parts[i] ? txt(parts[i]) : '') + (i < parts.length - 1 ? '<span class="cps-blank"></span>' : '');
+    return h;
+  }
+  /* Serialized inline HTML whitelist: text + b/strong/i/em/br only;
+     highlighted vocab (.hl) becomes bold. Used by the homework DOM builder. */
+  function inlineHTML(node) {
+    var clone = node.cloneNode(true);
+    clone.querySelectorAll('select,input,textarea,button,small,.fb').forEach(function (x) { x.remove(); });
+    clone.querySelectorAll('span.hl').forEach(function (s) {
+      var b = document.createElement('b');
+      while (s.firstChild) b.appendChild(s.firstChild);
+      s.replaceWith(b);
+    });
+    function walk(n) {
+      var out = '';
+      n.childNodes.forEach(function (c) {
+        if (c.nodeType === 3) { out += esc(c.nodeValue); }
+        else if (c.nodeType === 1) {
+          if (c.tagName === 'BR') { out += '<br>'; return; }
+          var inner = walk(c);
+          if (c.tagName === 'B' || c.tagName === 'STRONG') out += '<b>' + inner + '</b>';
+          else if (c.tagName === 'I' || c.tagName === 'EM') out += '<i>' + inner + '</i>';
+          else out += inner;
+        }
+      });
+      return out;
+    }
+    return walk(clone).replace(EMOJI_RE, '');
+  }
+  function secHead(sec) {
+    var head = sec.querySelector('.task-head');
+    if (!head) return '';
+    var n = head.querySelector('.tnum'), t = head.querySelector('h2'), p = head.querySelector('.pts');
+    return '<div class="cps-sec">' + (n ? txt(n.textContent) + ' ' : '') + txt(t ? t.textContent : '') +
+      (p ? ' <span class="cps-note">(' + txt(p.textContent) + ')</span>' : '') + '</div>';
+  }
+
+  /* ============ FAMILY BUILDERS ============ */
+
+  /* Dictation — UNITS { track, text, ans } (Kid 6 / 7 / 11). */
+  function bDictation() {
+    var data = gvar(CFG.data); if (!data) return '';
+    var key = selectedKey();
+    var list = key && data[key] ? [[key, data[key]]] : entries(data);
+    if (!list.length) return '';
+    var out = docHead() + idRow();
+    list.forEach(function (en) {
+      var u = en[1];
+      var blanks = (String(u.text).match(/\[\d+\]/g) || []).length;
+      var longAt = function (n) {
+        var a = (u.ans && u.ans[n - 1]) || '';
+        return String(a).charAt(0) === '*';
+      };
+      out += '<div class="cps-unit">' +
+        unitHead(en[0], 'Audio track: ' + txt(u.track || '—') + ' · ' + blanks + ' blanks',
+          'Listen to the audio track and write the missing word on each numbered blank. Spelling counts.') +
+        '<div class="cps-pass">' + passageGaps(u.text, longAt, function (n, long) {
+          return gapSpan(n, long ? 'long' : '');
+        }) + '</div>' +
+        '<div class="cps-score">Score: <span class="v"></span> / ' + blanks + '</div>' +
+        '</div>';
+    });
+    return sheet(out + foot());
+  }
+
+  /* Word list — WORDS / wordData { unit: [{w|word, p|pos, d|def, s|sent}] }. */
+  function bWordlist() {
+    var data = gvar(CFG.data); if (!data) return '';
+    var key = selectedKey();
+    var list = key && data[key] ? [[key, data[key]]] : entries(data);
+    if (!list.length) return '';
+    var out = docHead() + idRow();
+    list.forEach(function (en) {
+      var words = en[1] || [];
+      var rows = words.map(function (it, i) {
+        return '<tr><td class="c">' + (i + 1) + '</td><td><b>' + txt(it.w || it.word) + '</b></td>' +
+          '<td class="c">' + txt(it.p || it.pos) + '</td><td>' + txt(it.d || it.def) + '</td>' +
+          '<td>' + txt(it.s || it.sent) + '</td></tr>';
+      }).join('');
+      out += '<div class="cps-unit">' +
+        unitHead(en[0], words.length + ' words',
+          'Study list — cover the Meaning and Example columns to quiz yourself.') +
+        '<table class="cps-table"><thead><tr><th>#</th><th>Word</th><th>Type</th><th>Meaning</th><th>Example</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody></table></div>';
+    });
+    return sheet(out + foot());
+  }
+
+  /* Unscramble — UNITS { passage, options A–D { scrambled }, answers }. */
+  function bUnscramble() {
+    var data = gvar(CFG.data); if (!data) return '';
+    var key = selectedKey();
+    var list = key && data[key] ? [[key, data[key]]] : entries(data);
+    if (!list.length) return '';
+    var CIRCLED = { 1: '\u2460', 2: '\u2461', 3: '\u2462', 4: '\u2463' };
+    var out = docHead() + idRow('Score  __ / 8');
+    list.forEach(function (en) {
+      var u = en[1], p1 = '';
+      ['A', 'B', 'C', 'D'].forEach(function (L) {
+        var o = u.options && u.options[L];
+        if (!o) return;
+        p1 += '<div class="cps-item"><span class="n">' + L + '.</span>' +
+          '<span class="cps-chips">[ ' + (o.scrambled || []).map(txt).join('  /  ') + ' ]</span>' +
+          wl(2) + '</div>';
+      });
+      var p2 = passageGaps(u.passage, null, function (n) {
+        return '<span class="cps-gap"><span class="gn">' + (CIRCLED[n] || n) + '</span>' +
+          '<span class="ln short"></span></span>';
+      });
+      out += '<div class="cps-unit">' +
+        unitHead(en[0], null,
+          'Rebuild each sentence in the correct order and write it on the lines. Then write the letter (A–D) of each finished sentence in its matching gap in the passage.') +
+        '<div class="cps-sec">Part 1 · Rebuild the sentences</div>' + p1 +
+        '<div class="cps-sec">Part 2 · The passage — write A, B, C or D in each gap</div>' +
+        '<div class="cps-read">' + p2 + '</div></div>';
+    });
+    return sheet(out + foot());
+  }
+
+  /* Unit test, Reading Future Change 1 (rfc1) — T array of
+     { t, ab[], a[[sentence, key]], bt: 'm'|'s', b, p, cq[[q,a,b,c,key]] }. */
+  function bUnitTest1() {
+    var T = gvar(CFG.data); if (!T) return '';
+    var key = selectedKey();
+    var list = (key !== '' && T[key]) ? [[T[key].t, T[key]]] : T.map(function (u) { return [u.t, u]; });
+    if (!list.length) return '';
+    var out = docHead() + idRow('Score  __ / 15');
+    list.forEach(function (en) {
+      var u = en[1], h = '';
+      h += '<div class="cps-sec">A · Fill in the blank <span class="cps-note">(two words are not used)</span></div>';
+      h += '<div class="cps-bank">' + (u.ab || []).map(txt).join(' · ') + '</div>';
+      (u.a || []).forEach(function (q, j) {
+        var parts = String(q[0]).split('___');
+        h += '<div class="cps-item"><span class="n">' + (j + 1) + '.</span>' + txt(parts[0]) +
+          '<span class="cps-blank"></span>' + (parts[1] ? txt(parts[1]) : '') + '</div>';
+      });
+      if (u.bt === 'm') {
+        h += '<div class="cps-sec">B · Match the sentences — write the letter</div>';
+        var sh = [2, 3, 4, 0, 1];
+        h += '<table class="cps-match">';
+        (u.b || []).forEach(function (pr, j) {
+          h += '<tr><td><b>' + (j + 1) + '.</b> ' + txt(pr[0]) + ' <span class="cps-box"></span></td>' +
+            '<td><b>' + String.fromCharCode(65 + j) + '.</b> ' + txt(u.b[sh[j]][1]) + '</td></tr>';
+        });
+        h += '</table>';
+      } else {
+        h += '<div class="cps-sec">B · Unscramble the sentences</div>';
+        (u.b || []).forEach(function (it, j) {
+          h += '<div class="cps-item"><span class="n">' + (j + 1) + '.</span>' +
+            '<span class="cps-chips">[ ' + (it[0] || []).map(txt).join('  /  ') + ' ]</span>' + wl(2) + '</div>';
+        });
+      }
+      h += '<div class="cps-sec">C · Reading comprehension — circle the best answer</div>';
+      h += '<div class="cps-read">' + txt(u.p) + '</div>';
+      (u.cq || []).forEach(function (q, j) {
+        h += '<div class="cps-item"><span class="n">' + (j + 1) + '.</span>' + txt(q[0]) + ' <span class="cps-box"></span></div>';
+        ['a', 'b', 'c'].forEach(function (L, k) { h += '<div class="o">' + L + '. ' + txt(q[k + 1]) + '</div>'; });
+      });
+      out += '<div class="cps-unit">' + unitHead(en[0], null,
+        'Write your answers on the blanks and in the boxes.') + h + '</div>';
+    });
+    return sheet(out + foot());
+  }
+
+  /* Unit test, Reading Future Connect 2 (rfc2) — UNITS object of
+     { A[{s,a}], B{mode:'match',pairs}|{mode:'unscramble',chunks}, P, C[{q,o,a}] }. */
+  function bUnitTest2() {
+    var data = gvar(CFG.data); if (!data) return '';
+    var key = selectedKey();
+    var list = key && data[key] ? [[key, data[key]]] : entries(data);
+    if (!list.length) return '';
+    var out = docHead() + idRow('Score  __ / 15');
+    list.forEach(function (en) {
+      var u = en[1], h = '';
+      var bank = (u.A || []).map(function (x) { return x.a; });
+      h += '<div class="cps-sec">A · Fill in the blank — words from the box</div>';
+      h += '<div class="cps-bank">' + bank.map(txt).join(' · ') + '</div>';
+      (u.A || []).forEach(function (it, j) {
+        h += '<div class="cps-item"><span class="n">' + (j + 1) + '.</span>' + fillBlank(it.s) + '</div>';
+      });
+      if (u.B && u.B.mode === 'match') {
+        h += '<div class="cps-sec">B · Match the sentences — write the letter</div>';
+        var rights = (u.B.pairs || []).map(function (p) { return p.r; });
+        var shuf = rights.slice(2).concat(rights.slice(0, 2));
+        h += '<table class="cps-match">';
+        (u.B.pairs || []).forEach(function (p, i) {
+          h += '<tr><td><b>' + (i + 1) + '.</b> ' + txt(p.l) + ' <span class="cps-box"></span></td>' +
+            '<td><b>' + String.fromCharCode(65 + i) + '.</b> ' + txt(shuf[i]) + '</td></tr>';
+        });
+        h += '</table>';
+      } else if (u.B) {
+        h += '<div class="cps-sec">B · Unscramble the sentences</div>';
+        (u.B.chunks || []).forEach(function (ch, j) {
+          h += '<div class="cps-item"><span class="n">' + (j + 1) + '.</span>' +
+            '<span class="cps-chips">[ ' + ch.map(txt).join('  /  ') + ' ]</span>' + wl(2) + '</div>';
+        });
+      }
+      h += '<div class="cps-sec">C · Reading comprehension — circle the best answer</div>';
+      h += '<div class="cps-read">' + txt(u.P) + '</div>';
+      (u.C || []).forEach(function (q) { h += mcItem(q); });
+      out += '<div class="cps-unit">' + unitHead(en[0], null,
+        'Write your answers on the blanks and in the boxes.') + h + '</div>';
+    });
+    return sheet(out + foot());
+  }
+
+  /* Review tests (rfc3) — TESTS { bank, fills, mcB, p1, mcC, p2, gaps,
+     pD1, pD2, written, unsc }. Fields render defensively (missing = skipped). */
+  function bReviewTest() {
+    var data = gvar(CFG.data); if (!data) return '';
+    var key = selectedKey();
+    var list = key && data[key] ? [[key, data[key]]] : entries(data);
+    if (!list.length) return '';
+    var out = docHead() + idRow();
+    list.forEach(function (en) {
+      var T = en[1], h = '';
+      if (T.bank) {
+        h += '<div class="cps-sec">Part 1 · Vocabulary</div>';
+        h += '<div class="cps-bank">' + T.bank.map(txt).join(' · ') + '</div>';
+        (T.fills || []).forEach(function (f) { h += '<div class="cps-item">' + fillBlank(f.t) + '</div>'; });
+      }
+      if (T.mcB && T.mcB.length) {
+        h += '<div class="cps-sec">Part 2 · Multiple choice — circle the best answer</div>';
+        T.mcB.forEach(function (m) { h += mcItem(m); });
+      }
+      if (T.p1) {
+        h += '<div class="cps-read">' + txt(T.p1) + '</div>';
+        (T.mcC || []).forEach(function (m) { h += mcItem(m); });
+      }
+      if (T.p2) {
+        h += '<div class="cps-read">' + txt(T.p2).replace(/\[(g\d+)\]/g, gapInPassage(T)) + '</div>';
+      }
+      if (T.pD1 || T.pD2 || T.written || T.unsc) {
+        h += '<div class="cps-sec">Part 3 · Written answers</div>';
+        if (T.pD1) h += '<div class="cps-read">' + txt(T.pD1) + '</div>';
+        if (T.pD2) h += '<div class="cps-read">' + txt(T.pD2) + '</div>';
+        (T.written || []).forEach(function (w) {
+          h += '<div class="cps-item"><span class="n">' + txt(w.n) + '.</span>' + txt(w.q) + '</div>' + wl(2);
+        });
+        if (T.unsc) {
+          h += '<div class="cps-item"><span class="n">' + txt(T.unsc.n) + '.</span> Rebuild the sentence: ' +
+            '<span class="cps-chips">[ ' + (T.unsc.scrambled || []).map(txt).join('  /  ') + ' ]</span></div>' + wl(2);
+        }
+      }
+      out += '<div class="cps-unit">' + unitHead(en[0], null,
+        'Write your answers on the blanks, in the boxes, or on the lines.') + h + '</div>';
+    });
+    return sheet(out + foot());
+  }
+
+  /* Kid 11 online homework pages — static DOM, one <main.assignment> per
+     homework (tabs 01/02/03); the ACTIVE one prints as the paper version. */
+  function bHomework() {
+    var main = document.querySelector('main.assignment:not([hidden])');
+    if (!main) return '';
+    /* Homework locked or still resolving (share state not in yet)? Print
+       the notice, not the paper — unshared homework must not leak to
+       students on paper either. */
+    var rootCls = document.documentElement.classList;
+    var gate = document.getElementById('hwGate');
+    if (rootCls.contains('hw-pending') || (gate && window.getComputedStyle(gate).display !== 'none')) {
+      return noticeSheet('This homework is not open yet. Ask your teacher to share it from the Kid 11 card on the CMC homepage, then print again.');
+    }
+    var hero = main.querySelector('.hero');
+    var kick = hero ? hero.querySelector('.kicker') : null;
+    var h1 = hero ? hero.querySelector('h1') : null;
+    var brief = hero ? hero.querySelector('.brief') : null;
+    var meta = hero ? hero.querySelectorAll('.meta input') : [];
+    var nameV = meta[0] ? String(meta[0].value || '') : '';
+    var dateV = meta[1] ? String(meta[1].value || '') : '';
+    var out = docHead() +
+      '<div class="cps-utitle">' + txt(CFG.sheetTitle || 'Online homework') +
+      (kick ? ' — ' + txt(kick.textContent) : '') + '</div>';
+    if (h1) out += '<div class="cps-track"><b>' + txt(h1.textContent) + '</b>' +
+      (brief ? '<br>' + txt(brief.textContent) : '') + '</div>';
+    out += '<div class="cps-idrow">' +
+      '<div class="f"><b>Name:</b><span class="v">' + esc(nameV) + '</span></div>' +
+      '<div class="f"><b>Date:</b><span class="v">' + esc(dateV) + '</span></div>' +
+      '<div class="f"><b>Score:</b><span class="v"></span></div></div>';
+
+    var pas = main.querySelector('details.passage');
+    if (pas) {
+      var sum = pas.querySelector('summary');
+      out += '<div class="cps-sec">' + (sum ? txt(sum.textContent) : 'Reading passage') + '</div>';
+      pas.querySelectorAll('p').forEach(function (p) { out += '<div class="cps-read">' + inlineHTML(p) + '</div>'; });
+    }
+
+    main.querySelectorAll('section.task').forEach(function (sec) {
+      if (sec.classList.contains('results')) return;
+      if (sec.classList.contains('write-task')) {
+        out += secHead(sec);
+        var hint = sec.querySelector('p.hint');
+        if (hint) out += '<div class="cps-instr">' + txt(hint.textContent) + '</div>';
+        sec.querySelectorAll('.client').forEach(function (c) {
+          out += '<div class="cps-read">' + inlineHTML(c) + '</div>';
+        });
+        out += wl(6);
+        return;
+      }
+      out += secHead(sec);
+      var hint2 = sec.querySelector('p.hint');
+      if (hint2) out += '<div class="cps-instr">' + txt(hint2.textContent) + '</div>';
+      var bank = sec.querySelector('.bank');
+      if (bank) {
+        var words = [];
+        bank.querySelectorAll('span').forEach(function (s) { words.push(s.textContent); });
+        out += '<div class="cps-bank">' + words.map(txt).join(' · ') + '</div>';
+      }
+      /* Matching legend: when every select in the section offers the SAME
+         option list (word meanings, suffix matching), print that list once
+         as a lettered legend and give each item a small answer box. */
+      var sels = Array.prototype.slice.call(sec.querySelectorAll('.g-item select'));
+      var same = false;
+      if (sels.length) {
+        var sig = Array.prototype.map.call(sels[0].options, function (o) {
+          return (o.getAttribute('value') || '') + '|' + o.textContent;
+        }).join('\u0001');
+        same = sels.every(function (s) {
+          return Array.prototype.map.call(s.options, function (o) {
+            return (o.getAttribute('value') || '') + '|' + o.textContent;
+          }).join('\u0001') === sig;
+        });
+        if (same) {
+          out += '<div class="cps-legend">';
+          sels[0].querySelectorAll('option').forEach(function (o) {
+            var v = o.getAttribute('value') || '';
+            if (!v) return;
+            out += '<div><b>' + txt(v) + '.</b> ' + txt(o.textContent.replace(/^[a-z]\.\s*/, '')) + '</div>';
+          });
+          out += '</div>';
+        }
+      }
+      sec.querySelectorAll('.g-item').forEach(function (g) {
+        var q = g.matches('.q') ? g.querySelector('p') : null;
+        if (q) {
+          out += '<div class="cps-item">' + inlineHTML(q) + ' <span class="cps-box"></span></div>';
+          var opts = Array.prototype.slice.call(g.querySelectorAll('.opts .opt'));
+          if (opts.length === 2 && /true/i.test(opts[0].textContent) && /false/i.test(opts[1].textContent)) {
+            out += '<div class="o cps-tf">( circle one )&nbsp;&nbsp; T&nbsp; /&nbsp; F</div>';
+          } else {
+            opts.forEach(function (o, i) {
+              out += '<div class="o">' + String.fromCharCode(97 + i) + '. ' + txt(o.textContent) + '</div>';
+            });
+          }
+          return;
+        }
+        var lab = g.querySelector('label');
+        if (!lab) return;
+        if (g.querySelector('select')) {
+          out += '<div class="cps-item">' + inlineHTML(lab) + ' <span class="cps-box"></span></div>';
+        } else if (g.querySelector('input[type="text"]')) {
+          out += '<div class="cps-item">' + inlineHTML(lab) + ' <span class="cps-blank"></span></div>';
+        }
+      });
+    });
+    return sheet(out + foot());
+  }
+
+  var BUILDERS = {
+    dictation: bDictation,
+    wordlist: bWordlist,
+    unscramble: bUnscramble,
+    unittest1: bUnitTest1,
+    unittest2: bUnitTest2,
+    reviewtest: bReviewTest,
+    homework: bHomework
+  };
+
+  function build() {
+    try {
+      var f = BUILDERS[CFG.family];
+      if (!f) return false;
+      /* Owner policy (cmc-auth-gate.js): guests cannot print or download.
+         While the account-gate overlay is up, print a one-line notice
+         instead of the paper — the button and Ctrl/Cmd+P are already
+         blocked for guests, this covers the browser-menu path too. */
+      if (document.documentElement.getAttribute('data-cmc-gate')) {
+        return mount(noticeSheet('Printing needs a free CMC account — sign up or sign in, then print this worksheet or save it as PDF.'));
+      }
+      var html = f();
+      if (!html) return false;
+      return mount(html);
+    } catch (e) {
+      if (window.console && console.warn) console.warn('CMC simple print failed:', e);
+      return false;
+    }
+  }
+
+  /* Any print path — on-page button, Ctrl/Cmd+P, browser menu — gets the
+     simple sheet. afterprint removes it so the live page is untouched. */
+  window.addEventListener('beforeprint', build);
+  window.addEventListener('afterprint', function () {
+    var sh = document.getElementById('cmcPrintSheet');
+    if (sh && sh.parentNode) sh.parentNode.removeChild(sh);
+  });
+
+  /* Manual access for debugging / preview: window.CMCPrintSimple.build() */
+  window.CMCPrintSimple = { build: build };
+})();
+
+</script>
 </body>
 </html>
 
