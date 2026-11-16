@@ -48,6 +48,14 @@ function allQuestions(): Array<{ where: string; question: ChoiceQuestion }> {
 describe('assignment answer keys stay consistent with their choices', () => {
   const choiceQuestions = allQuestions().filter(({ question }) => Array.isArray(question.choices));
 
+  it('extends the shortest early-literacy pack into a complete classroom session', () => {
+    const soundPack = CLASSROOM_ASSIGNMENTS['res-3'];
+    expect(soundPack.duration).toBe('25-30 minutes');
+    expect(soundPack.sections.length).toBeGreaterThanOrEqual(5);
+    expect(soundPack.sections.flatMap((section) => section.questions).length).toBeGreaterThanOrEqual(15);
+    expect(soundPack.skillFocus).toContain('Read short-vowel words in context');
+  });
+
   it('has multiple-choice questions to check', () => {
     expect(choiceQuestions.length).toBeGreaterThanOrEqual(20);
   });
