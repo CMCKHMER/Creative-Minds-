@@ -39,6 +39,23 @@ function gameScore(game: LearningGame, answers: Record<number, number>) {
   return game.questions.reduce((sum, question, index) => sum + (answers[index] === question.correctIndex ? 1 : 0), 0);
 }
 
+function challengeLevel(index: number, count: number) {
+  const progress = count <= 1 ? 1 : index / (count - 1);
+  if (progress < 0.34) return { name: 'Level 1 · Warm-up', color: 'text-cyan-200' };
+  if (progress < 0.68) return { name: 'Level 2 · Build', color: 'text-violet-200' };
+  return { name: 'Level 3 · Mastery', color: 'text-amber-200' };
+}
+
+function currentStreak(game: LearningGame, answers: Record<number, number>) {
+  let streak = 0;
+  for (let index = 0; index < game.questions.length; index += 1) {
+    if (answers[index] === undefined) break;
+    if (answers[index] !== game.questions[index].correctIndex) streak = 0;
+    else streak += 1;
+  }
+  return streak;
+}
+
 /** Tiny self-contained toast for the card share buttons (the games page has
  *  no other toast system). */
 function shareToast(message: string) {
@@ -96,6 +113,8 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
   const selectedIndex = answers[questionIndex];
   const answered = selectedIndex !== undefined;
   const score = gameScore(game, answers);
+  const streak = currentStreak(game, answers);
+  const activeLevel = challengeLevel(questionIndex, maxRounds);
   const Icon = gameIcon(game.skill);
 
   const resetGame = () => {
@@ -208,7 +227,17 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_260px]">
         <div className="p-5 sm:p-8">
-          <div className="mb-5 flex items-center justify-between gap-4"><div><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Round {questionIndex + 1} of {maxRounds}{!signedIn ? ' · free sample' : ''}</p><p className="mt-1 text-xs text-slate-400">{game.instructions}</p></div><span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 font-mono text-[10px] text-slate-300"><Clock3 className="h-3.5 w-3.5 text-cyan-200" aria-hidden="true" />{game.duration.split('·')[0].trim()}</span></div>
+          <div className="mb-5 rounded-2xl border border-white/8 bg-white/[0.025] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Round {questionIndex + 1} of {maxRounds}{!signedIn ? ' · free sample' : ''}</p><p className={`mt-1 text-xs font-bold ${activeLevel.color}`}>{activeLevel.name}</p></div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/15 bg-amber-200/[0.04] px-2.5 py-1.5 text-[10px] font-semibold text-amber-100">🔥 {streak} streak</span>
+                <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 font-mono text-[10px] text-slate-300"><Clock3 className="h-3.5 w-3.5 text-cyan-200" aria-hidden="true" />{game.duration.split('·')[0].trim()}</span>
+              </div>
+            </div>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/8" role="progressbar" aria-label="Game progress" aria-valuemin={0} aria-valuemax={maxRounds} aria-valuenow={questionIndex + (answered ? 1 : 0)}><div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-violet-300 to-amber-200 transition-all duration-500" style={{ width: `${((questionIndex + (answered ? 1 : 0)) / maxRounds) * 100}%` }} /></div>
+            <p className="mt-3 text-xs text-slate-400">{game.instructions}</p>
+          </div>
 
           {gamePassage && <div className="mb-5 rounded-xl border border-cyan-300/10 bg-[#071522] p-4"><p className="text-[9px] font-bold tracking-[0.14em] text-cyan-200 uppercase">Reading clue</p><div className="mt-2 space-y-2 font-serif text-sm leading-relaxed text-slate-300">{gamePassage.map((part, index) => <p key={`${game.id}-passage-${questionIndex}-${index}`}>{part}</p>)}</div></div>}
 
@@ -234,7 +263,7 @@ function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) 
           <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4"><button type="button" disabled={questionIndex === 0} onClick={() => setQuestionIndex((index) => Math.max(0, index - 1))} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-30"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Previous</button><span className="font-mono text-[10px] text-slate-500">{score} points</span>{questionIndex < maxRounds - 1 && canPlayGameRound(session, game.id, questionIndex + 1) ? <button type="button" disabled={!answered} onClick={() => setQuestionIndex((index) => index + 1)} className="inline-flex items-center gap-2 rounded-lg bg-white/[0.07] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Next clue <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></button> : <button type="button" disabled={!answered} onClick={finishGame} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">{signedIn ? 'See results' : 'Sign up to finish'} <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /></button>}</div>
         </div>
 
-        <aside className="border-t border-white/8 bg-slate-950/35 p-5 lg:border-t-0 lg:border-l lg:p-6"><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Progress</p><div className="mt-4 grid grid-cols-5 gap-2">{game.questions.slice(0, maxRounds).map((_, index) => <button key={`${game.id}-step-${index}`} type="button" onClick={() => setQuestionIndex(index)} aria-label={`Go to round ${index + 1}${answers[index] !== undefined ? ', answered' : ', unanswered'}`} className={`grid h-9 place-items-center rounded-lg border font-mono text-[10px] font-bold ${questionIndex === index ? 'border-cyan-200 bg-cyan-200 text-slate-950' : answers[index] !== undefined ? 'border-teal-200/20 bg-teal-200/5 text-teal-100' : 'border-white/10 text-slate-500'}`}>{index + 1}</button>)}</div><p className="mt-5 text-xs leading-relaxed text-slate-400">{game.description}</p><div className="mt-5 border-t border-white/8 pt-4 text-[10px] leading-relaxed text-slate-500">
+        <aside className="border-t border-white/8 bg-slate-950/35 p-5 lg:border-t-0 lg:border-l lg:p-6"><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Challenge map</p><div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-5">{game.questions.slice(0, maxRounds).map((_, index) => <button key={`${game.id}-step-${index}`} type="button" onClick={() => setQuestionIndex(index)} aria-label={`Go to round ${index + 1}${answers[index] !== undefined ? ', answered' : ', unanswered'}`} className={`grid h-9 place-items-center rounded-lg border font-mono text-[10px] font-bold ${questionIndex === index ? 'border-cyan-200 bg-cyan-200 text-slate-950' : answers[index] !== undefined ? 'border-teal-200/20 bg-teal-200/5 text-teal-100' : 'border-white/10 text-slate-500'}`}>{index + 1}</button>)}</div><div className="mt-5 rounded-xl border border-white/8 bg-white/[0.025] p-3"><div className="flex items-center justify-between text-[10px]"><span className="text-slate-500">Current checkpoint</span><span className={`font-bold ${activeLevel.color}`}>{activeLevel.name.replace(/^Level \d · /, '')}</span></div><div className="mt-2 flex items-center justify-between text-xs"><span className="text-slate-400">Correct so far</span><span className="font-mono font-bold text-white">{score} / {Object.keys(answers).length}</span></div></div><p className="mt-4 text-xs leading-relaxed text-slate-400">{game.instructions}</p><div className="mt-5 border-t border-white/8 pt-4 text-[10px] leading-relaxed text-slate-500">
             {signedIn
               ? 'Practice-only activity. Your score is saved to your account.'
               : `Free sample: ${GUEST_SAMPLE_QUESTION_LIMIT} rounds. Sign up to play every round and save your score.`}
@@ -277,8 +306,9 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
         title={<>Pick a game.<br /><em>Follow the clues.</em></>}
         lead="Short, original learning games for vocabulary, reading, grammar, listening, and early literacy. Read the game brief, choose a challenge, and get feedback as you play."
       >
-        <GlassFact>8 playable games</GlassFact>
-        <GlassFact>3–5 minutes each</GlassFact>
+        <GlassFact>{LEARNING_GAMES.length} live learning games</GlassFact>
+        <GlassFact>Quick runs · 3–8 minutes</GlassFact>
+        <GlassFact>Warm-up, build &amp; mastery levels</GlassFact>
         <GlassFact>Free account · 2-round sample for guests</GlassFact>
       </GlassPageHero>
 
@@ -328,15 +358,24 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
                 const index = LEARNING_GAMES.findIndex((entry) => entry.id === game.id);
                 const Icon = gameIcon(game.skill);
                 return (
-                  <article key={game.id} className="group flex min-h-[280px] flex-col border-b border-white/10 py-6 transition-colors hover:border-cyan-200/25">
-                    <div className="flex items-center justify-between gap-3"><span className={`grid h-10 w-10 place-items-center rounded-xl border bg-gradient-to-br ${accent(index)}`}><Icon className="h-4.5 w-4.5" aria-hidden="true" /></span><span className="flex items-center gap-2">{game.badge && <span className="rounded-md border border-cyan-200/30 bg-cyan-200/10 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-cyan-200 uppercase">{game.badge}</span>}<span className="rounded-md border border-white/8 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-slate-400 uppercase">{game.skill}</span></span></div>
-                    <p className="mt-2 flex-1 text-xs leading-relaxed text-slate-400">{game.description}</p>
-                    <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>{game.level}</span><span aria-hidden="true">·</span><span>{game.duration}</span></div>
+                  <article key={game.id} className="group flex min-h-[330px] flex-col overflow-hidden rounded-2xl border border-white/8 bg-slate-900/55 transition duration-300 hover:-translate-y-1 hover:border-cyan-200/25 hover:shadow-xl hover:shadow-cyan-950/20">
+                    <div className={`relative flex h-32 items-end justify-between overflow-hidden border-b border-white/8 bg-gradient-to-br p-4 ${accent(index)}`}>
+                      <div className="pointer-events-none absolute -right-3 -top-7 h-32 w-32 rounded-full border border-current/15 bg-white/[0.035]" aria-hidden="true" />
+                      <div className="pointer-events-none absolute right-10 top-4 h-14 w-14 rounded-full border border-current/20" aria-hidden="true" />
+                      <Icon className="relative z-10 h-[4.25rem] w-[4.25rem] drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6" strokeWidth={1.25} aria-hidden="true" />
+                      <div className="relative z-10 flex flex-col items-end gap-2"><span className="rounded-md border border-white/20 bg-slate-950/35 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] backdrop-blur-sm">{game.badge || 'Play now'}</span><span className="rounded-md border border-white/15 bg-slate-950/35 px-2 py-1 text-[9px] font-semibold backdrop-blur-sm">{game.questions.length ? `${game.questions.length} rounds` : game.duration.split('·')[0].trim()}</span></div>
+                    </div>
+                    <div className="flex flex-1 flex-col p-5">
+                      <div className="flex items-center justify-between gap-2"><span className="text-[9px] font-bold tracking-[0.14em] text-slate-400 uppercase">{game.skill}</span><span className="rounded-full border border-white/8 px-2 py-1 text-[9px] font-medium text-slate-500">{game.level}</span></div>
+                      <h3 className="mt-2 font-[var(--font-display)] text-base font-bold leading-snug text-white group-hover:text-cyan-100">{game.title}</h3>
+                      <p className="mt-2 line-clamp-3 flex-1 text-xs leading-relaxed text-slate-400">{game.description}</p>
+                      <details className="mt-2 text-[10px] text-slate-500"><summary className="w-fit cursor-pointer font-semibold text-cyan-200/80 hover:text-cyan-100">Full challenge brief</summary><p className="mt-2 max-h-36 overflow-y-auto pr-1 text-xs leading-relaxed text-slate-400">{game.description}</p></details>
+                    <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>{game.duration}</span><span aria-hidden="true">·</span><span>{game.questions.length ? 'Warm-up → mastery' : 'Multi-level challenge'}</span></div>
                                    {game.externalUrl ? (
                       <div className="mt-4 flex flex-wrap items-center gap-2">
                         {hasActiveAccount(session) ? (
-                          <a href={game.externalUrl} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
-                            Open game
+                          <a href={game.externalUrl} target={game.externalUrl.startsWith('http') ? '_blank' : undefined} rel={game.externalUrl.startsWith('http') ? 'noreferrer' : undefined} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
+                            {game.externalUrl.startsWith('http') ? 'Open external game' : 'Open game'}
                             <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
                           </a>
                         ) : (
@@ -366,7 +405,8 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
                         </button>
                       </div>
                     )}
-                              </article>
+                    </div>
+                  </article>
                 );
               })}
             </div>

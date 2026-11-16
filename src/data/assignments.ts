@@ -155,18 +155,20 @@ export const CLASSROOM_ASSIGNMENTS: Record<string, ClassroomAssignment> = {
     subtitle: 'Listen closely, map sounds, and make a one-sound switch',
     subject: 'Early reading and phonics',
     gradeBand: 'Pre-K to Grade 1 · Beginning readers',
-    duration: '15-20 minutes',
-    skillFocus: ['Hear and identify initial and final sounds', 'Recognize sh and ch digraphs', 'Blend and segment simple words'],
+    duration: '25-30 minutes',
+    skillFocus: ['Hear and identify initial and final sounds', 'Recognize sh and ch digraphs', 'Blend and segment simple words', 'Read short-vowel words in context'],
     objectives: [
       'Hear the difference between /sh/ and /ch/.',
       'Connect a spoken sound to the letters that represent it.',
-      'Blend and change sounds in short words.'
+      'Blend and change sounds in short words.',
+      'Read short-vowel words and explain which sound helped identify them.'
     ],
-    materials: ['Pencil or crayon', 'Teacher or partner to read the word list aloud'],
+    materials: ['Pencil or crayon', 'Teacher or partner to read the word list aloud', 'Counters or small objects for sound taps (optional)'],
     teacherNotes: [
       'Read the word list aloud once at a natural pace and once with a short pause between words. Do not name the spelling pattern first.',
       'Invite the child to say each word aloud before marking or writing.',
-      'For students who need support, model the first sound-box row with counters or finger taps.'
+      'For students who need support, model the first sound-box row with counters or finger taps.',
+      'The final two activities are extension practice. Pause between them if the learner needs a short movement break; accept oral answers for younger writers.'
     ],
     sections: [
       {
@@ -197,6 +199,25 @@ export const CLASSROOM_ASSIGNMENTS: Record<string, ClassroomAssignment> = {
           { prompt: 'Please __________ by the rug while I find your book.', answer: 'sit', rationale: 'Sit fits the meaning and the short-i sound.' },
           { prompt: 'The ripe apple has a bright __________ spot.', answer: 'red', rationale: 'Red fits the meaning and the short-e sound.' },
           { prompt: 'After the game, I drank cool water from my __________.', answer: 'cup', rationale: 'Cup fits the meaning and the short-u sound.' }
+        ]
+      },
+      {
+        title: '4 · Sound-switch detective',
+        directions: 'Say each word slowly. Change only the sound named, then say the new word and tap its sounds.',
+        questions: [
+          { prompt: 'Change the first sound in “chip” from /ch/ to /sh/. What word do you make?', responseLines: 1, answer: 'ship', rationale: 'Only the first sound changes: chip becomes ship.' },
+          { prompt: 'Change the last sound in “wish” from /sh/ to /ch/. What word do you make?', responseLines: 1, answer: 'witch', rationale: 'Changing the final sound makes wish into witch.' },
+          { prompt: 'Say “shop.” Change its short /o/ to short /i/. What word do you make?', responseLines: 1, answer: 'ship', rationale: 'Shop becomes ship when the middle vowel changes from /o/ to /i/.' },
+          { prompt: 'Choose “chop” or “shop.” Which begins with /ch/? What clue did you hear?', responseLines: 2, answer: 'Chop begins with /ch/. The first sound is the quick /ch/ sound, not /sh/.', rationale: 'A strong answer identifies both the word and the initial sound.' }
+        ]
+      },
+      {
+        title: '5 · Read it, draw it, teach it',
+        directions: 'Read each sentence aloud. Draw a quick picture for one sentence, then explain which word helped you decide what to draw.',
+        questions: [
+          { prompt: 'Read: “The ship is on the map.” Circle the word with sh and underline the word with short /a/.', responseLines: 1, answer: 'ship has sh; map has the short /a/ sound.', rationale: 'Ship begins with the sh digraph, and map contains the short-a vowel.' },
+          { prompt: 'Read: “The red cup is by the shop.” Name the word with /ch/ or /sh/, then name one short-vowel word.', responseLines: 2, answer: 'Shop begins with /sh/. Red, cup, or shop has a short vowel.', rationale: 'Accept any correctly identified short-vowel word from the sentence.' },
+          { prompt: 'Pick one word from this pack. Teach a partner how to say it by naming its first, middle, and last sound.', responseLines: 3, answer: 'Answers vary. Example: ship = /sh/ · /i/ · /p/.', rationale: 'Look for the three sounds in order; sh counts as one sound.' }
         ]
       }
     ]
