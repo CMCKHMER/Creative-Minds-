@@ -12,8 +12,19 @@
 // score submission because they only look at localStorage.
 
 import { firebaseConfigured, getFirebaseAuth } from './firebase';
-import { clearPersistedSession, detectRoleFromEmail, isAdminUid } from './firebaseAuth';
+import { clearPersistedSession, restoreSession } from './firebaseAuth';
 import { createStudentProfile } from './firebaseDb';
+import {
+  fetchTeacherAccessConfig,
+  isAccountType,
+  readCachedTeacherAccess,
+  resolveEffectiveAccess,
+  savePendingSignupMeta,
+  upsertUserProfileDoc,
+  writeCachedTeacherAccess,
+  type AccountType,
+  type TeacherAccessConfig,
+} from './userProfile';
 import type { User } from 'firebase/auth';
 
 export interface StudentProfile {
@@ -24,6 +35,10 @@ export interface StudentProfile {
   classCode: string | null; // class they're enrolled in
   grade: number | null;
   school: string | null;
+  /** Self-identified category ('student' | 'teacher' | 'user'); null until chosen. */
+  accountType?: AccountType | null;
+  /** True when this account holds verified teacher privileges. */
+  teacherVerified?: boolean;
 }
 
 export interface StudentAuthState {
@@ -40,7 +55,7 @@ export async function studentSignUp(
   email: string,
   password: string,
   displayName: string,
-  profile?: { grade?: number; school?: string },
+  profile?: { grade?: number; school?: string; accountType?: AccountType; teachingRole?: string },
 ): Promise<{ ok: boolean; error?: string; pendingVerification?: boolean; uid?: string; email?: string }> {
   const auth = await getFirebaseAuth();
   if (!auth) return { ok: false, error: 'Firebase not configured' };
@@ -48,6 +63,33 @@ export async function studentSignUp(
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     if (displayName) await updateProfile(cred.user, { displayName });
+    const accountType: AccountType = isAccountType(profile?.accountType)
+      ? profile.accountType
+      : 'student';
+    // Remember the chosen category so the owner can classify the account
+    // even before the verification email is clicked.
+    savePendingSignupMeta(email, {
+      accountType,
+      displayName: displayName?.trim() || undefined,
+      school: profile?.school?.trim() || undefined,
+      grade: profile?.grade != null ? String(profile.grade) : undefined,
+      teachingRole: profile?.teachingRole?.trim() || undefined,
+    });
+    try {
+      const idToken = await cred.user.getIdToken();
+      void upsertUserProfileDoc({
+        uid: cred.user.uid,
+        idToken,
+        email: cred.user.email || email,
+        displayName,
+        accountType,
+        emailVerified: false,
+        school: profile?.school,
+        grade: profile?.grade != null ? String(profile.grade) : undefined,
+        teachingRole: profile?.teachingRole,
+        isNewSignup: true,
+      });
+    } catch { /* classification sync is best-effort */ }
     // Create the Firestore profile doc while the (unverified) auth context
     // still exists — students/{uid} create is the one write allowed pre-
     // verification, updates need verification.
@@ -82,6 +124,7 @@ export async function studentSignUp(
 export async function studentSignIn(
   email: string,
   password: string,
+  accountType?: AccountType,
 ): Promise<{ ok: boolean; error?: string; needsVerification?: boolean }> {
   const auth = await getFirebaseAuth();
   if (!auth) return { ok: false, error: 'Firebase not configured' };
@@ -103,7 +146,7 @@ export async function studentSignIn(
         error: `Please verify your email before signing in. We just sent a fresh verification link to ${cred.user.email || email} — open it, tap “Verify”, then sign in again.`,
       };
     }
-    await persistSessionFromSdkUser(cred.user);
+    await persistSessionFromSdkUser(cred.user, undefined, accountType);
     return { ok: true };
   } catch (err: any) {
     return { ok: false, error: err?.message ?? 'Sign in failed' };
@@ -111,13 +154,15 @@ export async function studentSignIn(
 }
 
 /** Google Sign-In popup */
-export async function studentGoogleSignIn(): Promise<{ ok: boolean; error?: string }> {
+export async function studentGoogleSignIn(
+  accountType?: AccountType,
+): Promise<{ ok: boolean; error?: string }> {
   const auth = await getFirebaseAuth();
   if (!auth) return { ok: false, error: 'Firebase not configured' };
   const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
   try {
     const cred = await signInWithPopup(auth, new GoogleAuthProvider());
-    await persistSessionFromSdkUser(cred.user);
+    await persistSessionFromSdkUser(cred.user, undefined, accountType);
     return { ok: true };
   } catch (err: any) {
     return { ok: false, error: err?.message ?? 'Google sign in failed' };
@@ -157,32 +202,75 @@ function idTokenExpiryMs(idToken: string): number {
   }
 }
 
-async function persistSessionFromSdkUser(user: User, displayNameOverride?: string): Promise<void> {
+/** Resolve (and persist) the account classification for an SDK user, then
+ *  mirror the full session block into localStorage. */
+async function persistSessionFromSdkUser(
+  user: User,
+  displayNameOverride?: string,
+  explicitAccountType?: AccountType,
+): Promise<void> {
   // Verification gate — an unverified SDK account must never bridge into
   // the localStorage session the worksheets use for authenticated writes
   // (covers the onAuthStateChanged self-heal path too).
   if (!user.emailVerified) { clearPersistedSession(); return; }
   try {
     const idToken = await user.getIdToken();
+    const email = user.email || '';
+    const previous = restoreSession();
+    const previousType = previous && previous.localId === user.uid ? previous.accountType : null;
+    const chosen: AccountType | null = isAccountType(explicitAccountType)
+      ? explicitAccountType
+      : isAccountType(previousType)
+        ? previousType
+        : null;
+
+    // Live list when reachable (it also refreshes the cache); the cached copy
+    // keeps offline/blocked networks working.
+    let teacherAccess: TeacherAccessConfig = readCachedTeacherAccess();
+    try {
+      teacherAccess = await fetchTeacherAccessConfig();
+      writeCachedTeacherAccess(teacherAccess);
+    } catch { /* offline — cached list is good enough */ }
+
+    const access = resolveEffectiveAccess({
+      uid: user.uid,
+      email,
+      emailVerified: user.emailVerified,
+      accountType: chosen,
+      teacherAccess,
+    });
+
     localStorage.setItem('cmc-student-token', idToken);
     // An email is NEVER a display name: Google/Gmail sign-ins can return an
-    // empty displayName (supervised child accounts, directory privacy), and
-    // the old `|| user.email` fallback made every submission — and the
-    // homepage completion ticker — show raw email addresses instead of
-    // names. With '' stored, submitScore asks once for a name (or derives
-    // "Mam Ry" from the email local part) and self-heals this key.
+    // empty displayName (supervised child accounts, directory privacy).
     localStorage.setItem('cmc-student-name', displayNameOverride || user.displayName || '');
     localStorage.setItem('cmc-student-uid', user.uid);
-    localStorage.setItem('cmc-student-email', user.email || '');
-    // Admin accounts are pinned to 'teacher' — an SDK-path sign-in must
-    // never downgrade the persisted role for the site-owner account.
-    localStorage.setItem('cmc-student-role', isAdminUid(user.uid) ? 'teacher' : detectRoleFromEmail(user.email || ''));
+    localStorage.setItem('cmc-student-email', email);
+    // Admins pin to 'teacher'; verified teachers keep 'teacher'; everyone
+    // else — students, general users, unverified teachers — is 'student'.
+    localStorage.setItem('cmc-student-role', access.role);
+    localStorage.setItem('cmc-account-type', access.accountType);
+    localStorage.setItem('cmc-teacher-verified', access.isVerifiedTeacher ? '1' : '0');
+    if (!chosen && !access.isAdmin) localStorage.removeItem('cmc-account-type');
     localStorage.setItem('cmc-student-token-expires', String(idTokenExpiryMs(idToken) - 60_000));
     localStorage.setItem('cmc-student-verified', user.emailVerified ? '1' : '0');
     // The SDK user's own refresh token works with the securetoken REST grant
     // (firebaseAuth.refreshIdToken) — persisting it lets the static
     // worksheets silently renew after the 1-hour ID token expires.
     if (user.refreshToken) localStorage.setItem('cmc-student-refresh-token', user.refreshToken);
+
+    // Keep the owner's user directory current (classification + verification).
+    if (chosen || access.isAdmin) {
+      void upsertUserProfileDoc({
+        uid: user.uid,
+        idToken,
+        email,
+        displayName: displayNameOverride || user.displayName || undefined,
+        accountType: access.accountType,
+        emailVerified: user.emailVerified,
+        isNewSignup: !previous || previous.localId !== user.uid,
+      });
+    }
     try { window.dispatchEvent(new CustomEvent('cmc-auth-changed')); } catch { /* non-DOM */ }
   } catch {
     /* best-effort — the SDK session itself is still valid */
@@ -203,6 +291,14 @@ function storedSessionNeedsSync(user: User): boolean {
 }
 
 function profileOf(user: User): StudentProfile {
+  const session = restoreSession();
+  const access = resolveEffectiveAccess({
+    uid: user.uid,
+    email: user.email ?? '',
+    emailVerified: user.emailVerified,
+    accountType: session && session.localId === user.uid ? session.accountType : null,
+    teacherAccess: readCachedTeacherAccess(),
+  });
   return {
     uid: user.uid,
     displayName: user.displayName ?? '',
@@ -211,6 +307,8 @@ function profileOf(user: User): StudentProfile {
     classCode: null,
     grade: null,
     school: null,
+    accountType: access.accountType,
+    teacherVerified: access.isVerifiedTeacher,
   };
 }
 

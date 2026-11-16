@@ -113,6 +113,33 @@ service cloud.firestore {
             || isCmcAdmin());
     }
 
+    // ADMIN TEACHER-VERIFICATION OVERRIDES (Nov 2026): `site_config/teacher_access`
+    // holds two UID lists the site owner manages from the in-app
+    // Admin → Users & Teacher Verification panel:
+    //   approvedUids — teachers without a school (.edu) address (e.g. Gmail)
+    //                  that the owner vouches for.
+    //   revokedUids  — accounts whose teacher access was taken away.
+    // The document is PUBLIC READ (clients resolve their own badge without a
+    // token round-trip) and owner-only write (see site_config below). Both
+    // helpers are pure functions over one cached get().
+    function teacherAccessDoc() {
+      return get(/databases/$(database)/documents/site_config/teacher_access).data;
+    }
+    function teacherAccessList(field) {
+      return exists(/databases/$(database)/documents/site_config/teacher_access)
+        && field in teacherAccessDoc()
+        && request.auth.uid in teacherAccessDoc()[field];
+    }
+    function isAdminApprovedTeacher() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && teacherAccessList('approvedUids')
+        && !teacherAccessList('revokedUids');
+    }
+    function isRevokedTeacher() {
+      return request.auth != null && teacherAccessList('revokedUids');
+    }
+
     // A signed-in account that proved its email address by clicking the
     // verification link. Required for every student-reachable write.
     function isVerifiedUser() {
@@ -134,56 +161,26 @@ service cloud.firestore {
           || request.resource.data.inviteMode == false;
       }
 
-      // GUEST ATTEMPTS (Nov 2026): games used to record nothing for visitors
-      // who never signed up, so the homepage ticker never moved. Guests may
-      // now create attempts too — with an EMPTY studentUid (they have no
-      // account to claim) and every user-typed field size/range checked.
-      // Trade-off, accepted on purpose: a guest's displayed name and score
-      // are self-reported, so forged guest rows are possible. They can only
-      // pollute the motivational ticker/leaderboard — no class attribution
-      // (classId must be null), no account impact, append-only, and the
-      // signed-in path below still pins rows to the caller's own verified uid.
-      allow create: if notInviteMode() && (
-          isVerifiedUser()
-          && request.resource.data.studentUid == request.auth.uid
-          && request.resource.data.studentUid is string
-          && request.resource.data.studentName is string
-          && request.resource.data.drillSlug is string
-          && request.resource.data.drillTitle is string
-          && request.resource.data.drillSource is string
-          && request.resource.data.scorePct is int
-          && request.resource.data.scorePct >= 0
-          && request.resource.data.scorePct <= 100
-          && request.resource.data.correctCount is int
-          && request.resource.data.correctCount >= 0
-          && request.resource.data.totalCount is int
-          && request.resource.data.totalCount >= 0
-        ) || (
-          request.auth == null
-          && request.resource.data.studentUid == ''
-          && request.resource.data.studentName is string
-          && request.resource.data.studentName.size() >= 1
-          && request.resource.data.studentName.size() <= 40
-          && request.resource.data.drillSlug is string
-          && request.resource.data.drillSlug.size() >= 1
-          && request.resource.data.drillSlug.size() <= 80
-          && request.resource.data.drillTitle is string
-          && request.resource.data.drillTitle.size() >= 1
-          && request.resource.data.drillTitle.size() <= 120
-          && request.resource.data.drillSource is string
-          && request.resource.data.drillSource.size() >= 1
-          && request.resource.data.drillSource.size() <= 40
-          && request.resource.data.scorePct is int
-          && request.resource.data.scorePct >= 0
-          && request.resource.data.scorePct <= 100
-          && request.resource.data.correctCount is int
-          && request.resource.data.correctCount >= 0
-          && request.resource.data.correctCount <= 10000
-          && request.resource.data.totalCount is int
-          && request.resource.data.totalCount >= 0
-          && request.resource.data.totalCount <= 10000
-          && (!('classId' in request.resource.data) || request.resource.data.classId == null)
-        );
+      // ACCOUNT REQUIRED (Nov 2026): guests may sample a couple of game
+      // rounds, but nothing they do is recorded — every attempt belongs to a
+      // verified CMC account and is pinned to that account's own uid. The
+      // old anonymous guest branch is gone on purpose (self-reported names
+      // and scores could pollute the public ticker).
+      allow create: if notInviteMode()
+        && isVerifiedUser()
+        && request.resource.data.studentUid == request.auth.uid
+        && request.resource.data.studentUid is string
+        && request.resource.data.studentName is string
+        && request.resource.data.drillSlug is string
+        && request.resource.data.drillTitle is string
+        && request.resource.data.drillSource is string
+        && request.resource.data.scorePct is int
+        && request.resource.data.scorePct >= 0
+        && request.resource.data.scorePct <= 100
+        && request.resource.data.correctCount is int
+        && request.resource.data.correctCount >= 0
+        && request.resource.data.totalCount is int
+        && request.resource.data.totalCount >= 0;
 
       // Score history is append-only — nobody rewrites results.
       allow update, delete: if false;
@@ -217,18 +214,17 @@ service cloud.firestore {
     }
 
     // invite_attempts/{attemptId}: one student's test attempt (score +
-    // full answer sheet + integrity counters). Creates are allowed for ANY
-    // signed-in device (students use throwaway invite identities, so the
-    // email-verification gate does NOT apply here) — the ownership stamp is
-    // the real gate: it must match the registry's owner for the used code,
-    // which makes forging or misdirecting results impossible. Reads are
+    // full answer sheet + integrity counters). ACCOUNT REQUIRED: shared and
+    // invite links need a signed-in, email-verified CMC account — the
+    // ownership stamp must additionally match the registry's owner for the
+    // used code, so results can neither be forged nor misdirected. Reads are
     // strictly owner-only; the list query MUST filter teacherUid ==
     // request.auth.uid. Append-only like every result collection.
     match /invite_attempts/{attemptId} {
       allow read: if isVerifiedTeacher()
         && resource.data.teacherUid == request.auth.uid;
 
-      allow create: if request.auth != null
+      allow create: if isVerifiedUser()
         && request.resource.data.teacherUid is string
         && request.resource.data.teacherUid.size() > 0
         && request.resource.data.inviteCode is string
@@ -321,6 +317,24 @@ service cloud.firestore {
       allow write: if isCmcAdmin(); // only the owner grants/revokes admin access
     }
 
+    // CMC USER DIRECTORY (Nov 2026): one document per account recording the
+    // Student / Teacher / General-user choice made at sign-up, plus the
+    // email / verification state the admin panel shows. The owner of the
+    // doc writes it (create happens immediately at sign-up while the token
+    // is still unverified; updates need a verified email). LIST is
+    // admin-only — a verified teacher must never enumerate accounts.
+    match /users/{uid} {
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.accountType in ['student', 'teacher', 'user'];
+      allow get, update: if isVerifiedUser() && request.auth.uid == uid;
+      allow list: if isCmcAdmin();
+      // Nobody edits or deletes someone else's record; deletions only by the
+      // owner account itself (account cleanup) and the owner/admin.
+      allow delete: if isCmcAdmin() || (isVerifiedUser() && request.auth.uid == uid);
+    }
+
     match /students/{uid} {
       // CREATE with just sign-in: the signup flow writes the profile doc
       // while the brand-new (still unverified) auth context exists. Every
@@ -331,7 +345,8 @@ service cloud.firestore {
 
     match /classes/{classId} {
       allow read: if true; // class-code lookup + dashboards
-      allow create: if isVerifiedUser();
+      // Only verified teachers create classes; students join by code.
+      allow create: if isVerifiedTeacher();
       // Owner-only update, and teacherUid is immutable: without this any
       // verified account could re-stamp teacherUid on someone else's class
       // and then pass the owner-only delete below.
@@ -421,10 +436,17 @@ service cloud.firestore {
       allow update, delete: if false; // allowlist is append-only
     }
 
+    // VERIFIED TEACHER (Nov 2026): the owner's admin grant, OR the account
+    // was approved in Admin → Users & Teachers (which covers Gmail teachers),
+    // OR it passes the school-email heuristic AND registered in the
+    // teachers/{uid} allowlist. An admin revocation always wins: a revoked
+    // account loses teacher access even with an .edu address.
     function isVerifiedTeacher() {
-      return request.auth.uid is string
+      return request.auth != null
         && (isCmcAdmin()
+            || (isAdminApprovedTeacher())
             || (isCmcTeacher()
+                && !isRevokedTeacher()
                 && exists(/databases/$(database)/documents/teachers/$(request.auth.uid))));
     }
 
@@ -764,13 +786,10 @@ service cloud.firestore {
 
     // studio_submissions/{subId}: student answers for a collect worksheet.
     // Append-only (no update/delete for anyone — like test_submissions).
-    //   Signed-in students: doc id pins ONE attempt per student per
-    //   worksheet — "{docId}__{studentUid}", create-once, second submit
-    //   fails at the database level (the client surfaces it as 409).
-    //   Guests: "{docId}__guest_<random>" with a validated self-reported
-    //   name — same accepted trade-off as the guest drill_attempts branch:
-    //   a forged guest row only adds a fake row to one worksheet's results;
-    //   it can never touch another submission or the published document.
+    // ACCOUNT REQUIRED: the doc id pins ONE attempt per account per
+    // worksheet — "{docId}__{studentUid}", create-once, second submit
+    // fails at the database level (the client surfaces it as 409). No
+    // anonymous rows exist any more.
     // Reading results: teachers only. Students may GET their own doc.
     // Every create costs one extra read (the get() of the referenced
     // studio_doc) so submissions can only ever land on live collect docs.
@@ -818,17 +837,13 @@ service cloud.firestore {
         || (isVerifiedUser() && resource.data.studentUid == request.auth.uid);
       allow list: if isCmcTeacher();
 
-      allow create: if (
-          isVerifiedUser()
-          && request.resource.data.studentUid == request.auth.uid
-          && subId == (request.resource.data.docId + '__' + request.auth.uid)
-          && studioSubFieldsOk(request.resource.data)
-        ) || (
-          request.auth == null
-          && request.resource.data.studentUid == ''
-          && subId.matches(request.resource.data.docId + '__guest_[a-zA-Z0-9]{8,20}')
-          && studioSubFieldsOk(request.resource.data)
-        );
+      // ACCOUNT REQUIRED (Nov 2026): collect-worksheet answers need a
+      // signed-in, verified CMC account pinned to that account's uid — the
+      // anonymous guest branch is gone.
+      allow create: if isVerifiedUser()
+        && request.resource.data.studentUid == request.auth.uid
+        && subId == (request.resource.data.docId + '__' + request.auth.uid)
+        && studioSubFieldsOk(request.resource.data);
 
       // Append-only: submissions are immutable once written.
       allow update, delete: if false;

@@ -50,7 +50,7 @@ export interface SitePage {
   /** Older anchors that must open this page. */
   aliases?: readonly string[];
   /** Small label on the card: who can use it. */
-  badge?: 'Teachers' | 'Members';
+  badge?: 'Teachers' | 'Members' | 'Admin';
 }
 
 export const SITE_PAGES: readonly SitePage[] = [
@@ -87,6 +87,9 @@ export const SITE_PAGES: readonly SitePage[] = [
   { id: 'pricing', title: 'Pricing', blurb: 'What is included today, with no pretend plans.', group: 'about', icon: 'tag', kind: 'section' },
   { id: 'faq', title: 'Questions & answers', blurb: 'Searchable answers to common questions.', group: 'about', icon: 'help', kind: 'section' },
   { id: 'get-started', title: 'Get a teacher account', blurb: 'Open the member practice room and class assignments.', group: 'about', icon: 'mail', kind: 'section' },
+  // Site-owner only — every account plus teacher verification. The panel
+  // itself enforces the strict admin check (see AdminUsersPanel.tsx).
+  { id: 'users-admin', title: 'Users & teachers', blurb: 'Every account, and one-click teacher verification.', group: 'about', icon: 'clipboard', kind: 'section' },
 ];
 
 /** The hash that shows the home page scrolled to its cards. */

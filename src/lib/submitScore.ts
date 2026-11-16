@@ -11,14 +11,11 @@
 // pattern, same drill_attempts collection. The dashboard + ticker
 // aggregate from this single collection.
 //
-// GUEST PLAY (Nov 2026): students used to need a verified account before
-// ANY stat reached Firestore, so guests who played the games never
-// appeared on the homepage ticker / leaderboards. Now guests submit
-// too: their name comes from this one-time "Who's playing?" prompt
-// (persisted in localStorage.cmc-player-name) and the row is written
-// WITHOUT an Authorization header — the security rules carry a matching
-// validated guest branch (studentUid must be empty, name/fields size-
-// and range-checked; see firestore.rules → match /drill_attempts).
+// ACCOUNT REQUIRED (Nov 2026): only signed-in accounts submit scores. Guests
+// can sample a couple of game rounds, but those runs stay on the device —
+// no score rows, no ticker entries, no name prompt. This matches the
+// firestore.rules drill_attempts branch (verified, authenticated writers
+// only).
 //
 // INSTANT TICKER: every successful POST dispatches the window event
 // "cmc-drill-submitted" so TickerBanner can refresh within seconds
@@ -58,46 +55,42 @@ export interface ScoreSubmission {
 }
 
 // ---------------------------------------------------------------------------
-// PLAYER NAME (guests)
+// PLAYER NAME (signed-in accounts only)
 // ---------------------------------------------------------------------------
-// One lightweight modal, shown once per browser, asking who is playing.
-// The answer persists in localStorage.cmc-player-name for 90 days so every
-// later game/attempt submits silently. Vanilla DOM on purpose — submitScore
-// is a lib module shared by every game surface, React or not.
+// Guests never reach Firestore any more (account-required policy): their
+// sampled game rounds run locally and submitScore() short-circuits. Signed-in
+// accounts resolve a display name from the session; when the session has no
+// real name we ask ONCE (the answer self-heals cmc-student-name) — an email
+// is never shown as a name.
 
-const PLAYER_NAME_KEY = 'cmc-player-name';
-const PLAYER_NAME_TTL_MS = 90 * 24 * 60 * 60 * 1000;
-
-function readStoredPlayerName(): string {
-  try {
-    const raw = localStorage.getItem(PLAYER_NAME_KEY);
-    if (!raw) return '';
-    const parsed = JSON.parse(raw) as { name?: string; at?: number };
-    if (!parsed?.name || typeof parsed.at !== 'number') return '';
-    if (Date.now() - parsed.at > PLAYER_NAME_TTL_MS) {
-      localStorage.removeItem(PLAYER_NAME_KEY);
-      return '';
-    }
-    return parsed.name.slice(0, 40);
-  } catch {
-    return '';
+/** Resolve the display name for a signed-in attempt; asks once when unknown.
+ *
+ *  Order:
+ *    1. any name explicitly passed by the caller wins;
+ *    2. a real stored account name wins;
+ *    3. the one-time prompt (pre-filled with the friendly form of the account
+ *       email) — the answer self-heals cmc-student-name;
+ *    4. the friendly form of the account email (a signed-in completion is
+ *       never dropped and never shows a raw address).
+ */
+async function resolveStudentName(explicit?: string): Promise<string | null> {
+  if (explicit && explicit.trim()) return explicit.trim().slice(0, 40);
+  const signedInEmail = localStorage.getItem('cmc-student-email') || '';
+  const signedInName = localStorage.getItem('cmc-student-name') || '';
+  if (signedInName.trim() && !looksLikeEmail(signedInName)) return signedInName.trim().slice(0, 40);
+  const prompted = await promptForStudentName(friendlyNameFromEmail(signedInEmail));
+  if (prompted) {
+    try { localStorage.setItem('cmc-student-name', prompted.slice(0, 40)); } catch { /* private mode */ }
+    return prompted;
   }
-}
-
-function storePlayerName(name: string): void {
-  try {
-    localStorage.setItem(PLAYER_NAME_KEY, JSON.stringify({ name, at: Date.now() }));
-  } catch {
-    /* private mode — the name just won't be remembered */
-  }
+  return displayStudentName(signedInEmail) || 'Student';
 }
 
 let nameModalInFlight: Promise<string | null> | null = null;
 
-/** The one-time "Who's playing?" modal. Resolves with the name, or null on skip.
- *  `suggestion` pre-fills the input (e.g. the friendly form of the signed-in
- *  account's email) so one tap on Save gives a real name. */
-function promptForPlayerName(suggestion = ''): Promise<string | null> {
+/** One-time "What name should we show?" prompt for signed-in accounts whose
+ *  session carries no display name. Resolves with the name, or null on skip. */
+function promptForStudentName(suggestion = ''): Promise<string | null> {
   if (nameModalInFlight) return nameModalInFlight;
 
   nameModalInFlight = new Promise<string | null>((resolve) => {
@@ -138,9 +131,9 @@ function promptForPlayerName(suggestion = ''): Promise<string | null> {
           border-color: rgba(148, 163, 184, 0.25); color: #94a3b8; }
         [data-cmc-player-name-modal] .cmc-pn-skip:hover { color: #cbd5e1; }
       </style>
-      <div class="cmc-pn-card" role="dialog" aria-modal="true" aria-label="Who is playing?">
-        <h3><span class="cmc-pn-dot"></span>Who's playing?</h3>
-        <p>Enter a name and your scores from games &amp; activities will show up on the live ticker and leaderboards.</p>
+      <div class="cmc-pn-card" role="dialog" aria-modal="true" aria-label="What name should we show?">
+        <h3><span class="cmc-pn-dot"></span>What name should we show?</h3>
+        <p>Your scores from games &amp; activities appear on the live ticker and leaderboards.</p>
         <input class="cmc-pn-input" maxlength="40" placeholder="Your name…" autocomplete="off" />
         <div class="cmc-pn-row">
           <button type="button" class="cmc-pn-skip">Skip</button>
@@ -176,50 +169,6 @@ function promptForPlayerName(suggestion = ''): Promise<string | null> {
   return nameModalInFlight;
 }
 
-/** Resolve the display name for an attempt; opens the modal when unknown.
- *
- *  An EMAIL IS NEVER A NAME (owner report: "students that sign in with their
- *  gmail are not showing names on the completion ticker"). Sessions created
- *  before the fix may still carry the account address in cmc-student-name —
- *  such values are treated as unknown here:
- *    1. any name explicitly passed by the caller wins;
- *    2. a real stored account name wins;
- *    3. a remembered guest name (cmc-player-name) wins;
- *    4. the "Who's playing?" modal asks once — pre-filled with the friendly
- *       form of the account email so signed-in students get a real name with
- *       one tap — and the answer self-heals cmc-student-name for good;
- *    5. signed-in fallback: the friendly form of the account email (a signed-
- *       in completion is NEVER dropped and NEVER shows a raw email);
- *    6. guests who skip everything return null — recorded as 'Guest'.
- */
-async function resolveStudentName(explicit?: string): Promise<string | null> {
-  if (explicit && explicit.trim()) return explicit.trim().slice(0, 40);
-  const signedInEmail = localStorage.getItem('cmc-student-email') || '';
-  const signedIn = !!localStorage.getItem('cmc-student-uid');
-  const signedInName = localStorage.getItem('cmc-student-name') || '';
-  if (signedInName.trim() && !looksLikeEmail(signedInName)) return signedInName.trim().slice(0, 40);
-  const remembered = readStoredPlayerName();
-  if (remembered && !looksLikeEmail(remembered)) return remembered;
-  const prompted = await promptForPlayerName(signedIn ? friendlyNameFromEmail(signedInEmail) : ''); // null = skipped
-  if (prompted) {
-    if (signedIn) {
-      // Self-heal the account's display name so later submissions (React or
-      // the static worksheets) never ask — or fall back — again.
-      try { localStorage.setItem('cmc-student-name', prompted.slice(0, 40)); } catch { /* private mode */ }
-    } else {
-      storePlayerName(prompted);
-    }
-    return prompted;
-  }
-  if (signedIn) {
-    // Skipped, but signed in — derive a readable name from the account
-    // instead of dropping the completion (the old code returned null here,
-    // so these students never appeared on the ticker at all).
-    return displayStudentName(signedInEmail) || 'Student';
-  }
-  return null;
-}
-
 // ---------------------------------------------------------------------------
 // SUBMISSION
 // ---------------------------------------------------------------------------
@@ -241,10 +190,8 @@ function announceSubmission(): void {
  *   `Authorization: Bearer` header and the student's real uid. Firestore
  *   security rules require `request.auth != null` and a matching uid on
  *   this path.
- * - Guest (not signed in): the row is written WITHOUT an Authorization
- *   header and with an empty studentUid — allowed by the validated guest
- *   branch in firestore.rules. The display name comes from the one-time
- *   "Who's playing?" prompt (or Skip → "Guest").
+ * - Guest (not signed in): NOTHING is written. Guests may sample a couple of
+ *   game rounds locally, but scores require an account (see gameAccess.ts).
  * - The submission is non-blocking — failures are logged to the console
  *   as a warning but never throw, so the calling component's UI flow
  *   (e.g., showing a results screen) is never disrupted by a network
@@ -253,33 +200,21 @@ function announceSubmission(): void {
 export async function submitScore(input: ScoreSubmission): Promise<string | null> {
   if (typeof window === 'undefined') return null;
 
+  // ACCOUNT REQUIRED: guests may sample a couple of rounds, but nothing they
+  // do is written to Firestore — no score rows, no name prompt, no ticker
+  // entry. Signed-in accounts only from here on.
   const idToken = await getValidIdToken().catch(() => null);
-  const signedIn = !!idToken;
+  if (!idToken) return null;
+
+  const idTokenUid = uidFromIdToken(idToken);
+  if (!idTokenUid) return null; // unreadable token — nothing to attribute
+  const studentUid = localStorage.getItem('cmc-student-uid') || idTokenUid;
+  if (studentUid !== idTokenUid) return null; // stale/mismatched local mirror
 
   const studentName = await resolveStudentName(input.studentName);
-  if (!studentName) {
-    // No name and the prompt was skipped — still record the play as
-    // "Guest" so the ticker/leaderboard reflects the activity.
-    if (!signedIn) {
-      const docId = await postAttempt(input, 'Guest', '', null);
-      if (docId) announceSubmission();
-      return docId;
-    }
-    return null; // signed in but truly no name available — leave silently
-  }
+  if (!studentName) return null;
 
-  // The signed-in branch of the rules requires studentUid == the token's
-  // uid. `cmc-student-uid` can be missing while the token is still valid
-  // (storage partly cleared, older session shape) — posting an empty uid
-  // WITH a token was rejected and the score vanished without a trace. Read
-  // the uid from the token itself; if even that fails, record the play
-  // through the guest branch (no token, empty uid, name capped at 40).
-  const studentUid = signedIn
-    ? localStorage.getItem('cmc-student-uid') || uidFromIdToken(idToken) || ''
-    : '';
-  const docId = signedIn && !studentUid
-    ? await postAttempt(input, studentName.slice(0, 40), '', null)
-    : await postAttempt(input, studentName, studentUid, idToken);
+  const docId = await postAttempt(input, studentName, studentUid, idToken);
   if (docId) announceSubmission();
   return docId;
 }

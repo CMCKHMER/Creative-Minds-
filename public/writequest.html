@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
 <head>
+<script src="assets/js/cmc-auth-gate.js"></script>
 <script>/* CMC_NG_NO_EMAIL_AS_NAME: an email is never a display name — Gmail sign-ins showed
    addresses on the completion ticker. Heals cmc-student-name in place
    ("mam.ry@aii.edu.kh" -> "Mam Ry") and guards every read; real names are
@@ -217,6 +218,7 @@ header { position:sticky; top:0; z-index:50; background:rgba(19,17,16,0.85); bac
   <link rel="stylesheet" href="assets/css/cmc-utilities.css">
 </head>
 <body>
+<script>CMC_GATE.guard('account', 'Sign up free to play WriteQuest.');</script>
 <!-- CMC-GAME-BG (writequest) -->
 <img src="./images/games/writequest-bg.jpg" alt="" aria-hidden="true" class="cmc-game-bg-img" />
 <div class="cmc-game-bg-overlay" aria-hidden="true"></div>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" translate="no">
 <head>
+<script src="../assets/js/cmc-auth-gate.js"></script>
 <script>/* CMC_NG_NO_EMAIL_AS_NAME: an email is never a display name — Gmail sign-ins showed
    addresses on the completion ticker. Heals cmc-student-name in place
    ("mam.ry@aii.edu.kh" -> "Mam Ry") and guards every read; real names are
@@ -645,6 +646,7 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
 </script>
 </head>
 <body>
+<script>CMC_GATE.guard('account', 'Sign up free to open Creative Minds Studio.');</script>
   <h1 style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Creative Minds Studio</h1>
 <!-- Back to CMC floating button (visible in the top-right corner — same
      pattern as every other standalone HTML worksheet on the site). -->
