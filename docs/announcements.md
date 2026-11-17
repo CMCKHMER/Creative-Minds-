@@ -44,11 +44,11 @@ Those sites do not run the site's JavaScript; they read `<meta>` lines from
 the page at the shared address. `scripts/build_share_pages.mjs` runs in the
 deploy (after the build) and writes one small page per post:
 
-    news/<id>/index.html   title, first lines and picture of the post
-    news/<id>/cover.jpg    the post's picture (or the YouTube still, or the site card)
-    news/<id>/share.json   marker the Share menu looks for
+    post/<id>/index.html   title, first lines and picture of the post
+    post/<id>/cover.jpg    the post's picture (or the YouTube still, or the site card)
+    post/<id>/share.json   marker the Share menu looks for
 
-The Share menu shares `news/<id>/` when that page exists, otherwise the
+The Share menu shares `post/<id>/` when that page exists, otherwise the
 `?post=<id>` address. A post published after the last deploy therefore shows
 the site's general card until the next deploy (the site deploys daily, and on
 every push). To refresh a card Facebook has already cached, paste the address

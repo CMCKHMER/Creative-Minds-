@@ -31,7 +31,7 @@ if (!existsSync(join(BUILD, 'index.html'))) {
 const TMP = mkdtempSync(join(tmpdir(), 'cmc-share-check-'));
 const DIST = join(TMP, 'site');
 mkdirSync(DIST);
-for (const name of readdirSync(BUILD)) if (name !== 'news') symlinkSync(join(BUILD, name), join(DIST, name));
+for (const name of readdirSync(BUILD)) if (name !== 'post') symlinkSync(join(BUILD, name), join(DIST, name));
 const { openPage, close: closeServers } = makeOpener(DIST, 9040);
 
 let pass = 0;
@@ -128,6 +128,7 @@ async function walk(browser) {
   V.on('request', (r) => requested.push(r.url()));
   const SITE = `${V.base}/`;
   execFileSync(process.execPath, [join(HERE, 'build_share_pages.mjs'), '--from', join(TMP, 'posts.json'), '--out', DIST], { env: { ...process.env, SITE_URL: SITE }, encoding: 'utf8' });
+  ok(existsSync(join(DIST, 'news/headlines.json')) && existsSync(join(BUILD, 'news/headlines.json')), 'writing the preview pages leaves the site’s headlines feed alone');
   await openBoard(V);
   ok((await V.locator('[data-testid="announcement-post"]').count()) === 4, 'the board shows the posts');
   const vid = card(V, 'postVideo');
@@ -151,7 +152,7 @@ async function walk(browser) {
   ok((await V.locator('[data-testid="post-share-open"]').count()) === 4, 'every post has a Share button, also for a signed-out reader');
   await card(V, 'postVideo').getByTestId('post-share-open').click();
   const menu = card(V, 'postVideo').getByTestId('post-share-menu');
-  const pageUrl = `${SITE}news/postVideo/`;
+  const pageUrl = `${SITE}post/postVideo/`;
   ok((await waitFor(async () => (await menu.getByTestId('post-share-url').inputValue()) === pageUrl)) === true, 'a post with a preview page is shared by that page', await menu.getByTestId('post-share-url').inputValue());
   const hrefs = await menu.locator('[data-share]').evaluateAll((as) => Object.fromEntries(as.map((a) => [a.dataset.share, a.getAttribute('href')])));
   ok(Object.keys(hrefs).join() === 'facebook,telegram,whatsapp,x,linkedin,email', 'the menu offers Facebook, Telegram, WhatsApp, X, LinkedIn and email', Object.keys(hrefs));
@@ -168,10 +169,10 @@ async function walk(browser) {
   ok(newUrl === `${SITE}?post=postNew#announcements`, 'a post newer than the last deploy is shared by the site address', newUrl);
 
   console.log('\na shared address opens the post');
-  const html = readFileSync(join(DIST, 'news/postFile/index.html'), 'utf8');
-  ok(html.includes('<meta property="og:title" content="Class video" />') && html.includes(`<meta property="og:image" content="${SITE}news/postFile/cover.png" />`) && existsSync(join(DIST, 'news/postFile/cover.png')), 'the preview page carries the post’s title and picture for Facebook');
+  const html = readFileSync(join(DIST, 'post/postFile/index.html'), 'utf8');
+  ok(html.includes('<meta property="og:title" content="Class video" />') && html.includes(`<meta property="og:image" content="${SITE}post/postFile/cover.png" />`) && existsSync(join(DIST, 'post/postFile/cover.png')), 'the preview page carries the post’s title and picture for Facebook');
   const D = await openPage(browser, fake, null);
-  await D.goto(`${D.base}/news/postPlain/`, { waitUntil: 'domcontentloaded' });
+  await D.goto(`${D.base}/post/postPlain/`, { waitUntil: 'domcontentloaded' });
   await D.locator('[data-post-id="postPlain"]').waitFor({ timeout: 30000 });
   ok(/\?post=postPlain#announcements$/.test(D.url()), 'a person who opens the preview page is sent on to the post', D.url());
   ok((await waitFor(async () => (await card(D, 'postPlain').getAttribute('data-focused')) === 'true' && (await inView(D, 'postPlain')), 8000)) === true, 'the board opens at that post and marks it');

@@ -112,7 +112,7 @@ describe('the address of one post', () => {
   it('opens the board at the post', () => {
     expect(postAppUrl('https://cmckhmer.github.io/Creative-Minds-/', 'abc123')).toBe('https://cmckhmer.github.io/Creative-Minds-/?post=abc123#announcements');
     expect(postAppUrl('https://cmckhmer.github.io/Creative-Minds-/#games', 'abc123')).toBe('https://cmckhmer.github.io/Creative-Minds-/?post=abc123#announcements');
-    expect(postSharePageUrl('https://cmckhmer.github.io/Creative-Minds-', 'abc123')).toBe('https://cmckhmer.github.io/Creative-Minds-/news/abc123/');
+    expect(postSharePageUrl('https://cmckhmer.github.io/Creative-Minds-', 'abc123')).toBe('https://cmckhmer.github.io/Creative-Minds-/post/abc123/');
   });
 
   it('reads the post back from the address, and nothing odd', () => {
@@ -129,7 +129,7 @@ describe('the address of one post', () => {
 });
 
 describe('share links', () => {
-  const url = 'https://cmckhmer.github.io/Creative-Minds-/news/abc123/';
+  const url = 'https://cmckhmer.github.io/Creative-Minds-/post/abc123/';
   const targets = shareTargets(url, 'School reopens & new timetable');
 
   it('offers Facebook first, then the other popular sites', () => {
@@ -273,28 +273,59 @@ describe('preview pages for shared posts (scripts/build_share_pages.mjs)', () =>
     const { dir, out, log } = run();
     try {
       expect(log).toContain('wrote 3 pages');
-      const a = readFileSync(join(out, 'news/postA1/index.html'), 'utf8');
+      const a = readFileSync(join(out, 'post/postA1/index.html'), 'utf8');
       expect(a).toContain('<meta property="og:title" content="Sports day &lt;moved&gt; &amp; &quot;new&quot; time" />');
       expect(a).toContain('<meta property="og:description" content="Sports day moves to Friday. Bring a hat." />');
-      expect(a).toContain('<meta property="og:url" content="https://cmckhmer.github.io/Creative-Minds-/news/postA1/" />');
-      expect(a).toContain('<meta property="og:image" content="https://cmckhmer.github.io/Creative-Minds-/news/postA1/cover.png" />');
+      expect(a).toContain('<meta property="og:url" content="https://cmckhmer.github.io/Creative-Minds-/post/postA1/" />');
+      expect(a).toContain('<meta property="og:image" content="https://cmckhmer.github.io/Creative-Minds-/post/postA1/cover.png" />');
       expect(a).toContain('location.replace("https://cmckhmer.github.io/Creative-Minds-/?post=postA1#announcements");');
-      expect(readFileSync(join(out, 'news/postA1/cover.png')).subarray(1, 4).toString()).toBe('PNG');
-      expect(JSON.parse(readFileSync(join(out, 'news/postA1/share.json'), 'utf8')).id).toBe('postA1');
+      expect(readFileSync(join(out, 'post/postA1/cover.png')).subarray(1, 4).toString()).toBe('PNG');
+      expect(JSON.parse(readFileSync(join(out, 'post/postA1/share.json'), 'utf8')).id).toBe('postA1');
       // a post with a YouTube video and no picture uses the video's still
-      expect(readFileSync(join(out, 'news/postB2/index.html'), 'utf8')).toContain('content="https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"');
+      expect(readFileSync(join(out, 'post/postB2/index.html'), 'utf8')).toContain('content="https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"');
       // a post with neither uses the site's card
-      const c = readFileSync(join(out, 'news/postC3/index.html'), 'utf8');
+      const c = readFileSync(join(out, 'post/postC3/index.html'), 'utf8');
       expect(c).toContain('content="https://cmckhmer.github.io/Creative-Minds-/images/og-card.jpg"');
       // text from a post can never close the page's script or add one
       expect(c.match(/<script>/g)?.length).toBe(1);
       expect(c).toContain('&lt;/script&gt;&lt;script&gt;alert(1)&lt;/script&gt;');
       // a post without a title, or with an id that is not a plain name, gets no page
-      expect(existsSync(join(out, 'news/postD4'))).toBe(false);
+      expect(existsSync(join(out, 'post/postD4'))).toBe(false);
       expect(existsSync(join(dir, 'evil'))).toBe(false);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it('clears only its own pages: the headlines feed and anything else in the build stay', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'cmc-share-'));
+    try {
+      const out = join(dir, 'dist');
+      mkdirSync(join(out, 'news'), { recursive: true });
+      writeFileSync(join(out, 'news/headlines.json'), '{"items":[]}');
+      const from = join(dir, 'posts.json');
+      writeFileSync(from, JSON.stringify(fixture));
+      const go = () => execFileSync(process.execPath, ['scripts/build_share_pages.mjs', '--from', from, '--out', out], { cwd: process.cwd(), encoding: 'utf8' });
+      go();
+      // a second deploy: a post that was deleted loses its page
+      mkdirSync(join(out, 'post/gone'));
+      writeFileSync(join(out, 'post/gone/share.json'), '{"id":"gone"}');
+      expect(go()).toContain('wrote 3 pages');
+      expect(existsSync(join(out, 'post/gone'))).toBe(false);
+      expect(existsSync(join(out, 'post/postA1/index.html'))).toBe(true);
+      expect(readFileSync(join(out, 'news/headlines.json'), 'utf8')).toBe('{"items":[]}');
+      // a file in post/ that the script did not write stops it instead of being deleted
+      writeFileSync(join(out, 'post/keep.txt'), 'mine');
+      expect(go()).toContain('skipped');
+      expect(readFileSync(join(out, 'post/keep.txt'), 'utf8')).toBe('mine');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('does not use a folder the site already has', () => {
+    expect(existsSync(resolve(process.cwd(), 'public/post'))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), 'public/news/headlines.json'))).toBe(true);
   });
 
   it('never fails the deploy when the posts cannot be read', () => {

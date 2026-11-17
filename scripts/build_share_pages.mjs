@@ -8,10 +8,10 @@
 //
 // This script runs at deploy time, after the build. It reads the public
 // announcements from the database and writes, for each post:
-//   <out>/news/<id>/index.html   title, first lines and picture of the post
+//   <out>/post/<id>/index.html   title, first lines and picture of the post
 //                                as <meta>, then sends a person on to the post
-//   <out>/news/<id>/cover.jpg    the post's picture, when it has one
-//   <out>/news/<id>/share.json   a marker the Share menu looks for
+//   <out>/post/<id>/cover.jpg    the post's picture, when it has one
+//   <out>/post/<id>/share.json   a marker the Share menu looks for
 //
 // A post published after the last deploy has no page yet. The Share menu then
 // shares the site's own address for the post (it opens the post, with the
@@ -24,7 +24,7 @@
 //
 // It never fails a deploy: when the database cannot be reached it says so
 // and exits 0, and the Share menu falls back as described above.
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -156,15 +156,26 @@ if (!existsSync(OUT)) {
   process.exit(0);
 }
 
-const root = join(OUT, 'news');
-rmSync(root, { recursive: true, force: true });
+// The pages live in their own folder, post/. (Not news/: that folder holds
+// the site's headlines feed.) Last deploy's pages are cleared first, so a
+// deleted post loses its page — but only a folder this script wrote is ever
+// removed: anything else found in post/ stops the run.
+const root = join(OUT, 'post');
+if (existsSync(root)) {
+  const foreign = readdirSync(root, { withFileTypes: true }).filter((e) => !e.isDirectory() || !existsSync(join(root, e.name, 'share.json')));
+  if (foreign.length) {
+    console.log(`share pages: skipped — ${root} holds files this script did not write (${foreign[0].name}).`);
+    process.exit(0);
+  }
+  rmSync(root, { recursive: true, force: true });
+}
 let written = 0;
 for (const doc of docs.slice(0, MAX_POSTS)) {
   const post = readPost(doc);
   if (!post) continue;
   const dir = join(root, post.id);
   mkdirSync(dir, { recursive: true });
-  const pageUrl = `${SITE}news/${post.id}/`;
+  const pageUrl = `${SITE}post/${post.id}/`;
   const appUrl = `${SITE}?post=${encodeURIComponent(post.id)}#announcements`;
   let image = `${SITE}images/og-card.jpg`;
   const picture = decodePicture(post.imageUrl);

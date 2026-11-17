@@ -189,7 +189,7 @@ export function postAppUrl(siteBase: string, id: string): string {
 /** The preview page of one post (written at deploy time by scripts/build_share_pages.mjs).
  *  Facebook and the other sites read the post's title and picture from it. */
 export function postSharePageUrl(siteBase: string, id: string): string {
-  return `${siteBase.replace(/[#?].*$/, '').replace(/\/?$/, '/')}news/${encodeURIComponent(id)}/`;
+  return `${siteBase.replace(/[#?].*$/, '').replace(/\/?$/, '/')}post/${encodeURIComponent(id)}/`;
 }
 
 // ── share links ─────────────────────────────────────────────────────────
