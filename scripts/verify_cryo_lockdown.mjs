@@ -66,7 +66,7 @@ for (const [needle, label] of [
   ("{t:'Laws alone have stopped species from disappearing.',a:'F'}", 'TRUTH SCAN key intact'),
   ["What is the final purpose of the DNA bank?", 'MAIN SIGNAL comprehension intact'],
   ['A power surge has sealed the cryo-vault', 'briefing story intact'],
-  ['INITIATE LOCKDOWN', 'start button intact'],
+  ['Initiate lockdown', 'start button intact'],
 ]) ok(ws.includes(needle), label);
 ok((ws.match(/\{id:\d+,name:'/g) || []).length === 6, 'all 6 security terminals intact');
 
