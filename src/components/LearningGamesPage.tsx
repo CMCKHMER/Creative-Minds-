@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Headphones, Lightbulb, LockKeyhole, Mic, RotateCcw, Share2, Sparkles, UserPlus, XCircle, Volume2, VolumeX } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, Crown, ExternalLink, Flame, Headphones, Heart, Lightbulb, LockKeyhole, Mic, RotateCcw, Search, Share2, Sparkles, Target, Timer, Trophy, UserPlus, Volume2, VolumeX, XCircle, Zap } from 'lucide-react';
 import { GlassFact, GlassPageBar, GlassPageHero } from './GlassPage';
-import { LEARNING_GAMES, type LearningGame, type LearningGameSkill } from '../data/learningGames';
+import { LEARNING_GAMES, gameXpTotal, type GameTier, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
 import { GameLeaderboard, submitGameScore, useSignedInPlayerName } from './GameLeaderboard';
 import { playCorrectSound, playWrongSound, playCompleteSound, toggleGameSound, isGameSoundMuted, fireConfetti, ensureConfettiCSS } from '../lib/gameSound';
@@ -16,6 +16,14 @@ import {
 
 const skillOptions: Array<'All games' | LearningGameSkill> = ['All games', 'Vocabulary', 'Reading', 'Grammar', 'Early literacy', 'Listening', 'Speaking'];
 
+type GameMode = 'classic' | 'time-trial' | 'survival';
+
+const MODE_META: Record<GameMode, { label: string; short: string; multiplier: number; blurb: string }> = {
+  classic: { label: 'Classic Quest', short: 'Classic', multiplier: 1, blurb: 'No countdown. Think it through, use hints, learn from every clue.' },
+  'time-trial': { label: 'Time Trial', short: 'Time Trial', multiplier: 1.5, blurb: 'A countdown on every round. Fast correct answers keep the run alive.' },
+  survival: { label: 'Survival', short: 'Survival', multiplier: 2, blurb: '3 lives. Wrong answers and timeouts cost a heart. Double XP if you finish.' },
+};
+
 function gameIcon(skill: LearningGameSkill) {
   if (skill === 'Reading') return BookOpen;
   if (skill === 'Listening') return Headphones;
@@ -24,40 +32,22 @@ function gameIcon(skill: LearningGameSkill) {
   return Sparkles;
 }
 
-function accent(index: number) {
-  return [
-    'from-cyan-300/15 to-sky-400/5 border-cyan-200/15 text-cyan-200',
-    'from-violet-300/15 to-indigo-400/5 border-violet-200/15 text-violet-200',
-    'from-amber-200/15 to-orange-400/5 border-amber-100/15 text-amber-100',
-    'from-emerald-300/15 to-teal-400/5 border-emerald-200/15 text-emerald-200',
-    'from-pink-300/15 to-rose-400/5 border-pink-200/15 text-pink-200',
-    'from-blue-300/15 to-indigo-400/5 border-blue-200/15 text-blue-200',
-  ][index % 6];
+function tierMeta(tier: GameTier) {
+  if (tier === 'warmup') return { label: 'Warm-up', chip: 'border-cyan-200/30 bg-cyan-300/10 text-cyan-100', dot: 'bg-cyan-300', text: 'text-cyan-200' };
+  if (tier === 'build') return { label: 'Build', chip: 'border-violet-300/30 bg-violet-400/10 text-violet-100', dot: 'bg-violet-300', text: 'text-violet-200' };
+  if (tier === 'mastery') return { label: 'Mastery', chip: 'border-fuchsia-300/30 bg-fuchsia-400/10 text-fuchsia-100', dot: 'bg-fuchsia-300', text: 'text-fuchsia-200' };
+  return { label: 'BOSS', chip: 'border-amber-200/40 bg-amber-300/15 text-amber-100', dot: 'bg-amber-300', text: 'text-amber-200' };
 }
 
-function gameScore(game: LearningGame, answers: Record<number, number>) {
-  return game.questions.reduce((sum, question, index) => sum + (answers[index] === question.correctIndex ? 1 : 0), 0);
+function rankFor(percent: number, gameOver: boolean) {
+  if (gameOver) return { rank: '—', label: 'Run stopped — retry the missed rounds' };
+  if (percent >= 90) return { rank: 'S', label: 'Outstanding. Boss-round quality.' };
+  if (percent >= 75) return { rank: 'A', label: 'Excellent work. You used the clues carefully.' };
+  if (percent >= 60) return { rank: 'B', label: 'Strong practice. Review the explanations and push for A.' };
+  if (percent >= 40) return { rank: 'C', label: 'Good effort. Retry just the missed rounds below.' };
+  return { rank: 'D', label: 'Every try teaches you something. Review a clue, then retry missed rounds.' };
 }
 
-function challengeLevel(index: number, count: number) {
-  const progress = count <= 1 ? 1 : index / (count - 1);
-  if (progress < 0.34) return { name: 'Level 1 · Warm-up', color: 'text-cyan-200' };
-  if (progress < 0.68) return { name: 'Level 2 · Build', color: 'text-violet-200' };
-  return { name: 'Level 3 · Mastery', color: 'text-amber-200' };
-}
-
-function currentStreak(game: LearningGame, answers: Record<number, number>) {
-  let streak = 0;
-  for (let index = 0; index < game.questions.length; index += 1) {
-    if (answers[index] === undefined) break;
-    if (answers[index] !== game.questions[index].correctIndex) streak = 0;
-    else streak += 1;
-  }
-  return streak;
-}
-
-/** Tiny self-contained toast for the card share buttons (the games page has
- *  no other toast system). */
 function shareToast(message: string) {
   const existing = document.querySelector<HTMLElement>('[data-cmc-share-toast]');
   const el = existing ?? document.createElement('div');
@@ -74,10 +64,6 @@ function shareToast(message: string) {
   }, 2600);
 }
 
-/** Share one game or assignment (owner: "implement a share button for each
- *  game or assignment") — native share sheet on phones; clipboard fallback
- *  with a toast on desktop. Standalone games share their own URL, in-page
- *  games share this games page. */
 async function shareGame(game: LearningGame): Promise<void> {
   const url = game.externalUrl
     ? new URL(game.externalUrl, window.location.href).toString()
@@ -100,195 +86,347 @@ async function shareGame(game: LearningGame): Promise<void> {
 function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) {
   const session = useSignedInSession();
   const signedIn = hasActiveAccount(session);
-  // GUEST SAMPLE (owner directive): a non-signed-up visitor may answer the
-  // first couple of rounds of a sample game, then hits the sign-up wall.
   const guestLocked = !signedIn && !isSampleLearningGame(game.id);
-  const maxRounds = signedIn ? game.questions.length : GUEST_SAMPLE_QUESTION_LIMIT;
-  const [questionIndex, setQuestionIndex] = useState(0);
+  const fullIds = useMemo(() => game.questions.map((_, i) => i), [game]);
+  const defaultIds = signedIn ? fullIds : fullIds.slice(0, GUEST_SAMPLE_QUESTION_LIMIT);
+  const [phase, setPhase] = useState<'brief' | 'playing' | 'finished'>('brief');
+  const [mode, setMode] = useState<GameMode>('classic');
+  const [retryIds, setRetryIds] = useState<number[] | null>(null);
+  const activeIds = retryIds ?? defaultIds;
+  const [pos, setPos] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [finished, setFinished] = useState(false);
   const [soundMuted, setSoundMuted] = useState(isGameSoundMuted());
-  const question = game.questions[questionIndex];
-  const gamePassage = game.passage ?? question.passage;
-  const selectedIndex = answers[questionIndex];
-  const answered = selectedIndex !== undefined;
-  const score = gameScore(game, answers);
-  const streak = currentStreak(game, answers);
-  const activeLevel = challengeLevel(questionIndex, maxRounds);
-  const Icon = gameIcon(game.skill);
+  const [lives, setLives] = useState(game.lives ?? 3);
+  const [hintsLeft, setHintsLeft] = useState(3);
+  const [eliminated, setEliminated] = useState<Record<number, number[]>>({});
+  const [hintShown, setHintShown] = useState<Record<number, boolean>>({});
+  const [secondsLeft, setSecondsLeft] = useState(game.secondsPerQuestion ?? 35);
+  const [elapsed, setElapsed] = useState(0);
 
-  const resetGame = () => {
-    setQuestionIndex(0);
+  const qIndex = activeIds[Math.min(pos, Math.max(0, activeIds.length - 1))] ?? 0;
+  const question = game.questions[qIndex];
+  const gamePassage = question?.passage ?? game.passage;
+  const audioScript = question?.audioScript ?? game.audioScript;
+  const selectedIndex = answers[qIndex];
+  const answered = selectedIndex !== undefined;
+  const isTimeout = selectedIndex === -1;
+  const meta = question ? tierMeta(question.tier) : tierMeta('warmup');
+  const Icon = gameIcon(game.skill);
+  const perQuestion = game.secondsPerQuestion ?? 35;
+  const gameOver = mode === 'survival' && lives <= 0 && answered;
+
+  const stats = useMemo(() => {
+    let score = 0; let xp = 0; let streak = 0; let best = 0; let answeredCount = 0;
+    for (const idx of activeIds) {
+      const a = answers[idx];
+      if (a === undefined) continue;
+      answeredCount += 1;
+      if (a === game.questions[idx].correctIndex) {
+        score += 1; streak += 1; best = Math.max(best, streak);
+        xp += game.questions[idx].points + (streak >= 3 ? 5 : 0);
+      } else streak = 0;
+    }
+    // live streak = trailing streak
+    let live = 0;
+    for (let i = activeIds.length - 1; i >= 0; i -= 1) {
+      const a = answers[activeIds[i]];
+      if (a === undefined) continue;
+      if (a === game.questions[activeIds[i]].correctIndex) live += 1; else break;
+    }
+    return { score, xp: Math.round(xp * MODE_META[mode].multiplier), streak: live, best, answeredCount };
+  }, [activeIds, answers, game, mode]);
+
+  const resetRun = (ids: number[] | null, nextMode: GameMode = mode) => {
+    setRetryIds(ids);
+    setPos(0);
     setAnswers({});
-    setFinished(false);
+    setEliminated({});
+    setHintShown({});
+    setLives(game.lives ?? 3);
+    setHintsLeft(3);
+    setElapsed(0);
+    setSecondsLeft(perQuestion);
+    setMode(nextMode);
+    setPhase('playing');
   };
 
-  // Handle answer selection — stores the answer AND plays a sound effect.
-  // The sound is based on whether the selected choice is the correct one.
-  // Only plays the sound on the FIRST answer (when the answer transitions
-  // from undefined → a choice), not on re-selections of the same question.
+  // countdown (Time Trial / Survival)
+  useEffect(() => {
+    if (phase !== 'playing' || mode === 'classic' || answered) return;
+    if (secondsLeft <= 0) return;
+    const id = window.setInterval(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000);
+    return () => window.clearInterval(id);
+  }, [phase, mode, answered, secondsLeft, pos]);
+
+  // timeout → mark wrong
+  useEffect(() => {
+    if (phase !== 'playing' || mode === 'classic' || answered || secondsLeft > 0) return;
+    setAnswers((prev) => ({ ...prev, [qIndex]: -1 }));
+    playWrongSound();
+    if (mode === 'survival') setLives((l) => Math.max(0, l - 1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondsLeft, phase, mode, answered]);
+
+  // per-question timer reset + elapsed clock
+  useEffect(() => { setSecondsLeft(perQuestion); }, [pos, phase, perQuestion]);
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const id = window.setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [phase]);
+
   const handleAnswer = (choiceIndex: number) => {
-    const wasAlreadyAnswered = answers[questionIndex] !== undefined;
-    setAnswers((previous) => ({ ...previous, [questionIndex]: choiceIndex }));
-    if (!wasAlreadyAnswered) {
-      if (choiceIndex === question.correctIndex) {
-        playCorrectSound();
-      } else {
-        playWrongSound();
-      }
+    if (answered) return;
+    setAnswers((prev) => ({ ...prev, [qIndex]: choiceIndex }));
+    if (choiceIndex === question.correctIndex) playCorrectSound();
+    else {
+      playWrongSound();
+      if (mode === 'survival') setLives((l) => Math.max(0, l - 1));
     }
   };
 
-  // Called when the user clicks "See results" — flips to the finished view,
-  // plays a victory fanfare + fires confetti, AND submits the score to Firestore.
   const finishGame = () => {
-    // Guests never submit scores — the sample run stays on their device.
     if (!signedIn) {
-      requestAuth({
-        mode: 'sign-up',
-        contextPrompt: `Sign up free to finish ${game.title}, save your score and climb the class leaderboard.`,
-      });
+      requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to finish ${game.title}, save your score and climb the class leaderboard.` });
       return;
     }
-    setFinished(true);
+    setPhase('finished');
     playCompleteSound();
     ensureConfettiCSS();
-    fireConfetti(80);
-    void submitGameScore({
-      gameSlug: game.id,
-      gameTitle: game.title,
-      correctCount: score,
-      totalCount: game.questions.length,
-    });
+    if (stats.score / Math.max(1, activeIds.length) >= 0.5) fireConfetti(90);
+    // Only full runs post to the leaderboard — retry-missed runs are practice.
+    if (!retryIds) {
+      void submitGameScore({ gameSlug: game.id, gameTitle: game.title, correctCount: stats.score, totalCount: game.questions.length });
+    }
   };
 
-  const handleToggleSound = () => {
-    const muted = toggleGameSound();
-    setSoundMuted(muted);
+  // keyboard play: 1–4 / A–D to answer, Enter to advance
+  useEffect(() => {
+    if (phase !== 'playing' || !question) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) return;
+      const map: Record<string, number> = { '1': 0, '2': 1, '3': 2, '4': 3, a: 0, b: 1, c: 2, d: 3 };
+      const idx = map[e.key.toLowerCase()];
+      if (idx !== undefined && !answered && !(eliminated[pos] ?? []).includes(idx) && idx < question.choices.length) { handleAnswer(idx); return; }
+      if (e.key === 'Enter' && answered) {
+        e.preventDefault();
+        if (gameOver || pos >= activeIds.length - 1) finishGame();
+        else if (canPlayGameRound(session, game.id, pos + 1)) setPos((p) => p + 1);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, question, answered, pos, activeIds, eliminated, gameOver, session]);
+
+  const useHint = () => {
+    if (answered || hintsLeft <= 0) return;
+    const wrong = question.choices.map((_, i) => i).filter((i) => i !== question.correctIndex && !(eliminated[pos] ?? []).includes(i));
+    if (wrong.length === 0) return;
+    const toRemove = wrong.slice(0, Math.min(2, wrong.length - 0)).slice(0, 2);
+    // keep at least the correct answer + one distractor on 4-choice rounds
+    const limited = wrong.length > 1 ? toRemove.slice(0, wrong.length - 1 > 0 ? 2 : 1) : toRemove;
+    setEliminated((prev) => ({ ...prev, [pos]: [...(prev[pos] ?? []), ...limited] }));
+    setHintShown((prev) => ({ ...prev, [pos]: true }));
+    setHintsLeft((h) => h - 1);
   };
+
+  const handleToggleSound = () => setSoundMuted(toggleGameSound());
 
   if (guestLocked) {
     return (
-      <section id="game-playground" className="scroll-mt-6 mt-10 overflow-hidden rounded-3xl border border-cyan-200/20 bg-gradient-to-br from-cyan-100/[0.05] via-slate-900/80 to-slate-950/90 p-6 shadow-2xl sm:p-9">
+      <section id="game-playground" className="cmc-card scroll-mt-6 mt-10 overflow-hidden p-6 sm:p-9">
         <div className="mx-auto max-w-xl text-center">
-          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-cyan-200/25 bg-cyan-200/10 text-cyan-200"><LockKeyhole className="h-6 w-6" aria-hidden="true" /></span>
+          <span className="iri-ring mx-auto grid h-14 w-14 place-items-center text-cyan-100"><LockKeyhole className="h-6 w-6" aria-hidden="true" /></span>
           <p className="mt-5 text-[10px] font-bold tracking-[0.17em] text-cyan-200 uppercase">Free account required</p>
           <h3 className="mt-2 font-[var(--font-display)] text-2xl font-bold text-white">{game.title} unlocks with a free account</h3>
-          <p className="mt-2 text-sm leading-relaxed text-slate-300">
-            Visitors can sample {GUEST_SAMPLE_QUESTION_LIMIT} rounds of a few games. Create a free account — student or
-            general user, same access — to play {game.title} in full and save your score.
-          </p>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300">Visitors can sample {GUEST_SAMPLE_QUESTION_LIMIT} rounds of a few games. Create a free account — student or general user, same access — to play {game.title} in full and save your score.</p>
           <div className="mt-6 flex flex-col items-center justify-center gap-2 sm:flex-row">
-            <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to play ${game.title} in full.` })} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950">
-              <UserPlus className="h-3.5 w-3.5" aria-hidden="true" /> Create a free account
-            </button>
-            <button type="button" onClick={onExit} className="min-h-11 rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5">Back to the sample games</button>
+            <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to play ${game.title} in full.` })} className="iri-btn min-h-11"><UserPlus className="h-3.5 w-3.5" aria-hidden="true" /> Create a free account</button>
+            <button type="button" onClick={onExit} className="cmc-btn-ghost min-h-11 rounded-full px-4 py-2.5 text-xs font-semibold">Back to the sample games</button>
           </div>
         </div>
       </section>
     );
   }
 
-  if (finished) {
-    const percent = Math.round((score / game.questions.length) * 100);
+  if (phase === 'brief') {
     return (
-      <section id="game-playground" className="scroll-mt-6 mt-10 overflow-hidden rounded-3xl border border-white/10 bg-slate-900/65 p-6 shadow-2xl sm:p-9">
+      <section id="game-playground" className="cmc-card scroll-mt-6 mt-10 overflow-hidden">
+        {game.coverImage && (
+          <div className="relative h-48 overflow-hidden sm:h-56">
+            <img src={game.coverImage} alt="" className="h-full w-full object-cover" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0b1020] via-[#0b1020]/35 to-transparent" aria-hidden="true" />
+            <span className={`absolute left-4 top-4 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] backdrop-blur ${tierMeta('boss').chip}`}>{game.difficultyLabel ?? 'Challenge'}</span>
+            <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 text-white"><span className="iri-ring grid h-10 w-10 place-items-center"><Icon className="h-5 w-5" aria-hidden="true" /></span><span><span className="block text-[9px] font-bold uppercase tracking-[0.16em] text-cyan-200">{game.skill} · {game.level}</span><span className="font-[var(--font-display)] text-lg font-bold">{game.title}</span></span></span>
+          </div>
+        )}
+        <div className="p-5 sm:p-8">
+          {!game.coverImage && <p className="text-[9px] font-bold tracking-[0.16em] text-cyan-200 uppercase">{game.skill} · {game.level}</p>}
+          <p className="mt-1 font-[var(--font-display)] text-xl font-bold text-white">{game.tagline ?? game.title}</p>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300">{game.description}</p>
+          <p className="mt-2 text-xs leading-relaxed text-slate-400">{game.instructions}</p>
+
+          <div className="cmc-stat-row mt-5" role="list" aria-label="Game facts">
+            <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{activeIds.length}</span><span className="cmc-stat-label">Rounds</span></span>
+            <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{gameXpTotal(game)} XP</span><span className="cmc-stat-label">Perfect run</span></span>
+            <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{game.lives ?? 3} ♥</span><span className="cmc-stat-label">Survival lives</span></span>
+            <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{perQuestion}s</span><span className="cmc-stat-label">Per round · timed</span></span>
+          </div>
+
+          <p className="mt-6 text-[9px] font-bold tracking-[0.16em] text-slate-400 uppercase">Choose your challenge mode</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Challenge mode">
+            {(Object.keys(MODE_META) as GameMode[]).map((m) => (
+              <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={`rounded-2xl border p-4 text-left transition ${mode === m ? 'border-transparent bg-[linear-gradient(160deg,rgba(255,94,210,.14),rgba(34,211,238,.10))] shadow-[0_0_0_1px_rgba(167,139,250,.45)]' : 'border-white/10 bg-white/[0.02] hover:border-white/25'}`}>
+                <span className="flex items-center justify-between gap-2"><span className="text-xs font-bold text-white">{MODE_META[m].label}</span><span className="rounded-full border border-white/15 px-2 py-0.5 font-mono text-[9px] text-cyan-100">×{MODE_META[m].multiplier} XP</span></span>
+                <span className="mt-1.5 block text-[11px] leading-relaxed text-slate-400">{MODE_META[m].blurb}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-1.5" aria-label="Journey and extra challenges">
+            {['Warm-up', 'Build', 'Mastery', 'BOSS'].map((t, i) => <span key={t} className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">{i === 3 ? <Crown className="h-3 w-3 text-amber-200" aria-hidden="true" /> : <span className={`h-1.5 w-1.5 rounded-full ${tierMeta((['warmup', 'build', 'mastery', 'boss'] as GameTier[])[i]).dot}`} aria-hidden="true" />}{t}</span>)}
+            {(game.challengeModes ?? []).map((c) => <span key={c} className="rounded-full border border-white/8 px-2.5 py-1 text-[9px] font-semibold text-slate-500">{c}</span>)}
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button type="button" onClick={() => resetRun(null, mode)} className="iri-btn min-h-11">Start {MODE_META[mode].short} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /></button>
+            <button type="button" onClick={onExit} className="cmc-btn-ghost min-h-11 rounded-full px-4 py-2.5 text-xs font-semibold">All games</button>
+            <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"><Zap className="h-3.5 w-3.5 text-amber-200" aria-hidden="true" /> Keys 1–4 / A–D answer · Enter advances{!signedIn ? ` · Free sample: first ${GUEST_SAMPLE_QUESTION_LIMIT} rounds` : ''}</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (phase === 'finished') {
+    const percent = Math.round((stats.score / Math.max(1, activeIds.length)) * 100);
+    const rank = rankFor(percent, gameOver);
+    const missed = activeIds.filter((idx) => answers[idx] !== game.questions[idx].correctIndex);
+    return (
+      <section id="game-playground" className="cmc-card scroll-mt-6 mt-10 overflow-hidden p-6 sm:p-9">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-teal-200/20 bg-teal-200/5 text-teal-100"><CheckCircle2 className="h-6 w-6" aria-hidden="true" /></span>
-          <p className="mt-5 text-[10px] font-bold tracking-[0.17em] text-teal-200 uppercase">Game complete</p>
-          <h3 className="mt-2 font-[var(--font-display)] text-3xl font-bold text-white">{score} of {game.questions.length} correct</h3>
-          <p className="mt-2 text-sm text-slate-400">{percent >= 80 ? 'Excellent work. You used the clues carefully.' : percent >= 50 ? 'Good practice. Review the explanations and play again.' : 'Every try teaches you something. Review a clue, then give it another go.'}</p>
+          <span className="iri-ring mx-auto grid h-16 w-16 place-items-center text-amber-100">{gameOver ? <Heart className="h-7 w-7" aria-hidden="true" /> : <Trophy className="h-7 w-7" aria-hidden="true" />}</span>
+          <p className="mt-5 text-[10px] font-bold tracking-[0.17em] text-teal-200 uppercase">{gameOver ? 'Survival run ended' : retryIds ? 'Retry complete' : 'Game complete'} · {MODE_META[mode].label}</p>
+          <h3 className="mt-2 font-[var(--font-display)] text-3xl font-bold text-white">Rank {rank.rank} · {stats.score} of {activeIds.length} correct</h3>
+          <p className="mt-2 text-sm text-slate-400">{rank.label}</p>
+          <div className="cmc-stat-row mx-auto mt-6 max-w-lg" role="list" aria-label="Run results">
+            <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{stats.xp} XP</span><span className="cmc-stat-label">Earned ×{MODE_META[mode].multiplier}</span></span>
+            <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{percent}%</span><span className="cmc-stat-label">Accuracy</span></span>
+            <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{stats.best} 🔥</span><span className="cmc-stat-label">Best streak</span></span>
+            <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}</span><span className="cmc-stat-label">Time</span></span>
+          </div>
         </div>
         <div className="mx-auto mt-7 max-w-3xl space-y-2">
-          {game.questions.map((item, index) => {
-            const isCorrect = answers[index] === item.correctIndex;
-            return <details key={`${game.id}-result-${index}`} className="rounded-xl border border-white/8 bg-slate-950/35 p-4"><summary className="flex cursor-pointer list-none items-center gap-3 text-xs"><span className={`grid h-6 w-6 place-items-center rounded-full ${isCorrect ? 'bg-emerald-300/10 text-emerald-200' : 'bg-amber-200/10 text-amber-100'}`}>{isCorrect ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <XCircle className="h-3.5 w-3.5" aria-hidden="true" />}</span><span className="flex-1 text-slate-200">Question {index + 1}</span><span className="text-slate-500">{isCorrect ? 'Correct' : 'Review'}</span></summary><div className="mt-3 border-t border-white/8 pt-3 text-xs leading-relaxed text-slate-400"><p>{item.prompt}</p><p className="mt-2 text-emerald-100/80">{item.feedback}</p></div></details>;
+          {activeIds.map((idx, n) => {
+            const item = game.questions[idx];
+            const isCorrect = answers[idx] === item.correctIndex;
+            const tm = tierMeta(item.tier);
+            return <details key={`${game.id}-result-${idx}`} className="rounded-xl border border-white/8 bg-slate-950/35 p-4"><summary className="flex cursor-pointer list-none items-center gap-3 text-xs"><span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${isCorrect ? 'bg-emerald-300/10 text-emerald-200' : 'bg-amber-200/10 text-amber-100'}`}>{isCorrect ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <XCircle className="h-3.5 w-3.5" aria-hidden="true" />}</span><span className="flex-1 text-slate-200">Round {n + 1} · {item.challengeTag}</span><span className={`rounded-full border px-2 py-0.5 text-[8px] font-bold ${tm.chip}`}>{tm.label} · {item.points} XP</span><span className="text-slate-500">{answers[idx] === -1 ? 'Timed out' : isCorrect ? 'Correct' : 'Review'}</span></summary><div className="mt-3 border-t border-white/8 pt-3 text-xs leading-relaxed text-slate-400"><p>{item.prompt}</p><p className="mt-2 text-slate-300">Correct: <strong className="text-emerald-100">{item.choices[item.correctIndex]}</strong></p><p className="mt-1.5 text-emerald-100/80">{item.feedback}</p></div></details>;
           })}
         </div>
         <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <button type="button" onClick={resetGame} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950"><RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Play again</button>
-          <button type="button" onClick={onExit} className="min-h-11 rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/5">Choose another game</button>
+          <button type="button" onClick={() => resetRun(null)} className="iri-btn min-h-11"><RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Play again</button>
+          {missed.length > 0 && <button type="button" onClick={() => resetRun(missed)} className="cmc-btn-ghost inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold"><Target className="h-3.5 w-3.5" aria-hidden="true" /> Retry {missed.length} missed</button>}
+          <button type="button" onClick={onExit} className="cmc-btn-ghost min-h-11 rounded-full px-4 py-2.5 text-xs font-semibold">Choose another game</button>
         </div>
       </section>
     );
   }
 
+  if (!question) return null;
+  const timerPct = mode === 'classic' ? 100 : Math.max(0, (secondsLeft / perQuestion) * 100);
+  const timerDanger = mode !== 'classic' && secondsLeft <= 8 && !answered;
+
   return (
-    <section id="game-playground" className="scroll-mt-6 mt-10 overflow-hidden rounded-3xl border border-white/10 bg-slate-900/65 shadow-2xl">
+    <section id="game-playground" className="cmc-card scroll-mt-6 mt-10 overflow-hidden">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/8 px-5 py-4 sm:px-7">
-        <div className="flex min-w-0 items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-gradient-to-br from-cyan-300/10 to-violet-400/10 text-cyan-200"><Icon className="h-5 w-5" aria-hidden="true" /></span><div className="min-w-0"><p className="text-[9px] font-bold tracking-[0.15em] text-slate-500 uppercase">{game.skill} · {game.level}</p><h3 className="truncate text-sm font-bold text-white sm:text-base">{game.title}</h3></div></div>
+        <div className="flex min-w-0 items-center gap-3">
+          {game.coverImage ? <img src={game.coverImage} alt="" className="h-10 w-14 shrink-0 rounded-lg object-cover" loading="lazy" /> : <span className="iri-ring grid h-10 w-10 shrink-0 place-items-center text-cyan-100"><Icon className="h-5 w-5" aria-hidden="true" /></span>}
+          <div className="min-w-0"><p className="text-[9px] font-bold tracking-[0.15em] text-slate-500 uppercase">{game.skill} · {game.level} · {MODE_META[mode].label}</p><h3 className="truncate text-sm font-bold text-white sm:text-base">{game.title}{retryIds ? ' · Retry missed' : ''}</h3></div>
+        </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={handleToggleSound} title={soundMuted ? 'Unmute game sounds' : 'Mute game sounds'} aria-label={soundMuted ? 'Unmute game sounds' : 'Mute game sounds'} className="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition hover:bg-white/5 hover:text-white">
-            {soundMuted ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}
-          </button>
-          <button type="button" onClick={onExit} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> All games</button>
+          <button type="button" onClick={handleToggleSound} title={soundMuted ? 'Unmute game sounds' : 'Mute game sounds'} aria-label={soundMuted ? 'Unmute game sounds' : 'Mute game sounds'} className="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 transition hover:bg-white/5 hover:text-white">{soundMuted ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}</button>
+          <button type="button" onClick={() => setPhase('brief')} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Briefing</button>
+          <button type="button" onClick={onExit} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white">All games</button>
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_260px]">
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_270px]">
         <div className="p-5 sm:p-8">
           <div className="mb-5 rounded-2xl border border-white/8 bg-white/[0.025] p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Round {questionIndex + 1} of {maxRounds}{!signedIn ? ' · free sample' : ''}</p><p className={`mt-1 text-xs font-bold ${activeLevel.color}`}>{activeLevel.name}</p></div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/15 bg-amber-200/[0.04] px-2.5 py-1.5 text-[10px] font-semibold text-amber-100">🔥 {streak} streak</span>
-                <span className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 font-mono text-[10px] text-slate-300"><Clock3 className="h-3.5 w-3.5 text-cyan-200" aria-hidden="true" />{game.duration.split('·')[0].trim()}</span>
+              <div><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Round {pos + 1} of {activeIds.length}{!signedIn ? ' · free sample' : ''}</p><p className="mt-1 flex flex-wrap items-center gap-2"><span className={`rounded-full border px-2 py-0.5 text-[9px] font-bold ${meta.chip}`}>{question.tier === 'boss' ? <Crown className="mr-1 inline h-3 w-3" aria-hidden="true" /> : null}{meta.label} · {question.points} XP</span><span className="text-[10px] font-semibold text-slate-400">{question.challengeTag}</span></p></div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-lg border border-orange-200/20 bg-orange-300/[0.06] px-2.5 py-1.5 text-[10px] font-bold text-orange-100" aria-label={`${stats.streak} answer streak`}><Flame className="h-3.5 w-3.5" aria-hidden="true" /> {stats.streak}</span>
+                <span className="inline-flex items-center gap-1 rounded-lg border border-amber-200/20 bg-amber-300/[0.06] px-2.5 py-1.5 text-[10px] font-bold text-amber-100"><Zap className="h-3.5 w-3.5" aria-hidden="true" /> {stats.xp} XP</span>
+                {mode === 'survival' && <span className="inline-flex items-center gap-0.5 rounded-lg border border-rose-200/20 bg-rose-300/[0.06] px-2.5 py-1.5 text-[10px] font-bold text-rose-100" aria-label={`${lives} lives left`}>{Array.from({ length: game.lives ?? 3 }).map((_, i) => <Heart key={i} className={`h-3.5 w-3.5 ${i < lives ? 'fill-current' : 'opacity-25'}`} aria-hidden="true" />)}</span>}
+                {mode !== 'classic' && <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-mono text-[10px] font-bold ${timerDanger ? 'border-rose-300/40 bg-rose-400/10 text-rose-100 animate-pulse' : 'border-white/10 text-slate-300'}`}><Timer className="h-3.5 w-3.5" aria-hidden="true" />{answered ? '—' : `${secondsLeft}s`}</span>}
               </div>
             </div>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/8" role="progressbar" aria-label="Game progress" aria-valuemin={0} aria-valuemax={maxRounds} aria-valuenow={questionIndex + (answered ? 1 : 0)}><div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-violet-300 to-amber-200 transition-all duration-500" style={{ width: `${((questionIndex + (answered ? 1 : 0)) / maxRounds) * 100}%` }} /></div>
-            <p className="mt-3 text-xs text-slate-400">{game.instructions}</p>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/8" role="progressbar" aria-label="Game progress" aria-valuemin={0} aria-valuemax={activeIds.length} aria-valuenow={pos + (answered ? 1 : 0)}><div className="h-full rounded-full bg-[linear-gradient(90deg,#ff5ed2,#a78bfa,#22d3ee,#5eead4)] transition-all duration-500" style={{ width: `${((pos + (answered ? 1 : 0)) / activeIds.length) * 100}%` }} /></div>
+            {mode !== 'classic' && <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/6" aria-hidden="true"><div className={`h-full rounded-full transition-[width] duration-1000 ease-linear ${timerDanger ? 'bg-rose-400' : 'bg-cyan-300'}`} style={{ width: `${timerPct}%` }} /></div>}
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-slate-400">{game.instructions}</p><button type="button" onClick={useHint} disabled={answered || hintsLeft <= 0} className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200/25 bg-cyan-300/[0.07] px-3 py-1.5 text-[10px] font-bold text-cyan-100 transition hover:bg-cyan-300/15 disabled:cursor-not-allowed disabled:opacity-35"><Lightbulb className="h-3.5 w-3.5" aria-hidden="true" /> Hint · {hintsLeft} left</button></div>
+            {hintShown[pos] && <p role="status" className="mt-2 rounded-lg border border-cyan-200/20 bg-cyan-300/[0.05] px-3 py-2 text-[11px] leading-relaxed text-cyan-50"><strong>Hint:</strong> {question.hint} Two wrong answers have been crossed out.</p>}
+            {gameOver && <p role="alert" className="mt-2 rounded-lg border border-rose-300/30 bg-rose-400/[0.07] px-3 py-2 text-[11px] font-semibold text-rose-100">Out of lives — this run ends here. See your results, then retry the missed rounds.</p>}
           </div>
 
-          {gamePassage && <div className="mb-5 rounded-xl border border-cyan-300/10 bg-[#071522] p-4"><p className="text-[9px] font-bold tracking-[0.14em] text-cyan-200 uppercase">Reading clue</p><div className="mt-2 space-y-2 font-serif text-sm leading-relaxed text-slate-300">{gamePassage.map((part, index) => <p key={`${game.id}-passage-${questionIndex}-${index}`}>{part}</p>)}</div></div>}
+          {gamePassage && <div className="mb-5 rounded-xl border border-cyan-300/10 bg-[#071522] p-4"><p className="text-[9px] font-bold tracking-[0.14em] text-cyan-200 uppercase">{question.passage ? 'Boss passage' : 'Reading clue'}</p><div className="mt-2 space-y-2 font-serif text-sm leading-relaxed text-slate-300">{gamePassage.map((part, index) => <p key={`${game.id}-passage-${qIndex}-${index}`}>{part}</p>)}</div></div>}
 
-          {game.audioScript && (
+          {audioScript && (
             <div className="mb-5">
-              <ListeningAudioPlayer
-                key={`${game.id}-audio`}
-                script={game.audioScript}
-                title="Listening clue"
-                tone="violet"
-              />
+              <ListeningAudioPlayer key={`${game.id}-audio-${qIndex}`} script={audioScript} title={qIndex >= 7 && game.id === 'listening-scout' ? 'Boss recording · Seedling project' : 'Listening clue'} tone="violet" />
             </div>
           )}
 
-          <h4 className="text-base font-semibold leading-relaxed text-white sm:text-lg">{question.prompt}</h4>
-          <div className="mt-4 space-y-2">{question.choices.map((choice, index) => {
+          <h4 className={`text-base font-semibold leading-relaxed sm:text-lg ${question.tier === 'boss' ? 'text-amber-50' : 'text-white'}`}>{question.prompt}</h4>
+          <div className="mt-4 space-y-2" role="group" aria-label="Answer choices">{question.choices.map((choice, index) => {
             const chosen = selectedIndex === index;
             const correct = index === question.correctIndex;
-            const style = !answered ? 'border-white/10 bg-white/[0.025] text-slate-300 hover:border-cyan-200/30 hover:bg-cyan-200/[0.04]' : correct ? 'border-emerald-300/30 bg-emerald-300/[0.07] text-emerald-50' : chosen ? 'border-rose-300/30 bg-rose-300/[0.06] text-rose-50' : 'border-white/6 bg-white/[0.015] text-slate-500';
-            return <button key={`${game.id}-${questionIndex}-${index}`} type="button" aria-pressed={chosen} onClick={() => handleAnswer(index)} className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left text-xs leading-relaxed transition ${style}`}><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current/25 font-mono text-[9px] font-bold">{answered && correct ? <Check className="h-3 w-3" aria-hidden="true" /> : String.fromCharCode(65 + index)}</span><span>{choice}</span></button>;
+            const elim = (eliminated[pos] ?? []).includes(index);
+            const style = elim ? 'border-white/6 bg-white/[0.01] text-slate-600 line-through opacity-50' : !answered ? 'border-white/10 bg-white/[0.025] text-slate-300 hover:border-fuchsia-300/35 hover:bg-fuchsia-300/[0.04]' : correct ? 'border-emerald-300/30 bg-emerald-300/[0.07] text-emerald-50' : chosen ? 'border-rose-300/30 bg-rose-300/[0.06] text-rose-50' : 'border-white/6 bg-white/[0.015] text-slate-500';
+            return <button key={`${game.id}-${qIndex}-${index}`} type="button" aria-pressed={chosen} disabled={elim || answered} onClick={() => handleAnswer(index)} className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left text-xs leading-relaxed transition disabled:cursor-not-allowed ${style}`}><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-current/25 font-mono text-[9px] font-bold">{answered && correct ? <Check className="h-3 w-3" aria-hidden="true" /> : String.fromCharCode(65 + index)}</span><span className="flex-1">{choice}</span><span className="hidden font-mono text-[9px] text-slate-600 sm:inline" aria-hidden="true">{index + 1}</span></button>;
           })}</div>
-          {answered && <div role="status" aria-live="polite" className={`mt-4 rounded-xl border p-4 ${selectedIndex === question.correctIndex ? 'border-emerald-300/20 bg-emerald-300/[0.05]' : 'border-amber-200/20 bg-amber-200/[0.04]'}`}><p className="text-xs font-bold text-white">{selectedIndex === question.correctIndex ? 'Correct. Nice reasoning.' : 'Not quite. Look at the clue again.'}</p><p className="mt-1.5 text-xs leading-relaxed text-slate-300">{question.feedback}</p></div>}
-          <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4"><button type="button" disabled={questionIndex === 0} onClick={() => setQuestionIndex((index) => Math.max(0, index - 1))} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-30"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Previous</button><span className="font-mono text-[10px] text-slate-500">{score} points</span>{questionIndex < maxRounds - 1 && canPlayGameRound(session, game.id, questionIndex + 1) ? <button type="button" disabled={!answered} onClick={() => setQuestionIndex((index) => index + 1)} className="inline-flex items-center gap-2 rounded-lg bg-white/[0.07] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Next clue <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></button> : <button type="button" disabled={!answered} onClick={finishGame} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2.5 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">{signedIn ? 'See results' : 'Sign up to finish'} <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /></button>}</div>
+          {answered && <div role="status" aria-live="polite" className={`mt-4 rounded-xl border p-4 ${selectedIndex === question.correctIndex ? 'border-emerald-300/20 bg-emerald-300/[0.05]' : 'border-amber-200/20 bg-amber-200/[0.04]'}`}><p className="text-xs font-bold text-white">{isTimeout ? 'Time’s up. Study the clue, then move on.' : selectedIndex === question.correctIndex ? 'Correct. Nice reasoning.' : 'Not quite. Look at the clue again.'}</p><p className="mt-1.5 text-xs leading-relaxed text-slate-300">{question.feedback}</p></div>}
+          <div className="mt-6 flex items-center justify-between border-t border-white/8 pt-4"><button type="button" disabled={pos === 0} onClick={() => setPos((p) => Math.max(0, p - 1))} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white disabled:opacity-30"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Previous</button><span className="font-mono text-[10px] text-slate-500">{stats.score} correct · {stats.xp} XP</span>{!gameOver && pos < activeIds.length - 1 && canPlayGameRound(session, game.id, pos + 1) ? <button type="button" disabled={!answered} onClick={() => setPos((p) => p + 1)} className="inline-flex items-center gap-2 rounded-lg bg-white/[0.07] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Next clue <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></button> : <button type="button" disabled={!answered} onClick={finishGame} className="iri-btn min-h-11 !px-4 !py-2.5 text-[11px]">{signedIn ? 'See results' : 'Sign up to finish'} <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /></button>}</div>
         </div>
 
-        <aside className="border-t border-white/8 bg-slate-950/35 p-5 lg:border-t-0 lg:border-l lg:p-6"><p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Challenge map</p><div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-5">{game.questions.slice(0, maxRounds).map((_, index) => <button key={`${game.id}-step-${index}`} type="button" onClick={() => setQuestionIndex(index)} aria-label={`Go to round ${index + 1}${answers[index] !== undefined ? ', answered' : ', unanswered'}`} className={`grid h-9 place-items-center rounded-lg border font-mono text-[10px] font-bold ${questionIndex === index ? 'border-cyan-200 bg-cyan-200 text-slate-950' : answers[index] !== undefined ? 'border-teal-200/20 bg-teal-200/5 text-teal-100' : 'border-white/10 text-slate-500'}`}>{index + 1}</button>)}</div><div className="mt-5 rounded-xl border border-white/8 bg-white/[0.025] p-3"><div className="flex items-center justify-between text-[10px]"><span className="text-slate-500">Current checkpoint</span><span className={`font-bold ${activeLevel.color}`}>{activeLevel.name.replace(/^Level \d · /, '')}</span></div><div className="mt-2 flex items-center justify-between text-xs"><span className="text-slate-400">Correct so far</span><span className="font-mono font-bold text-white">{score} / {Object.keys(answers).length}</span></div></div><p className="mt-4 text-xs leading-relaxed text-slate-400">{game.instructions}</p><div className="mt-5 border-t border-white/8 pt-4 text-[10px] leading-relaxed text-slate-500">
-            {signedIn
-              ? 'Practice-only activity. Your score is saved to your account.'
-              : `Free sample: ${GUEST_SAMPLE_QUESTION_LIMIT} rounds. Sign up to play every round and save your score.`}
-          </div></aside>
+        <aside className="border-t border-white/8 bg-slate-950/35 p-5 lg:border-t-0 lg:border-l lg:p-6">
+          <p className="text-[9px] font-bold tracking-[0.14em] text-slate-500 uppercase">Challenge map</p>
+          <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-5">{activeIds.map((idx, index) => { const tm = tierMeta(game.questions[idx].tier); const a = answers[idx]; return <button key={`${game.id}-step-${idx}`} type="button" onClick={() => setPos(index)} aria-label={`Go to round ${index + 1}, ${tm.label}${a !== undefined ? ', answered' : ', unanswered'}`} title={`${tm.label} · ${game.questions[idx].challengeTag}`} className={`relative grid h-9 place-items-center rounded-lg border font-mono text-[10px] font-bold ${pos === index ? 'border-transparent bg-[linear-gradient(135deg,#ff5ed2,#22d3ee)] text-slate-950' : a !== undefined ? (a === game.questions[idx].correctIndex ? 'border-teal-200/25 bg-teal-200/5 text-teal-100' : 'border-rose-300/25 bg-rose-300/5 text-rose-100') : 'border-white/10 text-slate-500'}`}>{game.questions[idx].tier === 'boss' ? <Crown className="h-3.5 w-3.5" aria-hidden="true" /> : index + 1}<span className={`absolute bottom-1 h-1 w-1 rounded-full ${tm.dot}`} aria-hidden="true" /></button>; })}</div>
+          <div className="mt-5 space-y-2 rounded-xl border border-white/8 bg-white/[0.025] p-3 text-[11px]">
+            <div className="flex items-center justify-between"><span className="text-slate-500">Checkpoint</span><span className={`font-bold ${meta.text}`}>{meta.label}</span></div>
+            <div className="flex items-center justify-between"><span className="text-slate-400">Correct so far</span><span className="font-mono font-bold text-white">{stats.score} / {stats.answeredCount}</span></div>
+            <div className="flex items-center justify-between"><span className="text-slate-400">Best streak</span><span className="font-mono font-bold text-white">{stats.best}</span></div>
+            <div className="flex items-center justify-between"><span className="text-slate-400">XP (×{MODE_META[mode].multiplier})</span><span className="font-mono font-bold text-amber-100">{stats.xp}</span></div>
+            <div className="flex items-center justify-between"><span className="text-slate-400">Hints left</span><span className="font-mono font-bold text-white">{hintsLeft}</span></div>
+            {mode === 'survival' && <div className="flex items-center justify-between"><span className="text-slate-400">Lives</span><span className="font-mono font-bold text-rose-100">{lives} / {game.lives ?? 3}</span></div>}
+          </div>
+          <p className="mt-4 text-xs leading-relaxed text-slate-400">{game.instructions}</p>
+          <p className="mt-4 rounded-xl border border-white/8 bg-white/[0.02] p-3 text-[10px] leading-relaxed text-slate-500">Journey: cyan Warm-up → violet Build → magenta Mastery → gold Boss. Streaks of 3+ earn +5 XP per correct answer.</p>
+          <div className="mt-4 border-t border-white/8 pt-4 text-[10px] leading-relaxed text-slate-500">{signedIn ? 'Your full-run score is saved to your account and the class leaderboard.' : `Free sample: ${GUEST_SAMPLE_QUESTION_LIMIT} rounds. Sign up to play every round and save your score.`}</div>
+        </aside>
       </div>
     </section>
   );
 }
 
 export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
-  // Hash routes share one HTML shell — set the page <title> on mount and
-  // restore the landing title on unmount.
   useEffect(() => {
     const prev = document.title;
     document.title = 'Learning Games · Creative Minds';
     return () => { document.title = prev; };
   }, []);
   const [activeSkill, setActiveSkill] = useState<'All games' | LearningGameSkill>('All games');
+  const [query, setQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState<LearningGame | null>(null);
-  const filteredGames = LEARNING_GAMES.filter((game) => activeSkill === 'All games' || game.skill === activeSkill);
-  // Highlight the signed-in player's row in the leaderboard so they can
-  // spot their own score at a glance.
+  const filteredGames = LEARNING_GAMES.filter((game) => (activeSkill === 'All games' || game.skill === activeSkill) && (`${game.title} ${game.skill} ${game.tagline ?? ''} ${game.difficultyLabel ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())));
   const signedInPlayer = useSignedInPlayerName();
-  // Account state for the page-level gates (cards, Ghost Mountain, leaderboard).
   const session = useSignedInSession();
+  const inPage = LEARNING_GAMES.filter((g) => !g.externalUrl);
+  const totalRounds = inPage.reduce((s, g) => s + g.questions.length, 0);
+  const totalXp = inPage.reduce((s, g) => s + gameXpTotal(g), 0);
 
   const chooseGame = (game: LearningGame) => {
     setSelectedGame(game);
@@ -303,108 +441,81 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
         view="a"
         eyebrow="The CMC Learning Games room"
         eyebrowIcon={Sparkles}
-        title={<>Pick a game.<br /><em>Follow the clues.</em></>}
-        lead="Short, original learning games for vocabulary, reading, grammar, listening, and early literacy. Read the game brief, choose a challenge, and get feedback as you play."
+        title={<>Pick a game.<br /><em>Beat the Boss round.</em></>}
+        lead="Harder, richer learning games for vocabulary, reading, grammar, listening and early literacy — Warm-up, Build and Mastery rounds, a gold Boss round in every game, three challenge modes, hint tokens, streak XP and AI artwork on every card."
       >
         <GlassFact>{LEARNING_GAMES.length} live learning games</GlassFact>
-        <GlassFact>Quick runs · 3–8 minutes</GlassFact>
-        <GlassFact>Warm-up, build &amp; mastery levels</GlassFact>
+        <GlassFact>{totalRounds} in-page rounds · {totalXp} XP to earn</GlassFact>
+        <GlassFact>3 modes · Classic, Time Trial, Survival</GlassFact>
         <GlassFact>Free account · 2-round sample for guests</GlassFact>
       </GlassPageHero>
 
-      {/* Developer's Picks — the developer's own featured reading & quiz
-          (owner request, Nov 2026: the Creativeminds Canva worksheet "Ghost
-          Mountain" rebuilt 1:1 as a reading + quiz page). */}
-      {/* data-keep-dark: the memorial card stays dark in light mode —
-          without the attribute the global light remaps darken its
-          text-slate-300/500 description into dark-on-dark invisibility. */}
       <section data-keep-dark className="mx-auto max-w-7xl px-5 pb-2 sm:px-8" aria-labelledby="devpicks-title">
-        <div className="overflow-hidden rounded-3xl border border-amber-200/20 bg-gradient-to-br from-slate-900/80 via-slate-950/75 to-slate-900/55 p-6 shadow-2xl sm:p-9">
+        <div className="cmc-card overflow-hidden p-6 sm:p-9">
           <div className="flex flex-wrap items-center gap-2"><span className="rounded-md border border-amber-200/30 bg-amber-200/10 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-amber-200 uppercase">Developer&apos;s Pick</span><span className="rounded-md border border-white/8 px-2 py-1 text-[9px] font-bold tracking-[0.12em] text-slate-400 uppercase">Reading · Quiz</span></div>
           <h2 id="devpicks-title" className="mt-3 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">Ghost Mountain · A Reading on Memory, History &amp; Human Courage</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">The developer&apos;s own pick, rebuilt 1:1 from the Creativeminds Canva worksheet: a respectful, evidence-first reading on Ghost Mountain (Phnom Khmaoch) near Preah Vihear — displacement, the June 1979 forced return, and why the name is remembered. Eight short reading sections, a 1975–1979 timeline, a schematic border map, a labelled-visuals guide and an eight-term vocabulary box lead into the eight-question quiz with instant feedback and a class-leaderboard score. Think-and-write prompts (Parts B and C) save on your device for teacher review; the sources section links the UNHCR and DC-Cam evidence. A content note is shown up front: the topic involves displacement, violence, landmines, death and grief, handled without graphic descriptions — suited to older students.</p>
           <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>Grades 8–12</span><span aria-hidden="true">·</span><span>Reading + 8-question quiz · 15–20 min</span></div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {hasActiveAccount(session) ? (
-              <a href="./dev-pick-ghost-mountain.html" className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-amber-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">
-                Open the reading &amp; quiz
-                <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
-              </a>
+              <a href="./dev-pick-ghost-mountain.html" className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-amber-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">Open the reading &amp; quiz <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" /></a>
             ) : (
-              <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to open the Ghost Mountain reading & quiz.' })} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-amber-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">
-                <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to open the reading &amp; quiz
-              </button>
+              <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to open the Ghost Mountain reading & quiz.' })} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-amber-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"><LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to open the reading &amp; quiz</button>
             )}
             <button type="button" onClick={() => { const panels = document.querySelectorAll('.cmc-game-leaderboard'); const target = Array.prototype.find.call(panels, (n) => n.offsetParent !== null) || panels[0]; if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-amber-200/25 bg-amber-200/[0.07] px-3 py-2.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-200/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Scroll to the class leaderboard">🏆 Class leaderboard</button>
-            <button type="button" onClick={() => { const url = new URL('./dev-pick-ghost-mountain.html', window.location.href).toString(); const text = 'Ghost Mountain · A Reading on Memory, History & Human Courage — the Developer\'s Pick reading & quiz on CMC'; if (navigator.share) { navigator.share({ title: 'Ghost Mountain · Reading & Quiz', text, url }).catch(() => {}); return; } navigator.clipboard?.writeText(`${text} ${url}`).then(() => { const t = document.querySelector<HTMLElement>('[data-cmc-share-toast]'); if (t) { t.textContent = 'Reading & quiz link copied ✓'; t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; window.clearTimeout((t as any)._cmcShareToastT); (t as any)._cmcShareToastT = window.setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(10px)'; }, 2600); } }).catch(() => {}); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-amber-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Share the Ghost Mountain reading & quiz">
-              <Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share
-            </button>
+            <button type="button" onClick={() => { const url = new URL('./dev-pick-ghost-mountain.html', window.location.href).toString(); const text = 'Ghost Mountain · A Reading on Memory, History & Human Courage — the Developer\'s Pick reading & quiz on CMC'; if (navigator.share) { navigator.share({ title: 'Ghost Mountain · Reading & Quiz', text, url }).catch(() => {}); return; } navigator.clipboard?.writeText(`${text} ${url}`).then(() => { const t = document.querySelector<HTMLElement>('[data-cmc-share-toast]'); if (t) { t.textContent = 'Reading & quiz link copied ✓'; t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; window.clearTimeout((t as any)._cmcShareToastT); (t as any)._cmcShareToastT = window.setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(10px)'; }, 2600); } }).catch(() => {}); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-amber-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Share the Ghost Mountain reading & quiz"><Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share</button>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20">
-        <div className="flex flex-col justify-between gap-5 border-b border-white/10 pb-5 sm:flex-row sm:items-end"><div><p className="text-[9px] font-bold tracking-[0.17em] text-cyan-300 uppercase">Game library</p><h2 className="mt-2 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">What would you like to practice?</h2></div><div className="flex max-w-full gap-1 overflow-x-auto rounded-xl border border-white/10 bg-slate-900/60 p-1" role="tablist" aria-label="Filter learning games">{skillOptions.map((skill) => <button key={skill} type="button" role="tab" aria-selected={activeSkill === skill} onClick={() => setActiveSkill(skill)} className={`shrink-0 rounded-lg px-3 py-2 text-[10px] font-semibold transition ${activeSkill === skill ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}>{skill}</button>)}</div></div>
+        <div className="flex flex-col justify-between gap-5 border-b border-white/10 pb-5 xl:flex-row xl:items-end"><div><p className="text-[9px] font-bold tracking-[0.17em] text-cyan-300 uppercase">Game library</p><h2 className="mt-2 font-[var(--font-display)] text-2xl font-bold tracking-tight text-white sm:text-3xl">What would you like to practice?</h2><p className="mt-1 text-xs text-slate-400">Every in-page game: Warm-up → Build → Mastery → <span className="font-bold text-amber-200">Boss round</span>. Pick Classic, Time Trial or Survival on the briefing screen.</p></div><div className="flex flex-col gap-2 sm:flex-row sm:items-center"><label className="relative block"><Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" aria-hidden="true" /><span className="sr-only">Search games</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search games…" className="w-full rounded-xl border border-white/10 bg-slate-900/60 py-2.5 pl-9 pr-3 text-xs text-white placeholder:text-slate-500 outline-none focus:border-fuchsia-300/50 sm:w-52" /></label><div className="flex max-w-full gap-1 overflow-x-auto rounded-xl border border-white/10 bg-slate-900/60 p-1" role="tablist" aria-label="Filter learning games">{skillOptions.map((skill) => <button key={skill} type="button" role="tab" aria-selected={activeSkill === skill} onClick={() => setActiveSkill(skill)} className={`shrink-0 rounded-lg px-3 py-2 text-[10px] font-semibold transition ${activeSkill === skill ? 'bg-[linear-gradient(120deg,rgba(255,94,210,.35),rgba(34,211,238,.25))] text-white' : 'text-slate-400 hover:text-white'}`}>{skill}</button>)}</div></div></div>
 
-        {/* Two-column layout on lg+: games grid on the left, sticky live
-            leaderboard panel on the right. On smaller screens the
-            leaderboard stacks below the grid (full-width) so it's
-            always visible + never blocks the game cards. */}
         <div className="mt-7 grid gap-x-8 gap-y-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-          {/* Left column: games grid + selected game */}
           <div>
-            <div className="grid gap-x-6 md:grid-cols-2 xl:grid-cols-3">
+            {filteredGames.length === 0 && <p className="rounded-2xl border border-white/10 p-6 text-center text-sm text-slate-400">No games match “{query}”. Try another skill or clear the search.</p>}
+            <div className="grid gap-x-6 gap-y-6 md:grid-cols-2 xl:grid-cols-3">
               {filteredGames.map((game) => {
-                const index = LEARNING_GAMES.findIndex((entry) => entry.id === game.id);
                 const Icon = gameIcon(game.skill);
+                const xp = gameXpTotal(game);
                 return (
-                  <article key={game.id} className="group flex min-h-[330px] flex-col overflow-hidden rounded-2xl border border-white/8 bg-slate-900/55 transition duration-300 hover:-translate-y-1 hover:border-cyan-200/25 hover:shadow-xl hover:shadow-cyan-950/20">
-                    <div className={`relative flex h-32 items-end justify-between overflow-hidden border-b border-white/8 bg-gradient-to-br p-4 ${accent(index)}`}>
-                      <div className="pointer-events-none absolute -right-3 -top-7 h-32 w-32 rounded-full border border-current/15 bg-white/[0.035]" aria-hidden="true" />
-                      <div className="pointer-events-none absolute right-10 top-4 h-14 w-14 rounded-full border border-current/20" aria-hidden="true" />
-                      <Icon className="relative z-10 h-[4.25rem] w-[4.25rem] drop-shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6" strokeWidth={1.25} aria-hidden="true" />
-                      <div className="relative z-10 flex flex-col items-end gap-2"><span className="rounded-md border border-white/20 bg-slate-950/35 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] backdrop-blur-sm">{game.badge || 'Play now'}</span><span className="rounded-md border border-white/15 bg-slate-950/35 px-2 py-1 text-[9px] font-semibold backdrop-blur-sm">{game.questions.length ? `${game.questions.length} rounds` : game.duration.split('·')[0].trim()}</span></div>
+                  <article key={game.id} className="cmc-card group flex min-h-[380px] flex-col overflow-hidden">
+                    <div className="relative h-40 shrink-0 overflow-hidden">
+                      {game.coverImage ? <img src={game.coverImage} alt="" loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /> : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,rgba(255,94,210,.35),rgba(167,139,250,.25),rgba(34,211,238,.35))]" aria-hidden="true"><Icon className="h-16 w-16 text-white/80" strokeWidth={1.1} /></div>}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0b1020] via-transparent to-[#0b1020]/20" aria-hidden="true" />
+                      <span className="absolute left-3 top-3 rounded-full border border-white/25 bg-slate-950/45 px-2 py-1 text-[8px] font-bold uppercase tracking-[0.14em] text-white backdrop-blur">{game.badge || 'Play now'}</span>
+                      {game.difficultyLabel && <span className="absolute right-3 top-3 max-w-[55%] truncate rounded-full border border-amber-200/30 bg-slate-950/45 px-2 py-1 text-[8px] font-bold text-amber-100 backdrop-blur">{game.difficultyLabel}</span>}
+                      <span className="iri-ring absolute -bottom-5 left-4 grid h-11 w-11 place-items-center text-white"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                      <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-slate-950/55 px-2 py-1 font-mono text-[9px] font-bold text-amber-100 backdrop-blur"><Zap className="h-3 w-3" aria-hidden="true" />{xp} XP</span>
                     </div>
-                    <div className="flex flex-1 flex-col p-5">
-                      <div className="flex items-center justify-between gap-2"><span className="text-[9px] font-bold tracking-[0.14em] text-slate-400 uppercase">{game.skill}</span><span className="rounded-full border border-white/8 px-2 py-1 text-[9px] font-medium text-slate-500">{game.level}</span></div>
-                      <h3 className="mt-2 font-[var(--font-display)] text-base font-bold leading-snug text-white group-hover:text-cyan-100">{game.title}</h3>
+                    <div className="flex flex-1 flex-col p-5 pt-7">
+                      <div className="flex items-center justify-between gap-2"><span className="text-[9px] font-bold tracking-[0.14em] text-cyan-200 uppercase">{game.skill}</span><span className="rounded-full border border-white/8 px-2 py-1 text-[9px] font-medium text-slate-400">{game.level}</span></div>
+                      <h3 className="mt-2 font-[var(--font-display)] text-base font-bold leading-snug text-white group-hover:text-cyan-50">{game.title}</h3>
+                      {game.tagline && <p className="mt-1 text-[11px] font-semibold text-fuchsia-200/90">{game.tagline}</p>}
                       <p className="mt-2 line-clamp-3 flex-1 text-xs leading-relaxed text-slate-400">{game.description}</p>
-                      <details className="mt-2 text-[10px] text-slate-500"><summary className="w-fit cursor-pointer font-semibold text-cyan-200/80 hover:text-cyan-100">Full challenge brief</summary><p className="mt-2 max-h-36 overflow-y-auto pr-1 text-xs leading-relaxed text-slate-400">{game.description}</p></details>
-                    <div className="mt-4 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span>{game.duration}</span><span aria-hidden="true">·</span><span>{game.questions.length ? 'Warm-up → mastery' : 'Multi-level challenge'}</span></div>
-                                   {game.externalUrl ? (
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
-                        {hasActiveAccount(session) ? (
-                          <a href={game.externalUrl} target={game.externalUrl.startsWith('http') ? '_blank' : undefined} rel={game.externalUrl.startsWith('http') ? 'noreferrer' : undefined} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
-                            {game.externalUrl.startsWith('http') ? 'Open external game' : 'Open game'}
-                            <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5" aria-hidden="true" />
-                          </a>
-                        ) : (
-                          <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to open ${game.title}.` })} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
-                            <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to open game
-                          </button>
-                        )}
-                        {game.leaderboardLink && (
-                          <button type="button" onClick={() => { const panels = document.querySelectorAll('.cmc-game-leaderboard'); const target = Array.prototype.find.call(panels, (n) => n.offsetParent !== null) || panels[0]; if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-cyan-200/25 bg-cyan-200/[0.07] px-3 py-2.5 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-200/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300" aria-label="Scroll to the class leaderboard">
-                            🏆 Class leaderboard
-                          </button>
-                        )}
-                        <button type="button" onClick={() => void shareGame(game)} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-cyan-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300" aria-label={`Share ${game.title} with your class`}>
-                          <Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share
-                        </button>
+                      <div className="cmc-stat-row mt-4" role="list" aria-label={`${game.title} facts`}>
+                        <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{game.questions.length ? game.questions.length : 'Live'}</span><span className="cmc-stat-label">Rounds</span></span>
+                        <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{xp}</span><span className="cmc-stat-label">XP</span></span>
+                        <span className="cmc-stat" role="listitem"><span className="cmc-stat-num">{game.lives ?? 3} ♥</span><span className="cmc-stat-label">Lives</span></span>
                       </div>
-                    ) : (
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
-                        <button type="button" onClick={() => chooseGame(game)} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-cyan-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
-                          {hasActiveAccount(session) ? 'Read & play' : isSampleLearningGame(game.id) ? 'Try 2 free rounds' : 'Sign up to play'}
-                          {hasActiveAccount(session) || isSampleLearningGame(game.id)
-                            ? <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/button:translate-x-1" aria-hidden="true" />
-                            : <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />}
-                        </button>
-                        <button type="button" onClick={() => void shareGame(game)} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-cyan-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300" aria-label={`Share ${game.title} with your class`}>
-                          <Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share
-                        </button>
-                      </div>
-                    )}
+                      <div className="mt-3 flex flex-wrap gap-1">{(game.questions.length ? ['Warm-up → Boss', MODE_META.survival.short, MODE_META['time-trial'].short] : (game.challengeModes ?? []).slice(0, 3)).map((c) => <span key={c} className="rounded-full border border-white/8 px-2 py-0.5 text-[8px] font-semibold text-slate-500">{c}</span>)}</div>
+                      <div className="mt-3 flex items-center gap-3 border-t border-white/8 pt-3 text-[10px] text-slate-500"><span className="inline-flex items-center gap-1"><Clock3 className="h-3 w-3" aria-hidden="true" />{game.duration}</span></div>
+                      {game.externalUrl ? (
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                          {hasActiveAccount(session) ? (
+                            <a href={game.externalUrl} target={game.externalUrl.startsWith('http') ? '_blank' : undefined} rel={game.externalUrl.startsWith('http') ? 'noreferrer' : undefined} className="iri-btn min-h-11 !px-4 !py-2.5 text-[10px]">{game.externalUrl.startsWith('http') ? 'Open external game' : 'Open game'} <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /></a>
+                          ) : (
+                            <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to open ${game.title}.` })} className="iri-btn min-h-11 !px-4 !py-2.5 text-[10px]"><LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to open</button>
+                          )}
+                          {game.leaderboardLink && <button type="button" onClick={() => { const panels = document.querySelectorAll('.cmc-game-leaderboard'); const target = Array.prototype.find.call(panels, (n) => n.offsetParent !== null) || panels[0]; if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="cmc-btn-ghost inline-flex items-center gap-1.5 self-start rounded-full px-3 py-2.5 text-xs font-semibold" aria-label="Scroll to the class leaderboard">🏆 Leaderboard</button>}
+                          <button type="button" onClick={() => void shareGame(game)} className="cmc-btn-ghost inline-flex items-center gap-1.5 self-start rounded-full px-3 py-2.5 text-xs font-semibold" aria-label={`Share ${game.title} with your class`}><Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share</button>
+                        </div>
+                      ) : (
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                          <button type="button" onClick={() => chooseGame(game)} className="iri-btn min-h-11 !px-4 !py-2.5 text-[10px]">{hasActiveAccount(session) ? 'Read briefing & play' : isSampleLearningGame(game.id) ? 'Try 2 free rounds' : 'Sign up to play'} {hasActiveAccount(session) || isSampleLearningGame(game.id) ? <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /> : <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />}</button>
+                          <button type="button" onClick={() => void shareGame(game)} className="cmc-btn-ghost inline-flex items-center gap-1.5 self-start rounded-full px-3 py-2.5 text-xs font-semibold" aria-label={`Share ${game.title} with your class`}><Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share</button>
+                        </div>
+                      )}
                     </div>
                   </article>
                 );
@@ -413,44 +524,33 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
 
             {selectedGame && <GamePlay key={selectedGame.id} game={selectedGame} onExit={() => setSelectedGame(null)} />}
 
-            <p className="mt-8 text-center text-[10px] leading-relaxed text-slate-600">Original classroom practice activities. These games do not collect or store student answers.</p>
+            <p className="mt-8 text-center text-[10px] leading-relaxed text-slate-600">Original classroom practice activities. Full-run scores save to signed-in accounts; retry-missed runs are practice only.</p>
           </div>
 
-          {/* Right column: sticky live leaderboard + recent activity panel.
-              Hidden on small screens (would push the grid down) — appears
-              from lg breakpoint up. */}
           <div className="hidden lg:block">
             <div className="sticky top-20 cmc-game-leaderboard">
               {hasActiveAccount(session) ? (
                 <GameLeaderboard highlightPlayer={signedInPlayer} />
               ) : (
-                <div className="rounded-2xl border border-cyan-200/20 bg-cyan-100/[0.05] p-5 text-center">
-                  <LockKeyhole className="mx-auto h-6 w-6 text-cyan-200" aria-hidden="true" />
+                <div className="cmc-card p-5 text-center">
+                  <span className="iri-ring mx-auto grid h-11 w-11 place-items-center text-cyan-100"><LockKeyhole className="h-5 w-5" aria-hidden="true" /></span>
                   <p className="mt-3 text-sm font-bold text-white">Leaderboard needs an account</p>
-                  <p className="mt-1.5 text-[11px] leading-relaxed text-slate-300">
-                    Sign up free to save your scores, join your class and see how everyone is doing.
-                  </p>
-                  <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to save your game scores and join the leaderboard.' })} className="mt-4 w-full rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-3 py-2 text-xs font-bold text-slate-950">
-                    Sign up free
-                  </button>
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-slate-300">Sign up free to save your scores, join your class and see how everyone is doing.</p>
+                  <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to save your game scores and join the leaderboard.' })} className="iri-btn mt-4 w-full min-h-11 text-[10px]">Sign up free</button>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Mobile / tablet fallback: leaderboard panel rendered below the
-            grid so users on small screens still see the live activity. */}
         <div className="mt-8 lg:hidden cmc-game-leaderboard">
           {hasActiveAccount(session) ? (
             <GameLeaderboard highlightPlayer={signedInPlayer} />
           ) : (
-            <div className="rounded-2xl border border-cyan-200/20 bg-cyan-100/[0.05] p-5 text-center">
+            <div className="cmc-card p-5 text-center">
               <LockKeyhole className="mx-auto h-6 w-6 text-cyan-200" aria-hidden="true" />
               <p className="mt-3 text-sm font-bold text-white">Leaderboard needs an account</p>
-              <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to save your game scores and join the leaderboard.' })} className="mt-3 w-full rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-3 py-2 text-xs font-bold text-slate-950">
-                Sign up free
-              </button>
+              <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to save your game scores and join the leaderboard.' })} className="iri-btn mt-3 w-full min-h-11 text-[10px]">Sign up free</button>
             </div>
           )}
         </div>
