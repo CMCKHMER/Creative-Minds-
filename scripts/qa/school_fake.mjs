@@ -29,9 +29,22 @@ const MIME = {
 };
 
 /** Serve a built site (dist) on a local port. */
-export function serve(DIST, port) {
+/**
+ * `prefix` (for example '/Creative-Minds-') serves the build from that folder
+ * and answers 404 everywhere else — the way GitHub Pages serves this site.
+ * A check run from the server's root cannot see an address that lost its folder.
+ */
+export function serve(DIST, port, prefix = '') {
   const srv = createServer((req, res) => {
     let p = decodeURIComponent((req.url || '/').split('?')[0]);
+    if (prefix) {
+      if (p !== prefix && !p.startsWith(`${prefix}/`)) {
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        res.end('<title>Site not found</title>');
+        return;
+      }
+      p = p.slice(prefix.length) || '/';
+    }
     if (p.endsWith('/')) p += 'index.html';
     const f = join(DIST, p);
     if (!f.startsWith(DIST) || !existsSync(f) || statSync(f).isDirectory()) {
@@ -343,14 +356,14 @@ export function makeFake() {
 // ── a signed-in browser page with the outside network blocked ───────────────
 // One origin per person: a single-process Chromium shares localStorage between
 // contexts on the same origin, and the sign-in lives in localStorage.
-export function makeOpener(DIST, firstPort) {
+export function makeOpener(DIST, firstPort, { prefix = '' } = {}) {
   let nextPort = firstPort;
   const servers = [];
   /** `user`: { uid, email, name, type: 'teacher' | 'student', verified? } — null for a signed-out visitor. */
   /** `intercept(route, url)` may answer a request itself (return true) before the database stand-in sees it. */
   async function openPage(browser, fake, user, { w = 1366, h = 860, theme = 'dark', intercept = null } = {}) {
   const port = nextPort++;
-  servers.push(await serve(DIST, port));
+  servers.push(await serve(DIST, port, prefix));
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, serviceWorkers: 'block' });
   await ctx.addInitScript(
     ([user, tok, theme]) => {
@@ -385,7 +398,7 @@ export function makeOpener(DIST, firstPort) {
     return route.abort();
   });
   const page = await ctx.newPage();
-  page.base = `http://127.0.0.1:${port}`;
+  page.base = `http://127.0.0.1:${port}${prefix}`;
   page.errors = [];
   page.on('pageerror', (e) => page.errors.push(String(e.stack || e).slice(0, 400)));
   // the teacher is asked before anything is removed; say yes, and keep the question

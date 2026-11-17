@@ -32,7 +32,19 @@ const TMP = mkdtempSync(join(tmpdir(), 'cmc-share-check-'));
 const DIST = join(TMP, 'site');
 mkdirSync(DIST);
 for (const name of readdirSync(BUILD)) if (name !== 'post') symlinkSync(join(BUILD, name), join(DIST, name));
-const { openPage, close: closeServers } = makeOpener(DIST, 9040);
+// The live site is not at the root of its host: GitHub Pages serves it from
+// /Creative-Minds-/. The check does the same, and everything outside that
+// folder answers 404, so a shared address that loses the folder is caught.
+const FOLDER = '/Creative-Minds-';
+const { openPage, close: closeServers } = makeOpener(DIST, 9040, { prefix: FOLDER });
+/** Does this address exist on the stand-in server? (fetched from node, like Facebook's reader) */
+const reachable = async (url) => {
+  try {
+    return (await fetch(url, { redirect: 'manual' })).status;
+  } catch (e) {
+    return String(e.message || e);
+  }
+};
 
 let pass = 0;
 let fail = 0;
@@ -154,6 +166,12 @@ async function walk(browser) {
   const menu = card(V, 'postVideo').getByTestId('post-share-menu');
   const pageUrl = `${SITE}post/postVideo/`;
   ok((await waitFor(async () => (await menu.getByTestId('post-share-url').inputValue()) === pageUrl)) === true, 'a post with a preview page is shared by that page', await menu.getByTestId('post-share-url').inputValue());
+  ok(pageUrl.includes(`${FOLDER}/post/postVideo/`) && (await reachable(pageUrl)) === 200, 'that address keeps the site’s folder and exists', await reachable(pageUrl));
+  const fbShared = new URL((await menu.locator('[data-share="facebook"]').getAttribute('href')) || 'about:blank').searchParams.get('u');
+  ok(fbShared === pageUrl && (await reachable(fbShared)) === 200, 'the address handed to Facebook is one Facebook can open', fbShared);
+  const fbPage = await (await fetch(fbShared)).text();
+  const fbImage = /<meta property="og:image" content="([^"]+)"/.exec(fbPage)?.[1] || '';
+  ok(/<meta property="og:title" content="Watch the assembly" \/>/.test(fbPage) && fbImage.startsWith('https://i.ytimg.com/vi/'), 'and what Facebook reads there is the post’s title and picture', fbImage);
   const hrefs = await menu.locator('[data-share]').evaluateAll((as) => Object.fromEntries(as.map((a) => [a.dataset.share, a.getAttribute('href')])));
   ok(Object.keys(hrefs).join() === 'facebook,telegram,whatsapp,x,linkedin,email', 'the menu offers Facebook, Telegram, WhatsApp, X, LinkedIn and email', Object.keys(hrefs));
   ok(hrefs.facebook === `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`, 'Facebook is handed the address of the post', hrefs.facebook);
@@ -167,10 +185,14 @@ async function walk(browser) {
   await V.waitForTimeout(700);
   const newUrl = await card(V, 'postNew').getByTestId('post-share-url').inputValue();
   ok(newUrl === `${SITE}?post=postNew#announcements`, 'a post newer than the last deploy is shared by the site address', newUrl);
+  ok(newUrl.includes(`${FOLDER}/?post=postNew`) && (await reachable(newUrl)) === 200, 'that address keeps the site’s folder and exists too', await reachable(newUrl));
+  ok((await reachable(`${new URL(SITE).origin}/?post=postNew`)) === 404, '(the same address without the folder does not exist — as on GitHub Pages)');
 
   console.log('\na shared address opens the post');
   const html = readFileSync(join(DIST, 'post/postFile/index.html'), 'utf8');
   ok(html.includes('<meta property="og:title" content="Class video" />') && html.includes(`<meta property="og:image" content="${SITE}post/postFile/cover.png" />`) && existsSync(join(DIST, 'post/postFile/cover.png')), 'the preview page carries the post’s title and picture for Facebook');
+  const cover = await fetch(`${SITE}post/postFile/cover.png`);
+  ok(cover.status === 200 && /^image\/png/.test(cover.headers.get('content-type') || '') && html.includes('og:image:width') && html.includes('og:image:height'), 'the picture’s address opens as a picture, and the page states its size', cover.status);
   const D = await openPage(browser, fake, null);
   await D.goto(`${D.base}/post/postPlain/`, { waitUntil: 'domcontentloaded' });
   await D.locator('[data-post-id="postPlain"]').waitFor({ timeout: 30000 });

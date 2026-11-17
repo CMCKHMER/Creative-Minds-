@@ -181,6 +181,32 @@ export function postIdFromSearch(search: string): string {
   return POST_ID.test(id) ? id : '';
 }
 
+/**
+ * The folder the site is served from, read from the address of the page that
+ * is open: `https://cmckhmer.github.io/Creative-Minds-/?post=x#games` gives
+ * `https://cmckhmer.github.io/Creative-Minds-/`.
+ *
+ * It has to come from the page's own address. The site is built with a
+ * relative base ("./" in vite.config.ts), so the build does not know its
+ * folder, and resolving "./" against the origin alone gives
+ * `https://cmckhmer.github.io/` — an address with no site behind it.
+ */
+export function siteFolderOf(pageUrl: string): string {
+  let url: URL;
+  try {
+    url = new URL(pageUrl);
+  } catch {
+    return '/';
+  }
+  let path = url.pathname;
+  if (!path.endsWith('/')) {
+    const last = path.slice(path.lastIndexOf('/') + 1);
+    // ".../index.html" is a file in the folder; ".../Creative-Minds-" is the folder itself
+    path = last.includes('.') ? path.slice(0, path.lastIndexOf('/') + 1) : `${path}/`;
+  }
+  return `${url.origin}${path}`;
+}
+
 /** The site's own address for one post: opens the board at that post. */
 export function postAppUrl(siteBase: string, id: string): string {
   return `${siteBase.replace(/[#?].*$/, '').replace(/\/?$/, '/')}?post=${encodeURIComponent(id)}#announcements`;
