@@ -861,13 +861,11 @@ html.light .cmc-page-card-badge--live { border-color: rgba(160, 86, 38, 0.45); c
 .cmc-page-card:hover .cmc-page-card-arrow,
 .cmc-page-card:focus-visible .cmc-page-card-arrow { opacity: 1; color: var(--g-accent); transform: translate(2px, -2px); }
 
-/* the announcements card: the wide one, with the newest posts in it; the
-   News row is two cards that share the full width */
-.cmc-page-card--news { grid-column: span 2; }
-@media (min-width: 640px) {
-  .cmc-directory-group[data-group='news'] .cmc-directory-grid:has(> .cmc-page-card--news + .cmc-page-card:last-child) { grid-template-columns: 3fr 2fr; }
-  .cmc-directory-group[data-group='news'] .cmc-page-card--news { grid-column: auto; }
-}
+/* the announcements card: a standard card, exactly like every other one —
+   same grid cell, same size (owner: "make this card smaller, no need for
+   it to stretch; keep all cards the same and consistent"). It used to span
+   two columns and take 3fr of a 3fr/2fr News row, which made it stretch
+   far wider than any other card. Only its inner post list is its own. */
 .cmc-page-card-posts { display: block; }
 .cmc-page-card-post {
   display: flex;
@@ -966,8 +964,6 @@ html.light .cmc-page-body .cmc-section::before { display: none; }
   .cmc-page-card { padding: 11px 12px; }
   .cmc-page-card-top { align-items: flex-start; flex-direction: column; gap: 8px; }
   .cmc-page-card-blurb { display: none; }
-  .cmc-page-card--news .cmc-page-card-top { flex-direction: row; align-items: center; }
-  .cmc-page-card--news .cmc-page-card-blurb { display: block; }
   .cmc-page-bar-crumb > span:first-child,
   .cmc-page-bar-crumb > span[aria-hidden] { display: none; }
   .cmc-page-bar-steps a:last-child { padding: 0 11px; }
