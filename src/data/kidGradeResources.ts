@@ -337,6 +337,16 @@ const kid11Resources: KidGradeMaterial[] = [
     shareDoc: 'hw-kid11-u4-hw3',
     hideUntilShared: true,
   },
+  // Units 12–13 — Secure Live Quiz (teacher-only companion to Review Tests 1–4). Same per-homework share gate as the other Kid 11 homeworks: the teacher shares ONE quiz via hw-kid11-u12-13-quiz and students see it only after it is shared. 40 points, 35-min timer, anti-screenshot / anti-window-switch + violation report & leaderboard.
+  {
+    id: 'kid-11-secure-quiz-u12-13',
+    title: 'Reading Future Create 3 · Units 12–13 Secure Quiz — Version B (Live 35-min)',
+    kind: 'Review test',
+    description: 'Teacher-only secure live worksheet for Units 12 (Nail Art) & 13 (New Homes for Animals): reading passages, vocabulary, prefix/suffix & verb tense + write-in — 40 pts, 35-min timed, anti-screenshot / anti-switch-window with violation report & class leaderboard. Companion to Review Tests 1–4 (Units 1–16) — share from this card to assign.',
+    href: './rfc3/unit12-13-quiz.html',
+    shareDoc: 'hw-kid11-u12-13-quiz',
+    hideUntilShared: true,
+  },
 ];
 
 const kidGradeResources = ([

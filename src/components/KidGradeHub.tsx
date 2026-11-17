@@ -224,7 +224,7 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
           <div className="max-w-3xl">
             <span className="cmc-eyebrow"><GraduationCap className="h-3.5 w-3.5" aria-hidden="true" /> Kid Program · Grades 5–12</span>
             <h2 id="kid-grade-hub-title" className="cmc-h2">A grade-by-grade home<br /><span className="cmc-gradient-text">for what comes next.</span></h2>
-            <p className="cmc-lead">Build a clear path from Kid 5 through Kid 12. Kid 6 has four Reading Future Connect 2 worksheets and Kid 7 has four Reading Future Change 1 worksheets — Word List, Unscramble, Dictation, and Unit Test; Kid 11 has four Reading Future Create 3 worksheets plus online homework — Units 2, 3, 4, 13, 14 and 15 each come as three homeworks the teacher shares one at a time, auto-graded, and every completion is sent straight to the teacher.</p>
+            <p className="cmc-lead">Build a clear path from Kid 5 through Kid 12. Kid 6 has four Reading Future Connect 2 worksheets and Kid 7 has four Reading Future Change 1 worksheets — Word List, Unscramble, Dictation, and Unit Test; Kid 11 has four Reading Future Create 3 worksheets plus online homework — Units 2, 3, 4, 13, 14 and 15 each come as three homeworks the teacher shares one at a time, plus the teacher-only Units 12–13 Secure Quiz (Version B, 35-min live, violation report & leaderboard — companion to Review Tests 1–4), auto-graded, and every completion is sent straight to the teacher.</p>
           </div>
           <div className="flex max-w-md items-start gap-3 border-l border-cyan-200/25 pl-4 text-xs leading-relaxed text-slate-400 lg:mb-1">
             <Layers3 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" aria-hidden="true" />
@@ -272,26 +272,67 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
                   <>
                     <div className="relative z-10 mt-4"><h3 className="text-sm font-semibold leading-snug text-cyan-50">{GRADE_BOOK_NAMES[resource.grade] ?? `Kid ${resource.grade} learning materials`}</h3><p className="mt-1.5 text-[10px] leading-relaxed text-slate-500">Select an existing resource to open its worksheet page:</p></div>
                     <div className="relative z-10 mt-3 space-y-2">
-                      {sheets.map((material) => (
+                      {sheets.map((material) => {
+                        const isSecureQuiz = material.shareDoc === 'hw-kid11-u12-13-quiz';
+                        const sDoc = material.shareDoc ?? '';
+                        const sStatus: HomeworkShareStatus = (sDoc && shareStatus[sDoc]) || 'pending';
+                        const sOpen = sStatus === 'open';
+                        const sPending = sStatus === 'pending';
+                        if (material.hideUntilShared && !isTeacher && !sOpen) return null;
+                        const isTeacherOnly = isSecureQuiz;
+                        return (
+                        <Fragment key={material.id}>
                         <a
-                          key={material.id}
-                          href={canOpen ? material.href : undefined}
-                          onClick={canOpen ? undefined : (event) => {
+                          href={canOpen && (isSecureQuiz ? sOpen || isTeacher : true) ? material.href : undefined}
+                          onClick={canOpen && (isSecureQuiz ? sOpen || isTeacher : true) ? undefined : (event) => {
                             event.preventDefault();
-                            requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to open Kid grade worksheets.' });
+                            if (!canOpen) requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to open Kid grade worksheets.' });
                           }}
                           role="link"
-                          aria-disabled={!canOpen}
+                          aria-disabled={!canOpen || (isSecureQuiz && !sOpen && !isTeacher)}
                           aria-label={canOpen ? `Open Kid ${resource.grade}: ${material.title}` : `Sign up to open Kid ${resource.grade}: ${material.title}`}
-                          className="group/link flex items-start gap-2 rounded-lg border border-white/7 bg-slate-950/50 p-2.5 transition hover:border-cyan-200/25 hover:bg-cyan-200/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
+                          className={`group/link flex items-start gap-2 rounded-lg border p-2.5 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 ${isSecureQuiz ? (sOpen ? 'border-amber-200/20 bg-amber-200/[0.06] hover:border-amber-100/40 hover:bg-amber-200/[0.10]' : 'border-white/10 bg-slate-950/50') : 'border-white/7 bg-slate-950/50 hover:border-cyan-200/25 hover:bg-cyan-200/[0.035]'}`}
                         >
-                          <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-200" aria-hidden="true" />
-                          <span className="min-w-0 flex-1"><span className="block text-[10px] font-semibold leading-snug text-slate-200 group-hover/link:text-cyan-100">{material.title}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-500">{material.kind}{material.units ? ` · ${material.units} units` : ''}</span><span className="mt-1 block text-[9px] leading-relaxed text-slate-600">{material.description}</span></span>
-                          {canOpen
+                          <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md border ${isSecureQuiz ? 'border-amber-200/25 bg-amber-200/10 text-amber-200' : 'border-cyan-200/15 bg-cyan-200/5 text-cyan-200'}`}>
+                            {isSecureQuiz ? <Lock className="h-3 w-3" aria-hidden="true" /> : <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex flex-wrap items-center gap-1.5">
+                              <span className="block text-[10px] font-semibold leading-snug text-slate-200 group-hover/link:text-cyan-100">{material.title}</span>
+                              {isTeacherOnly && <span className="inline-flex items-center gap-1 rounded-full border border-amber-200/30 bg-amber-200/10 px-1.5 py-0.5 text-[8px] font-bold tracking-[0.12em] text-amber-100 uppercase"><Lock className="h-2.5 w-2.5" /> Teacher only</span>}
+                              {isSecureQuiz && sOpen && <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/30 bg-emerald-200/10 px-1.5 py-0.5 text-[8px] font-bold tracking-[0.12em] text-emerald-100 uppercase"><CheckCircle2 className="h-2.5 w-2.5" /> Live</span>}
+                              {isSecureQuiz && !sOpen && !isTeacher && sPending && <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold tracking-[0.12em] text-slate-400 uppercase"><Clock3 className="h-2.5 w-2.5" /> Checking</span>}
+                            </span>
+                            <span className="mt-1 block text-[9px] leading-relaxed text-slate-500">{material.kind}{material.units ? ` · ${material.units} units` : ''} {isSecureQuiz ? '· 35-min · Secure · Leaderboard' : ''}</span>
+                            <span className="mt-1 block text-[9px] leading-relaxed text-slate-600">{material.description}</span>
+                            {isSecureQuiz && !sOpen && isTeacher && <span className="mt-1 block text-[9px] font-semibold text-amber-200">Not shared — students can’t see or open this quiz until you share it (key button).</span>}
+                          </span>
+                          {(canOpen && (isSecureQuiz ? sOpen || isTeacher : true))
                             ? <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-200/75" aria-hidden="true" />
                             : <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />}
                         </a>
-                      ))}
+                        {isSecureQuiz && isTeacher && (
+                          <div className="flex flex-wrap items-center gap-1.5 pl-8">
+                            <button type="button" onClick={() => toggleHomeworkShare(material)} disabled={toggling || sPending} aria-label={sOpen ? `Close ${material.title}` : `Share ${material.title} with students`} className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[10px] font-bold transition disabled:opacity-60 ${sOpen ? 'border-emerald-200/25 bg-slate-950/50 text-emerald-100 hover:border-emerald-100/50 hover:bg-emerald-200/10' : 'border-amber-200/30 bg-amber-200/[0.08] text-amber-100 hover:border-amber-100/60 hover:bg-amber-200/[0.16]'}`}>
+                              {sOpen ? <><Lock className="h-3 w-3" /> Close quiz</> : <><KeyRound className="h-3 w-3" /> Share quiz with class</>}
+                            </button>
+                            {sOpen && (
+                              <button type="button" data-hw-scores={material.id} onClick={() => setScoresFor({ material, grade: resource.grade })} className="inline-flex items-center gap-1.5 rounded-md border border-cyan-200/25 bg-slate-950/50 px-2.5 py-1 text-[10px] font-bold text-cyan-100 hover:border-cyan-100/50 hover:bg-cyan-200/10"><BarChart3 className="h-3.5 w-3.5" /> Scores & violations</button>
+                            )}
+                            {sOpen && (
+                              <button type="button" onClick={() => shareHomework(material)} className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-slate-950/50 px-2.5 py-1 text-[10px] font-bold text-slate-200 hover:border-white/20"><Share2 className="h-3.5 w-3.5" /> Share link</button>
+                            )}
+                          </div>
+                        )}
+                        {isSecureQuiz && isTeacher && toggleError && toggleErrFor === material.id && (
+                          <div className="ml-8 flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg border border-rose-300/20 bg-rose-400/[0.06] p-2 text-[9px] font-semibold leading-relaxed text-rose-300">
+                            <Link2 className="h-3 w-3 shrink-0" />
+                            <span className="min-w-0 flex-1">{toggleError === 'signed-out' && 'Sharing needs a teacher sign-in — no session found.'}{toggleError === 'expired' && 'Sign-in expired — sign in again.'}{toggleError === 'unverified' && `Email not verified — check ${toggleErrEmail||'your inbox'}.`}{toggleError === 'forbidden' && 'Teacher verification required.'}{toggleError === 'network' && 'Network error — try again.'}</span>
+                          </div>
+                        )}
+                        </Fragment>
+                        );
+                      })}
                     </div>
 
                     {/* Online homework — shareable worksheets with a student
@@ -397,7 +438,7 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
         </Reveal>
 
         <Reveal className="mt-5">
-        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 7 worksheets open in this site (each with a back-to-CMC button; answer keys on Kid 7 dictation are teacher-locked); Kid 11 links to the separate Reading Future Create 3 pages, and its online homework opens here too — the teacher flips the Share-with-students switch for each homework (Units 2, 3, 4, 13, 14 and 15 each come as three homeworks the teacher shares one at a time, so students only ever see the homework that was assigned to them), and every page carries a Submit-to-Teacher completion button plus a share link for the class chat. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP &amp; ISEC Program Resources section below.</span></p>
+        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 7 worksheets open in this site (each with a back-to-CMC button; answer keys on Kid 7 dictation are teacher-locked); Kid 11 links to the separate Reading Future Create 3 pages, and its online homework opens here too — the teacher flips the Share-with-students switch for each homework (Units 2, 3, 4, 13, 14 and 15 each come as three homeworks the teacher shares one at a time, plus the Units 12–13 Secure Quiz · Version B live worksheet — 40 pts, 35-min timed, anti-screenshot/window-switch with violation report & leaderboard, companion to Review Tests 1–4 — so students only ever see the homework/quiz that was assigned to them), and every page carries a Submit-to-Teacher completion button plus a share link for the class chat. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP &amp; ISEC Program Resources section below.</span></p>
         </Reveal>
       </div>
       {isTeacher && scoresFor && (
