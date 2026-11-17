@@ -42,6 +42,7 @@
     "firebase": "^13.0.0",
     "jsdom": "^29.1.1",
     "lucide-react": "^1.43.0",
+    "pdfjs-dist": "^6.5.438",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "tailwind-merge": "3.4.0",

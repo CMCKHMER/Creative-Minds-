@@ -20,7 +20,8 @@ const panel = read('src/components/BookshelfComingSoonModal.tsx');
 
 describe('hero bookshelf buttons', () => {
   it('renders both buttons in the hero action area', () => {
-    expect(hero).toContain('PDF library');
+    // The first shelf opened in Nov 2026 as the Reading room (src/components/LibraryPage.tsx).
+    expect(hero).toContain('Reading room');
     expect(hero).toContain('Interactive books');
     // both are buttons wired to props, not anchors to a page that does not exist
     expect(hero).toContain('onClick={onOpenPdfLibrary}');
@@ -28,9 +29,9 @@ describe('hero bookshelf buttons', () => {
     expect(hero).not.toMatch(/href=["']\.?\/(pdf-library|interactive-books)/);
   });
 
-  it('marks them as not-yet-available, in the UI where the buyer sees it', () => {
-    // a "Soon" chip on each — no customer should have to click to learn this
-    expect(hero.match(/>\s*Soon\s*</g)?.length).toBe(2);
+  it('marks the shelf that is not open yet, in the UI where the buyer sees it', () => {
+    // a "Soon" chip on Interactive books only — the Reading room is open
+    expect(hero.match(/>\s*Soon\s*</g)?.length).toBe(1);
   });
 
   it('stays readable in both themes', () => {
@@ -48,11 +49,11 @@ describe('hero bookshelf buttons', () => {
     expect(hero).toMatch(/onOpenPdfLibrary:\s*\(\)\s*=>\s*void/);
     expect(hero).toMatch(/onOpenInteractiveBooks:\s*\(\)\s*=>\s*void/);
     // App passes both
-    expect(app).toContain('onOpenPdfLibrary={() => setBookshelfShelf(\'pdf\')}');
+    expect(app).toContain("onOpenPdfLibrary={() => openPage('library')}");
     expect(app).toContain("onOpenInteractiveBooks={() => setBookshelfShelf('interactive')}");
   });
 
-  it('routes both to the coming-soon panel rather than nowhere', () => {
+  it('routes interactive books to the coming-soon panel rather than nowhere', () => {
     expect(app).toContain("import('./components/BookshelfComingSoonModal')");
     expect(app).toContain('<BookshelfComingSoonModal kind={bookshelfShelf}');
     // mounted under its own error boundary + suspense, like the demo modal

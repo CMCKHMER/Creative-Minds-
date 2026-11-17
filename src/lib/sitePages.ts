@@ -33,7 +33,7 @@ export const PAGE_GROUPS: readonly PageGroup[] = [
 export type PageIcon =
   | 'megaphone' | 'newspaper' | 'graduation' | 'timer' | 'clipboard' | 'calendar' | 'notebook'
   | 'kids' | 'languages' | 'library' | 'gamepad' | 'brain' | 'dice' | 'layout' | 'activity'
-  | 'wand' | 'grid' | 'package' | 'list' | 'lightbulb' | 'calculator' | 'tag' | 'help' | 'mail';
+  | 'book' | 'wand' | 'grid' | 'package' | 'list' | 'lightbulb' | 'calculator' | 'tag' | 'help' | 'mail';
 
 export interface SitePage {
   /** The hash without `#` — also the DOM id of the section on its page. */
@@ -69,6 +69,7 @@ export const SITE_PAGES: readonly SitePage[] = [
   { id: 'kid-grades', title: 'Kid 5–12 pathway', blurb: 'Reading Future worksheets and homework by grade.', group: 'programs', icon: 'kids', kind: 'section' },
   { id: 'gep-isec', title: 'GEP & ISEC', blurb: 'Adult-level program resources and drills.', group: 'programs', icon: 'languages', kind: 'section' },
   { id: 'resources', title: 'Resource library', blurb: 'Assignment packs and handouts with teacher keys.', group: 'programs', icon: 'library', kind: 'section' },
+  { id: 'library', title: 'Reading room', blurb: 'Books to read on the site, page by page, on any device.', group: 'programs', icon: 'book', kind: 'standalone', aliases: ['reading-room', 'books', 'ebooks'] },
   { id: 'games', title: 'Learning games', blurb: 'Eight short games for vocabulary, grammar and reading.', group: 'programs', icon: 'gamepad', kind: 'standalone' },
   { id: 'brain-lounge', title: 'The Brain Lounge', blurb: 'Arcade games for memory, reflexes and logic.', group: 'programs', icon: 'brain', kind: 'standalone' },
 
@@ -133,12 +134,14 @@ export function resolveRoute(hash: string, current: string = 'home'): string {
   if (HOME_HASHES.has(key)) return 'home';
   const page = PAGE_BY_KEY.get(key);
   if (page) return page.id;
+  // `#library/<book>` is a book open in the Reading room.
+  if (key.startsWith('library/')) return 'library';
   return current;
 }
 
 export function isInPageAnchor(hash: string): boolean {
   const key = hashKey(hash);
-  return !HOME_HASHES.has(key) && !PAGE_BY_KEY.has(key);
+  return !HOME_HASHES.has(key) && !PAGE_BY_KEY.has(key) && !key.startsWith('library/');
 }
 
 export function pagesInGroup(group: PageGroupId): SitePage[] {
