@@ -52,3 +52,38 @@ describe('Kid 11 secure quiz — share switch actually fires', () => {
     expect(hub).toContain('material.hideUntilShared && !isTeacher && !sOpen');
   });
 });
+
+describe('Kid 11 submissions — students hand in, teacher actually sees it', () => {
+  // Owner report: "student said they submitted yet im not seeing anything".
+  // Two breaks: (1) the rules had dropped the validated guest branch the
+  // rfc3 pages post through, so Kid 11 submissions were denied on arrival;
+  // (2) the quiz's Scores sheet got a null ref (no #hw- anchor in its href)
+  // and rendered "no score sheet" even for rows that did arrive.
+  const rules = readFileSync(resolve(root, 'firestore.rules'), 'utf8');
+  const minRules = readFileSync(resolve(root, 'firestore-min.rules'), 'utf8');
+  const scores = readFileSync(resolve(root, 'src/components/KidHomeworkScores.tsx'), 'utf8');
+
+  it('the rules accept the validated rfc3 classroom shape the pages post', () => {
+    for (const file of [rules, minRules]) {
+      expect(file).toContain("request.resource.data.drillSource == 'rfc3'");
+      expect(file).toContain("request.resource.data.studentUid == ''");
+      expect(file).toContain('request.resource.data.studentName.size() <= 40');
+    }
+    // ...while game attempts still require a verified account.
+    expect(rules).toContain('request.resource.data.studentUid == request.auth.uid');
+  });
+
+  it('the quiz Scores & violations sheet opens as a whole-page sheet', () => {
+    expect(hub).toContain("wholePage={scoresFor.material.id === 'kid-11-secure-quiz-u12-13'}");
+    expect(scores).toContain('wholePageRefFromHref');
+    expect(hub).toContain('Secure quiz scores & violations');
+    expect(scores).toContain('data-violations');
+  });
+
+  it('the quiz sends its violation report on the guest path too', () => {
+    const guestBody = quiz.slice(quiz.indexOf("studentUid:{stringValue:''}"));
+    expect(guestBody).toContain('violations:{integerValue:String(violCountNow)}');
+    expect(guestBody).toContain('violationDetail:');
+    expect(guestBody).toContain('studentId:{stringValue: sid}');
+  });
+});

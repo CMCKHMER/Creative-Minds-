@@ -55,6 +55,28 @@ service cloud.firestore {
         && request.resource.data.correctCount >= 0
         && request.resource.data.totalCount is int
         && request.resource.data.totalCount >= 0;
+      allow create: if notInviteMode()
+        && request.resource.data.studentUid == ''
+        && request.resource.data.studentName is string
+        && request.resource.data.studentName.size() >= 1
+        && request.resource.data.studentName.size() <= 40
+        && request.resource.data.drillSlug is string
+        && request.resource.data.drillSlug.size() <= 64
+        && request.resource.data.drillTitle is string
+        && request.resource.data.drillTitle.size() <= 160
+        && request.resource.data.drillSource == 'rfc3'
+        && request.resource.data.scorePct is int
+        && request.resource.data.scorePct >= 0
+        && request.resource.data.scorePct <= 100
+        && request.resource.data.correctCount is int
+        && request.resource.data.correctCount >= 0
+        && request.resource.data.totalCount is int
+        && request.resource.data.totalCount >= 0
+        && request.resource.data.totalCount <= 500
+        && (!('classId' in request.resource.data)
+          || request.resource.data.classId == null
+          || (request.resource.data.classId is string
+            && request.resource.data.classId.size() <= 40));
       allow update, delete: if false;
     }
     match /invite_codes/{code} {
