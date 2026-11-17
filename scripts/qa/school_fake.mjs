@@ -8,6 +8,7 @@
 //   assessment_classes (+ students)   private per teacher
 //   roster_seats, student_links       registration
 //   user_avatars                      profile picture
+//   announcements, site_config        the announcement board
 // A write the real rules would refuse is refused here too, so the app and the
 // rules are checked against each other. It is a mirror: the real rules still
 // have to be published and tried once in Firebase.
@@ -63,6 +64,7 @@ export const plain = (v) => {
   if ('booleanValue' in v) return v.booleanValue;
   if ('integerValue' in v) return Number(v.integerValue);
   if ('doubleValue' in v) return v.doubleValue;
+  if ('arrayValue' in v) return (v.arrayValue.values || []).map(plain);
   return v;
 };
 
@@ -80,6 +82,7 @@ export function makeFake() {
   };
 
   // firestore.rules helpers
+  const OWNER_UID = '5iLvnjzmV8QY7WFZhyTq6PIgcI63'; // isCmcAdmin()
   const isVerifiedUser = (a) => !!a && a.email_verified === true;
   const isCmcTeacher = (a) => isVerifiedUser(a) && typeof a.email === 'string' && /@[^@]*edu[^@]*$/i.test(a.email);
   const get = (d, k) => (d ? plain(d.fields[k]) : undefined);
@@ -156,6 +159,29 @@ export function makeFake() {
             (kind === 'photo' && preset === '' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/.test(photo)))
         );
       }
+      case 'announcements': {
+        // public board; only the site owner and the approved admins write
+        if (op === 'get' || op === 'list') return true;
+        const admins = get(docs.get('site_config/admins') || null, 'uids') || [];
+        const approved = isVerifiedUser(a) && (a.user_id === OWNER_UID || admins.includes(a.user_id));
+        if (op === 'delete') return approved;
+        const str = (k, max, dflt) => {
+          const v = after.fields[k] === undefined ? dflt : get(after, k);
+          return typeof v === 'string' && v.length <= max ? v : null;
+        };
+        const web = (v) => v !== null && /^(https?:\/\/.+)?$/s.test(v);
+        const extras = web(str('videoUrl', 2000, '')) && web(str('linkUrl', 2000, '')) && str('linkLabel', 80, '') !== null;
+        if (op === 'update') return approved && extras;
+        const title = str('title', 200);
+        return (
+          approved && extras && !!title && str('body', 20000) !== null && str('imageUrl', 900000) !== null &&
+          typeof get(after, 'pinned') === 'boolean' && get(after, 'authorUid') === a.user_id &&
+          typeof get(after, 'authorName') === 'string' && typeof get(after, 'authorEmail') === 'string' &&
+          !!after.fields.createdAt?.timestampValue && !!after.fields.updatedAt?.timestampValue
+        );
+      }
+      case 'site_config':
+        return op === 'get' || op === 'list' ? true : isVerifiedUser(a) && a.user_id === OWNER_UID;
       case 'assessment_classes':
         if (op === 'delete') return false;
         if (op === 'create') return isCmcTeacher(a) && get(after, 'teacherUid') === a.user_id;
@@ -289,7 +315,7 @@ export function makeFake() {
     log,
     /** Call the database as this user, the way the page does. */
     call(user, method, tail, body) {
-      const r = respond(method, `https://firestore.googleapis.com${ROOT}p/databases/(default)/documents${tail}`, { authorization: `Bearer ${tokenOf(user)}` }, body ? JSON.stringify(body) : '');
+      const r = respond(method, `https://firestore.googleapis.com${ROOT}p/databases/(default)/documents${tail}`, user ? { authorization: `Bearer ${tokenOf(user)}` } : {}, body ? JSON.stringify(body) : '');
       return { status: r.status, json: JSON.parse(r.body) };
     },
     route(route, u) {
@@ -321,7 +347,8 @@ export function makeOpener(DIST, firstPort) {
   let nextPort = firstPort;
   const servers = [];
   /** `user`: { uid, email, name, type: 'teacher' | 'student', verified? } — null for a signed-out visitor. */
-  async function openPage(browser, fake, user, { w = 1366, h = 860, theme = 'dark' } = {}) {
+  /** `intercept(route, url)` may answer a request itself (return true) before the database stand-in sees it. */
+  async function openPage(browser, fake, user, { w = 1366, h = 860, theme = 'dark', intercept = null } = {}) {
   const port = nextPort++;
   servers.push(await serve(DIST, port));
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, serviceWorkers: 'block' });
@@ -352,6 +379,7 @@ export function makeOpener(DIST, firstPort) {
     if (route.request().method() === 'OPTIONS' && u.hostname === 'firestore.googleapis.com') {
       return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' } });
     }
+    if (intercept && intercept(route, u)) return undefined;
     if (fake.route(route, u)) return undefined;
     if (u.hostname === '127.0.0.1' || u.protocol === 'data:' || u.protocol === 'blob:') return route.continue();
     return route.abort();

@@ -14,7 +14,10 @@ describe('Talk to me premium voice-lab experience', () => {
     expect(html).toContain('voice-quest-enhance.js');
     expect(existsSync(resolve(publicDir, 'voice-quest-overhaul.css'))).toBe(true);
     expect(existsSync(resolve(publicDir, 'voice-quest-enhance.js'))).toBe(true);
-    expect(serviceWorker).toContain("const CACHE_VERSION = 'cmc-v90'");
+    // The redesign shipped with cache v90. Any later version also refreshes
+    // the cached page, so later bumps must not fail this check.
+    const version = Number(/const CACHE_VERSION = 'cmc-v(\d+)'/.exec(serviceWorker)?.[1] ?? 0);
+    expect(version).toBeGreaterThanOrEqual(90);
   });
 
   it('adds an adult-friendly visual system and a perspective-built mission platform', () => {

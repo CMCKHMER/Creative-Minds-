@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import {
   CalendarDays, ChevronDown, ChevronUp, ImagePlus, Loader2, LockKeyhole, Megaphone, Pencil, Pin, PinOff,
-  Plus, ShieldCheck, Trash2, Users, X,
+  Plus, ShieldCheck, Trash2, Upload, Users, Video, X, Link2,
 } from 'lucide-react';
 import { FIREBASE_PROJECT_ID, getValidIdToken, isAdminUid, tokenEmailVerified } from '../lib/firebaseAuth';
 import { useSignedInSession } from '../hooks/useSignedInSession';
+import { LINK_LABEL_MAX, URL_MAX, hostLabel, parseVideo, postIdFromSearch, safeHttpUrl } from '../lib/announcementMedia';
+import { uploadAnnouncementVideo } from '../lib/announcementVideo';
+import { PostBody, PostLink, PostVideo, ShareMenu } from './AnnouncementExtras';
 
 /**
  * Blog-style announcement board — replaces the old teacher_chat stream.
@@ -23,6 +26,13 @@ import { useSignedInSession } from '../hooks/useSignedInSession';
  * "pin/highlight" flag that floats the post to the top of the feed with a
  * featured look.
  *
+ * Since Nov 2026 a post can also carry a VIDEO (`videoUrl`: a pasted YouTube,
+ * Facebook, TikTok, Vimeo or Drive address, or a file uploaded to Firebase
+ * Storage — src/lib/announcementVideo.ts) and a LINK (`linkUrl`, `linkLabel`).
+ * Addresses typed in the text become links. Every post has a Share menu, and
+ * `?post=<id>` in the address opens the board at that post. Posts written
+ * before this simply have none of the three fields.
+ *
  * Firestore rules (see firestore.rules):
  *   match /announcements/{postId}  → public read, approved-admin write
  *   match /site_config/{configId}  → public read, owner-only write
@@ -40,6 +50,11 @@ export interface Announcement {
   title: string;
   body: string;
   imageUrl: string;
+  /** A video address (see parseVideo) — '' when the post has none. */
+  videoUrl: string;
+  /** A link attached to the post, and the words shown for it. */
+  linkUrl: string;
+  linkLabel: string;
   pinned: boolean;
   authorName: string;
   authorUid: string;
@@ -119,6 +134,10 @@ export function parseAnnouncementDoc(doc: any): Announcement | null {
     title: f.title?.stringValue ?? '',
     body: f.body?.stringValue ?? '',
     imageUrl: f.imageUrl?.stringValue ?? '',
+    // only http(s) addresses are ever shown, whatever the document says
+    videoUrl: safeHttpUrl(f.videoUrl?.stringValue),
+    linkUrl: safeHttpUrl(f.linkUrl?.stringValue),
+    linkLabel: String(f.linkLabel?.stringValue ?? '').slice(0, LINK_LABEL_MAX),
     pinned: f.pinned?.booleanValue ?? false,
     authorName: f.authorName?.stringValue || 'Admin',
     authorUid: f.authorUid?.stringValue ?? '',
@@ -160,9 +179,14 @@ export function dateLabel(epochMs: number): string {
   });
 }
 
-/** Blob-less full-replace write body for create/update of a post. */
-function announcementFields(input: {
+/** What an admin writes in the composer. */
+interface PostContent {
   title: string; body: string; imageUrl: string; pinned: boolean;
+  videoUrl: string; linkUrl: string; linkLabel: string;
+}
+
+/** Blob-less full-replace write body for create/update of a post. */
+function announcementFields(input: PostContent & {
   authorName: string; authorUid: string; authorEmail: string;
   createdAtIso: string; updatedAtIso: string;
 }) {
@@ -171,6 +195,9 @@ function announcementFields(input: {
       title: { stringValue: input.title },
       body: { stringValue: input.body },
       imageUrl: { stringValue: input.imageUrl },
+      videoUrl: { stringValue: input.videoUrl },
+      linkUrl: { stringValue: input.linkUrl },
+      linkLabel: { stringValue: input.linkLabel },
       pinned: { booleanValue: input.pinned },
       authorName: { stringValue: input.authorName },
       authorUid: { stringValue: input.authorUid },
@@ -224,10 +251,16 @@ async function fetchAnnouncements(): Promise<Announcement[]> {
   return sortAnnouncements(docs);
 }
 
+/** One post by its id — for a shared link to a post older than the newest page. */
+async function fetchAnnouncement(id: string): Promise<Announcement | null> {
+  const res = await fetch(`${FIRESTORE_BASE}/announcements/${encodeURIComponent(id)}`);
+  if (!res.ok) return null;
+  return parseAnnouncementDoc(await res.json().catch(() => null));
+}
+
 async function createAnnouncement(
   idToken: string,
-  input: { title: string; body: string; imageUrl: string; pinned: boolean;
-           authorName: string; authorUid: string; authorEmail: string },
+  input: PostContent & { authorName: string; authorUid: string; authorEmail: string },
 ): Promise<void> {
   const now = new Date().toISOString();
   const res = await fetch(`${FIRESTORE_BASE}/announcements`, {
@@ -242,7 +275,7 @@ async function createAnnouncement(
 async function updateAnnouncement(
   idToken: string,
   post: Announcement,
-  edits: { title: string; body: string; imageUrl: string; pinned: boolean },
+  edits: PostContent,
 ): Promise<void> {
   const res = await fetch(`${FIRESTORE_BASE}/announcements/${post.id}`, {
     method: 'PATCH',
@@ -335,14 +368,9 @@ export async function fileToPostImage(file: File): Promise<string> {
 
 // ── UI ───────────────────────────────────────────────────────────────
 
-interface DraftState {
-  title: string;
-  body: string;
-  imageUrl: string;
-  pinned: boolean;
-}
+type DraftState = PostContent;
 
-const EMPTY_DRAFT: DraftState = { title: '', body: '', imageUrl: '', pinned: false };
+const EMPTY_DRAFT: DraftState = { title: '', body: '', imageUrl: '', pinned: false, videoUrl: '', linkUrl: '', linkLabel: '' };
 
 export function AnnouncementBoard() {
   const session = useSignedInSession();
@@ -364,6 +392,14 @@ export function AnnouncementBoard() {
   const [adminListBusy, setAdminListBusy] = useState(false);
   const [adminListError, setAdminListError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  // video upload: null when idle, 0…1 while the file is sent
+  const [videoProgress, setVideoProgress] = useState<number | null>(null);
+  const videoAbort = useRef<AbortController | null>(null);
+  // the post a shared link asked for (`?post=<id>`): scrolled to and marked once
+  const [focusId, setFocusId] = useState(() => (typeof window === 'undefined' ? '' : postIdFromSearch(window.location.search)));
+  const [extraPost, setExtraPost] = useState<Announcement | null>(null);
+  const focusDone = useRef(false);
 
   const canPost = !!localId && (isOwner || approvedUids.includes(localId));
   // Why the composer is missing — the three reasons an admin can actually
@@ -420,7 +456,10 @@ export function AnnouncementBoard() {
     setFormError(null);
     if (post) {
       setEditingId(post.id);
-      setDraft({ title: post.title, body: post.body, imageUrl: post.imageUrl, pinned: post.pinned });
+      setDraft({
+        title: post.title, body: post.body, imageUrl: post.imageUrl, pinned: post.pinned,
+        videoUrl: post.videoUrl, linkUrl: post.linkUrl, linkLabel: post.linkLabel,
+      });
     } else {
       setEditingId(null);
       setDraft(EMPTY_DRAFT);
@@ -429,6 +468,8 @@ export function AnnouncementBoard() {
   };
 
   const closeComposer = () => {
+    videoAbort.current?.abort();
+    setVideoProgress(null);
     setComposerOpen(false);
     setEditingId(null);
     setDraft(EMPTY_DRAFT);
@@ -451,10 +492,45 @@ export function AnnouncementBoard() {
     }
   };
 
+  const handleVideoPicked = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !session) return;
+    setFormError(null);
+    setVideoProgress(0);
+    const abort = new AbortController();
+    videoAbort.current = abort;
+    try {
+      const idToken = await announceToken();
+      const url = await uploadAnnouncementVideo(file, { uid: session.localId, idToken }, setVideoProgress, abort.signal);
+      setDraft((d) => ({ ...d, videoUrl: url }));
+    } catch (err) {
+      if (!abort.signal.aborted) setFormError(err instanceof Error ? err.message : 'Could not upload that video.');
+    } finally {
+      setVideoProgress(null);
+      videoAbort.current = null;
+    }
+  };
+
   const handleSubmit = async () => {
     const title = draft.title.trim();
     const body = draft.body.trim();
     if (!title || !body || !session || busy) return;
+    // a video or link field that is filled in has to be a real web address
+    const videoUrl = safeHttpUrl(draft.videoUrl);
+    const linkUrl = safeHttpUrl(draft.linkUrl);
+    if (draft.videoUrl.trim() && !parseVideo(videoUrl)) {
+      setFormError('That video link cannot be played here. Use a YouTube, Facebook, TikTok, Vimeo or Google Drive video address, or a video file — or move it to the Link box.');
+      return;
+    }
+    if (draft.linkUrl.trim() && !linkUrl) {
+      setFormError('That link is not a web address. It should look like https://example.com/page.');
+      return;
+    }
+    const content: PostContent = {
+      title, body, imageUrl: draft.imageUrl, pinned: draft.pinned,
+      videoUrl, linkUrl, linkLabel: linkUrl ? draft.linkLabel.trim().slice(0, LINK_LABEL_MAX) : '',
+    };
     setBusy(true);
     setFormError(null);
     try {
@@ -462,10 +538,10 @@ export function AnnouncementBoard() {
       if (editingId) {
         const post = posts.find((p) => p.id === editingId);
         if (!post) throw new Error('That announcement no longer exists — refresh and try again.');
-        await updateAnnouncement(token, post, { ...draft, title, body });
+        await updateAnnouncement(token, post, content);
       } else {
         await createAnnouncement(token, {
-          title, body, imageUrl: draft.imageUrl, pinned: draft.pinned,
+          ...content,
           authorName: session.displayName || session.email,
           authorUid: session.localId,
           authorEmail: session.email,
@@ -487,6 +563,7 @@ export function AnnouncementBoard() {
     try {
       await updateAnnouncement(await announceToken(), post, {
         title: post.title, body: post.body, imageUrl: post.imageUrl, pinned: !post.pinned,
+        videoUrl: post.videoUrl, linkUrl: post.linkUrl, linkLabel: post.linkLabel,
       });
       await refresh();
     } catch (e) {
@@ -546,7 +623,35 @@ export function AnnouncementBoard() {
     }
   };
 
-  const feed = useMemo(() => posts, [posts]);
+  // A shared link (`?post=<id>`): bring that post into view once it is loaded.
+  // A post older than the newest page is fetched on its own and shown first.
+  useEffect(() => {
+    if (!focusId || loading || posts.some((p) => p.id === focusId) || extraPost?.id === focusId) return;
+    let live = true;
+    void fetchAnnouncement(focusId).then((post) => { if (live && post) setExtraPost(post); });
+    return () => { live = false; };
+  }, [focusId, loading, posts, extraPost]);
+
+  const feed = useMemo(
+    () => (extraPost && !posts.some((p) => p.id === extraPost.id) ? [extraPost, ...posts] : posts),
+    [posts, extraPost],
+  );
+
+  useEffect(() => {
+    if (!focusId || focusDone.current || !feed.some((p) => p.id === focusId)) return;
+    focusDone.current = true;
+    // after the cards are laid out (pictures above may still be arriving)
+    // The window is scrolled by hand: scrollIntoView() would also scroll the
+    // section itself (it clips its glow with overflow hidden), which shifts
+    // the whole board up inside its frame and leaves a blank band.
+    const timer = window.setTimeout(() => {
+      const el = document.getElementById(`post-${focusId}`);
+      if (!el) return;
+      window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 112), behavior: 'smooth' });
+    }, 350);
+    const clear = window.setTimeout(() => setFocusId(''), 6000);
+    return () => { window.clearTimeout(timer); window.clearTimeout(clear); };
+  }, [focusId, feed]);
   const featured = feed.filter((p) => p.pinned);
   const regular = feed.filter((p) => !p.pinned);
 
@@ -555,12 +660,20 @@ export function AnnouncementBoard() {
     return (
       <article
         key={post.id}
-        className={`overflow-hidden rounded-2xl border shadow-xl backdrop-blur-xl transition ${
+        id={`post-${post.id}`}
+        data-testid="announcement-post"
+        data-post-id={post.id}
+        data-focused={post.id === focusId ? 'true' : undefined}
+        className={`relative scroll-mt-28 rounded-2xl border shadow-xl backdrop-blur-xl transition has-[[data-testid=post-share-menu]]:z-20 ${
           featuredCard
             ? 'border-amber-200/30 bg-amber-100/[0.04] shadow-amber-900/10'
             : 'border-white/10 bg-slate-950/60'
-        }`}
+        } ${post.id === focusId ? 'ring-2 ring-cyan-300/70' : ''}`}
       >
+      <div className="overflow-hidden rounded-t-2xl">
+      {/* The video sits above the fold: folding is for long text, and a
+          player cut in half by "Read more" cannot be used. */}
+      {post.videoUrl && <PostVideo url={post.videoUrl} title={post.title} />}
       <PostFold>
         {post.imageUrl && (
           <img
@@ -598,13 +711,17 @@ export function AnnouncementBoard() {
           <h3 className={`mt-3 font-bold leading-snug text-white ${featuredCard ? 'text-xl sm:text-2xl' : 'text-lg'}`}>
             {post.title}
           </h3>
-          <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-300">{post.body}</p>
+          <PostBody text={post.body} className="mt-2 text-sm leading-relaxed text-slate-300" />
+          {post.linkUrl && <PostLink url={post.linkUrl} label={post.linkLabel} />}
         </div>
       </PostFold>
+      </div>
 
-      {canPost && (
-        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
-          <div className="flex items-center gap-2 border-t border-white/5 pt-3">
+      {/* Share is for every reader; Edit, Pin and Delete are for admins. */}
+      <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+        <div className="flex flex-wrap items-center gap-2 border-t border-white/5 pt-3">
+          <ShareMenu postId={post.id} title={post.title} />
+          {canPost && (<>
             <button
               type="button"
               onClick={() => openComposer(post)}
@@ -628,9 +745,9 @@ export function AnnouncementBoard() {
             >
               <Trash2 className="h-3 w-3" aria-hidden="true" /> Delete
             </button>
-          </div>
+          </>)}
         </div>
-      )}
+      </div>
       </article>
     );
   };
@@ -784,6 +901,91 @@ export function AnnouncementBoard() {
                       </button>
                     </div>
                   )}
+                  {/* Video: paste an address, or upload a file */}
+                  <div className="rounded-xl border border-white/10 p-3" data-testid="composer-video">
+                    <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                      <Video className="h-3.5 w-3.5 text-cyan-300" aria-hidden="true" /> Video (optional)
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <input
+                        value={draft.videoUrl}
+                        onChange={(e) => setDraft((d) => ({ ...d, videoUrl: e.target.value }))}
+                        maxLength={URL_MAX}
+                        inputMode="url"
+                        placeholder="Paste a YouTube, Facebook, TikTok, Vimeo or Drive video link…"
+                        aria-label="Video link"
+                        className="min-w-0 flex-1 basis-56 rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15"
+                        data-testid="composer-video-url"
+                      />
+                      <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v,video/ogg" onChange={(e) => void handleVideoPicked(e)} className="hidden" data-testid="composer-video-file" />
+                      {videoProgress === null ? (
+                        <button
+                          type="button"
+                          onClick={() => videoInputRef.current?.click()}
+                          className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-3.5 py-2 text-xs font-semibold text-slate-300 transition hover:border-cyan-300/40 hover:text-white"
+                          data-testid="composer-video-upload"
+                        >
+                          <Upload className="h-3.5 w-3.5" aria-hidden="true" /> Upload a video
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => videoAbort.current?.abort()}
+                          className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/30 px-3.5 py-2 text-xs font-semibold text-cyan-100"
+                          data-testid="composer-video-progress"
+                        >
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                          Uploading {Math.round(videoProgress * 100)}% · Cancel
+                        </button>
+                      )}
+                    </div>
+                    {draft.videoUrl.trim() && (
+                      parseVideo(draft.videoUrl) ? (
+                        <div className="mt-3 max-w-md overflow-hidden rounded-xl border border-white/10" data-testid="composer-video-preview">
+                          <PostVideo url={safeHttpUrl(draft.videoUrl)} title={draft.title || 'Preview'} />
+                          <div className="flex items-center justify-between gap-2 px-3 py-2 text-[11px] text-slate-400">
+                            <span>{parseVideo(draft.videoUrl)?.label} video — this is how it will show.</span>
+                            <button type="button" onClick={() => setDraft((d) => ({ ...d, videoUrl: '' }))} className="font-semibold text-rose-300 hover:text-rose-200">Remove</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-[11px] leading-relaxed text-amber-200" data-testid="composer-video-unknown">
+                          This address is not a video the board can play. Use the full address of the video page, or put it in the Link box below.
+                        </p>
+                      )
+                    )}
+                    <p className="mt-2 text-[10px] leading-relaxed text-slate-600">Upload: MP4, WebM or MOV, up to 100 MB.</p>
+                  </div>
+
+                  {/* Link */}
+                  <div className="rounded-xl border border-white/10 p-3" data-testid="composer-link">
+                    <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                      <Link2 className="h-3.5 w-3.5 text-cyan-300" aria-hidden="true" /> Link (optional)
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <input
+                        value={draft.linkUrl}
+                        onChange={(e) => setDraft((d) => ({ ...d, linkUrl: e.target.value }))}
+                        maxLength={URL_MAX}
+                        inputMode="url"
+                        placeholder="https://…"
+                        aria-label="Link address"
+                        className="min-w-0 flex-1 basis-56 rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15"
+                        data-testid="composer-link-url"
+                      />
+                      <input
+                        value={draft.linkLabel}
+                        onChange={(e) => setDraft((d) => ({ ...d, linkLabel: e.target.value }))}
+                        maxLength={LINK_LABEL_MAX}
+                        placeholder={safeHttpUrl(draft.linkUrl) ? `Words to show (${hostLabel(safeHttpUrl(draft.linkUrl))})` : 'Words to show (optional)'}
+                        aria-label="Words shown for the link"
+                        className="min-w-0 flex-1 basis-40 rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15"
+                        data-testid="composer-link-label"
+                      />
+                    </div>
+                    <p className="mt-2 text-[10px] leading-relaxed text-slate-600">Web addresses typed in the text above also become links.</p>
+                  </div>
+
                   <label className="flex items-center gap-2 text-[11px] text-slate-400">
                     <input
                       type="checkbox"
@@ -810,7 +1012,7 @@ export function AnnouncementBoard() {
                       <button
                         type="button"
                         onClick={() => void handleSubmit()}
-                        disabled={!draft.title.trim() || !draft.body.trim() || busy || imageBusy}
+                        disabled={!draft.title.trim() || !draft.body.trim() || busy || imageBusy || videoProgress !== null}
                         className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         {busy ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <Megaphone className="h-3 w-3" aria-hidden="true" />}

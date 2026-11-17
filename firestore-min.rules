@@ -119,6 +119,16 @@ service cloud.firestore {
                 && request.auth.uid in
                     get(/databases/$(database)/documents/site_config/admins).data.get('uids', [])));
     }
+    function announcementExtrasOk(d) {
+      return d.get('videoUrl', '') is string
+        && d.get('videoUrl', '').size() <= 2000
+        && d.get('videoUrl', '').matches('(https?://.+)?')
+        && d.get('linkUrl', '') is string
+        && d.get('linkUrl', '').size() <= 2000
+        && d.get('linkUrl', '').matches('(https?://.+)?')
+        && d.get('linkLabel', '') is string
+        && d.get('linkLabel', '').size() <= 80;
+    }
     match /announcements/{postId} {
       allow read: if true;
       allow create: if isCmcApprovedAdmin()
@@ -135,8 +145,10 @@ service cloud.firestore {
         && request.resource.data.authorName is string
         && request.resource.data.authorEmail is string
         && request.resource.data.createdAt is timestamp
-        && request.resource.data.updatedAt is timestamp;
-      allow update, delete: if isCmcApprovedAdmin();
+        && request.resource.data.updatedAt is timestamp
+        && announcementExtrasOk(request.resource.data);
+      allow update: if isCmcApprovedAdmin() && announcementExtrasOk(request.resource.data);
+      allow delete: if isCmcApprovedAdmin();
     }
     match /site_config/{configId} {
       allow read: if true;

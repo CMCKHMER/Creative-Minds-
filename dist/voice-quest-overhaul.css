@@ -1,0 +1,409 @@
+/* Talk to me · Creative Minds premium language lab skin */
+:root {
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Syne", "Inter", system-ui, sans-serif;
+  --color-ink: #e8f1f8;
+  --color-ink-soft: #a9bac9;
+  --color-deep: #0a1422;
+  --color-teal: #45d7d0;
+  --color-teal-bright: #77f0e5;
+  --color-teal-soft: #163b47;
+  --color-coral: #f4a26a;
+  --color-coral-deep: #c87848;
+  --color-amber: #e7c47a;
+  --color-lime: #a6d69b;
+  --color-grape: #a99aff;
+  --color-blue: #73b9ee;
+  --color-success: #68d8b4;
+  --color-danger: #ff8d96;
+  --color-cream: #142333;
+  --color-sand: #1b2d3d;
+  --color-parchment: #091522;
+  color-scheme: dark;
+}
+
+html { color-scheme: dark; }
+body {
+  background: #091522 !important;
+  color: #e8f1f8;
+  font-family: var(--font-sans);
+  letter-spacing: .005em;
+}
+.page-bg {
+  background:
+    radial-gradient(70rem 44rem at 10% -12%, rgba(34, 104, 122, .34), transparent 68%),
+    radial-gradient(58rem 40rem at 95% 2%, rgba(93, 80, 153, .24), transparent 68%),
+    radial-gradient(55rem 40rem at 58% 100%, rgba(20, 117, 115, .17), transparent 68%),
+    linear-gradient(145deg, #07111d 0%, #0b1928 55%, #091521 100%) !important;
+}
+.page-bg:after {
+  opacity: .16;
+  background-image: radial-gradient(rgba(189, 225, 238, .4) .7px, transparent .8px);
+  background-size: 28px 28px;
+}
+.font-display { font-family: var(--font-display); letter-spacing: -.035em; }
+
+/* App navigation: quiet, precise, and aligned with the CMC glass system. */
+#root > div > header {
+  background: rgba(7, 17, 29, .86) !important;
+  border-color: rgba(152, 190, 212, .14) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(22px) saturate(1.25);
+}
+#root > div > header .text-ink\/65 { color: #a9bac9 !important; }
+#root > div > header [aria-current="page"] {
+  background: rgba(65, 215, 208, .13) !important;
+  color: #a7fff4 !important;
+}
+#root > div > header button,
+#root > div > header a { border-radius: 11px !important; }
+#root > div > header button:hover,
+#root > div > header a:hover { background: rgba(255, 255, 255, .07) !important; }
+#root > div > header .bg-teal {
+  background: linear-gradient(145deg, #56ded3, #317e9b) !important;
+  box-shadow: 0 5px 18px rgba(64, 202, 198, .2) !important;
+}
+#root > div > header .text-coral { color: #eabf77 !important; }
+
+/* Frosted surfaces, stronger type hierarchy, quieter accents. */
+.card {
+  color: #e8f1f8;
+  background: linear-gradient(145deg, rgba(20, 35, 51, .9), rgba(13, 27, 42, .91)) !important;
+  border: 1px solid rgba(171, 205, 223, .14) !important;
+  border-radius: 19px !important;
+  box-shadow: 0 22px 55px -38px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+.card [class*="text-ink/"],
+.card .text-ink\/70,
+.card .text-ink\/60,
+.card .text-ink\/50 { color: #aabccb !important; }
+.btn {
+  min-height: 46px;
+  border-radius: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: .015em;
+  transition: transform .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #52d8ce, #39aeb9) !important;
+  color: #071522 !important;
+  box-shadow: 0 5px 18px rgba(53, 193, 190, .2) !important;
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7de8dd, #50c4ca) !important;
+  box-shadow: 0 8px 24px rgba(53, 193, 190, .28) !important;
+  transform: translateY(-1px);
+}
+.btn-teal {
+  background: linear-gradient(135deg, #48d1c9, #358eaa) !important;
+  color: #06141e !important;
+  box-shadow: 0 4px 16px rgba(53, 193, 190, .18) !important;
+}
+.btn-ghost {
+  color: #dceaf3 !important;
+  background: rgba(255, 255, 255, .045) !important;
+  border-color: rgba(180, 213, 231, .2) !important;
+  box-shadow: none !important;
+}
+.btn-ghost:hover:not(:disabled) { background: rgba(255, 255, 255, .09) !important; }
+.chip { border: 1px solid rgba(178, 217, 230, .17); font-size: .72rem; letter-spacing: .025em; }
+
+/* The opening panel is a cinematic CMC mission briefing, not a cartoon banner. */
+#root main > div > section:first-child {
+  background: linear-gradient(122deg, #0b1e2d 0%, #0e2536 53%, #101d32 100%) !important;
+  border: 1px solid rgba(132, 211, 218, .2) !important;
+  border-radius: 25px !important;
+  box-shadow: 0 30px 80px -48px rgba(0, 0, 0, .92), inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+#root main > div > section:first-child > div[style*="radial-gradient"] { opacity: 0 !important; }
+#root main > div > section:first-child h1 {
+  max-width: 700px;
+  font-size: clamp(2.8rem, 5.7vw, 5.5rem) !important;
+  line-height: .98 !important;
+  letter-spacing: -.07em !important;
+}
+#root main > div > section:first-child h1 span { color: #83e5de !important; }
+#root main > div > section:first-child p { color: #b7cad7 !important; line-height: 1.8; }
+#root main > div > section:first-child .chip {
+  color: #dcecf3 !important;
+  background: rgba(255, 255, 255, .055) !important;
+  border-color: rgba(190, 222, 234, .15) !important;
+}
+#root main > div > section:first-child .bg-amber { color: #f3d891 !important; background: rgba(231, 196, 122, .14) !important; }
+
+/* Round cards and learning content. */
+#root main h1, #root main h2, #root main h3 { color: #eaf3f8; }
+#root main .text-ink\/70,
+#root main .text-ink\/65,
+#root main .text-ink\/60,
+#root main .text-ink\/50 { color: #a9bac9 !important; }
+#root main .bg-cream,
+#root main .bg-white { background-color: #152637 !important; }
+#root main .border-ink\/10,
+#root main .border-ink\/15,
+#root main .border-ink\/20 { border-color: rgba(174, 207, 225, .15) !important; }
+#root main [class*="text-coral"] { color: #efb477 !important; }
+#root main [class*="bg-coral"] { background-color: #bc7852 !important; }
+#root main [class*="text-amber"] { color: #edd08f !important; }
+#root main [class*="bg-amber"] { background-color: rgba(225, 187, 106, .16) !important; }
+
+/* Spatial command board: glass tiles reveal a real CSS 3D-built environment. */
+.cmc-platform-frame {
+  position: relative;
+  isolation: isolate;
+  padding: 9px !important;
+  border: 1px solid rgba(145, 223, 230, .33);
+  border-radius: 21px !important;
+  background: linear-gradient(145deg, #234254, #172a3a 48%, #0b1826) !important;
+  box-shadow: 0 24px 52px -30px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .16) !important;
+}
+.cmc-3d-world {
+  position: relative !important;
+  isolation: isolate;
+  border-radius: 14px !important;
+  outline: 1px solid rgba(163, 226, 235, .18);
+  outline-offset: -1px;
+  background: linear-gradient(180deg, #152f43, #122539 52%, #102231) !important;
+  box-shadow: inset 0 0 60px rgba(28, 97, 122, .2);
+}
+.cmc-3d-world > .cmc-voice-city {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  perspective: 900px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(52% 35% at 52% 10%, rgba(90, 170, 190, .16), transparent 100%),
+    linear-gradient(180deg, rgba(15, 31, 50, .08), rgba(7, 15, 25, .28));
+}
+.cmc-city-horizon {
+  position: absolute;
+  inset: 0 0 35%;
+  opacity: .62;
+  background: linear-gradient(180deg, transparent 0 58%, rgba(95, 175, 190, .09) 100%);
+  transform: translateZ(-90px);
+}
+.cmc-city-grid {
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  bottom: -25%;
+  height: 59%;
+  opacity: .28;
+  transform: perspective(420px) rotateX(62deg);
+  transform-origin: center bottom;
+  background-image:
+    linear-gradient(rgba(129, 220, 228, .55) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(129, 220, 228, .5) 1px, transparent 1px),
+    linear-gradient(145deg, rgba(52, 116, 141, .7), rgba(9, 25, 40, .4));
+  background-size: 100% 28px, 42px 100%, 100% 100%;
+  mask-image: linear-gradient(to top, #000 10%, transparent 88%);
+}
+.cmc-tower {
+  position: absolute;
+  bottom: 12%;
+  left: var(--tower-x);
+  width: var(--tower-w);
+  height: var(--tower-h);
+  transform: translateZ(var(--tower-z, -28px)) rotateY(-18deg) rotateX(2deg);
+  transform-style: preserve-3d;
+  opacity: var(--tower-opacity, .76);
+}
+.cmc-tower-face { position: absolute; display: block; backface-visibility: hidden; }
+.cmc-tower-front {
+  inset: 0;
+  transform: translateZ(12px);
+  border: 1px solid rgba(162, 233, 233, .42);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 12px, rgba(111, 226, 224, .44) 13px 15px, transparent 16px 23px),
+    repeating-linear-gradient(90deg, transparent 0 10px, rgba(131, 215, 226, .23) 11px 13px, transparent 14px 21px),
+    linear-gradient(135deg, #24536b, #143146 72%);
+  box-shadow: inset 7px 0 rgba(144, 228, 230, .1), inset 0 0 22px rgba(49, 190, 197, .17), 0 14px 26px rgba(0, 0, 0, .24);
+}
+.cmc-tower-side {
+  top: 0;
+  right: -24px;
+  width: 24px;
+  height: 100%;
+  transform-origin: left center;
+  transform: rotateY(90deg);
+  border: 1px solid rgba(146, 208, 223, .22);
+  background: linear-gradient(100deg, #172e41, #0c1b2b);
+}
+.cmc-tower-roof {
+  top: -24px;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  transform-origin: bottom center;
+  transform: rotateX(90deg);
+  border: 1px solid rgba(165, 223, 231, .28);
+  background: linear-gradient(135deg, #55a3b1, #23495d);
+}
+.cmc-platform-plinth {
+  position: absolute;
+  left: 8%;
+  bottom: 5%;
+  width: 84%;
+  height: 23%;
+  transform: perspective(600px) rotateX(58deg) translateY(10%);
+  transform-origin: center bottom;
+  border: 1px solid rgba(113, 227, 225, .38);
+  border-radius: 13px;
+  background:
+    linear-gradient(rgba(86, 205, 209, .13), rgba(15, 40, 55, .24)),
+    repeating-linear-gradient(90deg, rgba(138, 236, 229, .22) 0 1px, transparent 1px 11.11%),
+    repeating-linear-gradient(0deg, rgba(138, 236, 229, .2) 0 1px, transparent 1px 25%),
+    linear-gradient(135deg, rgba(48, 112, 132, .72), rgba(15, 37, 53, .86));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .3), inset 0 1px rgba(215, 255, 250, .22);
+}
+.cmc-city-orb {
+  position: absolute;
+  width: 7%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(147, 242, 233, .54);
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #e3ffff, #61d7cf 18%, #236e82 62%, #102337 100%);
+  box-shadow: 0 0 18px rgba(77, 222, 213, .38), 0 10px 18px rgba(0, 0, 0, .3);
+}
+.cmc-3d-world > .absolute.inset-0.grid {
+  z-index: 2;
+  perspective: 900px;
+}
+.cmc-3d-world > .absolute.inset-0.grid > div > div {
+  position: relative;
+  overflow: hidden;
+  opacity: .62;
+  border: 1px solid rgba(149, 207, 224, .15);
+  border-radius: 5px !important;
+  background: linear-gradient(145deg, rgba(39, 72, 91, .72), rgba(17, 38, 56, .63)) !important;
+  box-shadow: inset 0 1px rgba(216, 247, 255, .14), inset 0 -5px rgba(2, 13, 24, .2), 0 3px 5px rgba(0, 0, 0, .15) !important;
+  backdrop-filter: blur(1px);
+}
+.cmc-3d-world > div.absolute.transition-all.duration-300 { z-index: 8 !important; }
+.cmc-3d-world .player-ring {
+  border-color: #7de9df !important;
+  box-shadow: 0 0 16px rgba(86, 236, 222, .68) !important;
+}
+.cmc-3d-world .anim-idle,
+.cmc-3d-world .anim-jump,
+.cmc-3d-world .anim-dance { filter: drop-shadow(0 7px 7px rgba(0, 0, 0, .62)) saturate(.85); }
+.cmc-3d-world .drift { opacity: .22 !important; filter: saturate(.5); }
+.cmc-3d-world > .pointer-events-none.absolute.inset-0 { z-index: 3; }
+.cmc-3d-world .absolute.z-20 { z-index: 10 !important; }
+.cmc-3d-world .absolute.z-30 { z-index: 12 !important; }
+
+/* Level HUD: context and input methods stay visible without competing with the mission. */
+.cmc-level-context {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 2px 0 13px;
+  padding: 0 2px;
+  color: #92a9ba;
+  font: 700 9px/1.4 var(--font-sans);
+  letter-spacing: .16em;
+}
+.cmc-level-context strong { color: #8bded9; font-weight: 800; }
+.cmc-level-indicator {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #74dfd5;
+  box-shadow: 0 0 11px rgba(116, 223, 213, .56);
+}
+.cmc-context-separator { padding-inline: 7px; color: #536c7e; }
+.cmc-context-mode { margin-left: auto; color: #6e8799; font-size: 8px; letter-spacing: .13em; }
+
+/* A calm, explicit voice-response card and mic state. */
+[aria-label="Voice control"] {
+  color: #e8f1f8;
+  border-color: rgba(140, 206, 222, .2) !important;
+  background: linear-gradient(140deg, rgba(19, 37, 53, .97), rgba(12, 26, 40, .96)) !important;
+}
+[aria-label="Voice control"] button[aria-label*="listening"],
+[aria-label="Voice control"] button[aria-label*="speaking"] {
+  background: linear-gradient(145deg, #4ad7cf, #377f9a) !important;
+  box-shadow: 0 0 0 5px rgba(73, 216, 207, .09), 0 8px 24px rgba(0, 0, 0, .32) !important;
+}
+[aria-label="Voice control"] button[aria-label*="Stop listening"] {
+  background: linear-gradient(145deg, #e6ba77, #b87954) !important;
+}
+[aria-label="Voice control"] .bar { background: #70e6d9 !important; }
+.cmc-voice-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid rgba(149, 210, 227, .14);
+  border-radius: 12px;
+  background: rgba(5, 17, 29, .58);
+  color: #aebfcd;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.cmc-voice-status::before {
+  content: "";
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #55d7c9;
+  box-shadow: 0 0 0 4px rgba(85, 215, 201, .1);
+}
+.cmc-voice-status[data-listening="true"]::before {
+  background: #e8c477;
+  box-shadow: 0 0 0 5px rgba(232, 196, 119, .14), 0 0 14px rgba(232, 196, 119, .54);
+  animation: cmc-listening-pulse 1.5s ease-in-out infinite;
+}
+.cmc-voice-status strong { color: #eaf5f8; font-weight: 700; }
+.cmc-heard-response {
+  border-radius: 13px !important;
+  border-color: rgba(111, 215, 185, .28) !important;
+  background: rgba(45, 132, 115, .13) !important;
+  color: #e5f8f3 !important;
+}
+.cmc-heard-response[data-understood="false"] {
+  border-color: rgba(242, 169, 118, .3) !important;
+  background: rgba(172, 105, 66, .13) !important;
+}
+#typed-command {
+  min-height: 48px;
+  border: 1px solid rgba(156, 198, 218, .24) !important;
+  border-radius: 11px !important;
+  background: rgba(3, 15, 27, .7) !important;
+  color: #eef7fb !important;
+}
+#typed-command::placeholder { color: #7e95a7 !important; }
+#typed-command:focus { border-color: #54d9d1 !important; box-shadow: 0 0 0 3px rgba(84, 217, 209, .14); }
+
+@keyframes cmc-listening-pulse {
+  50% { box-shadow: 0 0 0 9px rgba(232, 196, 119, .035), 0 0 18px rgba(232, 196, 119, .58); }
+}
+@media (max-width: 720px) {
+  #root > div > header { padding-inline: 8px; }
+  #root > div > header nav { gap: 2px !important; }
+  #root main > div > section:first-child { border-radius: 18px !important; }
+  #root main > div > section:first-child h1 { font-size: clamp(2.45rem, 12vw, 4rem) !important; }
+  .cmc-tower { opacity: .48; }
+  .cmc-city-grid { opacity: .18; }
+  .cmc-platform-plinth { left: 4%; width: 92%; }
+  .cmc-voice-status { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmc-voice-status[data-listening="true"]::before { animation: none !important; }
+  .cmc-tower, .cmc-city-grid, .cmc-platform-plinth { transition: none !important; }
+}
+html[data-contrast="high"] {
+  --color-ink: #fff;
+  --color-ink-soft: #e2e8f0;
+  --color-parchment: #05070b;
+  --color-cream: #0b1118;
+}
+html[data-contrast="high"] .card,
+html[data-contrast="high"] [aria-label="Voice control"] { border: 2px solid #fff !important; }
+html[data-contrast="high"] .cmc-3d-world > .absolute.inset-0.grid > div > div { opacity: .38; border-color: #fff !important; }

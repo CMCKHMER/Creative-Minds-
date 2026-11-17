@@ -67,6 +67,11 @@ jobs:
           # Google feature off and needs no Google project at all.
           # Add it under Settings → Secrets and variables → Actions → Variables.
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+      # One small preview page per announcement, so a post shared to Facebook,
+      # Telegram or WhatsApp shows its own title and picture. Reads the public
+      # announcements from the database; exits 0 when it cannot be reached.
+      - name: Preview pages for shared announcements
+        run: node scripts/build_share_pages.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
