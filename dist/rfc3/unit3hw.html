@@ -1526,11 +1526,15 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
 
   function cmcRefreshToken(cb) {
     // Same securetoken grant flow as the rfc2/rfc3 worksheets and cmc-shared.js.
+    // The body is a FORM, so the header must say so. This used to say
+    // 'application/json'; Google answers a form body under that header with
+    // HTTP 400, so a sign-in older than one hour was never renewed and the
+    // student's homework could not be handed in under their account.
     try {
       var rt = localStorage.getItem('cmc-student-refresh-token');
       if (!rt) return cb(null);
       fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
       }).then(function (r) { return r.json(); }).then(function (d) {
         if (d && d.id_token) {
@@ -1684,6 +1688,84 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
     try { cmcNoteCheck(b.closest('.assignment'), true); } catch (err) { /* never block the homework */ }
   });
 
+
+  /* ── Outbox: a failed send must never evaporate ──────────────────────
+     Owner report (again): "student said they submitted yet im not seeing
+     anything". Two holes are plugged here. (1) A retry that failed used
+     to toast the SUCCESS text, so the student honestly believed the
+     score had gone through. (2) Any failed send (dead Wi-Fi, expired
+     token) vanished with its toast. Now a failed send is stored on the
+     device and retried automatically on load and when the connection
+     returns; only a server-confirmed send says ✓, and a visible note
+     under the button counts submissions that are still unsent. */
+  var CMC_OUTBOX_PREFIX = 'cmc-hw-outbox:' + location.pathname.split('/').pop() + ':';
+  function cmcOutboxKey(name, mode) { return CMC_OUTBOX_PREFIX + mode + ':' + String(name || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+  function cmcOutboxList() {
+    var out = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(CMC_OUTBOX_PREFIX) === 0) {
+          var v = JSON.parse(localStorage.getItem(k) || 'null');
+          if (v && v.name && typeof v.correct === 'number' && typeof v.total === 'number') out.push(v);
+        }
+      }
+    } catch (e) {}
+    return out;
+  }
+  function cmcOutboxNote() {
+    var btn = document.getElementById('submitBtn');
+    var el = document.getElementById('cmcOutboxNote');
+    if (!el && btn && btn.parentNode) {
+      el = document.createElement('div');
+      el.id = 'cmcOutboxNote';
+      el.setAttribute('style', 'flex-basis:100%;font-size:11.5px;line-height:1.5;color:#fde68a;background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.35);border-radius:8px;padding:7px 10px;margin-top:8px');
+      btn.parentNode.insertBefore(el, btn.nextSibling);
+    }
+    if (!el) return;
+    var n = cmcOutboxList().length;
+    el.style.display = n ? 'block' : 'none';
+    el.textContent = n ? ('⏳ ' + n + (n === 1 ? ' submission is' : ' submissions are') + ' saved on this device — NOT sent yet. It sends itself when this page is open and online. Your teacher cannot see it until the button says ✓ Submitted.') : '';
+  }
+  function cmcOutboxSave(name, mode, score) {
+    try { localStorage.setItem(cmcOutboxKey(name, mode), JSON.stringify({ name: name, mode: mode, correct: score.correct, total: score.total, at: Date.now() })); } catch (e) {}
+    cmcOutboxNote();
+  }
+  function cmcOutboxDrop(name, mode) {
+    try { localStorage.removeItem(cmcOutboxKey(name, mode)); } catch (e) {}
+    cmcOutboxNote();
+  }
+  function cmcFlushOutbox() {
+    var items = cmcOutboxList();
+    cmcOutboxNote();
+    if (!items.length) return;
+    var sess = cmcSession();
+    items.forEach(function (it) {
+      var score = { correct: it.correct, total: it.total };
+      var sent = function () {
+        cmcOutboxDrop(it.name, it.mode);
+        cmcToast('✓ Sent to your teacher: ' + it.name + ' — ' + it.correct + '/' + it.total + ' (an earlier submission that had not gone through).', false);
+      };
+      var guest = function () {
+        return cmcPost(cmcBuildBody(it.name, '', score, it.mode), '').then(function (r) { if (r.ok) sent(); });
+      };
+      if (!sess.authed) { guest().catch(function () {}); return; }
+      cmcPost(cmcBuildBody(it.name, sess.uid, score, it.mode), sess.tok)
+        .then(function (r) {
+          if (r.ok) { sent(); return; }
+          if (r.status === 401) {
+            cmcRefreshToken(function (t) {
+              if (t) cmcPost(cmcBuildBody(it.name, sess.uid, score, it.mode), t).then(function (r2) { if (r2.ok) sent(); else guest().catch(function () {}); }).catch(function () {});
+              else guest().catch(function () {});
+            });
+            return;
+          }
+          guest().catch(function () {});
+        })
+        .catch(function () { guest().catch(function () {}); });
+    });
+  }
+
   function submitCompletion() {
     var btn = document.getElementById('submitBtn');
     var root = cmcActiveRoot();
@@ -1712,8 +1794,10 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
     var score = cmcCurrentScore(root);
     var body = cmcBuildBody(name, sess.authed ? sess.uid : '', score, mode);
     var okMsg = '✓ Submitted! ' + name + ' — ' + score.correct + '/' + score.total + ' sent to your teacher.';
+    var failMsg = '⚠ Not sent yet — saved on this device. It will send automatically when this page is open and online; your teacher cannot see it until the button says ✓ Submitted.';
 
     var done = function (ok, msg) {
+      if (ok) cmcOutboxDrop(name, mode); else cmcOutboxSave(name, mode, score);
       btn.disabled = false;
       btn.classList.toggle('done', ok);
       btn.textContent = ok ? '✓ Submitted to teacher' : '⚠ Try again';
@@ -1727,25 +1811,27 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
         if (r.status === 401 && sess.authed) {
           cmcRefreshToken(function (t) {
             if (t) {
-              cmcPost(body, t).then(function (r2) { done(r2.ok, okMsg); })
-                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+              cmcPost(body, t).then(function (r2) { done(r2.ok, r2.ok ? okMsg : failMsg); })
+                .catch(function () { done(false, failMsg); });
             } else {
               // Session unrecoverable → validated guest branch.
               cmcPost(cmcBuildBody(name, '', score, mode), '')
-                .then(function (r3) { done(r3.ok, okMsg); })
-                .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+                .then(function (r3) { done(r3.ok, r3.ok ? okMsg : failMsg); })
+                .catch(function () { done(false, failMsg); });
             }
           });
           return;
         }
         // Permission or server error → guest branch fallback (uid must be '').
         cmcPost(cmcBuildBody(name, '', score, mode), '')
-          .then(function (r3) { done(r3.ok, okMsg); })
-          .catch(function () { done(false, 'Could not submit — check your connection and try again.'); });
+          .then(function (r3) { done(r3.ok, r3.ok ? okMsg : failMsg); })
+          .catch(function () { done(false, failMsg); });
       })
-      .catch(function () { done(false, 'Could not reach the teacher console — check your connection and try again.'); });
+      .catch(function () { done(false, failMsg); });
   }
   document.getElementById('submitBtn').addEventListener('click', submitCompletion);
+  cmcFlushOutbox();
+  window.addEventListener('online', cmcFlushOutbox);
 
   /* ── Share (native sheet when available, fallback options otherwise) ── */
   function cmcHomeworkUrl() {

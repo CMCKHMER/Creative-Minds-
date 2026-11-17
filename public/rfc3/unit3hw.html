@@ -1526,11 +1526,15 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
 
   function cmcRefreshToken(cb) {
     // Same securetoken grant flow as the rfc2/rfc3 worksheets and cmc-shared.js.
+    // The body is a FORM, so the header must say so. This used to say
+    // 'application/json'; Google answers a form body under that header with
+    // HTTP 400, so a sign-in older than one hour was never renewed and the
+    // student's homework could not be handed in under their account.
     try {
       var rt = localStorage.getItem('cmc-student-refresh-token');
       if (!rt) return cb(null);
       fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
       }).then(function (r) { return r.json(); }).then(function (d) {
         if (d && d.id_token) {

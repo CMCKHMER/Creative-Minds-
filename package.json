@@ -17,6 +17,7 @@
     "seal:check": "node scripts/seal_tests.mjs --check && node scripts/test_counts.mjs --check",
     "verify:biweek": "node scripts/verify_biweek_results.mjs",
     "verify:kidhw": "node scripts/verify_kid_homework.mjs",
+    "verify:hw-submit": "node scripts/verify_homework_submit.mjs",
     "verify:title": "node scripts/verify_title_particles.mjs",
     "verify:planner-title": "node scripts/verify_planner_title.mjs",
     "verify:planner-page-title": "node scripts/verify_planner_page_title.mjs",

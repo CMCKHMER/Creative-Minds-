@@ -836,9 +836,13 @@ async function doSubmit(auto){
           studentName:{stringValue:name},
           studentUid:{stringValue:''},
           classId: cls? {stringValue:cls}:{nullValue:null},
+          studentId:{stringValue: sid},
           scorePct:{integerValue:String(pct)},
           correctCount:{integerValue:String(g.correct)},
           totalCount:{integerValue:String(g.total)},
+          durationSeconds:{integerValue:String(timeUsed)},
+          violations:{integerValue:String(violCountNow)},
+          violationDetail:{stringValue: violations.map(v=> v.type+':'+(v.detail||'')).join(' | ').slice(0,900)},
           submittedAt:{timestampValue: new Date().toISOString()}
         }};
         fetch(url,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).catch(()=>{})
