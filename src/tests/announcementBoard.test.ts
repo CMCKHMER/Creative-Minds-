@@ -58,7 +58,7 @@ describe('parseAnnouncementDoc', () => {
 
 describe('sortAnnouncements', () => {
   const base: Omit<Announcement, 'id' | 'createdAt'> = {
-    title: 't', body: 'b', imageUrl: '', pinned: false,
+    title: 't', body: 'b', imageUrl: '', pinned: false, videoUrl: '', linkUrl: '', linkLabel: '',
     authorName: 'A', authorUid: 'u', authorEmail: 'e', updatedAt: 0,
   };
   const mk = (id: string, createdAt: number, pinned = false): Announcement => ({ ...base, id, createdAt, pinned });

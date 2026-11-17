@@ -1,0 +1,50 @@
+rules_version = '2';
+
+// Firebase Storage rules for the Creative Minds site.
+//
+// The only thing stored here is VIDEO attached to an announcement
+// (src/lib/announcementVideo.ts). Everything else is refused.
+//
+//   announcements/<admin uid>/<file>
+//     read    anyone who has the address (the board is public); nobody can
+//             list the folder
+//     create  an approved announcement admin, into their own folder, video
+//             files only, up to 100 MB
+//     delete  an approved announcement admin
+//     update  never (a new upload gets a new name)
+//
+// "Approved announcement admin" is the same test as isCmcApprovedAdmin() in
+// firestore.rules: the site-owner account, or a uid listed in the Firestore
+// document site_config/admins. Reading that document from here needs the
+// one-time permission the Firebase console asks for when these rules are
+// first published ("allow Storage rules to read Firestore").
+//
+// Publish: Firebase console → Storage → Rules, or
+//   npx firebase-tools deploy --only storage
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAnnouncementAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && (request.auth.uid == '5iLvnjzmV8QY7WFZhyTq6PIgcI63'
+            || (firestore.exists(/databases/(default)/documents/site_config/admins)
+                && request.auth.uid in
+                    firestore.get(/databases/(default)/documents/site_config/admins).data.get('uids', [])));
+    }
+
+    match /announcements/{uid}/{fileName} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isAnnouncementAdmin()
+        && request.auth.uid == uid
+        && request.resource.size <= 100 * 1024 * 1024
+        && request.resource.contentType.matches('video/(mp4|webm|quicktime|x-m4v|ogg)');
+      allow update: if false;
+      allow delete: if isAnnouncementAdmin();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

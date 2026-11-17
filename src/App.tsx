@@ -27,6 +27,7 @@ import { supabase } from './lib/supabase';
 import { TickerBanner } from './components/TickerBanner';
 import { SectionDirectory, PageBar, MoreInGroup } from './components/SectionDirectory';
 import { DIRECTORY_HASH, findPage, hashKey, isInPageAnchor, resolveRoute } from './lib/sitePages';
+import { postIdFromSearch } from './lib/announcementMedia';
 
 /**
  * The sections that used to be stacked on the one-page home. Each is now a
@@ -118,7 +119,13 @@ export function App() {
   // Which page is open. The hash is the address: `/#pricing` is the Pricing
   // page, `/#games` the Play Lab, no hash (or #top / #sections) the home page.
   const [nav, setNav] = useState<NavState>(() => {
-    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    let hash = typeof window !== 'undefined' ? window.location.hash : '';
+    // A shared announcement (`?post=<id>`) opens the Announcements page even
+    // when the site that carried the link dropped the `#announcements` part.
+    if (!hash && typeof window !== 'undefined' && postIdFromSearch(window.location.search)) {
+      hash = '#announcements';
+      try { window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${hash}`); } catch { /* the page still opens */ }
+    }
     return { route: resolveRoute(hash), hash, tick: 0 };
   });
   const route = nav.route;
