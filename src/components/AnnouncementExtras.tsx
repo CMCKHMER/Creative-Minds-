@@ -5,13 +5,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, ExternalLink, Link2, Mail, MessageCircle, Play, Send, Share2 } from 'lucide-react';
 import {
-  hostLabel, linkify, parseVideo, postAppUrl, postSharePageUrl, safeHttpUrl, shareTargets, type ShareTarget,
+  hostLabel, linkify, parseVideo, postAppUrl, postSharePageUrl, safeHttpUrl, shareTargets, siteFolderOf, type ShareTarget,
 } from '../lib/announcementMedia';
 
-/** The site's address without `?…` and `#…` — the folder the app is served from. */
+/** The folder the app is served from, e.g. https://cmckhmer.github.io/Creative-Minds-/ */
 function siteBase(): string {
   if (typeof window === 'undefined') return '/';
-  return new URL(import.meta.env.BASE_URL || '/', window.location.origin).href;
+  return siteFolderOf(window.location.href);
 }
 
 /** The text of a post, with every web address in it as a link. */

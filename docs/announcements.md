@@ -57,6 +57,34 @@ into Facebook's Sharing Debugger and press "Scrape again".
 `index.html` no longer sets `og:url`: with it fixed to the home page, Facebook
 treated every address of the site as the home page.
 
+### Getting the post's picture on the card
+
+1. Give the post a picture in the composer. A post without one shows the
+   still of its YouTube video, or else the site's general card.
+2. Wait for the next deploy before sharing — it runs every day at 08:00
+   Phnom Penh time and on every merge. To get it at once: GitHub → Actions →
+   "Build & Deploy to GitHub Pages" → Run workflow (about three minutes).
+3. Share from the post's Share menu. The address in the menu ends in
+   `post/<id>/` once the picture card is ready, and in `?post=<id>#announcements`
+   before that.
+
+The page states the picture's width and height (`og:image:width` / `height`);
+without them Facebook leaves the picture off the first time a post is shared.
+
+The deploy step reports what it did on the run's page (Actions → the run →
+Annotations): "Wrote N preview pages (M with the post's own picture)", or a
+warning with the reason when it could not read the posts.
+
+### The folder in the address
+
+The site is served from `/Creative-Minds-/`, and is built with a relative base,
+so the build does not know that folder. The Share menu reads it from the open
+page's address (`siteFolderOf` in `src/lib/announcementMedia.ts`). The first
+release resolved it against the host alone and shared
+`https://cmckhmer.github.io/?post=…`, which Facebook showed as "Site not
+found". `npm run verify:announcements` now serves the build from
+`/Creative-Minds-/` with 404 everywhere else, and opens each shared address.
+
 ## One-time setup by the site owner
 
 1. Publish `firestore.rules` (Firestore → Rules). Sharing, links and pasted

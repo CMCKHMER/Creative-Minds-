@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
-  excerpt, hostLabel, linkify, parseVideo, postAppUrl, postIdFromSearch, postSharePageUrl, safeHttpUrl, shareTargets, URL_MAX,
+  excerpt, hostLabel, linkify, parseVideo, postAppUrl, postIdFromSearch, postSharePageUrl, safeHttpUrl, shareTargets, siteFolderOf, URL_MAX,
 } from '../lib/announcementMedia';
 import { uploadProblem, VIDEO_MAX_BYTES, videoDownloadUrl, videoFileProblem, videoObjectPath } from '../lib/announcementVideo';
 import { parseAnnouncementDoc } from '../components/AnnouncementBoard';
@@ -113,6 +113,27 @@ describe('the address of one post', () => {
     expect(postAppUrl('https://cmckhmer.github.io/Creative-Minds-/', 'abc123')).toBe('https://cmckhmer.github.io/Creative-Minds-/?post=abc123#announcements');
     expect(postAppUrl('https://cmckhmer.github.io/Creative-Minds-/#games', 'abc123')).toBe('https://cmckhmer.github.io/Creative-Minds-/?post=abc123#announcements');
     expect(postSharePageUrl('https://cmckhmer.github.io/Creative-Minds-', 'abc123')).toBe('https://cmckhmer.github.io/Creative-Minds-/post/abc123/');
+  });
+
+  it('keeps the folder the site lives in (GitHub Pages serves it from /Creative-Minds-/)', () => {
+    const live = 'https://cmckhmer.github.io/Creative-Minds-/';
+    expect(siteFolderOf('https://cmckhmer.github.io/Creative-Minds-/')).toBe(live);
+    expect(siteFolderOf('https://cmckhmer.github.io/Creative-Minds-/#announcements')).toBe(live);
+    expect(siteFolderOf('https://cmckhmer.github.io/Creative-Minds-/?post=abc#announcements')).toBe(live);
+    expect(siteFolderOf('https://cmckhmer.github.io/Creative-Minds-/index.html?x=1')).toBe(live);
+    expect(siteFolderOf('https://cmckhmer.github.io/Creative-Minds-')).toBe(live);
+    expect(siteFolderOf('https://example.org/')).toBe('https://example.org/');
+    expect(siteFolderOf('http://localhost:5173/#games')).toBe('http://localhost:5173/');
+    expect(postAppUrl(siteFolderOf(`${live}#announcements`), 'abc123')).toBe(`${live}?post=abc123#announcements`);
+    expect(postSharePageUrl(siteFolderOf(`${live}?post=zzz#announcements`), 'abc123')).toBe(`${live}post/abc123/`);
+  });
+
+  it('the Share menu takes the folder from the open page, not from the build', () => {
+    // vite.config.ts builds with base "./": import.meta.env.BASE_URL cannot name the folder
+    const menu = read('src/components/AnnouncementExtras.tsx');
+    expect(menu).toContain('siteFolderOf(window.location.href)');
+    expect(menu).not.toContain('import.meta.env.BASE_URL');
+    expect(menu).not.toContain('location.origin');
   });
 
   it('reads the post back from the address, and nothing odd', () => {
@@ -295,6 +316,64 @@ describe('preview pages for shared posts (scripts/build_share_pages.mjs)', () =>
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it('tells Facebook the size of the picture, so it shows on the very first share', () => {
+    // real pictures from the site: the board stores JPEG; PNG and WebP are accepted too
+    const pictures: Array<[string, string, string, number, number]> = [
+      ['picJpeg', 'public/images/og-card.jpg', 'jpeg', 1200, 630],
+      ['picWebp', 'public/images/news/news-hero.webp', 'webp', 1344, 768],
+      ['picPng', 'public/icons/favicon-64.png', 'png', 64, 64],
+    ];
+    const dir = mkdtempSync(join(tmpdir(), 'cmc-share-'));
+    try {
+      const out = join(dir, 'dist');
+      mkdirSync(out);
+      const from = join(dir, 'posts.json');
+      writeFileSync(from, JSON.stringify({
+        documents: [
+          ...pictures.map(([id, file, type]) => ({
+            name: `x/announcements/${id}`,
+            fields: { title: { stringValue: `Post ${id}` }, body: { stringValue: 'x' }, imageUrl: { stringValue: `data:image/${type};base64,${readFileSync(resolve(process.cwd(), file)).toString('base64')}` } },
+          })),
+          { name: 'x/announcements/picCut', fields: { title: { stringValue: 'Cut off' }, body: { stringValue: 'x' }, imageUrl: { stringValue: `data:image/jpeg;base64,${Buffer.from([0xff, 0xd8, 0xff]).toString('base64')}` } } },
+          { name: 'x/announcements/noPic', fields: { title: { stringValue: 'No picture' }, body: { stringValue: 'x' } } },
+          { name: 'x/announcements/tube', fields: { title: { stringValue: 'Video' }, body: { stringValue: 'x' }, videoUrl: { stringValue: 'https://youtu.be/dQw4w9WgXcQ' } } },
+        ],
+      }));
+      const log = execFileSync(process.execPath, ['scripts/build_share_pages.mjs', '--from', from, '--out', out], {
+        cwd: process.cwd(), encoding: 'utf8', env: { ...process.env, SITE_URL: 'https://cmckhmer.github.io/Creative-Minds-/', GITHUB_ACTIONS: 'true' },
+      });
+      for (const [id, , type, w, h] of pictures) {
+        const page = readFileSync(join(out, `post/${id}/index.html`), 'utf8');
+        const ext = type === 'jpeg' ? 'jpg' : type;
+        expect(page).toContain(`<meta property="og:image" content="https://cmckhmer.github.io/Creative-Minds-/post/${id}/cover.${ext}" />`);
+        expect(page).toContain(`<meta property="og:image:type" content="image/${type}" />`);
+        expect(page).toContain(`<meta property="og:image:width" content="${w}" />`);
+        expect(page).toContain(`<meta property="og:image:height" content="${h}" />`);
+        expect(page).toContain(`<meta name="twitter:image" content="https://cmckhmer.github.io/Creative-Minds-/post/${id}/cover.${ext}" />`);
+      }
+      // a picture whose size cannot be read is still offered, without a made-up size
+      const cut = readFileSync(join(out, 'post/picCut/index.html'), 'utf8');
+      expect(cut).toContain('/post/picCut/cover.jpg" />');
+      expect(cut).not.toContain('og:image:width');
+      // no picture: the site's card, 1200 × 630; a YouTube video: its still
+      const none = readFileSync(join(out, 'post/noPic/index.html'), 'utf8');
+      expect(none).toContain('<meta property="og:image" content="https://cmckhmer.github.io/Creative-Minds-/images/og-card.jpg" />');
+      expect(none).toContain('<meta property="og:image:width" content="1200" />');
+      expect(readFileSync(join(out, 'post/tube/index.html'), 'utf8')).toContain('<meta property="og:image:width" content="480" />');
+      // on GitHub the outcome is also put on the run's page
+      expect(log).toContain('::notice title=Announcement preview pages::Wrote 6 preview pages (4 with the post\'s own picture)');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('on GitHub, says so on the run page when the posts could not be read', () => {
+    const log = execFileSync(process.execPath, ['scripts/build_share_pages.mjs', '--from', '/nonexistent/posts.json'], {
+      cwd: process.cwd(), encoding: 'utf8', env: { ...process.env, GITHUB_ACTIONS: 'true' },
+    });
+    expect(log).toContain('::warning title=Announcement preview pages::Not written');
   });
 
   it('clears only its own pages: the headlines feed and anything else in the build stay', () => {

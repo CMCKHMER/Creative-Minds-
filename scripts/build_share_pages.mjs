@@ -78,6 +78,46 @@ function decodePicture(dataUrl) {
   return { ext: m[1] === 'jpeg' ? 'jpg' : m[1], bytes: Buffer.from(m[2], 'base64') };
 }
 
+/**
+ * Width and height of a JPEG, PNG or WebP picture, read from its first bytes
+ * (null when they cannot be read). Facebook shows the picture on the very
+ * first share only when the page states its size; without it the first person
+ * to share a post gets a card with no picture.
+ */
+function pictureSize(bytes) {
+  try {
+    if (bytes.length > 24 && bytes.readUInt32BE(0) === 0x89504e47) {
+      return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+    }
+    if (bytes.length > 30 && bytes.toString('latin1', 0, 4) === 'RIFF' && bytes.toString('latin1', 8, 12) === 'WEBP') {
+      const kind = bytes.toString('latin1', 12, 16);
+      if (kind === 'VP8X') return { width: 1 + bytes.readUIntLE(24, 3), height: 1 + bytes.readUIntLE(27, 3) };
+      if (kind === 'VP8 ') return { width: bytes.readUInt16LE(26) & 0x3fff, height: bytes.readUInt16LE(28) & 0x3fff };
+      if (kind === 'VP8L') {
+        const n = bytes.readUInt32LE(21);
+        return { width: 1 + (n & 0x3fff), height: 1 + ((n >> 14) & 0x3fff) };
+      }
+      return null;
+    }
+    if (bytes.length > 4 && bytes[0] === 0xff && bytes[1] === 0xd8) {
+      let at = 2;
+      while (at + 9 < bytes.length) {
+        if (bytes[at] !== 0xff) return null;
+        const marker = bytes[at + 1];
+        if (marker === 0xff) { at += 1; continue; }
+        // the "start of frame" blocks carry the size (C4, C8 and CC are other things)
+        if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+          return { width: bytes.readUInt16BE(at + 7), height: bytes.readUInt16BE(at + 5) };
+        }
+        at += 2 + bytes.readUInt16BE(at + 2);
+      }
+    }
+  } catch {
+    /* cut-off file: no size */
+  }
+  return null;
+}
+
 function readPost(doc) {
   const id = typeof doc?.name === 'string' ? doc.name.split('/').pop() : '';
   const f = doc?.fields || {};
@@ -95,10 +135,12 @@ function readPost(doc) {
   };
 }
 
-function pageHtml(post, pageUrl, appUrl, imageUrl) {
+function pageHtml(post, pageUrl, appUrl, image) {
   const title = esc(post.title);
   const text = esc(excerpt(post.body) || 'An announcement from Creative Minds Network.');
   const time = /^\d{4}-\d\d-\d\dT/.test(post.createdAt) ? `\n<meta property="article:published_time" content="${esc(post.createdAt)}" />` : '';
+  const size = (image.type ? `\n<meta property="og:image:type" content="${esc(image.type)}" />` : '')
+    + (image.width > 0 && image.height > 0 ? `\n<meta property="og:image:width" content="${image.width}" />\n<meta property="og:image:height" content="${image.height}" />` : '');
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -112,11 +154,12 @@ function pageHtml(post, pageUrl, appUrl, imageUrl) {
 <meta property="og:title" content="${title}" />
 <meta property="og:description" content="${text}" />
 <meta property="og:url" content="${esc(pageUrl)}" />
-<meta property="og:image" content="${esc(imageUrl)}" />${time}
+<meta property="og:image" content="${esc(image.url)}" />${size}
+<meta property="og:image:alt" content="${title}" />${time}
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${title}" />
 <meta name="twitter:description" content="${text}" />
-<meta name="twitter:image" content="${esc(imageUrl)}" />
+<meta name="twitter:image" content="${esc(image.url)}" />
 <script>location.replace(${JSON.stringify(appUrl).replace(/</g, '\\u003c')});</script>
 <style>body{font:16px/1.6 system-ui,sans-serif;max-width:40rem;margin:12vh auto;padding:0 1.25rem;color:#0f172a}a{color:#0e7490}</style>
 </head>
@@ -144,11 +187,17 @@ async function fetchDocs() {
   return docs;
 }
 
+/** On GitHub, also put the outcome on the run's summary page, where the owner can read it without opening the log. */
+function note(text, level = 'notice') {
+  if (process.env.GITHUB_ACTIONS === 'true') console.log(`::${level} title=Announcement preview pages::${text.replace(/\r?\n/g, ' ')}`);
+}
+
 let docs;
 try {
   docs = FROM ? JSON.parse(readFileSync(resolve(FROM), 'utf8')).documents || [] : await fetchDocs();
 } catch (e) {
   console.log(`share pages: skipped — ${e.message || e}. Shared links use the site address until the next deploy.`);
+  note(`Not written: ${e.message || e}. Shared posts show the site's general card until the next deploy.`, 'warning');
   process.exit(0);
 }
 if (!existsSync(OUT)) {
@@ -165,11 +214,13 @@ if (existsSync(root)) {
   const foreign = readdirSync(root, { withFileTypes: true }).filter((e) => !e.isDirectory() || !existsSync(join(root, e.name, 'share.json')));
   if (foreign.length) {
     console.log(`share pages: skipped — ${root} holds files this script did not write (${foreign[0].name}).`);
+    note(`Not written: the build's post/ folder holds a file this step did not write (${foreign[0].name}).`, 'warning');
     process.exit(0);
   }
   rmSync(root, { recursive: true, force: true });
 }
 let written = 0;
+let withPicture = 0;
 for (const doc of docs.slice(0, MAX_POSTS)) {
   const post = readPost(doc);
   if (!post) continue;
@@ -177,16 +228,19 @@ for (const doc of docs.slice(0, MAX_POSTS)) {
   mkdirSync(dir, { recursive: true });
   const pageUrl = `${SITE}post/${post.id}/`;
   const appUrl = `${SITE}?post=${encodeURIComponent(post.id)}#announcements`;
-  let image = `${SITE}images/og-card.jpg`;
+  // the picture Facebook shows: the post's own, else the video's still, else the site's card
+  let image = { url: `${SITE}images/og-card.jpg`, type: 'image/jpeg', width: 1200, height: 630 };
   const picture = decodePicture(post.imageUrl);
   if (picture) {
     writeFileSync(join(dir, `cover.${picture.ext}`), picture.bytes);
-    image = `${pageUrl}cover.${picture.ext}`;
+    image = { url: `${pageUrl}cover.${picture.ext}`, type: `image/${picture.ext === 'jpg' ? 'jpeg' : picture.ext}`, ...(pictureSize(picture.bytes) || {}) };
+    withPicture++;
   } else if (youtubePoster(post.videoUrl)) {
-    image = youtubePoster(post.videoUrl);
+    image = { url: youtubePoster(post.videoUrl), type: 'image/jpeg', width: 480, height: 360 };
   }
   writeFileSync(join(dir, 'index.html'), pageHtml(post, pageUrl, appUrl, image));
   writeFileSync(join(dir, 'share.json'), `${JSON.stringify({ id: post.id, title: post.title, updatedAt: post.updatedAt })}\n`);
   written++;
 }
 console.log(`share pages: wrote ${written} page${written === 1 ? '' : 's'} under ${root}`);
+note(`Wrote ${written} preview page${written === 1 ? '' : 's'} (${withPicture} with the post's own picture) for ${SITE}post/<id>/`);
