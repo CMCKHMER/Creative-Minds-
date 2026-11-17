@@ -649,7 +649,7 @@ function showKey(){
 
 /* ── Share & Print ── */
 function shareText(){const name=document.getElementById('studentName').value.trim();return `Reading Future Connect 2 — Unit Test (${unitSelect.value||'all units'})${name?' · '+name:''}`;}
-function shareWorksheet(){if(navigator.share){navigator.share({title:'Reading Future Connect 2 — Unit Test',text:shareText(),url:location.href}).catch(()=>{});return;}document.getElementById('sharePanel').classList.toggle('open');}
+function shareWorksheet(){if(navigator.share){navigator.share({title:'Reading Future Connect 2 — Unit Test',text:shareText(),url:location.href}).catch(function(e){if(!e||e.name!=='AbortError'){document.getElementById('sharePanel').classList.add('open');}});return;}document.getElementById('sharePanel').classList.toggle('open');}
 function copyLink(){const url=location.href;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard'));}else{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}}
 function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Connect 2 — Unit Test')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
 function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}

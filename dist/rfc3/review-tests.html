@@ -708,7 +708,7 @@ function shareText(){
   return `Reading Future Create 3 — Review Test (${testSelect.value||'all'})${name?' · '+name:''}`;
 }
 function shareWorksheet(){
-  if(navigator.share){navigator.share({title:'Reading Future Create 3 — Review Tests',text:shareText(),url:location.href}).catch(()=>{});return;}
+  if(navigator.share){navigator.share({title:'Reading Future Create 3 — Review Tests',text:shareText(),url:location.href}).catch(function(e){if(!e||e.name!=='AbortError'){document.getElementById('sharePanel').classList.add('open');}});return;}
   document.getElementById('sharePanel').classList.toggle('open');
 }
 function copyLink(){

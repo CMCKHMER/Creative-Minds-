@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+<script src="../assets/js/cmc-auth-gate.js"></script>
+<script>/* heal email-as-name */
+(function(){function isE(v){return /^[^\\s@]+@[^\\s@]+\.[^\\s@]+$/.test(String(v||'').trim())}
+function fr(e){var l=String(e||'').split('@')[0].trim();if(!l)return'';var w=l.split(/[._+\\-]+/).map(function(x){return x.trim()}).filter(Boolean);if(!w.length)return l.slice(0,40);return w.map(function(x){return (x.charAt(0).toUpperCase()+x.slice(1)).slice(0,40)}).join(' ').trim().slice(0,40)}
+try{var s=localStorage.getItem('cmc-student-name')||'';if(isE(s)){var h=fr(s);if(h)localStorage.setItem('cmc-student-name',h);else localStorage.removeItem('cmc-student-name')}}catch(e){}})();</script>
+<meta name="google" content="notranslate" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Units 12–13 Secure Quiz · Version B — Kid 11 Live Worksheet (35 min)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-user-select:none;user-select:none;scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',Inter,system-ui,sans-serif;background:#020617;color:#e2e8f0;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:#020617}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(56,189,248,.35),rgba(139,92,246,.35));border-radius:6px}
+a{color:inherit}
+/* disable text selection except inputs - screenshot deterrent */
+.quiz-shell{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.quiz-shell input,.quiz-shell textarea,.quiz-shell select{user-select:text;-webkit-user-select:text}
+::selection{background:transparent}
+::-moz-selection{background:transparent}
+
+/* top secure bar */
+.secure-bar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(2,6,23,.96);backdrop-filter:blur(10px);border-bottom:1px solid rgba(56,189,248,.18);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#67e8f9}
+.brand i{color:#22d3ee}
+.timer{margin-left:auto;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:999px;padding:6px 12px;font-variant-numeric:tabular-nums;font-weight:800;font-size:14px;letter-spacing:.04em}
+.timer.warn{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.35);color:#fca5a5;animation:pulseWarn 1s infinite alternate}
+@keyframes pulseWarn{from{box-shadow:0 0 0 rgba(248,113,113,0)}to{box-shadow:0 0 18px rgba(248,113,113,.35)}}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid}
+.pill.ok{background:rgba(52,211,153,.10);border-color:rgba(52,211,153,.30);color:#6ee7b7}
+.pill.bad{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.35);color:#fecaca}
+.pill.warn{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.30);color:#fde68a}
+.back{position:fixed;top:14px;right:14px;z-index:61;display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;background:rgba(15,23,42,.92);border:1px solid rgba(56,189,248,.30);color:#67e8f9;font-size:12px;font-weight:700;text-decoration:none}
+.back:hover{background:rgba(56,189,248,.10)}
+
+/* gate */
+.gate{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(60% 60% at 20% 10%,rgba(56,189,248,.12),transparent 60%),radial-gradient(50% 50% at 90% 90%,rgba(139,92,246,.12),transparent 60%),linear-gradient(180deg,#020617,#0a1020)}
+.gate-card{width:100%;max-width:520px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;backdrop-filter:blur(14px);box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.kicker{font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#67e8f9;display:flex;align-items:center;gap:8px}
+.kicker:before{content:"";width:20px;height:1px;background:linear-gradient(90deg,#22d3ee,transparent)}
+.gate-card h1{margin-top:8px;font-family:'Space Grotesk',sans-serif;font-size:22px;line-height:1.15;color:#f8fafc}
+.gate-card p{margin-top:8px;font-size:13px;line-height:1.6;color:#94a3b8}
+.rules{margin-top:14px;display:grid;gap:8px}
+.rule{display:flex;gap:9px;align-items:flex-start;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.5;color:#cbd5e1}
+.rule i{margin-top:2px;color:#22d3ee}
+.field{margin-top:12px}
+.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:6px}
+.field input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#f1f5f9;font-size:14px;outline:none}
+.field input:focus{border-color:rgba(56,189,248,.45);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
+.field input.bad{border-color:rgba(248,113,113,.6);box-shadow:0 0 0 3px rgba(248,113,113,.12)}
+.field input::placeholder,.write input::placeholder,.write textarea::placeholder{color:#94a3b8;opacity:1}
+.agree{display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:12px;line-height:1.55;color:#cbd5e1;cursor:pointer}
+.agree input{margin-top:2px;accent-color:#22d3ee;flex:none}
+#violPill:not(.warn):not(.bad){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10);color:#e2e8f0}
+#gateMsg{margin-top:10px;font-size:12px;line-height:1.5;color:#fca5a5}
+.cta{margin-top:16px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#6366f1);color:#0f172a;font-weight:800;font-size:14px;border:none}
+.cta:disabled{opacity:.5;cursor:not-allowed}
+.note{margin-top:10px;font-size:11px;line-height:1.5;color:#94a3b8;text-align:center}
+
+/* quiz layout */
+.wrap{max-width:960px;margin:0 auto;padding:18px 16px 140px}
+.hero{padding:18px 0 10px}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-size:26px;line-height:1.1;color:#f8fafc}
+.hero h1 span{background:linear-gradient(90deg,#67e8f9,#c4b5fd);-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.meta span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:6px 10px;color:#94a3b8}
+.meta span strong{color:#e2e8f0}
+.progress{height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:14px}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#6366f1);transition:width .3s}
+
+.passage{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-top:16px}
+.passage h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#67e8f9}
+.passage h4{margin-top:6px;font-family:'Space Grotesk',sans-serif;font-size:16px;color:#f1f5f9}
+.passage p{margin-top:10px;font-size:13.5px;line-height:1.8;color:#cbd5e1}
+.sec{margin-top:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px}
+.sec-head{display:flex;align-items:center;gap:10px}
+.sec-head .bar{width:4px;height:22px;border-radius:2px;background:linear-gradient(180deg,#22d3ee,#8b5cf6)}
+.sec-head h2{font-family:'Space Grotesk',sans-serif;font-size:16px;color:#f1f5f9}
+.sec-head span{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:5px 8px}
+.qcard{margin-top:12px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.03)}
+.qcard.need{border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.06)}
+.qtitle{font-size:13.5px;line-height:1.6;color:#e2e8f0;font-weight:600}
+.opt{display:flex;align-items:flex-start;gap:10px;margin-top:8px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.02);cursor:pointer;transition:.15s}
+.opt:hover{border-color:rgba(56,189,248,.35);background:rgba(56,189,248,.06)}
+.opt.on{border-color:#22d3ee;background:rgba(34,211,238,.10)}
+.opt input{margin-top:3px;accent-color:#22d3ee;flex:none}
+.opt b{color:#22d3ee;min-width:18px}
+.write{margin-top:10px}
+.write textarea,.write input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#f1f5f9;font-size:13.5px}
+.write textarea{ min-height:86px; resize:vertical }
+.write .hint{margin-top:6px;font-size:11px;color:#94a3b8}
+.decon{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+@media(max-width:700px){.decon{grid-template-columns:1fr}}
+.btm{position:fixed;left:0;right:0;bottom:0;z-index:55;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:12px 14px;background:rgba(2,6,23,.94);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.10)}
+.btn{padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e2e8f0;font-weight:700;font-size:13px}
+.btn-primary{background:linear-gradient(135deg,#22d3ee,#6366f1);color:#0f172a;border:none}
+.btn:disabled{opacity:.5;cursor:wait}
+.result{display:none;margin-top:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px}
+.result.show{display:block}
+.score{font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:800;color:#f8fafc}
+.score small{font-size:14px;color:#94a3b8;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
+.stat b{display:block;font-size:18px;color:#f1f5f9}
+.stat span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;font-weight:700}
+.report{margin-top:12px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:12px;padding:12px}
+.report.bad{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.30)}
+.report.ok{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.25)}
+.leader{margin-top:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
+.leader h4{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#67e8f9}
+.leader ol{margin-top:8px;display:grid;gap:6px}
+.leader li{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;font-size:13px}
+.leader li.me{background:rgba(34,211,238,.10);border-color:rgba(34,211,238,.35)}
+.wm{position:fixed;inset:0;pointer-events:none;opacity:.04;display:grid;place-items:center;transform:rotate(-18deg);font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:64px;color:#fff;z-index:1}
+
+/* teacher card hint bar */
+.teacher-note{display:flex;gap:8px;align-items:flex-start;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.22);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.6;color:#fde68a;margin-top:12px}
+
+/* print/screenshot block */
+@media print{body *{display:none!important}}
+
+/* light theme — every surface that flips to white must also flip its text
+   dark. The dark theme's pale cyan/white text on a white card is unreadable,
+   so ALL foreground colours are re-declared here, not just the card shells. */
+html[data-theme="light"] body{background:#cbd5e1;color:#0f172a}
+html[data-theme="light"] ::-webkit-scrollbar-track{background:#e2e8f0}
+html[data-theme="light"] .secure-bar{background:rgba(255,255,255,.92);border-bottom-color:rgba(0,0,0,.08)}
+html[data-theme="light"] .brand{color:#0369a1}
+html[data-theme="light"] .brand i{color:#0284c7}
+html[data-theme="light"] .timer{background:rgba(15,23,42,.05);border-color:rgba(0,0,0,.12);color:#0f172a}
+html[data-theme="light"] .timer.warn{background:rgba(248,113,113,.14);border-color:rgba(220,38,38,.4);color:#b91c1c}
+html[data-theme="light"] .pill.ok{background:rgba(52,211,153,.16);border-color:rgba(4,120,87,.4);color:#047857}
+html[data-theme="light"] .pill.bad{background:rgba(248,113,113,.14);border-color:rgba(220,38,38,.4);color:#b91c1c}
+html[data-theme="light"] .pill.warn{background:rgba(251,191,36,.18);border-color:rgba(217,119,6,.45);color:#b45309}
+html[data-theme="light"] #violPill:not(.warn):not(.bad){background:rgba(15,23,42,.05);border-color:rgba(0,0,0,.12);color:#334155}
+html[data-theme="light"] .gate{background:radial-gradient(60% 60% at 20% 10%,rgba(56,189,248,.30),transparent 60%),radial-gradient(50% 50% at 90% 90%,rgba(139,92,246,.24),transparent 60%),linear-gradient(180deg,#f1f5f9,#cbd5e1)}
+html[data-theme="light"] .passage,html[data-theme="light"] .sec,html[data-theme="light"] .qcard,html[data-theme="light"] .result,html[data-theme="light"] .stat,html[data-theme="light"] .leader{background:rgba(255,255,255,.85);border-color:rgba(0,0,0,.08);color:#1e293b}
+html[data-theme="light"] .gate-card{background:rgba(255,255,255,.96);border-color:rgba(15,23,42,.10);color:#1e293b;box-shadow:0 30px 80px rgba(15,23,42,.20)}
+html[data-theme="light"] .kicker{color:#0369a1}
+html[data-theme="light"] .gate-card h1,html[data-theme="light"] .hero h1{color:#0f172a}
+html[data-theme="light"] .hero h1 span{background:linear-gradient(90deg,#0284c7,#7c3aed);-webkit-background-clip:text;background-clip:text}
+html[data-theme="light"] .gate-card p{color:#475569}
+html[data-theme="light"] .rule{background:rgba(2,132,199,.06);border-color:rgba(15,23,42,.10);color:#334155}
+html[data-theme="light"] .rule i{color:#0369a1}
+html[data-theme="light"] .field label{color:#475569}
+html[data-theme="light"] .field input,html[data-theme="light"] .write textarea,html[data-theme="light"] .write input{background:#fff;border-color:rgba(15,23,42,.22);color:#0f172a}
+html[data-theme="light"] .field input::placeholder,html[data-theme="light"] .write input::placeholder,html[data-theme="light"] .write textarea::placeholder{color:#64748b}
+html[data-theme="light"] .agree{color:#334155}
+html[data-theme="light"] .note{color:#475569}
+html[data-theme="light"] #gateMsg{color:#b91c1c}
+html[data-theme="light"] .meta span{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.10);color:#475569}
+html[data-theme="light"] .meta span strong{color:#0f172a}
+html[data-theme="light"] .progress{background:rgba(15,23,42,.12)}
+html[data-theme="light"] .passage h3,html[data-theme="light"] .leader h4{color:#0369a1}
+html[data-theme="light"] .passage h4,html[data-theme="light"] .sec-head h2,html[data-theme="light"] .stat b,html[data-theme="light"] .score{color:#0f172a}
+html[data-theme="light"] .passage p,html[data-theme="light"] .qtitle{color:#1e293b}
+html[data-theme="light"] .sec-head span{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.10);color:#475569}
+html[data-theme="light"] .opt{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.10);color:#1e293b}
+html[data-theme="light"] .opt b{color:#0284c7}
+html[data-theme="light"] .opt.on{background:rgba(2,132,199,.08);border-color:#0284c7}
+html[data-theme="light"] .write .hint,html[data-theme="light"] .stat span,html[data-theme="light"] .score small{color:#475569}
+html[data-theme="light"] .leader li{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.08);color:#1e293b}
+html[data-theme="light"] .leader li.me{background:rgba(2,132,199,.10);border-color:rgba(2,132,199,.4)}
+html[data-theme="light"] .teacher-note{background:rgba(251,191,36,.16);border-color:rgba(217,119,6,.40);color:#92400e}
+html[data-theme="light"] .btm{background:rgba(255,255,255,.94);border-top-color:rgba(0,0,0,.10)}
+html[data-theme="light"] .btn{background:#fff;border-color:rgba(0,0,0,.16);color:#0f172a}
+html[data-theme="light"] .btn-primary{background:linear-gradient(135deg,#22d3ee,#6366f1);color:#0f172a;border:none}
+/* JS-injected markup (hero line, result panel, leaderboard rows) carries
+   inline dark-theme colours — remap the pale ones to dark equivalents. */
+html[data-theme="light"] [style*="color:#94a3b8"]{color:#64748b!important}
+html[data-theme="light"] [style*="color:#e2e8f0"]{color:#0f172a!important}
+html[data-theme="light"] [style*="color:#cbd5e1"]{color:#334155!important}
+html[data-theme="light"] [style*="color:#67e8f9"]{color:#0369a1!important}
+html[data-theme="light"] [style*="color:#6ee7b7"]{color:#047857!important}
+html[data-theme="light"] [style*="color:#fecaca"]{color:#b91c1c!important}
+html[data-theme="light"] #toast{color:#e2e8f0!important}
+</style>
+</head>
+<body>
+<a id="cmc-back-btn" class="back" href="https://cmckhmer.github.io/Creative-Minds-/"><i class="fa-solid fa-arrow-left"></i> <span>Back to CMC</span></a>
+<div class="wm" aria-hidden="true">SECURE QUIZ • DO NOT COPY</div>
+
+<div class="secure-bar" id="secureBar">
+  <div class="brand"><i class="fa-solid fa-shield-halved"></i> SECURE WORKSHEET</div>
+  <span class="pill ok" id="securePill"><i class="fa-solid fa-lock"></i> Locked</span>
+  <span class="pill" id="violPill"><i class="fa-solid fa-triangle-exclamation"></i> Violations: <b id="violCount">0</b></span>
+  <div class="timer" id="timer"><i class="fa-regular fa-clock"></i> <span id="timerText">35:00</span></div>
+  <button id="fsBtn" class="btn" style="padding:8px 10px;font-size:12px;display:none"><i class="fa-solid fa-expand"></i> Fullscreen</button>
+</div>
+
+<!-- name / id gate -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="kicker"><i class="fa-solid fa-graduation-cap"></i> Kid 11 · Units 12–13 · Version B · Reading Future Create 3</div>
+    <h1>Enter to Start — 35-Minute Live Quiz</h1>
+    <p>This is a <b>secure, timed</b> live worksheet. Your teacher shared it from the <b>Kid 11 card</b> (Review Tests companion). Do <b>not</b> screenshot, print, copy, open floating windows or switch windows — every attempt is logged in your violation report and sent with your score to the class leaderboard.</p>
+    <div class="rules">
+      <div class="rule"><i class="fa-solid fa-ban"></i><span><b>No screenshot / print / copy</b> — right-click, copy keys, PrintScreen, Ctrl+P, Ctrl+S and Print menu are blocked and logged.</span></div>
+      <div class="rule"><i class="fa-solid fa-window-restore"></i><span><b>No floating window / window switching</b> — tab hide, window blur, Picture-in-Picture or focus loss is counted as a violation and auto-warns.</span></div>
+      <div class="rule"><i class="fa-solid fa-stopwatch"></i><span><b>35-minute timer</b> — auto-submits when time runs out. Stay on this tab; violations appear live and in your final report.</span></div>
+    </div>
+    <div class="field"><label for="nameIn">Full name *</label><input id="nameIn" type="text" placeholder="e.g., Sok Dara" autocomplete="name" maxlength="60"></div>
+    <div class="field"><label for="idIn">Student ID *</label><input id="idIn" type="text" placeholder="e.g., K11-214-08 or school ID" autocomplete="off" maxlength="40"></div>
+    <div class="field"><label for="classIn">Class (optional)</label><input id="classIn" type="text" placeholder="e.g., 9:30 AM Class #214" maxlength="40"></div>
+    <label class="agree"><input id="agree" type="checkbox"> <span>I understand this quiz is monitored for screenshots, window switching and floating windows. Violations will be reported.</span></label>
+    <button id="startBtn" class="cta" disabled><i class="fa-solid fa-play"></i> Start Quiz — Enter Fullscreen & Begin Timer</button>
+    <div class="note">Your name, ID, score and violation report are sent to your teacher’s leaderboard when you submit. Teachers see this quiz on the <b>Kid 11 pathway card</b> — it is gated by the share switch like other Kid 11 homeworks.</div>
+    <div id="gateMsg" style="display:none"></div>
+  </div>
+</div>
+
+<div class="wrap quiz-shell" id="wrap" aria-hidden="true" style="opacity:.25;pointer-events:none">
+  <div class="hero">
+    <div class="kicker">ESL Teacher Ry Mam · 9:30 / 10:30 AM · 3:30 / 4:30 PM · Class #214</div>
+    <h1>Quiz 3 Paper — <span>Version B</span> · Units 12–13</h1>
+    <p style="margin-top:8px;font-size:13px;line-height:1.7;color:#94a3b8">Reading Future Create 3 — Units 12 & 13 Assessment · Nail Art & New Homes for Animals · This live worksheet is <b style="color:#67e8f9">teacher-shared</b> and relates to <b style="color:#c4b5fd">Kid 11 Review Tests 1–4</b>. Complete all 5 sections in 35 minutes. Work alone; integrity checks run continuously.</p>
+    <div class="meta"><span><strong id="metaName">—</strong> · <span id="metaId">—</span></span><span id="metaDate"></span><span id="metaProgress">Progress: 0 / 40</span><span id="metaSecure" style="color:#6ee7b7"><i class="fa-solid fa-shield-halved"></i> Secure mode ON</span></div>
+    <div class="progress" aria-hidden="true"><i id="progressFill"></i></div>
+  </div>
+
+  <div class="teacher-note"><i class="fa-solid fa-chalkboard-user" style="margin-top:2px"></i><span><b>Teacher note:</b> This secure quiz (Units 12–13, Version B, 40 pts) is the live companion to <b>Kid 11 Review Tests 1–4</b> on the Kid 11 card. Share it with the <b>hw-kid11-u12-13-quiz</b> switch — students see it only after you share. After submission, scores + violation reports appear in the leaderboard and are sent to <code>drill_attempts</code> as <code>unit12-13-quiz.html / rfc3</code>.</span></div>
+
+  <div class="passage" id="passages">
+    <h3><i class="fa-solid fa-book-open"></i> Reading passages — read first (Q1–10)</h3>
+    <h4>Passage A — Unit 12: Nail Art</h4>
+    <p>The art of painting pictures on people's fingernails has a rich history dating back over 2,500 years in Asia. Today, this ancient tradition remains popular in nail salons globally. While many clients select simple solid colors, others choose intricate nail art to make their nails stand out. Skilled nail artists utilize specialized miniature tools, stickers, and decorative jewels to paint detailed patterns. They often work for 20 minutes or longer per nail, charging $15 to $30 for each nail. Although custom nail art is a lucrative commercial business, American painter Rick Mazzaferro creates nail designs purely as a non-profit hobby. He paints miniature landscapes—including deer near rivers, snowy mountain sunsets, and the Golden Gate Bridge—on his friends' nails, using fingernails as a unique canvas to express artistic creativity.</p>
+    <h4 style="margin-top:14px">Passage B — Unit 13: New Homes for Animals</h4>
+    <p>Across the globe, numerous wild animal species face severe habitat loss caused by human industrial development and natural disasters. When habitats are ruined, affected wildlife species risk dying out or becoming extinct. To counter this threat, wildlife conservationists formulate strategic relocation plans. They analyze animal migration habits, dietary requirements, social behaviors, and potential diseases. Conservationists then relocate endangered populations to safe, ecologically balanced sanctuaries. A notable example is the international strategy to transfer wild tigers from India to protected areas in Cambodia. Relocating threatened species and establishing secure habitats is crucial for maintaining ecological health and biodiversity worldwide.</p>
+  </div>
+
+  <div id="quizRoot"></div>
+
+  <div class="result" id="resultBox" aria-live="polite"></div>
+</div>
+
+<div class="btm" id="btmBar" style="display:none">
+  <span style="font-size:12px;color:#94a3b8"><i class="fa-solid fa-list-check"></i> <b id="answeredCount">0</b>/40 answered · <i class="fa-solid fa-triangle-exclamation"></i> Violations: <b id="btmViol">0</b></span>
+  <button class="btn" id="saveDraftBtn" type="button"><i class="fa-regular fa-floppy-disk"></i> Save progress</button>
+  <button class="btn btn-primary" id="submitBtn" type="button"><i class="fa-solid fa-paper-plane"></i> Submit — Show Score & Leaderboard</button>
+</div>
+
+<div id="toast" style="position:fixed;left:50%;bottom:82px;transform:translateX(-50%) translateY(10px);z-index:66;background:#0f172a;color:#e2e8f0;border:1px solid rgba(56,189,248,.35);padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;max-width:88vw;text-align:center"></div>
+
+<script>
+/* ========== config ========== */
+const QUIZ_SLUG = 'unit12-13-quiz.html';
+const QUIZ_SOURCE = 'rfc3';
+const QUIZ_TITLE = 'Units 12–13 Secure Quiz · Version B — Reading Future Create 3';
+const TOTAL_TIME = 35*60; // 35 min
+const HW_DOC = 'hw-kid11-u12-13-quiz'; // Firestore shareDoc (biweekly_tests)
+
+/* ========== answers ========== */
+const KEY = {
+  q1:'a', q2:'b', q3:'b', q4:'a', q5:'a', q6:'a', q7:'a', q8:'a', q9:'a', q10:'a',
+  q11:'a', q12:'a', q13:'a', q14:'a', q15:'a', q16:'a', q17:'a', q18:'a',
+  q19:'a', q20:'a', q21:'a', q22:'a', q23:'a', q24:'a', q25:'a', q26:'a',
+  q27:'a', q28:'b', q29:'b', q30:'b', q31:'b', q32:'b', q33:'c', q34:'a'
+};
+// q35-40 model + keywords for auto-grade
+const OPEN = {
+  q35:{pts:2, keywords:['extinct','extinction','die out','biodiversity','ecological','habitat','survive','sanctuary','relocate'], model:"Crucial because ruined habitats put wildlife at risk of extinction; relocation to safe, ecologically balanced sanctuaries preserves biodiversity and ecological health."},
+  q36:{pts:2, keywords:['hobby','creative','creativity','artistic','non-profit','not commercial','friends','canvas','expression'], model:"He views it as a non-profit creative hobby / artistic expression, not a commercial business — he paints for friends as a personal canvas."},
+  q37:{pts:1, ans:['extinct'], model:"extinct"},
+  q38:{pts:1, ans:['stand out'], model:"stand out"},
+  q39:{pts:2, keywords:['wildlife','strategy'], needBoth:true, model:"Example: Conservationists developed a strategy to relocate wildlife to safe habitats and protect biodiversity."},
+  q40:{pts:2, prefix:['re'], root:['locat','loca','location','loc'], suffix:['ion','ation'], model:"re- + locat(e)/loc + -ion → RELOCATION = re (again) + locat (place) + ion (act/process)."}
+};
+
+/* ========== quiz definition ========== */
+const QUIZ = [
+  {sec:"Section 1: Reading Passages & Comprehension (Q1–10)", icon:"fa-book-open", items:[
+    {id:'q1', q:"1. What primary factors are responsible for ruining wild animal habitats globally?", opts:["Human industrial development and natural disasters","Excessive animal migration and overeating","Space exploration and computer gaming"]},
+    {id:'q2', q:"2. How far back in history does the tradition of painting fingernails originate in Asia?", opts:["Less than 100 years ago","More than 2,500 years ago","Around 500 years ago"]},
+    {id:'q3', q:"3. What is the risk if endangered wild animals remain in ruined natural habitats?", opts:["They may become domesticated pets","They may die out or become extinct","They will migrate to city parks"]},
+    {id:'q4', q:"4. According to Passage A, how much do professional nail artists typically charge per nail?", opts:["$15 to $30","$5 to $10","$50 to $100"]},
+    {id:'q5', q:"5. What key factors do wildlife conservationists study before executing a relocation strategy?", opts:["Animal migration habits, dietary requirements, behavior, and diseases","Animal skin color and popular names","The price of zoo tickets"]},
+    {id:'q6', q:"6. What tools and items do professional nail artists use to create custom designs?", opts:["Specialized miniature tools, stickers, and decorative jewels","Industrial spray cans and stencils","Wood carving knives and oil paints"]},
+    {id:'q7', q:"7. Which international animal relocation effort is highlighted as an example in Passage B?", opts:["Transferring wild tigers from India to Cambodia","Moving polar bears from Canada to Africa","Transporting eagles from Asia to South America"]},
+    {id:'q8', q:"8. Why does Rick Mazzaferro create detailed nail art for his friends without charging any fee?", opts:["Because he views nail art as a creative personal hobby rather than a commercial business","Because he is taking a nail art exam","Because he works as a corporate lawyer"]},
+    {id:'q9', q:"9. What is the main idea of Passage B?", opts:["How wildlife conservationists design strategic relocation plans to save endangered species from extinction","Why human construction is good for wild tigers","The weather conditions during Asian hurricanes"]},
+    {id:'q10', q:"10. What is the main idea of Passage A?", opts:["The history, commercial growth, and personal artistic expression involved in fingernail art","How to open a commercial nail salon in New York","The cost of buying decorative plastic stickers"]},
+  ]},
+  {sec:"Section 2: Key Vocabulary & Word Meaning (Q11–18)", icon:"fa-language", items:[
+    {id:'q11', q:"11. Wildlife (Unit 13)", opts:["Wild animals and natural plants living in uncultivated environments","Farm animals raised by humans","Plastic toys sold in shops"]},
+    {id:'q12', q:"12. Canvas (Unit 12)", opts:["A heavy cloth or surface on which an artist paints","A legal document signed in court","A tool used for cutting wood"]},
+    {id:'q13', q:"13. Disaster (Unit 13)", opts:["A sudden event such as a flood or hurricane causing great damage","A peaceful summer afternoon","A new computer game"]},
+    {id:'q14', q:"14. Charge (Unit 12)", opts:["To ask an amount of money as a price for a service or item","To run away from danger quickly","To paint a room white"]},
+    {id:'q15', q:"15. Extinct (Unit 13)", opts:["No longer existing or living anywhere on Earth","Growing very fast in population","Living safely in a zoo"]},
+    {id:'q16', q:"16. Tradition (Unit 12)", opts:["A custom, belief, or practice passed down over a long time","A new rules guide for sports","A type of fast airplane"]},
+    {id:'q17', q:"17. Strategy (Unit 13)", opts:["A carefully devised plan designed to achieve a long-term goal","A quick guess without thinking","A type of heavy truck"]},
+    {id:'q18', q:"18. Stand out (Unit 12)", opts:["To be easily seen or noticed because of being unique or noticeable","To stand in line at a grocery store","To hide behind a tall wall"]},
+  ]},
+  {sec:"Section 3: Prefix & Suffix Analysis (Q19–26)", icon:"fa-puzzle-piece", items:[
+    {id:'q19', q:"19. In the words relocate and recreate, what does the prefix re- mean?", opts:["Again, anew, or back","Before or early","Against or opposite"]},
+    {id:'q20', q:"20. In the words artist and conservationist, what does the suffix -ist mean?", opts:["A person who practices, creates, or specializes in a domain","Full of fear or sadness","Without any tools"]},
+    {id:'q21', q:"21. In the word suitable (fit for a purpose), what does the suffix -able mean?", opts:["Capable of being, worthy of, or fit for","Lacking or missing","Made of metal"]},
+    {id:'q22', q:"22. In the words painter and designer, what does the suffix -er mean?", opts:["A person or instrument that performs a specific action","Past action","A state of feeling cold"]},
+    {id:'q23', q:"23. In the words conservation and tradition, what does the suffix -tion mean?", opts:["The act, process, or state of being","A small building","Happening yesterday"]},
+    {id:'q24', q:"24. In the words disaster and disappear, what does the prefix dis- mean?", opts:["Away, opposite of, or negative reversal","Inside or interior","Highly or extremely"]},
+    {id:'q25', q:"25. In the words unsuitable and unusual, what does the prefix un- mean?", opts:["Not or opposite of","Very or extremely","Between two places"]},
+    {id:'q26', q:"26. In the words environmental and traditional, what does the suffix -al mean?", opts:["Relating to or characterized by","Full of water","Without any reason"]},
+  ]},
+  {sec:"Section 4: Verb Tense & Grammar in Context (Q27–34)", icon:"fa-pen-to-square", items:[
+    {id:'q27', q:"27. Rick Mazzaferro regularly __________ detailed landscapes on his friends' nails without taking money.", opts:["paints","painted","is painting"]},
+    {id:'q28', q:"28. Over 2,500 years ago, ancient civilizations in Asia __________ painting fingernails as a tradition.", opts:["begin","began","are beginning"]},
+    {id:'q29', q:"29. If wild animals lose their natural habitats, they __________ severe risks of extinction.", opts:["face","will face","faced"]},
+    {id:'q30', q:"30. Right now, talented nail artists __________ intricate miniature paintings in salons worldwide.", opts:["painted","are painting","paint"]},
+    {id:'q31', q:"31. Currently, researchers __________ animal migration routes using advanced tracking collars.", opts:["studied","are studying","study"]},
+    {id:'q32', q:"32. Last year, conservationists __________ a strategic plan to protect endangered tigers.", opts:["develop","developed","are developing"]},
+    {id:'q33', q:"33. In the coming decade, conservation groups __________ threatened species to secure sanctuaries.", opts:["moved","move","will move"]},
+    {id:'q34', q:"34. A professional nail salon usually __________ between $15 and $30 per customized nail.", opts:["charges","charged","will charge"]},
+  ]},
+];
+
+/* ========== render ========== */
+const root = document.getElementById('quizRoot');
+function letter(i){return String.fromCharCode(97+i)}
+QUIZ.forEach(group=>{
+  const sec=document.createElement('section'); sec.className='sec';
+  sec.innerHTML=`<div class="sec-head"><span class="bar"></span><h2><i class="fa-solid ${group.icon}" style="color:#67e8f9"></i> ${group.sec}</h2><span>${group.items.length} Qs</span></div>`;
+  group.items.forEach(it=>{
+    const card=document.createElement('div'); card.className='qcard'; card.dataset.qid=it.id;
+    card.innerHTML=`<div class="qtitle">${it.q}</div>` + it.opts.map((o,i)=>`<label class="opt"><input type="radio" name="${it.id}" value="${letter(i)}"> <b>${letter(i)}.</b> <span>${o}</span></label>`).join('');
+    sec.appendChild(card);
+  });
+  root.appendChild(sec);
+});
+// section 5 open-ended
+const s5=document.createElement('section'); s5.className='sec';
+s5.innerHTML=`
+  <div class="sec-head"><span class="bar" style="background:linear-gradient(180deg,#f59e0b,#ef4444)"></span><h2><i class="fa-solid fa-pen" style="color:#f59e0b"></i> Section 5: Open-Ended Write-In & Word Structure (Q35–40) — 10 pts</h2><span>6 Qs</span></div>
+  <div class="qcard" data-qid="q35"><div class="qtitle">35. Short Answer (2 pts): Why is it crucial for wildlife conservationists to relocate endangered animals to suitable new natural habitats?</div><div class="write"><textarea id="q35" rows="3" placeholder="Write 1–2 complete sentences…"></textarea><div class="hint">Include ideas: extinction risk, biodiversity, ecological health, sanctuary.</div></div></div>
+  <div class="qcard" data-qid="q36"><div class="qtitle">36. Short Answer (2 pts): Why does Rick Mazzaferro design customized nail art for his friends without charging any financial fee?</div><div class="write"><textarea id="q36" rows="3" placeholder="Write 1–2 complete sentences…"></textarea><div class="hint">Key: non-profit hobby, artistic creativity / expression, friends as canvas.</div></div></div>
+  <div class="qcard" data-qid="q37"><div class="qtitle">37. Sentence Completion (1 pt): Fill in the blank with a Unit 13 vocabulary word: “When an animal species becomes _______________, it is gone forever and can never return to the ecosystem.”</div><div class="write"><input id="q37" type="text" placeholder="Type the word…"><div class="hint">Unit 13 word. Spelling counts — type the base form.</div></div></div>
+  <div class="qcard" data-qid="q38"><div class="qtitle">38. Sentence Completion (1 pt): Fill in the blank with a Unit 12 vocabulary word: “To make her nails _______________ at the event, she requested a detailed landscape design from the artist.”</div><div class="write"><input id="q38" type="text" placeholder="Type the phrase…"><div class="hint">Unit 12 phrasal verb.</div></div></div>
+  <div class="qcard" data-qid="q39"><div class="qtitle">39. Sentence Construction (2 pts): Write ONE complete sentence about animal conservation using BOTH the word WILDLIFE and the word STRATEGY:</div><div class="write"><textarea id="q39" rows="2" placeholder="Write one sentence containing both WILDLIFE and STRATEGY…"></textarea><div class="hint">Must contain both words (any case) and be a full sentence (capital + period).</div></div></div>
+  <div class="qcard" data-qid="q40"><div class="qtitle">40. Word Structure Analysis (2 pts): Deconstruct the word RELOCATION into its 3 structural parts:</div><div class="write"><div class="decon"><div><label style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8">Prefix</label><input id="q40a" type="text" placeholder="e.g., re-"></div><div><label style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8">Base / Root</label><input id="q40b" type="text" placeholder="e.g., locat"></div><div><label style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8">Suffix</label><input id="q40c" type="text" placeholder="e.g., -ion"></div></div><div class="hint">Model: <b>re- + locat(e) + -ion</b> = again/back + place + act/process. Accept close variants.</div></div></div>
+`;
+root.appendChild(s5);
+
+/* ========== gate logic ========== */
+const nameIn=document.getElementById('nameIn');
+const idIn=document.getElementById('idIn');
+const classIn=document.getElementById('classIn');
+const agree=document.getElementById('agree');
+const startBtn=document.getElementById('startBtn');
+const gate=document.getElementById('gate');
+const wrap=document.getElementById('wrap');
+const btmBar=document.getElementById('btmBar');
+const metaName=document.getElementById('metaName');
+const metaId=document.getElementById('metaId');
+const metaDate=document.getElementById('metaDate');
+const gateMsg=document.getElementById('gateMsg');
+
+function canStart(){ return nameIn.value.trim().length>=2 && idIn.value.trim().length>=2 && agree.checked }
+function syncStart(){ startBtn.disabled=!canStart(); if(startBtn.disabled) startBtn.style.opacity=.5; else startBtn.style.opacity=1 }
+nameIn.addEventListener('input',syncStart); idIn.addEventListener('input',syncStart); agree.addEventListener('change',syncStart);
+
+// try prefill from localStorage
+try{
+  const sn=localStorage.getItem('cmc-student-name')||'';
+  const si=localStorage.getItem('cmc-student-id')||localStorage.getItem('cmc-student-classId')||'';
+  if(sn && !nameIn.value) nameIn.value=sn;
+  if(si && !idIn.value) idIn.value=si;
+  syncStart();
+}catch(e){}
+
+/* ========== timer + violations ========== */
+let started=false, submitted=false, timeLeft=TOTAL_TIME, timerInt=null;
+let violations=[]; // {at, type, detail}
+const violCount=document.getElementById('violCount');
+const btmViol=document.getElementById('btmViol');
+const violPill=document.getElementById('violPill');
+const securePill=document.getElementById('securePill');
+let startAt=0;
+
+function fmt(t){ const m=Math.floor(t/60), s=t%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function toast(msg, bad){ const t=document.getElementById('toast'); t.textContent=msg; t.style.background=bad?'rgba(127,29,29,.96)':'rgba(2,6,23,.96)'; t.style.borderColor=bad?'rgba(248,113,113,.45)':'rgba(56,189,248,.35)'; t.style.opacity=1; t.style.transform='translateX(-50%) translateY(0)'; clearTimeout(t._h); t._h=setTimeout(()=>{t.style.opacity=0; t.style.transform='translateX(-50%) translateY(10px)'}, 2800)}
+function addViol(type, detail){
+  if(!started || submitted) return;
+  const at=Date.now();
+  // throttle: same type within 2s ignored
+  if(violations.length && violations[violations.length-1].type===type && (at - violations[violations.length-1].at)<2000) return;
+  violations.push({at, type, detail:detail||''});
+  violCount.textContent=String(violations.length);
+  btmViol.textContent=String(violations.length);
+  if(violations.length===1) { violPill.className='pill warn'; violPill.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i> Violations: <b>'+violations.length+'</b>'; securePill.className='pill warn'; securePill.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i> Warning' }
+  else if(violations.length>=3){ violPill.className='pill bad'; violPill.innerHTML='<i class="fa-solid fa-ban"></i> Violations: <b>'+violations.length+'</b> — flagged'; securePill.className='pill bad'; securePill.innerHTML='<i class="fa-solid fa-ban"></i> Flagged ('+violations.length+')'}
+  else { violPill.className='pill warn'; }
+  // persist
+  try{ localStorage.setItem('u12-13-violations', JSON.stringify(violations))}catch(e){}
+}
+function updateTimerUI(){
+  const el=document.getElementById('timerText'); if(el) el.textContent=fmt(timeLeft);
+  const tm=document.getElementById('timer');
+  if(timeLeft<=300) { tm.classList.add('warn'); if(timeLeft%60===0) toast('⏰ '+fmt(timeLeft)+' left — submit soon!', true)}
+  else if(timeLeft<=600) tm.style.borderColor='rgba(251,191,36,.45)';
+}
+function startTimer(){
+  startAt=Date.now();
+  metaDate.textContent=new Date().toLocaleDateString('en-GB');
+  updateTimerUI();
+  timerInt=setInterval(()=>{
+    timeLeft--; updateTimerUI();
+    if(timeLeft<=0){ clearInterval(timerInt); toast('⏰ Time is up — auto-submitting…', true); doSubmit(true); }
+  },1000);
+}
+
+/* security listeners (active after start) */
+function armSecurity(){
+  // context menu
+  document.addEventListener('contextmenu', e=>{ if(started && !submitted){ e.preventDefault(); addViol('context_menu','Right-click blocked'); toast('⛔ Right-click disabled — violation logged', true); return false}}, {capture:true});
+  // copy / cut / paste on quiz content (allow in inputs)
+  ['copy','cut'].forEach(ev=>{
+    document.addEventListener(ev, e=>{
+      if(!started||submitted) return;
+      const t=e.target; const isInput = t && (t.tagName==='INPUT' || t.tagName==='TEXTAREA' || t.tagName==='SELECT');
+      if(!isInput){ e.preventDefault(); addViol(ev+'_attempt','Blocked '+ev); toast('⛔ Copying quiz content is blocked — violation logged', true)}
+    }, {capture:true});
+  });
+  // paste blocked from outside? allow typing but log paste into answers
+  document.addEventListener('paste', e=>{
+    if(started && !submitted) { addViol('paste_attempt','Paste into answer'); toast('⚠️ Paste detected — logged in violation report', true)}
+  });
+  // print / save
+  document.addEventListener('keydown', e=>{
+    if(!started||submitted) return;
+    const k=(e.key||'').toLowerCase();
+    // PrintScreen
+    if(e.key==='PrintScreen' || e.code==='PrintScreen'){ e.preventDefault(); addViol('screenshot_key','PrintScreen'); toast('⛔ Screenshot attempt blocked — violation logged', true)}
+    // Ctrl/Cmd + P (print), Ctrl+S (save), Ctrl+Shift+S, Ctrl+Shift+I (devtools), F12
+    if((e.ctrlKey||e.metaKey) && (k==='p' || k==='s')){ e.preventDefault(); addViol(k==='p'?'print_attempt':'save_attempt', 'Ctrl+'+k); toast('⛔ Print/Save blocked — violation logged', true)}
+    if((e.ctrlKey||e.metaKey) && e.shiftKey && (k==='s' || k==='i' || k==='j' || k==='c')){ e.preventDefault(); addViol('devtools_attempt','Ctrl+Shift+'+k); toast('⛔ Developer tools blocked — violation logged', true)}
+    if(e.key==='F12'){ e.preventDefault(); addViol('devtools_attempt','F12'); toast('⛔ Developer tools blocked — violation logged', true)}
+    // Alt+Tab not capturable but blur will catch
+  }, {capture:true});
+  window.addEventListener('beforeprint', ()=>{ addViol('print_attempt','beforeprint'); toast('⛔ Printing blocked — violation logged', true); });
+  // visibility / blur = switching windows/tabs
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden && started && !submitted){ addViol('tab_hidden','Tab hidden / switched window'); toast('⚠️ Window switch detected — violation logged (stay on this tab)', true)}
+  });
+  window.addEventListener('blur', ()=>{
+    if(started && !submitted){ // debounce: if focus regained quickly still count
+      setTimeout(()=>{ if(document.hidden || !document.hasFocus()){ addViol('window_blur','Window lost focus / floating window'); }}, 300)
+      // also toast
+      toast('⚠️ Window focus lost — violation logged', true)
+    }
+  });
+  // fullscreen exit is considered violation (floating window)
+  document.addEventListener('fullscreenchange', ()=>{
+    if(started && !submitted && !document.fullscreenElement){ addViol('fullscreen_exit','Exited fullscreen / floating window'); toast('⚠️ Fullscreen exited — violation logged', true)}
+  });
+  // picture-in-picture
+  if('pictureInPictureEnabled' in document){
+    document.addEventListener('enterpictureinpicture', ()=>{ addViol('pip_enter','Picture-in-Picture / floating window'); toast('⛔ Floating window blocked — violation logged', true)})
+  }
+  // blur on inputs? also detect window resize as potential floating
+  let lastW=window.innerWidth, lastH=window.innerHeight;
+  window.addEventListener('resize', ()=>{
+    if(started && !submitted && document.fullscreenElement){
+      const dW=Math.abs(window.innerWidth-lastW), dH=Math.abs(window.innerHeight-lastH);
+      if(dW>200 || dH>200){ addViol('window_resize','Window resized in fullscreen'); lastW=window.innerWidth; lastH=window.innerHeight}
+    }
+  });
+  // Page hide (bfcache)
+  window.addEventListener('pagehide', ()=>{ if(started && !submitted) addViol('page_hide','Page hidden')});
+}
+
+/* fullscreen helper */
+const fsBtn=document.getElementById('fsBtn');
+function canFullscreen(){ const el=document.documentElement; return !!(el.requestFullscreen || el.webkitRequestFullscreen)}
+function enterFullscreen(){
+  const el=document.documentElement;
+  const fn=el.requestFullscreen || el.webkitRequestFullscreen;
+  if(fn) try{ const p=fn.call(el); if(p&&p.catch) p.catch(()=>{}) }catch(e){}
+}
+if(canFullscreen()){ fsBtn.style.display='inline-flex'; fsBtn.onclick=enterFullscreen }
+
+/* progress */
+function syncProgress(){
+  let answered=0;
+  // count answered mc
+  QUIZ.forEach(g=> g.items.forEach(it=>{ const sel=document.querySelector('input[name="'+it.id+'"]:checked'); if(sel) answered++ }));
+  // open-ended
+  const v35=document.getElementById('q35').value.trim(), v36=document.getElementById('q36').value.trim(),
+        v37=document.getElementById('q37').value.trim(), v38=document.getElementById('q38').value.trim(),
+        v39=document.getElementById('q39').value.trim(),
+        a=document.getElementById('q40a').value.trim(), b=document.getElementById('q40b').value.trim(), c=document.getElementById('q40c').value.trim();
+  if(v35.length>10) answered++;
+  if(v36.length>10) answered++;
+  if(v37) answered++;
+  if(v38) answered++;
+  if(v39.length>15) answered++;
+  if(a||b||c) answered++;
+  document.getElementById('answeredCount').textContent=String(answered);
+  document.getElementById('metaProgress').textContent='Progress: '+answered+' / 40';
+  const pct=Math.round((answered/40)*100); document.getElementById('progressFill').style.width=pct+'%';
+}
+document.addEventListener('change', syncProgress);
+document.addEventListener('input', syncProgress);
+// delegate for radio highlight
+document.addEventListener('change', e=>{
+  if(e.target && e.target.type==='radio'){
+    const name=e.target.name;
+    document.querySelectorAll('input[name="'+name+'"]').forEach(r=>{
+      const lab=r.closest('.opt'); if(lab) lab.classList.toggle('on', r.checked)
+    });
+    // clear need
+    const card=document.querySelector('.qcard[data-qid="'+name+'"]'); if(card) card.classList.remove('need');
+  }
+});
+
+/* start */
+startBtn.addEventListener('click', async ()=>{
+  if(!canStart()){ gateMsg.style.display='block'; gateMsg.textContent='Please fill in Full Name (≥2 chars), Student ID (≥2 chars) and agree to the integrity notice.'; return}
+  const nm=nameIn.value.trim(), sid=idIn.value.trim(), cls=classIn.value.trim();
+  // try fullscreen
+  enterFullscreen();
+  // gate hide
+  gate.style.display='none';
+  wrap.style.opacity='1'; wrap.style.pointerEvents='auto'; wrap.setAttribute('aria-hidden','false');
+  btmBar.style.display='flex';
+  metaName.textContent=nm; metaId.textContent=sid + (cls?' · '+cls:'');
+  started=true; securePill.textContent='LIVE — Secure'; securePill.className='pill ok';
+  // save meta
+  try{
+    localStorage.setItem('cmc-student-name', nm);
+    localStorage.setItem('cmc-student-id', sid);
+    if(cls) localStorage.setItem('cmc-student-classId', cls);
+    localStorage.setItem('u12-13-started-at', String(Date.now()));
+    localStorage.setItem('u12-13-name', nm);
+    localStorage.setItem('u12-13-sid', sid);
+  }catch(e){}
+  addViol('session_start','Started quiz'); violations.pop(); // remove start marker // actually keep no count for start?
+  // reset counters displayed
+  violCount.textContent='0'; btmViol.textContent='0';
+  violations=[];
+  armSecurity();
+  startTimer();
+  // save draft periodically
+  setInterval(saveDraft, 20000);
+  // beforeunload warning
+  window.addEventListener('beforeunload', beforeUnload);
+  toast('✅ Started — timer running. Stay on this tab!');
+});
+function beforeUnload(e){ if(started && !submitted){ e.preventDefault(); e.returnValue='Quiz in progress — leaving counts as violation. Are you sure?'; return e.returnValue }}
+function saveDraft(){
+  if(!started||submitted) return;
+  const dump={};
+  QUIZ.forEach(g=> g.items.forEach(it=>{ const sel=document.querySelector('input[name="'+it.id+'"]:checked'); if(sel) dump[it.id]=sel.value }));
+  ['q35','q36','q37','q38','q39','q40a','q40b','q40c'].forEach(id=>{ const el=document.getElementById(id); if(el) dump[id]=el.value });
+  dump._viol=violations; dump._left=timeLeft; dump._name=nameIn.value; dump._sid=idIn.value; dump._cls=classIn.value;
+  try{ localStorage.setItem('u12-13-draft', JSON.stringify(dump)) }catch(e){}
+  const b=document.getElementById('saveDraftBtn'); b.innerHTML='<i class="fa-solid fa-check"></i> Saved'; setTimeout(()=> b.innerHTML='<i class="fa-regular fa-floppy-disk"></i> Save progress', 1200)
+}
+document.getElementById('saveDraftBtn').addEventListener('click', saveDraft);
+// restore draft
+try{
+  const d=JSON.parse(localStorage.getItem('u12-13-draft')||'null');
+  if(d){
+    setTimeout(()=>{
+      Object.keys(d).forEach(k=>{
+        if(k.startsWith('_')) return;
+        if(/^q\d+$/.test(k)){ const v=d[k]; const r=document.querySelector('input[name="'+k+'"][value="'+v+'"]'); if(r) {r.checked=true; const lab=r.closest('.opt'); if(lab) lab.classList.add('on')}}
+        else{ const el=document.getElementById(k); if(el) el.value=d[k]}
+      });
+      syncProgress();
+    }, 400)
+  }
+}catch(e){}
+
+/* share gate — teacher controls visibility via Firestore biweekly_tests/HW_DOC */
+(function(){
+  const FS='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/biweekly_tests/'+HW_DOC;
+  function isTeacherLS(){
+    try{
+      const tok=localStorage.getItem('cmc-student-token')||'';
+      if(!tok) return false;
+      const role=(localStorage.getItem('cmc-student-role')||'').toLowerCase();
+      const email=(localStorage.getItem('cmc-student-email')||'').toLowerCase();
+      const uid=localStorage.getItem('cmc-student-uid')||'';
+      return role==='teacher' || email.includes('edu') || uid==='5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+    }catch(e){return false}
+  }
+  const isTeacher=isTeacherLS();
+  window.CMC_HW_TEACHER=isTeacher;
+  // if not teacher, block gate until shared doc read
+  if(!isTeacher){
+    // show locked overlay over gate
+    const lock=document.createElement('div');
+    lock.id='hwGate';
+    lock.style.cssText='position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(165deg,#1b1030,#3a2033 55%,#5b2a45);border-radius:18px';
+    lock.innerHTML='<div style="max-width:360px;text-align:center;background:#fffdf6;color:#26313a;border-radius:14px;padding:20px;border-top:5px solid #e8a33d"><div style="width:44px;height:44px;margin:0 auto;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#b8563f,#e8a33d);color:#fff;font-size:20px">🔒</div><h3 style="margin-top:10px;font-family:Space Grotesk,sans-serif">Not shared yet</h3><p style="margin-top:8px;font-size:13px;line-height:1.6;color:#45565f">Your teacher hasn’t shared the <b>Units 12–13 Secure Quiz</b> for the class yet. Ask your teacher to open it from the <b>Kid 11 card</b> on the CMC homepage. This page unlocks by itself.</p><div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap"><button id="hwCheck" style="padding:9px 14px;border-radius:999px;border:2px solid #b8563f;background:#fff;color:#b8563f;font-weight:700;cursor:pointer">Check again</button><a href="https://cmckhmer.github.io/Creative-Minds-/" style="padding:9px 14px;border-radius:999px;background:linear-gradient(90deg,#b8563f,#e8a33d);color:#fff;font-weight:700;text-decoration:none">Back to CMC home</a></div></div>';
+    const gateCard=document.querySelector('.gate-card');
+    if(gateCard) gateCard.style.position='relative';
+    // will append after gate loads
+    let appended=false;
+    function appendLock(){ if(appended) return; appended=true; const gc=document.querySelector('.gate-card'); if(gc){ gc.appendChild(lock); const b=document.getElementById('hwCheck'); if(b) b.addEventListener('click', ()=>{ b.textContent='Checking…'; b.disabled=true; checkShare(()=>{b.textContent='Check again'; b.disabled=false}) }) } }
+    // delay until DOM ready
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', appendLock); else appendLock();
+
+    function isSharedDoc(doc){
+      if(!doc || !doc.fields) return false;
+      const v=doc.fields.shared;
+      if(v && (v.booleanValue===true || v.stringValue==='true')) return true;
+      // also accept status=open
+      if(doc.fields.status && doc.fields.status.stringValue==='open') return true;
+      return false;
+    }
+    function unlock(){ const g=document.getElementById('hwGate'); if(g) g.remove(); }
+    function checkShare(cb){
+      fetch(FS).then(r=> r.ok? r.json(): null).then(doc=>{
+        if(isSharedDoc(doc)){ unlock(); if(cb) cb(true) }
+        else { if(cb) cb(false) }
+      }).catch(()=>{ if(cb) cb(false)})
+    }
+    // initial check
+    checkShare();
+    // poll
+    setInterval(checkShare, 15000);
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) checkShare() });
+    window._cmcCheckShare=checkShare;
+  } else {
+    // teacher: show banner
+    const banner=document.createElement('div');
+    banner.style.cssText='max-width:960px;margin:10px auto 0;padding:10px 14px;background:rgba(251,191,36,.10);border:1px solid rgba(251,191,36,.40);color:#fde68a;border-radius:12px;font-size:13px;line-height:1.6';
+    banner.innerHTML='🎓 <b>Teacher preview</b> — this quiz is gated by <code>biweekly_tests/'+HW_DOC+'</code>. Students see “Not shared yet” until you share it from the Kid 11 card. You can preview and test the timer/violations. Scores still submit to the leaderboard.';
+    const w=document.querySelector('.wrap'); if(w) w.parentNode.insertBefore(banner, w);
+  }
+})();
+
+/* ========== grading ========== */
+function norm(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' ') }
+function gradeOpen(){
+  let score=0, detail=[];
+  // q35
+  const a35=norm(document.getElementById('q35').value);
+  if(a35.length>8){
+    const hits=OPEN.q35.keywords.filter(k=> a35.includes(k.toLowerCase())).length;
+    let pts=0;
+    if(hits>=3) pts=2; else if(hits>=1) pts=1;
+    // extra: must mention extinction / die out
+    if(!a35.includes('extinct') && !a35.includes('die out') && !a35.includes('die')) pts=Math.min(pts,1);
+    score+=pts; detail.push({id:'q35', pts, max:2, model:OPEN.q35.model});
+  } else detail.push({id:'q35', pts:0, max:2, model:OPEN.q35.model});
+  // q36
+  const a36=norm(document.getElementById('q36').value);
+  if(a36.length>8){
+    const hits=OPEN.q36.keywords.filter(k=> a36.includes(k.toLowerCase())).length;
+    let pts= hits>=2?2: hits>=1?1:0;
+    if(!(a36.includes('hobby')||a36.includes('non-profit')||a36.includes('non profit')||a36.includes('not commercial')||a36.includes('creative')||a36.includes('artistic') || a36.includes('friend'))) pts=Math.min(pts,1);
+    score+=pts; detail.push({id:'q36', pts, max:2, model:OPEN.q36.model});
+  } else detail.push({id:'q36', pts:0, max:2, model:OPEN.q36.model});
+  // q37
+  const a37=norm(document.getElementById('q37').value);
+  let p37=0; if(['extinct','extinct.','extinct,','extinction'].includes(a37) || a37==='extinct') p37=1;
+  score+=p37; detail.push({id:'q37', pts:p37, max:1, model:OPEN.q37.model, got:a37});
+  // q38
+  const a38=norm(document.getElementById('q38').value);
+  let p38=0; if(a38==='stand out' || a38==='stand out.' || a38.includes('stand out')) p38=1;
+  score+=p38; detail.push({id:'q38', pts:p38, max:1, model:OPEN.q38.model, got:a38});
+  // q39
+  const a39=document.getElementById('q39').value.trim();
+  const n39=norm(a39);
+  let p39=0;
+  if(n39){
+    const hasWild=n39.includes('wildlife'), hasStrat=n39.includes('strategy');
+    const isSentence=/^[A-Z]/.test(a39.trim()) && /[.!?]$/.test(a39.trim()) && a39.trim().split(/\s+/).length>=6;
+    if(hasWild && hasStrat) p39= isSentence?2:1;
+    else if(hasWild || hasStrat) p39=0; // need both
+  }
+  score+=p39; detail.push({id:'q39', pts:p39, max:2, model:OPEN.q39.model, got:a39});
+  // q40
+  const pa=norm(document.getElementById('q40a').value);
+  const pb=norm(document.getElementById('q40b').value);
+  const pc=norm(document.getElementById('q40c').value);
+  let p40=0;
+  // prefix
+  const prefOk= OPEN.q40.prefix.some(x=> pa.includes(x));
+  const rootOk= OPEN.q40.root.some(x=> pb.includes(x));
+  const sufOk= OPEN.q40.suffix.some(x=> pc.includes(x) || pa.includes(x) || pb.includes(x) ); // allow order errors
+  // actually check each field
+  const prefScore= prefOk?1:0;
+  const rootScore= rootOk?1:0;
+  const sufScore= OPEN.q40.suffix.some(x=> pc.includes(x))?1:0;
+  // combined scoring: 2 pts total for 3 parts
+  const parts = (prefScore?1:0)+(rootScore?1:0)+(sufScore?1:0);
+  if(parts>=3) p40=2; else if(parts>=1) p40=1;
+  score+=p40; detail.push({id:'q40', pts:p40, max:2, model:OPEN.q40.model, got:`${pa} | ${pb} | ${pc}`});
+  return {openScore:score, detail}
+}
+function grade(){
+  let correct=0, total=0;
+  const perQ=[];
+  QUIZ.forEach(g=> g.items.forEach(it=>{
+    total++;
+    const sel=document.querySelector('input[name="'+it.id+'"]:checked');
+    const got= sel? sel.value : '';
+    const exp=KEY[it.id];
+    const ok= got===exp;
+    if(ok) correct++;
+    perQ.push({id:it.id, got, exp, ok})
+  }));
+  // auto grade open
+  const open=gradeOpen();
+  total+=10; // open pts
+  correct+=open.openScore;
+  return {correct, total, perQ, open}
+}
+
+/* leaderboard */
+async function fetchLeaderboard(){
+  const url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents:runQuery';
+  const body={structuredQuery:{from:[{collectionId:'drill_attempts'}], where:{fieldFilter:{field:{fieldPath:'drillSlug'},op:'EQUAL',value:{stringValue:QUIZ_SLUG}}}, orderBy:[{field:{fieldPath:'scorePct'},direction:'DESCENDING'}], limit:50}};
+  try{
+    const r=await fetch(url,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    if(!r.ok) return [];
+    const data=await r.json();
+    const rows=[];
+    for(const row of data){
+      const f=row.document?.fields; if(!f) continue;
+      rows.push({
+        name: f.studentName?.stringValue || '—',
+        pct: Number(f.scorePct?.integerValue ?? f.scorePct?.doubleValue ?? 0),
+        correct: Number(f.correctCount?.integerValue ?? 0),
+        total: Number(f.totalCount?.integerValue ?? 0),
+        at: f.submittedAt?.timestampValue || ''
+      })
+    }
+    return rows.sort((a,b)=> b.pct - a.pct).slice(0,20)
+  }catch(e){ return []}
+}
+async function renderLeaderboard(selfName, selfPct){
+  const box=document.createElement('div'); box.className='leader';
+  box.innerHTML='<h4><i class="fa-solid fa-trophy"></i> Class Leaderboard — Units 12–13 Quiz (Live)</h4><div style="font-size:11px;color:#94a3b8;margin-top:4px">Top 20 by % · updates live after each submission · share-gated via Kid 11 card</div><ol id="lbList"><li style="color:#94a3b8">Loading…</li></ol>';
+  const rows=await fetchLeaderboard();
+  const ol=box.querySelector('#lbList');
+  if(!rows.length){ ol.innerHTML='<li style="color:#94a3b8">No scores yet — you’ll be the first!</li>'; return box }
+  ol.innerHTML='';
+  rows.forEach((r,i)=>{
+    const me = selfName && norm(r.name)===norm(selfName);
+    const li=document.createElement('li'); if(me) li.className='me';
+    li.innerHTML=`<span style="min-width:22px;font-weight:800;color:${i<3?'#fbbf24':'#94a3b8'}">#${i+1}</span><span style="flex:1;font-weight:700">${r.name} ${me?'<span style="font-size:10px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.35);color:#67e8f9;border-radius:999px;padding:2px 6px">YOU</span>':''}</span><span style="font-variant-numeric:tabular-nums"><b>${r.pct}%</b> <span style="color:#94a3b8">${r.correct}/${r.total}</span></span>`;
+    ol.appendChild(li);
+  });
+  // if self not in top, show
+  if(selfName && !rows.some(r=> norm(r.name)===norm(selfName))){
+    const li=document.createElement('li'); li.className='me'; li.style.borderStyle='dashed';
+    li.innerHTML=`<span style="min-width:22px;font-weight:800;color:#67e8f9">—</span><span style="flex:1;font-weight:700">${selfName} <span style="font-size:10px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.35);color:#67e8f9;border-radius:999px;padding:2px 6px">YOU · ${selfPct}%</span></span><span style="color:#94a3b8">just submitted</span>`;
+    ol.appendChild(li);
+  }
+  return box;
+}
+
+/* submit */
+let submitLock=false;
+async function doSubmit(auto){
+  if(submitted || submitLock) return;
+  // validate not all blank?
+  let answered=0;
+  QUIZ.forEach(g=> g.items.forEach(it=>{ if(document.querySelector('input[name="'+it.id+'"]:checked')) answered++ }));
+  if(!auto && answered<10){
+    if(!confirm('You’ve answered only '+answered+' of 34 multiple-choice questions. Submit anyway?')) return
+  }
+  submitLock=true;
+  const btn=document.getElementById('submitBtn');
+  if(btn){ btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Grading…' }
+
+  // highlight missing
+  QUIZ.forEach(g=> g.items.forEach(it=>{
+    const sel=document.querySelector('input[name="'+it.id+'"]:checked');
+    const card=document.querySelector('.qcard[data-qid="'+it.id+'"]');
+    if(!sel && card) card.classList.add('need')
+  }));
+
+  const g=grade();
+  const pct=Math.round((g.correct/g.total)*100);
+  const name=nameIn.value.trim();
+  const sid=idIn.value.trim();
+  const cls=classIn.value.trim();
+  const timeUsed=TOTAL_TIME - timeLeft;
+
+  // prepare violation report
+  const violLines=violations.map(v=> `• ${new Date(v.at).toLocaleTimeString()} — ${v.type}${v.detail?' ('+v.detail+')':''}` ).join('\n');
+  const violCountNow=violations.length;
+  const flag = violCountNow>=3? 'FLAGGED (≥3 violations)' : violCountNow>0? 'WARN ('+violCountNow+')' : 'CLEAN (0)';
+
+  // submit to Firestore via CMC.submitDrill (for leaderboard) + keep detailed
+  try{
+    // main score (leaderboard)
+    if(window.CMC && window.CMC.submitDrill){
+      window.CMC.submitDrill({ drillSlug:QUIZ_SLUG, drillTitle:QUIZ_TITLE, drillSource:QUIZ_SOURCE, scorePct:pct, correctCount:g.correct, totalCount:g.total, durationSeconds: timeUsed })
+    } else {
+      // fallback direct
+      const tok=localStorage.getItem('cmc-student-token')||'';
+      if(tok){
+        const url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+        const body={fields:{
+          drillSlug:{stringValue:QUIZ_SLUG},
+          drillTitle:{stringValue:QUIZ_TITLE},
+          drillSource:{stringValue:QUIZ_SOURCE},
+          studentName:{stringValue:name},
+          studentUid:{stringValue: localStorage.getItem('cmc-student-uid')||''},
+          classId: cls? {stringValue:cls}:{nullValue:null},
+          studentId:{stringValue: sid},
+          scorePct:{integerValue:String(pct)},
+          correctCount:{integerValue:String(g.correct)},
+          totalCount:{integerValue:String(g.total)},
+          durationSeconds:{integerValue:String(timeUsed)},
+          violations:{integerValue:String(violCountNow)},
+          violationDetail:{stringValue: violations.map(v=> v.type+':'+(v.detail||'')).join(' | ').slice(0,900)},
+          submittedAt:{timestampValue: new Date().toISOString()}
+        }};
+        fetch(url,{method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok}, body:JSON.stringify(body)}).catch(()=>{})
+      }
+    }
+    // even without token, store a public drill_attempts via guest branch? but we have above for signed-in only. For guest we use CMC.submitDrill already handles guest? Actually CMC.submitDrill requires token; guest submissions go via same rules? We'll also attempt guest write with empty uid via rules?
+    // Attempt guest-compatible submit (no auth) via invite_attempts? Use drill_attempts guest branch: empty studentUid allowed. Let's also try guest POST without auth if no token.
+    if(!localStorage.getItem('cmc-student-token')){
+      // guest write allowed by rules when studentUid empty and fields valid
+      try{
+        const url='https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/drill_attempts';
+        const body={fields:{
+          drillSlug:{stringValue:QUIZ_SLUG},
+          drillTitle:{stringValue:QUIZ_TITLE},
+          drillSource:{stringValue:QUIZ_SOURCE},
+          studentName:{stringValue:name},
+          studentUid:{stringValue:''},
+          classId: cls? {stringValue:cls}:{nullValue:null},
+          scorePct:{integerValue:String(pct)},
+          correctCount:{integerValue:String(g.correct)},
+          totalCount:{integerValue:String(g.total)},
+          submittedAt:{timestampValue: new Date().toISOString()}
+        }};
+        fetch(url,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).catch(()=>{})
+      }catch(e){}
+    }
+  }catch(e){}
+
+  submitted=true;
+  clearInterval(timerInt);
+  window.removeEventListener('beforeunload', beforeUnload);
+  if(document.fullscreenElement && document.exitFullscreen) try{ document.exitFullscreen() }catch(e){}
+
+  // render result
+  const box=document.getElementById('resultBox');
+  box.classList.add('show');
+  const statusClass = pct>=70?'ok': pct>=50?'':'bad';
+  const violClass = violCountNow===0? 'ok' : violCountNow>=3?'bad':'';
+  const autoNote = auto? '<div style="margin-top:6px;font-size:12px;background:rgba(248,113,113,.10);border:1px solid rgba(248,113,113,.30);color:#fecaca;border-radius:8px;padding:8px">⏰ Auto-submitted when timer reached 0:00.</div>' : '';
+  box.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px"><span class="pill ok"><i class="fa-solid fa-paper-plane"></i> Submitted</span><span style="margin-left:auto;font-size:11px;color:#94a3b8">${new Date().toLocaleString()} · ${Math.floor(timeUsed/60)}:${String(timeUsed%60).padStart(2,'0')} used / 35:00</span></div>
+    <div class="score">${pct}<small>%</small> <span style="font-size:14px;color:#94a3b8">· ${g.correct} / ${g.total} pts</span></div>
+    <div style="font-size:12px;color:#94a3b8">Name: <b style="color:#e2e8f0">${name}</b> · ID: <b style="color:#e2e8f0">${sid}</b>${cls?' · Class: <b style="color:#e2e8f0">'+cls+'</b>':''}</div>
+    ${autoNote}
+    <div class="grid2">
+      <div class="stat"><span>Multiple choice</span><b>${g.perQ.filter(x=>x.ok).length} / 34</b><span style="color:#64748b;font-size:11px">Q1–34 auto-graded</span></div>
+      <div class="stat"><span>Write-in & structure</span><b>${g.open.openScore} / 10</b><span style="color:#64748b;font-size:11px">Q35–40 keyword graded</span></div>
+      <div class="stat ${statusClass==='bad'?'':'ok'}"><span>Performance</span><b>${pct>=70?'Strong': pct>=50?'Good try':'Needs review'} ${pct>=70?'🎉': pct>=50?'💪':'📖'}</b><span style="color:#64748b;font-size:11px">${pct}% overall</span></div>
+      <div class="stat ${violClass}"><span>Integrity</span><b>${violCountNow} violations · ${flag}</b><span style="color:#64748b;font-size:11px">${violCountNow===0?'No window switch / screenshot detected':'Logged — teacher will review'}</span></div>
+    </div>
+    <div class="report ${violClass}"><b><i class="fa-solid fa-shield-halved"></i> Violation Report (${violCountNow}) — sent with your score</b>
+      <div style="margin-top:6px;font-size:12px;line-height:1.7;color:#e2e8f0">${violCountNow===0? '✅ <b>Clean session</b> — no tab hide, window blur, screenshot keys, print or floating-window detected.' : violLines.replace(/\n/g,'<br>')}</div>
+      <div style="margin-top:6px;font-size:11px;color:#94a3b8">${violCountNow===0? 'Teacher sees “CLEAN” on the leaderboard export.':'Teachers see this report alongside your name, ID and score in the leaderboard / drill_attempts. ≥3 violations are flagged for review.'}</div>
+    </div>
+    <div style="margin-top:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px">
+      <b style="font-size:12px;letter-spacing:.10em;text-transform:uppercase;color:#67e8f9"><i class="fa-solid fa-list-check"></i> Your answers (review)</b>
+      <div style="margin-top:8px;display:grid;gap:6px;font-size:12px;line-height:1.6">
+        ${g.perQ.map(x=> `<div style="display:flex;gap:8px;align-items:center;background:${x.ok?'rgba(52,211,153,.08)':'rgba(248,113,113,.08)'};border:1px solid ${x.ok?'rgba(52,211,153,.25)':'rgba(248,113,113,.25)'};border-radius:8px;padding:7px 10px"><span style="min-width:34px;font-weight:800">${x.id.toUpperCase()}</span><span>${x.ok?'✅ Correct': x.got? '❌ <b>'+x.got.toUpperCase()+'</b> → <b style="color:#6ee7b7">'+x.exp.toUpperCase()+'</b>' : '— no answer → <b style="color:#6ee7b7">'+x.exp.toUpperCase()+'</b>'} </span></div>`).join('')}
+        ${g.open.detail.map(d=> `<div style="display:flex;gap:8px;align-items:center;background:${d.pts===d.max?'rgba(52,211,153,.08)': d.pts>0?'rgba(251,191,36,.08)':'rgba(248,113,113,.08)'};border:1px solid ${d.pts===d.max?'rgba(52,211,153,.25)': d.pts>0?'rgba(251,191,36,.25)':'rgba(248,113,113,.25)'};border-radius:8px;padding:7px 10px"><span style="min-width:34px;font-weight:800">${d.id.toUpperCase()}</span><span>${d.pts}/${d.max} pts — model: <em style="color:#cbd5e1">${d.model}</em></span></div>`).join('')}
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#94a3b8">MC answers a/b/c — open answers graded by keywords; teachers can adjust Q35–40 manually in the export.</div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save PDF</button>
+      <button class="btn" id="copyScoreBtn"><i class="fa-solid fa-share-nodes"></i> Copy score link</button>
+      <a class="btn" href="https://cmckhmer.github.io/Creative-Minds-/" style="text-decoration:none"><i class="fa-solid fa-house"></i> Back to CMC Home</a>
+    </div>
+    <div id="leaderSlot" style="margin-top:12px"></div>
+  `;
+  // scroll to result
+  box.scrollIntoView({behavior:'smooth', block:'start'});
+  // hide bottom bar actions
+  document.getElementById('submitBtn').style.display='none';
+  document.getElementById('saveDraftBtn').style.display='none';
+  // leaderboard
+  const slot=document.getElementById('leaderSlot');
+  slot.innerHTML='<div style="font-size:12px;color:#94a3b8"><i class="fa-solid fa-spinner fa-spin"></i> Loading leaderboard…</div>';
+  const lb=await renderLeaderboard(name, pct);
+  slot.innerHTML=''; slot.appendChild(lb);
+  // copy
+  const cb=document.getElementById('copyScoreBtn');
+  if(cb) cb.addEventListener('click', ()=>{
+    const txt=`${QUIZ_TITLE} — ${name} (${sid}) — ${pct}% (${g.correct}/${g.total}) — Violations: ${violCountNow} — ${location.href}`;
+    if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=> toast('✅ Score copied'));
+    else toast(txt)
+  });
+  // clear draft
+  try{ localStorage.removeItem('u12-13-draft')}catch(e){}
+  // mark completed to prevent re-entry
+  try{ localStorage.setItem('u12-13-completed', JSON.stringify({name,sid, pct, at:Date.now()}))}catch(e){}
+}
+
+document.getElementById('submitBtn').addEventListener('click', ()=> doSubmit(false));
+
+/* prevent drag */
+document.addEventListener('dragstart', e=>{ if(started) e.preventDefault() });
+
+</script>
+<script>/* light/dark sync */
+(function(){ try{ const t=localStorage.getItem('cmc-theme')||localStorage.getItem('cm-theme')||'dark'; if(t==='light') document.documentElement.setAttribute('data-theme','light'); window.addEventListener('storage', e=>{ if(e.key==='cmc-theme') document.documentElement.setAttribute('data-theme', e.newValue==='light'?'light':'dark')}) }catch(e){}})();</script>
+</body>
+</html>

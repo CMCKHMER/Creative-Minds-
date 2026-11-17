@@ -580,7 +580,7 @@ function shareText(){
   return `Reading Future Change 1 — Word List (${unitSelect.value||'all units'})${name?' · '+name:''}`;
 }
 function shareWorksheet(){
-  if(navigator.share){navigator.share({title:'Reading Future Change 1 — Word List',text:shareText(),url:location.href}).catch(()=>{});return;}
+  if(navigator.share){navigator.share({title:'Reading Future Change 1 — Word List',text:shareText(),url:location.href}).catch(function(e){if(!e||e.name!=='AbortError'){document.getElementById('sharePanel').classList.add('open');}});return;}
   document.getElementById('sharePanel').classList.toggle('open');
 }
 function copyLink(){

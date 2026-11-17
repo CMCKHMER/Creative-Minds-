@@ -32,7 +32,7 @@ describe('Kid Program grade resource pathway', () => {
     // (absolute URLs so the links also work from the static HTML worksheets),
     // plus the shareable online-homework worksheets (relative URLs, deep
     // links into the Unit 2, Unit 13, Unit 14 and Unit 15 files) whose pages
-    // carry the student "Submit to Teacher" completion button.
+    // carry the student \"Submit to Teacher\" completion button.
     expect(kid11?.materials.map((material) => material.href)).toEqual([
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/word-list.html',
       'https://cmckhmer.github.io/Creative-Minds-/rfc3/dictation.html',
@@ -56,6 +56,7 @@ describe('Kid Program grade resource pathway', () => {
       './rfc3/unit4hw.html#hw-a',
       './rfc3/unit4hw.html#hw-b',
       './rfc3/unit4hw.html#hw-c',
+      './rfc3/unit12-13-quiz.html',
     ]);
     // The online-homework entries are the teacher's Unit 14 (Doctor Fish),
     // Unit 13, Unit 15, Unit 2 (Leonardo da Vinci), Unit 3 (Pocahontas) and
@@ -112,6 +113,18 @@ describe('Kid Program grade resource pathway', () => {
       'hw-kid11-u4-hw3',
     ]);
     expect(kid11Homework.map((material) => material.hideUntilShared)).toEqual(new Array(18).fill(true));
+    // The secure quiz is also share-gated (teacher-only until shared) and
+    // relates to Kid 11 Review Quiz (Review Tests 1–4).
+    const kid11Secure = kid11?.materials.find((m) => m.id === 'kid-11-secure-quiz-u12-13');
+    expect(kid11Secure).toBeDefined();
+    expect(kid11Secure?.shareDoc).toBe('hw-kid11-u12-13-quiz');
+    expect(kid11Secure?.hideUntilShared).toBe(true);
+    expect(kid11Secure?.kind).toBe('Review test');
+    expect(kid11Secure?.href).toBe('./rfc3/unit12-13-quiz.html');
+    expect(kid11Secure?.description).toContain('Review Tests 1–4');
+    expect(kid11Secure?.description.toLowerCase()).toContain('teacher-only');
+    expect(kid11Secure?.description.toLowerCase()).toContain('violation report');
+    expect(kid11Secure?.description.toLowerCase()).toContain('leaderboard');
     expect(KID_GRADE_RESOURCES.filter((grade) => grade.grade !== 6 && grade.grade !== 7 && grade.grade !== 11).every((grade) => grade.status === 'planned' && grade.materials.length === 0)).toBe(true);
   });
 

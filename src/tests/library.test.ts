@@ -136,7 +136,7 @@ describe('Reading room: on the site', () => {
   it('keeps book files out of the service worker cache', () => {
     const worker = read('public/sw.js');
     const version = Number(/const CACHE_VERSION = 'cmc-v(\d+)'/.exec(worker)?.[1]);
-    expect(version).toBeGreaterThanOrEqual(94);
+    expect(version).toBeGreaterThanOrEqual(99);
     const rule = worker.indexOf("if (/\\.pdf$/i.test(url.pathname)) return;");
     expect(rule).toBeGreaterThan(-1);
     // the rule must come before any strategy that would cache the response

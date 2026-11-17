@@ -1767,7 +1767,7 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
   });
   function cmcNativeShare() {
     if (navigator.share) {
-      navigator.share({ title: 'Unit 3 · Pocahontas', text: cmcShareText(), url: cmcHomeworkUrl() }).catch(function () {});
+      navigator.share({ title: 'Unit 3 · Pocahontas', text: cmcShareText(), url: cmcHomeworkUrl() }).catch(function (e) { if (!e || e.name !== 'AbortError') cmcToggleShare(true); });
       return true;
     }
     return false;

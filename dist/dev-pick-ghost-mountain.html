@@ -370,6 +370,7 @@ footer{margin-top:52px;border-top:1px solid var(--line-soft);padding-top:18px;te
 <div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
 <div class="cmc-share" id="cmcShare">
   <button type="button" data-cmc-copy>🔗 Copy assignment link</button>
+  <button type="button" data-cmc-classroom>🏫 Google Classroom</button>
   <button type="button" data-cmc-wa>💬 WhatsApp</button>
   <button type="button" data-cmc-tg>✈️ Telegram</button>
   <button type="button" data-cmc-email>✉️ Email</button>
@@ -625,9 +626,9 @@ footer{margin-top:52px;border-top:1px solid var(--line-soft);padding-top:18px;te
 
   /* ── share-with-class kit (same fixtures as the other games) ── */
   var share = document.getElementById('cmcShare');
-  document.querySelectorAll('[data-cmc-share]').forEach(function (b) { b.addEventListener('click', function () { share.classList.add('show'); }); });
+  document.querySelectorAll('[data-cmc-share]').forEach(function (b) { b.addEventListener('click', function () { share.classList.toggle('show'); }); });
   share.addEventListener('click', function (e) {
-    var act = e.target.closest('[data-cmc-copy],[data-cmc-wa],[data-cmc-tg],[data-cmc-email],[data-cmc-close]');
+    var act = e.target.closest('[data-cmc-copy],[data-cmc-classroom],[data-cmc-wa],[data-cmc-tg],[data-cmc-email],[data-cmc-close]');
     if (!act) return;
     if (act.hasAttribute('data-cmc-close')) { share.classList.remove('show'); return; }
     if (act.hasAttribute('data-cmc-copy')) {
@@ -639,6 +640,8 @@ footer{margin-top:52px;border-top:1px solid var(--line-soft);padding-top:18px;te
       } else {
         try { var ta2 = document.createElement('textarea'); ta2.value = PAGE_URL; document.body.appendChild(ta2); ta2.select(); document.execCommand('copy'); document.body.removeChild(ta2); done(); } catch (err2) { toast('Copy failed — long-press the URL instead', true); }
       }
+    } else if (act.hasAttribute('data-cmc-classroom')) {
+      window.open('https://classroom.google.com/share?url=' + encodeURIComponent(PAGE_URL) + '&title=' + encodeURIComponent('Ghost Mountain · Reading & Quiz'), '_blank', 'noopener'); share.classList.remove('show');
     } else if (act.hasAttribute('data-cmc-wa')) {
       window.open('https://wa.me/?text=' + encodeURIComponent(ASSIGN_TEXT + ' ' + PAGE_URL), '_blank', 'noopener'); share.classList.remove('show');
     } else if (act.hasAttribute('data-cmc-tg')) {
