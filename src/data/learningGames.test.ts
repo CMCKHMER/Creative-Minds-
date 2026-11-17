@@ -28,6 +28,15 @@ describe('student learning games', () => {
     }
   });
 
+  it('gives each in-page game a full multi-level challenge instead of a tiny sample set', () => {
+    const inPageGames = LEARNING_GAMES.filter((game) => !game.externalUrl);
+    expect(inPageGames.length).toBeGreaterThan(0);
+    for (const game of inPageGames) {
+      expect(game.questions.length, `${game.id} should offer warm-up, build, and mastery rounds`).toBeGreaterThanOrEqual(7);
+      expect(game.duration).toContain(`${game.questions.length} questions`);
+    }
+  });
+
   it('includes both passage and audio accessible alternatives in games', () => {
     expect(LEARNING_GAMES.some((game) => game.passage?.length)).toBe(true);
     expect(LEARNING_GAMES.some((game) => game.audioScript)).toBe(true);
