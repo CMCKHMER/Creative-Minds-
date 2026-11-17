@@ -728,7 +728,7 @@ function checkAnswers(){
 /* Share worksheet (owner: a share button for each game or assignment) — same
    fixture as the rfc1/rfc2 sheets: native share sheet on phones, panel fallback. */
 function shareText(){const u=document.getElementById('unitSelect');return `Reading Future Create 3 — Unscramble Sheet (${u&&u.value?u.value:'all units'})`;}
-function shareWorksheet(){if(navigator.share){navigator.share({title:'Reading Future Create 3 — Unscramble Sheet',text:shareText(),url:location.href}).catch(()=>{});return;}document.getElementById('sharePanel').classList.toggle('open');}
+function shareWorksheet(){if(navigator.share){navigator.share({title:'Reading Future Create 3 — Unscramble Sheet',text:shareText(),url:location.href}).catch(function(e){if(!e||e.name!=='AbortError'){document.getElementById('sharePanel').classList.add('open');}});return;}document.getElementById('sharePanel').classList.toggle('open');}
 function copyLink(){const url=location.href;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>showToast('Link copied to clipboard'));}else{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();showToast('Link copied to clipboard');}}
 function shareEmail(){location.href=`mailto:?subject=${encodeURIComponent('Reading Future Create 3 — Unscramble Sheet')}&body=${encodeURIComponent(shareText()+'\n'+location.href)}`;}
 function shareWhatsApp(){window.open(`https://wa.me/?text=${encodeURIComponent(shareText()+' '+location.href)}`,'_blank');}

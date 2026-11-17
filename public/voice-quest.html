@@ -50,6 +50,8 @@ Error generating stack: `+a.message+`
 <button id="cmc-share-fab" aria-label="Share this game with your class" aria-haspopup="true">📣</button>
 <div id="cmc-share-fab-panel" role="menu" aria-label="Share options">
   <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#67e8f9;padding:4px 8px 2px">Share with class</div>
+  <button type="button" data-c="native">📱 Share…</button>
+  <button type="button" data-c="room">🏫 Google Classroom</button>
   <button type="button" data-c="copy">🔗 Copy game link</button>
   <button type="button" data-c="wa">💬 WhatsApp</button>
   <button type="button" data-c="tg">✈️ Telegram</button>
@@ -60,8 +62,10 @@ Error generating stack: `+a.message+`
 <script>(function(){var T=document.title.split('—')[0].trim()||document.title;var U=location.href;var TXT='🎮 '+T+' — play on CMC';
 function toast(m){var t=document.getElementById('cmc-share-fab-toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('show')},2600);}
 var fab=document.getElementById('cmc-share-fab'),panel=document.getElementById('cmc-share-fab-panel');
-fab.addEventListener('click',function(){if(navigator.share){navigator.share({title:T,text:TXT,url:U}).catch(function(){});return;}panel.classList.toggle('open');});
+fab.addEventListener('click',function(){panel.classList.toggle('open');});
 panel.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var c=b.getAttribute('data-c');
+if(c==='native'){if(navigator.share){navigator.share({title:T,text:TXT,url:U}).then(function(){panel.classList.remove('open');}).catch(function(e){if(!e||e.name!=='AbortError')toast('Share sheet unavailable \u2014 choose an option below');});}else{toast('Share sheet unavailable \u2014 choose an option below');}}
+else if(c==='room'){window.open('https://classroom.google.com/share?url='+encodeURIComponent(U)+'&title='+encodeURIComponent(T),'_blank','noopener');panel.classList.remove('open');}
 if(c==='close'){panel.classList.remove('open');}
 else if(c==='copy'){var done=function(){toast('Game link copied \u2713');panel.classList.remove('open');};
 if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(U).then(done,function(){try{var ta=document.createElement('textarea');ta.value=U;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(err){toast('Copy failed \u2014 long-press the URL');}});}else{try{var ta2=document.createElement('textarea');ta2.value=U;document.body.appendChild(ta2);ta2.select();document.execCommand('copy');ta2.remove();done();}catch(err2){toast('Copy failed \u2014 long-press the URL');}}}

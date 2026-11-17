@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, Crown, ExternalLink, Flame, Headphones, Heart, Lightbulb, LockKeyhole, Mic, RotateCcw, Search, Share2, Sparkles, Target, Timer, Trophy, UserPlus, Volume2, VolumeX, XCircle, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2, ChevronRight, Clock3, Copy, Crown, ExternalLink, Flame, Headphones, Heart, Lightbulb, Link2, LockKeyhole, Mail, MessageCircle, Mic, RotateCcw, School, Search, Send, Share2, Sparkles, Target, Timer, Trophy, UserPlus, Volume2, VolumeX, X, XCircle, Zap } from 'lucide-react';
 import { GlassFact, GlassPageBar, GlassPageHero } from './GlassPage';
 import { LEARNING_GAMES, gameXpTotal, type GameTier, type LearningGame, type LearningGameSkill } from '../data/learningGames';
 import { ListeningAudioPlayer } from './ListeningAudioPlayer';
@@ -64,23 +64,111 @@ function shareToast(message: string) {
   }, 2600);
 }
 
-async function shareGame(game: LearningGame): Promise<void> {
+interface ShareTarget {
+  title: string;
+  text: string;
+  url: string;
+}
+
+function shareTargetForGame(game: LearningGame): ShareTarget {
   const url = game.externalUrl
     ? new URL(game.externalUrl, window.location.href).toString()
     : `${window.location.href.split('#')[0]}#games`;
-  const text = `${game.title} — play on CMC: ${game.description.slice(0, 180)}`;
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: game.title, text, url });
-      return;
-    } catch { /* cancelled or blocked → fall through to the clipboard */ }
-  }
+  return { title: game.title, text: `${game.title} — play on CMC: ${game.description.slice(0, 180)}`, url };
+}
+
+/** Copy with a legacy fallback — clipboard permission is often denied inside
+ *  iframes / preview frames, where the old code appeared to do nothing. */
+async function copyShareText(value: string): Promise<boolean> {
   try {
-    await navigator.clipboard.writeText(`${text} ${url}`);
-    shareToast('Game link copied — paste it anywhere ✓');
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch { /* fall through to the textarea path */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = value;
+    ta.style.cssText = 'position:fixed;top:-999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
   } catch {
-    shareToast('Could not copy — long-press the game link instead');
+    return false;
   }
+}
+
+/**
+ * "Share to class" sheet. The previous implementation called
+ * navigator.share() first and silently swallowed its rejection — inside
+ * iframes, in-app webviews and several desktop browsers the share sheet is
+ * blocked, the promise rejects, and the button looked completely dead.
+ * Now EVERY press opens this sheet; the native share sheet is just one
+ * option inside it, beside Copy / Classroom / WhatsApp / Telegram / Email.
+ */
+function ShareDialog({ target, onClose }: { target: ShareTarget; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const encodedUrl = encodeURIComponent(target.url);
+  const encodedText = encodeURIComponent(target.text);
+  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  const handleCopy = async () => {
+    const ok = await copyShareText(`${target.text} ${target.url}`);
+    shareToast(ok ? 'Game link copied — paste it into your class chat ✓' : 'Copy blocked — long-press the link in the box to copy it');
+    if (ok) onClose();
+  };
+
+  const handleNative = async () => {
+    try {
+      await navigator.share({ title: target.title, text: target.text, url: target.url });
+      onClose();
+    } catch (err) {
+      // Dismissing the OS sheet keeps this dialog open; a blocked sheet
+      // (iframe / permissions policy) gets a visible explanation instead
+      // of the old silent no-response.
+      if (!err || (err as { name?: string }).name !== 'AbortError') {
+        shareToast('Share sheet unavailable here — use Copy, Classroom, WhatsApp or Email below');
+      }
+    }
+  };
+
+  const optionClass = 'flex items-center gap-2.5 rounded-xl border border-white/12 bg-white/[0.04] px-3.5 py-3 text-xs font-semibold text-slate-100 transition hover:border-cyan-200/40 hover:bg-cyan-200/[0.08] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300';
+
+  return (
+    <div className="fixed inset-0 z-[99990] flex items-end justify-center bg-slate-950/70 p-4 backdrop-blur-sm sm:items-center" role="dialog" aria-modal="true" aria-label={`Share ${target.title} with your class`} onClick={onClose}>
+      <div className="cmc-card w-full max-w-md p-5 sm:p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[9px] font-bold tracking-[0.17em] text-cyan-200 uppercase">Share to class</p>
+            <h3 className="mt-1.5 font-[var(--font-display)] text-lg font-bold leading-snug text-white">{target.title}</h3>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close share options" className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/12 text-slate-300 transition hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"><X className="h-4 w-4" aria-hidden="true" /></button>
+        </div>
+        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-400">{target.text}</p>
+        <label className="mt-4 block">
+          <span className="sr-only">Game link</span>
+          <span className="flex items-center gap-2 rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2.5">
+            <Link2 className="h-3.5 w-3.5 shrink-0 text-cyan-200" aria-hidden="true" />
+            <input readOnly value={target.url} onFocus={(e) => e.currentTarget.select()} className="w-full bg-transparent font-mono text-[10px] text-slate-300 outline-none" aria-label="Game link — long-press or select to copy" />
+          </span>
+        </label>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <button type="button" onClick={() => void handleCopy()} className={optionClass}><Copy className="h-4 w-4 text-cyan-200" aria-hidden="true" /> Copy link</button>
+          <a href={`https://classroom.google.com/share?url=${encodedUrl}&title=${encodeURIComponent(target.title)}`} target="_blank" rel="noopener noreferrer" className={optionClass} onClick={onClose}><School className="h-4 w-4 text-emerald-200" aria-hidden="true" /> Google Classroom</a>
+          <a href={`https://wa.me/?text=${encodedText}%20${encodedUrl}`} target="_blank" rel="noopener noreferrer" className={optionClass} onClick={onClose}><MessageCircle className="h-4 w-4 text-green-200" aria-hidden="true" /> WhatsApp</a>
+          <a href={`https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`} target="_blank" rel="noopener noreferrer" className={optionClass} onClick={onClose}><Send className="h-4 w-4 text-sky-200" aria-hidden="true" /> Telegram</a>
+          <a href={`mailto:?subject=${encodeURIComponent(target.title)}&body=${encodedText}%0A${encodedUrl}`} className={optionClass} onClick={onClose}><Mail className="h-4 w-4 text-amber-200" aria-hidden="true" /> Email</a>
+          {canNativeShare && <button type="button" onClick={() => void handleNative()} className={optionClass}><Share2 className="h-4 w-4 text-fuchsia-200" aria-hidden="true" /> Share… (this device)</button>}
+        </div>
+        <p className="mt-4 text-[10px] leading-relaxed text-slate-500">Google Classroom opens its own dialog — pick the class, then post the game as an announcement or assignment. Copy works everywhere, including inside previews.</p>
+      </div>
+    </div>
+  );
 }
 
 function GamePlay({ game, onExit }: { game: LearningGame; onExit: () => void }) {
@@ -421,6 +509,7 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
   const [activeSkill, setActiveSkill] = useState<'All games' | LearningGameSkill>('All games');
   const [query, setQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState<LearningGame | null>(null);
+  const [shareTarget, setShareTarget] = useState<ShareTarget | null>(null);
   const filteredGames = LEARNING_GAMES.filter((game) => (activeSkill === 'All games' || game.skill === activeSkill) && (`${game.title} ${game.skill} ${game.tagline ?? ''} ${game.difficultyLabel ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())));
   const signedInPlayer = useSignedInPlayerName();
   const session = useSignedInSession();
@@ -463,7 +552,7 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
               <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: 'Sign up free to open the Ghost Mountain reading & quiz.' })} className="group/button inline-flex items-center gap-2 self-start rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs font-semibold text-slate-200 transition hover:bg-amber-200/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"><LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to open the reading &amp; quiz</button>
             )}
             <button type="button" onClick={() => { const panels = document.querySelectorAll('.cmc-game-leaderboard'); const target = Array.prototype.find.call(panels, (n) => n.offsetParent !== null) || panels[0]; if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-amber-200/25 bg-amber-200/[0.07] px-3 py-2.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-200/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Scroll to the class leaderboard">🏆 Class leaderboard</button>
-            <button type="button" onClick={() => { const url = new URL('./dev-pick-ghost-mountain.html', window.location.href).toString(); const text = 'Ghost Mountain · A Reading on Memory, History & Human Courage — the Developer\'s Pick reading & quiz on CMC'; if (navigator.share) { navigator.share({ title: 'Ghost Mountain · Reading & Quiz', text, url }).catch(() => {}); return; } navigator.clipboard?.writeText(`${text} ${url}`).then(() => { const t = document.querySelector<HTMLElement>('[data-cmc-share-toast]'); if (t) { t.textContent = 'Reading & quiz link copied ✓'; t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)'; window.clearTimeout((t as any)._cmcShareToastT); (t as any)._cmcShareToastT = window.setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(10px)'; }, 2600); } }).catch(() => {}); }} className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-amber-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Share the Ghost Mountain reading & quiz"><Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share</button>
+            <button type="button" onClick={() => setShareTarget({ title: 'Ghost Mountain · Reading & Quiz', text: 'Ghost Mountain · A Reading on Memory, History & Human Courage — the Developer\'s Pick reading & quiz on CMC', url: new URL('./dev-pick-ghost-mountain.html', window.location.href).toString() })} aria-haspopup="dialog" className="inline-flex items-center gap-1.5 self-start rounded-lg border border-white/12 bg-transparent px-3 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-amber-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300" aria-label="Share the Ghost Mountain reading & quiz with your class"><Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share to class</button>
           </div>
         </div>
       </section>
@@ -508,12 +597,12 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
                             <button type="button" onClick={() => requestAuth({ mode: 'sign-up', contextPrompt: `Sign up free to open ${game.title}.` })} className="iri-btn min-h-11 !px-4 !py-2.5 text-[10px]"><LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" /> Sign up to open</button>
                           )}
                           {game.leaderboardLink && <button type="button" onClick={() => { const panels = document.querySelectorAll('.cmc-game-leaderboard'); const target = Array.prototype.find.call(panels, (n) => n.offsetParent !== null) || panels[0]; if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="cmc-btn-ghost inline-flex items-center gap-1.5 self-start rounded-full px-3 py-2.5 text-xs font-semibold" aria-label="Scroll to the class leaderboard">🏆 Leaderboard</button>}
-                          <button type="button" onClick={() => void shareGame(game)} className="cmc-btn-ghost inline-flex items-center gap-1.5 self-start rounded-full px-3 py-2.5 text-xs font-semibold" aria-label={`Share ${game.title} with your class`}><Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share</button>
+                          <button type="button" onClick={() => setShareTarget(shareTargetForGame(game))} aria-haspopup="dialog" className="cmc-btn-ghost inline-flex items-center gap-1.5 self-start rounded-full px-3 py-2.5 text-xs font-semibold" aria-label={`Share ${game.title} with your class`}><Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share to class</button>
                         </div>
                       ) : (
                         <div className="mt-4 flex flex-wrap items-center gap-2">
                           <button type="button" onClick={() => chooseGame(game)} className="iri-btn min-h-11 !px-4 !py-2.5 text-[10px]">{hasActiveAccount(session) ? 'Read briefing & play' : isSampleLearningGame(game.id) ? 'Try 2 free rounds' : 'Sign up to play'} {hasActiveAccount(session) || isSampleLearningGame(game.id) ? <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" /> : <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />}</button>
-                          <button type="button" onClick={() => void shareGame(game)} className="cmc-btn-ghost inline-flex items-center gap-1.5 self-start rounded-full px-3 py-2.5 text-xs font-semibold" aria-label={`Share ${game.title} with your class`}><Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share</button>
+                          <button type="button" onClick={() => setShareTarget(shareTargetForGame(game))} aria-haspopup="dialog" className="cmc-btn-ghost inline-flex items-center gap-1.5 self-start rounded-full px-3 py-2.5 text-xs font-semibold" aria-label={`Share ${game.title} with your class`}><Share2 className="h-3.5 w-3.5" aria-hidden="true" /> Share to class</button>
                         </div>
                       )}
                     </div>
@@ -555,6 +644,7 @@ export function LearningGamesPage({ onBackHome }: { onBackHome: () => void }) {
           )}
         </div>
       </section>
+      {shareTarget && <ShareDialog target={shareTarget} onClose={() => setShareTarget(null)} />}
     </main>
   );
 }
