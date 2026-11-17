@@ -1,0 +1,16 @@
+{
+  "_how_to_add_a_book": "Copy one entry, change the fields, and upload the PDF to public/library/books/. Use \"file\" for a PDF kept on this site, or \"box\" for a Box share link. \"rights\" is required: say why the school may publish the book. Full steps: docs/library.md",
+  "books": [
+    {
+      "id": "alice-in-wonderland",
+      "title": "Alice's Adventures in Wonderland",
+      "author": "Lewis Carroll",
+      "shelf": "Fiction",
+      "level": "Upper intermediate",
+      "pages": 106,
+      "about": "Alice follows a white rabbit down a hole and finds a world where nothing behaves as it should. The complete 1865 text in twelve chapters.",
+      "rights": "Public domain. Text from Standard Ebooks (CC0).",
+      "file": "library/books/alice-in-wonderland.pdf"
+    }
+  ]
+}

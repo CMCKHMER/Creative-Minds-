@@ -22,6 +22,7 @@ const read = (...parts: string[]) => readFileSync(join(here, '..', ...parts), 'u
 const appSrc = read('App.tsx');
 const boardSrc = read('components', 'AnnouncementBoard.tsx');
 const directorySrc = read('components', 'SectionDirectory.tsx');
+const glassSrc = read('glass.css');
 
 describe('announcements come first on the home page', () => {
   it('renders the announcement board exactly once', () => {
@@ -49,6 +50,18 @@ describe('announcements come first on the home page', () => {
     expect(directorySrc).toContain("page.id === 'announcements'");
     expect(directorySrc).toContain('<AnnouncementsCard');
     expect(directorySrc).toContain('fetchTeasers(');
+  });
+
+  it('keeps the announcements card the same size as every other card', () => {
+    // Owner: "make this card smaller. no need for it STRETCH. KEEP ALL
+    // CARDS THE SAME AND CONSISTANT" — it used to span two grid columns
+    // and take 3fr of a special 3fr/2fr News row.
+    expect(glassSrc).not.toContain('.cmc-page-card--news { grid-column: span 2; }');
+    expect(glassSrc).not.toContain("data-group='news'] .cmc-directory-grid");
+    expect(glassSrc).not.toMatch(/\.cmc-page-card--news\s*\{[^}]*grid-column/);
+    // The one shared grid every card sits in, announcements included.
+    expect(glassSrc).toContain('.cmc-directory-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(208px, 1fr));');
+    expect(directorySrc).toContain('cmc-page-card cmc-page-card--news group');
   });
 
   it('keeps the board at its old address, with the blog strip under it', () => {

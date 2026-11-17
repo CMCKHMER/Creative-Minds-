@@ -15,7 +15,7 @@ import { BarChart3, Download, RefreshCw, X } from 'lucide-react';
 import { downloadBlob } from '../lib/biweeklyScores';
 import {
   attemptsForHomework, countHomeworkPageAttempts, fetchHomeworkPageAttempts, homeworkRefFromHref,
-  scoresByStudent, scoresToCsv, scoreWhen, sortScores, summarizeScores,
+  scoresByStudent, scoresToCsv, scoreWhen, sortScores, summarizeScores, wholePageRefFromHref,
 } from '../lib/kidHomework';
 import type { HomeworkAttempt, ScoreSort } from '../lib/kidHomework';
 
@@ -26,6 +26,13 @@ export interface KidHomeworkScoresProps {
   href: string;
   /** 'Kid 11' — shown above the title. */
   gradeLabel: string;
+  /** The href names a whole page that is ONE assignment (the Units 12–13
+   *  secure quiz: no #hw- anchor), so every submission of the page counts. */
+  wholePage?: boolean;
+  /** Eyebrow noun for the sheet, e.g. 'Secure quiz scores & violations'. */
+  kindLabel?: string;
+  /** Empty-sheet hint naming how a submission arrives on this assignment. */
+  submitHint?: string;
   onClose: () => void;
 }
 
@@ -37,8 +44,11 @@ const POLL_MS = 20_000;
 const band = (pct: number): string =>
   pct >= 80 ? 'text-emerald-300' : pct >= 50 ? 'text-amber-300' : 'text-rose-300';
 
-export function KidHomeworkScores({ title, href, gradeLabel, onClose }: KidHomeworkScoresProps) {
-  const ref = useMemo(() => homeworkRefFromHref(href), [href]);
+export function KidHomeworkScores({ title, href, gradeLabel, wholePage, kindLabel, submitHint, onClose }: KidHomeworkScoresProps) {
+  const ref = useMemo(
+    () => (wholePage ? wholePageRefFromHref(href) ?? homeworkRefFromHref(href) : homeworkRefFromHref(href)),
+    [href, wholePage],
+  );
   const [attempts, setAttempts] = useState<HomeworkAttempt[] | null>(null);
   const [capped, setCapped] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,9 +136,15 @@ export function KidHomeworkScores({ title, href, gradeLabel, onClose }: KidHomew
     () => (attempts && ref ? attemptsForHomework(attempts, ref.number).length : 0),
     [attempts, ref],
   );
-  const unnumbered = useMemo(() => (attempts ? attempts.filter((a) => a.homework === null).length : 0), [attempts]);
+  const unnumbered = useMemo(
+    () => (attempts && ref?.number !== null ? attempts.filter((a) => a.homework === null).length : 0),
+    [attempts, ref],
+  );
   const rows = useMemo(() => sortScores(scoresByStudent(mine), sort), [mine, sort]);
   const summary = useMemo(() => summarizeScores(rows), [rows]);
+  // The secure quiz reports integrity violations with each submission —
+  // show the worst count per student so "Scores & violations" is literal.
+  const showViol = Boolean(wholePage && rows.some((r) => r.violations != null));
   const anyUnmeasured = rows.some((r) => !r.firstTryMeasured);
 
   const download = () => {
@@ -150,7 +166,7 @@ export function KidHomeworkScores({ title, href, gradeLabel, onClose }: KidHomew
         <header className="flex items-start gap-3 border-b border-slate-700/80 p-5 pr-16 sm:p-6 sm:pr-16">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-cyan-400 to-indigo-500 text-slate-950"><BarChart3 className="h-4 w-4" aria-hidden="true" /></span>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold tracking-[0.16em] text-cyan-200 uppercase">{gradeLabel} · Homework scores</p>
+            <p className="text-[10px] font-bold tracking-[0.16em] text-cyan-200 uppercase">{gradeLabel} · {kindLabel ?? 'Homework scores'}</p>
             <h2 id="kid-hw-scores-title" className="mt-1 text-lg font-bold leading-snug tracking-tight text-white">{title}</h2>
           </div>
           <button ref={closeRef} type="button" onClick={onClose} aria-label="Close the score sheet" className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300">
@@ -222,7 +238,7 @@ export function KidHomeworkScores({ title, href, gradeLabel, onClose }: KidHomew
                   <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
                     {everCount > 0
                       ? <>There {everCount === 1 ? 'is 1 older submission' : `are ${everCount} older submissions`} — choose “All submissions” to see {everCount === 1 ? 'it' : 'them'}.</>
-                      : <>A score arrives when a student presses “Submit to Teacher” at the bottom of the homework. This sheet updates by itself.</>}
+                      : <>{submitHint ?? 'A score arrives when a student presses “Submit to Teacher” at the bottom of the homework.'} This sheet updates by itself.</>}
                   </p>
                 </div>
               )}
@@ -237,6 +253,7 @@ export function KidHomeworkScores({ title, href, gradeLabel, onClose }: KidHomew
                         <th scope="col" className="px-3 py-2.5">First try</th>
                         <th scope="col" className="px-3 py-2.5">Best score</th>
                         <th scope="col" className="px-3 py-2.5">Handed in</th>
+                        {showViol && <th scope="col" className="px-3 py-2.5">Violations</th>}
                         <th scope="col" className="px-3 py-2.5">Last time</th>
                       </tr>
                     </thead>
@@ -259,6 +276,15 @@ export function KidHomeworkScores({ title, href, gradeLabel, onClose }: KidHomew
                               <span className="text-slate-300">{r.best.correct}/{r.best.total}</span>
                             </td>
                             <td className="px-3 py-2.5 text-slate-300">{r.submissions === 1 ? 'once' : `${r.submissions} times`}</td>
+                            {showViol && (
+                              <td className="px-3 py-2.5" data-violations>
+                                {r.violations == null
+                                  ? <span className="text-slate-500">—</span>
+                                  : r.violations === 0
+                                    ? <span className="font-bold text-emerald-300">0 · clean</span>
+                                    : <span className={`font-bold ${r.violations >= 3 ? 'text-rose-300' : 'text-amber-300'}`}>{r.violations} ⚠{r.violations >= 3 ? ' flagged' : ''}</span>}
+                              </td>
+                            )}
                             <td className="px-3 py-2.5 whitespace-nowrap text-slate-300">{scoreWhen(r.lastAt)}</td>
                           </tr>
                         );
@@ -273,6 +299,7 @@ export function KidHomeworkScores({ title, href, gradeLabel, onClose }: KidHomew
                   <p><strong className="font-semibold text-slate-200">First try</strong> is the score at the student’s first “Check”, before the page showed the right answers. <strong className="font-semibold text-slate-200">Best score</strong> is the highest score they handed in — after a check, students can correct their answers and submit again.</p>
                   {anyUnmeasured && <p>* Handed in before the homework pages started recording the first check — the score of the first submission is shown instead.</p>}
                   <p>Students are listed by the name they typed on the homework, so two spellings of one name appear as two lines.</p>
+                  <p>A submission counts only when the student’s page said “✓ Submitted to teacher”. If a send fails (Wi-Fi, expired sign-in), the homework page now keeps it on the student’s device, shows “saved on this device — NOT sent yet”, and sends it automatically when the page is open and back online — if someone is missing, ask them to reopen the homework page while online and wait for the ✓.</p>
                   {unnumbered > 0 && <p>{unnumbered} older {unnumbered === 1 ? 'submission' : 'submissions'} from this page {unnumbered === 1 ? 'does' : 'do'} not say which homework {unnumbered === 1 ? 'it belongs' : 'they belong'} to and {unnumbered === 1 ? 'is' : 'are'} not listed.</p>}
                   {capped && <p className="text-amber-300">This page has a very large number of submissions — the list may be incomplete.</p>}
                   {updatedAt > 0 && <p className="text-slate-500" data-score-updated>Updated {scoreWhen(updatedAt)} · checks for new submissions every {POLL_MS / 1000} seconds while this sheet is open.</p>}

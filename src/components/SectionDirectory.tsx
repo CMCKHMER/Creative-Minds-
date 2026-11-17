@@ -12,7 +12,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Megaphone, Newspaper, GraduationCap, Timer, ClipboardCheck, CalendarDays, NotebookPen,
+  BookOpen, Megaphone, Newspaper, GraduationCap, Timer, ClipboardCheck, CalendarDays, NotebookPen,
   Backpack, Languages, Library, Gamepad2, Brain, Dices, PenTool, Activity, Wand2,
   LayoutGrid, Package, ListChecks, Lightbulb, Calculator, Tag, CircleHelp, UserPlus,
   ArrowLeft, ArrowRight, ArrowUpRight, Search, Pin, X,
@@ -34,6 +34,7 @@ const ICONS: Record<PageIcon, typeof Megaphone> = {
   kids: Backpack,
   languages: Languages,
   library: Library,
+  book: BookOpen,
   gamepad: Gamepad2,
   brain: Brain,
   dice: Dices,

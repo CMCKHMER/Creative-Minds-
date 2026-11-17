@@ -82,6 +82,7 @@ const BookshelfComingSoonModal = lazy(() =>
   })),
 );
 const MiniMockTest = lazy(() => retryImport(() => import('./components/MiniMockTest')).then(m => ({ default: memo(m.MiniMockTest) })));
+const LibraryPage = lazy(() => retryImport(() => import('./components/LibraryPage')).then(m => ({ default: m.LibraryPage })));
 const LearningGamesPage = lazy(() => retryImport(() => import('./components/LearningGamesPage')).then(m => ({ default: m.LearningGamesPage })));
 const BrainLoungePage = lazy(() => retryImport(() => import('./components/BrainLoungePage')).then(m => ({ default: m.BrainLoungePage })));
 const FirebaseDashboard = lazy(() => retryImport(() => import('./components/FirebaseDashboard')).then(m => ({ default: memo(m.FirebaseDashboard) })));
@@ -352,6 +353,16 @@ export function App() {
     </>
   );
 
+  // The Reading room: books read on the site (list in public/library/catalog.json).
+  if (route === 'library') return (
+    <>
+      <Suspense fallback={null}>
+        <LibraryPage onBackHome={returnHome} />
+      </Suspense>
+      {authModal}
+    </>
+  );
+
   if (route === 'teacher-tools') return (
     <>
       <Suspense fallback={null}>
@@ -582,7 +593,7 @@ export function App() {
             onOpenStudentDemo={() => setStudentDemoModalOpen(true)}
             onOpenTeacherPass={() => openMemberAuth('sign-up')}
             onSelectFeatureCard={handleHeroFeatureSelect}
-            onOpenPdfLibrary={() => setBookshelfShelf('pdf')}
+            onOpenPdfLibrary={() => openPage('library')}
             onOpenInteractiveBooks={() => setBookshelfShelf('interactive')}
             sidePanel={<NewsSidePanel onSeeAll={openNewsPage} />}
           />

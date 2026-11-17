@@ -31,8 +31,10 @@ import { displayStudentName } from './studentName';
 export interface HomeworkRef {
   /** Page file name as the pages store it in drillSlug, e.g. 'unit13hw.html'. */
   slug: string;
-  /** 1, 2 or 3 — which homework on that page. */
-  number: number;
+  /** 1, 2 or 3 — which homework on that page. null = the whole page is ONE
+   *  assignment (the Units 12–13 secure quiz has no #hw- anchor and no
+   *  "Homework N" numbering, so every row of its page belongs to it). */
+  number: number | null;
 }
 
 const LETTER_TO_NUMBER: Record<string, number> = { a: 1, b: 2, c: 3 };
@@ -42,6 +44,17 @@ export function homeworkRefFromHref(href: string): HomeworkRef | null {
   const m = /([^/#?]+\.html)(?:\?[^#]*)?#hw-([a-c])$/i.exec(String(href || '').trim());
   if (!m) return null;
   return { slug: m[1], number: LETTER_TO_NUMBER[m[2].toLowerCase()] };
+}
+
+/** './rfc3/unit12-13-quiz.html' → { slug: 'unit12-13-quiz.html', number: null }.
+ *  For standalone score pages that are a single assignment: the teacher's
+ *  "Scores & violations" button used to feed this href into
+ *  homeworkRefFromHref, get null, and render "This homework has no score
+ *  sheet" — quiz submissions existed but the teacher could never see them. */
+export function wholePageRefFromHref(href: string): HomeworkRef | null {
+  const m = /([^/#?]+\.html)(?:[?#].*)?$/i.exec(String(href || '').trim());
+  if (!m) return null;
+  return { slug: m[1], number: null };
 }
 
 /** '… — Homework 2 · Relocation Mission' → 2. null when the title has none. */
@@ -73,6 +86,9 @@ export interface HomeworkAttempt {
    *  row was handed in without an account). Lets a student find THEIR OWN
    *  submission even if they typed their name differently. */
   studentUid: string;
+  /** Integrity violations reported by the secure quiz (tab hides, screenshot
+   *  keys, …). null when the page reported none — homework rows omit it. */
+  violations?: number | null;
 }
 
 interface FsValue {
@@ -108,6 +124,7 @@ export function parseHomeworkAttempt(doc: FsDoc): HomeworkAttempt | null {
   const first = intOf(f.firstCorrectCount);
   const checks = intOf(f.checkCount);
   const answered = intOf(f.firstAnsweredCount);
+  const viol = intOf(f.violations);
   return {
     id: String(doc.name || '').split('/').pop() || '',
     studentName: displayStudentName(f.studentName?.stringValue) || 'No name',
@@ -122,6 +139,7 @@ export function parseHomeworkAttempt(doc: FsDoc): HomeworkAttempt | null {
     firstAnswered: first !== null && answered !== null && answered >= 0 ? Math.min(answered, total || answered) : null,
     checks: checks !== null && checks >= 1 ? checks : null,
     studentUid: (f.studentUid?.stringValue || '').trim(),
+    violations: viol !== null && viol >= 0 ? viol : null,
   };
 }
 
@@ -145,6 +163,8 @@ export interface StudentScore {
   /** Epoch ms of the first and the latest submission (0 = unknown). */
   firstAt: number;
   lastAt: number;
+  /** Worst violation count across the student's submissions (quiz only). */
+  violations?: number | null;
 }
 
 const nameKey = (name: string): string => name.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -204,6 +224,10 @@ export function scoreForAttempts(list: HomeworkAttempt[]): StudentScore | null {
     checks: first.checks,
     firstAt: first.at,
     lastAt: last.at,
+    violations: sorted.reduce<number | null>(
+      (mx, a) => (a.violations == null ? mx : mx === null ? a.violations : Math.max(mx, a.violations)),
+      null,
+    ),
   };
 }
 
@@ -281,9 +305,10 @@ export function summarizeScores(rows: StudentScore[]): ScoreSummary {
   };
 }
 
-/** Keep the attempts of one homework, optionally only those since `sinceMs`. */
-export function attemptsForHomework(all: HomeworkAttempt[], number: number, sinceMs = 0): HomeworkAttempt[] {
-  return all.filter((a) => a.homework === number && (sinceMs <= 0 || a.at >= sinceMs));
+/** Keep the attempts of one homework, optionally only those since `sinceMs`.
+ *  `number: null` keeps the whole page (standalone assignment like the quiz). */
+export function attemptsForHomework(all: HomeworkAttempt[], number: number | null, sinceMs = 0): HomeworkAttempt[] {
+  return all.filter((a) => (number === null || a.homework === number) && (sinceMs <= 0 || a.at >= sinceMs));
 }
 
 /** "14 Nov, 10:32" — local time of the teacher's device. */

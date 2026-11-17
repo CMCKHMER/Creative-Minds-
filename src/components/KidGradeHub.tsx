@@ -13,7 +13,9 @@ import { Reveal } from './Reveal';
 // public read, teacher-only write (same collection the bi-weekly test shells
 // use, so NO rules change). EACH homework carries its OWN share doc
 // (hw-kid11-u14-hw1|2|3 for Doctor Fish, hw-kid11-u13-hw1|2|3,
-// hw-kid11-u15-hw1|2|3): the teacher assigns one homework at a time, and
+// hw-kid11-u15-hw1|2|3), and so does the Units 12–13 Secure Quiz
+// (hw-kid11-u12-13-quiz, kind 'Review test' — it MUST be polled too, see
+// shareDocIds below): the teacher assigns one homework at a time, and
 // homeworks marked hideUntilShared stay completely invisible to students —
 // row and worksheet content — until their doc flips to shared:true. Until a
 // doc is read (or while it stays locked) students see no homework rows at
@@ -82,10 +84,16 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
   // nothing else. Same row, different audience.
   const [myScoreFor, setMyScoreFor] = useState<{ material: KidGradeMaterial; grade: number } | null>(null);
 
-  // All homework share docs across the grade cards (deduped).
+  // All share docs across the grade cards (deduped) — EVERY material that
+  // carries a shareDoc, not just 'Online homework'. The Units 12–13 Secure
+  // Quiz is kind 'Review test' with shareDoc hw-kid11-u12-13-quiz; filtering
+  // by kind excluded it, so its status stayed 'pending' forever: the Share
+  // button rendered permanently disabled and clicking it did nothing, even
+  // though the teacher could still open the quiz through the teacher
+  // bypass ("will let me open it, won't let me share it").
   const shareDocIds = Array.from(new Set(
     KID_GRADE_RESOURCES.flatMap((grade) => grade.materials)
-      .filter((material) => material.kind === 'Online homework' && material.shareDoc)
+      .filter((material) => material.shareDoc)
       .map((material) => material.shareDoc as string),
   ));
 
@@ -446,6 +454,9 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
           title={scoresFor.material.title}
           href={scoresFor.material.href}
           gradeLabel={`Kid ${scoresFor.grade}`}
+          wholePage={scoresFor.material.id === 'kid-11-secure-quiz-u12-13'}
+          kindLabel={scoresFor.material.id === 'kid-11-secure-quiz-u12-13' ? 'Secure quiz scores & violations' : undefined}
+          submitHint={scoresFor.material.id === 'kid-11-secure-quiz-u12-13' ? 'A score arrives when a student finishes the quiz — it sends itself with the violation report at the end.' : undefined}
           onClose={() => setScoresFor(null)}
         />
       )}
