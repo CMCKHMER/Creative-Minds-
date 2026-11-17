@@ -66,7 +66,9 @@ export function KidMyHomeworkScore({
   const canLook = signedIn || lookupName !== '';
 
   const load = useCallback(async () => {
-    if (!ref || inFlight.current) return;
+    // Student rows are per-homework (anchor refs); a whole-page ref has no
+    // single homework number to look up, so there is nothing to load.
+    if (!ref || ref.number === null || inFlight.current) return;
     inFlight.current = true;
     try {
       setScore(await fetchMyHomeworkScore(ref.slug, { uid, name: lookupName }, ref.number));

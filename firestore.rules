@@ -22,9 +22,10 @@ rules_version = '2';
 //     leaderboard and dashboards list it anonymously via the REST API);
 //     creates for SIGNED-IN users submitting their OWN uid (a signed-in
 //     student cannot forge scores for classmates) PLUS a validated guest
-//     branch — empty studentUid, size/range-checked name & fields, no
-//     class attribution — so visitors who play the games appear on the
-//     ticker and leaderboards too (Nov 2026). Scores are immutable
+//     branch scoped to the Kid 11 classroom pages (drillSource 'rfc3') —
+//     empty studentUid, size/range-checked name & fields, no class
+//     attribution — so homework and secure-quiz submissions sent with a
+//     typed name + student ID in class are recorded too (Nov 2026). Scores are immutable
 //     (no update/delete by clients). NEW (Nov 2026): private invite-test
 //     results may NO LONGER be written here — they go to invite_attempts
 //     (owner-private). The inviteMode guard keeps stale cached pages from
@@ -162,10 +163,9 @@ service cloud.firestore {
       }
 
       // ACCOUNT REQUIRED (Nov 2026): guests may sample a couple of game
-      // rounds, but nothing they do is recorded — every attempt belongs to a
-      // verified CMC account and is pinned to that account's own uid. The
-      // old anonymous guest branch is gone on purpose (self-reported names
-      // and scores could pollute the public ticker).
+      // rounds, but nothing they do is recorded — every GAME attempt belongs
+      // to a verified CMC account and is pinned to that account's own uid
+      // (self-reported names and scores could pollute the public ticker).
       allow create: if notInviteMode()
         && isVerifiedUser()
         && request.resource.data.studentUid == request.auth.uid
@@ -181,6 +181,40 @@ service cloud.firestore {
         && request.resource.data.correctCount >= 0
         && request.resource.data.totalCount is int
         && request.resource.data.totalCount >= 0;
+
+      // KID 11 CLASSROOM BRANCH (restored): the standalone Kid 11 pages
+      // (drillSource 'rfc3' — online homework + the Units 12–13 secure quiz)
+      // are used live in class with a TYPED name + student ID; the quiz has
+      // no account gate by design, and the homework pages post the same
+      // shape when a session cannot be recovered. This validated guest
+      // branch — EMPTY studentUid, 1–40 char name, rfc3 source only, ranged
+      // integer scores, no class attribution — is what those pages were
+      // built against (and what this file's header documents). When it was
+      // dropped, Kid 11 submissions were denied at the door: the student
+      // saw "Submitted", the teacher saw nothing. Scoped to 'rfc3' so game
+      // scores still require a verified account.
+      allow create: if notInviteMode()
+        && request.resource.data.studentUid == ''
+        && request.resource.data.studentName is string
+        && request.resource.data.studentName.size() >= 1
+        && request.resource.data.studentName.size() <= 40
+        && request.resource.data.drillSlug is string
+        && request.resource.data.drillSlug.size() <= 64
+        && request.resource.data.drillTitle is string
+        && request.resource.data.drillTitle.size() <= 160
+        && request.resource.data.drillSource == 'rfc3'
+        && request.resource.data.scorePct is int
+        && request.resource.data.scorePct >= 0
+        && request.resource.data.scorePct <= 100
+        && request.resource.data.correctCount is int
+        && request.resource.data.correctCount >= 0
+        && request.resource.data.totalCount is int
+        && request.resource.data.totalCount >= 0
+        && request.resource.data.totalCount <= 500
+        && (!('classId' in request.resource.data)
+          || request.resource.data.classId == null
+          || (request.resource.data.classId is string
+            && request.resource.data.classId.size() <= 40));
 
       // Score history is append-only — nobody rewrites results.
       allow update, delete: if false;

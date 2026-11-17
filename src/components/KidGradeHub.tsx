@@ -454,6 +454,9 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
           title={scoresFor.material.title}
           href={scoresFor.material.href}
           gradeLabel={`Kid ${scoresFor.grade}`}
+          wholePage={scoresFor.material.id === 'kid-11-secure-quiz-u12-13'}
+          kindLabel={scoresFor.material.id === 'kid-11-secure-quiz-u12-13' ? 'Secure quiz scores & violations' : undefined}
+          submitHint={scoresFor.material.id === 'kid-11-secure-quiz-u12-13' ? 'A score arrives when a student finishes the quiz — it sends itself with the violation report at the end.' : undefined}
           onClose={() => setScoresFor(null)}
         />
       )}

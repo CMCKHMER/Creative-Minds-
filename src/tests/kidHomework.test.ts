@@ -12,6 +12,7 @@ import { KID_GRADE_RESOURCES } from '../data/kidGradeResources';
 import {
   attemptsForHomework, homeworkNumberFromTitle, homeworkRefFromHref, myHomeworkScore,
   parseHomeworkAttempt, scoreBandLabel, scoresByStudent, scoresToCsv, sortScores, summarizeScores,
+  wholePageRefFromHref,
 } from '../lib/kidHomework';
 import type { FsDoc, HomeworkAttempt } from '../lib/kidHomework';
 
@@ -303,5 +304,32 @@ describe('kid homework — download', () => {
     expect(lines[1]).toBe('Student,First try,First try %,First try measured,Answered at first check,Best score,Best %,Out of,Checks before first submit,Times submitted,First submitted,Last submitted');
     expect(lines[2]).toBe(`"'=HYPERLINK(""http://x"",""Click"")",30,100,first submission,,30,100,30,,1,2026-11-10 09:00 UTC,2026-11-10 09:00 UTC`);
     expect(lines[3]).toBe('"Dara, Sok",5,17,at first check,5,15,50,30,1,1,2026-11-10 08:00 UTC,2026-11-10 08:00 UTC');
+  });
+});
+
+describe('kid homework — the secure quiz is a whole-page assignment', () => {
+  // Owner report: a student submitted the Kid 11 Units 12–13 quiz and the
+  // teacher saw nothing. The quiz href has no #hw- anchor, so the sheet got
+  // ref=null ("no score sheet") even though the rows were in drill_attempts.
+  it('reads a whole-page ref from the quiz link, keeping homework refs strict', () => {
+    expect(wholePageRefFromHref('./rfc3/unit12-13-quiz.html')).toEqual({ slug: 'unit12-13-quiz.html', number: null });
+    expect(homeworkRefFromHref('./rfc3/unit12-13-quiz.html')).toBeNull();
+  });
+
+  it('keeps every row of the page for a whole-page ref', () => {
+    const all = [attempt('A', 10, 0), attempt('B', 20, 1)];
+    expect(attemptsForHomework(all, null).map((a) => a.studentName)).toEqual(['A', 'B']);
+    expect(attemptsForHomework(all, null, T0 + 30 * 60_000).map((a) => a.studentName)).toEqual(['B']);
+  });
+
+  it('parses quiz violation counts and aggregates the worst per student', () => {
+    const clean = parseHomeworkAttempt(doc({ violations: { integerValue: '0' } }))!;
+    const flagged = parseHomeworkAttempt(doc({ violations: { integerValue: '4' } }, 'b2'))!;
+    expect(clean.violations).toBe(0);
+    expect(flagged.violations).toBe(4);
+    expect(parseHomeworkAttempt(doc())!.violations).toBeNull();
+    const rows = scoresByStudent([clean, flagged]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].violations).toBe(4);
   });
 });
