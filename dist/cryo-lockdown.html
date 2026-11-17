@@ -1362,6 +1362,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <div class="cmc-toast" id="cmcToast" role="status" aria-live="polite"></div>
 <div class="cmc-share" id="cmcShare">
   <button type="button" data-cmc-copy><svg class="ci" aria-hidden="true"><use href="#i-link"/></svg> Copy assignment link</button>
+  <button type="button" data-cmc-classroom><svg class="ci" aria-hidden="true"><use href="#i-grad"/></svg> Google Classroom</button>
   <button type="button" data-cmc-wa><svg class="ci" aria-hidden="true"><use href="#i-chat"/></svg> WhatsApp</button>
   <button type="button" data-cmc-tg><svg class="ci" aria-hidden="true"><use href="#i-send"/></svg> Telegram</button>
   <button type="button" data-cmc-email><svg class="ci" aria-hidden="true"><use href="#i-mail"/></svg> Email</button>
@@ -1564,11 +1565,11 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   /* ── share-with-class kit (teacher's competitive assignment text) ── */
   var share = document.getElementById('cmcShare');
   function shareText() { return ASSIGN_TEXT; }
-  function openShare() { share.classList.add('show'); }
+  function openShare() { share.classList.toggle('show'); }
   function closeShare() { share.classList.remove('show'); }
   document.querySelectorAll('[data-cmc-share]').forEach(function (b) { b.addEventListener('click', function () { openShare(); }); });
   share.addEventListener('click', function (e) {
-    var act = e.target.closest('[data-cmc-copy],[data-cmc-wa],[data-cmc-tg],[data-cmc-email],[data-cmc-close]');
+    var act = e.target.closest('[data-cmc-copy],[data-cmc-classroom],[data-cmc-wa],[data-cmc-tg],[data-cmc-email],[data-cmc-close]');
     if (!act) return;
     var txt = shareText() + ' ' + PAGE_URL;
     if (act.hasAttribute('data-cmc-close')) { closeShare(); return; }
@@ -1581,6 +1582,8 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       } else {
         try { var ta2 = document.createElement('textarea'); ta2.value = PAGE_URL; document.body.appendChild(ta2); ta2.select(); document.execCommand('copy'); document.body.removeChild(ta2); done(); } catch (err2) { toast('Copy failed — long-press the URL instead', true); }
       }
+    } else if (act.hasAttribute('data-cmc-classroom')) {
+      window.open('https://classroom.google.com/share?url=' + encodeURIComponent(PAGE_URL) + '&title=' + encodeURIComponent('Cryo-Vault Lockdown · CMC Learning Games'), '_blank', 'noopener'); closeShare();
     } else if (act.hasAttribute('data-cmc-wa')) {
       window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank', 'noopener'); closeShare();
     } else if (act.hasAttribute('data-cmc-tg')) {

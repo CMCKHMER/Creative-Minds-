@@ -56,9 +56,14 @@ a{color:inherit}
 .field input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#f1f5f9;font-size:14px;outline:none}
 .field input:focus{border-color:rgba(56,189,248,.45);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
 .field input.bad{border-color:rgba(248,113,113,.6);box-shadow:0 0 0 3px rgba(248,113,113,.12)}
+.field input::placeholder,.write input::placeholder,.write textarea::placeholder{color:#94a3b8;opacity:1}
+.agree{display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:12px;line-height:1.55;color:#cbd5e1;cursor:pointer}
+.agree input{margin-top:2px;accent-color:#22d3ee;flex:none}
+#violPill:not(.warn):not(.bad){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10);color:#e2e8f0}
+#gateMsg{margin-top:10px;font-size:12px;line-height:1.5;color:#fca5a5}
 .cta{margin-top:16px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;background:linear-gradient(135deg,#22d3ee,#6366f1);color:#0f172a;font-weight:800;font-size:14px;border:none}
 .cta:disabled{opacity:.5;cursor:not-allowed}
-.note{margin-top:10px;font-size:11px;line-height:1.5;color:#64748b;text-align:center}
+.note{margin-top:10px;font-size:11px;line-height:1.5;color:#94a3b8;text-align:center}
 
 /* quiz layout */
 .wrap{max-width:960px;margin:0 auto;padding:18px 16px 140px}
@@ -123,13 +128,61 @@ a{color:inherit}
 /* print/screenshot block */
 @media print{body *{display:none!important}}
 
-/* light theme */
+/* light theme — every surface that flips to white must also flip its text
+   dark. The dark theme's pale cyan/white text on a white card is unreadable,
+   so ALL foreground colours are re-declared here, not just the card shells. */
 html[data-theme="light"] body{background:#cbd5e1;color:#0f172a}
+html[data-theme="light"] ::-webkit-scrollbar-track{background:#e2e8f0}
 html[data-theme="light"] .secure-bar{background:rgba(255,255,255,.92);border-bottom-color:rgba(0,0,0,.08)}
-html[data-theme="light"] .passage,html[data-theme="light"] .sec,html[data-theme="light"] .qcard,html[data-theme="light"] .gate-card,html[data-theme="light"] .result,html[data-theme="light"] .stat,html[data-theme="light"] .leader{ background:rgba(255,255,255,.85); border-color:rgba(0,0,0,.08); color:#1e293b}
+html[data-theme="light"] .brand{color:#0369a1}
+html[data-theme="light"] .brand i{color:#0284c7}
+html[data-theme="light"] .timer{background:rgba(15,23,42,.05);border-color:rgba(0,0,0,.12);color:#0f172a}
+html[data-theme="light"] .timer.warn{background:rgba(248,113,113,.14);border-color:rgba(220,38,38,.4);color:#b91c1c}
+html[data-theme="light"] .pill.ok{background:rgba(52,211,153,.16);border-color:rgba(4,120,87,.4);color:#047857}
+html[data-theme="light"] .pill.bad{background:rgba(248,113,113,.14);border-color:rgba(220,38,38,.4);color:#b91c1c}
+html[data-theme="light"] .pill.warn{background:rgba(251,191,36,.18);border-color:rgba(217,119,6,.45);color:#b45309}
+html[data-theme="light"] #violPill:not(.warn):not(.bad){background:rgba(15,23,42,.05);border-color:rgba(0,0,0,.12);color:#334155}
+html[data-theme="light"] .gate{background:radial-gradient(60% 60% at 20% 10%,rgba(56,189,248,.30),transparent 60%),radial-gradient(50% 50% at 90% 90%,rgba(139,92,246,.24),transparent 60%),linear-gradient(180deg,#f1f5f9,#cbd5e1)}
+html[data-theme="light"] .passage,html[data-theme="light"] .sec,html[data-theme="light"] .qcard,html[data-theme="light"] .result,html[data-theme="light"] .stat,html[data-theme="light"] .leader{background:rgba(255,255,255,.85);border-color:rgba(0,0,0,.08);color:#1e293b}
+html[data-theme="light"] .gate-card{background:rgba(255,255,255,.96);border-color:rgba(15,23,42,.10);color:#1e293b;box-shadow:0 30px 80px rgba(15,23,42,.20)}
+html[data-theme="light"] .kicker{color:#0369a1}
+html[data-theme="light"] .gate-card h1,html[data-theme="light"] .hero h1{color:#0f172a}
+html[data-theme="light"] .hero h1 span{background:linear-gradient(90deg,#0284c7,#7c3aed);-webkit-background-clip:text;background-clip:text}
+html[data-theme="light"] .gate-card p{color:#475569}
+html[data-theme="light"] .rule{background:rgba(2,132,199,.06);border-color:rgba(15,23,42,.10);color:#334155}
+html[data-theme="light"] .rule i{color:#0369a1}
+html[data-theme="light"] .field label{color:#475569}
+html[data-theme="light"] .field input,html[data-theme="light"] .write textarea,html[data-theme="light"] .write input{background:#fff;border-color:rgba(15,23,42,.22);color:#0f172a}
+html[data-theme="light"] .field input::placeholder,html[data-theme="light"] .write input::placeholder,html[data-theme="light"] .write textarea::placeholder{color:#64748b}
+html[data-theme="light"] .agree{color:#334155}
+html[data-theme="light"] .note{color:#475569}
+html[data-theme="light"] #gateMsg{color:#b91c1c}
+html[data-theme="light"] .meta span{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.10);color:#475569}
+html[data-theme="light"] .meta span strong{color:#0f172a}
+html[data-theme="light"] .progress{background:rgba(15,23,42,.12)}
+html[data-theme="light"] .passage h3,html[data-theme="light"] .leader h4{color:#0369a1}
+html[data-theme="light"] .passage h4,html[data-theme="light"] .sec-head h2,html[data-theme="light"] .stat b,html[data-theme="light"] .score{color:#0f172a}
 html[data-theme="light"] .passage p,html[data-theme="light"] .qtitle{color:#1e293b}
-html[data-theme="light"] .opt{background:rgba(255,255,255,.7); border-color:rgba(0,0,0,.08)}
+html[data-theme="light"] .sec-head span{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.10);color:#475569}
+html[data-theme="light"] .opt{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.10);color:#1e293b}
+html[data-theme="light"] .opt b{color:#0284c7}
 html[data-theme="light"] .opt.on{background:rgba(2,132,199,.08);border-color:#0284c7}
+html[data-theme="light"] .write .hint,html[data-theme="light"] .stat span,html[data-theme="light"] .score small{color:#475569}
+html[data-theme="light"] .leader li{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.08);color:#1e293b}
+html[data-theme="light"] .leader li.me{background:rgba(2,132,199,.10);border-color:rgba(2,132,199,.4)}
+html[data-theme="light"] .teacher-note{background:rgba(251,191,36,.16);border-color:rgba(217,119,6,.40);color:#92400e}
+html[data-theme="light"] .btm{background:rgba(255,255,255,.94);border-top-color:rgba(0,0,0,.10)}
+html[data-theme="light"] .btn{background:#fff;border-color:rgba(0,0,0,.16);color:#0f172a}
+html[data-theme="light"] .btn-primary{background:linear-gradient(135deg,#22d3ee,#6366f1);color:#0f172a;border:none}
+/* JS-injected markup (hero line, result panel, leaderboard rows) carries
+   inline dark-theme colours — remap the pale ones to dark equivalents. */
+html[data-theme="light"] [style*="color:#94a3b8"]{color:#64748b!important}
+html[data-theme="light"] [style*="color:#e2e8f0"]{color:#0f172a!important}
+html[data-theme="light"] [style*="color:#cbd5e1"]{color:#334155!important}
+html[data-theme="light"] [style*="color:#67e8f9"]{color:#0369a1!important}
+html[data-theme="light"] [style*="color:#6ee7b7"]{color:#047857!important}
+html[data-theme="light"] [style*="color:#fecaca"]{color:#b91c1c!important}
+html[data-theme="light"] #toast{color:#e2e8f0!important}
 </style>
 </head>
 <body>
@@ -139,7 +192,7 @@ html[data-theme="light"] .opt.on{background:rgba(2,132,199,.08);border-color:#02
 <div class="secure-bar" id="secureBar">
   <div class="brand"><i class="fa-solid fa-shield-halved"></i> SECURE WORKSHEET</div>
   <span class="pill ok" id="securePill"><i class="fa-solid fa-lock"></i> Locked</span>
-  <span class="pill" id="violPill" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10);color:#e2e8f0"><i class="fa-solid fa-triangle-exclamation"></i> Violations: <b id="violCount">0</b></span>
+  <span class="pill" id="violPill"><i class="fa-solid fa-triangle-exclamation"></i> Violations: <b id="violCount">0</b></span>
   <div class="timer" id="timer"><i class="fa-regular fa-clock"></i> <span id="timerText">35:00</span></div>
   <button id="fsBtn" class="btn" style="padding:8px 10px;font-size:12px;display:none"><i class="fa-solid fa-expand"></i> Fullscreen</button>
 </div>
@@ -158,10 +211,10 @@ html[data-theme="light"] .opt.on{background:rgba(2,132,199,.08);border-color:#02
     <div class="field"><label for="nameIn">Full name *</label><input id="nameIn" type="text" placeholder="e.g., Sok Dara" autocomplete="name" maxlength="60"></div>
     <div class="field"><label for="idIn">Student ID *</label><input id="idIn" type="text" placeholder="e.g., K11-214-08 or school ID" autocomplete="off" maxlength="40"></div>
     <div class="field"><label for="classIn">Class (optional)</label><input id="classIn" type="text" placeholder="e.g., 9:30 AM Class #214" maxlength="40"></div>
-    <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px;color:#cbd5e1"><input id="agree" type="checkbox"> <span>I understand this quiz is monitored for screenshots, window switching and floating windows. Violations will be reported.</span></label>
+    <label class="agree"><input id="agree" type="checkbox"> <span>I understand this quiz is monitored for screenshots, window switching and floating windows. Violations will be reported.</span></label>
     <button id="startBtn" class="cta" disabled><i class="fa-solid fa-play"></i> Start Quiz — Enter Fullscreen & Begin Timer</button>
     <div class="note">Your name, ID, score and violation report are sent to your teacher’s leaderboard when you submit. Teachers see this quiz on the <b>Kid 11 pathway card</b> — it is gated by the share switch like other Kid 11 homeworks.</div>
-    <div id="gateMsg" style="margin-top:10px;font-size:12px;color:#fca5a5;display:none"></div>
+    <div id="gateMsg" style="display:none"></div>
   </div>
 </div>
 
