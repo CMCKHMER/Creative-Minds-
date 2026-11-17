@@ -10,9 +10,9 @@ interface HeroProps {
   onOpenTeacherPass: () => void;
   onSelectFeatureCard: (feature: string) => void;
   /**
-   * The two bookshelf shelves. Both are products still being uploaded, so
-   * the buttons open the "opening soon" panel instead of a dead link — see
-   * BookshelfComingSoonModal. Swap these for real URLs when the shelf opens.
+   * The two bookshelf shelves. The first opens the Reading room (#library).
+   * Interactive books are still being made, so that button opens the
+   * "opening soon" panel instead of a dead link — see BookshelfComingSoonModal.
    */
   onOpenPdfLibrary: () => void;
   onOpenInteractiveBooks: () => void;
@@ -247,10 +247,7 @@ export const Hero = ({
               <div className="cmc-hero-enter cmc-hero-shelves">
                 <button type="button" onClick={onOpenPdfLibrary} className="cmc-hero-shelf" data-shelf="pdf">
                   <FileText className="cmc-hero-shelf-icon" aria-hidden="true" />
-                  PDF library
-                  <span className="cmc-hero-shelf-soon">
-                    Soon
-                  </span>
+                  Reading room
                 </button>
                 <button type="button" onClick={onOpenInteractiveBooks} className="cmc-hero-shelf" data-shelf="books">
                   <BookOpen className="cmc-hero-shelf-icon" aria-hidden="true" />
