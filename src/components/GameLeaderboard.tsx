@@ -100,6 +100,9 @@ function gameNameFromSlug(slug: string): string {
     'reader-kid1-tin-soldier': 'Kid 1 · The Brave Tin Soldier — Workbook',
     'reader-kid2-hansel-gretel': 'Kid 2 · Hansel and Gretel — Workbook',
     'reader-kid3-magic-beans': 'Kid 3 · Jack and the Magic Beans — Workbook',
+    'reader-kid4-trojan-horse': 'Kid 4 · The Trojan Horse — Workbook',
+    'reader-kid5-daedalus-and-icarus': 'Kid 5 · Daedalus and Icarus — Workbook',
+    'reader-kid6-heidi': 'Kid 6 · Heidi — Workbook',
   };
   if (KNOWN[slug]) return KNOWN[slug];
   // Fall back to title-case of the slug (bare .html filenames read cleaner

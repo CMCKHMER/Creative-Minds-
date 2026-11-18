@@ -41,6 +41,45 @@
       "workbook": "kid-3-jack-and-the-magic-beans"
     },
     {
+      "id": "kid-4-the-trojan-horse",
+      "title": "The Trojan Horse",
+      "author": "Virgil",
+      "shelf": "Kids readers",
+      "level": "Kid 4",
+      "pages": 20,
+      "about": "After ten years outside Troy's strong walls, the Greeks build a giant wooden horse to trick the Trojans and win back Helen, while Aeneas escapes with his father and son. Classic reader companion workbook with crossword, comprehension, and book report activities.",
+      "rights": "Classroom reader workbook (Young Learners Classic Readers 2-10, Compass Publishing) for Creative Minds Kid 4 students.",
+      "cover": "library/covers/kid-4-the-trojan-horse.jpg",
+      "file": "library/books/kid-4-the-trojan-horse.pdf",
+      "workbook": "kid-4-the-trojan-horse"
+    },
+    {
+      "id": "kid-5-daedalus-and-icarus",
+      "title": "Daedalus and Icarus",
+      "author": "Ovid",
+      "shelf": "Kids readers",
+      "level": "Kid 5",
+      "pages": 20,
+      "about": "Trapped on the island of Crete after building the Minotaur's labyrinth, clever inventor Daedalus crafts wings of feathers, string, and wax for himself and his son Icarus—with one crucial warning. Classic reader companion workbook with word search, comprehension, and book report activities.",
+      "rights": "Classroom reader workbook (Young Learners Classic Readers 3-4, Compass Publishing) for Creative Minds Kid 5 students.",
+      "cover": "library/covers/kid-5-daedalus-and-icarus.jpg",
+      "file": "library/books/kid-5-daedalus-and-icarus.pdf",
+      "workbook": "kid-5-daedalus-and-icarus"
+    },
+    {
+      "id": "kid-6-heidi",
+      "title": "Heidi",
+      "author": "Johanna Spyri",
+      "shelf": "Kids readers",
+      "level": "Kid 6",
+      "pages": 19,
+      "about": "Young orphan Heidi grows up happily in the Swiss Alps with her grandfather, Peter, and two mountain goats, befriends Klara in the city, and helps her walk again in the fresh mountain air. Classic reader companion workbook with word search, comprehension, and book report activities.",
+      "rights": "Classroom reader workbook (Young Learners Classic Readers 3-7, Compass Publishing) for Creative Minds Kid 6 students.",
+      "cover": "library/covers/kid-6-heidi.jpg",
+      "file": "library/books/kid-6-heidi.pdf",
+      "workbook": "kid-6-heidi"
+    },
+    {
       "id": "alice-in-wonderland",
       "title": "Alice's Adventures in Wonderland",
       "author": "Lewis Carroll",

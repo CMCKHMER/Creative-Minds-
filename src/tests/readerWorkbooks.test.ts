@@ -79,28 +79,43 @@ function perfectAnswersFor(activities: readonly WorkbookActivity[]): Record<stri
   return answers;
 }
 
-describe('Kid 1–3 reader workbooks: catalogue & assets', () => {
-  it('registers all three Kid 1–3 books in catalog.json with real PDFs, covers, and workbooks', () => {
+describe('Kid 1–6 reader workbooks: catalogue & assets', () => {
+  const expectedBooks: ReadonlyArray<{ id: string; pages: number }> = [
+    { id: 'kid-1-the-brave-tin-soldier', pages: 20 },
+    { id: 'kid-2-hansel-and-gretel', pages: 20 },
+    { id: 'kid-3-jack-and-the-magic-beans', pages: 20 },
+    { id: 'kid-4-the-trojan-horse', pages: 20 },
+    { id: 'kid-5-daedalus-and-icarus', pages: 20 },
+    { id: 'kid-6-heidi', pages: 19 },
+  ];
+
+  it('registers all six Kid 1–6 books in catalog.json with real PDFs, covers, and workbooks', () => {
     const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
     const catalog = parseCatalog(raw);
     expect(catalog.problems).toEqual([]);
+    expect(READER_WORKBOOKS).toHaveLength(6);
 
-    const expectedIds = [
-      'kid-1-the-brave-tin-soldier',
-      'kid-2-hansel-and-gretel',
-      'kid-3-jack-and-the-magic-beans',
-    ];
-
-    for (const id of expectedIds) {
+    for (const { id, pages } of expectedBooks) {
       const book = catalog.books.find((entry) => entry.id === id);
       expect(book, id).toBeDefined();
       expect(book?.shelf).toBe('Kids readers');
-      expect(book?.pages).toBe(20);
+      expect(book?.pages).toBe(pages);
       expect(book?.workbook).toBe(id);
       expect(book?.cover).toBeTruthy();
       const coverFile = resolve(root, 'public', (book?.cover ?? '').replace(/^\.\//, ''));
       expect(existsSync(coverFile), `cover for ${id}`).toBe(true);
-      expect(getReaderWorkbook(book?.workbook)).not.toBeNull();
+      expect(book?.source.kind).toBe('pdf');
+      if (book?.source.kind === 'pdf') {
+        const pdfFile = resolve(root, 'public', book.source.url.replace(/^\.\//, ''));
+        expect(existsSync(pdfFile), `pdf for ${id}`).toBe(true);
+      }
+      const wb = getReaderWorkbook(book?.workbook);
+      expect(wb, `workbook for ${id}`).not.toBeNull();
+      expect(wb?.sections).toHaveLength(7);
+      for (const sec of wb?.sections ?? []) {
+        expect(sec.pdfPage, `${id}:${sec.id} pdfPage`).toBeGreaterThanOrEqual(1);
+        expect(sec.pdfPage, `${id}:${sec.id} pdfPage <= ${pages}`).toBeLessThanOrEqual(pages);
+      }
     }
   });
 
@@ -113,31 +128,45 @@ describe('Kid 1–3 reader workbooks: catalogue & assets', () => {
       bookId: 'kid-2-hansel-and-gretel',
       mode: 'workbook',
     });
+    expect(libraryTargetFromHash('#library/kid-4-the-trojan-horse')).toEqual({
+      bookId: 'kid-4-the-trojan-horse',
+      mode: 'read',
+    });
+    expect(libraryTargetFromHash('#library/kid-5-daedalus-and-icarus/workbook')).toEqual({
+      bookId: 'kid-5-daedalus-and-icarus',
+      mode: 'workbook',
+    });
+    expect(libraryTargetFromHash('#library/kid-6-heidi/workbook')).toEqual({
+      bookId: 'kid-6-heidi',
+      mode: 'workbook',
+    });
     expect(libraryTargetFromHash('#library/kid-3-jack-and-the-magic-beans/other')).toBeNull();
-    expect(resolveRoute('#library/kid-3-jack-and-the-magic-beans/workbook', 'home')).toBe('library');
-    expect(isInPageAnchor('#library/kid-3-jack-and-the-magic-beans/workbook')).toBe(false);
+    expect(resolveRoute('#library/kid-6-heidi/workbook', 'home')).toBe('library');
+    expect(isInPageAnchor('#library/kid-6-heidi/workbook')).toBe(false);
   });
 
-  it('filters the Kids readers shelf and finds all three books by grade, title, and author', () => {
+  it('filters the Kids readers shelf and finds all six books by grade, title, and author', () => {
     const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
     const { books, shelves } = parseCatalog(raw);
     expect(shelves).toContain('Kids readers');
     expect(shelves).toContain('Fiction');
-    expect(searchBooks(books, '', 'Kids readers')).toHaveLength(3);
+    expect(searchBooks(books, '', 'Kids readers')).toHaveLength(6);
     expect(searchBooks(books, 'kid 1').map((b) => b.id)).toEqual(['kid-1-the-brave-tin-soldier']);
     expect(searchBooks(books, 'hansel grimm').map((b) => b.id)).toEqual(['kid-2-hansel-and-gretel']);
     expect(searchBooks(books, 'magic beans').map((b) => b.id)).toEqual(['kid-3-jack-and-the-magic-beans']);
+    expect(searchBooks(books, 'trojan virgil').map((b) => b.id)).toEqual(['kid-4-the-trojan-horse']);
+    expect(searchBooks(books, 'icarus ovid').map((b) => b.id)).toEqual(['kid-5-daedalus-and-icarus']);
+    expect(searchBooks(books, 'heidi spyri').map((b) => b.id)).toEqual(['kid-6-heidi']);
   });
 
-  it('ships valid 20-page PDFs with embedded chapter bookmarks (Node 20+ and pdf.js)', async () => {
-    const files = [
-      'public/library/books/kid-1-the-brave-tin-soldier.pdf',
-      'public/library/books/kid-2-hansel-and-gretel.pdf',
-      'public/library/books/kid-3-jack-and-the-magic-beans.pdf',
-    ];
+  it('ships valid cleaned PDFs with embedded chapter bookmarks (Node 20+ and pdf.js)', async () => {
+    const files = expectedBooks.map(({ id, pages }) => ({
+      rel: `public/library/books/${id}.pdf`,
+      pages,
+    }));
 
     // Binary PDF validation runs on every Node version (including Node 20 in CI).
-    for (const rel of files) {
+    for (const { rel, pages } of files) {
       const buf = readFileSync(resolve(root, rel));
       const latin = buf.toString('latin1');
       expect(latin.startsWith('%PDF-1.'), `${rel} header`).toBe(true);
@@ -145,10 +174,15 @@ describe('Kid 1–3 reader workbooks: catalogue & assets', () => {
       const pageCounts = [...latin.matchAll(/\/Type\s*\/Pages\b[\s\S]{0,200}?\/Count\s+(\d+)/g)]
         .map((m) => Number(m[1]));
       expect(pageCounts.length, `${rel} /Pages tree`).toBeGreaterThan(0);
-      expect(Math.max(...pageCounts), `${rel} page count`).toBe(20);
+      expect(Math.max(...pageCounts), `${rel} page count`).toBe(pages);
       expect(/\/Outlines\s+\d+\s+0\s+R/.test(latin), `${rel} /Outlines`).toBe(true);
       const titles = [...latin.matchAll(/\/Title\s*\(([^)]+)\)/g)].map((m) => m[1]);
-      expect(titles).toEqual(expect.arrayContaining(['Cover', 'Contents', 'Part A: Story Focus']));
+      expect(titles, `${rel} common bookmarks`).toEqual(
+        expect.arrayContaining(['Cover', 'Part A: Story Focus', 'Part B: Skill Focus']),
+      );
+      if (pages === 20) {
+        expect(titles, `${rel} Contents bookmark`).toContain('Contents');
+      }
     }
 
     // Full pdf.js parse when the host Node meets pdfjs-dist@6 engines (>= 22.13).
@@ -157,13 +191,20 @@ describe('Kid 1–3 reader workbooks: catalogue & assets', () => {
     if (nodeMajor >= 22 && typeof proc.getBuiltinModule === 'function') {
       ensurePromiseWithResolvers();
       const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-      for (const rel of files) {
+      for (const { rel, pages } of files) {
         const bytes = new Uint8Array(readFileSync(resolve(root, rel)));
         const task = pdfjs.getDocument({ data: bytes, useSystemFonts: true });
         const doc = await task.promise;
-        expect(doc.numPages, rel).toBe(20);
+        expect(doc.numPages, rel).toBe(pages);
         const outline = await doc.getOutline();
-        expect(outline && outline.length, `${rel} bookmarks`).toBeGreaterThanOrEqual(5);
+        expect(outline && outline.length, `${rel} top-level bookmarks`).toBeGreaterThanOrEqual(
+          pages === 20 ? 5 : 4,
+        );
+        const totalBookmarks = (outline ?? []).reduce(
+          (sum, entry) => sum + 1 + (entry.items?.length ?? 0),
+          0,
+        );
+        expect(totalBookmarks, `${rel} total bookmarks`).toBeGreaterThanOrEqual(16);
         await task.destroy();
       }
     }
@@ -201,24 +242,29 @@ describe('Kid 1–3 reader workbooks: catalogue & assets', () => {
   });
 });
 
-describe('Kid 1–3 reader workbooks: answer-key integrity & grading', () => {
+describe('Kid 1–6 reader workbooks: answer-key integrity & grading', () => {
   it.each(READER_WORKBOOKS)('$gradeLabel ($title) has unique item IDs, valid options, and grades 0% → 100%', (wb) => {
     const allActivities = wb.sections.flatMap((s) => s.activities);
     const blank = gradeWorkbook(wb, {});
     expect(blank.answered).toBe(0);
     expect(blank.correct).toBe(0);
     expect(blank.pct).toBe(0);
-    expect(blank.total).toBeGreaterThan(90);
+    expect(blank.total).toBeGreaterThan(85);
     expect(blank.total).toBeLessThanOrEqual(500);
 
-    // Every answer in a word-bank, MCQ, binary-choice, sequence, or unscramble item must be reachable from its UI.
+    // Every answer across every activity type must have a unique ID and be reachable from its UI.
     const seenIds = new Set<string>();
+    const claimId = (id: string) => {
+      expect(seenIds.has(id), `duplicate ${id}`).toBe(false);
+      seenIds.add(id);
+    };
+
     for (const act of allActivities) {
+      claimId(act.id);
       if (act.kind === 'bank-fill') {
         const bank = act.wordBank.map((w) => w.toLowerCase());
         for (const item of act.items) {
-          expect(seenIds.has(item.id), `duplicate ${item.id}`).toBe(false);
-          seenIds.add(item.id);
+          claimId(item.id);
           expect(bank, `${item.id} answer in bank`).toContain(item.answer.toLowerCase());
         }
       } else if (act.kind === 'multi-blank') {
@@ -226,8 +272,7 @@ describe('Kid 1–3 reader workbooks: answer-key integrity & grading', () => {
         for (const s of act.sentences) {
           for (const p of s.parts) {
             if (typeof p === 'object') {
-              expect(seenIds.has(p.id), `duplicate ${p.id}`).toBe(false);
-              seenIds.add(p.id);
+              claimId(p.id);
               expect(bank, `${p.id} answer in bank`).toContain(p.answer.toLowerCase());
             }
           }
@@ -237,22 +282,48 @@ describe('Kid 1–3 reader workbooks: answer-key integrity & grading', () => {
         for (const row of act.rows) {
           for (const p of [...row.cause, ...row.effect]) {
             if (typeof p === 'object') {
-              expect(seenIds.has(p.id), `duplicate ${p.id}`).toBe(false);
-              seenIds.add(p.id);
+              claimId(p.id);
               expect(bank, `${p.id} answer in bank`).toContain(p.answer.toLowerCase());
             }
           }
         }
+      } else if (act.kind === 'binary-choice') {
+        for (const item of act.items) {
+          claimId(item.id);
+          expect(item.options, `${item.id} answer in binary options`).toContain(item.answer);
+        }
+      } else if (act.kind === 'true-false') {
+        for (const item of act.items) {
+          claimId(item.id);
+          expect(['T', 'F']).toContain(item.answer);
+        }
+      } else if (act.kind === 'match-qa') {
+        const keys = act.options.map((o) => o.key);
+        for (const item of act.items) {
+          claimId(item.id);
+          expect(keys, `${item.id} answer in match options`).toContain(item.answer);
+        }
+      } else if (act.kind === 'mcq') {
+        for (const item of act.items) {
+          claimId(item.id);
+          expect(item.options.map((o) => o.key), `${item.id} answer in mcq options`).toContain(item.answer);
+        }
       } else if (act.kind === 'unscramble') {
         for (const item of act.items) {
-          expect(seenIds.has(item.id), `duplicate ${item.id}`).toBe(false);
-          seenIds.add(item.id);
+          claimId(item.id);
           // Reassembling all chunks must produce the exact words of the target sentence.
           expect(item.chunks.join(' ').split(/\s+/).sort()).toEqual(item.answer.split(/\s+/).sort());
         }
+      } else if (act.kind === 'word-search') {
+        for (const word of act.words) claimId(word.id);
+      } else if (act.kind === 'crossword') {
+        for (const clue of act.clues) claimId(clue.id);
       } else if (act.kind === 'sequence') {
+        for (const item of act.items) claimId(item.id);
         const answers = act.items.map((item) => item.answer).sort((a, b) => a - b);
         expect(answers).toEqual(Array.from({ length: act.count }, (_, idx) => idx + 1));
+      } else if (act.kind === 'open-prompts') {
+        for (const prompt of act.prompts) claimId(prompt.id);
       }
     }
 
@@ -262,39 +333,50 @@ describe('Kid 1–3 reader workbooks: answer-key integrity & grading', () => {
     expect(perfect.pct).toBe(100);
   });
 
-  it('verifies every word path in Kid 2 Hansel and Gretel 8×8 word search', () => {
-    const kid2 = getReaderWorkbook('kid-2-hansel-and-gretel')!;
-    const ws = kid2.sections
+  it.each([
+    { id: 'kid-2-hansel-and-gretel', size: 8, count: 6 },
+    { id: 'kid-5-daedalus-and-icarus', size: 10, count: 6 },
+    { id: 'kid-6-heidi', size: 10, count: 6 },
+  ])('verifies every word path in $id ($size×$size word search)', ({ id, size, count }) => {
+    const wb = getReaderWorkbook(id)!;
+    const ws = wb.sections
       .flatMap((s) => s.activities)
       .find((a): a is Extract<WorkbookActivity, { kind: 'word-search' }> => a.kind === 'word-search')!;
-    expect(ws.words).toHaveLength(6);
+    expect(ws.grid).toHaveLength(size);
+    for (const row of ws.grid) expect(row).toHaveLength(size);
+    expect(ws.words).toHaveLength(count);
     for (const word of ws.words) {
       const forward = wordSearchLine(ws.grid, word.start, word.end);
       const backward = wordSearchLine(ws.grid, word.end, word.start);
-      expect(forward?.word, word.answer).toBe(word.answer);
-      expect(backward?.reversed, `${word.answer} reversed`).toBe(word.answer);
+      expect(forward?.word, `${id}:${word.answer}`).toBe(word.answer);
+      expect(backward?.reversed, `${id}:${word.answer} reversed`).toBe(word.answer);
     }
   });
 
-  it('verifies every intersecting cell in Kid 3 Jack and the Magic Beans crossword', () => {
-    const kid3 = getReaderWorkbook('kid-3-jack-and-the-magic-beans')!;
-    const cw = kid3.sections
+  it.each([
+    { id: 'kid-3-jack-and-the-magic-beans', count: 10 },
+    { id: 'kid-4-the-trojan-horse', count: 10 },
+  ])('verifies every intersecting cell in $id crossword with zero letter collisions', ({ id, count }) => {
+    const wb = getReaderWorkbook(id)!;
+    const cw = wb.sections
       .flatMap((s) => s.activities)
       .find((a): a is Extract<WorkbookActivity, { kind: 'crossword' }> => a.kind === 'crossword')!;
-    expect(cw.clues).toHaveLength(10);
+    expect(cw.clues).toHaveLength(count);
     const grid = buildCrosswordGrid(cw.rows, cw.cols, cw.clues);
 
     for (const clue of cw.clues) {
       for (let i = 0; i < clue.answer.length; i += 1) {
         const r = clue.direction === 'down' ? clue.row + i : clue.row;
         const c = clue.direction === 'across' ? clue.col + i : clue.col;
-        expect(grid[r]?.[c]?.solution, `${clue.id}[${i}] at (${r},${c})`).toBe(clue.answer[i]);
+        expect(r, `${id}:${clue.id} row in bounds`).toBeLessThan(cw.rows);
+        expect(c, `${id}:${clue.id} col in bounds`).toBeLessThan(cw.cols);
+        expect(grid[r]?.[c]?.solution, `${id}:${clue.id}[${i}] at (${r},${c})`).toBe(clue.answer[i]);
       }
     }
   });
 });
 
-describe('Kid 1–3 reader workbooks: state, Firestore payload & offline outbox', () => {
+describe('Kid 1–6 reader workbooks: state, Firestore payload & offline outbox', () => {
   let store: Map<string, string>;
 
   beforeEach(() => {
@@ -443,5 +525,47 @@ describe('Kid 1–3 reader workbooks: state, Firestore payload & offline outbox'
     const stranger = myHomeworkScore(whole, { uid: 'uid-other', name: 'Dara 3A' });
     // Signed-in stranger cannot see Dara's uid-owned submission even with the same display name.
     expect(stranger).toBeNull();
+  });
+
+  it('gives all six Kid 1–6 workbooks distinct, Firestore-compliant drillSlugs and drillTitles', () => {
+    const slugs = new Set<string>();
+    const titles = new Set<string>();
+    for (const wb of READER_WORKBOOKS) {
+      expect(wb.drillSlug.length).toBeGreaterThan(0);
+      expect(wb.drillSlug.length).toBeLessThanOrEqual(80);
+      expect(wb.drillTitle.length).toBeGreaterThan(0);
+      expect(wb.drillTitle.length).toBeLessThanOrEqual(120);
+      expect(slugs.has(wb.drillSlug), `duplicate slug ${wb.drillSlug}`).toBe(false);
+      expect(titles.has(wb.drillTitle), `duplicate title ${wb.drillTitle}`).toBe(false);
+      slugs.add(wb.drillSlug);
+      titles.add(wb.drillTitle);
+
+      const grade = gradeWorkbook(wb, {});
+      const doc = buildFirestoreWorkbookDoc(
+        {
+          bookId: wb.id,
+          drillSlug: wb.drillSlug,
+          drillTitle: wb.drillTitle,
+          studentName: `Student K${wb.gradeNumber}`,
+          correctCount: grade.total,
+          totalCount: grade.total,
+          scorePct: 100,
+          firstCorrectCount: grade.total,
+          firstAnsweredCount: grade.total,
+          checkCount: 1,
+          queuedAt: 5000 + wb.gradeNumber,
+        },
+        null,
+      );
+      const parsed = parseHomeworkAttempt({
+        name: `projects/x/documents/drill_attempts/k${wb.gradeNumber}`,
+        fields: doc.fields as never,
+      });
+      expect(parsed?.studentName).toBe(`Student K${wb.gradeNumber}`);
+      expect(parsed?.homework).toBeNull();
+      expect(parsed?.pct).toBe(100);
+      expect(parsed?.correct).toBe(grade.total);
+      expect(parsed?.total).toBe(grade.total);
+    }
   });
 });

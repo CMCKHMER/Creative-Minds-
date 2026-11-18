@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import {
   AlertTriangle,
@@ -324,10 +324,21 @@ function WordSearchBlock({
     }
   };
 
+  const cols = grid[0]?.length ?? 8;
+  const gridStyle = {
+    '--ws-cols': String(cols),
+    '--ws-cell': cols > 8 ? '2.05rem' : '2.35rem',
+  } as CSSProperties;
+
   return (
     <div className="grid gap-5 lg:grid-cols-[auto_1fr]">
-      <div className="flex flex-col items-center">
-        <div className="cmc-rwb-ws-grid" role="group" aria-label="8 by 8 word search letter grid">
+      <div className="flex flex-col items-center overflow-x-auto">
+        <div
+          className="cmc-rwb-ws-grid"
+          style={gridStyle}
+          role="group"
+          aria-label={`${grid.length} by ${cols} word search letter grid`}
+        >
           {grid.map((row, r) =>
             [...row].map((ch, c) => {
               const key = `${r},${c}`;
@@ -829,6 +840,8 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
       }
 
       case 'cause-effect': {
+        const leftHeading = activity.leftLabel ?? 'Cause';
+        const rightHeading = activity.rightLabel ?? 'Effect';
         const used = activity.rows.flatMap((row) =>
           [...row.cause, ...row.effect]
             .filter((p): p is MultiBlankSlot => typeof p === 'object')
@@ -845,7 +858,7 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
                 >
                   <div>
                     <span className="cmc-rwb-soft-text block text-[11px] font-bold uppercase tracking-wider">
-                      Cause {idx + 1}
+                      {leftHeading} {idx + 1}
                     </span>
                     <p className="mt-1 text-sm font-medium leading-9">
                       {renderSlotParts(
@@ -854,7 +867,7 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
                         state.answers,
                         setAnswer,
                         revealed,
-                        `Cause ${idx + 1}`,
+                        `${leftHeading} ${idx + 1}`,
                       )}
                     </p>
                   </div>
@@ -863,7 +876,7 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
                   </div>
                   <div>
                     <span className="cmc-rwb-soft-text block text-[11px] font-bold uppercase tracking-wider">
-                      Effect {idx + 1}
+                      {rightHeading} {idx + 1}
                     </span>
                     <p className="mt-1 text-sm font-medium leading-9">
                       {renderSlotParts(
@@ -872,7 +885,7 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
                         state.answers,
                         setAnswer,
                         revealed,
-                        `Effect ${idx + 1}`,
+                        `${rightHeading} ${idx + 1}`,
                       )}
                     </p>
                   </div>
@@ -1119,6 +1132,12 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
         const numbers = Array.from({ length: activity.count }, (_, idx) => String(idx + 1));
         return (
           <div className="space-y-2.5">
+            {activity.leadSentence && (
+              <div className="cmc-rwb-card-alt text-sm font-semibold">
+                <span className="cmc-rwb-accent-text mr-2 text-xs font-extrabold uppercase tracking-wider">Start:</span>
+                {activity.leadSentence}
+              </div>
+            )}
             {activity.items.map((item) => {
               const current = state.answers[item.id] ?? '';
               const graded = revealed[item.id];
@@ -1134,7 +1153,7 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
                     </span>
                     {item.text}
                   </p>
-                  <div className="flex items-center gap-1.5" role="group" aria-label={`Order for ${item.badge}`}>
+                  <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`Order for ${item.badge}`}>
                     {numbers.map((num) => {
                       const pressed = current === num;
                       const chipState = graded
@@ -1161,6 +1180,12 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
                 </div>
               );
             })}
+            {activity.trailSentence && (
+              <div className="cmc-rwb-card-alt text-sm font-semibold">
+                <span className="cmc-rwb-accent-text mr-2 text-xs font-extrabold uppercase tracking-wider">End:</span>
+                {activity.trailSentence}
+              </div>
+            )}
           </div>
         );
       }

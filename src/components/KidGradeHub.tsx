@@ -254,17 +254,17 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
           </div>
           <div className="flex max-w-md items-start gap-3 border-l border-cyan-200/25 pl-4 text-xs leading-relaxed text-slate-400 lg:mb-1">
             <Layers3 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" aria-hidden="true" />
-            <p><strong className="font-semibold text-slate-200">One grade, one place.</strong><br />{READER_WORKBOOKS.length} Kid 1–3 classic reader workbooks plus {availableResourceCount} existing worksheet links across {availableGradeCount} Kid 5–12 grade groups.</p>
+            <p><strong className="font-semibold text-slate-200">One grade, one place.</strong><br />{READER_WORKBOOKS.length} Kid 1–6 classic reader workbooks plus {availableResourceCount} existing worksheet links across {availableGradeCount} Kid 5–12 grade groups.</p>
           </div>
         </header>
         </Reveal>
 
-        {/* Kid 1–3 Classic Readers — cross-linked with the Reading Room (#library) */}
+        {/* Kid 1–6 Classic Readers — cross-linked with the Reading Room (#library) */}
         <Reveal className="mt-10">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200">
-                Kid 1–3 · Young Learners Classic Readers
+                Kid 1–6 · Young Learners Classic Readers
               </p>
               <p className="mt-1 text-xs leading-relaxed text-slate-400">
                 Open the illustrated PDF workbook or complete the auto-graded activities online and press Submit to Teacher.
