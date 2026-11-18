@@ -29,6 +29,9 @@ export interface KidHomeworkScoresProps {
   /** The href names a whole page that is ONE assignment (the Units 12–13
    *  secure quiz: no #hw- anchor), so every submission of the page counts. */
   wholePage?: boolean;
+  /** Optional explicit Firestore `drillSlug` for in-app reader workbooks
+   *  whose address is a hash route (`#library/<id>/workbook`) instead of `.html`. */
+  drillSlug?: string;
   /** Eyebrow noun for the sheet, e.g. 'Secure quiz scores & violations'. */
   kindLabel?: string;
   /** Empty-sheet hint naming how a submission arrives on this assignment. */
@@ -44,10 +47,16 @@ const POLL_MS = 20_000;
 const band = (pct: number): string =>
   pct >= 80 ? 'text-emerald-300' : pct >= 50 ? 'text-amber-300' : 'text-rose-300';
 
-export function KidHomeworkScores({ title, href, gradeLabel, wholePage, kindLabel, submitHint, onClose }: KidHomeworkScoresProps) {
+export function KidHomeworkScores({ title, href, gradeLabel, wholePage, drillSlug, kindLabel, submitHint, onClose }: KidHomeworkScoresProps) {
   const ref = useMemo(
-    () => (wholePage ? wholePageRefFromHref(href) ?? homeworkRefFromHref(href) : homeworkRefFromHref(href)),
-    [href, wholePage],
+    () => (
+      drillSlug
+        ? { slug: drillSlug, number: null }
+        : wholePage
+          ? wholePageRefFromHref(href) ?? homeworkRefFromHref(href)
+          : homeworkRefFromHref(href)
+    ),
+    [drillSlug, href, wholePage],
   );
   const [attempts, setAttempts] = useState<HomeworkAttempt[] | null>(null);
   const [capped, setCapped] = useState(false);

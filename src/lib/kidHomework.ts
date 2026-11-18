@@ -409,7 +409,7 @@ export async function fetchHomeworkPageAttempts(slug: string): Promise<HomeworkP
 export async function fetchMyHomeworkScore(
   slug: string,
   identity: { uid?: string | null; name?: string | null },
-  number: number,
+  number: number | null,
 ): Promise<StudentScore | null> {
   const { attempts } = await fetchHomeworkPageAttempts(slug);
   return myHomeworkScore(attemptsForHomework(attempts, number), identity);

@@ -2,6 +2,45 @@
   "_how_to_add_a_book": "Copy one entry, change the fields, and upload the PDF to public/library/books/. Use \"file\" for a PDF kept on this site, or \"box\" for a Box share link. \"rights\" is required: say why the school may publish the book. Full steps: docs/library.md",
   "books": [
     {
+      "id": "kid-1-the-brave-tin-soldier",
+      "title": "The Brave Tin Soldier",
+      "author": "Hans Christian Andersen",
+      "shelf": "Kids readers",
+      "level": "Kid 1",
+      "pages": 20,
+      "about": "A one-legged tin soldier loves a paper dancer, sails down a rainy street in a paper boat, survives inside a big fish, and finds his way back home. Classic reader companion workbook with story, vocabulary, comprehension, and book report activities.",
+      "rights": "Classroom reader workbook (Young Learners Classic Readers 1-3, Compass Publishing) for Creative Minds Kid 1 students.",
+      "cover": "library/covers/kid-1-the-brave-tin-soldier.jpg",
+      "file": "library/books/kid-1-the-brave-tin-soldier.pdf",
+      "workbook": "kid-1-the-brave-tin-soldier"
+    },
+    {
+      "id": "kid-2-hansel-and-gretel",
+      "title": "Hansel and Gretel",
+      "author": "Brothers Grimm",
+      "shelf": "Kids readers",
+      "level": "Kid 2",
+      "pages": 20,
+      "about": "Clever Hansel and brave Gretel leave a trail of white rocks, discover a candy house deep in the forest, and outsmart a wicked witch to get back to their father. Classic reader companion workbook with word search, comprehension, and book report activities.",
+      "rights": "Classroom reader workbook (Young Learners Classic Readers 1-2, Compass Publishing) for Creative Minds Kid 2 students.",
+      "cover": "library/covers/kid-2-hansel-and-gretel.jpg",
+      "file": "library/books/kid-2-hansel-and-gretel.pdf",
+      "workbook": "kid-2-hansel-and-gretel"
+    },
+    {
+      "id": "kid-3-jack-and-the-magic-beans",
+      "title": "Jack and the Magic Beans",
+      "author": "Joseph Jacobs",
+      "shelf": "Kids readers",
+      "level": "Kid 3",
+      "pages": 20,
+      "about": "Jack trades his cow for five magic beans, climbs a towering beanstalk into the clouds, outwits a hungry giant, and brings home gold, a goose, and a magic harp. Classic reader companion workbook with crossword, comprehension, and book report activities.",
+      "rights": "Classroom reader workbook (Young Learners Classic Readers 2-5, Compass Publishing) for Creative Minds Kid 3 students.",
+      "cover": "library/covers/kid-3-jack-and-the-magic-beans.jpg",
+      "file": "library/books/kid-3-jack-and-the-magic-beans.pdf",
+      "workbook": "kid-3-jack-and-the-magic-beans"
+    },
+    {
       "id": "alice-in-wonderland",
       "title": "Alice's Adventures in Wonderland",
       "author": "Lewis Carroll",

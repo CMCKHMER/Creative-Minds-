@@ -32,6 +32,8 @@ export interface LibraryBook {
   rights: string;
   /** Optional cover picture; without one the card draws a cover from the title. */
   cover: string | null;
+  /** Optional interactive workbook slug paired with this book (`#library/<id>/workbook`). */
+  workbook: string | null;
   source: BookSource;
 }
 
@@ -133,6 +135,8 @@ export function parseBook(entry: unknown): LibraryBook | string {
   if (!rights) return `"${title}": say why the school may publish it in "rights" (for example "Public domain" or "CMC original").`;
 
   const pages = typeof raw.pages === 'number' && Number.isFinite(raw.pages) && raw.pages > 0 ? Math.floor(raw.pages) : null;
+  const rawWorkbook = text(raw.workbook, 80);
+  const workbook = rawWorkbook ? slugify(rawWorkbook) || null : null;
   return {
     id,
     title,
@@ -143,6 +147,7 @@ export function parseBook(entry: unknown): LibraryBook | string {
     pages,
     rights,
     cover: coverUrl(raw.cover),
+    workbook,
     source,
   };
 }
@@ -235,6 +240,28 @@ export function turnPage(page: number, pages: number, twoUp: boolean, direction:
   if (direction === 1) return clampPage(last + 1, pages);
   const target = clampPage(first - 1, pages);
   return spreadFor(target, pages, twoUp)[0] ?? target;
+}
+
+export type LibraryOpenMode = 'read' | 'workbook';
+
+export interface LibraryHashTarget {
+  bookId: string;
+  mode: LibraryOpenMode;
+}
+
+/**
+ * Parses a Reading room deep link:
+ *  - `#library/alice-in-wonderland`               → `{ bookId: 'alice-in-wonderland', mode: 'read' }`
+ *  - `#library/kid-1-the-brave-tin-soldier/workbook` → `{ bookId: 'kid-1-the-brave-tin-soldier', mode: 'workbook' }`
+ *  - anything else                                 → `null`
+ */
+export function libraryTargetFromHash(hash: string): LibraryHashTarget | null {
+  const match = /^#?library\/([a-z0-9-]{1,60})(?:\/(workbook))?$/i.exec(hash.trim());
+  if (!match?.[1]) return null;
+  return {
+    bookId: match[1].toLowerCase(),
+    mode: match[2]?.toLowerCase() === 'workbook' ? 'workbook' : 'read',
+  };
 }
 
 /** `#library/alice-in-wonderland` → "alice-in-wonderland"; anything else → null. */

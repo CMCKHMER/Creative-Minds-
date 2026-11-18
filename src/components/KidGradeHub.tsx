@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
-import { ArrowUpRight, BarChart3, BookOpen, CheckCircle2, Check, ChevronDown, ChevronUp, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, Share2, Sparkles, Trophy } from 'lucide-react';
+import { ArrowUpRight, BarChart3, BookOpen, CheckCircle2, Check, ChevronDown, ChevronUp, ClipboardList, Clock3, GraduationCap, KeyRound, Layers3, Link2, Lock, PenLine, Share2, Sparkles, Trophy } from 'lucide-react';
 import { KID_GRADE_RESOURCES, type KidGradeMaterial } from '../data/kidGradeResources';
+import { READER_WORKBOOKS, type ReaderWorkbookMeta } from '../data/readerWorkbooks';
 import { getProjectId, getValidIdToken, restoreSession } from '../lib/firebaseAuth';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 import { requestAuth } from '../lib/authPrompt';
@@ -83,6 +84,23 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
   // the whole class; this one shows a signed-in student their OWN line and
   // nothing else. Same row, different audience.
   const [myScoreFor, setMyScoreFor] = useState<{ material: KidGradeMaterial; grade: number } | null>(null);
+  const [readerScoresFor, setReaderScoresFor] = useState<ReaderWorkbookMeta | null>(null);
+  const [readerMyScoreFor, setReaderMyScoreFor] = useState<ReaderWorkbookMeta | null>(null);
+
+  async function shareReaderWorkbook(reader: ReaderWorkbookMeta) {
+    const url = `${window.location.origin}${window.location.pathname}${reader.workbookHref}`;
+    const text = `${reader.gradeLabel} Classic Reader — ${reader.title} (PDF + auto-graded workbook)`;
+    if (navigator.share) {
+      try { await navigator.share({ title: `${reader.gradeLabel} · ${reader.title}`, text, url }); return; } catch { /* cancelled */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(reader.id);
+      window.setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      window.open(url, '_blank', 'noopener');
+    }
+  }
 
   // All share docs across the grade cards (deduped) — EVERY material that
   // carries a shareDoc, not just 'Online homework'. The Units 12–13 Secure
@@ -236,12 +254,133 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
           </div>
           <div className="flex max-w-md items-start gap-3 border-l border-cyan-200/25 pl-4 text-xs leading-relaxed text-slate-400 lg:mb-1">
             <Layers3 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" aria-hidden="true" />
-            <p><strong className="font-semibold text-slate-200">One grade, one place.</strong><br />{availableResourceCount} existing worksheet links across {availableGradeCount} grade groups. New materials can be added as they are created.</p>
+            <p><strong className="font-semibold text-slate-200">One grade, one place.</strong><br />{READER_WORKBOOKS.length} Kid 1–3 classic reader workbooks plus {availableResourceCount} existing worksheet links across {availableGradeCount} Kid 5–12 grade groups.</p>
           </div>
         </header>
         </Reveal>
 
-        <Reveal stagger className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Kid 1–3 Classic Readers — cross-linked with the Reading Room (#library) */}
+        <Reveal className="mt-10">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+                Kid 1–3 · Young Learners Classic Readers
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-400">
+                Open the illustrated PDF workbook or complete the auto-graded activities online and press Submit to Teacher.
+              </p>
+            </div>
+            <a
+              href="#library"
+              className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1.5 text-[11px] font-bold text-cyan-100 transition hover:border-cyan-200/60 hover:bg-cyan-300/20"
+            >
+              <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Open Reading Room</span>
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-3" data-kid-readers-shelf>
+            {READER_WORKBOOKS.map((reader) => (
+              <article
+                key={reader.id}
+                data-kid-reader={reader.id}
+                aria-label={`${reader.gradeLabel} reader: ${reader.title}`}
+                className="flex flex-col justify-between rounded-2xl border border-cyan-200/25 bg-gradient-to-br from-cyan-400/[0.10] via-slate-900/90 to-indigo-500/[0.08] p-4 shadow-[0_20px_60px_-45px_rgba(34,211,238,.65)] transition duration-300 hover:-translate-y-1 hover:border-cyan-100/45 sm:p-5"
+              >
+                <div>
+                  <div className="flex items-start gap-3.5">
+                    <a
+                      href={reader.bookHref}
+                      className="block w-16 shrink-0 overflow-hidden rounded-lg border border-white/15 shadow-md transition hover:scale-[1.03]"
+                      aria-label={`Read ${reader.title} (${reader.gradeLabel})`}
+                    >
+                      <img
+                        src={reader.cover}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="aspect-[3/4] w-full object-cover"
+                      />
+                    </a>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-[var(--font-display)] text-2xl font-bold tracking-tight text-white">
+                          {reader.gradeLabel}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/25 bg-emerald-200/[0.08] px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-emerald-100">
+                          <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                          PDF + Workbook
+                        </span>
+                      </div>
+                      <h3 className="mt-1.5 text-sm font-bold leading-snug text-cyan-50">{reader.title}</h3>
+                      <p className="mt-0.5 text-[11px] text-slate-400">{reader.author}</p>
+                      <p className="mt-0.5 text-[10px] text-slate-500">{reader.seriesLabel}</p>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-[11px] leading-relaxed text-slate-300">{reader.tagline}</p>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-white/10 pt-3">
+                  <a
+                    href={reader.bookHref}
+                    className="inline-flex items-center gap-1 rounded-lg border border-white/15 bg-slate-950/50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-100 transition hover:border-cyan-200/45 hover:text-white"
+                  >
+                    <BookOpen className="h-3.5 w-3.5 text-cyan-200" aria-hidden="true" />
+                    <span>Read PDF</span>
+                  </a>
+                  <a
+                    href={reader.workbookHref}
+                    className="inline-flex items-center gap-1 rounded-lg border border-cyan-300/40 bg-cyan-400/15 px-2.5 py-1.5 text-[11px] font-bold text-cyan-100 transition hover:border-cyan-200/70 hover:bg-cyan-400/25"
+                  >
+                    <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Workbook</span>
+                  </a>
+                  {isTeacher ? (
+                    <button
+                      type="button"
+                      onClick={() => setReaderScoresFor(reader)}
+                      aria-label={`View submitted scores for ${reader.gradeLabel} ${reader.title}`}
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/15 bg-slate-950/50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:border-cyan-200/45 hover:text-white"
+                    >
+                      <BarChart3 className="h-3.5 w-3.5 text-cyan-200" aria-hidden="true" />
+                      <span>Scores</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setReaderMyScoreFor(reader)}
+                      aria-label={`See your score on ${reader.gradeLabel} ${reader.title}`}
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/15 bg-slate-950/50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 transition hover:border-cyan-200/45 hover:text-white"
+                    >
+                      <Trophy className="h-3.5 w-3.5 text-amber-200" aria-hidden="true" />
+                      <span>My score</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => { void shareReaderWorkbook(reader); }}
+                    aria-label={`Share ${reader.gradeLabel} ${reader.title} workbook link`}
+                    title="Share workbook link with class"
+                    className="ml-auto inline-flex items-center gap-1 rounded-lg border border-white/10 bg-slate-950/40 px-2 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:border-cyan-200/40 hover:text-white"
+                  >
+                    {copiedId === reader.id ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true" />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </Reveal>
+
+        <Reveal stagger className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {KID_GRADE_RESOURCES.map((resource) => {
             const isAvailable = resource.status === 'available' && resource.materials.length > 0;
             const sheets = resource.materials.filter((material) => material.kind !== 'Online homework');
@@ -469,6 +608,31 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
           name={session?.displayName ?? ''}
           onOpenAuth={onOpenAuth}
           onClose={() => setMyScoreFor(null)}
+        />
+      )}
+      {isTeacher && readerScoresFor && (
+        <KidHomeworkScores
+          title={`${readerScoresFor.title} — Interactive Workbook`}
+          href={readerScoresFor.workbookHref}
+          drillSlug={readerScoresFor.drillSlug}
+          wholePage
+          gradeLabel={readerScoresFor.gradeLabel}
+          kindLabel="Reader workbook scores"
+          submitHint="Students open the workbook in the Reading Room and press Submit to Teacher."
+          onClose={() => setReaderScoresFor(null)}
+        />
+      )}
+      {!isTeacher && readerMyScoreFor && (
+        <KidMyHomeworkScore
+          title={`${readerMyScoreFor.title} — Interactive Workbook`}
+          href={readerMyScoreFor.workbookHref}
+          drillSlug={readerMyScoreFor.drillSlug}
+          wholePage
+          gradeLabel={readerMyScoreFor.gradeLabel}
+          uid={session?.localId ?? ''}
+          name={session?.displayName ?? ''}
+          onOpenAuth={onOpenAuth}
+          onClose={() => setReaderMyScoreFor(null)}
         />
       )}
     </section>
