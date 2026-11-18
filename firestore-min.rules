@@ -10,7 +10,7 @@ service cloud.firestore {
       return request.auth != null
         && request.auth.token.email_verified == true
         && request.auth.token.email != null
-        && (request.auth.token.email.matches('.*@[^@]*[eE][dD][uU][^@]*')
+        && (request.auth.token.email.matches('.*@([^@]*[.])?([eE][dD][uU]|[aA][cC])([.][a-zA-Z]{2})?$')
             || isCmcAdmin());
     }
     function teacherAccessDoc() {
@@ -284,10 +284,8 @@ service cloud.firestore {
     }
     match /teachers/{uid} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null
-        && request.auth.uid == uid
-        && isCmcTeacher();
-      allow update, delete: if false;
+      allow create, delete: if isCmcAdmin();
+      allow update: if false;
     }
     function isVerifiedTeacher() {
       return request.auth != null

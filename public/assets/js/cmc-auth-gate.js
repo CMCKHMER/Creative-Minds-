@@ -159,7 +159,7 @@
     if (mode === 'teacher') {
       return {
         title: 'Verified teacher access',
-        body: 'This page is for verified teachers. School (.edu) addresses unlock it once the email is verified; other addresses unlock after the site admin approves your account.',
+        body: 'This page is for verified teachers. Teacher access is granted by the site admin — school (.edu) and other addresses alike are approved in the Admin teacher-verification panel, then unlock once your email is verified.',
         primary: 'Sign up free',
         secondary: 'I already have an account'
       };

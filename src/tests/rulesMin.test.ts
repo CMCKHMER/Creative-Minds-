@@ -30,16 +30,31 @@ describe('firestore.rules access guards', () => {
   const source = /request\.auth\.token\.email\.matches\('([^']+)'\)/.exec(rules)?.[1] ?? '';
   const teacherPattern = new RegExp(`^${source}$`);
 
-  it('grants the teacher role on the email DOMAIN only', () => {
+  it('grants the teacher role only on TLD-anchored education domains', () => {
     expect(source).not.toBe('');
+    // Real education TLDs pass: *.edu, *.edu.<2-letter cc>, *.ac.<2-letter cc>.
     expect(teacherPattern.test('you@school.edu.kh')).toBe(true);
     expect(teacherPattern.test('teacher@university.edu')).toBe(true);
     expect(teacherPattern.test('Teacher@School.EDU.KH')).toBe(true);
-    expect(teacherPattern.test('ms.dara@education.gov.kh')).toBe(true);
+    expect(teacherPattern.test('lecturer@polytechnic.ac.th')).toBe(true);
+    // SECURITY: domains that merely CONTAIN "edu" must NOT qualify — under
+    // the old substring match, an attacker who owned myedu-site.com passed
+    // the heuristic and self-registered a teachers/{uid} allowlist entry.
+    expect(teacherPattern.test('attacker@myedu-site.com')).toBe(false);
+    expect(teacherPattern.test('x@pwn.edu.com')).toBe(false);
+    expect(teacherPattern.test('x@education.blogspot.com')).toBe(false);
+    expect(teacherPattern.test('ms.dara@education.gov.kh')).toBe(false);
     // "edu" in the mailbox name of a free provider must NOT qualify.
     expect(teacherPattern.test('eduardo@gmail.com')).toBe(false);
     expect(teacherPattern.test('my.edu.account@outlook.com')).toBe(false);
     expect(teacherPattern.test('jane@gmail.com')).toBe(false);
+  });
+
+  it('closes teachers/{uid} self-registration — owner seeds the allowlist', () => {
+    const teachersBlock = rules.slice(rules.indexOf('match /teachers/{uid}'), rules.indexOf('function isVerifiedTeacher'));
+    expect(teachersBlock).not.toMatch(/allow create: if request\.auth != null\s*&& request\.auth\.uid == uid\s*&& isCmcTeacher\(\)/);
+    expect(teachersBlock).toMatch(/allow create, delete: if isCmcAdmin\(\);/);
+    expect(teachersBlock).toMatch(/allow update: if false;/);
   });
 
   it('does not let any verified user update a class they do not own', () => {
