@@ -1,5 +1,14 @@
-import { ArrowUpRight, BookOpen, CheckCircle2, Clock3, GraduationCap, Layers3, Sparkles, Headphones, PenLine, BookMarked } from 'lucide-react';
+import { ArrowUpRight, BookOpen, CheckCircle2, Clock3, GraduationCap, Layers3, Lock, Sparkles, Headphones, PenLine, BookMarked } from 'lucide-react';
 import { Reveal } from './Reveal';
+
+interface ProgramResource {
+  title: string;
+  href: string;
+  kind: string;
+  description: string;
+  icon: typeof BookOpen;
+  teacherOnly?: boolean;
+}
 
 interface Program {
   id: string;
@@ -7,8 +16,8 @@ interface Program {
   level: string;
   description: string;
   status: 'available' | 'planned';
-  resources: { title: string; href: string; kind: string; description: string; icon: typeof BookOpen }[];
-  color: string;
+  resources: ProgramResource[];
+  color: 'cyan' | 'violet';
   bgColor: string;
   borderColor: string;
 }
@@ -17,13 +26,46 @@ const PROGRAMS: Program[] = [
   {
     id: 'gep',
     name: 'GEP Program',
-    level: 'General English Program · All Levels',
-    description: 'General English Program resources covering listening, speaking, reading, and writing across multiple proficiency levels. Worksheet and audio materials will be linked as they are created.',
-    status: 'planned',
+    level: 'General English Program · World Class 1 (Units 1–12)',
+    description: "Complete 12-unit World Class 1 interactive Teacher's Book covering vocabulary, grammar, listening, National Geographic readings, video guides, writing models, speaking tasks, and fluency boards — with classroom answer keys and synced progress.",
+    status: 'available',
     color: 'cyan',
     bgColor: 'from-cyan-400/[0.10] via-slate-900/90 to-sky-500/[0.08]',
     borderColor: 'border-cyan-200/25',
-    resources: [],
+    resources: [
+      {
+        title: "World Class 1 — Complete Teacher's Book (Units 1–12)",
+        href: './gep/world-class-1/index.html',
+        kind: "Teacher's Book · Scope & Sequence + 12 Units",
+        description: '157 vocabulary terms, 57 interactive checks (368 items), one-click Teacher Answer Keys, unit search, and live progress sync.',
+        icon: BookMarked,
+        teacherOnly: true,
+      },
+      {
+        title: 'Units 1–4 · Identity, Travel, Energy & Performance',
+        href: './gep/world-class-1/unit.html',
+        kind: 'Past Tenses · Infinitives & Gerunds · Future Forms · Complements',
+        description: 'Who We Are, The World Awaits, The Great Energy Challenge, and The World’s a Stage.',
+        icon: BookOpen,
+        teacherOnly: true,
+      },
+      {
+        title: 'Units 5–8 · Survival, Style, City Life & Digital Privacy',
+        href: './gep/world-class-1/unit5.html',
+        kind: 'Adverbial Clauses · Adjective Clauses · Comparatives · Past Modals',
+        description: 'No Need to Panic, In Style, On the Move, and Think Twice.',
+        icon: PenLine,
+        teacherOnly: true,
+      },
+      {
+        title: 'Units 9–12 · Wildlife, Decisions, Weather & Competition',
+        href: './gep/world-class-1/unit9.html',
+        kind: 'Passive Voice · Conditionals · Phrasal Verbs · Reported Speech',
+        description: 'In the Wild, Decisions Decisions, Rain or Shine, and What’s Your Game.',
+        icon: GraduationCap,
+        teacherOnly: true,
+      },
+    ],
   },
   {
     id: 'isec',
@@ -83,11 +125,11 @@ export function GEPISecHub() {
           <div className="max-w-3xl">
             <span className="cmc-eyebrow"><Layers3 className="h-3.5 w-3.5" aria-hidden="true" /> Academic Programs</span>
             <h2 id="gep-isec-hub-title" className="cmc-h2">GEP & ISEC<br /><span className="cmc-gradient-text">Program Resources.</span></h2>
-            <p className="cmc-lead">General English Program (GEP) and Intensive English Course (ISEC) materials for older learners — TOEFL drills, C2-level grammar, listening with audio, and analytical reading. For Kid 5–12 materials, see the section above.</p>
+            <p className="cmc-lead">General English Program (GEP) and Intensive English Course (ISEC) materials for older learners — including the full 12-unit World Class 1 interactive Teacher&apos;s Book for GEP alongside TOEFL ITP plans, C2 grammar, listening with audio, and analytical reading for ISEC.</p>
           </div>
           <div className="flex max-w-md items-start gap-3 border-l border-cyan-200/25 pl-4 text-xs leading-relaxed text-slate-400 lg:mb-1">
             <Layers3 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" aria-hidden="true" />
-            <p><strong className="font-semibold text-slate-200">Two programs, one hub.</strong><br />4 ISEC resources linked so far. GEP worksheet pages will be added as they are built.</p>
+            <p><strong className="font-semibold text-slate-200">Two programs, both live.</strong><br />GEP World Class 1 Teacher&apos;s Book (all 12 units + answer keys) and 4 ISEC Level 12B resources.</p>
           </div>
         </header>
         </Reveal>
@@ -95,12 +137,20 @@ export function GEPISecHub() {
         <Reveal stagger className="mt-10 grid gap-5 lg:grid-cols-2">
           {PROGRAMS.map((program) => {
             const isAvailable = program.status === 'available' && program.resources.length > 0;
+            const isCyan = program.color === 'cyan';
+            const linkTone = isCyan
+              ? 'hover:border-cyan-200/30 hover:bg-cyan-200/[0.04] focus-visible:outline-cyan-200'
+              : 'hover:border-violet-200/25 hover:bg-violet-200/[0.035] focus-visible:outline-violet-200';
+            const iconTone = isCyan ? 'text-cyan-200' : 'text-violet-200';
+            const titleHover = isCyan ? 'group-hover/link:text-cyan-100' : 'group-hover/link:text-violet-100';
+            const arrowTone = isCyan ? 'text-cyan-200/75' : 'text-violet-200/75';
+
             return (
               <article key={program.id} aria-label={`${program.name} — ${program.resources.length} resources`} className={`flex flex-col rounded-2xl border p-5 transition duration-300 sm:p-6 ${isAvailable ? `relative overflow-hidden border ${program.borderColor} bg-gradient-to-br ${program.bgColor} shadow-[0_20px_60px_-45px_rgba(34,211,238,.65)] hover:-translate-y-1 hover:border-opacity-50 hover:shadow-[0_28px_70px_-42px_rgba(34,211,238,.6)]` : 'border-white/[0.07] bg-slate-950/30 hover:border-white/15 hover:bg-slate-950/55'}`}>
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="grid h-12 w-12 place-items-center rounded-xl border" style={{ borderColor: program.color === 'cyan' ? 'rgba(34,211,238,0.25)' : 'rgba(139,92,246,0.25)', background: program.color === 'cyan' ? 'rgba(34,211,238,0.08)' : 'rgba(139,92,246,0.08)' }}>
-                      {program.color === 'cyan' ? <BookMarked className="h-6 w-6 text-cyan-200" /> : <Layers3 className="h-6 w-6 text-violet-200" />}
+                    <span className="grid h-12 w-12 place-items-center rounded-xl border" style={{ borderColor: isCyan ? 'rgba(34,211,238,0.25)' : 'rgba(139,92,246,0.25)', background: isCyan ? 'rgba(34,211,238,0.08)' : 'rgba(139,92,246,0.08)' }}>
+                      {isCyan ? <BookMarked className="h-6 w-6 text-cyan-200" /> : <Layers3 className="h-6 w-6 text-violet-200" />}
                     </span>
                     <div>
                       <span className={`font-[var(--font-display)] text-2xl font-bold tracking-tight ${isAvailable ? 'text-white' : 'text-slate-400'}`}>{program.name}</span>
@@ -109,7 +159,7 @@ export function GEPISecHub() {
                   </div>
                   {isAvailable ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-emerald-200/[0.06] px-2.5 py-1 text-[9px] font-bold tracking-[0.12em] text-emerald-100 uppercase">
-                      <CheckCircle2 className="h-3 w-3" aria-hidden="true" />{program.resources.length} resources
+                      <CheckCircle2 className="h-3 w-3" aria-hidden="true" />{program.id === 'gep' ? '12 units live' : `${program.resources.length} resources`}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.025] px-2.5 py-1 text-[9px] font-bold tracking-[0.12em] text-slate-500 uppercase">
@@ -125,14 +175,21 @@ export function GEPISecHub() {
                     {program.resources.map((resource, idx) => {
                       const Icon = resource.icon;
                       return (
-                        <a key={idx} href={resource.href} aria-label={`Open ${resource.title}`} className="group/link flex items-start gap-2.5 rounded-lg border border-white/7 bg-slate-950/50 p-3 transition hover:border-violet-200/25 hover:bg-violet-200/[0.035] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-200">
-                          <Icon className="mt-0.5 h-4 w-4 shrink-0 text-violet-200" aria-hidden="true" />
+                        <a key={idx} href={resource.href} aria-label={`Open ${resource.title}`} className={`group/link flex items-start gap-2.5 rounded-lg border border-white/7 bg-slate-950/50 p-3 transition focus-visible:outline-2 focus-visible:outline-offset-2 ${linkTone}`}>
+                          <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${iconTone}`} aria-hidden="true" />
                           <span className="min-w-0 flex-1">
-                            <span className="block text-[11px] font-semibold leading-snug text-slate-200 group-hover/link:text-violet-100">{resource.title}</span>
+                            <span className="flex flex-wrap items-center gap-1.5">
+                              <span className={`text-[11px] font-semibold leading-snug text-slate-200 ${titleHover}`}>{resource.title}</span>
+                              {resource.teacherOnly && (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/30 bg-amber-300/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.1em] text-amber-200">
+                                  <Lock className="h-2.5 w-2.5" aria-hidden="true" />Teacher
+                                </span>
+                              )}
+                            </span>
                             <span className="mt-1 block text-[9px] leading-relaxed text-slate-500">{resource.kind}</span>
                             <span className="mt-0.5 block text-[9px] leading-relaxed text-slate-600">{resource.description}</span>
                           </span>
-                          <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-200/75" aria-hidden="true" />
+                          <ArrowUpRight className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${arrowTone}`} aria-hidden="true" />
                         </a>
                       );
                     })}
@@ -151,7 +208,7 @@ export function GEPISecHub() {
         </Reveal>
 
         <Reveal className="mt-5">
-        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-300/60" aria-hidden="true" /><span>ISEC resources link to the Bi-Weekly Planner test pages on the CMC site. GEP worksheet pages are being prepared and will be linked here as they go live. For younger learners (Kid 5–12), see the Kid Program section above.</span></p>
+        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet-300/60" aria-hidden="true" /><span>The GEP World Class 1 Teacher&apos;s Book (Units 1–12) and ISEC Bi-Weekly Planner pages open for verified teacher accounts, stay synced with your site dark/light theme, and include a quick link back to GEP &amp; ISEC. For younger learners (Kid 5–12), see the Kid Program section above.</span></p>
         </Reveal>
       </div>
     </section>

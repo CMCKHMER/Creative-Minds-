@@ -174,8 +174,8 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     id: 'gep-program',
     title: 'GEP Program',
     category: 'Curriculum Paths',
-    badge: 'Planned',
-    description: 'General English Program resources — vocabulary, dictation worksheets, and reading practice for older learners across multiple levels.',
+    badge: 'Teacher Book · 12 units',
+    description: "General English Program — World Class 1 interactive Teacher's Book (Units 1–12) with vocabulary, grammar, National Geographic readings, answer keys, and fluency boards.",
     iconName: 'GraduationCap',
     path: '#gep-isec'
   },
