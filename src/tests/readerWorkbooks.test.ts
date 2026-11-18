@@ -2,7 +2,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getReaderWorkbook, READER_WORKBOOKS, type WorkbookActivity } from '../data/readerWorkbooks';
-import { libraryTargetFromHash, parseCatalog, searchBooks } from '../lib/library';
+import {
+  ensurePromiseWithResolvers,
+  libraryTargetFromHash,
+  parseCatalog,
+  searchBooks,
+} from '../lib/library';
 import {
   attemptsForHomework,
   myHomeworkScore,
@@ -124,21 +129,74 @@ describe('Kid 1–3 reader workbooks: catalogue & assets', () => {
     expect(searchBooks(books, 'magic beans').map((b) => b.id)).toEqual(['kid-3-jack-and-the-magic-beans']);
   });
 
-  it('loads all three 20-page PDFs cleanly in pdf.js with chapter bookmarks', async () => {
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  it('ships valid 20-page PDFs with embedded chapter bookmarks (Node 20+ and pdf.js)', async () => {
     const files = [
       'public/library/books/kid-1-the-brave-tin-soldier.pdf',
       'public/library/books/kid-2-hansel-and-gretel.pdf',
       'public/library/books/kid-3-jack-and-the-magic-beans.pdf',
     ];
+
+    // Binary PDF validation runs on every Node version (including Node 20 in CI).
     for (const rel of files) {
-      const bytes = new Uint8Array(readFileSync(resolve(root, rel)));
-      const task = pdfjs.getDocument({ data: bytes, useSystemFonts: true });
-      const doc = await task.promise;
-      expect(doc.numPages, rel).toBe(20);
-      const outline = await doc.getOutline();
-      expect(outline && outline.length, `${rel} bookmarks`).toBeGreaterThanOrEqual(5);
-      await task.destroy();
+      const buf = readFileSync(resolve(root, rel));
+      const latin = buf.toString('latin1');
+      expect(latin.startsWith('%PDF-1.'), `${rel} header`).toBe(true);
+      expect(latin.slice(-64).includes('%%EOF'), `${rel} trailer`).toBe(true);
+      const pageCounts = [...latin.matchAll(/\/Type\s*\/Pages\b[\s\S]{0,200}?\/Count\s+(\d+)/g)]
+        .map((m) => Number(m[1]));
+      expect(pageCounts.length, `${rel} /Pages tree`).toBeGreaterThan(0);
+      expect(Math.max(...pageCounts), `${rel} page count`).toBe(20);
+      expect(/\/Outlines\s+\d+\s+0\s+R/.test(latin), `${rel} /Outlines`).toBe(true);
+      const titles = [...latin.matchAll(/\/Title\s*\(([^)]+)\)/g)].map((m) => m[1]);
+      expect(titles).toEqual(expect.arrayContaining(['Cover', 'Contents', 'Part A: Story Focus']));
+    }
+
+    // Full pdf.js parse when the host Node meets pdfjs-dist@6 engines (>= 22.13).
+    const nodeMajor = Number(process.versions.node.split('.')[0] ?? '0');
+    const proc = process as NodeJS.Process & { getBuiltinModule?: (id: string) => unknown };
+    if (nodeMajor >= 22 && typeof proc.getBuiltinModule === 'function') {
+      ensurePromiseWithResolvers();
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+      for (const rel of files) {
+        const bytes = new Uint8Array(readFileSync(resolve(root, rel)));
+        const task = pdfjs.getDocument({ data: bytes, useSystemFonts: true });
+        const doc = await task.promise;
+        expect(doc.numPages, rel).toBe(20);
+        const outline = await doc.getOutline();
+        expect(outline && outline.length, `${rel} bookmarks`).toBeGreaterThanOrEqual(5);
+        await task.destroy();
+      }
+    }
+  });
+
+  it('polyfills Promise.withResolvers when missing on older browsers or runtimes', async () => {
+    const ctor = Promise as PromiseConstructor & {
+      withResolvers?: <T>() => {
+        promise: Promise<T>;
+        resolve: (value: T | PromiseLike<T>) => void;
+        reject: (reason?: unknown) => void;
+      };
+    };
+    const original = Object.getOwnPropertyDescriptor(ctor, 'withResolvers');
+    try {
+      delete ctor.withResolvers;
+      expect(ctor.withResolvers).toBeUndefined();
+      ensurePromiseWithResolvers();
+      expect(typeof ctor.withResolvers).toBe('function');
+
+      const ok = ctor.withResolvers!<number>();
+      ok.resolve(42);
+      await expect(ok.promise).resolves.toBe(42);
+
+      const fail = ctor.withResolvers!<never>();
+      fail.reject(new Error('boom'));
+      await expect(fail.promise).rejects.toThrow('boom');
+    } finally {
+      if (original) {
+        Object.defineProperty(ctor, 'withResolvers', original);
+      } else {
+        delete ctor.withResolvers;
+      }
     }
   });
 });
