@@ -1,6 +1,6 @@
 /*
  * Pure grading, local autosave, and offline-resilient teacher hand-in for the
- * Kid 1–3 interactive reader workbooks (src/data/readerWorkbooks.ts).
+ * Kid 1–6 interactive reader workbooks (src/data/readerWorkbooks.ts).
  */
 
 import type {
