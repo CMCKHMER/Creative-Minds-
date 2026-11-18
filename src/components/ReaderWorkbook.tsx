@@ -197,7 +197,21 @@ function UnscrambleRow({
       ? pickedIndices.filter((_, pos) => pos !== exists)
       : [...pickedIndices, chunkIdx];
     setPickedIndices(next);
-    onChange(item.id, next.map((i) => item.chunks[i]).join(' '));
+    if (item.syllables) {
+      if (exists >= 0) {
+        onChange(item.id, next.map((i) => item.chunks[i]).join(''));
+      } else {
+        onChange(item.id, `${value}${item.chunks[chunkIdx]}`);
+      }
+    } else {
+      onChange(item.id, next.map((i) => item.chunks[i]).join(' '));
+    }
+  };
+
+  const addSpace = () => {
+    if (value && !value.endsWith(' ')) {
+      onChange(item.id, `${value} `);
+    }
   };
 
   const clearRow = () => {
@@ -206,12 +220,13 @@ function UnscrambleRow({
   };
 
   const state = graded ? (graded.correct ? 'ok' : 'bad') : undefined;
+  const wordCount = item.syllables ? item.answer.trim().split(/\s+/).length : 0;
 
   return (
     <div className="cmc-rwb-card" data-grade={state}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs font-extrabold uppercase tracking-wider cmc-rwb-accent-text">
-          Sentence {index + 1}
+          {item.syllables ? `Item ${index + 1} · ${wordCount} words` : `Sentence ${index + 1}`}
         </span>
         {value && (
           <button
@@ -223,6 +238,16 @@ function UnscrambleRow({
           </button>
         )}
       </div>
+
+      {(item.prefix || item.suffix) && (
+        <p className="mt-1.5 text-sm font-medium leading-relaxed">
+          {item.prefix}
+          <span className="cmc-rwb-accent-text mx-1 inline-block rounded border border-dashed border-current/40 px-2 py-0.5 text-xs font-bold">
+            {value.trim() || '___ ___ ___'}
+          </span>
+          {item.suffix}
+        </p>
+      )}
 
       <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={`Word tiles for sentence ${index + 1}`}>
         {item.chunks.map((chunk, chunkIdx) => {
@@ -239,6 +264,16 @@ function UnscrambleRow({
             </button>
           );
         })}
+        {item.syllables && (
+          <button
+            type="button"
+            onClick={addSpace}
+            className="cmc-rwb-choice opacity-85"
+            title="Insert a space between words"
+          >
+            ␣ Space
+          </button>
+        )}
       </div>
 
       <div className="mt-2.5">
@@ -252,14 +287,18 @@ function UnscrambleRow({
             setPickedIndices([]);
             onChange(item.id, event.target.value);
           }}
-          placeholder="Tap the tiles above in order, or type the sentence here…"
+          placeholder={
+            item.syllables
+              ? 'Join the word parts with spaces between words, or type the phrase here…'
+              : 'Tap the tiles above in order, or type the sentence here…'
+          }
           className="cmc-rwb-input w-full"
         />
       </div>
 
       {graded && (
         <p className={`mt-1.5 text-xs font-bold ${graded.correct ? 'cmc-rwb-ok-text' : 'cmc-rwb-bad-text'}`}>
-          {graded.correct ? '✓ Correct sentence!' : `✗ Answer: ${graded.expected}`}
+          {graded.correct ? '✓ Correct!' : `✗ Answer: ${graded.expected}`}
         </p>
       )}
     </div>
@@ -481,18 +520,20 @@ function CrosswordBlock({
     </div>
   );
 
+  const cellSize = cols > 13 ? '1.85rem' : '2.05rem';
+
   return (
     <div className="space-y-5">
       <div className="overflow-x-auto pb-2">
         <div
           className="inline-grid gap-1"
-          style={{ gridTemplateColumns: `repeat(${cols}, 2.05rem)` }}
+          style={{ gridTemplateColumns: `repeat(${cols}, ${cellSize})` }}
           aria-label="Crossword puzzle grid"
         >
           {matrix.map((row, r) =>
             row.map((cell, c) => {
               if (!cell) {
-                return <span key={`${r}-${c}`} className="h-[2.05rem] w-[2.05rem]" aria-hidden="true" />;
+                return <span key={`${r}-${c}`} style={{ width: cellSize, height: cellSize }} aria-hidden="true" />;
               }
               const letter = cellLetters.get(`${r},${c}`) ?? '';
               const isActive = cell.acrossId === activeClueId || cell.downId === activeClueId;
@@ -504,6 +545,7 @@ function CrosswordBlock({
                 <button
                   key={`${r}-${c}`}
                   type="button"
+                  style={{ width: cellSize, height: cellSize }}
                   data-active={isActive ? 'true' : 'false'}
                   data-grade={cellGrade}
                   onClick={() => {
@@ -1189,6 +1231,137 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
           </div>
         );
       }
+
+      case 'category-sort': {
+        const counts = new Map<string, number>();
+        for (const item of activity.items) {
+          const picked = state.answers[item.id];
+          if (picked) counts.set(picked, (counts.get(picked) ?? 0) + 1);
+        }
+        return (
+          <div className="space-y-3">
+            <div className="cmc-rwb-card-alt flex flex-wrap gap-2" aria-label="Category summary">
+              {activity.categories.map((cat) => {
+                const n = counts.get(cat.key) ?? 0;
+                return (
+                  <span key={cat.key} className="cmc-rwb-wordchip" data-used="false">
+                    <strong>{cat.label}</strong>
+                    <span className="ml-1.5 opacity-75">· {n} placed</span>
+                  </span>
+                );
+              })}
+            </div>
+            <ol className="space-y-2.5">
+              {activity.items.map((item, idx) => {
+                const current = state.answers[item.id] ?? '';
+                const graded = revealed[item.id];
+                const expectedLabel =
+                  activity.categories.find((c) => c.key === item.answer)?.label ?? item.answer;
+                return (
+                  <li
+                    key={item.id}
+                    className="cmc-rwb-card space-y-2"
+                    data-grade={graded ? (graded.correct ? 'ok' : 'bad') : undefined}
+                  >
+                    <p className="text-sm font-semibold">
+                      <span className="cmc-rwb-accent-text mr-1.5 font-extrabold">{idx + 1}.</span>
+                      {item.text}
+                    </p>
+                    <div
+                      className="flex flex-wrap gap-1.5"
+                      role="group"
+                      aria-label={`Choose group for ${item.text}`}
+                    >
+                      {activity.categories.map((cat, cIdx) => {
+                        const pressed = current === cat.key;
+                        const chipState = graded
+                          ? item.answer === cat.key
+                            ? 'correct'
+                            : pressed
+                              ? 'wrong'
+                              : undefined
+                          : undefined;
+                        return (
+                          <button
+                            key={cat.key}
+                            type="button"
+                            data-wb-input={cIdx === 0 ? item.id : undefined}
+                            aria-pressed={pressed}
+                            data-state={chipState}
+                            onClick={() => setAnswer(item.id, cat.key)}
+                            className="cmc-rwb-choice"
+                          >
+                            {cat.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {graded && !graded.correct && (
+                      <p className="cmc-rwb-bad-text text-xs font-bold">
+                        ✗ Belongs in: <span className="underline">{expectedLabel}</span>
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        );
+      }
+
+      case 'error-fix':
+        return (
+          <ol className="space-y-3">
+            {activity.items.map((item, idx) => {
+              const val = state.answers[item.id] ?? '';
+              const graded = revealed[item.id];
+              const gradeAttr = graded ? (graded.correct ? 'ok' : 'bad') : undefined;
+              return (
+                <li key={item.id} className="cmc-rwb-card space-y-2" data-grade={gradeAttr}>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="min-w-0 flex-1 text-sm font-semibold leading-relaxed">
+                      <span className="cmc-rwb-accent-text mr-1.5 font-extrabold">{idx + 1}.</span>
+                      {item.wrong}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAnswer(item.id, item.wrong)}
+                        className="cmc-rwb-choice !px-2.5 !py-1 !text-xs"
+                      >
+                        Copy to edit
+                      </button>
+                      {val && (
+                        <button
+                          type="button"
+                          onClick={() => setAnswer(item.id, '')}
+                          className="cmc-rwb-soft-text text-xs font-semibold underline hover:opacity-80"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    data-wb-input={item.id}
+                    data-grade={gradeAttr}
+                    aria-label={`Rewrite sentence ${idx + 1} correctly`}
+                    value={val}
+                    onChange={(event) => setAnswer(item.id, event.target.value)}
+                    placeholder="Type the corrected sentence here (or tap Copy to edit)…"
+                    className="cmc-rwb-input w-full"
+                  />
+                  {graded && (
+                    <p className={`text-xs font-bold ${graded.correct ? 'cmc-rwb-ok-text' : 'cmc-rwb-bad-text'}`}>
+                      {graded.correct ? '✓ Fixed!' : `✗ Correct: ${graded.expected}`}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        );
 
       case 'open-prompts':
         return (

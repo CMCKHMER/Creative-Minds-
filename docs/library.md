@@ -102,25 +102,31 @@ put it online. Only add a book when one of these is true:
 - The text of the page on screen is also placed in the page for screen
   readers. A scanned book with no text layer has nothing to read aloud.
 
-## Interactive reader workbooks (Kid 1–6)
+## Interactive reader workbooks (Kid 1–11)
 
 An entry in `catalog.json` may carry an optional `"workbook": "<id>"` field
-matching an entry in `src/data/readerWorkbooks.ts`. Books with a workbook
-offer both the flip-through PDF reader (`#library/<id>`) and a lazy-loaded,
-auto-graded workbook (`#library/<id>/workbook`, `src/components/ReaderWorkbook.tsx`)
-covering story focus, vocabulary (including interactive 8×8 and 10×10 word
-search and crossword puzzles), beginning/middle/end comprehension, cause &
-effect / problem & solution charts, sentence unscramble, story summary, and a
-printable Book Report.
+matching an entry in `src/data/readerWorkbooks.ts` (including Kid 7–9 in
+`src/data/readerWorkbooksUpper.ts` and Kid 10–11 in
+`src/data/readerWorkbooksSenior.ts`). Books with a workbook offer both the
+flip-through PDF reader (`#library/<id>`) and a lazy-loaded, auto-graded
+workbook (`#library/<id>/workbook`, `src/components/ReaderWorkbook.tsx`)
+covering story focus, vocabulary (interactive 8×8 and 10×10 word searches,
+crossword puzzles, word-part unscrambles, and picture vocabulary),
+beginning/middle/end comprehension, graphic organizers (cause & effect,
+problem & solution, main idea & events, cause & consequence, and Venn
+diagrams), sentence unscramble and error-correction rewrites, story summary,
+Book Report story cloze, and a printable one-page Book Report.
 
 - Student progress saves locally under `cmc-reader-wb-state:<id>`.
 - **Submit to Teacher** writes to Firestore `drill_attempts` (`drillSource: 'rfc3'`)
   with first-try snapshot tracking and a local retry outbox (`cmc-reader-wb-outbox`).
 - Teachers view class scores via `KidHomeworkScores`; students check their own
   score privately via `KidMyHomeworkScore`.
-- All six Kid 1–6 readers (*The Brave Tin Soldier*, *Hansel and Gretel*,
-  *Jack and the Magic Beans*, *The Trojan Horse*, *Daedalus and Icarus*, and
-  *Heidi*) are also cross-linked from the Kid Program page (`#kid-grades`).
+- All eleven Kid 1–11 readers (*The Brave Tin Soldier*, *Hansel and Gretel*,
+  *Jack and the Magic Beans*, *The Trojan Horse*, *Daedalus and Icarus*,
+  *Heidi*, *Gulliver's Travels*, *Beauty and the Beast*, *The Gift of the Magi*,
+  *The Last Lesson*, and *The Count of Monte Cristo*) are also cross-linked
+  from the Kid Program page (`#kid-grades`).
 
 ## The sample book
 

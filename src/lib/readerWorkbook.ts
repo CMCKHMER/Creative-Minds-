@@ -1,6 +1,6 @@
 /*
  * Pure grading, local autosave, and offline-resilient teacher hand-in for the
- * Kid 1–6 interactive reader workbooks (src/data/readerWorkbooks.ts).
+ * Kid 1–11 interactive reader workbooks (src/data/readerWorkbooks.ts).
  */
 
 import type {
@@ -116,11 +116,24 @@ function gradeActivity(
     case 'sequence':
       for (const item of activity.items) checkWord(item.id, String(item.answer));
       return;
+    case 'category-sort':
+      for (const item of activity.items) checkWord(item.id, item.answer);
+      return;
     case 'unscramble':
       for (const item of activity.items) {
         const raw = (answers[item.id] ?? '').trim();
         const answered = raw.length > 0;
         const correct = answered && normalizeSentence(raw) === normalizeSentence(item.answer);
+        push({ id: item.id, sectionId, expected: item.answer, given: raw, answered, correct });
+      }
+      return;
+    case 'error-fix':
+      for (const item of activity.items) {
+        const raw = (answers[item.id] ?? '').trim();
+        const answered = raw.length > 0;
+        const targets = [item.answer, ...(item.accepts ?? [])];
+        const norm = normalizeSentence(raw);
+        const correct = answered && targets.some((t) => normalizeSentence(t) === norm);
         push({ id: item.id, sectionId, expected: item.answer, given: raw, answered, correct });
       }
       return;

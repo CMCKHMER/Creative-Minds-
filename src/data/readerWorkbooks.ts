@@ -1,5 +1,5 @@
 /*
- * Interactive reader workbooks for Kid 1–6 (Young Learners Classic Readers).
+ * Interactive reader workbooks for Kid 1–11 (Young Learners Classic Readers).
  *
  * Each entry mirrors the PDF workbook in public/library/books/ across
  * seven tabs: Story Focus, Vocabulary Preview, Comprehension (Beginning,
@@ -10,6 +10,8 @@
  * class score sheets and students can check their own score. Open reflections
  * and the Book Report are saved locally on the student's device and printable.
  */
+
+import { UPPER_READER_WORKBOOKS } from './readerWorkbooksUpper';
 
 export interface BankFillItem {
   id: string;
@@ -79,6 +81,31 @@ export interface UnscrambleItem {
   id: string;
   chunks: readonly string[];
   answer: string;
+  /** Optional sentence frame around a scrambled phrase or word-part group (Level 4–5). */
+  prefix?: string;
+  suffix?: string;
+  /** True when `chunks` are syllables/word-parts rather than whole words. */
+  syllables?: boolean;
+}
+
+export interface CategoryBucket {
+  key: string;
+  label: string;
+  hint?: string;
+}
+
+export interface CategorySortItem {
+  id: string;
+  text: string;
+  answer: string;
+}
+
+export interface ErrorFixItem {
+  id: string;
+  wrong: string;
+  answer: string;
+  accepts?: readonly string[];
+  hint?: string;
 }
 
 export interface WordSearchWord {
@@ -217,6 +244,23 @@ export type WorkbookActivity =
       items: readonly SequenceItem[];
     }
   | {
+      kind: 'category-sort';
+      id: string;
+      badge: string;
+      title: string;
+      instruction: string;
+      categories: readonly CategoryBucket[];
+      items: readonly CategorySortItem[];
+    }
+  | {
+      kind: 'error-fix';
+      id: string;
+      badge: string;
+      title: string;
+      instruction: string;
+      items: readonly ErrorFixItem[];
+    }
+  | {
       kind: 'open-prompts';
       id: string;
       badge: string;
@@ -248,8 +292,19 @@ export interface WorkbookSection {
 export interface ReaderWorkbookMeta {
   /** Matches `id` and `workbook` in public/library/catalog.json. */
   id: string;
-  gradeNumber: 1 | 2 | 3 | 4 | 5 | 6;
-  gradeLabel: 'Kid 1' | 'Kid 2' | 'Kid 3' | 'Kid 4' | 'Kid 5' | 'Kid 6';
+  gradeNumber: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
+  gradeLabel:
+    | 'Kid 1'
+    | 'Kid 2'
+    | 'Kid 3'
+    | 'Kid 4'
+    | 'Kid 5'
+    | 'Kid 6'
+    | 'Kid 7'
+    | 'Kid 8'
+    | 'Kid 9'
+    | 'Kid 10'
+    | 'Kid 11';
   seriesLabel: string;
   title: string;
   author: string;
@@ -3937,6 +3992,7 @@ export const READER_WORKBOOKS: readonly ReaderWorkbookMeta[] = [
   KID_4_TROJAN_HORSE,
   KID_5_DAEDALUS_AND_ICARUS,
   KID_6_HEIDI,
+  ...UPPER_READER_WORKBOOKS,
 ];
 
 export function getReaderWorkbook(id: string | null | undefined): ReaderWorkbookMeta | null {
