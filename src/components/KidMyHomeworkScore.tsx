@@ -18,7 +18,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LogIn, RefreshCw, Target, Trophy, X } from 'lucide-react';
-import { fetchMyHomeworkScore, homeworkRefFromHref, scoreBandLabel, scoreWhen } from '../lib/kidHomework';
+import { fetchMyHomeworkScore, homeworkRefFromHref, scoreBandLabel, scoreWhen, wholePageRefFromHref } from '../lib/kidHomework';
 import type { StudentScore } from '../lib/kidHomework';
 
 export interface KidMyHomeworkScoreProps {
@@ -33,6 +33,10 @@ export interface KidMyHomeworkScoreProps {
    *  account). Both empty means nobody is signed in. */
   uid: string;
   name: string;
+  /** Optional explicit Firestore `drillSlug` for single-assignment in-app workbooks. */
+  drillSlug?: string;
+  /** True when the assignment stores every attempt under one page slug (`number: null`). */
+  wholePage?: boolean;
   /** Opens the sign-in modal from the "sign in to see your score" state. */
   onOpenAuth?: () => void;
   onClose: () => void;
@@ -44,9 +48,18 @@ const band = (pct: number): string =>
   pct >= 80 ? 'text-emerald-300' : pct >= 50 ? 'text-amber-300' : 'text-rose-300';
 
 export function KidMyHomeworkScore({
-  title, href, gradeLabel, uid, name, onOpenAuth, onClose,
+  title, href, gradeLabel, uid, name, drillSlug, wholePage, onOpenAuth, onClose,
 }: KidMyHomeworkScoreProps) {
-  const ref = useMemo(() => homeworkRefFromHref(href), [href]);
+  const ref = useMemo(
+    () => (
+      drillSlug
+        ? { slug: drillSlug, number: null }
+        : wholePage
+          ? wholePageRefFromHref(href) ?? homeworkRefFromHref(href)
+          : homeworkRefFromHref(href)
+    ),
+    [drillSlug, href, wholePage],
+  );
   const [score, setScore] = useState<StudentScore | null>(null);
   // true from the start: the first read begins as soon as the sheet opens.
   const [busy, setBusy] = useState(true);
@@ -66,9 +79,8 @@ export function KidMyHomeworkScore({
   const canLook = signedIn || lookupName !== '';
 
   const load = useCallback(async () => {
-    // Student rows are per-homework (anchor refs); a whole-page ref has no
-    // single homework number to look up, so there is nothing to load.
-    if (!ref || ref.number === null || inFlight.current) return;
+    const singleAssignment = Boolean(drillSlug || wholePage);
+    if (!ref || (!singleAssignment && ref.number === null) || inFlight.current) return;
     inFlight.current = true;
     try {
       setScore(await fetchMyHomeworkScore(ref.slug, { uid, name: lookupName }, ref.number));
@@ -80,7 +92,7 @@ export function KidMyHomeworkScore({
       inFlight.current = false;
       setBusy(false);
     }
-  }, [ref, uid, lookupName]);
+  }, [drillSlug, ref, uid, lookupName, wholePage]);
 
   useEffect(() => {
     if (!ref || !canLook) return;

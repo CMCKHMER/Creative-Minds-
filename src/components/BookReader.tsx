@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, ExternalLink, List, Maximize2, Minimize2, Minus, Moon, Plus, Sun, X,
+  ChevronLeft, ChevronRight, ExternalLink, List, Maximize2, Minimize2, Minus, Moon, PenLine, Plus, Sun, X,
 } from 'lucide-react';
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
@@ -53,7 +53,17 @@ async function readChapters(doc: PDFDocumentProxy): Promise<Chapter[]> {
   return chapters;
 }
 
-export function BookReader({ book, onClose }: { book: LibraryBook; onClose: () => void }) {
+export function BookReader({
+  book,
+  initialPage = null,
+  onOpenWorkbook,
+  onClose,
+}: {
+  book: LibraryBook;
+  initialPage?: number | null;
+  onOpenWorkbook?: () => void;
+  onClose: () => void;
+}) {
   const shellRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
@@ -101,7 +111,8 @@ export function BookReader({ book, onClose }: { book: LibraryBook; onClose: () =
         if (cancelled) return;
         let saved = null;
         try { saved = readPlace(window.localStorage.getItem(placeKey(book.id))); } catch { /* private mode */ }
-        setPage(clampPage(saved?.page ?? 1, opened.numPages));
+        const startPage = typeof initialPage === 'number' && initialPage >= 1 ? initialPage : (saved?.page ?? 1);
+        setPage(clampPage(startPage, opened.numPages));
         setDoc(opened);
         setChapters(await readChapters(opened));
       } catch {
@@ -112,7 +123,7 @@ export function BookReader({ book, onClose }: { book: LibraryBook; onClose: () =
       cancelled = true;
       stop?.();
     };
-  }, [book]);
+  }, [book, initialPage]);
 
   // Remember the place.
   useEffect(() => {
@@ -261,6 +272,7 @@ export function BookReader({ book, onClose }: { book: LibraryBook; onClose: () =
   return (
     <div
       ref={shellRef}
+      data-keep-dark
       role="dialog"
       aria-modal="true"
       aria-label={`Reading ${book.title}`}
@@ -275,6 +287,18 @@ export function BookReader({ book, onClose }: { book: LibraryBook; onClose: () =
           <p className="truncate font-[var(--font-display)] text-sm font-bold text-white sm:text-base">{book.title}</p>
           {book.author && <p className="truncate text-xs text-slate-400">{book.author}</p>}
         </div>
+        {onOpenWorkbook && (
+          <button
+            type="button"
+            onClick={onOpenWorkbook}
+            data-open-workbook={book.id}
+            className="inline-flex h-10 flex-none items-center gap-1.5 rounded-xl border border-cyan-300/45 bg-cyan-300/15 px-3 text-xs font-bold text-cyan-100 transition hover:bg-cyan-300/25"
+            title="Switch to interactive auto-graded workbook"
+          >
+            <PenLine className="h-4 w-4" aria-hidden="true" />
+            <span>Workbook</span>
+          </button>
+        )}
         {isPdf && (
           <>
             {chapters.length > 0 && (
