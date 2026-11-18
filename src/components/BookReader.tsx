@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
-  clampPage, placeKey, readPlace, spreadFor, turnPage, type LibraryBook,
+  clampPage, ensurePromiseWithResolvers, placeKey, readPlace, spreadFor, turnPage, type LibraryBook,
 } from '../lib/library';
 
 /**
@@ -25,6 +25,7 @@ const ZOOMS = [1.25, 1.5, 2, 2.5, 3] as const;
 interface Chapter { title: string; page: number }
 
 async function loadPdfJs() {
+  ensurePromiseWithResolvers();
   const [pdfjs, worker] = await Promise.all([
     import('pdfjs-dist/legacy/build/pdf.mjs'),
     import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'),

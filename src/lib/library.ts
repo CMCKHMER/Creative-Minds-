@@ -269,3 +269,31 @@ export function bookIdFromHash(hash: string): string | null {
   const match = /^#?library\/([a-z0-9-]{1,60})$/i.exec(hash.trim());
   return match?.[1] ? match[1].toLowerCase() : null;
 }
+
+/**
+ * Polyfills ES2024 `Promise.withResolvers` on older browsers (Safari < 17.4,
+ * Chrome < 119) and Node < 22 before `pdfjs-dist` initialises.
+ */
+export function ensurePromiseWithResolvers(): void {
+  const ctor = Promise as PromiseConstructor & {
+    withResolvers?: <T>() => {
+      promise: Promise<T>;
+      resolve: (value: T | PromiseLike<T>) => void;
+      reject: (reason?: unknown) => void;
+    };
+  };
+  if (typeof ctor.withResolvers === 'function') return;
+  Object.defineProperty(ctor, 'withResolvers', {
+    configurable: true,
+    writable: true,
+    value: function withResolvers<T>(this: PromiseConstructor) {
+      let resolve!: (value: T | PromiseLike<T>) => void;
+      let reject!: (reason?: unknown) => void;
+      const promise = new this<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    },
+  });
+}
