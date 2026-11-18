@@ -1530,7 +1530,7 @@ if(!/#hw-[abc]/.test(location.hash))setMode('a');
       var rt = localStorage.getItem('cmc-student-refresh-token');
       if (!rt) return cb(null);
       fetch('https://securetoken.googleapis.com/v1/token?key=' + CMC_API_KEY, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)
       }).then(function (r) { return r.json(); }).then(function (d) {
         if (d && d.id_token) {
