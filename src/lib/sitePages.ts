@@ -69,7 +69,7 @@ export const SITE_PAGES: readonly SitePage[] = [
   { id: 'kid-grades', title: 'Kid 5–12 pathway', blurb: 'Reading Future worksheets and homework by grade.', group: 'programs', icon: 'kids', kind: 'section' },
   { id: 'gep-isec', title: 'GEP & ISEC', blurb: 'Adult-level program resources and drills.', group: 'programs', icon: 'languages', kind: 'section' },
   { id: 'resources', title: 'Resource library', blurb: 'Assignment packs and handouts with teacher keys.', group: 'programs', icon: 'library', kind: 'section' },
-  { id: 'library', title: 'Reading room', blurb: 'Books and Kid 1–6 readers with interactive workbooks.', group: 'programs', icon: 'book', kind: 'standalone', aliases: ['reading-room', 'books', 'ebooks'] },
+  { id: 'library', title: 'Reading room', blurb: 'Books and Kid 1–11 readers with interactive workbooks.', group: 'programs', icon: 'book', kind: 'standalone', aliases: ['reading-room', 'books', 'ebooks'] },
   { id: 'games', title: 'Learning games', blurb: 'Eight short games for vocabulary, grammar and reading.', group: 'programs', icon: 'gamepad', kind: 'standalone' },
   { id: 'brain-lounge', title: 'The Brain Lounge', blurb: 'Arcade games for memory, reflexes and logic.', group: 'programs', icon: 'brain', kind: 'standalone' },
 

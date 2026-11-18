@@ -71,6 +71,12 @@ function perfectAnswersFor(activities: readonly WorkbookActivity[]): Record<stri
       case 'sequence':
         for (const item of activity.items) answers[item.id] = String(item.answer);
         break;
+      case 'category-sort':
+        for (const item of activity.items) answers[item.id] = item.answer;
+        break;
+      case 'error-fix':
+        for (const item of activity.items) answers[item.id] = item.answer;
+        break;
       case 'open-prompts':
       case 'book-report':
         break;
@@ -79,21 +85,27 @@ function perfectAnswersFor(activities: readonly WorkbookActivity[]): Record<stri
   return answers;
 }
 
-describe('Kid 1–6 reader workbooks: catalogue & assets', () => {
-  const expectedBooks: ReadonlyArray<{ id: string; pages: number }> = [
-    { id: 'kid-1-the-brave-tin-soldier', pages: 20 },
-    { id: 'kid-2-hansel-and-gretel', pages: 20 },
-    { id: 'kid-3-jack-and-the-magic-beans', pages: 20 },
-    { id: 'kid-4-the-trojan-horse', pages: 20 },
-    { id: 'kid-5-daedalus-and-icarus', pages: 20 },
-    { id: 'kid-6-heidi', pages: 19 },
+describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
+  const expectedBooks: ReadonlyArray<{ id: string; pages: number; hasContents: boolean }> = [
+    { id: 'kid-1-the-brave-tin-soldier', pages: 20, hasContents: true },
+    { id: 'kid-2-hansel-and-gretel', pages: 20, hasContents: true },
+    { id: 'kid-3-jack-and-the-magic-beans', pages: 20, hasContents: true },
+    { id: 'kid-4-the-trojan-horse', pages: 20, hasContents: true },
+    { id: 'kid-5-daedalus-and-icarus', pages: 20, hasContents: true },
+    { id: 'kid-6-heidi', pages: 19, hasContents: false },
+    { id: 'kid-7-gullivers-travels', pages: 20, hasContents: false },
+    { id: 'kid-8-beauty-and-the-beast', pages: 21, hasContents: true },
+    { id: 'kid-9-the-gift-of-the-magi', pages: 21, hasContents: true },
+    { id: 'kid-10-the-last-lesson', pages: 22, hasContents: true },
+    { id: 'kid-11-the-count-of-monte-cristo', pages: 22, hasContents: true },
   ];
 
-  it('registers all six Kid 1–6 books in catalog.json with real PDFs, covers, and workbooks', () => {
+  it('registers all eleven Kid 1–11 books in catalog.json with real PDFs, covers, and workbooks', () => {
     const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
     const catalog = parseCatalog(raw);
     expect(catalog.problems).toEqual([]);
-    expect(READER_WORKBOOKS).toHaveLength(6);
+    expect(READER_WORKBOOKS).toHaveLength(11);
+    expect(READER_WORKBOOKS.map((wb) => wb.gradeNumber)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
     for (const { id, pages } of expectedBooks) {
       const book = catalog.books.find((entry) => entry.id === id);
@@ -119,54 +131,44 @@ describe('Kid 1–6 reader workbooks: catalogue & assets', () => {
     }
   });
 
-  it('resolves #library/<id> and #library/<id>/workbook routes cleanly', () => {
-    expect(libraryTargetFromHash('#library/kid-1-the-brave-tin-soldier')).toEqual({
-      bookId: 'kid-1-the-brave-tin-soldier',
-      mode: 'read',
-    });
-    expect(libraryTargetFromHash('#library/kid-2-hansel-and-gretel/workbook')).toEqual({
-      bookId: 'kid-2-hansel-and-gretel',
-      mode: 'workbook',
-    });
-    expect(libraryTargetFromHash('#library/kid-4-the-trojan-horse')).toEqual({
-      bookId: 'kid-4-the-trojan-horse',
-      mode: 'read',
-    });
-    expect(libraryTargetFromHash('#library/kid-5-daedalus-and-icarus/workbook')).toEqual({
-      bookId: 'kid-5-daedalus-and-icarus',
-      mode: 'workbook',
-    });
-    expect(libraryTargetFromHash('#library/kid-6-heidi/workbook')).toEqual({
-      bookId: 'kid-6-heidi',
-      mode: 'workbook',
-    });
+  it('resolves #library/<id> and #library/<id>/workbook routes cleanly across Kid 1–11', () => {
+    for (const { id } of expectedBooks) {
+      expect(libraryTargetFromHash(`#library/${id}`)).toEqual({ bookId: id, mode: 'read' });
+      expect(libraryTargetFromHash(`#library/${id}/workbook`)).toEqual({ bookId: id, mode: 'workbook' });
+    }
     expect(libraryTargetFromHash('#library/kid-3-jack-and-the-magic-beans/other')).toBeNull();
-    expect(resolveRoute('#library/kid-6-heidi/workbook', 'home')).toBe('library');
-    expect(isInPageAnchor('#library/kid-6-heidi/workbook')).toBe(false);
+    expect(resolveRoute('#library/kid-11-the-count-of-monte-cristo/workbook', 'home')).toBe('library');
+    expect(isInPageAnchor('#library/kid-11-the-count-of-monte-cristo/workbook')).toBe(false);
   });
 
-  it('filters the Kids readers shelf and finds all six books by grade, title, and author', () => {
+  it('filters the Kids readers shelf and finds all eleven books by grade, title, and author', () => {
     const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
     const { books, shelves } = parseCatalog(raw);
     expect(shelves).toContain('Kids readers');
     expect(shelves).toContain('Fiction');
-    expect(searchBooks(books, '', 'Kids readers')).toHaveLength(6);
-    expect(searchBooks(books, 'kid 1').map((b) => b.id)).toEqual(['kid-1-the-brave-tin-soldier']);
+    expect(searchBooks(books, '', 'Kids readers')).toHaveLength(11);
+    expect(searchBooks(books, 'tin soldier andersen').map((b) => b.id)).toEqual(['kid-1-the-brave-tin-soldier']);
     expect(searchBooks(books, 'hansel grimm').map((b) => b.id)).toEqual(['kid-2-hansel-and-gretel']);
     expect(searchBooks(books, 'magic beans').map((b) => b.id)).toEqual(['kid-3-jack-and-the-magic-beans']);
     expect(searchBooks(books, 'trojan virgil').map((b) => b.id)).toEqual(['kid-4-the-trojan-horse']);
     expect(searchBooks(books, 'icarus ovid').map((b) => b.id)).toEqual(['kid-5-daedalus-and-icarus']);
     expect(searchBooks(books, 'heidi spyri').map((b) => b.id)).toEqual(['kid-6-heidi']);
+    expect(searchBooks(books, 'gulliver swift').map((b) => b.id)).toEqual(['kid-7-gullivers-travels']);
+    expect(searchBooks(books, 'beauty beast beaumont').map((b) => b.id)).toEqual(['kid-8-beauty-and-the-beast']);
+    expect(searchBooks(books, 'magi henry').map((b) => b.id)).toEqual(['kid-9-the-gift-of-the-magi']);
+    expect(searchBooks(books, 'last lesson daudet').map((b) => b.id)).toEqual(['kid-10-the-last-lesson']);
+    expect(searchBooks(books, 'monte cristo dumas').map((b) => b.id)).toEqual(['kid-11-the-count-of-monte-cristo']);
   });
 
   it('ships valid cleaned PDFs with embedded chapter bookmarks (Node 20+ and pdf.js)', async () => {
-    const files = expectedBooks.map(({ id, pages }) => ({
+    const files = expectedBooks.map(({ id, pages, hasContents }) => ({
       rel: `public/library/books/${id}.pdf`,
       pages,
+      hasContents,
     }));
 
     // Binary PDF validation runs on every Node version (including Node 20 in CI).
-    for (const { rel, pages } of files) {
+    for (const { rel, pages, hasContents } of files) {
       const buf = readFileSync(resolve(root, rel));
       const latin = buf.toString('latin1');
       expect(latin.startsWith('%PDF-1.'), `${rel} header`).toBe(true);
@@ -180,7 +182,7 @@ describe('Kid 1–6 reader workbooks: catalogue & assets', () => {
       expect(titles, `${rel} common bookmarks`).toEqual(
         expect.arrayContaining(['Cover', 'Part A: Story Focus', 'Part B: Skill Focus']),
       );
-      if (pages === 20) {
+      if (hasContents) {
         expect(titles, `${rel} Contents bookmark`).toContain('Contents');
       }
     }
@@ -191,14 +193,14 @@ describe('Kid 1–6 reader workbooks: catalogue & assets', () => {
     if (nodeMajor >= 22 && typeof proc.getBuiltinModule === 'function') {
       ensurePromiseWithResolvers();
       const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-      for (const { rel, pages } of files) {
+      for (const { rel, pages, hasContents } of files) {
         const bytes = new Uint8Array(readFileSync(resolve(root, rel)));
         const task = pdfjs.getDocument({ data: bytes, useSystemFonts: true });
         const doc = await task.promise;
         expect(doc.numPages, rel).toBe(pages);
         const outline = await doc.getOutline();
         expect(outline && outline.length, `${rel} top-level bookmarks`).toBeGreaterThanOrEqual(
-          pages === 20 ? 5 : 4,
+          hasContents ? 5 : 4,
         );
         const totalBookmarks = (outline ?? []).reduce(
           (sum, entry) => sum + 1 + (entry.items?.length ?? 0),
@@ -242,7 +244,7 @@ describe('Kid 1–6 reader workbooks: catalogue & assets', () => {
   });
 });
 
-describe('Kid 1–6 reader workbooks: answer-key integrity & grading', () => {
+describe('Kid 1–11 reader workbooks: answer-key integrity & grading', () => {
   it.each(READER_WORKBOOKS)('$gradeLabel ($title) has unique item IDs, valid options, and grades 0% → 100%', (wb) => {
     const allActivities = wb.sections.flatMap((s) => s.activities);
     const blank = gradeWorkbook(wb, {});
@@ -311,8 +313,17 @@ describe('Kid 1–6 reader workbooks: answer-key integrity & grading', () => {
       } else if (act.kind === 'unscramble') {
         for (const item of act.items) {
           claimId(item.id);
-          // Reassembling all chunks must produce the exact words of the target sentence.
-          expect(item.chunks.join(' ').split(/\s+/).sort()).toEqual(item.answer.split(/\s+/).sort());
+          if (item.syllables) {
+            // Reassembling all word-part syllables must match the exact non-space characters of the answer.
+            const fromChunks = item.chunks.join('').toLowerCase().replace(/\s+/g, '').split('').sort().join('');
+            const fromAnswer = item.answer.toLowerCase().replace(/\s+/g, '').split('').sort().join('');
+            expect(fromChunks, `${item.id} syllable parts`).toBe(fromAnswer);
+          } else {
+            // Reassembling all word tiles must produce the exact words of the target sentence.
+            expect(item.chunks.join(' ').split(/\s+/).sort(), `${item.id} word tiles`).toEqual(
+              item.answer.split(/\s+/).sort(),
+            );
+          }
         }
       } else if (act.kind === 'word-search') {
         for (const word of act.words) claimId(word.id);
@@ -322,6 +333,31 @@ describe('Kid 1–6 reader workbooks: answer-key integrity & grading', () => {
         for (const item of act.items) claimId(item.id);
         const answers = act.items.map((item) => item.answer).sort((a, b) => a - b);
         expect(answers).toEqual(Array.from({ length: act.count }, (_, idx) => idx + 1));
+      } else if (act.kind === 'category-sort') {
+        const keys = act.categories.map((c) => c.key);
+        const used = new Set<string>();
+        for (const item of act.items) {
+          claimId(item.id);
+          expect(keys, `${item.id} answer in category keys`).toContain(item.answer);
+          used.add(item.answer);
+        }
+        // Every declared category (including Extra) must be populated by at least one phrase.
+        expect(used.size, `${act.id} populates every category`).toBe(keys.length);
+      } else if (act.kind === 'error-fix') {
+        for (const item of act.items) {
+          claimId(item.id);
+          // Leaving the unedited sentence untouched must grade wrong.
+          const unedited = gradeWorkbook(wb, { [item.id]: item.wrong });
+          expect(unedited.byItem[item.id]?.answered, `${item.id} unedited answered`).toBe(true);
+          expect(unedited.byItem[item.id]?.correct, `${item.id} unedited must be wrong`).toBe(false);
+          // Alternate accepted rewrites and missing trailing punctuation must grade right.
+          const noPeriod = gradeWorkbook(wb, { [item.id]: item.answer.replace(/\.$/, '') });
+          expect(noPeriod.byItem[item.id]?.correct, `${item.id} without trailing period`).toBe(true);
+          for (const alt of item.accepts ?? []) {
+            const altGrade = gradeWorkbook(wb, { [item.id]: alt });
+            expect(altGrade.byItem[item.id]?.correct, `${item.id} alternate rewrite`).toBe(true);
+          }
+        }
       } else if (act.kind === 'open-prompts') {
         for (const prompt of act.prompts) claimId(prompt.id);
       }
@@ -356,6 +392,9 @@ describe('Kid 1–6 reader workbooks: answer-key integrity & grading', () => {
   it.each([
     { id: 'kid-3-jack-and-the-magic-beans', count: 10 },
     { id: 'kid-4-the-trojan-horse', count: 10 },
+    { id: 'kid-7-gullivers-travels', count: 8 },
+    { id: 'kid-8-beauty-and-the-beast', count: 10 },
+    { id: 'kid-9-the-gift-of-the-magi', count: 10 },
   ])('verifies every intersecting cell in $id crossword with zero letter collisions', ({ id, count }) => {
     const wb = getReaderWorkbook(id)!;
     const cw = wb.sections
@@ -376,7 +415,7 @@ describe('Kid 1–6 reader workbooks: answer-key integrity & grading', () => {
   });
 });
 
-describe('Kid 1–6 reader workbooks: state, Firestore payload & offline outbox', () => {
+describe('Kid 1–11 reader workbooks: state, Firestore payload & offline outbox', () => {
   let store: Map<string, string>;
 
   beforeEach(() => {
@@ -438,15 +477,15 @@ describe('Kid 1–6 reader workbooks: state, Firestore payload & offline outbox'
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('offline'));
 
     const payload = {
-      bookId: 'kid-2-hansel-and-gretel',
-      drillSlug: 'reader-kid2-hansel-gretel',
-      drillTitle: 'Kid 2 · Hansel and Gretel — Workbook',
-      studentName: 'Bora 2B',
-      correctCount: 85,
-      totalCount: 101,
-      scorePct: 84,
-      firstCorrectCount: 80,
-      firstAnsweredCount: 101,
+      bookId: 'kid-11-the-count-of-monte-cristo',
+      drillSlug: 'reader-kid11-count-of-monte-cristo',
+      drillTitle: 'Kid 11 · The Count of Monte Cristo — Workbook',
+      studentName: 'Bora 11A',
+      correctCount: 102,
+      totalCount: 115,
+      scorePct: 89,
+      firstCorrectCount: 96,
+      firstAnsweredCount: 115,
       checkCount: 1,
       queuedAt: 1000,
     };
@@ -457,8 +496,10 @@ describe('Kid 1–6 reader workbooks: state, Firestore payload & offline outbox'
     expect(failed.message).toContain('Not sent yet');
     expect(readWorkbookOutbox()).toHaveLength(1);
 
-    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ name: 'projects/x/documents/drill_attempts/abc' }), { status: 200 }));
-    const flushed = await flushWorkbookOutbox('reader-kid2-hansel-gretel');
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ name: 'projects/x/documents/drill_attempts/abc' }), { status: 200 }),
+    );
+    const flushed = await flushWorkbookOutbox('reader-kid11-count-of-monte-cristo');
     expect(flushed).toEqual({ sent: 1, remaining: 0 });
     expect(store.has(WORKBOOK_OUTBOX_KEY)).toBe(false);
   });
@@ -466,10 +507,10 @@ describe('Kid 1–6 reader workbooks: state, Firestore payload & offline outbox'
   it('round-trips submitted workbook docs through both teacher Scores and student My score', () => {
     const payloadA = buildFirestoreWorkbookDoc(
       {
-        bookId: 'kid-3-jack-and-the-magic-beans',
-        drillSlug: 'reader-kid3-magic-beans',
-        drillTitle: 'Kid 3 · Jack and the Magic Beans — Workbook',
-        studentName: 'Dara 3A',
+        bookId: 'kid-9-the-gift-of-the-magi',
+        drillSlug: 'reader-kid9-gift-of-the-magi',
+        drillTitle: 'Kid 9 · The Gift of the Magi — Workbook',
+        studentName: 'Dara 9A',
         correctCount: 100,
         totalCount: 108,
         scorePct: 93,
@@ -478,14 +519,14 @@ describe('Kid 1–6 reader workbooks: state, Firestore payload & offline outbox'
         checkCount: 2,
         queuedAt: 2000,
       },
-      { uid: 'uid-dara', classId: 'Kid 3 — Morning' },
+      { uid: 'uid-dara', classId: 'Kid 9 — Morning' },
     );
     const payloadB = buildFirestoreWorkbookDoc(
       {
-        bookId: 'kid-3-jack-and-the-magic-beans',
-        drillSlug: 'reader-kid3-magic-beans',
-        drillTitle: 'Kid 3 · Jack and the Magic Beans — Workbook',
-        studentName: 'Bopha 3A',
+        bookId: 'kid-9-the-gift-of-the-magi',
+        drillSlug: 'reader-kid9-gift-of-the-magi',
+        drillTitle: 'Kid 9 · The Gift of the Magi — Workbook',
+        studentName: 'Bopha 9A',
         correctCount: 76,
         totalCount: 108,
         scorePct: 70,
@@ -508,26 +549,26 @@ describe('Kid 1–6 reader workbooks: state, Firestore payload & offline outbox'
     expect(teacherRows).toHaveLength(2);
 
     // Privacy check: each student sees only their own score, with true first-try preserved.
-    const dara = myHomeworkScore(whole, { uid: 'uid-dara', name: 'Dara 3A' });
+    const dara = myHomeworkScore(whole, { uid: 'uid-dara', name: 'Dara 9A' });
     expect(dara).toMatchObject({
-      name: 'Dara 3A',
+      name: 'Dara 9A',
       firstTry: { correct: 86, total: 108, pct: 80 },
       best: { correct: 100, total: 108, pct: 93 },
       firstTryMeasured: true,
     });
 
-    const bopha = myHomeworkScore(whole, { uid: '', name: 'bopha 3a' });
+    const bopha = myHomeworkScore(whole, { uid: '', name: 'bopha 9a' });
     expect(bopha).toMatchObject({
-      name: 'Bopha 3A',
+      name: 'Bopha 9A',
       firstTry: { correct: 76, total: 108, pct: 70 },
     });
 
-    const stranger = myHomeworkScore(whole, { uid: 'uid-other', name: 'Dara 3A' });
+    const stranger = myHomeworkScore(whole, { uid: 'uid-other', name: 'Dara 9A' });
     // Signed-in stranger cannot see Dara's uid-owned submission even with the same display name.
     expect(stranger).toBeNull();
   });
 
-  it('gives all six Kid 1–6 workbooks distinct, Firestore-compliant drillSlugs and drillTitles', () => {
+  it('gives all eleven Kid 1–11 workbooks distinct, Firestore-compliant drillSlugs and drillTitles', () => {
     const slugs = new Set<string>();
     const titles = new Set<string>();
     for (const wb of READER_WORKBOOKS) {
