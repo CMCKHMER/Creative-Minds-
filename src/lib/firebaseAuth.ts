@@ -672,10 +672,11 @@ export function isAdminUid(uid?: string | null): boolean {
 }
 
 /**
- * Detect whether an email domain qualifies for automatic teacher verification:
- *   - Email domain contains "edu" (e.g., `.edu.kh`, `.edu`, `education.*`)
- *     → 'teacher'
- *   - Anything else → 'student'
+ * Detect whether an email domain qualifies for automatic teacher verification.
+ * SECURITY: TLD-anchored education domains only — *.edu, *.edu.<2-letter
+ * country> (.edu.kh), *.ac.<2-letter country> (.ac.th) — 'teacher'.
+ * Anything else (including lookalike domains such as myedu-site.com) →
+ * 'student'. Mirrors isCmcTeacher() in firestore.rules; keep in sync.
  */
 export function detectRoleFromEmail(email: string): 'teacher' | 'student' {
   return isEduEmailDomain(email) ? 'teacher' : 'student';

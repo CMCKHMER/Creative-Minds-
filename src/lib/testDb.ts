@@ -195,9 +195,12 @@ export interface ScoreDoc {
 
 // ── Teacher registration (allowlist) ─────────────────────────────────
 
-/** Idempotent: creates teachers/{uid} when missing (rules allow edu accounts
- *  to self-register once). Returns true when the caller IS a verified teacher
- *  afterwards. */
+/** True when the caller already has an entry in the `teachers/{uid}`
+ *  allowlist. SECURITY (Nov 2026): the allowlist is owner-seeded — the
+ *  rules no longer let accounts self-register, so the create attempt below
+ *  only succeeds for the site-owner admin and otherwise reports false.
+ *  New teachers are approved by the owner in the Admin panel
+ *  (site_config/teacher_access approvedUids) or seeded into teachers/. */
 export async function ensureTeacherRegistration(): Promise<boolean> {
   const token = await getValidIdToken();
   if (!token) throw new RestError(401, 'Sign in first.');

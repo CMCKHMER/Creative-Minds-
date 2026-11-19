@@ -95,22 +95,23 @@ service cloud.firestore {
         && request.auth.uid == '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
     }
 
-    // A signed-in account whose email contains "edu" — or the site-owner
-    // admin account — that finished email verification. This is the same
-    // heuristic the CMC app (RoleGate / firebaseAuth.detectRoleFromEmail)
-    // uses to decide who is a teacher, hardened with the verification gate
-    // and extended with the admin grant. RE2 has no look-around, so keep
-    // this in sync with the app if the heuristic ever changes.
-    //
-    // The pattern tests the DOMAIN only (the part after the last "@"),
-    // exactly like detectRoleFromEmail(): "you@school.edu.kh" passes,
-    // "eduardo@gmail.com" does not. It used to test the whole address, so
-    // any free mailbox with "edu" in the name was granted teacher access.
+    // SECURITY FIX (Nov 2026): the pattern is now TLD-ANCHORED — it matches
+    // real education domains only: *.edu, *.edu.<2-letter country>,
+    // *.ac.<2-letter country>. It used to test the whole domain for the
+    // SUBSTRING "edu", so any attacker who owned a lookalike domain (for
+    // example myedu-site.com, pwn.edu.com) passed the check, self-registered
+    // a teachers/{uid} allowlist entry, and read the answer keys.
+    // "you@school.edu.kh" and "prof@harvard.edu" pass;
+    // "eduardo@gmail.com" and "you@myedu-site.com" do not. The same heuristic
+    // the CMC app (RoleGate / firebaseAuth.detectRoleFromEmail) uses, which
+    // is mirrored TLD-anchored by isEduEmailDomain() in src/lib/userProfile.ts
+    // — keep the two in sync if this ever changes. RE2 has no look-around,
+    // hence the bracket classes.
     function isCmcTeacher() {
       return request.auth != null
         && request.auth.token.email_verified == true
         && request.auth.token.email != null
-        && (request.auth.token.email.matches('.*@[^@]*[eE][dD][uU][^@]*')
+        && (request.auth.token.email.matches('.*@([^@]*[.])?([eE][dD][uU]|[aA][cC])([.][a-zA-Z]{2})?$')
             || isCmcAdmin());
     }
 
@@ -593,17 +594,22 @@ service cloud.firestore {
 
     match /teachers/{uid} {
       allow read: if request.auth != null; // role checks only; non-sensitive
-      allow create: if request.auth != null
-        && request.auth.uid == uid
-        && isCmcTeacher();
-      allow update, delete: if false; // allowlist is append-only
+      // SECURITY FIX (Nov 2026): self-registration is CLOSED. It used to let
+      // any account passing the school-email heuristic create its own
+      // allowlist entry — combined with the old substring "edu" match that
+      // handed every lookalike domain the answer keys. The allowlist is now
+      // seeded by the site owner only, and the owner can delete entries
+      // (used to purge any fraudulent docs created before this fix).
+      allow create, delete: if isCmcAdmin();
+      allow update: if false; // allowlist entries are never edited in place
     }
 
     // VERIFIED TEACHER (Nov 2026): the owner's admin grant, OR the account
     // was approved in Admin → Users & Teachers (which covers Gmail teachers),
-    // OR it passes the school-email heuristic AND registered in the
-    // teachers/{uid} allowlist. An admin revocation always wins: a revoked
-    // account loses teacher access even with an .edu address.
+    // OR it passes the school-email heuristic AND is in the owner-seeded
+    // teachers/{uid} allowlist (self-registration is closed — see /teachers
+    // above). An admin revocation always wins: a revoked account loses
+    // teacher access even with an .edu address.
     function isVerifiedTeacher() {
       return request.auth != null
         && (isCmcAdmin()

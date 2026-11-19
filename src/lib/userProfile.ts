@@ -66,10 +66,15 @@ export function checkIsAdminUid(uid?: string | null): boolean {
   return !!uid && ADMIN_UIDS.includes(uid);
 }
 
-/** True when an email's DOMAIN contains "edu" (e.g. .edu.kh, .edu, education.*). */
+/** True when an email's domain is a REAL education domain, TLD-anchored:
+ *  *.edu, *.edu.<2-letter country> (e.g. .edu.kh), *.ac.<2-letter country>
+ *  (e.g. .ac.th). SECURITY: this mirrors isCmcTeacher() in firestore.rules.
+ *  It used to accept any domain CONTAINING "edu" (education.*, myedu-site.com),
+ *  which let attackers on lookalike domains present as teachers. Keep in
+ *  sync with the rules if this ever changes. */
 export function isEduEmailDomain(email?: string | null): boolean {
   const domain = ((email || '').split('@')[1] || '').toLowerCase().trim();
-  return Boolean(domain) && domain.includes('edu');
+  return Boolean(domain) && /(^|[.])(edu|ac)([.][a-z]{2})?$/.test(domain);
 }
 
 /** Admin-managed override list stored in Firestore `site_config/teacher_access`. */
@@ -555,7 +560,13 @@ export async function upsertUserProfileDoc(input: UpsertUserProfileInput): Promi
   }
 }
 
-/** Register a verified teacher in the append-only `teachers/{uid}` allowlist (idempotent). */
+/** Attempt to register the caller in the `teachers/{uid}` allowlist.
+ *  SECURITY (Nov 2026): the rules close self-registration — only the
+ *  site-owner admin can create entries now, so for every other account this
+ *  is a silent no-op (403 is caught below). New teachers are approved by the
+ *  owner in the Admin panel (site_config/teacher_access approvedUids) or
+ *  seeded into teachers/. Kept as a best-effort call so the owner's own
+ *  flows still record the allowlist entry without a separate step. */
 export async function ensureTeacherAllowlist(
   uid: string,
   email: string,
