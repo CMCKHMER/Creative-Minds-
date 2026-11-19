@@ -334,6 +334,24 @@ export async function createAssessmentClass(input: {
   return docIdOf(doc.name);
 }
 
+// ── REST field paths ─────────────────────────────────────────────────
+
+/** Quote one field-path segment when it is not a plain identifier.
+ *  Firestore field-path syntax: unquoted segments must match
+ *  [a-zA-Z_][a-zA-Z_0-9]* and every other segment must be backtick-quoted —
+ *  ISO-date week keys ("2026-11-16") are the common case that needs it. */
+function fsFieldPathSegment(seg: string): string {
+  return /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(seg) ? seg : '`' + seg.replace(/[`\\]/g, '\\$&') + '`';
+}
+
+/** Full REST field path from segments, e.g. ['weeks','2026-11-16','speaking']
+ *  → 'weeks.`2026-11-16`.speaking'. Passing an updateMask an unquoted dotted
+ *  date path makes Firestore reject the whole PATCH with
+ *  "Invalid property path … Unquoted property paths must match regex …". */
+export function fsFieldPath(...segments: string[]): string {
+  return segments.map(fsFieldPathSegment).join('.');
+}
+
 /** Patch class-level metadata (school/teacher names, overall remarks). */
 export async function updateAssessmentClass(
   classId: string,
@@ -341,7 +359,7 @@ export async function updateAssessmentClass(
 ): Promise<void> {
   const record = { ...patch, updatedAt: new Date().toISOString() };
   const masks = [...Object.keys(patch), 'updatedAt']
-    .map((k) => `updateMask.fieldPaths=${k}`)
+    .map((k) => `updateMask.fieldPaths=${encodeURIComponent(fsFieldPath(k))}`)
     .join('&');
   await fsCall(`/assessment_classes/${classId}?${masks}`, {
     method: 'PATCH',
@@ -412,7 +430,7 @@ export async function patchAssessmentStudent(
 ): Promise<void> {
   const record = { ...patch, updatedAt: new Date().toISOString(), updatedBy: actorEmail };
   const masks = [...Object.keys(patch), 'updatedAt', 'updatedBy']
-    .map((k) => `updateMask.fieldPaths=${k}`)
+    .map((k) => `updateMask.fieldPaths=${encodeURIComponent(fsFieldPath(k))}`)
     .join('&');
   await fsCall(`/assessment_classes/${classId}/students/${studentId}?${masks}`, {
     method: 'PATCH',
@@ -426,16 +444,18 @@ export async function removeAssessmentStudent(classId: string, studentId: string
 
 // ── Weekly entries (weeks.<weekKey>.<field> map leaves) ─────────────
 
-/** Build the nested REST body for dotted field paths, e.g.
- *  ["weeks.2026-10-26.listening", "updatedAt"] →
+/** Build the nested REST body for segmented field paths, e.g.
+ *  [['weeks','2026-10-26','listening'], ['updatedAt']] →
  *  { fields: { weeks: { mapValue: { fields: { "2026-10-26": { mapValue:
  *  { fields: { listening: … } } } } } } }, updatedAt: … }.
- *  Week keys are ISO dates (digits + hyphens), so the dot-separated path
- *  segments stay unambiguous. */
-function buildNestedBody(dottedKeys: string[], values: Record<string, unknown>): { fields: Fields } {
+ *  Body keys are raw JSON — they need no field-path quoting; only the
+ *  updateMask does (see fsFieldPath). Segments are passed as arrays, never
+ *  re-split from a dotted string, so a field name containing a dot can
+ *  never be mistaken for path nesting. */
+function buildNestedBody(segmentsList: string[][], values: Record<string, unknown>): { fields: Fields } {
   const root: Fields = {};
-  for (const path of dottedKeys) {
-    const segments = path.split('.');
+  for (const segments of segmentsList) {
+    const path = fsFieldPath(...segments);
     let cursor: Fields = root;
     for (let i = 0; i < segments.length - 1; i++) {
       const seg = segments[i];
@@ -454,7 +474,9 @@ function buildNestedBody(dottedKeys: string[], values: Record<string, unknown>):
 
 /** Save (parts of) one week's entry for a student. Each field patches the
  *  single leaf weeks.<weekKey>.<field>, so two teachers editing different
- *  fields — or different weeks — never overwrite each other. */
+ *  fields — or different weeks — never overwrite each other. The updateMask
+ *  carries the week key backtick-quoted (2026-11-16 is not a legal unquoted
+ *  field-path segment) while the body keeps the raw JSON keys. */
 export async function patchAssessmentStudentWeek(
   classId: string,
   studentId: string,
@@ -462,17 +484,17 @@ export async function patchAssessmentStudentWeek(
   patch: Record<string, string | number>,
   actorEmail: string,
 ): Promise<void> {
-  const dottedKeys: string[] = [];
+  const segmentsList: string[][] = [];
   const values: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(patch)) {
-    const path = `weeks.${weekKey}.${k}`;
-    dottedKeys.push(path);
-    values[path] = v;
+    const segs = ['weeks', weekKey, k];
+    segmentsList.push(segs);
+    values[fsFieldPath(...segs)] = v;
   }
-  const masks = [...dottedKeys, 'updatedAt', 'updatedBy']
+  const masks = [...segmentsList.map((s) => fsFieldPath(...s)), 'updatedAt', 'updatedBy']
     .map((k) => `updateMask.fieldPaths=${encodeURIComponent(k)}`)
     .join('&');
-  const body = buildNestedBody(dottedKeys, values);
+  const body = buildNestedBody(segmentsList, values);
   await fsCall(`/assessment_classes/${classId}/students/${studentId}?${masks}`, {
     method: 'PATCH',
     body: JSON.stringify({
@@ -493,7 +515,7 @@ export async function clearAssessmentWeek(
   weekKey: string,
 ): Promise<void> {
   const masks = [
-    `updateMask.fieldPaths=${encodeURIComponent(`weeks.${weekKey}`)}`,
+    `updateMask.fieldPaths=${encodeURIComponent(fsFieldPath('weeks', weekKey))}`,
     'updateMask.fieldPaths=updatedAt',
   ].join('&');
   await fsCall(`/assessment_classes/${classId}/students/${studentId}?${masks}`, {
