@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { deriveAllowedEmailDomainsPattern } from '../lib/userProfile';
 
 /**
  * firestore-min.rules is the comment-free copy of firestore.rules that gets
@@ -55,6 +56,46 @@ describe('firestore.rules access guards', () => {
     expect(teachersBlock).not.toMatch(/allow create: if request\.auth != null\s*&& request\.auth\.uid == uid\s*&& isCmcTeacher\(\)/);
     expect(teachersBlock).toMatch(/allow create, delete: if isCmcAdmin\(\);/);
     expect(teachersBlock).toMatch(/allow update: if false;/);
+  });
+
+  describe('owner-managed school-domain whitelist (optional tightening)', () => {
+    // The rules match the email against a doc-derived pattern with a
+    // WHOLE-string match: `email.lower().matches('(.*)@(PATTERN)')`. This
+    // harness mirrors that exactly (anchors + lowercasing) to prove the
+    // semantics the panel-derived pattern produces.
+    const fullMatch = (email: string, pattern: string): boolean =>
+      new RegExp(`^(.*)@(${pattern})$`).test(email.toLowerCase());
+
+    it('is wired into the heuristic branch of isCmcTeacher, fail-open when unset', () => {
+      const helper = rules.slice(rules.indexOf('function isAllowedSchoolDomain()'), rules.indexOf('function isVerifiedUser()'));
+      expect(helper).toContain("'allowedEmailDomainsPattern' in teacherAccessDoc()");
+      expect(helper).toContain("email.lower().matches('(.*)@(' + teacherAccessDoc().allowedEmailDomainsPattern + ')')");
+      // Fail-open guards: missing doc, missing field, wrong type, empty string.
+      expect(helper).toContain('exists(/databases/$(database)/documents/site_config/teacher_access)');
+      expect(helper).toContain('is string');
+      expect(helper).toContain('.size() > 0');
+      const cmcTeacher = rules.slice(rules.indexOf('function isCmcTeacher()'), rules.indexOf('ADMIN TEACHER-VERIFICATION OVERRIDES'));
+      expect(cmcTeacher).toMatch(/&& isAllowedSchoolDomain\(\)/);
+      // The admin-grant branch must stay outside the whitelist narrowing.
+      expect(cmcTeacher).toMatch(/\|\| isCmcAdmin\(\)/);
+    });
+
+    it('matches exactly the whitelisted domains — nothing more', () => {
+      const pattern = deriveAllowedEmailDomainsPattern(['school.edu.kh', 'myschool.org']);
+      expect(pattern).toBe('school\\.edu\\.kh|myschool\\.org');
+      expect(fullMatch('you@school.edu.kh', pattern)).toBe(true);
+      expect(fullMatch('you@myschool.org', pattern)).toBe(true);
+      // Dots are escaped — no regex wildcard leaks.
+      expect(fullMatch('you@schoolXeduXkh', pattern)).toBe(false);
+      // Full-string match prevents suffix injection.
+      expect(fullMatch('you@myschool.org.evil.io', pattern)).toBe(false);
+      expect(fullMatch('attacker@fakeschool.edu.kh.tld', pattern)).toBe(false);
+      // Subdomains are not implied; list them explicitly.
+      expect(fullMatch('you@sub.myschool.org', pattern)).toBe(false);
+      // Everything else stays out.
+      expect(fullMatch('you@harvard.edu', pattern)).toBe(false);
+      expect(fullMatch('eduardo@gmail.com', pattern)).toBe(false);
+    });
   });
 
   it('does not let any verified user update a class they do not own', () => {

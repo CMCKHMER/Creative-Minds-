@@ -77,15 +77,49 @@ export function isEduEmailDomain(email?: string | null): boolean {
   return Boolean(domain) && /(^|[.])(edu|ac)([.][a-z]{2})?$/.test(domain);
 }
 
-/** Admin-managed override list stored in Firestore `site_config/teacher_access`. */
+/** Lowercase domain part of an email (the last '@' segment); '' when the
+ *  address has no usable domain. */
+export function emailDomainOf(email?: string | null): string {
+  const parts = (email || '').toLowerCase().trim().split('@');
+  const domain = parts[parts.length - 1] || '';
+  return parts.length >= 2 && domain ? domain : '';
+}
+
+/** True when the email's domain passes the owner's school-domain whitelist.
+ *  An empty (or absent) list means "no per-school restriction" — the
+ *  TLD-anchored education-domain heuristic alone governs. This mirrors
+ *  isAllowedSchoolDomain() in firestore.rules (which consumes the pattern
+ *  derived from the same list) — keep the two in sync. */
+export function isEmailDomainAllowed(email?: string | null, allowedEmailDomains?: readonly string[] | null): boolean {
+  const list = allowedEmailDomains ?? [];
+  if (list.length === 0) return true;
+  const domain = emailDomainOf(email);
+  return Boolean(domain) && list.includes(domain);
+}
+
+/** RE2 pattern for the owner's domain list, consumed by
+ *  isAllowedSchoolDomain() in firestore.rules as a FULL-string match against
+ *  the whole email address. Dots and other regex metacharacters are escaped
+ *  and unique entries are joined with '|'; '' when the list is empty. */
+export function deriveAllowedEmailDomainsPattern(domains?: readonly string[] | null): string {
+  return [...new Set((domains ?? []).map((d) => d.trim().toLowerCase()).filter(Boolean))]
+    .map((d) => d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
+}
+
+/** Admin-managed override list stored in Firestore `site_config/teacher_access`.
+ *  `allowedEmailDomains` optionally narrows the school-email heuristic to the
+ *  owner's exact school domains (empty = any real education TLD qualifies). */
 export interface TeacherAccessConfig {
   approvedUids: string[];
   revokedUids: string[];
+  allowedEmailDomains: string[];
 }
 
 export const EMPTY_TEACHER_ACCESS: TeacherAccessConfig = {
   approvedUids: [],
   revokedUids: [],
+  allowedEmailDomains: [],
 };
 
 export interface EffectiveAccessInput {
@@ -148,7 +182,11 @@ export function resolveEffectiveAccess(input: EffectiveAccessInput): EffectiveAc
 
   const isRevoked = Boolean(uid) && access.revokedUids.includes(uid);
   const isAdminApproved = Boolean(uid) && !isRevoked && access.approvedUids.includes(uid);
-  const isVerifiedEdu = emailVerified && isEduEmailDomain(email);
+  // The school-domain whitelist (owner-managed, empty = unrestricted) narrows
+  // the heuristic exactly like isAllowedSchoolDomain() does in the rules.
+  const isVerifiedEdu = emailVerified
+    && isEduEmailDomain(email)
+    && isEmailDomainAllowed(email, access.allowedEmailDomains);
 
   // Explicit admin approval promotes the account to a verified teacher (unless revoked).
   if (isAdminApproved && emailVerified) {
@@ -305,6 +343,9 @@ export function readCachedTeacherAccess(): TeacherAccessConfig {
       revokedUids: Array.isArray(parsed.revokedUids)
         ? parsed.revokedUids.filter((u): u is string => typeof u === 'string' && u.length > 0)
         : [],
+      allowedEmailDomains: Array.isArray(parsed.allowedEmailDomains)
+        ? parsed.allowedEmailDomains.filter((u): u is string => typeof u === 'string' && u.length > 0)
+        : [],
     };
   } catch {
     return EMPTY_TEACHER_ACCESS;
@@ -316,6 +357,7 @@ export function writeCachedTeacherAccess(config: TeacherAccessConfig): void {
     localStorage.setItem(TEACHER_ACCESS_CACHE_KEY, JSON.stringify({
       approvedUids: [...new Set(config.approvedUids.filter(Boolean))],
       revokedUids: [...new Set(config.revokedUids.filter(Boolean))],
+      allowedEmailDomains: [...new Set(config.allowedEmailDomains.filter(Boolean))],
     }));
   } catch { /* private mode */ }
 }
@@ -347,13 +389,15 @@ function readStringArray(field?: FsStringArray): string[] {
   )];
 }
 
-/** Parse Firestore `site_config/teacher_access` into clean UID arrays. */
+/** Parse Firestore `site_config/teacher_access` into clean UID arrays plus
+ *  the owner's optional school-domain whitelist (lowercased, deduped). */
 export function parseTeacherAccessDoc(doc: unknown): TeacherAccessConfig {
   const f = (doc as FsDoc | null)?.fields;
   if (!f) return EMPTY_TEACHER_ACCESS;
   return {
     approvedUids: readStringArray(f.approvedUids),
     revokedUids: readStringArray(f.revokedUids),
+    allowedEmailDomains: readStringArray(f.allowedEmailDomains).map((d) => d.toLowerCase()),
   };
 }
 
@@ -375,7 +419,12 @@ export async function fetchTeacherAccessConfig(): Promise<TeacherAccessConfig> {
   }
 }
 
-/** Admin-only: save approved and revoked teacher UID lists to `site_config/teacher_access`. */
+/** Admin-only: save approved/revoked teacher UID lists and the optional
+ *  school-domain whitelist to `site_config/teacher_access`. The whitelist is
+ *  stored BOTH as the owner-friendly `allowedEmailDomains` list and as the
+ *  derived RE2 `allowedEmailDomainsPattern` that firestore.rules
+ *  (isAllowedSchoolDomain) matches the email against — always written
+ *  together so the two can never drift apart. */
 export async function saveTeacherAccessConfig(
   idToken: string,
   config: TeacherAccessConfig,
@@ -383,8 +432,10 @@ export async function saveTeacherAccessConfig(
   const clean: TeacherAccessConfig = {
     approvedUids: [...new Set(config.approvedUids.map((u) => u.trim()).filter(Boolean))],
     revokedUids: [...new Set(config.revokedUids.map((u) => u.trim()).filter(Boolean))],
+    allowedEmailDomains: [...new Set(config.allowedEmailDomains.map((d) => d.trim().toLowerCase()).filter(Boolean))],
   };
-  const mask = 'updateMask.fieldPaths=approvedUids&updateMask.fieldPaths=revokedUids&updateMask.fieldPaths=updatedAt';
+  const pattern = deriveAllowedEmailDomainsPattern(clean.allowedEmailDomains);
+  const mask = 'updateMask.fieldPaths=approvedUids&updateMask.fieldPaths=revokedUids&updateMask.fieldPaths=allowedEmailDomains&updateMask.fieldPaths=allowedEmailDomainsPattern&updateMask.fieldPaths=updatedAt';
   const res = await fetch(`${FIRESTORE_BASE}/site_config/teacher_access?${mask}`, {
     method: 'PATCH',
     headers: {
@@ -395,6 +446,8 @@ export async function saveTeacherAccessConfig(
       fields: {
         approvedUids: { arrayValue: { values: clean.approvedUids.map((u) => ({ stringValue: u })) } },
         revokedUids: { arrayValue: { values: clean.revokedUids.map((u) => ({ stringValue: u })) } },
+        allowedEmailDomains: { arrayValue: { values: clean.allowedEmailDomains.map((u) => ({ stringValue: u })) } },
+        allowedEmailDomainsPattern: { stringValue: pattern },
         updatedAt: { timestampValue: new Date().toISOString() },
       },
     }),
@@ -419,7 +472,7 @@ export function applyTeacherDecision(
   const revoked = current.revokedUids.filter((u) => u !== target);
   if (decision === 'approve') approved.push(target);
   if (decision === 'revoke') revoked.push(target);
-  return { approvedUids: approved, revokedUids: revoked };
+  return { approvedUids: approved, revokedUids: revoked, allowedEmailDomains: current.allowedEmailDomains };
 }
 
 export interface UserProfileRecord {
