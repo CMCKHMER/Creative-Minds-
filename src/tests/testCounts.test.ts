@@ -118,6 +118,29 @@ describe('the planner does not hand out the same test twice', () => {
     const panel = readFileSync(resolve(ROOT, 'src/components/BiWeeklyTestsPanel.tsx'), 'utf8');
     expect(panel).toMatch(/slug: 'grammar\.html', group: RETIRED_GROUP, retiredFor: /);
   });
+
+  it('Grammar: Parallel Structure (B2) omits the trailing error-prompt suffix on both open and private pages', () => {
+    const openHtml = readFileSync(resolve(PLANNER, 'tests/9b-w2-grammar.html'), 'utf8');
+    const privHtml = readFileSync(resolve(PLANNER, 'tests/private/9b-w2-grammar.html'), 'utf8');
+    expect(openHtml).not.toContain('Which marked part contains the error?');
+    expect(privHtml).not.toContain('Which marked part contains the error?');
+
+    const banksMatch = /window\.TEST_BANKS=(\{.*?\});\n/s.exec(openHtml);
+    const privMatch = /window\.CMC_PRIVATE_TEST=(\{.*?\});\n/s.exec(privHtml);
+    expect(banksMatch).not.toBeNull();
+    expect(privMatch).not.toBeNull();
+
+    const banks = JSON.parse(banksMatch![1]) as Record<string, [string, string[], number][]>;
+    const priv = JSON.parse(privMatch![1]) as { questions: { gid: string; qnum: number; prompt: string; choices: string[] }[] };
+    const openFlat = [...banks['l9b-w2-a'], ...banks['l9b-w2-b']];
+    expect(openFlat).toHaveLength(20);
+    expect(priv.questions).toHaveLength(20);
+    for (let i = 0; i < 20; i++) {
+      expect(openFlat[i][0].endsWith('.')).toBe(true);
+      expect(priv.questions[i].prompt).toBe(openFlat[i][0]);
+      expect(priv.questions[i].choices).toEqual(openFlat[i][1]);
+    }
+  });
 });
 
 describe('telling an earlier version of a test from the current one', () => {
