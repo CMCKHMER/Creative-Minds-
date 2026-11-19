@@ -8,6 +8,7 @@ import {
   applyTeacherDecision,
   fetchTeacherAccessConfig,
   isEduEmailDomain,
+  isEmailDomainAllowed,
   listAllUsersForAdmin,
   saveTeacherAccessConfig,
   sessionBadgeLabel,
@@ -42,13 +43,16 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
   const isAdmin = Boolean(session?.isAdmin);
 
   const [users, setUsers] = useState<UserProfileRecord[]>([]);
-  const [access, setAccess] = useState<TeacherAccessConfig>({ approvedUids: [], revokedUids: [] });
+  const [access, setAccess] = useState<TeacherAccessConfig>({ approvedUids: [], revokedUids: [], allowedEmailDomains: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busyUid, setBusyUid] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
+  const [domainInput, setDomainInput] = useState('');
+  const [domainBusy, setDomainBusy] = useState(false);
+  const [domainError, setDomainError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!isAdmin) return;
@@ -82,7 +86,7 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
     for (const u of users) {
       base[u.accountType] += 1;
       if (u.accountType === 'teacher') {
-        if (access.approvedUids.includes(u.uid) || (u.emailVerified && isEduEmailDomain(u.email))) base.verified += 1;
+        if (access.approvedUids.includes(u.uid) || (u.emailVerified && isEduEmailDomain(u.email) && isEmailDomainAllowed(u.email, access.allowedEmailDomains))) base.verified += 1;
         else base.pending += 1;
       }
     }
@@ -92,7 +96,7 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return users.filter((u) => {
-      const verified = access.approvedUids.includes(u.uid) || (u.emailVerified && isEduEmailDomain(u.email));
+      const verified = access.approvedUids.includes(u.uid) || (u.emailVerified && isEduEmailDomain(u.email) && isEmailDomainAllowed(u.email, access.allowedEmailDomains));
       const revoked = access.revokedUids.includes(u.uid);
       if (filter === 'teacher' && u.accountType !== 'teacher') return false;
       if (filter === 'student' && u.accountType !== 'student') return false;
@@ -129,6 +133,55 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
     } finally {
       setBusyUid(null);
     }
+  };
+
+  /** Save the whitelist change through the same endpoint as the approval
+   *  decisions — the library call derives the rules-side pattern, so the
+   *  list and its `allowedEmailDomainsPattern` never drift apart. */
+  const saveDomains = async (allowedEmailDomains: string[], successNote: string) => {
+    setDomainBusy(true);
+    setDomainError(null);
+    try {
+      const token = await getValidIdToken();
+      if (!token) {
+        setDomainError('Your admin session expired — sign in again to manage the whitelist.');
+        return;
+      }
+      const saved = await saveTeacherAccessConfig(token, { ...access, allowedEmailDomains });
+      setAccess(saved);
+      setNotice(successNote);
+      window.dispatchEvent(new CustomEvent('cmc-auth-changed'));
+    } catch (e) {
+      setDomainError(e instanceof Error ? e.message : 'Could not save the school-domain list.');
+    } finally {
+      setDomainBusy(false);
+    }
+  };
+
+  const addDomain = () => {
+    const d = domainInput.trim().toLowerCase();
+    if (!d) return;
+    if (!/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/.test(d) || !d.includes('.') || d.length > 100) {
+      setDomainError('Enter a real domain, e.g. school.edu.kh — letters, digits, dots and hyphens only.');
+      return;
+    }
+    if (access.allowedEmailDomains.includes(d)) {
+      setDomainError(`@${d} is already on the whitelist.`);
+      return;
+    }
+    if (access.allowedEmailDomains.length >= 50) {
+      setDomainError('The whitelist holds at most 50 domains.');
+      return;
+    }
+    setDomainInput('');
+    void saveDomains([...access.allowedEmailDomains, d], `School domain added: only @${d} and your other listed domains now count as verified school addresses.`);
+  };
+
+  const removeDomain = (d: string) => {
+    void saveDomains(
+      access.allowedEmailDomains.filter((x) => x !== d),
+      `School domain removed: @${d}. Addresses on it fall back to the standard education-TLD check.`,
+    );
   };
 
   // ── Guards ─────────────────────────────────────────────────────────
@@ -185,7 +238,8 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
               Every account appears here with the type it chose at sign-up. Teachers with a verified
               school (.edu) address are auto-verified; approve Gmail teachers below, and revoke anyone
-              who should lose teacher access. Revoking never removes their student access.
+              who should lose teacher access. Revoking never removes their student access. Optionally
+              narrow auto-verification to your own school domains at the bottom of the page.
             </p>
           </div>
           <button
@@ -261,7 +315,7 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
               {visible.map((user) => {
                 const adminApproved = access.approvedUids.includes(user.uid);
                 const revoked = access.revokedUids.includes(user.uid);
-                const eduVerified = user.emailVerified && isEduEmailDomain(user.email);
+                const eduVerified = user.emailVerified && isEduEmailDomain(user.email) && isEmailDomainAllowed(user.email, access.allowedEmailDomains);
                 const verified = (adminApproved || eduVerified) && !revoked;
                 const pending = user.accountType === 'teacher' && !verified;
                 const TypeIcon = user.accountType === 'teacher' ? GraduationCap : user.accountType === 'user' ? UserRound : Users;
@@ -337,6 +391,64 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
                 );
               })}
             </ul>
+          )}
+        </div>
+
+        {/* ── Owner-managed school-domain whitelist (optional tightening) ── */}
+        <div className="mt-6 rounded-2xl border border-slate-700/70 bg-slate-950/60 p-4 sm:p-5">
+          <h2 className="font-[var(--font-display)] text-sm font-bold text-white">School email domains</h2>
+          <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-slate-400">
+            Optional tightening. While this list is empty, any real education domain (.edu, .edu.kh, .ac.th, …)
+            counts as a verified school address. Once you add domains, ONLY those exact domains
+            (subdomains not included — list them too) count as school addresses; every other education
+            address then needs your one-click approval above. Enforced in firestore.rules, so it holds
+            even for tampered clients.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <label className="flex min-w-0 flex-1 items-center rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 sm:max-w-xs">
+              <input
+                value={domainInput}
+                onChange={(event) => { setDomainInput(event.target.value); setDomainError(null); }}
+                onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addDomain(); } }}
+                placeholder="school.edu.kh"
+                aria-label="Add a school email domain to the whitelist"
+                className="w-full min-w-0 bg-transparent text-xs text-white outline-none placeholder:text-slate-600"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => addDomain()}
+              disabled={domainBusy || !domainInput.trim()}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-300 to-teal-200 px-3 py-1.5 text-[11px] font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:opacity-50"
+            >
+              Add domain
+            </button>
+          </div>
+          {domainError && (
+            <p role="alert" className="mt-2 text-[11px] text-rose-100">{domainError}</p>
+          )}
+          {access.allowedEmailDomains.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {access.allowedEmailDomains.map((d) => (
+                <span
+                  key={d}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold text-cyan-100"
+                >
+                  @{d}
+                  <button
+                    type="button"
+                    onClick={() => removeDomain(d)}
+                    disabled={domainBusy}
+                    aria-label={`Remove ${d} from the school whitelist`}
+                    className="text-cyan-300/70 transition hover:text-rose-200 disabled:opacity-50"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-[11px] italic text-slate-500">Whitelist empty — the standard education-TLD check applies.</p>
           )}
         </div>
 

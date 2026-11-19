@@ -107,11 +107,16 @@ service cloud.firestore {
     // is mirrored TLD-anchored by isEduEmailDomain() in src/lib/userProfile.ts
     // — keep the two in sync if this ever changes. RE2 has no look-around,
     // hence the bracket classes.
+    // Nov 2026 hardening: the heuristic branch additionally passes only when
+    // the domain satisfies the owner's optional school whitelist (see
+    // isAllowedSchoolDomain above). The admin-grant branch is untouched —
+    // panel-approved teachers are vouched regardless of their domain.
     function isCmcTeacher() {
       return request.auth != null
         && request.auth.token.email_verified == true
         && request.auth.token.email != null
-        && (request.auth.token.email.matches('.*@([^@]*[.])?([eE][dD][uU]|[aA][cC])([.][a-zA-Z]{2})?$')
+        && ((request.auth.token.email.matches('.*@([^@]*[.])?([eE][dD][uU]|[aA][cC])([.][a-zA-Z]{2})?$')
+             && isAllowedSchoolDomain())
             || isCmcAdmin());
     }
 
@@ -140,6 +145,27 @@ service cloud.firestore {
     }
     function isRevokedTeacher() {
       return request.auth != null && teacherAccessList('revokedUids');
+    }
+
+    // OWNER-MANAGED SCHOOL-DOMAIN WHITELIST (Nov 2026 hardening): the same
+    // teacher_access document MAY carry `allowedEmailDomainsPattern` — a
+    // single RE2 pattern the Admin panel derives from the owner's lowercase
+    // domain list `allowedEmailDomains` (dots and regex metacharacters
+    // escaped, entries joined with '|', e.g. "school\.edu\.kh|myschool\.org").
+    // When the pattern is present and non-empty, an email passes the
+    // school-domain heuristic ONLY if its domain matches one of the entries —
+    // the owner's per-school gate ON TOP of the TLD anchor below (exact
+    // domains; subdomains are not implied — list them explicitly). When the
+    // field is absent, empty, or not a string, the TLD anchor applies
+    // unchanged, so nothing breaks until the owner sets a list. The Admin
+    // panel always writes the list and its derived pattern together; a
+    // malformed pattern makes matches() throw, which fails CLOSED (denies).
+    function isAllowedSchoolDomain() {
+      return !(exists(/databases/$(database)/documents/site_config/teacher_access)
+        && 'allowedEmailDomainsPattern' in teacherAccessDoc()
+        && teacherAccessDoc().allowedEmailDomainsPattern is string
+        && teacherAccessDoc().allowedEmailDomainsPattern.size() > 0)
+        || request.auth.token.email.lower().matches('(.*)@(' + teacherAccessDoc().allowedEmailDomainsPattern + ')');
     }
 
     // A signed-in account that proved its email address by clicking the

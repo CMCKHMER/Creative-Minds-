@@ -10,7 +10,8 @@ service cloud.firestore {
       return request.auth != null
         && request.auth.token.email_verified == true
         && request.auth.token.email != null
-        && (request.auth.token.email.matches('.*@([^@]*[.])?([eE][dD][uU]|[aA][cC])([.][a-zA-Z]{2})?$')
+        && ((request.auth.token.email.matches('.*@([^@]*[.])?([eE][dD][uU]|[aA][cC])([.][a-zA-Z]{2})?$')
+             && isAllowedSchoolDomain())
             || isCmcAdmin());
     }
     function teacherAccessDoc() {
@@ -29,6 +30,13 @@ service cloud.firestore {
     }
     function isRevokedTeacher() {
       return request.auth != null && teacherAccessList('revokedUids');
+    }
+    function isAllowedSchoolDomain() {
+      return !(exists(/databases/$(database)/documents/site_config/teacher_access)
+        && 'allowedEmailDomainsPattern' in teacherAccessDoc()
+        && teacherAccessDoc().allowedEmailDomainsPattern is string
+        && teacherAccessDoc().allowedEmailDomainsPattern.size() > 0)
+        || request.auth.token.email.lower().matches('(.*)@(' + teacherAccessDoc().allowedEmailDomainsPattern + ')');
     }
     function isVerifiedUser() {
       return request.auth != null
