@@ -65,6 +65,7 @@ describe('the planner does not hand out the same test twice', () => {
   /** The questions a page actually shows, reduced to their words (the same
    *  question can be bracketed or blanked slightly differently on two pages). */
   const words = (prompt: string): string => prompt
+    .replace(/<[^>]*>/g, '')
     .replace(/\[[A-D]:\s*/g, '').replace(/\]/g, '')
     .replace(/Which .*$/, '')
     .toLowerCase().replace(/[^a-z]+/g, ' ').trim();
@@ -108,22 +109,31 @@ describe('the planner does not hand out the same test twice', () => {
     }
   });
 
-  it('the retired duplicate is off the planner and the Studio list, and its replacement is still there', () => {
+  it('retired Week 2 tests are off the planner and Studio list, and kept only under Retired on the dashboard', () => {
     expect(listed).not.toContain('grammar.html');
+    expect(listed).not.toContain('business-listening.html');
+    expect(listed).not.toContain('isec2-w2-matching.html');
     expect(listed).toContain('9b-w2-grammar.html');
+    expect(listed).toContain('isec2-w2-listening.html');
     expect(questionsOf('grammar.html')).toEqual(questionsOf('9b-w2-grammar.html')); // why it was retired
     const studio = readFileSync(resolve(ROOT, 'public/studio/index.html'), 'utf8');
     expect(studio).not.toContain("{ slug: 'grammar',");
-    // the dashboard keeps it for its earlier results, but offers no new link
+    expect(studio).not.toContain("{ slug: 'business-listening',");
+    expect(studio).not.toContain("{ slug: 'isec2-w2-matching',");
+    // the dashboard keeps them for their earlier results, but offers no new link
     const panel = readFileSync(resolve(ROOT, 'src/components/BiWeeklyTestsPanel.tsx'), 'utf8');
-    expect(panel).toMatch(/slug: 'grammar\.html', group: RETIRED_GROUP, retiredFor: /);
+    expect(panel).toMatch(/slug: 'grammar\.html', group: RETIRED_GROUP, retired: true, retiredFor: /);
+    expect(panel).toMatch(/slug: 'business-listening\.html', group: RETIRED_GROUP, retired: true, retiredFor: /);
+    expect(panel).toMatch(/slug: 'isec2-w2-matching\.html', group: RETIRED_GROUP, retired: true/);
   });
 
-  it('Grammar: Parallel Structure (B2) omits the trailing error-prompt suffix on both open and private pages', () => {
+  it('Grammar: Parallel Structure (B2) uses clean underlined segments (no brackets or error-prompt suffix) on both pages', () => {
     const openHtml = readFileSync(resolve(PLANNER, 'tests/9b-w2-grammar.html'), 'utf8');
     const privHtml = readFileSync(resolve(PLANNER, 'tests/private/9b-w2-grammar.html'), 'utf8');
     expect(openHtml).not.toContain('Which marked part contains the error?');
     expect(privHtml).not.toContain('Which marked part contains the error?');
+    expect(openHtml).toContain('.err-u{text-decoration:underline');
+    expect(privHtml).toContain('.err-u{text-decoration:underline');
 
     const banksMatch = /window\.TEST_BANKS=(\{.*?\});\n/s.exec(openHtml);
     const privMatch = /window\.CMC_PRIVATE_TEST=(\{.*?\});\n/s.exec(privHtml);
@@ -132,6 +142,13 @@ describe('the planner does not hand out the same test twice', () => {
 
     const banks = JSON.parse(banksMatch![1]) as Record<string, [string, string[], number][]>;
     const priv = JSON.parse(privMatch![1]) as { questions: { gid: string; qnum: number; prompt: string; choices: string[] }[] };
+    expect(banks['l9b-w2-a']).toHaveLength(10);
+    for (const [prompt, choices] of banks['l9b-w2-a']) {
+      expect(prompt).not.toMatch(/[[\]]/);
+      const underlined = [...prompt.matchAll(/<u class="err-u">(.*?)<\/u>/g)].map((m) => m[1]);
+      expect(underlined).toEqual(choices);
+    }
+
     const openFlat = [...banks['l9b-w2-a'], ...banks['l9b-w2-b']];
     expect(openFlat).toHaveLength(20);
     expect(priv.questions).toHaveLength(20);

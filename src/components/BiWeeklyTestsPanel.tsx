@@ -52,9 +52,11 @@ interface TestEntry {
   title: string;
   slug: string;
   group: string;
-  /** Set on a test that is no longer handed out: the title of the test that
-   *  replaces it. The page and its answer key stay (links already sent keep
-   *  working, earlier results stay readable), but no new link is offered. */
+  /** Set on a test that is no longer handed out. The page and its answer key
+   *  stay (links already sent keep working, earlier results stay readable),
+   *  but no new link is offered. */
+  retired?: boolean;
+  /** Optional replacement title shown when a test was superseded by another. */
   retiredFor?: string;
 }
 const RETIRED_GROUP = 'Retired — earlier results only';
@@ -96,7 +98,6 @@ const TEST_CATALOG: TestEntry[] = [
   { title: 'W7 · L9b Reading: Reference & Cohesion', slug: '9b-w7-reading.html', group: 'Level 9 weekly tests' },
   { title: 'W8 · L9b Grammar: Parallel Structure & Connectors', slug: '9b-w8-grammar.html', group: 'Level 9 weekly tests' },
   // Level 11b weekly tests
-  { title: 'W2 · L11b Structure: Matching Practice', slug: 'isec2-w2-matching.html', group: 'Level 11b weekly tests' },
   { title: 'W3 · L11b Listening: Paraphrasing', slug: 'isec2-w3-paraphrase.html', group: 'Level 11b weekly tests' },
   { title: 'W4 · L11b Reading: Recognizing Inference', slug: 'isec2-w4-inference.html', group: 'Level 11b weekly tests' },
   { title: 'W5 · L11b Grammar: Mysteries & the Unexplained', slug: 'isec2-w5-grammar.html', group: 'Level 11b weekly tests' },
@@ -106,14 +107,14 @@ const TEST_CATALOG: TestEntry[] = [
   // Skills drills
   { title: 'Level 11b Written Expressions', slug: 'structure.html', group: 'Skills drills' },
   { title: 'Level 11b Rhetorical Purpose', slug: 'rhetorical.html', group: 'Skills drills' },
-  { title: 'B2 Business Listening Drill', slug: 'business-listening.html', group: 'Skills drills' },
   { title: 'Listening · Inference', slug: 'inference-listening.html', group: 'Skills drills' },
   { title: 'Listening · Prediction', slug: 'prediction-listening.html', group: 'Skills drills' },
   { title: 'Listening · Short Conversations', slug: 'short-conversations.html', group: 'Skills drills' },
-  // Retired. "Level 9b Parallel Structure" had the same 20 questions and the
-  // same answers as "W2 · L9b Grammar: Parallel Structure (B2)" and sat next
-  // to it on the planner's Week 2 card.
-  { title: 'Level 9b Parallel Structure (duplicate)', slug: 'grammar.html', group: RETIRED_GROUP, retiredFor: 'W2 · L9b Grammar: Parallel Structure (B2)' },
+  // Retired — kept only so existing invite links and earlier student results
+  // remain readable and gradeable.
+  { title: 'Level 9b Parallel Structure (duplicate)', slug: 'grammar.html', group: RETIRED_GROUP, retired: true, retiredFor: 'W2 · L9b Grammar: Parallel Structure (B2)' },
+  { title: 'B2 Business Listening Drill (retired)', slug: 'business-listening.html', group: RETIRED_GROUP, retired: true, retiredFor: 'W2 · Business Listening (B2 + C1)' },
+  { title: 'W2 · Structure: Matching Practice (retired)', slug: 'isec2-w2-matching.html', group: RETIRED_GROUP, retired: true },
 ];
 const CATALOG_GROUPS = TEST_CATALOG.reduce<{ label: string; items: TestEntry[] }[]>((acc, t) => {
   const g = acc.find((x) => x.label === t.group);
@@ -332,10 +333,12 @@ export const BiWeeklyTestsPanel: React.FC<{
   /** '' or "Earlier version of this test (9 questions; it now has 23)". */
   const noteOf = (d: AttemptDoc): string => versionNote(d.totalCount, testCount?.total);
   const earlierCount = graded.filter((d) => noteOf(d)).length;
-  const retiredFor = TEST_CATALOG.find((t) => t.slug === formSlug)?.retiredFor;
+  const selectedEntry = TEST_CATALOG.find((t) => t.slug === formSlug);
+  const retiredFor = selectedEntry?.retiredFor;
+  const isRetired = Boolean(selectedEntry?.retired || retiredFor);
   // A link is offered only for a test that is still handed out, and only
   // once the invite code is registered to this teacher.
-  const codeReady = codeState === 'ok' && !retiredFor;
+  const codeReady = codeState === 'ok' && !isRetired;
 
   const isOwner = isAdminUid(restUid);
 
@@ -505,7 +508,7 @@ export const BiWeeklyTestsPanel: React.FC<{
           <button
             onClick={copyLink}
             disabled={!codeReady}
-            title={codeReady ? undefined : retiredFor ? 'This test is retired — no new links' : CODE_NOTE[codeState]}
+            title={codeReady ? undefined : isRetired ? 'This test is retired — no new links' : CODE_NOTE[codeState]}
             className="hudp-cta flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
           >
             <Copy className="h-3 w-3" /> {copied ? 'Copied!' : 'Copy student link'}
@@ -516,9 +519,13 @@ export const BiWeeklyTestsPanel: React.FC<{
             This test has {countLine(testCount)}.
           </p>
         )}
-        {retiredFor ? (
+        {isRetired ? (
           <p role="status" data-retired className="mt-1.5 text-[11px] leading-relaxed text-amber-200">
-            This test is retired: it has the same questions as <b className="text-white">{retiredFor}</b> — share that one instead.
+            {retiredFor ? (
+              <>This test is retired — share <b className="text-white">{retiredFor}</b> instead. </>
+            ) : (
+              <>This test is retired and no longer handed out on Week 2. </>
+            )}
             Links you already sent still work, and earlier results stay under “View results”.
           </p>
         ) : (
