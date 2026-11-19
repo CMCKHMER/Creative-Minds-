@@ -363,7 +363,8 @@ function WordSearchBlock({
       onAnswer(match.id, match.answer);
       setGridHint(`Found "${match.answer}" for clue #${match.number}!`);
     } else {
-      setGridHint(`"${line.word}" isn't one of the six words — try again!`);
+      const countWord = words.length === 6 ? 'six' : String(words.length);
+      setGridHint(`"${line.word}" isn't one of the ${countWord} words — try again!`);
     }
   };
 

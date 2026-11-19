@@ -5,6 +5,7 @@ import {
   ALL_READER_WORKBOOKS,
   getReaderWorkbook,
   GRADED_READER_WORKBOOKS,
+  PHONICS_READER_WORKBOOKS,
   READER_WORKBOOKS,
   type WorkbookActivity,
 } from '../data/readerWorkbooks';
@@ -151,9 +152,25 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
     const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
     const { books, shelves } = parseCatalog(raw);
     expect(shelves).toContain('Kids readers');
+    expect(shelves).toContain('Phonics readers');
     expect(shelves).toContain('Graded readers');
     expect(shelves).toContain('Fiction');
     expect(searchBooks(books, '', 'Kids readers')).toHaveLength(11);
+    expect(searchBooks(books, '', 'Phonics readers').map((b) => b.id)).toEqual([
+      'fill-in-the-blank-stories-phonics',
+      'fill-in-the-blank-stories-word-families',
+    ]);
+    expect(searchBooks(books, 'phonics ross k–2').map((b) => b.id)).toEqual([
+      'fill-in-the-blank-stories-phonics',
+      'fill-in-the-blank-stories-word-families',
+    ]);
+    expect(searchBooks(books, 'stories: phonics').map((b) => b.id)).toEqual([
+      'fill-in-the-blank-stories-phonics',
+      'fill-in-the-blank-stories-word-families',
+    ]);
+    expect(searchBooks(books, 'word families ross').map((b) => b.id)).toEqual([
+      'fill-in-the-blank-stories-word-families',
+    ]);
     expect(searchBooks(books, '', 'Graded readers').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
     expect(searchBooks(books, 'arabian nights foulds').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
     expect(searchBooks(books, 'level 1 graded').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
@@ -227,7 +244,13 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
     const catalog = parseCatalog(raw);
     expect(catalog.problems).toEqual([]);
     expect(GRADED_READER_WORKBOOKS.map((wb) => wb.id)).toEqual(['tales-from-the-arabian-nights']);
-    expect(ALL_READER_WORKBOOKS).toHaveLength(12);
+    expect(PHONICS_READER_WORKBOOKS.map((wb) => wb.id)).toEqual([
+      'fill-in-the-blank-stories-phonics',
+      'fill-in-the-blank-stories-word-families',
+    ]);
+    expect(ALL_READER_WORKBOOKS).toHaveLength(14);
+    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.id)).size).toBe(14);
+    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.drillSlug)).size).toBe(14);
 
     const id = 'tales-from-the-arabian-nights';
     const book = catalog.books.find((entry) => entry.id === id);
@@ -289,6 +312,81 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
       const outline = await doc.getOutline();
       expect(outline?.length).toBe(13);
       await task.destroy();
+    }
+  });
+
+  it('registers both Grades K–2 Fill-in-the-Blank Stories books on Phonics readers with clean 60-page bookmarked PDFs and 7-unit workbooks', async () => {
+    const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
+    const catalog = parseCatalog(raw);
+    expect(catalog.problems).toEqual([]);
+
+    const expectedPhonics = [
+      {
+        id: 'fill-in-the-blank-stories-phonics',
+        title: 'Fill-in-the-Blank Stories: Phonics',
+        topBookmarks: 10,
+        totalBookmarks: 60,
+        expectedItems: 144,
+      },
+      {
+        id: 'fill-in-the-blank-stories-word-families',
+        title: 'Fill-in-the-Blank Stories: Word Families',
+        topBookmarks: 9,
+        totalBookmarks: 59,
+        expectedItems: 130,
+      },
+    ] as const;
+
+    const nodeMajor = Number(process.versions.node.split('.')[0] ?? '0');
+    const proc = process as NodeJS.Process & { getBuiltinModule?: (mod: string) => unknown };
+    const pdfjs =
+      nodeMajor >= 22 && typeof proc.getBuiltinModule === 'function'
+        ? (ensurePromiseWithResolvers(), await import('pdfjs-dist/legacy/build/pdf.mjs'))
+        : null;
+
+    for (const item of expectedPhonics) {
+      const book = catalog.books.find((entry) => entry.id === item.id);
+      expect(book, item.id).toBeDefined();
+      expect(book?.title).toBe(item.title);
+      expect(book?.author).toBe('Linda B. Ross');
+      expect(book?.shelf).toBe('Phonics readers');
+      expect(book?.level).toBe('Grades K–2');
+      expect(book?.pages).toBe(60);
+      expect(book?.workbook).toBe(item.id);
+      expect(libraryTargetFromHash(`#library/${item.id}`)).toEqual({ bookId: item.id, mode: 'read' });
+      expect(libraryTargetFromHash(`#library/${item.id}/workbook`)).toEqual({ bookId: item.id, mode: 'workbook' });
+
+      const coverFile = resolve(root, 'public', (book?.cover ?? '').replace(/^\.\//, ''));
+      expect(existsSync(coverFile), `${item.id} cover`).toBe(true);
+
+      const buf = readFileSync(resolve(root, `public/library/books/${item.id}.pdf`));
+      const latin = buf.toString('latin1');
+      expect(latin.startsWith('%PDF-1.'), `${item.id} header`).toBe(true);
+      expect(latin.slice(-64).includes('%%EOF'), `${item.id} trailer`).toBe(true);
+      const pageCounts = [...latin.matchAll(/\/Type\s*\/Pages\b[\s\S]{0,200}?\/Count\s+(\d+)/g)]
+        .map((m) => Number(m[1]));
+      expect(Math.max(...pageCounts), `${item.id} page count`).toBe(60);
+      expect(/\/Outlines\s+\d+\s+0\s+R/.test(latin), `${item.id} /Outlines`).toBe(true);
+
+      const wb = getReaderWorkbook(item.id);
+      expect(wb, `${item.id} workbook`).not.toBeNull();
+      expect(wb?.sections).toHaveLength(7);
+      expect(gradeWorkbook(wb!, {}).total).toBe(item.expectedItems);
+      for (const sec of wb?.sections ?? []) {
+        expect(sec.pdfPage, `${item.id}:${sec.id}`).toBeGreaterThanOrEqual(1);
+        expect(sec.pdfPage, `${item.id}:${sec.id}`).toBeLessThanOrEqual(60);
+      }
+
+      if (pdfjs) {
+        const task = pdfjs.getDocument({ data: new Uint8Array(buf), useSystemFonts: true });
+        const doc = await task.promise;
+        expect(doc.numPages).toBe(60);
+        const outline = await doc.getOutline();
+        expect(outline?.length).toBe(item.topBookmarks);
+        const total = (outline ?? []).reduce((sum, entry) => sum + 1 + (entry.items?.length ?? 0), 0);
+        expect(total).toBe(item.totalBookmarks);
+        await task.destroy();
+      }
     }
   });
 
@@ -468,6 +566,27 @@ describe('Kid 1–11 & Graded reader workbooks: answer-key integrity & grading',
       expect(backward?.reversed, `${id}:${word.answer} reversed`).toBe(word.answer);
     }
   });
+
+  it.each(PHONICS_READER_WORKBOOKS)(
+    'verifies all seven authentic 6×8 word search grids in $title',
+    (wb) => {
+      const searches = wb.sections
+        .flatMap((s) => s.activities)
+        .filter((a): a is Extract<WorkbookActivity, { kind: 'word-search' }> => a.kind === 'word-search');
+      expect(searches).toHaveLength(7);
+      for (const ws of searches) {
+        expect(ws.grid, `${ws.id} rows`).toHaveLength(6);
+        for (const row of ws.grid) expect(row, `${ws.id} cols`).toHaveLength(8);
+        expect(ws.words.length, `${ws.id} word count`).toBeGreaterThanOrEqual(5);
+        for (const word of ws.words) {
+          const forward = wordSearchLine(ws.grid, word.start, word.end);
+          const backward = wordSearchLine(ws.grid, word.end, word.start);
+          expect(forward?.word, `${ws.id}:${word.answer}`).toBe(word.answer.toLowerCase());
+          expect(backward?.reversed, `${ws.id}:${word.answer} reversed`).toBe(word.answer.toLowerCase());
+        }
+      }
+    },
+  );
 
   it.each([
     { id: 'kid-3-jack-and-the-magic-beans', count: 10 },

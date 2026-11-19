@@ -145,6 +145,32 @@
       "workbook": "kid-11-the-count-of-monte-cristo"
     },
     {
+      "id": "fill-in-the-blank-stories-phonics",
+      "title": "Fill-in-the-Blank Stories: Phonics",
+      "author": "Linda B. Ross",
+      "shelf": "Phonics readers",
+      "level": "Grades K–2",
+      "pages": 60,
+      "about": "Fifty illustrated cloze stories and word searches that target key K–2 phonics skills—short and long vowels, r-controlled vowels, diphthongs, consonant blends, digraphs, endings, and contractions—paired with an auto-graded workbook and book report.",
+      "rights": "Classroom phonics practice book (Scholastic Teaching Resources, Grades K–2) for Creative Minds students.",
+      "cover": "library/covers/fill-in-the-blank-stories-phonics.jpg",
+      "file": "library/books/fill-in-the-blank-stories-phonics.pdf",
+      "workbook": "fill-in-the-blank-stories-phonics"
+    },
+    {
+      "id": "fill-in-the-blank-stories-word-families",
+      "title": "Fill-in-the-Blank Stories: Word Families",
+      "author": "Linda B. Ross",
+      "shelf": "Phonics readers",
+      "level": "Grades K–2",
+      "pages": 60,
+      "about": "Fifty illustrated fill-in-the-blank stories and word searches covering the top 50 rhyming word families—from -ace, -ail, and -ake through -ay, -eep, -ight, -ing, -own, and -unk—paired with an auto-graded workbook and printable book report.",
+      "rights": "Classroom word-families practice book (Scholastic Teaching Resources, Grades K–2) for Creative Minds students.",
+      "cover": "library/covers/fill-in-the-blank-stories-word-families.jpg",
+      "file": "library/books/fill-in-the-blank-stories-word-families.pdf",
+      "workbook": "fill-in-the-blank-stories-word-families"
+    },
+    {
       "id": "tales-from-the-arabian-nights",
       "title": "Tales from the Arabian Nights",
       "author": "Edited by David Foulds",

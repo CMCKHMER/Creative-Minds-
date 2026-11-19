@@ -186,7 +186,7 @@ export function LibraryPage({ onBackHome }: { onBackHome: () => void }) {
         eyebrow="Creative Minds · Reading room"
         eyebrowIcon={BookOpen}
         title={<>Open a book. <em>Read it here.</em></>}
-        lead="Graded readers, classic young-learner stories, and full books you can read on the site, on a phone or a laptop. Flip pages, jump to a chapter, complete interactive workbooks, and send your score straight to your teacher."
+        lead="Phonics and word-family storybooks, graded readers, classic young-learner tales, and full books you can read on the site, on a phone or a laptop. Flip pages, jump to a chapter, complete interactive workbooks, and send your score straight to your teacher."
       >
         <GlassFact>{catalog ? `${books.length} ${books.length === 1 ? 'book' : 'books'}` : 'Loading the shelves'}</GlassFact>
         {workbookCount > 0 && <GlassFact>{workbookCount} interactive workbooks</GlassFact>}
