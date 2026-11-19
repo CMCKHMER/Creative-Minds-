@@ -145,6 +145,19 @@
       "workbook": "kid-11-the-count-of-monte-cristo"
     },
     {
+      "id": "tales-from-the-arabian-nights",
+      "title": "Tales from the Arabian Nights",
+      "author": "Edited by David Foulds",
+      "shelf": "Graded readers",
+      "level": "Level 1 · Grade 1",
+      "pages": 64,
+      "about": "Every night clever Sheherezade saves her life by telling King Shahriah an unfinished tale—the fisherman and the genie in the bottle, Aladdin and his magic lamp, Ali Baba and Morgiana, Sinbad the Sailor, and Sidi Ahmad. Full-colour 1,400-headword graded reader with all seven chapter activities and a book report.",
+      "rights": "Classroom graded reader (Oxford Progressive English Readers Grade 1, Oxford University Press) for Creative Minds students.",
+      "cover": "library/covers/tales-from-the-arabian-nights.jpg",
+      "file": "library/books/tales-from-the-arabian-nights.pdf",
+      "workbook": "tales-from-the-arabian-nights"
+    },
+    {
       "id": "alice-in-wonderland",
       "title": "Alice's Adventures in Wonderland",
       "author": "Lewis Carroll",

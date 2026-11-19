@@ -11,6 +11,7 @@
  * and the Book Report are saved locally on the student's device and printable.
  */
 
+import { GRADED_READER_WORKBOOKS } from './readerWorkbooksGraded';
 import { UPPER_READER_WORKBOOKS } from './readerWorkbooksUpper';
 
 export interface BankFillItem {
@@ -304,7 +305,8 @@ export interface ReaderWorkbookMeta {
     | 'Kid 8'
     | 'Kid 9'
     | 'Kid 10'
-    | 'Kid 11';
+    | 'Kid 11'
+    | 'Level 1';
   seriesLabel: string;
   title: string;
   author: string;
@@ -3995,8 +3997,15 @@ export const READER_WORKBOOKS: readonly ReaderWorkbookMeta[] = [
   ...UPPER_READER_WORKBOOKS,
 ];
 
+export { GRADED_READER_WORKBOOKS };
+
+export const ALL_READER_WORKBOOKS: readonly ReaderWorkbookMeta[] = [
+  ...READER_WORKBOOKS,
+  ...GRADED_READER_WORKBOOKS,
+];
+
 export function getReaderWorkbook(id: string | null | undefined): ReaderWorkbookMeta | null {
   if (!id) return null;
   const key = id.trim().toLowerCase();
-  return READER_WORKBOOKS.find((wb) => wb.id === key || wb.drillSlug === key) ?? null;
+  return ALL_READER_WORKBOOKS.find((wb) => wb.id === key || wb.drillSlug === key) ?? null;
 }

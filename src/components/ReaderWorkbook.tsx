@@ -226,7 +226,9 @@ function UnscrambleRow({
     <div className="cmc-rwb-card" data-grade={state}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs font-extrabold uppercase tracking-wider cmc-rwb-accent-text">
-          {item.syllables ? `Item ${index + 1} · ${wordCount} words` : `Sentence ${index + 1}`}
+          {item.syllables
+            ? wordCount === 1 ? `Word ${index + 1}` : `Item ${index + 1} · ${wordCount} words`
+            : `Sentence ${index + 1}`}
         </span>
         {value && (
           <button
@@ -264,7 +266,7 @@ function UnscrambleRow({
             </button>
           );
         })}
-        {item.syllables && (
+        {item.syllables && wordCount > 1 && (
           <button
             type="button"
             onClick={addSpace}
@@ -289,7 +291,9 @@ function UnscrambleRow({
           }}
           placeholder={
             item.syllables
-              ? 'Join the word parts with spaces between words, or type the phrase here…'
+              ? wordCount === 1
+                ? 'Tap the letters above in order, or type the word here…'
+                : 'Join the word parts with spaces between words, or type the phrase here…'
               : 'Tap the tiles above in order, or type the sentence here…'
           }
           className="cmc-rwb-input w-full"

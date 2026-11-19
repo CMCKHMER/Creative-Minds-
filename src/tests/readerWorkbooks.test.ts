@@ -1,7 +1,13 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getReaderWorkbook, READER_WORKBOOKS, type WorkbookActivity } from '../data/readerWorkbooks';
+import {
+  ALL_READER_WORKBOOKS,
+  getReaderWorkbook,
+  GRADED_READER_WORKBOOKS,
+  READER_WORKBOOKS,
+  type WorkbookActivity,
+} from '../data/readerWorkbooks';
 import {
   ensurePromiseWithResolvers,
   libraryTargetFromHash,
@@ -145,8 +151,12 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
     const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
     const { books, shelves } = parseCatalog(raw);
     expect(shelves).toContain('Kids readers');
+    expect(shelves).toContain('Graded readers');
     expect(shelves).toContain('Fiction');
     expect(searchBooks(books, '', 'Kids readers')).toHaveLength(11);
+    expect(searchBooks(books, '', 'Graded readers').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
+    expect(searchBooks(books, 'arabian nights foulds').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
+    expect(searchBooks(books, 'level 1 graded').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
     expect(searchBooks(books, 'tin soldier andersen').map((b) => b.id)).toEqual(['kid-1-the-brave-tin-soldier']);
     expect(searchBooks(books, 'hansel grimm').map((b) => b.id)).toEqual(['kid-2-hansel-and-gretel']);
     expect(searchBooks(books, 'magic beans').map((b) => b.id)).toEqual(['kid-3-jack-and-the-magic-beans']);
@@ -212,6 +222,76 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
     }
   });
 
+  it('registers Tales from the Arabian Nights on the Graded readers shelf with cover, bookmarked 64-page PDF, and 7-chapter workbook', async () => {
+    const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
+    const catalog = parseCatalog(raw);
+    expect(catalog.problems).toEqual([]);
+    expect(GRADED_READER_WORKBOOKS.map((wb) => wb.id)).toEqual(['tales-from-the-arabian-nights']);
+    expect(ALL_READER_WORKBOOKS).toHaveLength(12);
+
+    const id = 'tales-from-the-arabian-nights';
+    const book = catalog.books.find((entry) => entry.id === id);
+    expect(book).toBeDefined();
+    expect(book?.title).toBe('Tales from the Arabian Nights');
+    expect(book?.shelf).toBe('Graded readers');
+    expect(book?.level).toBe('Level 1 · Grade 1');
+    expect(book?.pages).toBe(64);
+    expect(book?.workbook).toBe(id);
+    expect(libraryTargetFromHash(`#library/${id}`)).toEqual({ bookId: id, mode: 'read' });
+    expect(libraryTargetFromHash(`#library/${id}/workbook`)).toEqual({ bookId: id, mode: 'workbook' });
+
+    const coverFile = resolve(root, 'public', (book?.cover ?? '').replace(/^\.\//, ''));
+    expect(existsSync(coverFile), 'cover exists').toBe(true);
+
+    const pdfRel = 'public/library/books/tales-from-the-arabian-nights.pdf';
+    const buf = readFileSync(resolve(root, pdfRel));
+    const latin = buf.toString('latin1');
+    expect(latin.startsWith('%PDF-1.')).toBe(true);
+    expect(latin.slice(-64).includes('%%EOF')).toBe(true);
+    const pageCounts = [...latin.matchAll(/\/Type\s*\/Pages\b[\s\S]{0,200}?\/Count\s+(\d+)/g)]
+      .map((m) => Number(m[1]));
+    expect(Math.max(...pageCounts)).toBe(64);
+    expect(/\/Outlines\s+\d+\s+0\s+R/.test(latin)).toBe(true);
+    const titles = [...latin.matchAll(/\/Title\s*\(((?:\\.|[^\\)])*)\)/g)].map((m) =>
+      m[1].replace(/\\\(/g, '(').replace(/\\\)/g, ')'),
+    );
+    expect(titles).toEqual(
+      expect.arrayContaining([
+        'Cover',
+        'Contents',
+        '1. The Unhappy King (p. 1)',
+        '2. The Genie in the Bottle (p. 6)',
+        '3. Aladdin and the Magic Lamp (p. 11)',
+        '4. Aladdin and the Princess (p. 17)',
+        '5. Ali Baba (p. 25)',
+        '6. The Tale of Sinbad the Sailor (p. 35)',
+        '7. The Man with Three Wives (p. 46)',
+        'Questions and Activities (p. 54)',
+      ]),
+    );
+
+    const wb = getReaderWorkbook(id);
+    expect(wb).not.toBeNull();
+    expect(wb?.sections).toHaveLength(7);
+    for (const sec of wb?.sections ?? []) {
+      expect(sec.pdfPage).toBeGreaterThanOrEqual(1);
+      expect(sec.pdfPage).toBeLessThanOrEqual(64);
+    }
+
+    const nodeMajor = Number(process.versions.node.split('.')[0] ?? '0');
+    const proc = process as NodeJS.Process & { getBuiltinModule?: (mod: string) => unknown };
+    if (nodeMajor >= 22 && typeof proc.getBuiltinModule === 'function') {
+      ensurePromiseWithResolvers();
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+      const task = pdfjs.getDocument({ data: new Uint8Array(buf), useSystemFonts: true });
+      const doc = await task.promise;
+      expect(doc.numPages).toBe(64);
+      const outline = await doc.getOutline();
+      expect(outline?.length).toBe(13);
+      await task.destroy();
+    }
+  });
+
   it('polyfills Promise.withResolvers when missing on older browsers or runtimes', async () => {
     const ctor = Promise as PromiseConstructor & {
       withResolvers?: <T>() => {
@@ -244,8 +324,8 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
   });
 });
 
-describe('Kid 1–11 reader workbooks: answer-key integrity & grading', () => {
-  it.each(READER_WORKBOOKS)('$gradeLabel ($title) has unique item IDs, valid options, and grades 0% → 100%', (wb) => {
+describe('Kid 1–11 & Graded reader workbooks: answer-key integrity & grading', () => {
+  it.each(ALL_READER_WORKBOOKS)('$gradeLabel ($title) has unique item IDs, valid options, and grades 0% → 100%', (wb) => {
     const allActivities = wb.sections.flatMap((s) => s.activities);
     const blank = gradeWorkbook(wb, {});
     expect(blank.answered).toBe(0);
@@ -395,6 +475,7 @@ describe('Kid 1–11 reader workbooks: answer-key integrity & grading', () => {
     { id: 'kid-7-gullivers-travels', count: 8 },
     { id: 'kid-8-beauty-and-the-beast', count: 10 },
     { id: 'kid-9-the-gift-of-the-magi', count: 10 },
+    { id: 'tales-from-the-arabian-nights', count: 11 },
   ])('verifies every intersecting cell in $id crossword with zero letter collisions', ({ id, count }) => {
     const wb = getReaderWorkbook(id)!;
     const cw = wb.sections
@@ -568,10 +649,10 @@ describe('Kid 1–11 reader workbooks: state, Firestore payload & offline outbox
     expect(stranger).toBeNull();
   });
 
-  it('gives all eleven Kid 1–11 workbooks distinct, Firestore-compliant drillSlugs and drillTitles', () => {
+  it('gives every reader workbook a distinct, Firestore-compliant drillSlug and drillTitle', () => {
     const slugs = new Set<string>();
     const titles = new Set<string>();
-    for (const wb of READER_WORKBOOKS) {
+    for (const wb of ALL_READER_WORKBOOKS) {
       expect(wb.drillSlug.length).toBeGreaterThan(0);
       expect(wb.drillSlug.length).toBeLessThanOrEqual(80);
       expect(wb.drillTitle.length).toBeGreaterThan(0);
