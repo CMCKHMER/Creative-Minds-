@@ -102,17 +102,18 @@ put it online. Only add a book when one of these is true:
 - The text of the page on screen is also placed in the page for screen
   readers. A scanned book with no text layer has nothing to read aloud.
 
-## Interactive reader workbooks (Kid 1–11 & Graded readers)
+## Interactive reader workbooks (Kid 1–11, Phonics & Graded readers)
 
 An entry in `catalog.json` may carry an optional `"workbook": "<id>"` field
 matching an entry in `src/data/readerWorkbooks.ts` (including Kid 7–9 in
 `src/data/readerWorkbooksUpper.ts`, Kid 10–11 in
-`src/data/readerWorkbooksSenior.ts`, and standalone graded readers in
+`src/data/readerWorkbooksSenior.ts`, K–2 phonics & word-family books in
+`src/data/readerWorkbooksPhonics.ts`, and standalone graded readers in
 `src/data/readerWorkbooksGraded.ts`). Books with a workbook offer both the
 flip-through PDF reader (`#library/<id>`) and a lazy-loaded, auto-graded
 workbook (`#library/<id>/workbook`, `src/components/ReaderWorkbook.tsx`)
-covering story focus, vocabulary (interactive 8×8 and 10×10 word searches,
-crossword puzzles, word-part unscrambles, and picture vocabulary),
+covering story focus, vocabulary (interactive 6×8, 8×8, and 10×10 word
+searches, crossword puzzles, word-part unscrambles, and picture vocabulary),
 beginning/middle/end comprehension, graphic organizers (cause & effect,
 problem & solution, main idea & events, cause & consequence, and Venn
 diagrams), sentence unscramble and error-correction rewrites, story summary,
@@ -128,6 +129,13 @@ Book Report story cloze, and a printable one-page Book Report.
   *Heidi*, *Gulliver's Travels*, *Beauty and the Beast*, *The Gift of the Magi*,
   *The Last Lesson*, and *The Count of Monte Cristo*) are also cross-linked
   from the Kid Program page (`#kid-grades`).
+- The **Phonics readers** shelf includes *Fill-in-the-Blank Stories: Phonics*
+  and *Fill-in-the-Blank Stories: Word Families* (Linda B. Ross, Scholastic
+  Teaching Resources, Grades K–2, 60 cleaned student pages each with teacher
+  answer keys removed and all 50 stories bookmarked by skill group), paired
+  with seven-unit auto-graded workbooks (`#library/fill-in-the-blank-stories-phonics/workbook`
+  and `#library/fill-in-the-blank-stories-word-families/workbook`) featuring
+  cloze stories, interactive 6×8 word searches, and printable Book Reports.
 - The **Graded readers** shelf includes *Tales from the Arabian Nights*
   (Edited by David Foulds, Oxford Progressive English Readers Grade 1,
   1,400 headwords, 64 full-colour pages) with chapter bookmarks, painted cover
