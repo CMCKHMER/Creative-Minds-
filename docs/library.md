@@ -102,12 +102,13 @@ put it online. Only add a book when one of these is true:
 - The text of the page on screen is also placed in the page for screen
   readers. A scanned book with no text layer has nothing to read aloud.
 
-## Interactive reader workbooks (Kid 1–11)
+## Interactive reader workbooks (Kid 1–11 & Graded readers)
 
 An entry in `catalog.json` may carry an optional `"workbook": "<id>"` field
 matching an entry in `src/data/readerWorkbooks.ts` (including Kid 7–9 in
-`src/data/readerWorkbooksUpper.ts` and Kid 10–11 in
-`src/data/readerWorkbooksSenior.ts`). Books with a workbook offer both the
+`src/data/readerWorkbooksUpper.ts`, Kid 10–11 in
+`src/data/readerWorkbooksSenior.ts`, and standalone graded readers in
+`src/data/readerWorkbooksGraded.ts`). Books with a workbook offer both the
 flip-through PDF reader (`#library/<id>`) and a lazy-loaded, auto-graded
 workbook (`#library/<id>/workbook`, `src/components/ReaderWorkbook.tsx`)
 covering story focus, vocabulary (interactive 8×8 and 10×10 word searches,
@@ -127,6 +128,12 @@ Book Report story cloze, and a printable one-page Book Report.
   *Heidi*, *Gulliver's Travels*, *Beauty and the Beast*, *The Gift of the Magi*,
   *The Last Lesson*, and *The Count of Monte Cristo*) are also cross-linked
   from the Kid Program page (`#kid-grades`).
+- The **Graded readers** shelf includes *Tales from the Arabian Nights*
+  (Edited by David Foulds, Oxford Progressive English Readers Grade 1,
+  1,400 headwords, 64 full-colour pages) with chapter bookmarks, painted cover
+  art, and an interactive seven-chapter workbook (`#library/tales-from-the-arabian-nights/workbook`)
+  covering all official pp. 54–57 activities (including the *Open Sesame*
+  crossword puzzle and word-letter unscrambles) plus a printable Book Report.
 
 ## The sample book
 
