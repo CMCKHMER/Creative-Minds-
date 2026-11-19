@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
+import { Script } from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -127,5 +128,14 @@ describe('static asset integrity (public/)', () => {
     const planner = htmlFiles.filter((f) => f.includes('biweek-planner'));
     const broken = checkRefs(planner, htmlRefs);
     expect(broken, 'planner pages with dead links:\n' + broken.map((b) => `  ${b.page} -> ${b.ref}`).join('\n')).toEqual([]);
+  });
+
+  it('service worker parses cleanly and declares CACHE_VERSION exactly once', () => {
+    const swPath = join(PUBLIC_DIR, 'sw.js');
+    const swSource = readFileSync(swPath, 'utf8');
+    expect(() => new Script(swSource, { filename: 'public/sw.js' })).not.toThrow();
+    const decls = [...swSource.matchAll(/^\s*(?:const|let|var)\s+CACHE_VERSION\s*=\s*['"]([^'"]+)['"]/gm)];
+    expect(decls).toHaveLength(1);
+    expect(decls[0][1]).toMatch(/^cmc-v\d+$/);
   });
 });

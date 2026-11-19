@@ -236,7 +236,7 @@ describe('the sealing tool and the dashboard agree on the format', () => {
     // A seal is bound to its test: it cannot be replayed under another slug…
     await expect(openSeal(testPub, code, 'other-test', seal)).rejects.toBeDefined();
     // …and a modified seal is rejected rather than decrypted to garbage.
-    const flipped = seal.ct.slice(0, -2) + (seal.ct.endsWith('A') ? 'B' : 'A') + seal.ct.slice(-1);
+    const flipped = (seal.ct[0] === 'A' ? 'B' : 'A') + seal.ct.slice(1);
     await expect(openSeal(testPub, code, 'sample', { ...seal, ct: flipped })).rejects.toBeDefined();
   });
 });
