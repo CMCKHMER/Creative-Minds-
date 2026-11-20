@@ -108,8 +108,9 @@ An entry in `catalog.json` may carry an optional `"workbook": "<id>"` field
 matching an entry in `src/data/readerWorkbooks.ts` (including Kid 7–9 in
 `src/data/readerWorkbooksUpper.ts`, Kid 10–11 in
 `src/data/readerWorkbooksSenior.ts`, K–2 phonics & word-family books in
-`src/data/readerWorkbooksPhonics.ts`, and standalone graded readers in
-`src/data/readerWorkbooksGraded.ts`). Books with a workbook offer both the
+`src/data/readerWorkbooksPhonics.ts`, standalone graded readers in
+`src/data/readerWorkbooksGraded.ts`, and parent/teacher study workshops in
+`src/data/readerWorkbooksGuides.ts`). Books with a workbook offer both the
 flip-through PDF reader (`#library/<id>`) and a lazy-loaded, auto-graded
 workbook (`#library/<id>/workbook`, `src/components/ReaderWorkbook.tsx`)
 covering story focus, vocabulary (interactive 6×8, 8×8, and 10×10 word
@@ -142,6 +143,13 @@ Book Report story cloze, and a printable one-page Book Report.
   art, and an interactive seven-chapter workbook (`#library/tales-from-the-arabian-nights/workbook`)
   covering all official pp. 54–57 activities (including the *Open Sesame*
   crossword puzzle and word-letter unscrambles) plus a printable Book Report.
+- The **Parents & teachers** shelf includes *How to Talk So Kids Will Listen
+  & Listen So Kids Will Talk* (Adele Faber & Elaine Mazlish, 30th-Anniversary
+  Edition with Joanna Faber's *The Next Generation*, Scribner, 358 pages) with
+  chapter and *Quick Reminder* bookmarks, painted cover art, and a 100-item
+  seven-chapter interactive communication workshop
+  (`#library/how-to-talk-so-kids-will-listen/workbook`) with autosaved
+  reflection prompts and a printable summary sheet.
 
 ## The sample book
 

@@ -184,6 +184,19 @@
       "workbook": "tales-from-the-arabian-nights"
     },
     {
+      "id": "how-to-talk-so-kids-will-listen",
+      "title": "How to Talk So Kids Will Listen & Listen So Kids Will Talk",
+      "author": "Adele Faber & Elaine Mazlish",
+      "shelf": "Parents & teachers",
+      "level": "Parents & teachers",
+      "pages": 358,
+      "about": "The classic illustrated communication handbook (30th-Anniversary Edition, with Joanna Faber's afterword) on accepting children's feelings, inviting cooperation, replacing punishment with problem-solving, building autonomy, descriptive praise, and freeing kids from roles—with a 7-chapter practice workshop.",
+      "rights": "Parent and educator reference copy (30th-Anniversary Edition, Scribner) for the Creative Minds community.",
+      "cover": "library/covers/how-to-talk-so-kids-will-listen.jpg",
+      "file": "library/books/how-to-talk-so-kids-will-listen.pdf",
+      "workbook": "how-to-talk-so-kids-will-listen"
+    },
+    {
       "id": "alice-in-wonderland",
       "title": "Alice's Adventures in Wonderland",
       "author": "Lewis Carroll",
