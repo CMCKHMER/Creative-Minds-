@@ -1524,7 +1524,7 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
             {workbook.title}
           </p>
           <p className="cmc-rwb-soft-text truncate text-xs">
-            Interactive Workbook · {workbook.author}
+            Interactive Workbook{workbook.author ? ` · ${workbook.author}` : ''}
           </p>
         </div>
 
@@ -1722,7 +1722,7 @@ export function ReaderWorkbook({ workbook, onClose, onOpenPdf }: ReaderWorkbookP
             {workbook.gradeLabel} Book Report — {workbook.title}
           </h1>
           <p style={{ fontSize: '10pt', color: '#475569', marginTop: '4pt' }}>
-            Creative Minds Reading Room · {workbook.author} ({workbook.seriesLabel})
+            Creative Minds Reading Room{workbook.author ? ` · ${workbook.author}` : ''} ({workbook.seriesLabel})
           </p>
           <hr style={{ margin: '10pt 0', borderColor: '#cbd5e1' }} />
           <p style={{ fontSize: '11pt', margin: '6pt 0' }}>

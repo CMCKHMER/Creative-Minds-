@@ -176,7 +176,11 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
     expect(searchBooks(books, '', 'Graded readers').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
     expect(searchBooks(books, 'arabian nights foulds').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
     expect(searchBooks(books, 'level 1 graded').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
-    expect(searchBooks(books, '', 'Parents & teachers').map((b) => b.id)).toEqual(['how-to-talk-so-kids-will-listen']);
+    expect(searchBooks(books, '', 'Parents & teachers').map((b) => b.id)).toEqual([
+      'how-to-talk-so-kids-will-listen',
+      '30-student-activation-tactics',
+    ]);
+    expect(searchBooks(books, 'activation tactics').map((b) => b.id)).toEqual(['30-student-activation-tactics']);
     expect(searchBooks(books, 'faber mazlish listen').map((b) => b.id)).toEqual(['how-to-talk-so-kids-will-listen']);
     expect(searchBooks(books, 'tin soldier andersen').map((b) => b.id)).toEqual(['kid-1-the-brave-tin-soldier']);
     expect(searchBooks(books, 'hansel grimm').map((b) => b.id)).toEqual(['kid-2-hansel-and-gretel']);
@@ -254,10 +258,11 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
     ]);
     expect(GUIDE_READER_WORKBOOKS.map((wb) => wb.id)).toEqual([
       'how-to-talk-so-kids-will-listen',
+      '30-student-activation-tactics',
     ]);
-    expect(ALL_READER_WORKBOOKS).toHaveLength(15);
-    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.id)).size).toBe(15);
-    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.drillSlug)).size).toBe(15);
+    expect(ALL_READER_WORKBOOKS).toHaveLength(16);
+    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.id)).size).toBe(16);
+    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.drillSlug)).size).toBe(16);
 
     const id = 'tales-from-the-arabian-nights';
     const book = catalog.books.find((entry) => entry.id === id);
@@ -447,6 +452,60 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
       expect(outline?.length).toBe(19);
       const total = (outline ?? []).reduce((sum, entry) => sum + 1 + (entry.items?.length ?? 0), 0);
       expect(total).toBe(29);
+      await task.destroy();
+    }
+  });
+
+  it('registers 30 Student Activation Tactics on Parents & teachers with a 45-page bookmarked PDF, cover, and 7-part workshop', async () => {
+    const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
+    const catalog = parseCatalog(raw);
+    expect(catalog.problems).toEqual([]);
+
+    const id = '30-student-activation-tactics';
+    const book = catalog.books.find((entry) => entry.id === id);
+    expect(book).toBeDefined();
+    expect(book?.title).toBe('30 Student Activation Tactics You Need to Know');
+    expect(book?.author).toBe('');
+    expect(book?.shelf).toBe('Parents & teachers');
+    expect(book?.level).toBe('Parents & teachers');
+    expect(book?.pages).toBe(45);
+    expect(book?.workbook).toBe(id);
+    expect(libraryTargetFromHash(`#library/${id}`)).toEqual({ bookId: id, mode: 'read' });
+    expect(libraryTargetFromHash(`#library/${id}/workbook`)).toEqual({ bookId: id, mode: 'workbook' });
+
+    const coverFile = resolve(root, 'public', (book?.cover ?? '').replace(/^\.\//, ''));
+    expect(existsSync(coverFile), 'cover exists').toBe(true);
+
+    const buf = readFileSync(resolve(root, `public/library/books/${id}.pdf`));
+    const latin = buf.toString('latin1');
+    expect(latin.startsWith('%PDF-1.')).toBe(true);
+    expect(latin.slice(-64).includes('%%EOF')).toBe(true);
+    const pageCounts = [...latin.matchAll(/\/Type\s*\/Pages\b[\s\S]{0,200}?\/Count\s+(\d+)/g)]
+      .map((m) => Number(m[1]));
+    expect(Math.max(...pageCounts)).toBe(45);
+    expect(/\/Outlines\s+\d+\s+0\s+R/.test(latin)).toBe(true);
+
+    const wb = getReaderWorkbook(id);
+    expect(wb).not.toBeNull();
+    expect(wb?.sections).toHaveLength(7);
+    expect(gradeWorkbook(wb!, {}).total).toBe(138);
+    for (const sec of wb?.sections ?? []) {
+      expect(sec.pdfPage).toBeGreaterThanOrEqual(1);
+      expect(sec.pdfPage).toBeLessThanOrEqual(45);
+    }
+
+    const nodeMajor = Number(process.versions.node.split('.')[0] ?? '0');
+    const proc = process as NodeJS.Process & { getBuiltinModule?: (mod: string) => unknown };
+    if (nodeMajor >= 22 && typeof proc.getBuiltinModule === 'function') {
+      ensurePromiseWithResolvers();
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+      const task = pdfjs.getDocument({ data: new Uint8Array(buf), useSystemFonts: true });
+      const doc = await task.promise;
+      expect(doc.numPages).toBe(45);
+      const outline = await doc.getOutline();
+      expect(outline?.length).toBe(32);
+      const total = (outline ?? []).reduce((sum, entry) => sum + 1 + (entry.items?.length ?? 0), 0);
+      expect(total).toBe(32);
       await task.destroy();
     }
   });

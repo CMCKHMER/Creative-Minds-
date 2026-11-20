@@ -150,6 +150,13 @@ Book Report story cloze, and a printable one-page Book Report.
   seven-chapter interactive communication workshop
   (`#library/how-to-talk-so-kids-will-listen/workbook`) with autosaved
   reflection prompts and a printable summary sheet.
+- The **Parents & teachers** shelf also includes *30 Student Activation Tactics
+  You Need to Know* (an ESL teacher guide, 45 pages) with 32 bookmarks (Cover,
+  Contents, and the 30 guides, linked from the Contents page), painted cover
+  art, and a 138-item, seven-part interactive workshop
+  (`#library/30-student-activation-tactics/workbook`) with autosaved reflection
+  prompts and a printable summary sheet. The source file has no author credit,
+  so the catalog author is blank and the workbook header omits it.
 
 ## The sample book
 
