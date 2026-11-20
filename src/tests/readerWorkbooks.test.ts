@@ -5,6 +5,7 @@ import {
   ALL_READER_WORKBOOKS,
   getReaderWorkbook,
   GRADED_READER_WORKBOOKS,
+  GUIDE_READER_WORKBOOKS,
   PHONICS_READER_WORKBOOKS,
   READER_WORKBOOKS,
   type WorkbookActivity,
@@ -154,6 +155,7 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
     expect(shelves).toContain('Kids readers');
     expect(shelves).toContain('Phonics readers');
     expect(shelves).toContain('Graded readers');
+    expect(shelves).toContain('Parents & teachers');
     expect(shelves).toContain('Fiction');
     expect(searchBooks(books, '', 'Kids readers')).toHaveLength(11);
     expect(searchBooks(books, '', 'Phonics readers').map((b) => b.id)).toEqual([
@@ -174,6 +176,8 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
     expect(searchBooks(books, '', 'Graded readers').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
     expect(searchBooks(books, 'arabian nights foulds').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
     expect(searchBooks(books, 'level 1 graded').map((b) => b.id)).toEqual(['tales-from-the-arabian-nights']);
+    expect(searchBooks(books, '', 'Parents & teachers').map((b) => b.id)).toEqual(['how-to-talk-so-kids-will-listen']);
+    expect(searchBooks(books, 'faber mazlish listen').map((b) => b.id)).toEqual(['how-to-talk-so-kids-will-listen']);
     expect(searchBooks(books, 'tin soldier andersen').map((b) => b.id)).toEqual(['kid-1-the-brave-tin-soldier']);
     expect(searchBooks(books, 'hansel grimm').map((b) => b.id)).toEqual(['kid-2-hansel-and-gretel']);
     expect(searchBooks(books, 'magic beans').map((b) => b.id)).toEqual(['kid-3-jack-and-the-magic-beans']);
@@ -248,9 +252,12 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
       'fill-in-the-blank-stories-phonics',
       'fill-in-the-blank-stories-word-families',
     ]);
-    expect(ALL_READER_WORKBOOKS).toHaveLength(14);
-    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.id)).size).toBe(14);
-    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.drillSlug)).size).toBe(14);
+    expect(GUIDE_READER_WORKBOOKS.map((wb) => wb.id)).toEqual([
+      'how-to-talk-so-kids-will-listen',
+    ]);
+    expect(ALL_READER_WORKBOOKS).toHaveLength(15);
+    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.id)).size).toBe(15);
+    expect(new Set(ALL_READER_WORKBOOKS.map((wb) => wb.drillSlug)).size).toBe(15);
 
     const id = 'tales-from-the-arabian-nights';
     const book = catalog.books.find((entry) => entry.id === id);
@@ -387,6 +394,60 @@ describe('Kid 1–11 reader workbooks: catalogue & assets', () => {
         expect(total).toBe(item.totalBookmarks);
         await task.destroy();
       }
+    }
+  });
+
+  it('registers How to Talk So Kids Will Listen & Listen So Kids Will Talk on Parents & teachers with 358-page bookmarked PDF and 7-chapter workshop', async () => {
+    const raw = JSON.parse(readFileSync(resolve(root, 'public/library/catalog.json'), 'utf8')) as unknown;
+    const catalog = parseCatalog(raw);
+    expect(catalog.problems).toEqual([]);
+
+    const id = 'how-to-talk-so-kids-will-listen';
+    const book = catalog.books.find((entry) => entry.id === id);
+    expect(book).toBeDefined();
+    expect(book?.title).toBe('How to Talk So Kids Will Listen & Listen So Kids Will Talk');
+    expect(book?.author).toBe('Adele Faber & Elaine Mazlish');
+    expect(book?.shelf).toBe('Parents & teachers');
+    expect(book?.level).toBe('Parents & teachers');
+    expect(book?.pages).toBe(358);
+    expect(book?.workbook).toBe(id);
+    expect(libraryTargetFromHash(`#library/${id}`)).toEqual({ bookId: id, mode: 'read' });
+    expect(libraryTargetFromHash(`#library/${id}/workbook`)).toEqual({ bookId: id, mode: 'workbook' });
+
+    const coverFile = resolve(root, 'public', (book?.cover ?? '').replace(/^\.\//, ''));
+    expect(existsSync(coverFile), 'cover exists').toBe(true);
+
+    const buf = readFileSync(resolve(root, `public/library/books/${id}.pdf`));
+    const latin = buf.toString('latin1');
+    expect(latin.startsWith('%PDF-1.')).toBe(true);
+    expect(latin.slice(-64).includes('%%EOF')).toBe(true);
+    const pageCounts = [...latin.matchAll(/\/Type\s*\/Pages\b[\s\S]{0,200}?\/Count\s+(\d+)/g)]
+      .map((m) => Number(m[1]));
+    expect(Math.max(...pageCounts)).toBe(358);
+    expect(/\/Outlines\s+\d+\s+0\s+R/.test(latin)).toBe(true);
+
+    const wb = getReaderWorkbook(id);
+    expect(wb).not.toBeNull();
+    expect(wb?.sections).toHaveLength(7);
+    expect(gradeWorkbook(wb!, {}).total).toBe(100);
+    for (const sec of wb?.sections ?? []) {
+      expect(sec.pdfPage).toBeGreaterThanOrEqual(1);
+      expect(sec.pdfPage).toBeLessThanOrEqual(358);
+    }
+
+    const nodeMajor = Number(process.versions.node.split('.')[0] ?? '0');
+    const proc = process as NodeJS.Process & { getBuiltinModule?: (mod: string) => unknown };
+    if (nodeMajor >= 22 && typeof proc.getBuiltinModule === 'function') {
+      ensurePromiseWithResolvers();
+      const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+      const task = pdfjs.getDocument({ data: new Uint8Array(buf), useSystemFonts: true });
+      const doc = await task.promise;
+      expect(doc.numPages).toBe(358);
+      const outline = await doc.getOutline();
+      expect(outline?.length).toBe(19);
+      const total = (outline ?? []).reduce((sum, entry) => sum + 1 + (entry.items?.length ?? 0), 0);
+      expect(total).toBe(29);
+      await task.destroy();
     }
   });
 

@@ -12,6 +12,7 @@
  */
 
 import { GRADED_READER_WORKBOOKS } from './readerWorkbooksGraded';
+import { GUIDE_READER_WORKBOOKS } from './readerWorkbooksGuides';
 import { PHONICS_READER_WORKBOOKS } from './readerWorkbooksPhonics';
 import { UPPER_READER_WORKBOOKS } from './readerWorkbooksUpper';
 
@@ -308,7 +309,8 @@ export interface ReaderWorkbookMeta {
     | 'Kid 10'
     | 'Kid 11'
     | 'Level 1'
-    | 'Grades K–2';
+    | 'Grades K–2'
+    | 'Parents & Teachers';
   seriesLabel: string;
   title: string;
   author: string;
@@ -3999,12 +4001,13 @@ export const READER_WORKBOOKS: readonly ReaderWorkbookMeta[] = [
   ...UPPER_READER_WORKBOOKS,
 ];
 
-export { GRADED_READER_WORKBOOKS, PHONICS_READER_WORKBOOKS };
+export { GRADED_READER_WORKBOOKS, GUIDE_READER_WORKBOOKS, PHONICS_READER_WORKBOOKS };
 
 export const ALL_READER_WORKBOOKS: readonly ReaderWorkbookMeta[] = [
   ...READER_WORKBOOKS,
   ...GRADED_READER_WORKBOOKS,
   ...PHONICS_READER_WORKBOOKS,
+  ...GUIDE_READER_WORKBOOKS,
 ];
 
 export function getReaderWorkbook(id: string | null | undefined): ReaderWorkbookMeta | null {
