@@ -53,4 +53,14 @@ describe('Learning Games — challenge upgrade & iridescent sync', () => {
     expect(page).toContain('submitGameScore');
     expect(page).toContain('Only full runs post to the leaderboard');
   });
+
+  it('keeps the Developer’s Pick .cmc-card readable in light mode (no data-keep-dark forcing white ink on milk glass)', () => {
+    const devPickSection = page.match(/<section[^>]*aria-labelledby="devpicks-title"[^>]*>/)?.[0] ?? '';
+    expect(devPickSection).not.toBe('');
+    expect(devPickSection).not.toContain('data-keep-dark');
+    const glassCss = readFileSync(resolve(process.cwd(), 'src/glass.css'), 'utf8');
+    expect(glassCss).toContain('html.light .text-amber-200');
+    expect(glassCss).toContain('html.light .border-amber-200\\/30');
+    expect(glassCss).toContain('html.light .text-fuchsia-200\\/90');
+  });
 });

@@ -108,11 +108,21 @@ html.light .text-teal-100,
 html.light .text-teal-200 { color: #255fb0; }
 html.light .text-emerald-100 { color: #047857; }
 html.light .text-amber-100,
+html.light .text-amber-200,
 html.light .text-amber-200\/90 { color: #a04e0c; }
+html.light .border-amber-200\/30,
+html.light .border-amber-200\/25 { border-color: rgba(180, 83, 9, 0.34); }
+html.light .bg-amber-200\/10,
+html.light .bg-amber-200\/\[0\.07\] { background-color: rgba(180, 83, 9, 0.11); }
+html.light .text-fuchsia-200,
+html.light .text-fuchsia-200\/90 { color: #a21caf; }
 html.light [data-keep-dark] .text-teal-100 { color: var(--color-teal-100); }
 html.light [data-keep-dark] .text-teal-200 { color: var(--color-teal-200); }
 html.light [data-keep-dark] .text-emerald-100 { color: var(--color-emerald-100); }
 html.light [data-keep-dark] .text-amber-100 { color: var(--color-amber-100); }
+html.light [data-keep-dark] .text-amber-200 { color: #fde68a; }
+html.light [data-keep-dark] .text-fuchsia-200,
+html.light [data-keep-dark] .text-fuchsia-200\/90 { color: #f5d0fe; }
 html.light [data-keep-dark] .text-teal-300 { color: var(--color-teal-300); }
 html.light [data-keep-dark] .text-sky-300 { color: var(--color-sky-300); }
 
