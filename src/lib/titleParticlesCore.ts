@@ -277,6 +277,7 @@ export function mountDots(
     // Hue of the held-button swirl drifts slowly, back and forth.
     const zig = (1 + Math.sin((now / 12000) * Math.PI * 2)) / 24; // cyan ↔ sky, the site's own blues
     const pressed = hslToRgb(palette.pressHue + zig, palette.pressSat, palette.pressLight);
+    const invSpan = 1 / Math.max(1, params.flying * 1.5);
     for (let i = 0; i < count; i++) {
       const state = look[i] as Look;
       const j = i * 3;
@@ -287,10 +288,21 @@ export function mountDots(
         sizes[i] = dotSize * LOOK_SIZE[state];
         continue;
       }
+      if (state === Look.Pushed || state === Look.Flying) {
+        // Smoothly taper size and tint with distance from home so dispersing
+        // dots fan out cleanly without an abrupt size cliff or blotchy clumps.
+        const ix = i * 2;
+        const t = Math.min(1, Math.hypot(pos[ix] - home[ix], pos[ix + 1] - home[ix + 1]) * invSpan);
+        const a = palette.pushed;
+        const b = palette.flying;
+        colors[j] = a[0] + (b[0] - a[0]) * t;
+        colors[j + 1] = a[1] + (b[1] - a[1]) * t;
+        colors[j + 2] = a[2] + (b[2] - a[2]) * t;
+        sizes[i] = dotSize * (LOOK_SIZE[Look.Pushed] + (LOOK_SIZE[Look.Flying] - LOOK_SIZE[Look.Pushed]) * t);
+        continue;
+      }
       const c = state === Look.Rest ? palette.rest
         : state === Look.Spark ? palette.spark
-        : state === Look.Pushed ? palette.pushed
-        : state === Look.Flying ? palette.flying
         : state === Look.Pressed ? pressed
         : palette.far;
       colors[j] = c[0];
@@ -318,7 +330,9 @@ export function mountDots(
     builtAt.x = sampled.x;
     builtAt.y = sampled.y;
     params = paramsForFont(sampled.fontPx);
-    dotSize = sampled.gap * 0.85; // dots nearly touch: a dotted line that still reads as a letter
+    // Keep dot diameter cleanly below the inter-dot clearance (0.88× gap)
+    // so dots read as crisp, distinct pinpoints with zero overlapping blotches.
+    dotSize = sampled.gap * 0.72;
     if (n !== count) {
       count = n;
       pos = new Float32Array(n * 2);

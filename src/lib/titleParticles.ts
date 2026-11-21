@@ -26,9 +26,11 @@ const VERTEX = /* glsl */ `
   attribute float size;
   uniform float uPixelRatio;
   varying vec3 vColor;
+  varying float vPointSize;
   void main() {
     vColor = color;
     gl_PointSize = size * uPixelRatio;
+    vPointSize = gl_PointSize;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position.xy, 0.0, 1.0);
   }
 `;
@@ -36,9 +38,13 @@ const VERTEX = /* glsl */ `
 const FRAGMENT = /* glsl */ `
   uniform float uOpacity;
   varying vec3 vColor;
+  varying float vPointSize;
   void main() {
     float d = length(gl_PointCoord - 0.5);
-    float a = smoothstep(0.5, 0.3, d) * uOpacity;
+    // Crisp ~1 device-pixel anti-aliased edge instead of a wide soft halo,
+    // so dispersing dots stay distinct pinpoints instead of muddying into blotches.
+    float aa = clamp(1.1 / max(vPointSize, 1.0), 0.05, 0.22);
+    float a = smoothstep(0.5, 0.5 - aa, d) * uOpacity;
     if (a < 0.01) discard;
     gl_FragColor = vec4(vColor, a);
   }
