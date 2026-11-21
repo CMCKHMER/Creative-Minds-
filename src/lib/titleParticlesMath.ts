@@ -62,10 +62,9 @@ export function letterPoints(
       for (let row = 0, y = gap / 2; y < height; row++, y += rowStep) {
         for (let x = row % 2 ? gap : gap / 2; x < width; x += gap) {
           if (!inside(Math.floor(x), Math.floor(y))) continue;
-          // A fill point may sit a little nearer to the outline than the
-          // outline's own dots sit to each other; nearer still would only
-          // thicken the outline.
-          grid.offer(x, y, gap * 0.8);
+          // Keep interior fill points clearly separated from the outline dots
+          // so neighbouring dots do not overlap into blotchy thick strokes.
+          grid.offer(x, y, gap * 0.88);
         }
       }
     }
@@ -175,8 +174,10 @@ export function paramsForFont(fontPx: number): ParticleParams {
 export const Look = { Rest: 0, Spark: 1, Pushed: 2, Flying: 3, Pressed: 4, PressedFar: 5 } as const;
 export type Look = (typeof Look)[keyof typeof Look];
 
-/** Size of a dot relative to the base size, per look. */
-export const LOOK_SIZE: readonly number[] = [1, 1 / 1.2, 1.3, 1 / 1.8, 1, 1];
+/** Size of a dot relative to the base size, per look.
+ *  Pushed dots stay sleek (<= 1) instead of bloating past the inter-dot gap
+ *  and fusing into blotchy clumps around the cursor clearing. */
+export const LOOK_SIZE: readonly number[] = [1, 0.8, 0.92, 0.72, 0.94, 0.76];
 
 export interface PointerState {
   /** Cursor position; `active` false = no cursor over the hero. */
@@ -221,6 +222,7 @@ export function stepParticles(
   const area = p.ease * p.radius * p.radius * p.radius;
   const reach2 = (p.radius * 6) * (p.radius * 6);       // beyond this the force is nothing
   const minD2 = (p.radius * 0.15) * (p.radius * 0.15);  // no division by zero under the cursor
+  const flying2 = p.flying * p.flying;
   let maxOff2 = 0;
   let maxMove2 = 0;
 
@@ -255,7 +257,11 @@ export function stepParticles(
           py -= (dy / d) * p.sparkStep * gain;
           if (d2 < p.radius * p.radius * 4) state = Look.Spark;
         } else {
-          const f = (area / Math.max(d2, minD2)) * gain;
+          // Deterministic per-dot radial spread (0.78–1.28) feathers the rim
+          // across ~0.92r–1.09r so dispersed dots fan out cleanly instead of
+          // piling onto one dense, blotchy circle.
+          const spread = 0.78 + ((i * 37) % 29) * (0.5 / 28);
+          const f = ((area * spread) / Math.max(d2, minD2)) * gain;
           px -= (dx / d) * f;
           py -= (dy / d) * f;
           if (d2 < p.radius * p.radius * 4) state = Look.Pushed;
@@ -273,8 +279,7 @@ export function stepParticles(
     const oy = py - hy;
     const off2 = ox * ox + oy * oy;
     if (off2 > maxOff2) maxOff2 = off2;
-    // The two axes are tested separately (a square, not a circle) — cheap.
-    if (state !== Look.Pressed && state !== Look.PressedFar && (Math.abs(ox) > p.flying || Math.abs(oy) > p.flying)) state = Look.Flying;
+    if (state !== Look.Pressed && state !== Look.PressedFar && off2 > flying2) state = Look.Flying;
     look[i] = state;
   }
   if (stats) stats.moved = Math.sqrt(maxMove2);

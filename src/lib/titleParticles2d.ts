@@ -82,19 +82,12 @@ export function canvasPainter(canvas: HTMLCanvasElement): DotPainter {
           const y = pos[i * 2 + 1] * ratio;
           if (x < -8 || y < -8 || x > w + 8 || y > h + 8) continue;
           const d = sizes[i] * ratio; // the dot's diameter in device pixels
-          if (d < 3) {
-            // A dot this small is a block of whole pixels, as a WebGL point is:
-            // an anti-aliased circle of one or two pixels would be a grey smudge
-            // that changes with every fraction of a pixel the dot moves.
-            const side = d < 1.8 ? 1 : 2;
-            ctx.rect(Math.round(x - side / 2), Math.round(y - side / 2), side, side);
-          } else {
-            // The WebGL version fades each point out between 60 % and 100 % of
-            // its radius; a hard-edged circle at 82 % covers the same ink.
-            const r = d * 0.41;
-            ctx.moveTo(x + r, y);
-            ctx.arc(x, y, r, 0, TAU);
-          }
+          // Always draw smooth sub-pixel anti-aliased circles rather than
+          // snapping small dots to integer-pixel squares (which clumped into
+          // blocky blotches while dispersing).
+          const r = Math.max(0.65, d * 0.46);
+          ctx.moveTo(x + r, y);
+          ctx.arc(x, y, r, 0, TAU);
         }
         ctx.fill();
         from = to;
