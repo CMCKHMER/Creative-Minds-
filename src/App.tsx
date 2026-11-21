@@ -28,6 +28,7 @@ import { TickerBanner } from './components/TickerBanner';
 import { PendingTeacherGate } from './components/PendingTeacherGate';
 import { isAwaitingTeacherVerification } from './lib/gameAccess';
 import { SectionDirectory, PageBar, MoreInGroup } from './components/SectionDirectory';
+import { AiFutureShowcase } from './components/AiFutureShowcase';
 import { DIRECTORY_HASH, findPage, hashKey, isInPageAnchor, resolveRoute } from './lib/sitePages';
 import { postIdFromSearch } from './lib/announcementMedia';
 
@@ -604,6 +605,9 @@ export function App() {
               Announcements card shows the newest posts, so news is still
               what a visitor sees first (owner request). */}
           <SectionDirectory />
+
+          {/* Futuristic floating-3D holographic AI Roadmap showcase */}
+          <AiFutureShowcase />
         </main>
       )}
 
