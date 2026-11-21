@@ -1,9 +1,10 @@
 import React from 'react';
-import { 
+import {
   Sparkles, CheckCircle2, GraduationCap, ClipboardCheck,
   ArrowRight,
   Zap, Headphones, Cpu, Gamepad2, BrainCircuit
 } from 'lucide-react';
+import { AiFutureShowcase } from './AiFutureShowcase';
 
 interface FeaturesBentoProps {
   onExploreMockTest: () => void;
@@ -270,6 +271,9 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
           </div>
 
         </div>
+
+        {/* Upcoming AI-Integrated Holographic Horizon */}
+        <AiFutureShowcase variant="embedded" />
 
       </div>
     </section>

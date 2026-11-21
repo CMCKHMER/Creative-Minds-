@@ -1468,3 +1468,680 @@ html.light .cmc-qdrawer-footer {
   .cmc-qdrawer-close,
   .cmc-qdrawer-arrow { transition: none; }
 }
+
+/* ============================================================================
+   FUTURISTIC FLOATING-3D HOLOGRAPHIC AI SHOWCASE ("Education Reimagined")
+   True CSS 3D perspective tilt + levitating wireframe holograms + dark & light
+   glass parity.
+   ============================================================================ */
+.cmc-ai-showcase {
+  position: relative;
+  overflow: hidden;
+  padding: 4.5rem 0 5.5rem;
+  border-top: 1px solid rgba(139, 92, 246, 0.22);
+  background:
+    radial-gradient(62% 55% at 50% 0%, rgba(124, 58, 237, 0.16), transparent 72%),
+    radial-gradient(48% 50% at 15% 85%, rgba(56, 189, 248, 0.11), transparent 70%),
+    radial-gradient(48% 50% at 88% 75%, rgba(168, 85, 247, 0.12), transparent 70%);
+}
+.cmc-ai-showcase--embedded {
+  padding: 3.25rem 0 0;
+  margin-top: 3.5rem;
+  border-radius: 1.75rem;
+  border: 1px solid rgba(139, 92, 246, 0.24);
+  background:
+    radial-gradient(65% 58% at 50% 0%, rgba(124, 58, 237, 0.2), transparent 72%),
+    rgba(6, 10, 24, 0.72);
+}
+html.light .cmc-ai-showcase {
+  border-top: 1px solid rgba(79, 70, 229, 0.14);
+  background:
+    radial-gradient(64% 52% at 50% 0%, rgba(124, 58, 237, 0.08), transparent 70%),
+    radial-gradient(45% 48% at 12% 88%, rgba(14, 165, 233, 0.07), transparent 68%),
+    radial-gradient(45% 48% at 88% 82%, rgba(99, 102, 241, 0.07), transparent 68%);
+}
+html.light .cmc-ai-showcase--embedded {
+  border: 1px solid rgba(79, 70, 229, 0.16);
+  background: linear-gradient(180deg, rgba(244, 247, 253, 0.92), rgba(232, 238, 249, 0.88));
+}
+
+.cmc-ai-aurora {
+  position: absolute;
+  inset: -120px -10% auto;
+  height: 360px;
+  pointer-events: none;
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    rgba(139, 92, 246, 0.16),
+    rgba(56, 189, 248, 0.14),
+    rgba(99, 102, 241, 0.16),
+    rgba(139, 92, 246, 0.16)
+  );
+  filter: blur(76px);
+  opacity: 0.65;
+}
+html.light .cmc-ai-aurora { opacity: 0.28; }
+
+.cmc-ai-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 82rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+.cmc-ai-showcase--embedded .cmc-ai-inner {
+  padding: 0 1.5rem 2.25rem;
+}
+
+.cmc-ai-header {
+  max-width: 46rem;
+  margin: 0 auto 2.75rem;
+  text-align: center;
+}
+
+.cmc-ai-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.38rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ddd6fe;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.24), rgba(14, 165, 233, 0.16));
+  border: 1px solid rgba(167, 139, 250, 0.42);
+  box-shadow: 0 0 24px -6px rgba(139, 92, 246, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+html.light .cmc-ai-eyebrow {
+  color: #4c1d95;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(233, 225, 255, 0.88));
+  border-color: rgba(109, 40, 217, 0.26);
+  box-shadow: 0 6px 18px -10px rgba(91, 33, 182, 0.35), inset 0 1px 0 #ffffff;
+}
+
+.cmc-ai-beacon {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.28), 0 0 12px #38bdf8;
+  animation: cmc-holo-pulse-dot 2.2s ease-in-out infinite;
+}
+
+.cmc-ai-title {
+  margin-top: 1.05rem;
+  font-size: clamp(1.95rem, 3.6vw, 2.95rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+  color: var(--g-ink);
+}
+.cmc-ai-title-glow {
+  background: linear-gradient(100deg, #c4b5fd 0%, #818cf8 45%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 22px rgba(139, 92, 246, 0.4));
+}
+html.light .cmc-ai-title-glow {
+  background: linear-gradient(100deg, #6d28d9 0%, #3730a3 52%, #0284c7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: none;
+}
+
+.cmc-ai-motto {
+  margin-top: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: #a5b4fc;
+}
+html.light .cmc-ai-motto { color: #4338ca; }
+.cmc-ai-dot { color: #38bdf8; }
+html.light .cmc-ai-dot { color: #0284c7; }
+
+.cmc-ai-subtitle {
+  margin: 0.9rem auto 0;
+  max-width: 38rem;
+  font-size: 0.95rem;
+  line-height: 1.62;
+  color: var(--g-body);
+}
+
+.cmc-ai-pillars {
+  margin-top: 1.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.cmc-ai-pillar-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.72rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #cbd5f5;
+  background: rgba(15, 23, 48, 0.72);
+  border: 1px solid rgba(148, 163, 255, 0.22);
+}
+html.light .cmc-ai-pillar-pill {
+  color: #312e81;
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(79, 70, 229, 0.18);
+  box-shadow: 0 2px 8px -4px rgba(30, 41, 59, 0.16);
+}
+
+/* ── 4-card Floating 3D Perspective Grid ── */
+.cmc-ai-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.4rem;
+  perspective: 1400px;
+}
+@media (min-width: 680px) {
+  .cmc-ai-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1220px) {
+  .cmc-ai-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+.cmc-holo-card {
+  --holo-rx: 0deg;
+  --holo-ry: 0deg;
+  --holo-gx: 50%;
+  --holo-gy: 35%;
+  --holo-accent: #a855f7;
+  --holo-accent-2: #38bdf8;
+  --holo-glow: rgba(168, 85, 247, 0.32);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--holo-rx)) rotateY(var(--holo-ry)) translateZ(0);
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    box-shadow 0.32s ease;
+  background: linear-gradient(168deg, rgba(13, 18, 40, 0.94) 0%, rgba(7, 10, 24, 0.96) 100%);
+  border: 1px solid rgba(167, 139, 250, 0.26);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 20px 44px -22px rgba(2, 6, 23, 0.92),
+    0 0 36px -18px var(--holo-glow);
+}
+.cmc-holo-card:hover {
+  border-color: rgba(196, 181, 253, 0.56);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 30px 58px -22px rgba(2, 6, 23, 0.96),
+    0 0 46px -10px var(--holo-glow);
+}
+
+/* Tone tokens */
+.cmc-holo-card[data-tone='violet'] {
+  --holo-accent: #c084fc;
+  --holo-accent-2: #38bdf8;
+  --holo-glow: rgba(168, 85, 247, 0.42);
+}
+.cmc-holo-card[data-tone='cyan'] {
+  --holo-accent: #38bdf8;
+  --holo-accent-2: #a855f7;
+  --holo-glow: rgba(56, 189, 248, 0.38);
+}
+.cmc-holo-card[data-tone='indigo'] {
+  --holo-accent: #818cf8;
+  --holo-accent-2: #22d3ee;
+  --holo-glow: rgba(99, 102, 241, 0.42);
+}
+.cmc-holo-card[data-tone='teal'] {
+  --holo-accent: #2dd4bf;
+  --holo-accent-2: #a78bfa;
+  --holo-glow: rgba(45, 212, 191, 0.36);
+}
+
+/* Light-theme sculpted milk-glass card frame */
+html.light .cmc-holo-card {
+  background: linear-gradient(168deg, #f7f9fd 0%, #e7edf8 100%);
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  box-shadow:
+    inset 0 1.5px 0 #ffffff,
+    0 14px 32px -18px rgba(30, 41, 59, 0.24),
+    0 4px 10px -6px rgba(79, 70, 229, 0.14);
+}
+html.light .cmc-holo-card:hover {
+  border-color: rgba(99, 102, 241, 0.42);
+  box-shadow:
+    inset 0 1.5px 0 #ffffff,
+    0 24px 44px -18px rgba(49, 46, 129, 0.28),
+    0 0 30px -12px rgba(124, 58, 237, 0.26);
+}
+
+/* Cursor-tracking holographic specular glare */
+.cmc-holo-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  background: radial-gradient(
+    320px circle at var(--holo-gx) var(--holo-gy),
+    rgba(255, 255, 255, 0.16),
+    rgba(167, 139, 250, 0.08) 38%,
+    transparent 70%
+  );
+}
+.cmc-holo-card:hover .cmc-holo-glare { opacity: 1; }
+html.light .cmc-holo-glare {
+  background: radial-gradient(
+    300px circle at var(--holo-gx) var(--holo-gy),
+    rgba(255, 255, 255, 0.48),
+    rgba(129, 140, 248, 0.1) 42%,
+    transparent 70%
+  );
+}
+
+/* Iridescent top laser edge */
+.cmc-holo-rim {
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--holo-accent), var(--holo-accent-2), transparent);
+  opacity: 0.85;
+}
+
+/* ── Floating 3D Hologram Projection Chamber (always deep cosmic dark) ── */
+.cmc-holo-stage {
+  position: relative;
+  height: 13.75rem;
+  margin: 0.7rem 0.7rem 0;
+  border-radius: 1.1rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  background:
+    radial-gradient(85% 75% at 50% 48%, rgba(76, 29, 149, 0.42) 0%, rgba(6, 10, 26, 0.96) 72%, #03050f 100%);
+  border: 1px solid rgba(167, 139, 250, 0.24);
+  box-shadow:
+    inset 0 0 36px rgba(56, 189, 248, 0.1),
+    inset 0 -18px 34px rgba(2, 4, 14, 0.85);
+}
+html.light .cmc-holo-stage {
+  border: 1px solid rgba(67, 56, 202, 0.28);
+  box-shadow:
+    inset 0 0 30px rgba(56, 189, 248, 0.14),
+    0 8px 20px -12px rgba(30, 27, 75, 0.48);
+}
+
+/* Perspective holographic scanline grid on the chamber floor */
+.cmc-holo-grid-floor {
+  position: absolute;
+  left: -15%;
+  right: -15%;
+  bottom: -24px;
+  height: 82px;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(129, 140, 248, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(129, 140, 248, 0.22) 1px, transparent 1px);
+  background-size: 24px 18px;
+  transform: perspective(180px) rotateX(68deg);
+  mask-image: radial-gradient(ellipse 70% 85% at 50% 60%, #000 35%, transparent 88%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 85% at 50% 60%, #000 35%, transparent 88%);
+  opacity: 0.65;
+}
+
+/* Elliptical glowing holographic emitter ring beneath the floating object */
+.cmc-holo-orbit-ring {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  width: 72%;
+  height: 26px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  border: 1px solid var(--holo-accent);
+  box-shadow:
+    0 0 18px var(--holo-glow),
+    inset 0 0 14px var(--holo-glow);
+  opacity: 0.46;
+  pointer-events: none;
+  animation: cmc-holo-ring-breathe 4.4s ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+}
+
+.cmc-holo-emitter-glow {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  width: 68%;
+  height: 44px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(ellipse at center, var(--holo-glow), transparent 72%);
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+/* Top HUD status pills inside optical chamber */
+.cmc-holo-hud {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  right: 0.65rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+.cmc-holo-phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #e2e8f0;
+  background: rgba(5, 10, 26, 0.78);
+  border: 1px solid rgba(167, 139, 250, 0.36);
+  backdrop-filter: blur(8px);
+}
+.cmc-holo-pulse {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: var(--holo-accent-2);
+  box-shadow: 0 0 8px var(--holo-accent-2);
+  animation: cmc-holo-pulse-dot 2s ease-in-out infinite;
+}
+.cmc-holo-soon {
+  padding: 0.22rem 0.52rem;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #f5f3ff;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.8), rgba(14, 165, 233, 0.72));
+  border: 1px solid rgba(221, 214, 254, 0.45);
+  box-shadow: 0 0 14px -2px var(--holo-glow);
+}
+
+/* Levitating 3D Hologram Wrapper + Screen-Blended Wireframe Artwork */
+.cmc-holo-float-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.55rem 0.4rem 0.7rem;
+  transform: translateZ(34px);
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: cmc-holo-levitate 5.4s ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+  will-change: transform;
+}
+.cmc-holo-card:hover .cmc-holo-float-wrap {
+  transform: translateZ(56px) scale(1.06);
+}
+
+.cmc-holo-art {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 12px 22px var(--holo-glow)) contrast(1.08) saturate(1.12);
+  mask-image: radial-gradient(ellipse 84% 82% at 50% 50%, #000 62%, transparent 98%);
+  -webkit-mask-image: radial-gradient(ellipse 84% 82% at 50% 50%, #000 62%, transparent 98%);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── Card Content Area ── */
+.cmc-holo-body {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.15rem 1.2rem 1.2rem;
+}
+
+.cmc-holo-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.cmc-holo-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 0.6rem;
+  color: var(--holo-accent);
+  background: rgba(139, 92, 246, 0.14);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+html.light .cmc-holo-icon {
+  color: #4f46e5;
+  background: linear-gradient(155deg, #ffffff, #e8ecff);
+  border-color: rgba(79, 70, 229, 0.22);
+  box-shadow: inset 0 1px 0 #ffffff, 0 3px 8px -4px rgba(79, 70, 229, 0.26);
+}
+.cmc-holo-pillar {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--holo-accent);
+}
+html.light .cmc-holo-pillar { color: #4338ca; }
+
+.cmc-holo-title {
+  margin-top: 0.72rem;
+  font-size: 1.08rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: #f8fafc;
+}
+html.light .cmc-holo-title { color: #0f172a; }
+
+.cmc-holo-summary {
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  line-height: 1.56;
+  color: #b8c4e0;
+}
+html.light .cmc-holo-summary { color: #334155; }
+
+.cmc-holo-tags {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+}
+.cmc-holo-tag {
+  padding: 0.22rem 0.55rem;
+  border-radius: 0.45rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: #dbeafe;
+  background: rgba(30, 41, 78, 0.65);
+  border: 1px solid rgba(148, 163, 255, 0.2);
+}
+html.light .cmc-holo-tag {
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(79, 70, 229, 0.16);
+}
+
+/* Expandable AI Preview Blueprint Drawer */
+.cmc-holo-blueprint {
+  margin-top: 0.9rem;
+  padding: 0.75rem;
+  border-radius: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: rgba(5, 10, 26, 0.76);
+  border: 1px solid rgba(139, 92, 246, 0.32);
+}
+html.light .cmc-holo-blueprint {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(99, 102, 241, 0.24);
+}
+.cmc-holo-blueprint-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+.cmc-holo-bp-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.cmc-holo-blueprint-row--ai .cmc-holo-bp-label { color: #38bdf8; }
+html.light .cmc-holo-bp-label { color: #64748b; }
+html.light .cmc-holo-blueprint-row--ai .cmc-holo-bp-label { color: #4f46e5; }
+.cmc-holo-bp-text {
+  font-size: 0.75rem;
+  line-height: 1.48;
+  color: #e2e8f0;
+}
+html.light .cmc-holo-bp-text { color: #1e293b; }
+
+/* Card Footer Action Row */
+.cmc-holo-actions {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(148, 163, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.cmc-holo-tags + .cmc-holo-actions,
+.cmc-holo-blueprint + .cmc-holo-actions {
+  margin-top: 1rem;
+}
+html.light .cmc-holo-actions { border-top-color: rgba(15, 23, 42, 0.1); }
+
+.cmc-holo-preview-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.38rem 0.7rem;
+  border-radius: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #e9d5ff;
+  background: rgba(124, 58, 237, 0.18);
+  border: 1px solid rgba(192, 132, 252, 0.34);
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.cmc-holo-preview-btn:hover {
+  background: rgba(124, 58, 237, 0.32);
+  border-color: rgba(216, 180, 254, 0.58);
+  transform: translateY(-1px);
+}
+html.light .cmc-holo-preview-btn {
+  color: #4c1d95;
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(109, 40, 217, 0.24);
+}
+html.light .cmc-holo-preview-btn:hover {
+  background: #ede9fe;
+  border-color: rgba(109, 40, 217, 0.44);
+}
+
+.cmc-holo-live-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #7dd3fc;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.cmc-holo-live-link:hover {
+  color: #e0f2fe;
+  transform: translateX(2px);
+}
+html.light .cmc-holo-live-link { color: #2563eb; }
+html.light .cmc-holo-live-link:hover { color: #1d4ed8; }
+
+@keyframes cmc-holo-levitate {
+  0%, 100% {
+    transform: translateZ(34px) translateY(0px) rotate(-0.6deg);
+  }
+  50% {
+    transform: translateZ(46px) translateY(-10px) rotate(0.7deg);
+  }
+}
+
+@keyframes cmc-holo-ring-breathe {
+  0%, 100% {
+    opacity: 0.38;
+    transform: translateX(-50%) scaleX(0.95);
+  }
+  50% {
+    opacity: 0.72;
+    transform: translateX(-50%) scaleX(1.06);
+  }
+}
+
+@keyframes cmc-holo-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.48; transform: scale(0.82); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmc-holo-float-wrap,
+  .cmc-holo-orbit-ring,
+  .cmc-holo-pulse,
+  .cmc-ai-beacon {
+    animation: none;
+  }
+  .cmc-holo-card,
+  .cmc-holo-float-wrap {
+    transition: none;
+    transform: none;
+  }
+}
+
