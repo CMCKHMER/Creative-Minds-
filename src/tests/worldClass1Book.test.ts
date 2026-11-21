@@ -242,9 +242,12 @@ describe("World Class 1 Teacher's Book — assembly, GEP link & navigation sync"
     expect(hub).toContain("id: 'gep'");
     expect(hub).toContain("status: 'available'");
     expect(hub).toContain('./gep/world-class-1/index.html');
-    expect(hub).toContain('./gep/world-class-1/unit.html');
-    expect(hub).toContain('./gep/world-class-1/unit5.html');
-    expect(hub).toContain('./gep/world-class-1/unit9.html');
+    // Level 9 card holds the book as ONE entry — the unit pages are reached from inside it.
+    expect(hub).toContain("name: 'GEP Level 9'");
+    expect(hub).toContain("level: 'General English Program · Level 9 · World Class 1'");
+    expect(hub).not.toContain('./gep/world-class-1/unit.html');
+    expect(hub).not.toContain('./gep/world-class-1/unit5.html');
+    expect(hub).not.toContain('./gep/world-class-1/unit9.html');
 
     for (const f of ['index.html', 'main.html', 'teacher-gate.js', 'wc1-theme.css', 'wc1-engine.js']) {
       expect(existsSync(join(BOOK_DIR, f)), `${f} exists`).toBe(true);
