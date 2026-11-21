@@ -596,17 +596,27 @@ html.light .cmc-hero-dots a[aria-current='true'] { background: transparent; }
     margin: 4px 8px 0;
     border-radius: 22px;
     min-height: 0;
-    padding: 210px 0 44px;
+    padding: 164px 0 40px;
   }
-  .cmc-hero-art-img { inset: -2% -2% auto -2%; height: 330px; background-position: 82% 30%; background-size: auto 150%; }
+  .cmc-hero-art-img { inset: -2% -2% auto -2%; height: 270px; background-position: 82% 30%; background-size: auto 150%; }
   .cmc-hero-pane {
-    inset: 172px 0 0 0;
+    inset: 132px 0 0 0;
     width: auto;
     border-right: 0;
     border-top: 1px solid var(--g-line-2);
     border-radius: 22px 22px 0 0;
   }
   .cmc-hero-disc { display: none; }
+}
+@media (max-width: 480px) {
+  .cmc-hero-actions .cmc-btn-primary,
+  .cmc-hero-actions .cmc-btn-ghost,
+  html.light .cmc-hero-actions .cmc-btn-ghost {
+    flex: 1 1 100%;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

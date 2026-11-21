@@ -65,6 +65,7 @@ body.sc-rpg-active {
   inset: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   z-index: 1;
   pointer-events: none;
   opacity: 0.72;
@@ -894,4 +895,17 @@ html.light .sc-sentence-box { background: rgba(15, 23, 42, 0.05); }
   .sc-nodes-row { grid-template-columns: 1fr; }
   .sc-enemy-bar { grid-template-columns: 1fr; text-align: center; }
   .sc-enemy-avatar { margin: 0 auto; }
+  .sc-nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .sc-nav-tabs::-webkit-scrollbar { display: none; }
+  .sc-nav-tab { flex: 0 0 auto; min-height: 44px; touch-action: manipulation; }
+  .sc-word-btn, .sc-choice-btn, .sc-proto-card, .sc-node-btn { touch-action: manipulation; }
+  .sc-word-btn { min-height: 40px; }
+  .sc-term-body { padding: 14px 14px 18px; }
+  .sc-op-arena { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
 }

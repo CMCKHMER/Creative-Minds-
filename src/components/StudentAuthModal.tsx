@@ -31,13 +31,22 @@ export function StudentAuthModal({
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setError('');
-      setNotice('');
-      setMode(initialMode);
-      setAccountType(initialAccountType);
-    }
-  }, [isOpen, initialMode, initialAccountType]);
+    if (!isOpen) return;
+    setError('');
+    setNotice('');
+    setMode(initialMode);
+    setAccountType(initialAccountType);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, initialMode, initialAccountType, onClose]);
 
   if (!isOpen) return null;
 
@@ -95,9 +104,9 @@ export function StudentAuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="relative w-full max-w-md rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white transition" aria-label="Close">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-3 sm:p-4" onClick={onClose}>
+      <div role="dialog" aria-modal="true" className="relative max-h-[92dvh] overflow-y-auto overscroll-contain w-full max-w-md rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-5 sm:p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-3 right-3 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition" aria-label="Close">
           ✕
         </button>
 

@@ -35,8 +35,8 @@ export function TransferStudentModal(props: {
   ];
 
   return (
-    <div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Transfer student to another class">
-      <div className="w-full max-w-md rounded-2xl border border-cyan-300/20 bg-[#0b1724] p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/80 p-3 sm:p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Transfer student to another class">
+      <div className="max-h-[92dvh] overflow-y-auto overscroll-contain w-full max-w-md rounded-2xl border border-cyan-300/20 bg-[#0b1724] p-5 sm:p-6 shadow-2xl">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-[9px] font-bold tracking-[0.16em] text-cyan-300 uppercase">Assessment workspace</p>

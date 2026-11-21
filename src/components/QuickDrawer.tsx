@@ -20,19 +20,17 @@ export const QuickDrawer: React.FC<QuickDrawerProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Close on escape key
+  // Close on escape key & lock background scroll without clobbering overflow-x
   useEffect(() => {
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.body.style.overflow = 'auto';
-    }
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -74,7 +72,7 @@ export const QuickDrawer: React.FC<QuickDrawerProps> = ({
       />
 
       {/* Drawer Panel */}
-      <div className="relative w-full max-w-md bg-slate-900/95 border-r border-slate-800 shadow-2xl flex flex-col z-10 backdrop-blur-xl animate-in slide-in-from-left duration-300">
+      <div className="relative h-[100dvh] w-full max-w-md bg-slate-900/95 border-r border-slate-800 shadow-2xl flex flex-col z-10 backdrop-blur-xl overscroll-contain pb-[env(safe-area-inset-bottom)] animate-in slide-in-from-left duration-300">
         
         {/* Header */}
         <div className="p-5 border-b border-slate-800/80 flex items-center justify-between bg-slate-950/60">
