@@ -4,10 +4,24 @@
 <script src="assets/js/cmc-auth-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
 <title>Reason Lab · Advanced Critical Thinking Trainer</title>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('cmc-theme');
+    var isLight = saved === 'light';
+    var root = document.documentElement;
+    root.classList.toggle('light', isLight);
+    root.setAttribute('data-theme', isLight ? 'light' : 'dark');
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', isLight ? '#d3d9e3' : '#0b1220');
+  } catch (e) {}
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ============ TOKENS ============ */
 :root{
@@ -388,9 +402,11 @@ kbd{font-family:var(--f-label);font-size:11px;background:rgba(255,255,255,.08);b
 <script>CMC_GATE.guard('account', 'Sign up free to play Reason Lab.');</script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
-    <stop offset="0%" stop-color="#45d7d0"/><stop offset="60%" stop-color="#73b9ee"/><stop offset="100%" stop-color="#a99aff"/>
+    <stop offset="0%" stop-color="#ff5ed2"/><stop offset="38%" stop-color="#a78bfa"/><stop offset="74%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#5eead4"/>
   </linearGradient>
   <!-- line icons: paths from Lucide (ISC licence, lucide.dev) -->
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
   <symbol id="i-sound" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol>
   <symbol id="i-mute" viewBox="0 0 24 24"><path d="M11 4.702a.7.7 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.7.7 0 0 0 11 19.298z"/><path d="m16.5 14.5 5-5"/><path d="m16.5 9.5 5 5"/></symbol>
   <symbol id="i-printer" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></symbol>
@@ -476,6 +492,7 @@ kbd{font-family:var(--f-label);font-size:11px;background:rgba(255,255,255,.08);b
     <a class="ib cmcback" id="cmcBackBtn" href="https://cmckhmer.github.io/Creative-Minds-/" aria-label="Back to CMC home" title="Back to CMC home">← CMC</a>
     <button type="button" class="ib" id="homeBtn" title="Dashboard" aria-label="Dashboard"><svg class="ci" aria-hidden="true"><use href="#i-home"/></svg></button>
     <button type="button" class="ib" id="helpBtn" title="How it works" aria-label="How it works"><svg class="ci" aria-hidden="true"><use href="#i-help"/></svg></button>
+    <button type="button" class="ib theme-toggle" id="themeBtn" title="Switch theme" aria-label="Switch to light mode" aria-pressed="false"><svg class="ci" aria-hidden="true"><use href="#i-sun"/></svg></button>
     <button type="button" class="ib on" id="soundBtn" aria-pressed="true" title="Sound cues" aria-label="Sound cues"><svg class="ci" aria-hidden="true"><use href="#i-sound"/></svg></button>
   </div>
 </header>
@@ -484,7 +501,7 @@ kbd{font-family:var(--f-label);font-size:11px;background:rgba(255,255,255,.08);b
   <div class="main">
     <!-- HOME -->
     <section id="vHome">
-      <!-- Opening panel: what the lab is, one button to start, and a 3D-built map of an argument. -->
+      <!-- Opening panel: what the lab is, one button to start, and a 3D-built map of an argument over dual-theme AI artwork. -->
       <div class="card hero">
         <div class="hero-copy">
           <div class="chips">
@@ -499,15 +516,17 @@ kbd{font-family:var(--f-label);font-size:11px;background:rgba(255,255,255,.08);b
             <button type="button" class="btn ghost big" id="heroHow"><svg class="ci" aria-hidden="true"><use href="#i-help"/></svg> How it works</button>
           </div>
           <ul class="hero-points">
-            <li><svg class="ci" aria-hidden="true"><use href="#i-compass"/></svg> Campaign</li>
-            <li><svg class="ci" aria-hidden="true"><use href="#i-timer"/></svg> Gauntlet</li>
-            <li><svg class="ci" aria-hidden="true"><use href="#i-target"/></svg> Drill</li>
-            <li><svg class="ci" aria-hidden="true"><use href="#i-folder"/></svg> Case file</li>
+            <li><button type="button" class="hero-pill-btn" data-quick-mode="campaign"><svg class="ci" aria-hidden="true"><use href="#i-compass"/></svg> Campaign</button></li>
+            <li><button type="button" class="hero-pill-btn" data-quick-mode="gauntlet"><svg class="ci" aria-hidden="true"><use href="#i-timer"/></svg> Gauntlet</button></li>
+            <li><button type="button" class="hero-pill-btn" data-quick-mode="drill"><svg class="ci" aria-hidden="true"><use href="#i-target"/></svg> Drill</button></li>
+            <li><button type="button" class="hero-pill-btn" data-quick-mode="case"><svg class="ci" aria-hidden="true"><use href="#i-folder"/></svg> Case file</button></li>
           </ul>
         </div>
         <div class="hero-side" aria-hidden="true">
           <span class="scene-tag">3D REASONING MAP</span>
           <div class="scene-frame">
+            <img class="rl-hero-art rl-hero-art-dark" src="./images/reason-lab/hero-lab.jpg" alt="" decoding="async">
+            <img class="rl-hero-art rl-hero-art-light" src="./images/reason-lab/hero-lab-light.jpg" alt="" decoding="async">
             <div class="scene rl-scene">
               <div class="rl-horizon"></div>
               <div class="rl-floor"></div>
@@ -566,24 +585,29 @@ kbd{font-family:var(--f-label);font-size:11px;background:rgba(255,255,255,.08);b
 
     <!-- SETUP -->
     <section id="vSetup" hidden>
-      <div class="card pad">
-        <div class="eyebrow" id="setEyebrow">MISSION BRIEFING</div>
-        <h1 id="setTitle">Mode</h1>
-        <p class="lede" id="setDesc"></p>
-        <div class="stats" id="setStats" style="margin-top:22px"></div>
-        <div id="setSkills"></div>
-        <div id="setCases"></div>
-        <div class="cmc-id" id="cmcBriefId">
-          <b>THINKER IDENTITY — NAME &amp; ID</b>
-          <div class="row">
-            <input type="text" id="cmcNameIn" maxlength="24" placeholder="Your name" autocomplete="name" spellcheck="false">
-            <input type="text" id="cmcIdIn" maxlength="14" placeholder="ID / class (e.g. 7A · No. 12)" spellcheck="false">
-          </div>
-          <small>Both ride along when your session is posted to the class leaderboard. Saved on this device.</small>
+      <div class="card setup-card">
+        <div class="setup-banner">
+          <img id="setBannerImg" src="./images/reason-lab/mode-campaign.jpg" alt="" decoding="async">
+          <div class="eyebrow" id="setEyebrow">MISSION BRIEFING</div>
+          <h1 id="setTitle">Mode</h1>
+          <p class="lede" id="setDesc"></p>
         </div>
-        <div class="row">
-          <button type="button" class="btn primary big" id="startBtn"><svg class="ci" aria-hidden="true"><use href="#i-play"/></svg> Begin session</button>
-          <button type="button" class="btn ghost big" id="setBack"><svg class="ci" aria-hidden="true"><use href="#i-left"/></svg> Dashboard</button>
+        <div class="setup-inner">
+          <div class="stats" id="setStats" style="margin-top:0"></div>
+          <div id="setSkills"></div>
+          <div id="setCases"></div>
+          <div class="cmc-id" id="cmcBriefId">
+            <b>THINKER IDENTITY — NAME &amp; ID</b>
+            <div class="row">
+              <input type="text" id="cmcNameIn" maxlength="24" placeholder="Your name" autocomplete="name" spellcheck="false">
+              <input type="text" id="cmcIdIn" maxlength="14" placeholder="ID / class (e.g. 7A · No. 12)" spellcheck="false">
+            </div>
+            <small>Both ride along when your session is posted to the class leaderboard. Saved on this device.</small>
+          </div>
+          <div class="row">
+            <button type="button" class="btn primary big" id="startBtn"><svg class="ci" aria-hidden="true"><use href="#i-play"/></svg> Begin session</button>
+            <button type="button" class="btn ghost big" id="setBack"><svg class="ci" aria-hidden="true"><use href="#i-left"/></svg> Dashboard</button>
+          </div>
         </div>
       </div>
     </section>
@@ -926,7 +950,7 @@ var ITEMS=[
 
 /* ================= CASE FILES ================= */
 var CASES=[
-{id:'c1',title:'The Miracle Study App',hue:'#45d7d0',
+{id:'c1',title:'The Miracle Study App',hue:'#45d7d0',img:'./images/reason-lab/case-app.jpg',
  sub:'CASE 01 · FOUR DOCUMENTS · FIVE DECISIONS',
  docs:[
   {t:'DOCUMENT A · PRESS RELEASE',p:'LearnFast announces that its app "doubles learning speed for every user". The claim appears on the company\u2019s own website and in a paid post.'},
@@ -949,7 +973,7 @@ var CASES=[
  {sk:'de',t:3,ty:'mcq',q:'Your school must decide whether to buy licences for everyone now. Strongest recommendation?',
   o:['Buy for all — three pupils improved','Reject permanently — the company is dishonest','Run a small randomised pilot with a control group and a pre-agreed success threshold','Wait until an independent review is universally positive'],a:2,
   e:'A reversible, information-generating pilot with a threshold set in advance beats both blanket adoption and blanket rejection.'}]},
-{id:'c2',title:'The Lunch Survey',hue:'#73b9ee',
+{id:'c2',title:'The Lunch Survey',hue:'#73b9ee',img:'./images/reason-lab/case-lunch.jpg',
  sub:'CASE 02 · FOUR DOCUMENTS · FIVE DECISIONS',
  docs:[
   {t:'DOCUMENT A · RESULT',p:'"95% of students want a later lunch." Posted on the school noticeboard.'},
@@ -972,7 +996,7 @@ var CASES=[
  {sk:'de',t:3,ty:'mcq',q:'What is the strongest recommendation to the principal?',
   o:['Move lunch now — 95% is decisive','Never survey students again','Re-survey with a stratified sample across year groups, then trial the change in one year group','Let the loudest class decide'],a:2,
   e:'Fix the measurement, then test the intervention at a reversible scale. Both steps generate information the current plan lacks.'}]},
-{id:'c3',title:'The Group Project Dispute',hue:'#a99aff',
+{id:'c3',title:'The Group Project Dispute',hue:'#a99aff',img:'./images/reason-lab/case-dispute.jpg',
  sub:'CASE 03 · FOUR DOCUMENTS · FIVE DECISIONS',
  docs:[
   {t:'DOCUMENT A · COMPLAINT',p:'Three group members say Jordan "did nothing" and ask that Jordan\u2019s name be removed from the submission.'},
@@ -995,7 +1019,7 @@ var CASES=[
  {sk:'de',t:3,ty:'mcq',q:'The drafts are genuine but were never integrated. Strongest resolution?',
   o:['Penalise Jordan for not editing the file','Penalise the group for ignoring the folder','Credit the work, and fix the process so contributions have one agreed channel and a check before submission','Split the mark equally and say nothing'],a:2,
   e:'The failure is a process failure with shared responsibility. Credit the evidence, then remove the condition that caused it.'}]},
-{id:'c4',title:'The 5AM Success Claim',hue:'#f4a26a',
+{id:'c4',title:'The 5AM Success Claim',hue:'#f4a26a',img:'./images/reason-lab/case-5am.jpg',
  sub:'CASE 04 · FOUR DOCUMENTS · FIVE DECISIONS',
  docs:[
   {t:'DOCUMENT A · VIRAL THREAD',p:'"Every successful founder I know wakes at 5am. Wake at 5am and you will succeed." 1.2 million views.'},
@@ -1089,7 +1113,7 @@ var S={view:'home',mode:'campaign',skill:null,caseId:null,queue:[],idx:0,score:0
 var el={};
 function cache(){['hRank','hXp','homeBtn','helpBtn','soundBtn','vHome','vSetup','vSession','vResults','vReview',
  'homeRing','homeAcc','homeRank','homeRankDesc','homeXpBar','homeXpNow','homeXpNext','modeGrid','skillGrid','statGrid',
- 'badgeCount','badgeGrid','histList','exportBtn','printBtn','setEyebrow','setTitle','setDesc','setStats','setSkills','setCases',
+ 'badgeCount','badgeGrid','histList','exportBtn','printBtn','setBannerImg','setEyebrow','setTitle','setDesc','setStats','setSkills','setCases',
  'startBtn','setBack','sProgLab','sProgBar','sScore','sStreak','sTimeWrap','sTime','sDossier','sTags','sQ','sCtx','sAnswer',
  'sFb','submitBtn','nextBtn','hintBtn','abortBtn','rEyebrow','rRing','rAcc','rTitle','rLine','rRankUp','rStats','rBars',
  'rAgain','rReview','rHome','revList','revBack','revHome','revPrint','diffSeg','diffOut','lenSeg','lenOut','timerTog','hintTog',
@@ -1118,10 +1142,10 @@ function setCfg(k,v){P.cfg[k]=v;save();applyCfg();}
 
 /* ================= HOME ================= */
 var MODES=[
- {id:'campaign',ic:I('compass'),n:'CAMPAIGN',hue:'#45d7d0',d:'Mixed items across all eight skills. The standard diagnostic — find out which part of your reasoning is weakest.',m:'ALL SKILLS · UNTIMED OR 40s/ITEM'},
- {id:'gauntlet',ic:I('timer'),n:'GAUNTLET',hue:'#f4a26a',d:'A 90-second sprint. Correct answers add time, errors cost time, and consecutive correct answers multiply your points.',m:'90s · STREAK MULTIPLIER'},
- {id:'drill',ic:I('target'),n:'DRILL',hue:'#73b9ee',d:'One skill, repeatedly, until recognising it is automatic. Choose the track on the briefing screen.',m:'SINGLE SKILL · MASTERY'},
- {id:'case',ic:I('folder'),n:'CASE FILE',hue:'#a99aff',d:'A dossier of conflicting documents, then five linked decisions about the same evidence. The closest thing to real reasoning.',m:'4 DOCUMENTS · 5 DECISIONS'}
+ {id:'campaign',ic:I('compass'),n:'CAMPAIGN',hue:'#45d7d0',img:'./images/reason-lab/mode-campaign.jpg',badge:'DIAGNOSTIC · 8 SKILLS',d:'Mixed items across all eight skills. The standard diagnostic — find out which part of your reasoning is weakest.',m:'ALL SKILLS · UNTIMED OR 40s/ITEM'},
+ {id:'gauntlet',ic:I('timer'),n:'GAUNTLET',hue:'#f4a26a',img:'./images/reason-lab/mode-gauntlet.jpg',badge:'90s TIMED SPRINT',d:'A 90-second sprint. Correct answers add time, errors cost time, and consecutive correct answers multiply your points.',m:'90s · STREAK MULTIPLIER'},
+ {id:'drill',ic:I('target'),n:'DRILL',hue:'#73b9ee',img:'./images/reason-lab/mode-drill.jpg',badge:'FOCUSED TRACK',d:'One skill, repeatedly, until recognising it is automatic. Choose the track on the briefing screen.',m:'SINGLE SKILL · MASTERY'},
+ {id:'case',ic:I('folder'),n:'CASE FILE',hue:'#a99aff',img:'./images/reason-lab/mode-casefile.jpg',badge:'4 EVIDENCE DOSSIERS',d:'A dossier of conflicting documents, then five linked decisions about the same evidence. The closest thing to real reasoning.',m:'4 DOCUMENTS · 5 DECISIONS'}
 ];
 function renderHome(){
  var r=rankOf(P.xp),nx=nextRank(P.xp);
@@ -1138,7 +1162,9 @@ function renderHome(){
  el.modeGrid.innerHTML='';
  MODES.forEach(function(m){
   var b=document.createElement('button');b.type='button';b.className='mode';b.style.setProperty('--hue',m.hue);
-  b.innerHTML='<span class="ic">'+m.ic+'</span><span class="nm">'+m.n+'</span><p>'+esc(m.d)+'</p><div class="meta"><span>'+m.m+'</span></div>';
+  b.innerHTML='<div class="mode-art"><img src="'+m.img+'" alt="" loading="lazy" decoding="async"><span class="mode-badge">'+esc(m.badge)+'</span></div>'+
+   '<div class="mode-body"><span class="ic">'+m.ic+'</span><span class="nm">'+m.n+'</span><p>'+esc(m.d)+'</p>'+
+   '<div class="meta"><span>'+m.m+'</span><span class="go-arrow">Enter '+I('right')+'</span></div></div>';
   b.addEventListener('click',function(){Snd.init();Snd.click();openSetup(m.id);});
   el.modeGrid.appendChild(b);
  });
@@ -1146,8 +1172,14 @@ function renderHome(){
  SKILLS.forEach(function(s){
   var k=P.sk[s.id]||{n:0,w:0},pc=mastery(s.id);
   var d=document.createElement('div');d.className='sk';d.style.setProperty('--hue',s.hue);
+  d.setAttribute('role','button');d.setAttribute('tabindex','0');
+  d.setAttribute('aria-label','Drill '+s.name);
   d.innerHTML='<div class="top"><b>'+s.ic+' '+esc(s.name)+'</b><span>'+(k.n?pc+'%':'—')+'</span></div>'+
-   '<div class="bar"><i style="width:'+pc+'%"></i></div><small>'+(k.n?k.n+' ITEMS ATTEMPTED':'NOT YET ATTEMPTED')+' · '+esc(s.desc)+'</small>';
+   '<div class="bar"><i style="width:'+pc+'%"></i></div><small>'+(k.n?k.n+' ITEMS ATTEMPTED':'NOT YET ATTEMPTED')+' · '+esc(s.desc)+'</small>'+
+   '<span class="sk-cta">Drill this skill '+I('right')+'</span>';
+  var launchDrill=function(){Snd.init();Snd.click();openSetup('drill',s.id);};
+  d.addEventListener('click',launchDrill);
+  d.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();launchDrill();}});
   el.skillGrid.appendChild(d);
  });
  var best=0;P.sessions.forEach(function(s){if(s.mode==='gauntlet'&&s.score>best)best=s.score;});
@@ -1180,9 +1212,10 @@ function renderHome(){
 function st(c,v,l){return '<div class="stat '+c+'"><b>'+v+'</b><span>'+l+'</span></div>';}
 
 /* ================= SETUP ================= */
-function openSetup(mode){
+function openSetup(mode,preSkill){
  S.mode=mode;S.skill=null;S.caseId=null;
  var m=MODES.filter(function(x){return x.id===mode;})[0];
+ if(el.setBannerImg&&m.img)el.setBannerImg.src=m.img;
  el.setEyebrow.textContent='BRIEFING · '+m.n;
  el.setTitle.textContent=m.n.charAt(0)+m.n.slice(1).toLowerCase();
  el.setDesc.textContent=m.d;
@@ -1202,16 +1235,18 @@ function openSetup(mode){
    b.style.textAlign='left';b.style.cursor='pointer';b.style.width='100%';
    b.innerHTML='<div class="top"><b>'+s.ic+' '+esc(s.name)+'</b><span>'+(k.n?mastery(s.id)+'%':'NEW')+'</span></div>'+
     '<div class="bar"><i style="width:'+mastery(s.id)+'%"></i></div><small>'+esc(s.desc)+'</small>';
-   b.addEventListener('click',function(){
-    S.skill=s.id;Snd.pick();
-    $$('.sk',g).forEach(function(x){x.style.borderColor='';x.style.boxShadow='';});
-    b.style.borderColor=s.hue;b.style.boxShadow='0 0 0 2px '+s.hue+'55';
+   var pickSk=function(){
+    S.skill=s.id;
+    $$('.sk',g).forEach(function(x){x.classList.remove('selected');});
+    b.classList.add('selected');
     el.startBtn.disabled=false;
-   });
+   };
+   b.addEventListener('click',function(){Snd.pick();pickSk();});
    g.appendChild(b);
+   if(preSkill&&preSkill===s.id){pickSk();}
   });
   el.setSkills.appendChild(g);
-  el.startBtn.disabled=true;
+  el.startBtn.disabled=!S.skill;
  }else if(mode==='case'){
   var h2=document.createElement('div');h2.className='sec';h2.innerHTML='<h2>Choose a case file</h2><span class="tag">CLICK TO SELECT</span>';
   el.setCases.appendChild(h2);
@@ -1219,12 +1254,14 @@ function openSetup(mode){
   CASES.forEach(function(c){
    var done=P.sessions.some(function(s){return s.caseId===c.id;});
    var b=document.createElement('button');b.type='button';b.className='mode';b.style.setProperty('--hue',c.hue);
-   b.innerHTML='<span class="ic">'+I('folder')+'</span><span class="nm">'+esc(c.title.toUpperCase())+'</span><p>'+esc(c.sub)+'</p>'+
-    '<div class="meta"><span>'+(done?I('check')+' COMPLETED':'NOT ATTEMPTED')+'</span><span>5 DECISIONS</span></div>';
+   b.innerHTML='<div class="mode-art"><img src="'+c.img+'" alt="" loading="lazy" decoding="async"><span class="mode-badge">'+(done?'COMPLETED':'5 DECISIONS')+'</span></div>'+
+    '<div class="mode-body"><span class="ic">'+I('folder')+'</span><span class="nm">'+esc(c.title.toUpperCase())+'</span><p>'+esc(c.sub)+'</p>'+
+    '<div class="meta"><span>'+(done?I('check')+' COMPLETED':'NOT ATTEMPTED')+'</span><span class="go-arrow">Select '+I('right')+'</span></div></div>';
    b.addEventListener('click',function(){
     S.caseId=c.id;Snd.pick();
-    $$('.mode',g2).forEach(function(x){x.style.borderColor='';x.style.boxShadow='';});
-    b.style.borderColor=c.hue;b.style.boxShadow='0 0 0 2px '+c.hue+'55';
+    if(el.setBannerImg&&c.img)el.setBannerImg.src=c.img;
+    $$('.mode',g2).forEach(function(x){x.classList.remove('selected');});
+    b.classList.add('selected');
     el.startBtn.disabled=false;
    });
    g2.appendChild(b);
@@ -1329,8 +1366,11 @@ function renderItem(){
  if(it.caseId){
   var c=CASES.filter(function(x){return x.id===it.caseId;})[0];
   var d=document.createElement('div');d.className='dossier';
-  d.innerHTML='<h4>'+esc(c.title.toUpperCase())+'</h4><div class="dsub">'+esc(c.sub)+' · DECISION '+(S.idx+1)+' OF 5</div>'+
-   c.docs.map(function(doc){return '<div class="doc"><b>'+esc(doc.t)+'</b><p>'+esc(doc.p)+'</p></div>';}).join('');
+  d.innerHTML='<div class="dossier-banner">'+(c.img?'<img src="'+c.img+'" alt="" decoding="async">':'')+
+   '<h4>'+esc(c.title.toUpperCase())+'</h4><div class="dsub">'+esc(c.sub)+' · DECISION '+(S.idx+1)+' OF 5</div></div>'+
+   '<div class="dossier-docs">'+
+   c.docs.map(function(doc){return '<div class="doc"><b>'+esc(doc.t)+'</b><p>'+esc(doc.p)+'</p></div>';}).join('')+
+   '</div>';
   el.sDossier.appendChild(d);
  }
  /* answer area */
@@ -1612,8 +1652,51 @@ function heroBind(){
  var go=document.getElementById('heroStart'),how=document.getElementById('heroHow');
  if(go)go.addEventListener('click',function(){var first=document.querySelector('#modeGrid .mode');if(first)first.click();});
  if(how)how.addEventListener('click',function(){el.helpBtn.click();});
+ $$('[data-quick-mode]').forEach(function(btn){
+  btn.addEventListener('click',function(){Snd.init();Snd.click();openSetup(btn.getAttribute('data-quick-mode'));});
+ });
+ var brand=$('.brand');
+ if(brand)brand.addEventListener('click',function(){el.homeBtn.click();});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){init();heroBind();});else{init();heroBind();}
+})();
+</script>
+
+<script>
+/* ── CMC Light/Dark theme sync (matches src/components/ThemeToggle.tsx) ── */
+(function () {
+  'use strict';
+  var THEME_KEY = 'cmc-theme';
+  var btn = document.getElementById('themeBtn');
+  function applyTheme(theme) {
+    var isLight = theme === 'light';
+    var root = document.documentElement;
+    root.classList.toggle('light', isLight);
+    root.setAttribute('data-theme', isLight ? 'light' : 'dark');
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', isLight ? '#d3d9e3' : '#0b1220');
+    if (btn) {
+      btn.innerHTML = '<svg class="ci" aria-hidden="true"><use href="#i-' + (isLight ? 'moon' : 'sun') + '"/></svg>';
+      btn.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+      btn.setAttribute('title', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+      btn.setAttribute('aria-pressed', String(isLight));
+    }
+  }
+  function currentTheme() {
+    try { return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; }
+    catch (e) { return document.documentElement.classList.contains('light') ? 'light' : 'dark'; }
+  }
+  applyTheme(currentTheme());
+  if (btn) {
+    btn.addEventListener('click', function () {
+      var next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+      applyTheme(next);
+    });
+  }
+  window.addEventListener('storage', function (e) {
+    if (e.key === THEME_KEY) applyTheme(e.newValue === 'light' ? 'light' : 'dark');
+  });
 })();
 </script>
 
