@@ -40,7 +40,7 @@
 [hidden]{display:none!important}
 html{scrollbar-color:var(--ice) var(--deep);scrollbar-width:thin}
 body{
-  font-family:var(--f-sans);color:var(--text);min-height:100vh;overflow-x:hidden;
+  font-family:var(--f-sans);color:var(--text);min-height:100vh;min-height:100dvh;overflow-x:clip;
   background:
     radial-gradient(1100px 700px at 12% -10%,rgba(var(--ice-rgb),.16),transparent 60%),
     radial-gradient(900px 620px at 92% 12%,rgba(var(--helix-rgb),.13),transparent 62%),
@@ -48,12 +48,13 @@ body{
     linear-gradient(168deg,var(--deep),var(--deep2) 48%,var(--deep3));
   background-attachment:fixed;
 }
+@media (hover:none) and (pointer:coarse){body{background-attachment:scroll}}
 body.locked{overflow:hidden}
 ::-webkit-scrollbar{width:11px;height:11px}
 ::-webkit-scrollbar-track{background:var(--deep)}
 ::-webkit-scrollbar-thumb{background:linear-gradient(var(--ice),var(--info));border-radius:8px;border:2px solid var(--deep)}
 ::-webkit-scrollbar-thumb:hover{background:linear-gradient(var(--ice-soft),var(--helix))}
-button,select,input{font:inherit}
+button,select,input{font:inherit;touch-action:manipulation}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 

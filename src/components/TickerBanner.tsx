@@ -492,7 +492,7 @@ export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: Ti
     <div
       role="region"
       aria-label="Live activity ticker"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-cyan-300/15 bg-[#04111c]/95 backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-cyan-300/15 bg-[#04111c]/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
     >
       {/* Two stacked layers: a thin progress bar on top when loading, and
           the marquee below. Both inside the same fixed container so the
@@ -519,10 +519,10 @@ export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: Ti
         {/* CENTER — scrolling marquee */}
         <div className="relative flex-1 overflow-hidden">
           {/* edge fade masks */}
-          <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-12 bg-gradient-to-r from-[#04111c] to-transparent" aria-hidden="true" />
-          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[#04111c] to-transparent" aria-hidden="true" />
+          <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-8 sm:w-12 bg-gradient-to-r from-[#04111c] to-transparent" aria-hidden="true" />
+          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 sm:w-12 bg-gradient-to-l from-[#04111c] to-transparent" aria-hidden="true" />
 
-          <div className="flex w-max animate-[ticker-scroll_95s_linear_infinite] hover:[animation-play-state:paused]">
+          <div className="flex w-max animate-[ticker-scroll_95s_linear_infinite] hover:[animation-play-state:paused] active:[animation-play-state:paused] focus-within:[animation-play-state:paused]">
             {/* Render items twice so the marquee loops seamlessly. Two stable
                 key prefixes ("a" and "b" halves) instead of one doubled
                 index-keyed array: React matches each span across updates
@@ -541,7 +541,7 @@ export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: Ti
           type="button"
           onClick={() => setVisible(false)}
           aria-label="Dismiss live activity ticker"
-          className="shrink-0 px-3 text-slate-500 transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+          className="shrink-0 min-w-[44px] min-h-[40px] flex items-center justify-center text-slate-400 transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>

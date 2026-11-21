@@ -80,8 +80,9 @@ body.vq-mode-classic #vq-return-rpg-pill { display: inline-flex; }
 #vq-rpg-shell {
   position: relative;
   width: 100vw;
+  height: 100vh;
   height: 100dvh;
-  min-height: 580px;
+  min-height: 100dvh;
   overflow: hidden;
   background: var(--rpg-bg);
   color: var(--rpg-ink);
@@ -967,9 +968,19 @@ body.vq-mode-classic #vq-return-rpg-pill { display: inline-flex; }
   .rpg-quest-pill { width: min(260px, calc(100vw - 24px)); }
 }
 @media (max-width: 560px) {
+  .rpg-hud-top { top: 8px; left: 8px; right: 112px; gap: 6px; }
   .rpg-player-meta { min-width: 82px; }
   .rpg-xp-bar { width: 82px; }
-  .rpg-touch-pad { right: 10px; bottom: 72px; }
+  .rpg-dock {
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    max-width: calc(100vw - 20px);
+    scrollbar-width: none;
+  }
+  .rpg-dock::-webkit-scrollbar { display: none; }
+  .rpg-dock-btn, .rpg-dpad-btn, .rpg-chip-btn { touch-action: manipulation; }
+  .rpg-touch-pad { right: 10px; bottom: calc(74px + env(safe-area-inset-bottom)); }
+  .rpg-dialogue-wrap { padding: 10px 10px calc(12px + env(safe-area-inset-bottom)); }
+  .rpg-dialogue-card { padding: 14px 14px 18px; max-height: 90dvh; border-radius: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .rpg-portrait-box.talking img,

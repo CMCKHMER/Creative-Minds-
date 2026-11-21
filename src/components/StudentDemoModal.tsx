@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Volume2, Sparkles, Trophy, ArrowRight, RotateCcw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -21,6 +21,25 @@ export const StudentDemoModal: React.FC<StudentDemoModalProps> = ({
   const q1Correct = q1Answer === 'un-';
   const q2Correct = q2Answer === 'b';
   const demoScore = (q1Correct ? 10 : 0) + (q2Correct ? 15 : 0);
+
+  // Close on Escape and stop any active speech synthesis when closed/unmounted
+  useEffect(() => {
+    if (!isOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        try { window.speechSynthesis.cancel(); } catch { /* ignore */ }
+      }
+      setAudioPlaying(false);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -70,7 +89,7 @@ export const StudentDemoModal: React.FC<StudentDemoModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div 
         onClick={onClose}
@@ -78,7 +97,7 @@ export const StudentDemoModal: React.FC<StudentDemoModalProps> = ({
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 max-h-[92vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-3xl p-5 sm:p-8 shadow-2xl z-10 max-h-[92dvh] overflow-y-auto overscroll-contain animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">

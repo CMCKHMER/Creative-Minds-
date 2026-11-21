@@ -655,8 +655,8 @@ export function App() {
       </ErrorBoundary>
 
       {/* Floating Quick Action Dock — sits above the TickerBanner so
-          neither overlaps the other. */}
-      <div className={`cmc-dock fixed right-6 z-40 flex items-center gap-2 ${page ? 'bottom-6' : 'bottom-24'}`}>
+          neither overlaps the other, respecting iOS safe-area insets. */}
+      <div className={`cmc-dock fixed right-4 sm:right-6 z-40 flex items-center gap-2 ${page ? 'bottom-[calc(1rem+env(safe-area-inset-bottom))] sm:bottom-6' : 'bottom-[calc(4.75rem+env(safe-area-inset-bottom))] sm:bottom-24'}`}>
         <button
           onClick={() => setQuickDrawerOpen(true)}
           className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-cyan-500/40 text-cyan-300 text-xs font-semibold shadow-xl backdrop-blur-md transition hover:scale-105 active:scale-95"
