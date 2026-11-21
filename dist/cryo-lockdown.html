@@ -4,9 +4,24 @@
 <script src="assets/js/cmc-auth-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
 <title>Cryo-Vault Lockdown · DNA Bank — CMC Learning Game</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script>
+/* Pre-paint theme sync with Creative Minds (localStorage['cmc-theme']) */
+(function(){
+  try {
+    var saved = localStorage.getItem('cmc-theme');
+    var light = saved === 'light';
+    var root = document.documentElement;
+    root.classList.toggle('light', light);
+    root.setAttribute('data-theme', light ? 'light' : 'dark');
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', light ? '#d3d9e3' : '#0b1220');
+  } catch (e) {}
+})();
+</script>
 <style>
 /* ============ PALETTE / FOUNDATION ============ */
 :root{
@@ -481,6 +496,8 @@ html,body{overflow-x:clip}
   <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
   <symbol id="i-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
   <symbol id="dnalogo" viewBox="0 0 40 60">
     <path fill="none" stroke="#e7c47a" stroke-width="4" d="M12 4 Q34 18 12 30 Q-10 42 12 56"/>
     <path fill="none" stroke="#45d7d0" stroke-width="4" d="M28 4 Q6 18 28 30 Q50 42 28 56"/>
@@ -517,6 +534,7 @@ html,body{overflow-x:clip}
       <option value="normal" selected>Technician</option>
       <option value="hard">Specialist</option>
     </select>
+    <button type="button" class="ctl theme-toggle" id="themeBtn" aria-label="Switch to light theme" title="Switch to light theme"><span class="ico"><svg class="ci" aria-hidden="true"><use href="#i-sun"/></svg></span></button>
     <button type="button" class="ctl on" id="soundBtn" aria-pressed="true" title="Toggle sound" aria-label="Toggle sound"><span class="ico"><svg class="ci" aria-hidden="true"><use href="#i-sound"/></svg></span><span class="txt">Sound on</span></button>
     <button type="button" class="ctl" id="pauseBtn" title="Pause" aria-label="Pause"><span class="ico"><svg class="ci" aria-hidden="true"><use href="#i-pause"/></svg></span><span class="txt">Pause</span></button>
     <button type="button" class="ctl danger" id="restartBtn" title="Restart" aria-label="Restart"><span class="ico"><svg class="ci" aria-hidden="true"><use href="#i-restart"/></svg></span><span class="txt">Restart</span></button>
@@ -552,13 +570,16 @@ html,body{overflow-x:clip}
 <div class="overlay" id="briefing">
   <div class="sheet">
     <!-- Opening panel: the mission on the left, a vault built in CSS 3D on the right. -->
+    <div class="brief-bar">
+      <div class="chips">
+        <span class="chip gold"><svg class="ci" aria-hidden="true"><use href="#i-dna"/></svg> DNA Bank Escape</span>
+        <span class="chip">By Creative Minds Network</span>
+        <span class="chip">6 terminals · 1 code</span>
+      </div>
+      <button type="button" class="brief-theme-btn" id="briefThemeBtn" aria-label="Switch to light theme"><svg class="ci" aria-hidden="true"><use href="#i-sun"/></svg><span>Light mode</span></button>
+    </div>
     <div class="brief-top">
       <div class="brief-copy">
-        <div class="chips">
-          <span class="chip gold"><svg class="ci" aria-hidden="true"><use href="#i-dna"/></svg> DNA Bank Escape</span>
-          <span class="chip">By Creative Minds Network</span>
-          <span class="chip">6 terminals · 1 code</span>
-        </div>
         <div class="eyebrow">EMERGENCY PROTOCOL · DNA BANK FACILITY</div>
         <h1>Cryo-Vault <em>Lockdown</em></h1>
         <p class="story">A power surge has sealed the cryo-vault. Inside are frozen DNA samples from endangered species — the global DNA bank. The coolant is failing. Six security terminals must be re-authenticated before the samples thaw. Each terminal releases one digit of the release code. Authenticate all six, enter the code in slot order, and open the vault.</p>
@@ -566,6 +587,8 @@ html,body{overflow-x:clip}
       <div class="brief-side" aria-hidden="true">
         <span class="scene-tag">3D CRYO VAULT</span>
         <div class="scene-frame">
+          <img class="cv-hero-art cv-hero-art-dark" src="./images/cryo-lockdown/hero-vault.jpg" alt="" />
+          <img class="cv-hero-art cv-hero-art-light" src="./images/cryo-lockdown/hero-vault-light.jpg" alt="" />
           <div class="scene cv-scene">
             <div class="cv-horizon"></div>
             <div class="cv-floor"></div>
@@ -624,27 +647,32 @@ html,body{overflow-x:clip}
 </div>
 
 <div class="overlay" id="resultOverlay" hidden>
-  <div class="sheet">
-    <div class="eyebrow" id="resultEyebrow">MISSION REPORT</div>
-    <h1 id="resultTitle">Vault <em>Opened</em></h1>
-    <div class="rank" id="resultRank">A</div>
-    <p class="story" id="resultMsg" style="text-align:center;margin:0 auto 6px"></p>
-    <div class="result-stats" id="resultStats"></div>
-    <div class="best" id="resultBest"></div>
-
-    <div class="cmc-lb" id="cmcLb">
-      <b>CLASS LEADERBOARD — POST THIS RUN</b>
-      <div class="row">
-        <input type="text" id="cmcLbName" maxlength="24" placeholder="Your name" autocomplete="name" spellcheck="false">
-        <input type="text" id="cmcLbId" maxlength="14" placeholder="ID / class" spellcheck="false">
-        <button type="button" class="send" id="cmcLbSend"><svg class="ci" aria-hidden="true"><use href="#i-send"/></svg> Send score</button>
-      </div>
-      <span class="status" id="cmcLbStatus">Add your name, then send the run to the class leaderboard.</span>
+  <div class="sheet result-sheet">
+    <div class="result-banner">
+      <img id="resultBannerImg" src="./images/cryo-lockdown/vault-open.jpg" alt="" aria-hidden="true" />
+      <div class="eyebrow" id="resultEyebrow">MISSION REPORT</div>
+      <h1 id="resultTitle">Vault <em>Opened</em></h1>
     </div>
+    <div class="result-inner">
+      <div class="rank" id="resultRank">A</div>
+      <p class="story" id="resultMsg" style="text-align:center;margin:0 auto 6px"></p>
+      <div class="result-stats" id="resultStats"></div>
+      <div class="best" id="resultBest"></div>
 
-    <div class="sheet-actions">
-      <button type="button" class="btn primary big" id="againBtn"><svg class="ci" aria-hidden="true"><use href="#i-restart"/></svg> Run again</button>
-      <button type="button" class="btn ghost big" id="briefBtn">Change difficulty</button>
+      <div class="cmc-lb" id="cmcLb">
+        <b>CLASS LEADERBOARD — POST THIS RUN</b>
+        <div class="row">
+          <input type="text" id="cmcLbName" maxlength="24" placeholder="Your name" autocomplete="name" spellcheck="false">
+          <input type="text" id="cmcLbId" maxlength="14" placeholder="ID / class" spellcheck="false">
+          <button type="button" class="send" id="cmcLbSend"><svg class="ci" aria-hidden="true"><use href="#i-send"/></svg> Send score</button>
+        </div>
+        <span class="status" id="cmcLbStatus">Add your name, then send the run to the class leaderboard.</span>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn primary big" id="againBtn"><svg class="ci" aria-hidden="true"><use href="#i-restart"/></svg> Run again</button>
+        <button type="button" class="btn ghost big" id="briefBtn">Change difficulty</button>
+      </div>
     </div>
   </div>
 </div>
@@ -652,6 +680,7 @@ html,body{overflow-x:clip}
 <div class="modal-wrap" id="modalWrap" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
+      <img class="modal-banner-img" id="modalBannerImg" src="./images/cryo-lockdown/term-01-wordlock.jpg" alt="" aria-hidden="true" />
       <span class="id" id="modalId">TERMINAL 01</span>
       <h2 id="modalTitle">Terminal</h2>
       <button type="button" class="close" id="modalClose" aria-label="Close terminal"><svg class="ci" aria-hidden="true"><use href="#i-x"/></svg></button>
@@ -761,10 +790,13 @@ var FX={
     if(!this.ok)return;
     var c=this.ctx,i,m,p;
     c.clearRect(0,0,this.w,this.h);
+    var isLight=document.documentElement.classList.contains('light');
     for(i=0;i<this.motes.length;i++){
       m=this.motes[i]; m.y-=m.v*dt; m.sway+=m.sw*dt; m.x+=Math.sin(m.sway)*0.35;
       if(m.y<-12){this.motes[i]=this.mote(false);continue;}
-      c.beginPath(); c.arc(m.x,m.y,m.r,0,6.283); c.fillStyle='rgba(159,233,227,'+m.a+')'; c.fill();
+      c.beginPath(); c.arc(m.x,m.y,m.r,0,6.283);
+      c.fillStyle=isLight?('rgba(14,116,144,'+(m.a*0.55)+')'):('rgba(159,233,227,'+m.a+')');
+      c.fill();
     }
     for(i=this.bursts.length-1;i>=0;i--){
       p=this.bursts[i]; p.life-=dt*1.15;
@@ -786,6 +818,7 @@ var DIFF={
 /* ================= PUZZLES ================= */
 var PUZZLES=[
   {id:1,name:'WORD LOCK',tag:'VOCABULARY MATCH',kind:'match',
+   art:'./images/cryo-lockdown/term-01-wordlock.jpg',icon:'key',
    hint:'Law = a government rule. Sample = a small amount taken for information. Knowledge = what you gain from study. Crucial = extremely important.',
    items:[
      {q:'law',a:'h',m:'a rule made by the government'},
@@ -794,6 +827,7 @@ var PUZZLES=[
      {q:'crucial',a:'b',m:'extremely important'}
    ]},
   {id:2,name:'SEQUENCE RELAY',tag:'CAUSE & EFFECT ORDER',kind:'order',
+   art:'./images/cryo-lockdown/term-02-sequence.jpg',icon:'chain',
    hint:'Start with the bees. Plants depend on bees; plant-eaters depend on plants; other animals depend on plant-eaters.',
    solution:['bees','plants','eaters','food','env'],
    items:[
@@ -804,6 +838,7 @@ var PUZZLES=[
      {k:'env',t:'The whole connected environment is affected.'}
    ]},
   {id:3,name:'SAMPLE SORT',tag:'CAUSE / EFFECT CLASSIFY',kind:'sort',
+   art:'./images/cryo-lockdown/term-03-sort.jpg',icon:'scale',
    hint:'A cause makes something happen. An effect is the result. "Scientists freeze samples" is an action; "they learn how species evolved" is a result.',
    bins:[{k:'cause',t:'CAUSE',s:'WHY IT HAPPENS'},{k:'effect',t:'EFFECT',s:'WHAT HAPPENS'}],
    items:[
@@ -815,11 +850,13 @@ var PUZZLES=[
      {t:'Many plant species go extinct.',c:'effect'}
    ]},
   {id:4,name:'CLOZE SEAL',tag:'CONTEXT GAP FILL',kind:'cloze',
+   art:'./images/cryo-lockdown/term-04-cloze.jpg',icon:'puzzle',
    hint:'Read the whole sentence first. The four words are: extinct, global, samples, support — one per gap.',
    bank:['extinct','global','samples','support'],
    parts:['An endangered species is in danger of becoming ',' . Scientists are building a ',' DNA bank. They freeze DNA ',' and study them. With this knowledge they can ',' endangered animals.'],
    answers:[['extinct'],['global'],['samples','sample'],['support']]},
   {id:5,name:'TRUTH SCAN',tag:'TRUE / FALSE VERIFY',kind:'tf',
+   art:'./images/cryo-lockdown/term-05-truth.jpg',icon:'microscope',
    hint:'The passage says laws exist BUT species are still disappearing. It also says scientists save AND study the samples.',
    items:[
      {t:'Laws alone have stopped species from disappearing.',a:'F'},
@@ -829,6 +866,7 @@ var PUZZLES=[
      {t:'DNA knowledge helps animals live in ideal conditions.',a:'T'}
    ]},
   {id:6,name:'MAIN SIGNAL',tag:'READING COMPREHENSION',kind:'mcq',
+   art:'./images/cryo-lockdown/term-06-signal.jpg',icon:'shield',
    hint:'Every answer comes from the passage: the definition, the word "global", what scientists learn, and the final purpose.',
    items:[
      {q:'What is an endangered species?',a:'b',opts:[['a','A species that lives in a zoo'],['b','A plant or animal in danger of becoming extinct'],['c','A species that has already disappeared']]},
@@ -925,8 +963,18 @@ function buildTerminals(){
   S.termOrder.forEach(function(i){
     var p=PUZZLES[i], b=document.createElement('button');
     b.type='button'; b.className='term'; b.setAttribute('data-i',i);
-    b.innerHTML='<span class="tno">TERMINAL '+pad2(p.id)+'</span><span class="tname">'+p.name+'</span>'+
-      '<span class="tag">'+p.tag+'</span><span class="status"><span class="badge">LOCKED</span><span class="digit">?</span></span>';
+    b.innerHTML=
+      '<span class="term-art">'+
+        '<img src="'+p.art+'" alt="" loading="lazy">'+
+        '<span class="term-chip">T'+pad2(p.id)+'</span>'+
+      '</span>'+
+      '<span class="term-body">'+
+        '<span class="term-ic">'+I(p.icon||'lock')+'</span>'+
+        '<span class="tno">TERMINAL '+pad2(p.id)+'</span>'+
+        '<span class="tname">'+p.name+'</span>'+
+        '<span class="tag">'+p.tag+'</span>'+
+        '<span class="status"><span class="badge">LOCKED</span><span class="digit">?</span></span>'+
+      '</span>';
     b.addEventListener('click',function(){openTerminal(i);});
     el.grid.appendChild(b);
   });
@@ -1092,6 +1140,8 @@ function openTerminal(i){
   var p=PUZZLES[i];
   if(p.solved){Sound.click();return;}
   S.active=i;
+  var banner=$('#modalBannerImg');
+  if(banner&&p.art){banner.src=p.art;}
   el.modalId.textContent='TERMINAL '+pad2(p.id);
   el.modalTitle.textContent=p.name;
   el.modalBody.innerHTML=''; el.modalBody.appendChild(p.el);
@@ -1206,6 +1256,8 @@ function win(){
   try{document.dispatchEvent(new CustomEvent('cryo:run',{detail:{outcome:'won',diff:S.diff,score:score,rank:rank,time:Math.round(S.time),hints:S.hints,hintsStart:DIFF[S.diff].hints,errors:S.errors,solved:S.solved,total:S.total}}));}catch(e){}
   var prev=getBest(S.diff), isBest=!prev||score>prev.score;
   if(isBest){setBest(S.diff,{score:score,time:Math.round(S.time)});}
+  var rImg=$('#resultBannerImg');
+  if(rImg){rImg.src='./images/cryo-lockdown/vault-open.jpg';}
   $('#resultEyebrow').textContent='MISSION SUCCESS · '+DIFF[S.diff].label;
   $('#resultTitle').innerHTML='Vault <em>Opened</em>';
   $('#resultRank').textContent=rank; $('#resultRank').className='rank '+rank;
@@ -1220,6 +1272,8 @@ function lose(){
   try{document.dispatchEvent(new CustomEvent('cryo:run',{detail:{outcome:'lost',diff:S.diff,score:0,rank:'F',time:0,hints:S.hints,hintsStart:DIFF[S.diff].hints,errors:S.errors,solved:S.solved,total:S.total}}));}catch(e){}
   Sound.lose();
   log('COOLANT FAILURE · SAMPLES LOST','bad');
+  var rImg=$('#resultBannerImg');
+  if(rImg){rImg.src='./images/cryo-lockdown/vault-thaw.jpg';}
   $('#resultEyebrow').textContent='MISSION FAILED · '+DIFF[S.diff].label;
   $('#resultTitle').innerHTML='Coolant <em>Failure</em>';
   $('#resultRank').textContent='F'; $('#resultRank').className='rank C';
@@ -1307,6 +1361,35 @@ function bindEvents(){
     el.resultOv.hidden=true; el.briefing.hidden=false; S.state='briefing';
     buildDiffCards(); showBest(); syncLock();
   });
+  var themeBtn=$('#themeBtn'), briefThemeBtn=$('#briefThemeBtn');
+  function applyTheme(light, persist){
+    var root=document.documentElement;
+    root.classList.toggle('light',light);
+    root.setAttribute('data-theme',light?'light':'dark');
+    var meta=$('meta[name="theme-color"]');
+    if(meta){meta.setAttribute('content',light?'#d3d9e3':'#0b1220');}
+    if(themeBtn){
+      themeBtn.innerHTML='<span class="ico">'+I(light?'moon':'sun')+'</span>';
+      themeBtn.setAttribute('aria-label',light?'Switch to dark theme':'Switch to light theme');
+      themeBtn.title=light?'Switch to dark theme':'Switch to light theme';
+    }
+    if(briefThemeBtn){
+      briefThemeBtn.innerHTML=I(light?'moon':'sun')+'<span>'+(light?'Dark mode':'Light mode')+'</span>';
+      briefThemeBtn.setAttribute('aria-label',light?'Switch to dark theme':'Switch to light theme');
+    }
+    if(persist){try{localStorage.setItem('cmc-theme',light?'light':'dark');}catch(e){}}
+  }
+  function toggleTheme(){
+    applyTheme(!document.documentElement.classList.contains('light'),true);
+    Sound.click();
+  }
+  if(themeBtn){themeBtn.addEventListener('click',toggleTheme);}
+  if(briefThemeBtn){briefThemeBtn.addEventListener('click',toggleTheme);}
+  window.addEventListener('storage',function(e){
+    if(e.key==='cmc-theme'){applyTheme(e.newValue==='light',false);}
+  });
+  applyTheme(document.documentElement.classList.contains('light'),false);
+
   el.soundBtn.addEventListener('click',function(){
     Sound.init(); Sound.setOn(!Sound.on);
     this.classList.toggle('on',Sound.on);
