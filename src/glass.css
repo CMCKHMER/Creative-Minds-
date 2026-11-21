@@ -1191,3 +1191,280 @@ html.light .cmc-subpage footer { background-color: transparent; border-color: va
 @media (prefers-reduced-motion: reduce) {
   .cmc-board-art { animation: none; }
 }
+
+/* ============================================================
+   QUICK LINKS COMMAND CENTER — 3D sculpted buttons for dark & light themes
+   ============================================================ */
+.cmc-qdrawer-backdrop {
+  background: rgba(5, 10, 22, 0.72);
+}
+html.light .cmc-qdrawer-backdrop {
+  background: rgba(24, 34, 58, 0.34);
+}
+
+.cmc-qdrawer-panel {
+  background:
+    radial-gradient(320px 220px at 8% 0%, rgba(90, 114, 255, 0.16), transparent 70%),
+    linear-gradient(170deg, rgba(13, 21, 38, 0.96) 0%, rgba(8, 14, 28, 0.98) 100%);
+  border-right: 1px solid var(--g-line-2);
+  box-shadow: 24px 0 64px -20px rgba(0, 0, 0, 0.78);
+  color: var(--g-ink);
+}
+html.light .cmc-qdrawer-panel {
+  background:
+    radial-gradient(320px 220px at 8% 0%, rgba(90, 114, 255, 0.14), transparent 70%),
+    linear-gradient(170deg, rgba(226, 232, 241, 0.96) 0%, rgba(211, 217, 227, 0.98) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 24px 0 64px -24px rgba(34, 48, 86, 0.34);
+  color: var(--g-ink);
+}
+
+.cmc-qdrawer-header {
+  border-bottom: 1px solid var(--g-line);
+  background: rgba(255, 255, 255, 0.03);
+}
+html.light .cmc-qdrawer-header {
+  border-bottom: 1px solid rgba(17, 21, 28, 0.08);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.cmc-qdrawer-logo {
+  background: linear-gradient(145deg, #6e86ff 0%, #3f55e8 55%, #2b38a8 100%);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 #1b2570,
+    0 8px 16px -6px rgba(43, 63, 214, 0.65);
+}
+html.light .cmc-qdrawer-logo {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 3px 0 #1f2d94,
+    0 8px 16px -6px rgba(43, 63, 214, 0.38);
+}
+
+.cmc-qdrawer-heading { color: var(--g-ink); }
+.cmc-qdrawer-sub { color: var(--g-mute); }
+.cmc-qdrawer-foot-meta { color: var(--g-mute); opacity: 0.82; }
+
+.cmc-qdrawer-pill {
+  background: linear-gradient(180deg, rgba(129, 152, 255, 0.24), rgba(90, 114, 255, 0.14));
+  border: 1px solid rgba(169, 186, 255, 0.36);
+  color: #dfe6ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+html.light .cmc-qdrawer-pill {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(226, 232, 255, 0.85));
+  border: 1px solid rgba(43, 63, 214, 0.22);
+  color: #2433c9;
+  box-shadow: inset 0 1px 0 #ffffff, 0 2px 5px -2px rgba(43, 63, 214, 0.2);
+}
+
+.cmc-qdrawer-close {
+  color: var(--g-body);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--g-line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 3px 0 rgba(5, 10, 22, 0.85);
+}
+.cmc-qdrawer-close:hover { color: var(--g-ink); transform: translateY(-1px); border-color: var(--g-line-2); }
+.cmc-qdrawer-close:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 1px 0 rgba(5, 10, 22, 0.85); }
+html.light .cmc-qdrawer-close {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(235, 240, 248, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: inset 0 1px 0 #ffffff, 0 3px 0 #b0bbce, 0 6px 12px -6px rgba(34, 48, 86, 0.25);
+}
+html.light .cmc-qdrawer-close:active {
+  box-shadow: inset 0 1px 0 #ffffff, 0 1px 0 #b0bbce;
+}
+
+.cmc-qdrawer-search-wrap {
+  border-bottom: 1px solid var(--g-line);
+}
+html.light .cmc-qdrawer-search-wrap {
+  border-bottom: 1px solid rgba(17, 21, 28, 0.08);
+}
+
+.cmc-qdrawer-search-icon { color: var(--g-mute); }
+.cmc-qdrawer-search {
+  background: rgba(6, 11, 22, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--g-ink);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.cmc-qdrawer-search::placeholder { color: var(--g-mute); }
+.cmc-qdrawer-search:focus { border-color: var(--g-accent); box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(129, 152, 255, 0.22); }
+html.light .cmc-qdrawer-search {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(17, 21, 28, 0.14);
+  color: var(--g-ink);
+  box-shadow: inset 0 2px 5px rgba(34, 48, 86, 0.1), 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+html.light .cmc-qdrawer-search:focus { border-color: var(--g-accent); box-shadow: inset 0 2px 5px rgba(34, 48, 86, 0.08), 0 0 0 3px rgba(43, 63, 214, 0.16); }
+
+.cmc-qdrawer-clear,
+.cmc-qdrawer-reset { color: var(--g-accent); }
+
+/* Tactile 3D elevated glass keycap button */
+.cmc-qdrawer-btn {
+  background: linear-gradient(180deg, rgba(32, 46, 78, 0.82) 0%, rgba(18, 28, 50, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-top-color: rgba(255, 255, 255, 0.26);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.36),
+    0 4px 0 #060b17,
+    0 11px 22px -10px rgba(0, 0, 0, 0.76);
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s ease, border-color 0.18s ease, background 0.18s ease;
+}
+.cmc-qdrawer-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, rgba(44, 62, 104, 0.92) 0%, rgba(23, 35, 62, 0.96) 100%);
+  border-color: rgba(169, 186, 255, 0.45);
+  border-top-color: rgba(223, 230, 255, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 6px 0 #060b17,
+    0 18px 28px -12px rgba(46, 72, 188, 0.55);
+}
+.cmc-qdrawer-btn:active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 2px 5px rgba(0, 0, 0, 0.32),
+    0 1px 0 #060b17,
+    0 4px 10px -4px rgba(0, 0, 0, 0.72);
+}
+
+html.light .cmc-qdrawer-btn {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(236, 241, 249, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-bottom-color: rgba(160, 174, 198, 0.65);
+  box-shadow:
+    inset 0 1.5px 0 #ffffff,
+    inset 0 -1px 0 rgba(130, 148, 180, 0.2),
+    0 4px 0 #adb9cd,
+    0 11px 22px -10px rgba(34, 48, 86, 0.28);
+}
+html.light .cmc-qdrawer-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #ffffff 0%, rgba(242, 246, 253, 0.96) 100%);
+  border-color: rgba(43, 63, 214, 0.36);
+  border-top-color: #ffffff;
+  box-shadow:
+    inset 0 1.5px 0 #ffffff,
+    inset 0 -1px 0 rgba(43, 63, 214, 0.14),
+    0 6px 0 #9aa9c4,
+    0 18px 28px -12px rgba(43, 63, 214, 0.26);
+}
+html.light .cmc-qdrawer-btn:active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 2px 4px rgba(34, 48, 86, 0.12),
+    0 1px 0 #adb9cd,
+    0 4px 10px -6px rgba(34, 48, 86, 0.24);
+}
+
+/* Raised 3D icon cube inside each Quick Link button */
+.cmc-qdrawer-icon {
+  background: linear-gradient(155deg, rgba(129, 152, 255, 0.26) 0%, rgba(56, 80, 212, 0.16) 100%);
+  border: 1px solid rgba(169, 186, 255, 0.34);
+  color: #cdd7ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 3px 0 rgba(6, 11, 24, 0.78),
+    0 6px 12px -6px rgba(43, 63, 214, 0.45);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.cmc-qdrawer-btn:hover .cmc-qdrawer-icon { transform: translateY(-1px); }
+html.light .cmc-qdrawer-icon {
+  background: linear-gradient(155deg, #ffffff 0%, #e4ebff 100%);
+  border: 1px solid rgba(43, 63, 214, 0.2);
+  color: #2b3fd6;
+  box-shadow:
+    inset 0 1.5px 0 #ffffff,
+    0 3px 0 #bac7e6,
+    0 6px 12px -6px rgba(43, 63, 214, 0.25);
+}
+
+/* Category-tuned 3D icon & badge accents */
+.cmc-qdrawer-btn[data-tone='violet'] .cmc-qdrawer-icon {
+  background: linear-gradient(155deg, rgba(192, 132, 252, 0.28) 0%, rgba(124, 58, 237, 0.16) 100%);
+  border-color: rgba(216, 180, 254, 0.38);
+  color: #e9d5ff;
+}
+html.light .cmc-qdrawer-btn[data-tone='violet'] .cmc-qdrawer-icon {
+  background: linear-gradient(155deg, #ffffff 0%, #f1e6ff 100%);
+  border-color: rgba(124, 58, 237, 0.24);
+  color: #6d28d9;
+  box-shadow: inset 0 1.5px 0 #ffffff, 0 3px 0 #cbbbe8, 0 6px 12px -6px rgba(124, 58, 237, 0.22);
+}
+
+.cmc-qdrawer-btn[data-tone='emerald'] .cmc-qdrawer-icon {
+  background: linear-gradient(155deg, rgba(52, 211, 153, 0.26) 0%, rgba(5, 150, 105, 0.15) 100%);
+  border-color: rgba(110, 231, 183, 0.36);
+  color: #a7f3d0;
+}
+html.light .cmc-qdrawer-btn[data-tone='emerald'] .cmc-qdrawer-icon {
+  background: linear-gradient(155deg, #ffffff 0%, #def7ec 100%);
+  border-color: rgba(5, 150, 105, 0.24);
+  color: #047857;
+  box-shadow: inset 0 1.5px 0 #ffffff, 0 3px 0 #b2d8c8, 0 6px 12px -6px rgba(5, 150, 105, 0.22);
+}
+
+.cmc-qdrawer-btn[data-tone='amber'] .cmc-qdrawer-icon {
+  background: linear-gradient(155deg, rgba(251, 191, 36, 0.26) 0%, rgba(217, 119, 6, 0.16) 100%);
+  border-color: rgba(253, 224, 71, 0.34);
+  color: #fde68a;
+}
+html.light .cmc-qdrawer-btn[data-tone='amber'] .cmc-qdrawer-icon {
+  background: linear-gradient(155deg, #ffffff 0%, #fef0d9 100%);
+  border-color: rgba(180, 83, 9, 0.24);
+  color: #b45309;
+  box-shadow: inset 0 1.5px 0 #ffffff, 0 3px 0 #dfd0b8, 0 6px 12px -6px rgba(180, 83, 9, 0.22);
+}
+
+.cmc-qdrawer-title { color: var(--g-ink); }
+.cmc-qdrawer-btn:hover .cmc-qdrawer-title { color: var(--g-accent); }
+.cmc-qdrawer-desc { color: var(--g-body); opacity: 0.88; }
+.cmc-qdrawer-cat { color: var(--g-mute); }
+
+.cmc-qdrawer-badge {
+  background: linear-gradient(180deg, rgba(129, 152, 255, 0.22), rgba(90, 114, 255, 0.12));
+  border: 1px solid rgba(169, 186, 255, 0.34);
+  color: #dfe6ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+}
+html.light .cmc-qdrawer-badge {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(226, 234, 255, 0.9));
+  border: 1px solid rgba(43, 63, 214, 0.22);
+  color: #2433c9;
+  box-shadow: inset 0 1px 0 #ffffff, 0 2px 4px -2px rgba(43, 63, 214, 0.22);
+}
+
+.cmc-qdrawer-arrow {
+  color: var(--g-mute);
+  opacity: 0.55;
+}
+.cmc-qdrawer-btn:hover .cmc-qdrawer-arrow {
+  color: var(--g-accent);
+  opacity: 1;
+  transform: translate(2px, -2px);
+}
+
+.cmc-qdrawer-footer {
+  border-top: 1px solid var(--g-line);
+  background: rgba(5, 10, 22, 0.55);
+}
+html.light .cmc-qdrawer-footer {
+  border-top: 1px solid rgba(17, 21, 28, 0.08);
+  background: rgba(255, 255, 255, 0.48);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmc-qdrawer-btn,
+  .cmc-qdrawer-icon,
+  .cmc-qdrawer-close,
+  .cmc-qdrawer-arrow { transition: none; }
+}
