@@ -774,7 +774,52 @@ html[data-theme="light"] .drill-btn:active .btn-ic{background:linear-gradient(18
     </g>
   </svg>
   <div class="bp-hero-inner">
-    <img src="../images/aii-language-center-logo.png" alt="Aii Language Center — A Mengly J. Quach Education School" width="1194" height="364" style="height:56px;width:auto;margin-bottom:18px;display:block;filter:drop-shadow(0 6px 16px rgba(2,8,20,.55))">
+    <style>
+    /* ===== HERO WELCOME VIDEO (replaces the small Aii logo) ===== */
+    .bp-hero-video{position:relative;width:fit-content;max-width:100%;margin-bottom:18px;border-radius:16px;overflow:hidden;border:1px solid rgba(125,211,252,.30);box-shadow:0 10px 28px rgba(2,8,20,.55);background:rgba(2,8,20,.5)}
+    .bp-hero-video video{display:block;height:clamp(120px,16vw,176px);width:auto;aspect-ratio:16/9;object-fit:cover;background:#020617}
+    .bp-hero-video::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 24px rgba(56,189,248,.12)}
+    .bp-hero-video #bpHeroUnmute{position:absolute;left:10px;bottom:10px;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(125,211,252,.4);background:rgba(4,18,30,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#a5f3fc;font:700 10px/1 'Plus Jakarta Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:7px 11px;border-radius:999px;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(4px);transition:opacity .25s,transform .25s}
+    .bp-hero-video.bp-video-need-sound #bpHeroUnmute{opacity:1;pointer-events:auto;transform:none}
+    .bp-hero-video #bpHeroUnmute:hover{background:rgba(14,40,61,.85);color:#e0f7ff}
+    html[data-theme="light"] .bp-hero-video{border-color:rgba(2,132,199,.35);box-shadow:0 10px 26px rgba(15,23,42,.18)}
+    </style>
+    <div class="bp-hero-video" id="bpHeroVideoWrap">
+      <video id="bpHeroVideo" src="../videos/gemini_generated_video_7f309aee.mp4" poster="../videos/gemini_generated_video_7f309aee.jpg" autoplay playsinline preload="auto" disablepictureinpicture aria-label="Aii Language Center welcome video"></video>
+      <button id="bpHeroUnmute" type="button" aria-label="Turn on sound"><i class="fas fa-volume-xmark" aria-hidden="true"></i><span>Tap for sound</span></button>
+    </div>
+    <script>
+    (function(){
+      var wrap=document.getElementById('bpHeroVideoWrap'),
+          v=document.getElementById('bpHeroVideo'),
+          btn=document.getElementById('bpHeroUnmute');
+      if(!v||!wrap||!btn)return;
+      function withSound(){v.muted=false;return v.play()}
+      function soundOn(){wrap.classList.remove('bp-video-need-sound');var i=btn.querySelector('i');if(i)i.className='fas fa-volume-high'}
+      function unlock(){
+        withSound().then(soundOn).catch(function(){});
+        document.removeEventListener('pointerdown',unlock);
+        document.removeEventListener('keydown',unlock);
+      }
+      /* 1) try to autoplay WITH sound on page load */
+      withSound().catch(function(){
+        /* 2) browser refused sound autoplay: start muted so it still plays,
+              then unmute on the first tap / keypress anywhere on the page */
+        v.muted=true;
+        v.play().catch(function(){});
+        wrap.classList.add('bp-video-need-sound');
+        document.addEventListener('pointerdown',unlock);
+        document.addEventListener('keydown',unlock);
+      });
+      btn.addEventListener('click',function(e){e.stopPropagation();unlock()});
+      v.addEventListener('click',function(){
+        if(v.muted){unlock()}
+        else if(v.paused){v.play()}
+        else{v.pause()}
+      });
+      v.addEventListener('volumechange',function(){if(!v.muted)soundOn()});
+    })();
+    </script>
     <div class="bp-eyebrow"><i class="fas fa-calendar-check"></i> Aii CAP Campus · Bi-Weekly Study Plan · Weeks 2–8</div>
     <h1 class="bp-title">
       <span class="bp-title-row bp-title-row--first"><span class="bp-title-solid" data-echo>TOEFL ITP</span></span>
