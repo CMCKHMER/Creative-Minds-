@@ -17,8 +17,9 @@
 //                                  admin user/teacher verification directory).
 //      Note: an account that picks `teacher` without a verified `.edu` email (and
 //      not yet approved by Admin) is recorded as `accountType: 'teacher'` with
-//      `isPendingTeacher: true` and keeps standard Student/User privileges until
-//      verified by Admin.
+//      `isPendingTeacher: true`. Pending teachers get NO platform access until
+//      verified (school email link or Admin approval) — the client shows a
+//      verification-pending lock (see `isAwaitingTeacherVerification` in gameAccess.ts).
 //   4. Admin (`ADMIN_UIDS`)      — site owner; full access including admin areas,
 //                                  user directory, and teacher approve/revoke.
 

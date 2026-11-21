@@ -25,6 +25,8 @@ import { currentRelativeUrl, parseAuthSearch, safeReturnUrl, stripAuthParams } f
 import type { AccountType } from './lib/userProfile';
 import { supabase } from './lib/supabase';
 import { TickerBanner } from './components/TickerBanner';
+import { PendingTeacherGate } from './components/PendingTeacherGate';
+import { isAwaitingTeacherVerification } from './lib/gameAccess';
 import { SectionDirectory, PageBar, MoreInGroup } from './components/SectionDirectory';
 import { DIRECTORY_HASH, findPage, hashKey, isInPageAnchor, resolveRoute } from './lib/sitePages';
 import { postIdFromSearch } from './lib/announcementMedia';
@@ -626,6 +628,12 @@ export function App() {
       {/* Live stats + Top Teachers ticker — fixed at the bottom of the
           viewport. Shown on the home page only. */}
       {!page && <TickerBanner onOpenTeacherPass={() => openMemberAuth('sign-up')} />}
+
+      {/* Teacher accounts that are not verified yet (no school email and no
+          admin approval) get no platform access — cover the site until then. */}
+      {firebaseAuth.hydrated && isAwaitingTeacherVerification(firebaseAuth.session) && (
+        <PendingTeacherGate onSignOut={firebaseAuth.signOut} />
+      )}
 
       {/* Live Student Experience Demo Modal */}
       <ErrorBoundary variant="silent" label="student-demo-modal">

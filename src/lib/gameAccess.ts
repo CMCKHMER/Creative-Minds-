@@ -32,9 +32,32 @@ export const SAMPLE_BRAIN_GAME_IDS: ReadonlySet<string> = new Set([
 /** Maximum level a guest may play in BrickForge before the sign-up gate appears. */
 export const GUEST_BRICKFORGE_MAX_LEVEL = 1;
 
-/** True when a valid, email-verified CMC account is signed in. */
+/**
+ * True when a teacher account is signed in but has NOT been verified yet —
+ * neither a verified school (.edu / .ac) address nor an admin approval.
+ * Pending teacher accounts get no platform access at all until verified.
+ */
+export function isAwaitingTeacherVerification(session?: RestoredSession | null): boolean {
+  return Boolean(
+    session
+      && session.idToken
+      && session.isPendingTeacher
+      && !session.teacherVerified
+      && !session.isAdmin,
+  );
+}
+
+/**
+ * True when a valid, email-verified CMC account is signed in AND it is not a
+ * teacher account still awaiting verification (see isAwaitingTeacherVerification).
+ */
 export function hasActiveAccount(session?: RestoredSession | null): boolean {
-  return Boolean(session && session.idToken && session.emailVerified);
+  return Boolean(
+    session
+      && session.idToken
+      && session.emailVerified
+      && !isAwaitingTeacherVerification(session),
+  );
 }
 
 /** True when the signed-in user is a Verified Teacher (or site Admin). */
