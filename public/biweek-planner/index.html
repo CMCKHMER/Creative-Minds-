@@ -775,52 +775,179 @@ html[data-theme="light"] .drill-btn:active .btn-ic{background:linear-gradient(18
   </svg>
   <div class="bp-hero-inner">
     <style>
-    /* ===== HERO WELCOME VIDEO (replaces the small Aii logo) ===== */
-    .bp-hero-video{position:relative;width:fit-content;max-width:100%;margin-bottom:18px;border-radius:16px;overflow:hidden;border:1px solid rgba(125,211,252,.30);box-shadow:0 10px 28px rgba(2,8,20,.55);background:rgba(2,8,20,.5)}
-    .bp-hero-video video{display:block;height:clamp(150px,24vw,300px);width:auto;aspect-ratio:1208/536;object-fit:cover;background:#020617}
-    .bp-hero-video::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 24px rgba(56,189,248,.12)}
-    .bp-hero-video #bpHeroUnmute{position:absolute;left:10px;bottom:10px;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(125,211,252,.4);background:rgba(4,18,30,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#a5f3fc;font:700 10px/1 'Plus Jakarta Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:7px 11px;border-radius:999px;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(4px);transition:opacity .25s,transform .25s}
+    /* ===== HERO WELCOME VIDEO (plays once on load, blended into the glass hero) ===== */
+    .bp-hero-inner .bp-hero-video{
+      position:relative;
+      width:100%;
+      max-width:min(100%,28rem);
+      aspect-ratio:1208/536;
+      margin:0 0 20px;
+      border-radius:20px;
+      overflow:hidden;
+      border:0;
+      box-shadow:none;
+      background:transparent;
+      isolation:isolate;
+      transition:background .75s ease,box-shadow .75s ease;
+    }
+    .bp-hero-video-stage{
+      position:absolute;inset:0;
+      mix-blend-mode:lighten;
+      -webkit-mask-image:
+        linear-gradient(to right,transparent 0%,#000 7%,#000 91%,transparent 100%),
+        linear-gradient(to bottom,transparent 0%,#000 10%,#000 88%,transparent 100%);
+      -webkit-mask-composite:source-in;
+      mask-image:
+        linear-gradient(to right,transparent 0%,#000 7%,#000 91%,transparent 100%),
+        linear-gradient(to bottom,transparent 0%,#000 10%,#000 88%,transparent 100%);
+      mask-composite:intersect;
+      transition:opacity .75s ease;
+    }
+    .bp-hero-video video{
+      display:block;width:100%;height:100%;
+      object-fit:cover;background:transparent;
+      filter:contrast(1.06) saturate(1.1);
+    }
+    .bp-hero-logo-rest{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:flex-start;
+      padding:8px 0;
+      opacity:0;pointer-events:none;
+      transition:opacity .75s ease;
+    }
+    .bp-hero-logo-rest img{
+      display:block;max-height:72%;max-width:92%;width:auto;height:auto;
+      filter:drop-shadow(0 8px 22px rgba(4,12,28,.45));
+    }
+    .bp-hero-logo-rest .bp-logo-light{display:none}
+    .bp-hero-video.bp-video-ended .bp-hero-video-stage{opacity:0;pointer-events:none}
+    .bp-hero-video.bp-video-ended .bp-hero-logo-rest{opacity:1;pointer-events:auto}
+    .bp-hero-video-pill{
+      position:absolute;left:10px;bottom:10px;z-index:2;
+      display:inline-flex;align-items:center;gap:6px;
+      border:1px solid var(--g-line-2,rgba(255,255,255,.28));
+      background:var(--g-glass,rgba(13,21,37,.58));
+      -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+      color:var(--text,#f3f6fb);
+      font:700 9.5px/1 'Plus Jakarta Sans',sans-serif;
+      letter-spacing:.14em;text-transform:uppercase;
+      padding:7px 12px;border-radius:999px;cursor:pointer;
+      opacity:0;pointer-events:none;transform:translateY(4px);
+      transition:opacity .28s ease,transform .28s ease,border-color .2s ease,background .2s ease;
+    }
+    .bp-hero-video-pill:hover{border-color:var(--accent,#a9baff);background:var(--g-glass-2,rgba(255,255,255,.12))}
     .bp-hero-video.bp-video-need-sound #bpHeroUnmute{opacity:1;pointer-events:auto;transform:none}
-    .bp-hero-video #bpHeroUnmute:hover{background:rgba(14,40,61,.85);color:#e0f7ff}
-    html[data-theme="light"] .bp-hero-video{border-color:rgba(2,132,199,.35);box-shadow:0 10px 26px rgba(15,23,42,.18)}
+    .bp-hero-video #bpHeroReplay{left:auto;right:6px;bottom:6px}
+    .bp-hero-video.bp-video-ended #bpHeroReplay{opacity:.52;pointer-events:auto;transform:none}
+    .bp-hero-video.bp-video-ended:hover #bpHeroReplay,
+    .bp-hero-video.bp-video-ended #bpHeroReplay:focus-visible{opacity:1}
+    /* Light theme: soft smoked-glass backdrop only while video plays, dissolves cleanly to crisp ink logo */
+    html[data-theme="light"] .bp-hero-inner .bp-hero-video:not(.bp-video-ended){
+      background:radial-gradient(ellipse at 50% 50%,rgba(16,25,44,.84) 0%,rgba(13,21,37,.66) 76%,rgba(13,21,37,.18) 100%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 18px 36px -24px rgba(40,56,98,.38);
+    }
+    html[data-theme="light"] .bp-hero-video-stage{mix-blend-mode:normal}
+    html[data-theme="light"] .bp-hero-logo-rest .bp-logo-dark{display:none}
+    html[data-theme="light"] .bp-hero-logo-rest .bp-logo-light{display:block;filter:drop-shadow(0 6px 16px rgba(40,56,98,.12))}
+    html[data-theme="light"] .bp-hero-video:not(.bp-video-ended) .bp-hero-video-pill{
+      color:#f3f6fb;border-color:rgba(255,255,255,.32);background:rgba(13,21,37,.58);
+    }
     </style>
     <div class="bp-hero-video" id="bpHeroVideoWrap">
-      <video id="bpHeroVideo" src="../videos/gemini_generated_video_7f309aee.mp4" poster="../videos/gemini_generated_video_7f309aee.jpg" autoplay playsinline preload="auto" disablepictureinpicture aria-label="Aii Language Center welcome video"></video>
-      <button id="bpHeroUnmute" type="button" aria-label="Turn on sound"><i class="fas fa-volume-xmark" aria-hidden="true"></i><span>Tap for sound</span></button>
+      <div class="bp-hero-video-stage">
+        <video id="bpHeroVideo" src="../videos/gemini_generated_video_7f309aee.mp4" playsinline preload="auto" disablepictureinpicture aria-label="Aii Language Center welcome video"></video>
+      </div>
+      <div class="bp-hero-logo-rest">
+        <img class="bp-logo-dark" src="../images/aii-language-center-logo.png" alt="Aii Language Center — A Mengly J. Quach Education School" width="1194" height="364">
+        <img class="bp-logo-light" src="../images/aii-language-center-logo-print.png" alt="Aii Language Center — A Mengly J. Quach Education School" width="1194" height="364">
+      </div>
+      <button class="bp-hero-video-pill" id="bpHeroUnmute" type="button" aria-label="Turn on sound"><i class="fas fa-volume-xmark" aria-hidden="true"></i><span>Tap for sound</span></button>
+      <button class="bp-hero-video-pill" id="bpHeroReplay" type="button" aria-label="Replay intro video"><i class="fas fa-rotate-left" aria-hidden="true"></i><span>Replay</span></button>
     </div>
     <script>
     (function(){
       var wrap=document.getElementById('bpHeroVideoWrap'),
           v=document.getElementById('bpHeroVideo'),
-          btn=document.getElementById('bpHeroUnmute');
+          btn=document.getElementById('bpHeroUnmute'),
+          replay=document.getElementById('bpHeroReplay');
       if(!v||!wrap||!btn)return;
-      function withSound(){v.muted=false;return v.play()}
-      function soundOn(){wrap.classList.remove('bp-video-need-sound');var i=btn.querySelector('i');if(i)i.className='fas fa-volume-high'}
-      function unlock(){
-        withSound().then(soundOn).catch(function(){});
+      var finished=false;
+      v.loop=false;
+      v.autoplay=false;
+      function cleanupUnlock(){
         document.removeEventListener('pointerdown',unlock);
         document.removeEventListener('keydown',unlock);
       }
-      /* 1) try to autoplay WITH sound on page load */
-      withSound().catch(function(){
-        /* 2) browser refused sound autoplay: start muted so it still plays,
-              then unmute on the first tap / keypress anywhere on the page */
-        v.muted=true;
-        v.play().catch(function(){});
-        wrap.classList.add('bp-video-need-sound');
-        document.addEventListener('pointerdown',unlock);
-        document.addEventListener('keydown',unlock);
-      });
-      btn.addEventListener('click',function(e){e.stopPropagation();unlock()});
+      function soundOn(){
+        wrap.classList.remove('bp-video-need-sound');
+        var i=btn.querySelector('i');
+        if(i)i.className='fas fa-volume-high';
+      }
+      function finishIntro(){
+        if(finished)return;
+        finished=true;
+        cleanupUnlock();
+        wrap.classList.remove('bp-video-need-sound');
+        wrap.classList.add('bp-video-ended');
+        try{v.pause();}catch(_){}
+      }
+      function unlock(){
+        cleanupUnlock();
+        if(finished||v.ended)return;
+        v.muted=false;
+        var p=v.play();
+        if(p&&typeof p.then==='function'){p.then(soundOn).catch(function(){});}
+        else{soundOn();}
+      }
+      function playOnce(){
+        finished=false;
+        v.loop=false;
+        wrap.classList.remove('bp-video-ended','bp-video-need-sound');
+        try{v.currentTime=0;}catch(_){}
+        v.muted=false;
+        var p=v.play();
+        if(p&&typeof p.catch==='function'){
+          p.then(soundOn).catch(function(){
+            if(finished)return;
+            /* browser refused unmuted autoplay: play once muted, allow 1-tap unmute while playing */
+            v.muted=true;
+            var mp=v.play();
+            if(mp&&typeof mp.catch==='function'){
+              mp.then(function(){
+                if(finished)return;
+                wrap.classList.add('bp-video-need-sound');
+                document.addEventListener('pointerdown',unlock);
+                document.addEventListener('keydown',unlock);
+              }).catch(finishIntro);
+            }
+          });
+        }
+      }
+      btn.addEventListener('click',function(e){e.stopPropagation();unlock();});
+      if(replay){
+        replay.addEventListener('click',function(e){e.stopPropagation();playOnce();});
+      }
       v.addEventListener('click',function(){
-        if(v.muted){unlock()}
-        else if(v.paused){v.play()}
-        else{v.pause()}
+        if(finished)return;
+        if(v.muted){unlock();}
+        else if(v.paused){v.play();}
+        else{v.pause();}
       });
-      v.addEventListener('volumechange',function(){if(!v.muted)soundOn()});
-      /* video ends on a fade-to-black frame: reload so the poster (logo frame)
-         is shown again instead of a frozen black box. No looping. */
-      v.addEventListener('ended',function(){v.load()});
+      v.addEventListener('volumechange',function(){if(!v.muted)soundOn();});
+      /* Crossfade seamlessly into the resting hero logo before the fade-to-black tail,
+         and guarantee the video never loops on ended. */
+      v.addEventListener('timeupdate',function(){
+        if(!finished&&isFinite(v.duration)&&v.duration>1&&v.currentTime>=v.duration-0.55){
+          finishIntro();
+        }
+      });
+      v.addEventListener('ended',finishIntro);
+      v.addEventListener('error',finishIntro);
+      if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        finishIntro();
+      }else{
+        playOnce();
+      }
     })();
     </script>
     <div class="bp-eyebrow"><i class="fas fa-calendar-check"></i> Aii CAP Campus · Bi-Weekly Study Plan · Weeks 2–8</div>
