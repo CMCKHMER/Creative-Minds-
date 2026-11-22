@@ -79,6 +79,10 @@ service cloud.firestore {
             && request.resource.data.classId.size() <= 40));
       allow update, delete: if false;
     }
+    match /homework_exports/{docId} {
+      allow read: if isVerifiedTeacher();
+      allow write: if false;
+    }
     match /invite_codes/{code} {
       allow read: if true;
       allow create: if isVerifiedTeacher()

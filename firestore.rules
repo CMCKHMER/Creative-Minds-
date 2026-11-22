@@ -220,6 +220,22 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ── Kid 11 daily homework archive (Blaze) ──
+    //
+    // The exportHomeworkSheets Cloud Function (functions/index.js) reads the
+    // six Grade-11 homework pages once a day and writes one ready-made CSV
+    // score sheet per homework here (homework_exports/<page>__hw<1|2|3>), so
+    // a teacher can download an archive without re-reading the whole
+    // drill_attempts list (and the record survives any later cleanup of it).
+    //
+    // Teacher-only READ (same gate as the Scores sheet itself). Writes are
+    // DENIED to every client: only the scheduled function's Admin SDK — which
+    // bypasses security rules — produces these documents.
+    match /homework_exports/{docId} {
+      allow read: if isVerifiedTeacher();
+      allow write: if false;
+    }
+
     // ── Private invite-test results (Nov 2026) ──
     //
     // The simple share flow: the dashboard gives every teacher a personal
