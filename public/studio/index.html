@@ -626,11 +626,14 @@ try{var s=localStorage.getItem('cmc-student-'+'name')||'';if(isE(s)){var h=fr(s)
    Publishing / collecting is a teacher capability. The ☁ Share and
    ✎ Input toolbar buttons are hidden from students (same role heuristic
    as the bi-weekly planner's teacher-gate.js: cmc-student-role, or an
-   "edu" email domain, plus a Firebase session). Runs in <head> so the
+   email on the school's own domain (aii.edu.kh), plus a Firebase session).
+   Runs in <head> so the
    buttons never flash for students. JS guards re-check on click. */
 (function(){
   function ls(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
-  function emailIsTeacher(e){ var d=(String(e||'').split('@')[1]||'').toLowerCase(); return !!d && d.indexOf('edu')!==-1; }
+  /* Only the school's own domain is a teacher by email — mirrors
+     DEFAULT_TEACHER_EMAIL_DOMAINS in src/lib/userProfile.ts. */
+  function emailIsTeacher(e){ var d=(String(e||'').split('@')[1]||'').toLowerCase(); return d === 'aii.edu.kh'; }
   var tok = ls('cmc-student-token');
   var role = ls('cmc-student-role') || (emailIsTeacher(ls('cmc-student-email')) ? 'teacher' : 'student');
   var isT = !!tok && role === 'teacher';

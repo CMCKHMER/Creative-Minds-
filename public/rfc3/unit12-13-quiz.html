@@ -588,7 +588,9 @@ try{
       const role=(localStorage.getItem('cmc-student-role')||'').toLowerCase();
       const email=(localStorage.getItem('cmc-student-email')||'').toLowerCase();
       const uid=localStorage.getItem('cmc-student-uid')||'';
-      return role==='teacher' || email.includes('edu') || uid==='5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+      // School-domain gate (see src/lib/userProfile.ts DEFAULT_TEACHER_EMAIL_DOMAINS):
+      // a foreign .edu address is not a teacher by email — only the school domain is.
+      return role==='teacher' || /(^|@)aii\.edu\.kh$/.test(email) || uid==='5iLvnjzmV8QY7WFZhyTq6PIgcI63';
     }catch(e){return false}
   }
   const isTeacher=isTeacherLS();

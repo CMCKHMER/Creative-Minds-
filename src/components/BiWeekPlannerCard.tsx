@@ -186,7 +186,7 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
             </span>
             <p className="mt-5 text-sm font-semibold text-white">Teacher access required</p>
             <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-400">
-              The 8-week TOEFL ITP Bi-Weekly Planner is reserved for Aii CAP Campus teacher accounts. Sign in with your school email containing &quot;edu&quot; (e.g., you@school.edu.kh) to unlock the full weekly schedule, drills, and mock test links.
+              The 8-week TOEFL ITP Bi-Weekly Planner is reserved for Aii CAP Campus teacher accounts. Sign in with your school email (e.g., name@aii.edu.kh) to unlock the full weekly schedule, drills, and mock test links.
             </p>
             {onOpenAuth && (
               <button

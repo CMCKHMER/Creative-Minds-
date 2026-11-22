@@ -64,7 +64,7 @@ export function DailyAssessmentCard({ onOpenAuth }: { onOpenAuth?: () => void } 
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-amber-50">Teacher access required</p>
                   <p className="mt-1 text-xs leading-relaxed text-amber-100/70">
-                    The Student Assessment Records workspace is reserved for teachers. Sign in with a work email containing "edu" (e.g., you@school.edu.kh) to unlock it. Students don't have access to teacher-side record review.
+                    The Student Assessment Records workspace is reserved for teachers. Sign in with your school address (e.g., name@aii.edu.kh) to unlock it. Students don't have access to teacher-side record review.
                   </p>
                   {onOpenAuth && (
                     <button
