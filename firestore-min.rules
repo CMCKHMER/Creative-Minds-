@@ -31,12 +31,18 @@ service cloud.firestore {
     function isRevokedTeacher() {
       return request.auth != null && teacherAccessList('revokedUids');
     }
-    function isAllowedSchoolDomain() {
-      return !(exists(/databases/$(database)/documents/site_config/teacher_access)
+    function schoolDomainPattern() {
+      return exists(/databases/$(database)/documents/site_config/teacher_access)
         && 'allowedEmailDomainsPattern' in teacherAccessDoc()
         && teacherAccessDoc().allowedEmailDomainsPattern is string
-        && teacherAccessDoc().allowedEmailDomainsPattern.size() > 0)
-        || request.auth.token.email.lower().matches('(.*)@(' + teacherAccessDoc().allowedEmailDomainsPattern + ')');
+        && teacherAccessDoc().allowedEmailDomainsPattern.size() > 0
+        ? teacherAccessDoc().allowedEmailDomainsPattern
+        : 'aii\\.edu\\.kh';
+    }
+    function isAllowedSchoolDomain() {
+      return request.auth != null
+        && request.auth.token.email is string
+        && request.auth.token.email.lower().matches('^[^@]+@(' + schoolDomainPattern() + ')$');
     }
     function isVerifiedUser() {
       return request.auth != null

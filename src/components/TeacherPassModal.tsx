@@ -436,7 +436,7 @@ export const TeacherPassModal = ({
               <span className="relative mt-1.5 block"><Mail className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" /><input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} autoComplete="email" className="w-full rounded-lg border border-slate-700 bg-slate-950 py-3 pr-3 pl-9 text-sm text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/15" placeholder={accountType === 'teacher' ? 'you@school.edu.kh' : 'you@example.com'} /></span>
               <span className="mt-1 block text-[10px] text-slate-500">
                 {accountType === 'teacher'
-                  ? 'Use your school address (contains "edu", e.g. .edu.kh) for automatic verification. Gmail teachers can still sign up — an admin approves the account.'
+                  ? 'Use your school address (name@aii.edu.kh) for automatic verification. Gmail teachers can still sign up — an admin approves the account.'
                   : 'Any email works. You verify it once by clicking the link we send.'}
               </span>
             </label>
@@ -570,7 +570,7 @@ export const TeacherPassModal = ({
               <p className="mt-2 rounded-lg border border-amber-200/20 bg-amber-100/[0.05] px-3 py-2 text-[11px] leading-relaxed text-amber-100/90">
                 {activeSession.isRevokedTeacher
                   ? 'Teacher access was revoked by the admin. Student access still works.'
-                  : 'Teacher verification pending: teacher tools unlock automatically once your school (.edu) email is verified, or after the admin approves your account.'}
+                  : 'Teacher verification pending: teacher tools unlock automatically once your school email (name@aii.edu.kh) is verified, or after the admin approves your account.'}
               </p>
             )}
 

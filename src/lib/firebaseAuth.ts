@@ -672,11 +672,13 @@ export function isAdminUid(uid?: string | null): boolean {
 }
 
 /**
- * Detect whether an email domain qualifies for automatic teacher verification.
- * SECURITY: TLD-anchored education domains only — *.edu, *.edu.<2-letter
- * country> (.edu.kh), *.ac.<2-letter country> (.ac.th) — 'teacher'.
- * Anything else (including lookalike domains such as myedu-site.com) →
- * 'student'. Mirrors isCmcTeacher() in firestore.rules; keep in sync.
+ * Coarse role guess from the email domain (TLD-anchored education domains
+ * only — *.edu, *.edu.<2-letter country>, *.ac.<2-letter country>).
+ *
+ * PRE-FILTER ONLY: automatic teacher verification additionally requires the
+ * address to sit on the school's own domain (see isEmailDomainAllowed /
+ * resolveEffectiveAccess) — a harvard.edu address is a pending teacher, not a
+ * verified one. Mirrors isCmcTeacher() in firestore.rules; keep in sync.
  */
 export function detectRoleFromEmail(email: string): 'teacher' | 'student' {
   return isEduEmailDomain(email) ? 'teacher' : 'student';
@@ -938,7 +940,7 @@ export interface RestoredSession {
   accountType: AccountType;
   /** Whether the account holds verified teacher (or admin) privileges. */
   teacherVerified: boolean;
-  /** Selected 'teacher' but still awaiting .edu email verification or admin approval. */
+  /** Selected 'teacher' but still awaiting a verified school address (name@aii.edu.kh) or admin approval. */
   isPendingTeacher: boolean;
   /** Admin revoked teacher access for this uid. */
   isRevokedTeacher: boolean;

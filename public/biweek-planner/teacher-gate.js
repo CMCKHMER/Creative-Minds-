@@ -55,9 +55,14 @@
   function ls(key) {
     try { return localStorage.getItem(key); } catch (e) { return null; }
   }
+  /* School-domain gate — mirrors DEFAULT_TEACHER_EMAIL_DOMAINS in
+     src/lib/userProfile.ts and schoolDomainPattern() in firestore.rules: only
+     the school's own domain is a teacher by email. A foreign .edu address
+     stays a student until the site admin approves the account. */
+  var SCHOOL_DOMAINS = ['aii.edu.kh'];
   function detectRoleFromEmail(email) {
     var domain = (String(email || '').split('@')[1] || '').toLowerCase();
-    return domain && domain.indexOf('edu') !== -1 ? 'teacher' : 'student';
+    return SCHOOL_DOMAINS.indexOf(domain) !== -1 ? 'teacher' : 'student';
   }
   /** Decode the `email_verified` claim of an ID token (no network call). */
   function tokenVerified(token) {
@@ -76,7 +81,7 @@
    * VERIFIED teacher only (Nov 2026): the role written by the app's
    * resolveEffectiveAccess() plus the explicit `cmc-teacher-verified` flag.
    * Students, general users, PENDING teachers (Gmail awaiting admin
-   * approval / unverified .edu) and revoked teachers are all locked out —
+   * approval / unverified school domain) and revoked teachers are all locked out —
    * the same rule Firestore enforces for the answer keys.
    */
   function isTeacher() {

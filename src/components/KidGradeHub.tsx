@@ -6,6 +6,7 @@ import { getProjectId, getValidIdToken, restoreSession } from '../lib/firebaseAu
 import { useSignedInSession } from '../hooks/useSignedInSession';
 import { requestAuth } from '../lib/authPrompt';
 import { hasActiveAccount } from '../lib/gameAccess';
+import { isSchoolDomainEmail } from '../lib/userProfile';
 import { KidHomeworkScores } from './KidHomeworkScores';
 import { KidMyHomeworkScore } from './KidMyHomeworkScore';
 import { Reveal } from './Reveal';
@@ -164,7 +165,7 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
         const role = localStorage.getItem('cmc-student-role');
         const email = (localStorage.getItem('cmc-student-email') || '').toLowerCase();
         const uid = localStorage.getItem('cmc-student-uid') || '';
-        setIsTeacher(!!token && (role === 'teacher' || email.includes('edu') || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63'));
+        setIsTeacher(!!token && (role === 'teacher' || isSchoolDomainEmail(email) || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63'));
       } catch { setIsTeacher(false); }
     };
     sync();

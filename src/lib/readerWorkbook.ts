@@ -13,6 +13,7 @@ import type {
 import { FIREBASE_PROJECT_ID, getValidIdToken } from './firebaseAuth';
 import { displayStudentName, friendlyNameFromEmail, looksLikeEmail } from './studentName';
 import { uidFromIdToken } from './submitScore';
+import { isSchoolDomainEmail } from './userProfile';
 
 const FIRESTORE_DRILL_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/drill_attempts`;
 
@@ -364,7 +365,7 @@ export function isTeacherLocalSession(): boolean {
     const role = window.localStorage.getItem('cmc-student-role');
     const email = (window.localStorage.getItem('cmc-student-email') || '').toLowerCase();
     const uid = window.localStorage.getItem('cmc-student-uid') || '';
-    return Boolean(token && (role === 'teacher' || email.includes('edu') || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63'));
+    return Boolean(token && (role === 'teacher' || isSchoolDomainEmail(email) || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63'));
   } catch {
     return false;
   }

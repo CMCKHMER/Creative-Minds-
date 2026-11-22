@@ -49,7 +49,7 @@ export interface FirebaseAuthActions {
  * the same `cmc-student-token` from localStorage on their own load.
  *
  * Role (`teacher` / `student`) is auto-detected from the email domain
- * (contains "edu" → teacher) and stored in localStorage as
+ * (on the school domain → teacher) and stored in localStorage as
  * `cmc-student-role`. Both React and the static HTML worksheets read
  * from the same key so the role is consistent across the whole site.
  */

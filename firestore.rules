@@ -57,8 +57,9 @@ rules_version = '2';
 //     never hits the document-access limit.
 //   - assessment_classes/{classId} (+ students subcollection): the Daily
 //     Student Assessment Records workspace. TEACHERS ONLY — the signed-in
-//     account's email must contain "edu" (the same heuristic RoleGate uses
-//     site-wide). Replaces the retired Google Apps Script/Sheets backend,
+//     account must be a verified teacher (school domain aii.edu.kh, or owner
+//     approval; the same check RoleGate uses site-wide). Replaces the retired
+//     Google Apps Script/Sheets backend,
 //     whose "Anyone" web-app deployment let any visitor read or wipe
 //     all records.
 //   - Everything else: denied.
@@ -108,8 +109,8 @@ service cloud.firestore {
     // — keep the two in sync if this ever changes. RE2 has no look-around,
     // hence the bracket classes.
     // Nov 2026 hardening: the heuristic branch additionally passes only when
-    // the domain satisfies the owner's optional school whitelist (see
-    // isAllowedSchoolDomain above). The admin-grant branch is untouched —
+    // the domain is one of the school's own domains (see isAllowedSchoolDomain
+    // above — default aii.edu.kh). The admin-grant branch is untouched —
     // panel-approved teachers are vouched regardless of their domain.
     function isCmcTeacher() {
       return request.auth != null
@@ -123,7 +124,7 @@ service cloud.firestore {
     // ADMIN TEACHER-VERIFICATION OVERRIDES (Nov 2026): `site_config/teacher_access`
     // holds two UID lists the site owner manages from the in-app
     // Admin → Users & Teacher Verification panel:
-    //   approvedUids — teachers without a school (.edu) address (e.g. Gmail)
+    //   approvedUids — teachers without a school-domain address (e.g. Gmail)
     //                  that the owner vouches for.
     //   revokedUids  — accounts whose teacher access was taken away.
     // The document is PUBLIC READ (clients resolve their own badge without a
@@ -147,25 +148,34 @@ service cloud.firestore {
       return request.auth != null && teacherAccessList('revokedUids');
     }
 
-    // OWNER-MANAGED SCHOOL-DOMAIN WHITELIST (Nov 2026 hardening): the same
-    // teacher_access document MAY carry `allowedEmailDomainsPattern` — a
-    // single RE2 pattern the Admin panel derives from the owner's lowercase
-    // domain list `allowedEmailDomains` (dots and regex metacharacters
-    // escaped, entries joined with '|', e.g. "school\.edu\.kh|myschool\.org").
-    // When the pattern is present and non-empty, an email passes the
-    // school-domain heuristic ONLY if its domain matches one of the entries —
-    // the owner's per-school gate ON TOP of the TLD anchor below (exact
-    // domains; subdomains are not implied — list them explicitly). When the
-    // field is absent, empty, or not a string, the TLD anchor applies
-    // unchanged, so nothing breaks until the owner sets a list. The Admin
-    // panel always writes the list and its derived pattern together; a
-    // malformed pattern makes matches() throw, which fails CLOSED (denies).
-    function isAllowedSchoolDomain() {
-      return !(exists(/databases/$(database)/documents/site_config/teacher_access)
+    // SCHOOL-DOMAIN GATE (Nov 2026 hardening, owner policy): a teacher address
+    // must be on the school's own domain — name@aii.edu.kh — not merely on any
+    // education TLD.
+    //
+    //   · The owner can add more schools in Admin → Users & Teacher
+    //     Verification. The panel stores the list `allowedEmailDomains` AND the
+    //     derived RE2 `allowedEmailDomainsPattern` (dots escaped, entries
+    //     joined with '|'), so the two can never drift.
+    //   · When that pattern is absent, empty, or not a string, the DEFAULT
+    //     below applies. It is never '' — clearing the panel's list must not
+    //     fall back to "any .edu address on the internet". Keep this default
+    //     in sync with DEFAULT_TEACHER_EMAIL_DOMAINS in src/lib/userProfile.ts.
+    //   · The match is a FULL-STRING match (`^…$`), so "x@aii.edu.kh.evil.io"
+    //     and "x@sub.aii.edu.kh" never qualify (subdomains must be listed).
+    //   · A malformed pattern makes matches() throw, which fails CLOSED.
+    function schoolDomainPattern() {
+      return exists(/databases/$(database)/documents/site_config/teacher_access)
         && 'allowedEmailDomainsPattern' in teacherAccessDoc()
         && teacherAccessDoc().allowedEmailDomainsPattern is string
-        && teacherAccessDoc().allowedEmailDomainsPattern.size() > 0)
-        || request.auth.token.email.lower().matches('(.*)@(' + teacherAccessDoc().allowedEmailDomainsPattern + ')');
+        && teacherAccessDoc().allowedEmailDomainsPattern.size() > 0
+        ? teacherAccessDoc().allowedEmailDomainsPattern
+        : 'aii\\.edu\\.kh';
+    }
+
+    function isAllowedSchoolDomain() {
+      return request.auth != null
+        && request.auth.token.email is string
+        && request.auth.token.email.lower().matches('^[^@]+@(' + schoolDomainPattern() + ')$');
     }
 
     // A signed-in account that proved its email address by clicking the
@@ -627,12 +637,11 @@ service cloud.firestore {
     // test_scores/{submissionId}. Students can NEVER read the key, any score,
     // or anyone else's submission.
     //
-    // teachers/{uid}: append-only allowlist that hardens the "email contains
-    // edu" heuristic for the sensitive collections (answer keys!). Any edu
-    // account may register itself ONCE (create), after which the doc is
-    // immutable. Sensitive collections require BOTH the edu heuristic AND an
-    // allowlist entry. To tighten further, replace isCmcTeacher() inside
-    // isVerifiedTeacher() with a hardcoded email check.
+    // teachers/{uid}: append-only allowlist that hardens the school-domain
+    // heuristic for the sensitive collections (answer keys!). Entries are
+    // seeded by the site owner only and never edited in place. Sensitive
+    // collections require BOTH isCmcTeacher() (education TLD + school domain)
+    // AND an allowlist entry.
 
     match /teachers/{uid} {
       allow read: if request.auth != null; // role checks only; non-sensitive
@@ -651,7 +660,7 @@ service cloud.firestore {
     // OR it passes the school-email heuristic AND is in the owner-seeded
     // teachers/{uid} allowlist (self-registration is closed — see /teachers
     // above). An admin revocation always wins: a revoked account loses
-    // teacher access even with an .edu address.
+    // teacher access even on the school domain.
     function isVerifiedTeacher() {
       return request.auth != null
         && (isCmcAdmin()
