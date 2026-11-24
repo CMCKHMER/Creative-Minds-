@@ -9,6 +9,7 @@
 // person took. The rules that make it safe are in firestore.rules
 // (roster_seats / student_links); the logic is in src/lib/roster.ts.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { BusyButton } from './BusyButton';
 import {
   AlertTriangle, CheckCircle2, ClipboardPaste, Copy, DoorClosed, DoorOpen, Loader2, RefreshCw, School, UserCheck, UserX, X,
 } from 'lucide-react';
@@ -332,6 +333,10 @@ export function KidClassesModal(props: {
   const [teacherName, setTeacherName] = useState(defaultTeacher);
   const [working, setWorking] = useState(false);
   const [done, setDone] = useState(0);
+  // 'done' is the confirmation beat: the button stamps a tick for a moment
+  // before the dialog closes, so the teacher sees the job finish instead of
+  // the panel vanishing under their finger (see docs/button-motion.md).
+  const [phase, setPhase] = useState<'idle' | 'working' | 'done'>('idle');
   const [error, setError] = useState<string | null>(null);
   const missing = useMemo(() => missingKidClasses(existingNames), [existingNames]);
   const missingNames = useMemo(() => new Set(missing.map((m) => m.name)), [missing]);
@@ -344,9 +349,16 @@ export function KidClassesModal(props: {
   }, [onClose, working]);
 
   const create = async () => {
-    setWorking(true); setError(null); setDone(0);
-    try { await onCreate(missing, schoolName, teacherName, setDone); onClose(); }
-    catch (e) { setError(e instanceof Error ? e.message : 'The classes could not be created.'); }
+    setWorking(true); setPhase('working'); setError(null); setDone(0);
+    try {
+      await onCreate(missing, schoolName, teacherName, setDone);
+      setPhase('done');
+      await new Promise((resolve) => setTimeout(resolve, 650));
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'The classes could not be created.');
+      setPhase('idle');
+    }
     setWorking(false);
   };
 
@@ -384,20 +396,20 @@ export function KidClassesModal(props: {
           </label>
         </div>
         {error && <p role="alert" className="mt-3 rounded-lg border border-rose-300/25 bg-rose-400/10 px-3 py-2 text-[11px] leading-relaxed text-rose-100">{error}</p>}
-        <button
-          type="button"
+        {/* The label carries the progress ("Creating 3 of 14…") and the bar
+            underneath fills with it, so a 14-write run never looks stuck. */}
+        <BusyButton
+          state={phase}
+          stamp
+          idleLabel={missing.length === 0 ? 'All fourteen classes exist' : `Create ${missing.length} class${missing.length === 1 ? '' : 'es'}`}
+          workingLabel={`Creating ${Math.min(done + 1, missing.length)} of ${missing.length}…`}
+          doneLabel={`${missing.length} class${missing.length === 1 ? '' : 'es'} created`}
+          progress={missing.length > 0 ? done / missing.length : 0}
           disabled={working || missing.length === 0}
           onClick={() => void create()}
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-3 text-xs font-bold text-slate-950 transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-50"
+          className="mt-4 w-full rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-3 text-xs font-bold text-slate-950 disabled:opacity-50"
           data-testid="kid-classes-create"
-        >
-          {working ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <School className="h-4 w-4" aria-hidden="true" />}
-          {working
-            ? `Creating ${Math.min(done + 1, missing.length)} of ${missing.length}…`
-            : missing.length === 0
-              ? 'All fourteen classes exist'
-              : `Create ${missing.length} class${missing.length === 1 ? '' : 'es'}`}
-        </button>
+        />
       </div>
     </div>
   );

@@ -354,10 +354,11 @@
   </div>
 
   <footer>
-    Lab sheet only — <code>docs/lab/buttons.html</code>, not linked from the site and not built by Vite.
-    If one of these earns a place, it goes into <code>src/index.css</code> next to <code>.cmc-btn-3d</code>, with a
-    matching <code>html.light</code> rule and a <code>prefers-reduced-motion</code> override, then a pin test in
-    <code>src/tests/</code>.
+    <strong>Shipped.</strong> All five behaviours now live in <code>src/motion.css</code> as
+    <code>.cmc-press</code>, <code>.cmc-tilt</code>, <code>.cmc-busy</code> (+ <code>--stamp</code>) and
+    <code>.cmc-nudge</code>, wired through <code>BusyButton</code>, <code>useMagneticTilt</code> and
+    <code>useIdleNudge</code> — see <code>docs/button-motion.md</code>. This sheet stays as the reference
+    for how they were judged; the class names here are the design intent, not the source of truth.
   </footer>
 </div>
 
