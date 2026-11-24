@@ -25,7 +25,7 @@ ever use one:
 | Tier | Feels like | Used for |
 | --- | --- | --- |
 | **Instant** (`120ms`, `.cmc-press`, `:active`) | "this responds" | every button, every tap |
-| **Informative** (`~340ms`, unfold/expansion) | "this reveals something" | answer keys, score panels |
+| **Informative** (`~340ms`, unfold/expansion) | "this reveals something" | answer keys, score panels — **not shipped yet** (candidate 5 in the lab, still a plain panel) |
 | **Thinking** (breathing + tabular progress, `.cmc-busy`) | "this is working *for* you" | grading, publishing, AI actions |
 
 A student should be able to tell, from the motion alone, whether a control is
@@ -94,6 +94,14 @@ Live example: the Kid 5–11 class setup dialog
 one at a time. It now also holds the confirmation beat — the tick stamps for
 650 ms before the dialog closes, instead of the panel vanishing under the
 teacher's finger.
+
+## Not shipped yet — unfold
+
+Candidate 5 in the lab (a button that grows into the answer-key/score panel)
+is deliberately left out of this pass: it needs its own accessible disclosure
+component (`aria-expanded`, focus handling, Esc), not just a class. The lab
+sheet still demonstrates it; `docs/lab/buttons.html` stays the reference until
+it earns a component.
 
 ## 4 · Success stamp
 
