@@ -53,12 +53,35 @@ against the other with `getAfter()`. There is no Cloud Function in this step.
 
 - The rules have not been compiled or exercised by Firebase itself. After
   publishing `firestore.rules`, register one test student for real.
-- "Teacher" in the rules means a verified address whose domain contains `edu`
-  (or the site-owner account). A student who signs up with a school
-  `…edu…` mailbox would pass as a teacher. Students should register with a
-  personal address until teacher access is an explicit list.
+- "Teacher" in the rules means a verified address on one of the school's own
+  domains (default `aii.edu.kh`) or the site-owner account — see below. Students
+  should register with a personal address: a student who signs up with a valid
+  school mailbox still lands in the teacher queue.
 - Scores are not attached to the seat yet. That is step 2 and step 3.
 - The older class-code flow (`classes` / `enrollments`, "Join a class") is untouched.
+
+## Teacher domain policy (Nov 2026)
+
+Teachers sign up as `name@aii.edu.kh`. That domain is the policy bottom line,
+not a suggestion:
+
+- `DEFAULT_TEACHER_EMAIL_DOMAINS = ['aii.edu.kh']` in `src/lib/userProfile.ts`
+  and the hardcoded default in `schoolDomainPattern()` in `firestore.rules` are
+  the same list — change them together.
+- The owner can add partner schools in **Admin → Users & teacher verification →
+  School email domains**. The panel stores the friendly `allowedEmailDomains`
+  array plus the derived RE2 `allowedEmailDomainsPattern`; the rules match the
+  whole address against that pattern (`^[^@]+@(pattern)$`), so `x@aii.edu.kh.evil.io`
+  and subdomains never qualify.
+- An empty (or cleared) list falls back to the school default. It never means
+  “any `.edu` address”: `harvard.edu` is a *pending* teacher who needs one click
+  from the owner, not an auto-verified one. Clearing the panel is safe.
+- Saved domains must still end in an education TLD (`edu`, `edu.<cc>`,
+  `ac.<cc>`) because `isCmcTeacher()` keeps the TLD anchor on top of the domain
+  gate. A `myschool.org` entry would list but never verify.
+- Client mirrors: `isEmailDomainAllowed` / `isSchoolDomainEmail` in
+  `src/lib/userProfile.ts` for React, and the same rule inlined in the static
+  `public/rfc3/*` pages (they must be updated by hand if the default changes).
 
 ## Private per teacher (Nov 2026)
 
@@ -102,6 +125,57 @@ uploads a photo or picks one of sixteen built-in avatars.
   `src/components/AvatarBadge.tsx`, `src/components/ProfilePhotoModal.tsx`.
 
 Checks: `src/tests/avatar.test.ts`, `npm run build && npm run verify:profile-photo`.
+
+## Daily homework archive (Blaze, Nov 2026)
+
+The teacher's **Scores** sheet re-reads the whole page list every time it opens
+(and again whenever the row count changes) — right for "who handed in just
+now", poor as a record: the read is capped, it costs a full page read per view,
+and nothing would survive a later cleanup of `drill_attempts`.
+
+The `exportHomeworkSheets` Cloud Function (`functions/index.js`) runs **once a
+day at 21:00 Cambodia time** and turns the six Grade-11 homework pages into a
+ready-made CSV score sheet per homework:
+
+- `homework_exports/<page>__hw<1|2|3>` — `slug`, `homework`, `title`,
+  `generatedAt`, `students`, `submissions`, `rowCount`, `omitted`, and `csv`.
+  Written only by the function (rules deny every client write); read by
+  verified teachers (`isVerifiedTeacher()`), which is the same gate as the
+  sheet itself.
+- The teacher's sheet shows **"Download nightly archive"** when the document
+  exists. The file has exactly the live sheet's columns, so a term's sheets
+  can be kept even after `drill_attempts` is trimmed.
+- The pure logic (`functions/lib/homeworkExport.cjs`) is pinned to the live
+  sheet by `src/tests/homeworkExport.test.ts` — same grouping (names matched by
+  case/spacing), same first-try fallback, byte-identical CSV.
+- A homework with no submissions still gets a document (empty `csv`), so the
+  sheet can tell "nothing handed in" apart from "archive not generated".
+
+**Cost.** 6 equality queries + 18 small writes per day on rows that already
+exist — far below the Firestore free tier that still applies on Blaze (50K
+reads / 20K writes per day). No Storage, no egress, one Cloud Scheduler job
+(the first three are free), `maxInstances: 1` so a stuck run cannot fan out.
+The query uses the automatic single-field index on `drillSlug` (no composite
+index required).
+
+**Deploy.**
+
+```bash
+cd functions && npm ci
+npx firebase-tools@latest deploy --only functions,firestore:rules
+```
+
+Publish the rules (console → Firestore → Rules, or the command above). Run once
+by hand if you do not want to wait for 21:00: Firebase console → Functions →
+`exportHomeworkSheets` → **Run now** (or temporarily point the schedule at an
+earlier minute). Without the rules publish the sheet simply renders without the
+download — nothing breaks.
+
+**Verify.** `npx vitest run src/tests/homeworkExport.test.ts`, then open a Kid 11
+homework's **Scores** after the first run and download the archive. A
+teacher-only GET of
+`/v1/projects/creative-minds-cambodia/databases/(default)/documents/homework_exports/unit13hw__hw1`
+returns 200; a signed-out request is denied.
 
 ## Step 2 — homework that cannot be cheated (design, not built)
 

@@ -6,6 +6,7 @@ import { useSignedInSession } from '../hooks/useSignedInSession';
 import { getValidIdToken } from '../lib/firebaseAuth';
 import {
   applyTeacherDecision,
+  DEFAULT_TEACHER_EMAIL_DOMAINS,
   fetchTeacherAccessConfig,
   isEduEmailDomain,
   isEmailDomainAllowed,
@@ -158,15 +159,24 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
     }
   };
 
+  /** Domains the owner added on top of the school's own (always-on) ones. */
+  const extraDomains = access.allowedEmailDomains.filter(
+    (d) => !DEFAULT_TEACHER_EMAIL_DOMAINS.includes(d),
+  );
+
   const addDomain = () => {
     const d = domainInput.trim().toLowerCase();
     if (!d) return;
     if (!/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/.test(d) || !d.includes('.') || d.length > 100) {
-      setDomainError('Enter a real domain, e.g. school.edu.kh — letters, digits, dots and hyphens only.');
+      setDomainError('Enter a real domain, e.g. partner-school.edu.kh — letters, digits, dots and hyphens only.');
+      return;
+    }
+    if (DEFAULT_TEACHER_EMAIL_DOMAINS.includes(d)) {
+      setDomainError(`@${d} is the school domain and always counts — add a partner school instead.`);
       return;
     }
     if (access.allowedEmailDomains.includes(d)) {
-      setDomainError(`@${d} is already on the whitelist.`);
+      setDomainError(`@${d} is already on the list.`);
       return;
     }
     if (access.allowedEmailDomains.length >= 50) {
@@ -174,13 +184,13 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
       return;
     }
     setDomainInput('');
-    void saveDomains([...access.allowedEmailDomains, d], `School domain added: only @${d} and your other listed domains now count as verified school addresses.`);
+    void saveDomains([...extraDomains, d], `School domain added: only @${d}, the school domain and your other listed domains now count as verified school addresses.`);
   };
 
   const removeDomain = (d: string) => {
     void saveDomains(
-      access.allowedEmailDomains.filter((x) => x !== d),
-      `School domain removed: @${d}. Addresses on it fall back to the standard education-TLD check.`,
+      extraDomains.filter((x) => x !== d),
+      `School domain removed: @${d}. Its addresses now need your one-click approval above.`,
     );
   };
 
@@ -237,9 +247,9 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
               Every account appears here with the type it chose at sign-up. Teachers with a verified
-              school (.edu) address are auto-verified; approve Gmail teachers below, and revoke anyone
-              who should lose teacher access. Revoking never removes their student access. Optionally
-              narrow auto-verification to your own school domains at the bottom of the page.
+              school address on the school domain (name@aii.edu.kh) are auto-verified; approve Gmail
+              teachers below, and revoke anyone who should lose teacher access. Revoking never removes
+              their student access. Add more school domains at the bottom of the page.
             </p>
           </div>
           <button
@@ -394,15 +404,16 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
           )}
         </div>
 
-        {/* ── Owner-managed school-domain whitelist (optional tightening) ── */}
+        {/* ── Owner-managed school-domain list (the teacher policy) ── */}
         <div className="mt-6 rounded-2xl border border-slate-700/70 bg-slate-950/60 p-4 sm:p-5">
           <h2 className="font-[var(--font-display)] text-sm font-bold text-white">School email domains</h2>
           <p className="mt-1 max-w-xl text-[11px] leading-relaxed text-slate-400">
-            Optional tightening. While this list is empty, any real education domain (.edu, .edu.kh, .ac.th, …)
-            counts as a verified school address. Once you add domains, ONLY those exact domains
-            (subdomains not included — list them too) count as school addresses; every other education
-            address then needs your one-click approval above. Enforced in firestore.rules, so it holds
-            even for tampered clients.
+            Teachers sign up as <code className="rounded bg-white/10 px-1">name@aii.edu.kh</code>. The school
+            domain below always counts; add a domain here to accept a partner school too. ONLY the listed
+            domains (subdomains not included — list them too) count as school addresses, and every other
+            address needs your one-click approval above. Removing every entry leaves just the school
+            domain — it never opens the door to other .edu addresses. Enforced in firestore.rules, so it
+            holds even for tampered clients.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <label className="flex min-w-0 flex-1 items-center rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 sm:max-w-xs">
@@ -410,8 +421,8 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
                 value={domainInput}
                 onChange={(event) => { setDomainInput(event.target.value); setDomainError(null); }}
                 onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addDomain(); } }}
-                placeholder="school.edu.kh"
-                aria-label="Add a school email domain to the whitelist"
+                placeholder="partner-school.edu.kh"
+                aria-label="Add an extra school email domain"
                 className="w-full min-w-0 bg-transparent text-xs text-white outline-none placeholder:text-slate-600"
               />
             </label>
@@ -427,28 +438,37 @@ export function AdminUsersPanel({ embedded = false }: AdminUsersPanelProps) {
           {domainError && (
             <p role="alert" className="mt-2 text-[11px] text-rose-100">{domainError}</p>
           )}
-          {access.allowedEmailDomains.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {access.allowedEmailDomains.map((d) => (
-                <span
-                  key={d}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold text-cyan-100"
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {DEFAULT_TEACHER_EMAIL_DOMAINS.map((d) => (
+              <span
+                key={`default-${d}`}
+                title="The school's own domain — always accepted, cannot be removed"
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold text-white/80"
+              >
+                @{d}
+                <span className="text-[9px] font-semibold tracking-wide text-white/40 uppercase">school</span>
+              </span>
+            ))}
+            {extraDomains.map((d) => (
+              <span
+                key={d}
+                className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-[11px] font-bold text-cyan-100"
+              >
+                @{d}
+                <button
+                  type="button"
+                  onClick={() => removeDomain(d)}
+                  disabled={domainBusy}
+                  aria-label={`Remove ${d} from the school domain list`}
+                  className="text-cyan-300/70 transition hover:text-rose-200 disabled:opacity-50"
                 >
-                  @{d}
-                  <button
-                    type="button"
-                    onClick={() => removeDomain(d)}
-                    disabled={domainBusy}
-                    aria-label={`Remove ${d} from the school whitelist`}
-                    className="text-cyan-300/70 transition hover:text-rose-200 disabled:opacity-50"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-3 text-[11px] italic text-slate-500">Whitelist empty — the standard education-TLD check applies.</p>
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          {extraDomains.length === 0 && (
+            <p className="mt-2 text-[11px] italic text-slate-500">No extra domains — only the school domain above counts as a school address.</p>
           )}
         </div>
 

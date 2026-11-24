@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, FileText, Gamepad2, GraduationCap, Play } from 'lucide-react';
 import { useCountUp } from '../hooks/useReveal';
+import { useMagneticTilt } from '../hooks/useMagneticTilt';
 import { useTitleParticles } from '../hooks/useTitleParticles';
 import { smallTitleSpacing } from '../lib/titleParticlesMath';
 
@@ -112,6 +113,8 @@ export const Hero = ({
   const shortcutsRef = useRef<HTMLElement>(null);
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
+  // One hero CTA only — the tilt is a highlight, not a texture.
+  const primaryCtaRef = useMagneticTilt<HTMLButtonElement>();
   const titleRef = useRef<HTMLHeadingElement>(null);
   const titleCanvasRef = useRef<HTMLCanvasElement>(null);
   // The title drawn as particles (three.js). The <h1> below stays the real
@@ -227,7 +230,9 @@ export const Hero = ({
               </div>
 
               <div className="cmc-hero-enter cmc-hero-actions mt-8 flex flex-wrap items-center gap-3 sm:mt-10">
-                <button type="button" onClick={onExploreTools} className="cmc-btn-primary group">
+                {/* The one and only magnetic-tilt button on the page: a fixed
+                    max of 8°, hover-capable pointers only (see useMagneticTilt). */}
+                <button ref={primaryCtaRef} type="button" onClick={onExploreTools} className="cmc-btn-primary cmc-tilt group">
                   Explore teacher tools
                   <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
                 </button>

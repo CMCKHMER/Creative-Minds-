@@ -9,7 +9,8 @@ interface PendingTeacherGateProps {
  * Full-screen lock shown while a teacher account is awaiting verification.
  *
  * A teacher account is verified in one of two ways:
- *  - a school address (.edu / .ac) with a verified email link — automatic, or
+ *  - a school address on the school domain (name@aii.edu.kh, or a domain the
+ *    owner added) with a verified email link — automatic, or
  *  - approval by the site admin (Admin → Users & Teacher Verification).
  *
  * Until one of these happens the account has no access to the platform, so
@@ -33,9 +34,9 @@ export function PendingTeacherGate({ onSignOut }: PendingTeacherGateProps) {
           Verification pending
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-slate-300">
-          Teacher accounts can use the platform only after they are verified. A school address (.edu or .ac)
-          is verified automatically once you click the link in your verification email. Any other address is
-          verified when the site admin approves the account.
+          Teacher accounts can use the platform only after they are verified. A school address on the
+          school domain (name@aii.edu.kh) is verified automatically once you click the link in your
+          verification email. Any other address is verified when the site admin approves the account.
         </p>
         <p className="mt-3 flex items-start justify-center gap-2 text-left text-xs leading-relaxed text-slate-400">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />

@@ -78,7 +78,7 @@ const claimsOf = (header) => {
   if (!m) return null;
   try { return JSON.parse(Buffer.from(m[1].split('.')[1], 'base64url').toString('utf8')); } catch { return null; }
 };
-const TEACHER = { user_id: 'teacher-1', email: 'bora@school.edu.kh', email_verified: true };
+const TEACHER = { user_id: 'teacher-1', email: 'bora@aii.edu.kh', email_verified: true };
 const OTHER_TEACHER_UID = 'teacher-2';
 
 const db = {
@@ -96,7 +96,12 @@ const refuseQuietly = () => ({ code: 403, body: { error: { code: 403, status: 'P
 const notFound = (name) => ({ code: 404, body: { error: { code: 404, status: 'NOT_FOUND', message: `Document "${name}" not found.` } } });
 const exists = (name) => ({ code: 409, body: { error: { code: 409, status: 'ALREADY_EXISTS', message: `Document already exists: ${name}` } } });
 
-const isCmcTeacher = (a) => !!a && a.email_verified === true && typeof a.email === 'string' && /@[^@]*edu[^@]*$/i.test(a.email);
+// Mirrors isCmcTeacher() in firestore.rules: an education TLD AND the school's own
+// domain. aii.edu.kh is the default in schoolDomainPattern() (the site_config list
+// can add more); a foreign .edu address is not a teacher.
+const SCHOOL_DOMAIN = /^[^@]+@(?:aii\.edu\.kh)$/;
+const isCmcTeacher = (a) => !!a && a.email_verified === true && typeof a.email === 'string'
+  && /@[^@]*edu[^@]*$/i.test(a.email) && SCHOOL_DOMAIN.test(a.email.toLowerCase());
 const isVerifiedTeacher = (a) => isCmcTeacher(a) && db.teachers.has(a.user_id);
 const val = (f) => {
   if (!f) return undefined;
@@ -269,7 +274,7 @@ await teacherCtx.addInitScript(([token]) => {
     localStorage.setItem('cmc-student-token', token);
     localStorage.setItem('cmc-student-token-expires', String(Date.now() + 3600e3));
     localStorage.setItem('cmc-student-role', 'teacher');
-    localStorage.setItem('cmc-student-email', 'bora@school.edu.kh');
+    localStorage.setItem('cmc-student-email', 'bora@aii.edu.kh');
     localStorage.setItem('cmc-student-name', 'Bora');
   } catch (e) { /* storage blocked */ }
 }, [jwt(TEACHER)]);

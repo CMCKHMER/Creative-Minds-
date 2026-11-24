@@ -388,7 +388,10 @@ html.hw-pending body{overflow:hidden!important}
     var role = ls('cmc-student-role');
     var email = ls('cmc-student-email').toLowerCase();
     var uid = ls('cmc-student-uid');
-    return role === 'teacher' || email.indexOf('edu') !== -1 || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
+    // School-domain gate: only the school's own domain is a teacher by email
+    // (mirrors DEFAULT_TEACHER_EMAIL_DOMAINS in src/lib/userProfile.ts and
+    // isAllowedSchoolDomain() in firestore.rules — a foreign .edu is not).
+    return role === 'teacher' || /(^|@)aii\.edu\.kh$/.test(email) || uid === '5iLvnjzmV8QY7WFZhyTq6PIgcI63';
   }
   // Lock BEFORE first paint for everyone who is not a teacher — applyState()
   // below lifts it (at least one homework shared) or builds the overlay.

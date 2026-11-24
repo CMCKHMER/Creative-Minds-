@@ -740,7 +740,7 @@ export function FirebaseDashboard() {
               </button>
             </div>
             <p className="mt-3 text-[10px] text-slate-500">
-              New here? Click the button, then choose "Create an account" inside. Teachers: use the "Create a teacher account" button in the hero above with a work email ending in .edu or .edu.kh.
+              New here? Click the button, then choose "Create an account" inside. Teachers: use the "Create a teacher account" button in the hero above with your school address (name@aii.edu.kh).
             </p>
             </div>
           </div>
