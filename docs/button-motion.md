@@ -1,0 +1,143 @@
+# Button motion
+
+How the site's controls respond, and the rules that keep that response from
+becoming noise. Chosen from the six candidates in `docs/lab/buttons.html`.
+
+**Files**
+
+| File | What it holds |
+| --- | --- |
+| `src/motion.css` | Every behaviour, its light-theme variant and its reduced-motion off-switch. Imported **last** in `src/main.tsx`. |
+| `src/hooks/useMagneticTilt.ts` | Pointer → tilt/glare maths (`tiltFromPointer`), device gate (`tiltSupported`). |
+| `src/hooks/useIdleNudge.ts` | The idle timer behind the hint bubble. |
+| `src/components/BusyButton.tsx` | The AI working state **and** the success stamp — one control, two moments. |
+| `src/tests/buttonMotion.test.ts` | CSS pins, wiring pins, math and hook behaviour. |
+
+`motion.css` must stay **after** `glass.css` and `iridescent.css`: the button
+skins there set `transform` with `!important`, and the tilt has to win the
+cascade. A test enforces the import order.
+
+## The three tiers
+
+Motion carries meaning, so it comes in three flavours and a control should only
+ever use one:
+
+| Tier | Feels like | Used for |
+| --- | --- | --- |
+| **Instant** (`120ms`, `.cmc-press`, `:active`) | "this responds" | every button, every tap |
+| **Informative** (`~340ms`, unfold/expansion) | "this reveals something" | answer keys, score panels |
+| **Thinking** (breathing + tabular progress, `.cmc-busy`) | "this is working *for* you" | grading, publishing, AI actions |
+
+A student should be able to tell, from the motion alone, whether a control is
+going to submit, open something, or think. That is the whole design goal — not
+decoration.
+
+## 1 · Press depth — everywhere
+
+`.cmc-btn-primary`, `.cmc-btn-3d*`, `.cmc-btn-ghost` and anything with
+`.cmc-press` get `touch-action: manipulation` (kills the 300 ms double-tap
+delay on phones) and `-webkit-tap-highlight-color: transparent`.
+
+A phone never fires `:hover`, so under `@media (hover: none)` the `:active`
+state carries the full press: 3px down, 0.992 scale, shadow collapse.
+
+```html
+<button class="cmc-press rounded-lg px-3 py-2">Retry</button>
+```
+
+Do not add press depth to a control that already has
+`.cmc-btn-primary` / `.cmc-btn-3d` — they carry it themselves.
+
+## 2 · Magnetic tilt — one hero CTA, hover devices only
+
+```tsx
+const ctaRef = useMagneticTilt<HTMLButtonElement>();
+<button ref={ctaRef} className="cmc-btn-primary cmc-tilt">Explore teacher tools</button>
+```
+
+- Max **8°** (`MAX_TILT_DEG`), clamped to the element's box, so a fast pointer
+  can never spin it.
+- Off on touch (`(hover: hover) and (pointer: fine)` required) and off under
+  `prefers-reduced-motion`.
+- Zero-size elements are ignored — no `NaN` written into a custom property.
+- The glare uses `::before` because the primary skin already owns `::after`
+  for its travelling sheen.
+- **Budget: one per screen.** Two competing highlights read as a broken page.
+
+## 3 · Busy / AI working state
+
+The label *is* the progress read-out, so a 14-write run never looks stuck.
+
+```tsx
+<BusyButton
+  state={phase}                                   // 'idle' | 'working' | 'done'
+  idleLabel={`Create ${missing.length} classes`}
+  workingLabel={`Creating ${done + 1} of ${missing.length}…`}
+  doneLabel={`${missing.length} classes created`}
+  progress={done / missing.length}                // 0…1 → the 3px bar
+  stamp                                           // tick + halo on 'done'
+  className="w-full rounded-xl bg-gradient-to-r from-cyan-300 to-teal-200 px-4 py-3"
+/>
+```
+
+- `working` sets `aria-busy`, disables the button (no double submits) and
+  announces the label through `aria-live="polite"`.
+- Progress is `scaleX(var(--cmc-busy-p))` on a 3 px bar — never a width
+  animation, so a progress tick costs no layout.
+- Keep the working text **coarse** ("Creating 3 of 14…"), not every write —
+  screen readers re-read the live region.
+- Numbers use `font-variant-numeric: tabular-nums` so the label does not jitter
+  as digits change.
+
+Live example: the Kid 5–11 class setup dialog
+(`src/components/RosterRegistrationPanel.tsx`), which writes fourteen classes
+one at a time. It now also holds the confirmation beat — the tick stamps for
+650 ms before the dialog closes, instead of the panel vanishing under the
+teacher's finger.
+
+## 4 · Success stamp
+
+`stamp` on `BusyButton`: squash, tick stamp, halo — 420 ms total, once, no
+confetti. Use it for a student's submission, not for navigation.
+
+## 5 · Idle nudge
+
+```tsx
+const ref = useIdleNudge<HTMLButtonElement>();      // 6s default
+<button ref={ref} className="cmc-nudge cmc-nudge--below">
+  Find my score
+  <span className="cmc-nudge__bubble" aria-hidden="true">The name you wrote on the homework</span>
+</button>
+```
+
+Nothing at rest; after the idle window it breathes twice and shows the bubble.
+Any `pointerenter` / `pointerdown` / `focusin` / `keydown` silences it, and
+leaving re-arms it. Use `.cmc-nudge--below` when the control sits near the top
+of a sheet. **Budget: one per screen**, and only where being stuck is a real
+possibility.
+
+## Rules for any new effect
+
+1. **Transform and opacity only.** No `width`, `height`, `top`/`left`, and no
+   repeating `box-shadow` — those repaint or reflow every frame. The nudge ring
+   is the one exception (a 2.4 s pulse, not a loop on a CTA).
+2. **Light theme or it does not ship.** `index.css` re-states the dark skins
+   under `html.light`; add the pale-theme variant in the same commit.
+3. **`prefers-reduced-motion` or it does not ship.** The block at the bottom of
+   `motion.css` kills every decoration; the *state changes* must still happen.
+4. **Touch first.** If the effect only exists in `:hover`, a phone never sees
+   it — and most students are on phones.
+5. **Never rotate, flip or scramble a label.** The CTAs are uppercase with
+   `letter-spacing: .14em`, and many readers use English as a second language.
+   Animate around text, never the text itself.
+6. **Pin it.** Add a line to `src/tests/buttonMotion.test.ts` — CSS strings,
+   wiring, or behaviour — so a later refactor cannot silently drop it.
+
+## Adding a control — checklist
+
+- [ ] press depth: `.cmc-press`, or one of the `.cmc-btn-*` skins (free)
+- [ ] if it runs a multi-step write: `BusyButton` with real `progress`
+- [ ] if it confirms a kid's submission: `stamp`
+- [ ] if it is the one thing a stuck student needs: `useIdleNudge`
+- [ ] light-theme rule + reduced-motion rule (motion.css)
+- [ ] a pin in `src/tests/buttonMotion.test.ts`

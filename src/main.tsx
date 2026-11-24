@@ -3,6 +3,9 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import "./glass.css";
 import "./iridescent.css";
+// Motion layer LAST: press-depth, tilt, busy/progress, stamp, nudge — it has to
+// out-cascade the button skins in iridescent.css (see docs/button-motion.md).
+import "./motion.css";
 import App from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { loadGoogleClient } from "./lib/google";
