@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Button Lab — Creative Minds</title>
+<style>
+  /* ── Button Lab ──────────────────────────────────────────────────────
+     Standalone design sheet. Nothing here ships with the app; the point is
+     to FEEL each candidate before wiring one into .cmc-btn-primary / 3d.
+     Palette matches src/index.css (ink #061018, cyan #67e8f9, teal #5eead4).
+     Rule the whole page keeps: animate transform + opacity only. Never
+     width, height, top/left or box-shadow on a repeating animation.       */
+
+  :root{
+    --ink:#061018;
+    --ink-2:#0a1a24;
+    --card:rgba(255,255,255,.045);
+    --line:rgba(255,255,255,.10);
+    --text:#e6eef5;
+    --dim:#93a7b6;
+    --cyan:#67e8f9;
+    --teal:#5eead4;
+    --violet:#c4b5fd;
+    --spring:cubic-bezier(.34,1.56,.64,1);
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --font:'Space Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(103,232,249,.10), transparent 60%),
+      radial-gradient(900px 500px at 90% 0%, rgba(196,181,253,.09), transparent 55%),
+      var(--ink);
+    color:var(--text);
+    font-family:var(--font);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:clamp(16px,4vw,44px) clamp(14px,4vw,40px) 96px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:clamp(1.45rem,4.4vw,2.1rem);line-height:1.15;margin:0 0 8px;letter-spacing:-.02em}
+  .lead{color:var(--dim);max-width:64ch;margin:0 0 22px;font-size:.94rem}
+  .lead strong{color:#cfe9f2;font-weight:600}
+  .toolbar{
+    position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px;
+    padding:10px 0 12px;margin:0 0 18px;
+    background:linear-gradient(180deg,var(--ink) 62%,rgba(6,16,24,0));
+    backdrop-filter:blur(6px);
+  }
+  .chip{
+    appearance:none;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.04);
+    color:var(--text);border-radius:999px;padding:7px 13px;font:600 .74rem/1 var(--font);
+    letter-spacing:.02em;transition:border-color .2s,background-color .2s,color .2s;
+  }
+  .chip:hover{border-color:rgba(103,232,249,.45)}
+  .chip[aria-pressed="true"]{background:rgba(103,232,249,.14);border-color:rgba(103,232,249,.55);color:#d9fbff}
+  .chip-note{color:#6f8493;font-size:.74rem;align-self:center;margin-left:auto}
+
+  .grid{display:grid;gap:clamp(12px,2.2vw,20px);grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr))}
+  .demo{
+    border:1px solid var(--line);border-radius:18px;background:var(--card);
+    padding:clamp(14px,2.4vw,20px);display:flex;flex-direction:column;gap:12px;
+    box-shadow:0 24px 60px -40px rgba(0,0,0,.9);
+  }
+  .demo h2{font-size:.95rem;margin:0;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
+  .demo h2 span.num{
+    display:grid;place-items:center;width:22px;height:22px;border-radius:7px;
+    background:rgba(103,232,249,.14);color:var(--cyan);font-size:.72rem;font-weight:700;
+  }
+  .demo p{margin:0;color:var(--dim);font-size:.82rem}
+  .demo p strong{color:#cfe9f2;font-weight:600}
+  .stage{
+    min-height:112px;display:grid;place-items:center;padding:14px;
+    border-radius:14px;border:1px dashed rgba(255,255,255,.09);
+    background:rgba(4,12,18,.55);overflow:hidden;
+  }
+  .stage.tall{min-height:190px}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{
+    font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;
+    color:#8fb6c6;border:1px solid rgba(143,182,198,.28);border-radius:6px;padding:3px 7px;
+  }
+  .tag.js{color:#d9c6ff;border-color:rgba(196,181,253,.32)}
+  .tag.warn{color:#ffd8a8;border-color:rgba(255,216,168,.3)}
+
+  /* ── shared button skeleton ───────────────────────────────────────── */
+  .b{
+    appearance:none;border:0;cursor:pointer;font-family:var(--font);
+    display:inline-flex;align-items:center;justify-content:center;gap:.6rem;
+    padding:.85rem 1.5rem;border-radius:999px;
+    font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+    color:#06121a;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 52%),
+      linear-gradient(105deg,var(--cyan),var(--teal) 55%,#7dd3fc);
+    will-change:transform;
+  }
+  .b:focus-visible{outline:2px solid #a5f3fc;outline-offset:3px}
+
+  /* 1 ── press depth: the physical key ─────────────────────────────── */
+  .b-depth{
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.75),
+      inset 0 -1px 0 rgba(0,0,0,.16),
+      0 5px 0 #0b6b82,
+      0 14px 26px -14px rgba(8,145,178,.7);
+    transition:transform .13s var(--spring),box-shadow .13s ease;
+  }
+  .b-depth:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -1px 0 rgba(0,0,0,.16),0 6px 0 #0b6b82,0 20px 34px -16px rgba(8,145,178,.75)}
+  .b-depth:active{transform:translateY(4px);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 0 rgba(0,0,0,.22),0 1px 0 #0b6b82,0 4px 10px -6px rgba(8,145,178,.6)}
+
+  /* 2 ── magnetic tilt + glare (pointer devices only) ──────────────── */
+  .tilt-stage{perspective:620px}
+  .b-tilt{
+    position:relative;isolation:isolate;overflow:hidden;
+    transform-style:preserve-3d;
+    transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0);
+    transition:transform .18s var(--ease);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.75),
+      0 10px 0 -6px rgba(11,107,130,.9),
+      0 24px 40px -22px rgba(34,211,238,.75);
+  }
+  .b-tilt::after{
+    content:"";position:absolute;inset:-40%;z-index:-1;pointer-events:none;
+    background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.62),rgba(255,255,255,.08) 38%,transparent 62%);
+    opacity:0;transition:opacity .22s ease;
+  }
+  .b-tilt:hover::after{opacity:1}
+  .tilt-hint{font-size:.68rem;color:#6f8493;letter-spacing:.04em}
+  @media (hover:none){.tilt-hint::after{content:" — hover devices only (phones skip this one)"}}
+
+  /* 3 ── AI working state: the button becomes the progress bar ─────── */
+  .b-ai{position:relative;overflow:hidden;min-width:15.5rem;letter-spacing:.06em}
+  .b-ai .label{position:relative;display:inline-flex;align-items:center;gap:.5rem;font-variant-numeric:tabular-nums}
+  .b-ai .spin{
+    width:13px;height:13px;border-radius:50%;
+    border:2px solid rgba(4,18,26,.35);border-top-color:#04121a;
+    opacity:0;transform:scale(.4);transition:opacity .18s,transform .18s var(--spring);
+  }
+  .b-ai[data-state="working"] .spin{opacity:1;transform:scale(1);animation:lab-spin .9s linear infinite}
+  .b-ai[data-state="working"]{
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,0) 52%),
+      linear-gradient(105deg,#a5f3fc,#67e8f9 52%,#5eead4);
+    animation:lab-breathe 1.6s ease-in-out infinite;
+  }
+  .b-ai .fill{
+    position:absolute;left:0;bottom:0;height:3px;width:100%;transform-origin:0 50%;
+    transform:scaleX(var(--p,0));background:#04121a;opacity:.55;
+    transition:transform .35s linear;
+  }
+  .b-ai[data-state="done"]{background:
+      linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 52%),
+      linear-gradient(105deg,#6ee7b7,#5eead4 60%,#67e8f9)}
+  .b-ai[data-state="done"] .fill{opacity:0}
+  @keyframes lab-spin{to{transform:rotate(360deg)}}
+  @keyframes lab-breathe{0%,100%{filter:brightness(1)}50%{filter:brightness(1.07)}}
+  .ai-note{font-size:.7rem;color:#7f97a6;min-height:1em}
+
+  /* 4 ── success pop: sticker stamp for kids' submissions ──────────── */
+  .b-pop{position:relative;transition:transform .16s var(--spring),background .2s}
+  .b-pop .tick{display:inline-block;transform:scale(0) rotate(-24deg);transition:transform .28s var(--spring)}
+  .b-pop.is-done{background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 52%),linear-gradient(105deg,#6ee7b7,#34d399 60%,#5eead4)}
+  .b-pop.is-done .tick{transform:scale(1) rotate(0)}
+  .b-pop.is-done .word-todo{display:none}
+  .b-pop.pulse{animation:lab-pop .42s var(--spring)}
+  .halo{
+    position:absolute;inset:-6px;border-radius:999px;pointer-events:none;
+    border:2px solid rgba(110,231,183,.85);opacity:0;
+  }
+  .b-pop.is-done .halo{animation:lab-halo .6s ease-out}
+  @keyframes lab-pop{0%{transform:scale(1)}35%{transform:scale(.94)}70%{transform:scale(1.05)}100%{transform:scale(1)}}
+  @keyframes lab-halo{0%{opacity:.9;transform:scale(.97)}100%{opacity:0;transform:scale(1.22)}}
+
+  /* 5 ── unfold: button opens into its own panel ───────────────────── */
+  .unfold{width:100%;display:flex;flex-direction:column;align-items:center;gap:0}
+  .b-unfold{border-radius:14px;width:100%;max-width:15rem;transition:border-radius .2s ease,transform .16s var(--spring)}
+  .b-unfold[aria-expanded="true"]{border-radius:14px 14px 0 0;transform:translateY(1px)}
+  .panel{
+    width:100%;max-width:15rem;overflow:hidden;max-height:0;opacity:0;transition:max-height .34s var(--ease),opacity .2s ease;
+    border-radius:0 0 14px 14px;border:1px solid rgba(103,232,249,.25);border-top:0;
+    background:rgba(6,20,28,.96);text-align:left;
+  }
+  .panel.open{max-height:190px;opacity:1}
+  .panel-in{padding:12px 14px;font-size:.78rem;color:#c6dbe6;display:grid;gap:6px}
+  .panel-in b{color:#9df6ff;font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
+  .key-row{display:flex;justify-content:space-between;border-bottom:1px dashed rgba(255,255,255,.09);padding-bottom:4px}
+  .key-row:last-child{border:0}
+
+  /* 6 ── idle nudge: the tutor clears its throat after 6s ──────────── */
+  .nudge-zone{display:grid;place-items:center;gap:10px;position:relative}
+  .b-nudge{position:relative;background:
+      linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 52%),
+      linear-gradient(105deg,#c4b5fd,#a5b4fc 55%,#67e8f9);
+    transition:transform .18s var(--spring)}
+  .b-nudge::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    box-shadow:0 0 0 0 rgba(196,181,253,.55);opacity:0;
+  }
+  .nudge-zone.breathing .b-nudge::before{opacity:1;animation:lab-nudge 2.4s ease-out infinite}
+  .nudge-zone.breathing .b-nudge{animation:lab-tap 2.4s ease-in-out infinite}
+  .bubble{
+    font-size:.72rem;color:#d7ccff;background:rgba(196,181,253,.12);
+    border:1px solid rgba(196,181,253,.28);border-radius:12px;padding:6px 10px;
+    opacity:0;transform:translateY(4px);transition:opacity .3s,transform .3s var(--ease);
+  }
+  .nudge-zone.breathing .bubble{opacity:1;transform:none}
+  @keyframes lab-nudge{0%{box-shadow:0 0 0 0 rgba(196,181,253,.5)}70%{box-shadow:0 0 0 14px rgba(196,181,253,0)}100%{box-shadow:0 0 0 0 rgba(196,181,253,0)}}
+  @keyframes lab-tap{0%,100%{transform:translateY(0)}6%{transform:translateY(-2px) scale(1.015)}12%{transform:translateY(0)}}
+
+  /* ── light-theme strip: every effect must still read on the pale theme ── */
+  .light-strip{
+    margin-top:26px;border-radius:18px;padding:clamp(14px,2.6vw,22px);
+    background:#d6dde7;color:#0c1a2c;border:1px solid rgba(15,23,42,.10);
+  }
+  .light-strip h2{font-size:.95rem;margin:0 0 4px;color:#0c1a2c}
+  .light-strip p{margin:0 0 14px;font-size:.8rem;color:#334155;max-width:70ch}
+  .light-strip .stage{background:rgba(255,255,255,.55);border-color:rgba(15,23,42,.12)}
+  .light-strip .demo{background:rgba(255,255,255,.5);border-color:rgba(15,23,42,.10)}
+  .light-strip .demo h2,.light-strip .demo p{color:#1e293b}
+  .light-strip .tag{color:#33566b;border-color:rgba(51,86,107,.3)}
+
+  /* ── global reduced-motion simulation (mirrors what the media query does) ── */
+  html.reduce *,
+  html.reduce *::before,
+  html.reduce *::after{
+    animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+  html.reduce .b-tilt{transform:none !important}
+  footer{margin-top:34px;color:#5d7484;font-size:.76rem;max-width:66ch}
+  code{background:rgba(255,255,255,.07);border-radius:5px;padding:1px 5px;font-size:.92em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Button Lab — six candidates</h1>
+  <p class="lead">
+    Your buttons already have a hard 3D base edge (<code>0 4px 0 #0e7490</code>) and a travelling sheen, so the site
+    is not flat — it is <strong>quiet</strong>. The gap is that almost all the life is in <em>hover</em>, which a phone
+    never fires. Each idea below is ranked by how much “alive” it buys per unit of cost, and every one animates only
+    <strong>transform / opacity</strong>. Tap the buttons; they are real.
+  </p>
+
+  <div class="toolbar">
+    <button class="chip" type="button" id="rm" aria-pressed="false">Simulate prefers-reduced-motion</button>
+    <span class="chip-note">Resize / use your phone: hover-only effects disappear on touch by design.</span>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1 -->
+    <section class="demo">
+      <h2><span class="num">1</span> Press-depth everywhere</h2>
+      <p>The physical-key feel you already built, promoted to a system default. <strong>Cheapest, biggest win:</strong> the
+        button answers the finger, not the mouse.</p>
+      <div class="stage"><button class="b b-depth" type="button">Start the lesson</button></div>
+      <div class="tags"><span class="tag">transform only</span><span class="tag">no JS</span><span class="tag">works on touch</span></div>
+    </section>
+
+    <!-- 2 -->
+    <section class="demo">
+      <h2><span class="num">2</span> Magnetic tilt + glare</h2>
+      <p>Max <strong>8°</strong>, one or two hero CTAs only. The highlight follows the cursor so the surface reads as glass.
+        Catches the light like a real object — this is the “3D box” idea, but restrained.</p>
+      <div class="stage tall tilt-stage">
+        <div style="display:grid;gap:8px;justify-items:center">
+          <button class="b b-tilt" type="button" data-tilt>Open the Studio</button>
+          <span class="tilt-hint">move the pointer across it</span>
+        </div>
+      </div>
+      <div class="tags"><span class="tag js">tiny JS</span><span class="tag">hover only</span><span class="tag warn">max 2 per screen</span></div>
+    </section>
+
+    <!-- 3 -->
+    <section class="demo">
+      <h2><span class="num">3</span> AI working state</h2>
+      <p>Where AI + education actually pays off: the button <strong>becomes</strong> the progress read-out — “Grading 3 of 12”
+        — then lands on a result. Kills the “did it work?” click-click-click.</p>
+      <div class="stage tall">
+        <div style="display:grid;gap:10px;justify-items:center">
+          <button class="b b-ai" type="button" data-state="idle" data-ai>
+            <span class="label"><span class="spin" aria-hidden="true"></span><span data-label>Grade 12 answers</span></span>
+            <span class="fill" aria-hidden="true"></span>
+          </button>
+          <span class="ai-note" data-ainote>tap to run</span>
+        </div>
+      </div>
+      <div class="tags"><span class="tag js">small JS</span><span class="tag">announce with aria-live</span><span class="tag">transform only</span></div>
+    </section>
+
+    <!-- 4 -->
+    <section class="demo">
+      <h2><span class="num">4</span> Success stamp</h2>
+      <p>Squash, then a tick that stamps in with a halo. For <strong>kids</strong> this is the reward the worksheet never gives
+        them — and it is 300&nbsp;ms, not a confetti cannon.</p>
+      <div class="stage"><button class="b b-pop" type="button" data-pop><span class="halo" aria-hidden="true"></span><span class="tick" aria-hidden="true">✓</span><span class="word-todo">Submit homework</span></button></div>
+      <div class="tags"><span class="tag">transform + opacity</span><span class="tag js">tiny JS</span><span class="tag">reset after 1.6s</span></div>
+    </section>
+
+    <!-- 5 -->
+    <section class="demo">
+      <h2><span class="num">5</span> Unfold, don’t navigate</h2>
+      <p>The button grows into the thing it reveals — perfect for <strong>answer keys</strong> and score summaries. Motion that
+        explains where the content came from instead of a jump-cut.</p>
+      <div class="stage tall">
+        <div class="unfold">
+          <button class="b b-unfold" type="button" data-unfold aria-expanded="false">Show answer key</button>
+          <div class="panel" data-panel>
+            <div class="panel-in">
+              <b>Unit 3 · answers</b>
+              <div class="key-row"><span>1. Photosynthesis</span><span>B</span></div>
+              <div class="key-row"><span>2. 24 cm²</span><span>C</span></div>
+              <div class="key-row"><span>3. Because the mass…</span><span>A</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tags"><span class="tag">max-height + opacity</span><span class="tag js">tiny JS</span><span class="tag">teachers only</span></div>
+    </section>
+
+    <!-- 6 -->
+    <section class="demo">
+      <h2><span class="num">6</span> Idle nudge</h2>
+      <p>The tutor button stays perfectly still for 6 s, then breathes <em>twice</em> and offers a hint. Motion that means
+        “I noticed you are stuck” — the opposite of decorative noise.</p>
+      <div class="stage tall">
+        <div class="nudge-zone" data-nudge>
+          <span class="bubble">Stuck? Ask for a hint.</span>
+          <button class="b b-nudge" type="button">💡 Hint</button>
+        </div>
+      </div>
+      <div class="tags"><span class="tag js">idle timer</span><span class="tag">stops on interaction</span><span class="tag warn">one per screen</span></div>
+    </section>
+  </div>
+
+  <div class="light-strip">
+    <h2>The light theme is the real test</h2>
+    <p>
+      Your <code>html.light</code> block already re-states dozens of dark-theme effects. A 3D edge needs its own darker
+      base colour here (<code>#0b6b82</code> works on the pale surface, the glow has to drop to ~35% alpha), and the glare
+      must switch from white to a cyan tint or it disappears. Any candidate that cannot survive this strip is not worth
+      wiring in.
+    </p>
+    <div class="grid">
+      <section class="demo"><div class="stage"><button class="b b-depth" type="button">Press-depth · light</button></div></section>
+      <section class="demo"><div class="stage"><button class="b b-pop" type="button" data-pop><span class="halo" aria-hidden="true"></span><span class="tick" aria-hidden="true">✓</span><span class="word-todo">Submit · light</span></button></div></section>
+    </div>
+  </div>
+
+  <footer>
+    Lab sheet only — <code>docs/lab/buttons.html</code>, not linked from the site and not built by Vite.
+    If one of these earns a place, it goes into <code>src/index.css</code> next to <code>.cmc-btn-3d</code>, with a
+    matching <code>html.light</code> rule and a <code>prefers-reduced-motion</code> override, then a pin test in
+    <code>src/tests/</code>.
+  </footer>
+</div>
+
+<script>
+  // ── reduced-motion simulation ───────────────────────────────────────
+  document.getElementById('rm').addEventListener('click', (e) => {
+    const on = document.documentElement.classList.toggle('reduce');
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+  });
+
+  // ── 2 · magnetic tilt + moving glare ────────────────────────────────
+  const canHover = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  document.querySelectorAll('[data-tilt]').forEach((btn) => {
+    if (!canHover) return;
+    const MAX = 8;
+    btn.addEventListener('pointermove', (ev) => {
+      const r = btn.getBoundingClientRect();
+      const px = (ev.clientX - r.left) / r.width;
+      const py = (ev.clientY - r.top) / r.height;
+      btn.style.setProperty('--ry', ((px - 0.5) * 2 * MAX).toFixed(2) + 'deg');
+      btn.style.setProperty('--rx', ((0.5 - py) * 2 * MAX).toFixed(2) + 'deg');
+      btn.style.setProperty('--gx', (px * 100).toFixed(1) + '%');
+      btn.style.setProperty('--gy', (py * 100).toFixed(1) + '%');
+    });
+    const reset = () => {
+      btn.style.setProperty('--rx', '0deg');
+      btn.style.setProperty('--ry', '0deg');
+      btn.style.setProperty('--gx', '50%');
+      btn.style.setProperty('--gy', '50%');
+    };
+    btn.addEventListener('pointerleave', reset);
+    btn.addEventListener('blur', reset);
+  });
+
+  // ── 3 · AI working state ────────────────────────────────────────────
+  document.querySelectorAll('[data-ai]').forEach((btn) => {
+    const label = btn.querySelector('[data-label]');
+    const note = btn.parentElement.querySelector('[data-ainote]');
+    let busy = false;
+    btn.addEventListener('click', () => {
+      if (busy) return;
+      busy = true;
+      const total = 12;
+      let done = 0;
+      btn.dataset.state = 'working';
+      btn.setAttribute('aria-busy', 'true');
+      note.textContent = 'working — the label carries the progress, no spinner soup';
+      const tick = setInterval(() => {
+        done += 1;
+        label.textContent = `Grading ${done} of ${total}`;
+        btn.style.setProperty('--p', String(done / total));
+        if (done >= total) {
+          clearInterval(tick);
+          btn.dataset.state = 'done';
+          btn.removeAttribute('aria-busy');
+          label.textContent = '12 graded · 9 correct';
+          note.textContent = 'lands on the result — the click pay-off is the score itself';
+          setTimeout(() => {
+            btn.dataset.state = 'idle';
+            label.textContent = 'Grade 12 answers';
+            btn.style.setProperty('--p', '0');
+            note.textContent = 'tap to run';
+            busy = false;
+          }, 2600);
+        }
+      }, 170);
+    });
+  });
+
+  // ── 4 · success stamp ───────────────────────────────────────────────
+  document.querySelectorAll('[data-pop]').forEach((btn) => {
+    let t;
+    btn.addEventListener('click', () => {
+      btn.classList.remove('is-done', 'pulse');
+      void btn.offsetWidth;            // restart the animations
+      btn.classList.add('is-done', 'pulse');
+      clearTimeout(t);
+      t = setTimeout(() => btn.classList.remove('is-done', 'pulse'), 1900);
+    });
+  });
+
+  // ── 5 · unfold ──────────────────────────────────────────────────────
+  document.querySelectorAll('[data-unfold]').forEach((btn) => {
+    const panel = btn.parentElement.querySelector('[data-panel]');
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      btn.textContent = open ? 'Show answer key' : 'Hide answer key';
+      panel.classList.toggle('open', !open);
+    });
+  });
+
+  // ── 6 · idle nudge ──────────────────────────────────────────────────
+  document.querySelectorAll('[data-nudge]').forEach((zone) => {
+    const btn = zone.querySelector('button');
+    let idle;
+    const disarm = () => {
+      clearTimeout(idle);
+      zone.classList.remove('breathing');
+    };
+    const arm = () => {
+      disarm();
+      idle = setTimeout(() => zone.classList.add('breathing'), 6000);
+    };
+    arm();
+    ['pointerenter', 'pointerdown', 'focusin', 'keydown'].forEach((ev) => zone.addEventListener(ev, disarm));
+    ['pointerleave', 'focusout'].forEach((ev) => zone.addEventListener(ev, arm));
+    btn.addEventListener('click', arm);
+  });
+</script>
+</body>
+</html>
