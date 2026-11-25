@@ -162,6 +162,15 @@ The home trend card carries a **status line with a “Test connection” button*
 The probe sends one tiny prompt ("reply ready") and reports the actual error
 text underneath, so the console step that is still missing is named on the card.
 
+**Don't read the host name as the backend.** Firebase AI Logic sends *both*
+backends through `firebasevertexai.googleapis.com` (the SDK's `DEFAULT_DOMAIN`
+in `@firebase/ai`), so a URL in an error never means "Vertex was used by
+mistake" — the code asks for the Gemini Developer API with
+`new GoogleAIBackend()`, and a 30-byte `firebasevertexai` string inside the lazy
+chunk is just that endpoint constant. The blue "set up the SDK / App Check debug
+provider" banner on the AI Logic page is onboarding text: it clears itself after
+the first *successful* request, and the debug provider is only for local dev.
+
 **`429 … prepayment credits are depleted` is not a setup bug.** By then everything
 is wired: the App Check token was accepted (otherwise the call dies before the
 model), the key was found, and AI Logic answered. It only means the Google Cloud
