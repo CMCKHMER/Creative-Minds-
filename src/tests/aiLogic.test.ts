@@ -17,7 +17,7 @@ import {
   resolveAppCheckKey,
   speechPrompt,
 } from '../../public/assets/js/cmc-ai-logic.js';
-import { AI_SETUP_STEPS, classifyAiFailure, probeAICoach, speechCoachPrompt } from '../lib/aiCoach';
+import { AI_SETUP_STEPS, classifyAiFailure, describeMissingAppCheckKey, probeAICoach, speechCoachPrompt } from '../lib/aiCoach';
 
 // App Check init is local, but keep the SDK out of the test: the probe's job here
 // is to decide, not to talk to Google.
@@ -134,6 +134,29 @@ describe('diagnostics — probeAICoach tells the owner which step is missing', (
     expect(classifyAiFailure('Failed to fetch')).toBe('error');
   });
 
+  it('calls a 429 what it is — quota, not a missing console step', () => {
+    // The real error Firebase returns when the project is out of credits.
+    const real =
+      'AI: Error fetching from https://firebasevertexai.googleapis.com/v1beta/projects/x/models/gemini-2.5-flash:generateContent: [429] Your prepayment credits are depleted.';
+    expect(classifyAiFailure(real)).toBe('quota');
+    expect(classifyAiFailure('RESOURCE_EXHAUSTED: quota exceeded for model')).toBe('quota');
+    expect(classifyAiFailure('429 Too Many Requests')).toBe('quota');
+  });
+
+  it('says the code is fine when the project is out of credits', async () => {
+    (window as unknown as { CMC_APPCHECK_KEY?: string }).CMC_APPCHECK_KEY = 'site-key';
+    vi.resetModules();
+    const { probeAICoach: fresh } = await import('../lib/aiCoach');
+    const probe = await fresh({
+      generator: vi.fn().mockRejectedValue(new Error('[429] Your prepayment credits are depleted.')),
+    });
+    expect(probe.status).toBe('quota');
+    expect(probe.message).toMatch(/quota/i);
+    expect(probe.message).toMatch(/billing|credits/i);
+    // the raw text stays visible underneath
+    expect(probe.detail).toContain('429');
+  });
+
   it('speech prompt and essay prompt share the same contract', () => {
     const prompt = speechCoachPrompt({ targetSeconds: 45, band: 3, stats: { wordsPerMinute: 120 } });
     expect(prompt).toContain('3.0 / 5');
@@ -178,6 +201,23 @@ describe('the App Check key can be set from the console (no rebuild)', () => {
     const offline = await load(vi.fn().mockRejectedValue(new Error('Failed to fetch')));
     expect(await offline.resolveAppCheckKey()).toBe('');
     vi.unstubAllGlobals();
+  });
+
+  it('names the rules when the document exists but Firestore hides it', async () => {
+    const { lookupAppCheckKey } = await load(vi.fn().mockResolvedValue({ ok: false, status: 403, json: async () => ({}) }));
+    const found = await lookupAppCheckKey();
+    expect(found).toMatchObject({ key: '', from: 'none', problem: 'rules', status: 403 });
+    expect(describeMissingAppCheckKey(found)).toMatch(/firestore-min\.rules/);
+  });
+
+  it('separates "the field is missing" from "the rules hid it"', async () => {
+    const { lookupAppCheckKey } = await load(
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ fields: { other: { stringValue: 'x' } } }) }),
+    );
+    const found = await lookupAppCheckKey();
+    expect(found).toMatchObject({ key: '', problem: 'empty' });
+    expect(describeMissingAppCheckKey(found)).toMatch(/appCheckKey/);
+    expect(describeMissingAppCheckKey(found)).not.toMatch(/rules/);
   });
 
   it('remembers the answer so the probe and the coach agree', async () => {

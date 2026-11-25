@@ -159,8 +159,14 @@ export async function askCoach(
     const detail = error instanceof Error ? error.message : String(error);
     // A missing/disabled AI Logic backend is the expected failure — surface it
     // as a calm "not enabled", not as a crash or a scary stack trace.
-    const unavailable = /app ?check|permission|not (been )?(enabled|configured)|api key|400|401|403|404/i.test(detail);
-    return { ok: false, reason: unavailable ? 'unavailable' : 'failed', detail: detail.slice(0, 200) };
+    const status = classifyAiFailure(detail);
+    const reason =
+      status === 'quota'
+        ? ('quota' as const)
+        : status === 'app-check' || status === 'not-enabled'
+          ? ('unavailable' as const)
+          : ('failed' as const);
+    return { ok: false, reason, detail: detail.slice(0, 200) };
   }
 }
 
@@ -179,10 +185,15 @@ const CONSOLE = `https://console.firebase.google.com/project/${FIREBASE_PROJECT_
 /** Firestore REST base — the public site config lives here too. */
 const CONFIG_BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
-let keyPromise: Promise<string> | null = null;
+/** Where the site key came from, and — when there is none — exactly why. */
+export type AppCheckKeyLookup =
+  | { key: string; from: 'env' | 'window' | 'firestore' }
+  | { key: ''; from: 'none'; problem: 'not-read' | 'rules' | 'network' | 'empty'; status?: number };
+
+let keyPromise: Promise<AppCheckKeyLookup> | null = null;
 
 /**
- * The reCAPTCHA Enterprise site key, from the first place that has one:
+ * Find the reCAPTCHA Enterprise site key, from the first place that has one:
  *
  *   1. `VITE_FIREBASE_APPCHECK_KEY` (build-time env / GitHub secret);
  *   2. `window.CMC_APPCHECK_KEY` (a tiny inline script on a static page);
@@ -192,29 +203,57 @@ let keyPromise: Promise<string> | null = null;
  *
  * A site key is public by design (it ships inside every client bundle); the
  * secret half never leaves Google. This is why the Firestore fallback is safe.
+ *
+ * The failure is reported precisely: a document the rules hide (403) is a very
+ * different fix from a document with no field in it, and the owner should not
+ * have to guess which one they are looking at.
  */
-export function resolveAppCheckKey(): Promise<string> {
+export function lookupAppCheckKey(): Promise<AppCheckKeyLookup> {
   if (keyPromise) return keyPromise;
-  keyPromise = (async () => {
-    if (APPCHECK_ENV) return APPCHECK_ENV;
+  keyPromise = (async (): Promise<AppCheckKeyLookup> => {
+    if (APPCHECK_ENV) return { key: APPCHECK_ENV, from: 'env' };
     const globalKey =
       typeof window !== 'undefined' && typeof (window as { CMC_APPCHECK_KEY?: unknown }).CMC_APPCHECK_KEY === 'string'
         ? String((window as { CMC_APPCHECK_KEY?: string }).CMC_APPCHECK_KEY).trim()
         : '';
-    if (globalKey) return globalKey;
+    if (globalKey) return { key: globalKey, from: 'window' };
+    if (typeof fetch !== 'function') return { key: '', from: 'none', problem: 'not-read' };
     try {
       const res = await fetch(`${CONFIG_BASE}/site_config/ai`);
-      if (!res.ok) return '';
+      if (res.status === 403 || res.status === 401) {
+        return { key: '', from: 'none', problem: 'rules', status: res.status };
+      }
+      if (!res.ok) return { key: '', from: 'none', problem: 'empty', status: res.status };
       const data = (await res.json().catch(() => null)) as {
         fields?: { appCheckKey?: { stringValue?: string } };
       } | null;
-      const key = data?.fields?.appCheckKey?.stringValue || '';
-      return key.trim();
+      const key = (data?.fields?.appCheckKey?.stringValue || '').trim();
+      return key ? { key, from: 'firestore' } : { key: '', from: 'none', problem: 'empty' };
     } catch {
-      return '';
+      return { key: '', from: 'none', problem: 'network' };
     }
   })();
   return keyPromise;
+}
+
+/** The key itself, or '' when there is none. */
+export function resolveAppCheckKey(): Promise<string> {
+  return lookupAppCheckKey().then((found) => found.key);
+}
+
+/** One sentence naming the fix, for the status line under "Test connection". */
+export function describeMissingAppCheckKey(lookup: AppCheckKeyLookup): string {
+  if (lookup.from !== 'none') return '';
+  switch (lookup.problem) {
+    case 'rules':
+      return `site_config/ai could not be read (HTTP ${lookup.status}) — the database rules hide it, so publish firestore-min.rules and the key will be picked up on reload`;
+    case 'empty':
+      return 'site_config/ai was read but has no appCheckKey string field (and no VITE_FIREBASE_APPCHECK_KEY / window.CMC_APPCHECK_KEY)';
+    case 'network':
+      return 'site_config/ai could not be reached (network) — and no VITE_FIREBASE_APPCHECK_KEY / window.CMC_APPCHECK_KEY';
+    default:
+      return 'no App Check site key in site_config/ai, VITE_FIREBASE_APPCHECK_KEY or window.CMC_APPCHECK_KEY';
+  }
 }
 
 /** Synchronous hint only: true when a build-time key exists. Use
@@ -276,6 +315,8 @@ const STEP = {
   notEnabled:
     'AI Logic is not switched on. Firebase → Build → AI Logic → Get started → Gemini Developer API backend, enable it for this web app.',
   quota: 'This browser has used its reviews for today. It resets at midnight.',
+  projectQuota:
+    'The project’s AI quota is used up (HTTP 429) — the model refused the call, not the code. Rubric scores and the rest of the site are unaffected. Free-tier quota resets daily; if the message mentions prepayment credits, Google Cloud billing for creative-minds-cambodia has run out of credits.',
   error: 'The request failed before reaching the model — check the browser console and the project quota.',
 } as const;
 
@@ -283,6 +324,11 @@ const STEP = {
 export function classifyAiFailure(detail: string): AiStatus {
   const text = detail.toLowerCase();
   if (/app ?check|recaptcha|appcheck/.test(text)) return 'app-check';
+  // Quota comes before permissions: a 429 is a working install, not a missing
+  // console step, and "out of credits" must never look like "not enabled".
+  if (/\b429\b|quota|resource[_ ]?exhausted|rate.?limit|prepay|credits? (are |is )?depleted|billing|exceeded/.test(text)) {
+    return 'quota';
+  }
   if (/not (been )?(enabled|configured|found|used)|has not been used|permission|api key|api_key|403|404|unauthor|disabled/.test(text)) {
     return 'not-enabled';
   }
@@ -300,15 +346,15 @@ export async function probeAICoach(
 ): Promise<AiProbe> {
   const model = MODEL;
 
-  const key = await resolveAppCheckKey();
-  if (!key) {
+  const found = await lookupAppCheckKey();
+  if (!found.key) {
     // App Check is mandatory for AI Logic in a browser: fail fast with the
     // instruction, instead of a confusing 403 from the model.
     return {
       status: 'app-check',
       model,
       message: STEP.appCheck,
-      detail: 'no App Check site key in site_config/ai, VITE_FIREBASE_APPCHECK_KEY or window.CMC_APPCHECK_KEY',
+      detail: describeMissingAppCheckKey(found),
     };
   }
 
@@ -332,7 +378,14 @@ export async function probeAICoach(
     return {
       status,
       model,
-      message: status === 'not-enabled' ? STEP.notEnabled : status === 'app-check' ? STEP.appCheck : STEP.error,
+      message:
+        status === 'not-enabled'
+          ? STEP.notEnabled
+          : status === 'app-check'
+            ? STEP.appCheck
+            : status === 'quota'
+              ? STEP.projectQuota
+              : STEP.error,
       detail: detail.slice(0, 200),
     };
   }
@@ -442,7 +495,12 @@ export async function askSpeechCoach(
     const status = classifyAiFailure(detail);
     return {
       ok: false,
-      reason: status === 'not-enabled' || status === 'app-check' ? 'unavailable' : 'failed',
+      reason:
+        status === 'quota'
+          ? ('quota' as const)
+          : status === 'not-enabled' || status === 'app-check'
+            ? ('unavailable' as const)
+            : ('failed' as const),
       detail: detail.slice(0, 200),
     };
   }
