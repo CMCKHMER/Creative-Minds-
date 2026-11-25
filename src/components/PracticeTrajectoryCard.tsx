@@ -230,7 +230,7 @@ export function PracticeTrajectoryCard() {
     }
     const note =
       result.reason === 'quota'
-        ? 'You have used today’s AI reviews. They reset tomorrow.'
+        ? 'The AI coach has reached its limit for now. Your rubric scores are unaffected — try again later.'
         : result.reason === 'no-essay'
           ? 'Write a little more first — the coach needs a full response to read.'
           : 'The AI coach is not switched on yet. Ask the site owner to enable Firebase AI Logic.';

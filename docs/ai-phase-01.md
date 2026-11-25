@@ -156,10 +156,19 @@ The home trend card carries a **status line with a “Test connection” button*
 | `AI coach: App Check key not set` | step 2/3 missing — no call is even attempted | register App Check, then paste the site key into `site_config/ai` → `appCheckKey` |
 | `AI coach: App Check token rejected` | key set but the domain is not allowed, or App Check is not registered | check the reCAPTCHA allowed domains + App Check registration |
 | `AI coach: AI Logic not switched on` | step 1 missing (API not enabled / wrong backend) | Build → AI Logic → Get started |
+| `The project’s AI quota is used up (HTTP 429)` | the install is correct — App Check, key and API all work; the model refused because the project is out of quota/credits | wait for the free-tier reset, or top up Google Cloud → Billing for the project (the "prepayment credits are depleted" wording means the credit balance is zero) |
 | `AI coach connected · gemini-2.5-flash` | a real generation came back | nothing — it works |
 
 The probe sends one tiny prompt ("reply ready") and reports the actual error
 text underneath, so the console step that is still missing is named on the card.
+
+**`429 … prepayment credits are depleted` is not a setup bug.** By then everything
+is wired: the App Check token was accepted (otherwise the call dies before the
+model), the key was found, and AI Logic answered. It only means the Google Cloud
+project has no quota/credit left for the model. Scoring, charts and the speaking
+rubric keep working — they never call the model. Options: wait for the Gemini
+Developer API free-tier reset, or add billing/credits to the project; nothing in
+this repo needs to change.
 
 **The status line and the checklist are teacher/admin-only.** A student never
 sees console instructions or a disabled button: while AI is off the coach block
