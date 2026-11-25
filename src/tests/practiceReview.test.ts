@@ -4,6 +4,7 @@
 // apart and keep a failed save visible instead of silently "done".
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  diagnosePracticeStore,
   loadPracticeReview,
   loadStudentAttempts,
   savePracticeReview,
@@ -121,5 +122,30 @@ describe('loadPracticeReview', () => {
   it('treats a missing review as "none" rather than an error', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 404 }));
     expect(await loadPracticeReview('x1')).toBeNull();
+  });
+});
+
+describe('diagnosePracticeStore — why is the chart empty?', () => {
+  it('names the rules when Firestore refuses (403)', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 403 }));
+    const diag = await diagnosePracticeStore();
+    expect(diag.state).toBe('rules');
+    expect(diag.status).toBe(403);
+    expect(diag.message).toMatch(/firestore-min\.rules/);
+  });
+
+  it('reports storage as reachable when the read succeeds', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
+    expect(await diagnosePracticeStore()).toMatchObject({ state: 'ok', status: 200 });
+  });
+
+  it('separates "no session" from "no data"', async () => {
+    localStorage.clear();
+    expect(await diagnosePracticeStore()).toMatchObject({ state: 'no-session', status: 0 });
+  });
+
+  it('treats an unreachable Firestore as a network problem', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+    expect(await diagnosePracticeStore()).toMatchObject({ state: 'network' });
   });
 });

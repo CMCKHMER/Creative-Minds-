@@ -299,3 +299,54 @@ export async function savePracticeReview(input: {
 }
 
 export const PRACTICE_REVIEWS_COLLECTION = 'practice_reviews';
+
+// ── storage diagnostics ─────────────────────────────────────────────
+// "No saved attempts yet" can mean three different things. This asks Firestore
+// one question and reports which one, so the owner does not have to guess
+// whether the code, the rules, or the session is at fault.
+
+export interface StoreDiagnosis {
+  /** HTTP status from the read probe (0 = never reached Firestore). */
+  status: number;
+  state: 'ok' | 'rules' | 'auth' | 'network' | 'no-session';
+  message: string;
+}
+
+export async function diagnosePracticeStore(): Promise<StoreDiagnosis> {
+  const token = await getValidIdToken({ sdkFallback: false }).catch(() => null);
+  if (!token) {
+    return {
+      status: 0,
+      state: 'no-session',
+      message: 'No signed-in student session in this browser — attempts are only readable when signed in.',
+    };
+  }
+  const uid = uidFromIdToken(token);
+  if (!uid) {
+    return { status: 401, state: 'auth', message: 'The stored token has no uid claim — sign in again.' };
+  }
+  try {
+    const res = await fetch(
+      `${BASE}/practice_attempts/${encodeURIComponent(uid)}/attempts?pageSize=1`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (res.ok) {
+      return { status: res.status, state: 'ok', message: 'Score storage is reachable.' };
+    }
+    if (res.status === 403) {
+      return {
+        status: 403,
+        state: 'rules',
+        message:
+          'Score storage is refused by the database rules. Firestore → Rules → paste firestore-min.rules → Publish.',
+      };
+    }
+    if (res.status === 401) {
+      return { status: 401, state: 'auth', message: 'The session token was rejected — sign out and in again.' };
+    }
+    return { status: res.status, state: 'network', message: `Firestore answered HTTP ${res.status}.` };
+  } catch {
+    return { status: 0, state: 'network', message: 'Firestore could not be reached from this browser.' };
+  }
+}
+

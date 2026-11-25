@@ -120,6 +120,23 @@ The home trend card carries a **status line with a “Test connection” button*
 
 The probe sends one tiny prompt ("reply ready") and reports the actual error
 text underneath, so the console step that is still missing is named on the card.
+
+**The status line and the checklist are teacher/admin-only.** A student never
+sees console instructions or a disabled button: while AI is off the coach block
+simply does not render for them.
+
+### "My chart says no saved attempts yet" — the card tells you why
+
+For a teacher, an empty trend runs one read probe (`diagnosePracticeStore`) and
+reports the real answer with its HTTP status:
+
+| Line | Meaning |
+|---|---|
+| `Score storage is reachable.` | rules are published; the student simply has not practised yet |
+| `…refused by the database rules … (HTTP 403)` | publish `firestore-min.rules` — this is the usual cause |
+| `…token was rejected (401)` | sign out and in again |
+| `No signed-in student session` | no Firebase session in this browser |
+| `Firestore could not be reached` | network/adblock — not a config problem |
 `src/lib/aiCoach.ts` (`probeAICoach`, `classifyAiFailure`) is what maps each
 failure onto a step; `src/tests/aiLogic.test.ts` pins the mapping.
 
