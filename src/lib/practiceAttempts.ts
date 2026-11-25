@@ -163,3 +163,139 @@ export async function loadMyTrajectory(limit = 8): Promise<{
 }
 
 export const PRACTICE_ATTEMPTS_COLLECTION = 'practice_attempts';
+
+// ── teacher review ──────────────────────────────────────────────────
+// A teacher can read any student's attempts (rules: isVerifiedTeacher) and
+// leave one review per attempt in practice_reviews/{attemptId}. The attempt
+// itself is never modified.
+
+export interface PracticeReview {
+  attemptId: string;
+  studentUid: string;
+  reviewerUid: string;
+  reviewerName: string;
+  /** null = "the automatic band stands". */
+  band: number | null;
+  comment: string;
+  createdAt: number;
+}
+
+async function teacherToken(): Promise<{ token: string; uid: string } | null> {
+  const token = await getValidIdToken().catch(() => null);
+  if (!token) return null;
+  const uid = uidFromIdToken(token);
+  if (!uid) return null;
+  return { token, uid };
+}
+
+/** Any student's attempts, for a verified teacher. Empty on refusal. */
+export async function loadStudentAttempts(studentUid: string, limit = 20): Promise<PracticeAttempt[]> {
+  if (!studentUid) return [];
+  const auth = await teacherToken();
+  if (!auth) return [];
+  try {
+    const res = await fetch(
+      `${BASE}/practice_attempts/${encodeURIComponent(studentUid)}/attempts?pageSize=${Math.min(100, Math.max(1, limit))}`,
+      { headers: { Authorization: `Bearer ${auth.token}` } },
+    );
+    if (!res.ok) return [];
+    const data = (await res.json().catch(() => ({}))) as { documents?: unknown[] };
+    const docs = Array.isArray(data.documents) ? data.documents : [];
+    return docs
+      .map(fromDocument)
+      .filter((a): a is PracticeAttempt => Boolean(a))
+      .sort((a, b) => b.createdAt - a.createdAt);
+  } catch {
+    return [];
+  }
+}
+
+function reviewFromDocument(doc: unknown): PracticeReview | null {
+  const d = doc as { name?: string; fields?: Record<string, unknown> } | null;
+  if (!d?.fields) return null;
+  type FieldValue = {
+    stringValue?: string;
+    doubleValue?: unknown;
+    integerValue?: unknown;
+    nullValue?: unknown;
+    timestampValue?: string;
+  };
+  const f = d.fields as Record<string, FieldValue>;
+  const bandRaw = f.band;
+  const band = bandRaw == null || bandRaw.nullValue != null ? null : num(bandRaw);
+  return {
+    attemptId: f.attemptId?.stringValue || '',
+    studentUid: f.studentUid?.stringValue || '',
+    reviewerUid: f.reviewerUid?.stringValue || '',
+    reviewerName: f.reviewerName?.stringValue || '',
+    band,
+    comment: f.comment?.stringValue || '',
+    createdAt: f.createdAt?.timestampValue ? Date.parse(f.createdAt.timestampValue) || 0 : 0,
+  };
+}
+
+/** The review for one attempt, or null when none exists / not readable. */
+export async function loadPracticeReview(attemptId: string): Promise<PracticeReview | null> {
+  if (!attemptId) return null;
+  const auth = await teacherToken();
+  if (!auth) return null;
+  try {
+    const res = await fetch(`${BASE}/practice_reviews/${encodeURIComponent(attemptId)}`, {
+      headers: { Authorization: `Bearer ${auth.token}` },
+    });
+    if (!res.ok) return null;
+    return reviewFromDocument(await res.json().catch(() => null));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Upsert the teacher's review of one attempt.
+ *
+ * @returns { ok, error } — the UI shows the error instead of pretending it saved.
+ */
+export async function savePracticeReview(input: {
+  attemptId: string;
+  studentUid: string;
+  band: number | null;
+  comment: string;
+  reviewerName?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const auth = await teacherToken();
+  if (!auth) return { ok: false, error: 'Sign in as a verified teacher to review.' };
+  if (!input.attemptId || !input.studentUid) return { ok: false, error: 'Missing attempt.' };
+  if (input.band != null && (input.band < 0 || input.band > 5)) return { ok: false, error: 'Band must be 0–5.' };
+  const comment = String(input.comment || '').trim().slice(0, 600);
+
+  const body = {
+    fields: {
+      attemptId: { stringValue: input.attemptId },
+      studentUid: { stringValue: input.studentUid },
+      reviewerUid: { stringValue: auth.uid },
+      reviewerName: { stringValue: String(input.reviewerName || '').slice(0, 80) },
+      band: input.band == null
+        ? { nullValue: null }
+        : { doubleValue: Math.round(input.band * 2) / 2 },
+      comment: { stringValue: comment },
+      createdAt: { timestampValue: new Date().toISOString() },
+    },
+  };
+
+  try {
+    const res = await fetch(`${BASE}/practice_reviews/${encodeURIComponent(input.attemptId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+      return { ok: false, error: err.error?.message || `HTTP ${res.status}` };
+    }
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export const PRACTICE_REVIEWS_COLLECTION = 'practice_reviews';

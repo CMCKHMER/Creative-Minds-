@@ -1038,6 +1038,10 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
         // Delivery analysis per question (AI Phase 01 · Speaking Coach).
         // Kept in memory only — the audio itself is never stored or uploaded.
         const speechResults = {};
+        // Blobs are held in memory for the optional "ask the AI to listen" tap
+        // and are dropped when the page is closed — nothing is stored or sent
+        // unless the student taps that button.
+        const speechBlobs = {};
         let isRecording = false;
         // Which question owns the current recording + its auto-stop timer.
         let currentRecordingQuestion = null;
@@ -1141,8 +1145,10 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
                     return;
                 }
                 speechResults[questionId] = result;
+                if (blob && blob.size) speechBlobs[questionId] = blob;
                 host.setAttribute('data-band-tier', result.band >= 4 ? 'high' : result.band < 3 ? 'low' : 'mid');
                 const fix = result.fixes[0];
+                const aiReady = window.CMCAiLogic && window.CMCAiLogic.aiConfigured();
                 host.innerHTML =
                     '<div class="cmc-delivery-head">' +
                     '<span class="cmc-delivery-band">' + result.band.toFixed(1) + '</span>' +
@@ -1153,8 +1159,56 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
                     result.wordsPerMinute + ' words/min</p>' +
                     (fix
                         ? '<p class="cmc-delivery-fix"><strong>' + cmcEsc(fix.title) + '</strong> ' + cmcEsc(fix.detail) + '</p>'
-                        : '<p class="cmc-delivery-fix">Clean delivery — keep this pace.</p>');
+                        : '<p class="cmc-delivery-fix">Clean delivery — keep this pace.</p>') +
+                    (aiReady
+                        ? '<button type="button" class="cmc-delivery-ai" onclick="cmcAskAi(\'' + questionId + '\')">' +
+                          'Ask the AI to listen to this answer</button>' +
+                          '<div class="cmc-delivery-ai-out" id="delivery-ai-' + questionId + '" hidden></div>'
+                        : '');
             }).catch(function () { host.hidden = true; });
+        }
+
+        // Optional second opinion: the rubric heard the signal, the model hears
+        // the words. One tap, one call, 10 per day, gated on App Check.
+        function cmcAskAi(questionId) {
+            const out = document.getElementById('delivery-ai-' + questionId);
+            const result = speechResults[questionId];
+            const blob = speechBlobs[questionId];
+            const ai = window.CMCAiLogic;
+            if (!out || !result || !blob || !ai) return;
+
+            out.hidden = false;
+            out.innerHTML = '<p class="cmc-rubric-muted">Listening… this takes a few seconds.</p>';
+
+            const opts = cmcTargetSeconds(questionId);
+            ai.askAboutRecording({
+                blob: blob,
+                targetSeconds: opts.targetSeconds,
+                band: result.band,
+                stats: {
+                    pauseRatio: result.pauseRatio,
+                    wordsPerMinute: result.wordsPerMinute,
+                    seconds: result.seconds
+                }
+            }).then(function (res) {
+                if (res && res.ok) {
+                    out.innerHTML = '<p class="cmc-rubric-muted" style="margin-bottom:.25rem">AI coach, in words (not a new score):</p>' +
+                        '<p class="cmc-delivery-fix">' + cmcEsc(res.text) + '</p>';
+                    return;
+                }
+                const reason = res ? res.reason : 'failed';
+                out.innerHTML = '<p class="cmc-rubric-muted">' +
+                    (reason === 'quota'
+                        ? 'You have used today’s AI reviews. They come back tomorrow.'
+                        : reason === 'too-large'
+                            ? 'That recording is too long for the AI review (under 5 MB).'
+                            : reason === 'not-configured'
+                                ? 'The AI coach is not switched on yet.'
+                                : 'The AI coach could not listen just now — your delivery score above still stands.') +
+                    '</p>';
+            }).catch(function () {
+                out.innerHTML = '<p class="cmc-rubric-muted">The AI coach could not listen just now — your delivery score above still stands.</p>';
+            });
         }
 
         function cmcAvg(values) {
@@ -1447,8 +1501,11 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
     // Same files the vitest suite imports — one implementation, no drift.
     import { analyseAudioBlob, RUBRIC_VERSION } from '../assets/js/cmc-speaking-rubric.js';
     import * as practice from '../assets/js/cmc-practice-attempts.js';
+    import * as aiLogic from '../assets/js/cmc-ai-logic.js';
     window.CMCSpeakingRubric = { analyseAudioBlob, RUBRIC_VERSION };
     window.CMCPractice = practice;
+    // Only renders the "Ask the AI to listen" button when App Check is wired.
+    window.CMCAiLogic = aiLogic;
     practice.flushOutbox();
 </script>
 

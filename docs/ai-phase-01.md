@@ -76,25 +76,69 @@ practice_attempts/{uid}/attempts/{attemptId}
 
 ## 4. The optional AI layer (Firebase AI Logic)
 
-`src/lib/aiCoach.ts` asks a model for the thing the rubric cannot judge — the
-quality of an argument — and shows it on the home trend card:
+Two features use a model, both **on demand only**:
 
-- **on demand only** (one button, one call per tap, never automatic);
-- **capped** at `AI_COACH_DAILY_LIMIT` (10) reviews per browser per day;
-- **not another grade**: the prompt forbids a new score and asks for three
-  plain sentences (strongest phrase, biggest improvement, what to practise);
-- **degradable**: when AI Logic is not enabled the UI says so and the
-  deterministic feedback keeps working.
+| Feature | Where | What it adds |
+|---|---|---|
+| Essay second opinion | home trend card ("Ask the AI coach to read my last essay") | judgement of the argument — the rubric can only count |
+| Listening pass | speaking page, per answer ("Ask the AI to listen to this answer") | pronunciation + clarity, which the signal alone cannot show |
 
-To switch it on (owner, ~5 minutes in the Firebase console):
+Guards on both: one tap = one call, **10 per browser per day**, essay trimmed to
+2400 chars, audio capped at 5 MB, prompt forbids a new band ("Do not give a band
+or a score"), and neither button renders until App Check is configured.
 
-1. **Build → AI Logic** → get started → backend **Gemini Developer API**.
-2. **App Check** → register the web app with reCAPTCHA Enterprise; browsers must
-   present an App Check token before AI Logic answers.
-3. Optional: set `VITE_AI_COACH_MODEL` (default `gemini-2.5-flash`).
+### Do I need to set anything up in Firebase? — yes, three things
 
-Nothing needs redeploying for step 1–2 — the SDK is a lazy `import('firebase/ai')`
-that only loads when someone taps the button.
+All in the console for **creative-minds-cambodia**:
+
+1. **Build → AI Logic → Get started**, choose the **Gemini Developer API**
+   backend (not Vertex), enable it for the web app. This is the API that answers
+   the call.
+2. **Build → App Check → Apps → your web app → Register**, provider
+   **reCAPTCHA Enterprise**. Copy the **site key**. Firebase refuses browser
+   calls to AI Logic without an App Check token, so this step is mandatory.
+3. Put the site key where the code expects it:
+   - React app: `VITE_FIREBASE_APPCHECK_KEY=<site key>` then rebuild/redeploy;
+   - static TOEFL pages: set `window.CMC_APPCHECK_KEY = '<site key>'` in a tiny
+     inline script (or bake it into `cmc-ai-logic.js`'s `appCheckKey()`).
+   Also add the site's domains (`cmckhmer.github.io`, `localhost`) in the
+   reCAPTCHA Enterprise key's allowed domains.
+
+Nothing else needs deploying: the SDK is a lazy import that loads on the first
+tap.
+
+### How do I know it is actually working?
+
+The home trend card carries a **status line with a “Test connection” button**:
+
+| Status line | Meaning | Fix |
+|---|---|---|
+| `AI coach: App Check key not set` | step 2/3 missing — no call is even attempted | add the site key |
+| `AI coach: App Check token rejected` | key set but the domain is not allowed, or App Check is not registered | check the reCAPTCHA allowed domains + App Check registration |
+| `AI coach: AI Logic not switched on` | step 1 missing (API not enabled / wrong backend) | Build → AI Logic → Get started |
+| `AI coach connected · gemini-2.5-flash` | a real generation came back | nothing — it works |
+
+The probe sends one tiny prompt ("reply ready") and reports the actual error
+text underneath, so the console step that is still missing is named on the card.
+`src/lib/aiCoach.ts` (`probeAICoach`, `classifyAiFailure`) is what maps each
+failure onto a step; `src/tests/aiLogic.test.ts` pins the mapping.
+
+With AI off, nothing breaks: the deterministic bands, the trajectory and the
+teacher review all work, and the AI buttons simply do not appear.
+
+## 5. Teacher review
+
+The teacher console (`FirebaseDashboard`) now has **Practice attempts · Phase 01**:
+
+- pick a class → pick a student → their saved attempts (writing and speaking);
+- open any attempt to read the response (`text`) and the trait scores;
+- leave a review: a band of the teacher's own (or “keep the automatic band”) plus
+  a comment up to 600 chars.
+
+Reviews live in `practice_reviews/{attemptId}` — a separate document, so the
+attempt a student actually produced never changes (see the rules block of the
+same name). A teacher correcting themselves overwrites only their own review
+(`reviewerUid` is checked on every write).
 
 ## 5. Tests that keep it honest
 
@@ -104,13 +148,16 @@ that only loads when someone taps the button.
 | `src/tests/speakingRubric.test.ts` | dead air / pace / mumble / clipping / trailing off, real mime type, page wiring |
 | `src/tests/practiceAttempts.test.ts` | trajectory maths, outbox, uid-scoped writes, rules text |
 | `src/tests/practiceTrajectory.test.ts` | app-vs-static trajectory parity, card states, AI coach guards |
+| `src/tests/practiceReview.test.ts` | review upsert, half-point rounding, refused saves, uid attribution |
+| `src/tests/aiLogic.test.ts` | AI gates, quota, size cap, SDK-load failure, diagnostics mapping, teacher panel wiring |
 | `src/tests/aiFutureShowcase.test.ts` | exactly one phase claims to be live |
 
 ## 6. Known limits (next, honestly)
 
-- Speaking cannot judge pronunciation or content until a transcript path exists
-  (Web Speech or an AI Logic audio call — the latter is the natural next step).
-- Teachers can read attempts but there is no review screen that overrides an
-  automatic band yet; the essay text is stored for exactly that purpose.
+- The AI listening pass needs App Check + AI Logic (steps above); until then the
+  button is hidden and delivery scoring is the on-device rubric only.
+- Students cannot yet *see* a teacher's review on the practice pages — the data
+  and rules allow it (`practice_reviews` read is granted to the student), the
+  read-out is the next small piece.
 - The band is only as good as its rubric: it measures craft that can be counted,
   and a teacher remains the authority.

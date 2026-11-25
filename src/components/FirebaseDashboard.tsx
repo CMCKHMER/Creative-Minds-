@@ -13,6 +13,7 @@ import { StudentAuthModal } from './StudentAuthModal';
 import { StudentRegistrationCard } from './StudentRegistrationCard';
 import { BiWeeklyScoresCard } from './BiWeeklyScoresCard';
 import { BiWeeklyTestsPanel } from './BiWeeklyTestsPanel';
+import { PracticeReviewPanel } from './PracticeReviewPanel';
 import { loadTestCounts } from '../lib/testCounts';
 import { buildAttemptFeed, feedStats, feedWhen } from '../lib/attemptFeed';
 import { fetchInviteScores, inviteAttemptCount } from '../lib/inviteScores';
@@ -746,6 +747,18 @@ export function FirebaseDashboard() {
           </div>
         )}
       </div>
+
+      {/* Practice attempts review (AI Phase 01) — teachers only */}
+      {isTeacher && teacherUid && (
+        <section className="mx-auto max-w-7xl px-5 pb-12 sm:px-8">
+          <PracticeReviewPanel
+            teacherUid={teacherUid}
+            teacherName={signedInDisplayName}
+            classes={classes.map((c: any) => ({ id: c.id, name: c.name || 'Class' }))}
+            defaultClassId={selectedClass}
+          />
+        </section>
+      )}
 
       {/* Create class modal */}
       {showCreateClass && isTeacher && (

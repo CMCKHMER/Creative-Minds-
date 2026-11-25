@@ -403,6 +403,21 @@ service cloud.firestore {
       allow create: if isVerifiedUser() && isOwnPracticePath(uid) && isValidPracticeAttempt(uid);
       allow update, delete: if false;
     }
+    match /practice_reviews/{attemptId} {
+      allow read: if isVerifiedTeacher()
+        || (request.auth != null && request.auth.uid == resource.data.studentUid);
+      allow create, update: if isVerifiedTeacher()
+        && request.resource.data.reviewerUid == request.auth.uid
+        && request.resource.data.attemptId == attemptId
+        && request.resource.data.studentUid is string
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() <= 600
+        && (request.resource.data.band == null
+            || (request.resource.data.band is number
+                && request.resource.data.band >= 0
+                && request.resource.data.band <= 5));
+      allow delete: if false;
+    }
     match /test_scores/{docId} {
       allow read: if isVerifiedTeacher()
         && (resource.data.teacherUid == request.auth.uid

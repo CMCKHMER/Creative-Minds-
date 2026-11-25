@@ -16,12 +16,17 @@
 //   · degradable: if AI Logic is not enabled (App Check / backend), the caller
 //     gets { ok:false, reason:'unavailable' } and the UI keeps working.
 //
-// To switch it on in the Firebase console (owner, ~5 minutes):
-//   1. Build → AI Logic → get started → backend "Gemini Developer API".
-//   2. App Check → register the web app with reCAPTCHA Enterprise and add the
-//      site key to App Check initialisation (Firebase requires App Check for
-//      AI Logic calls from a browser).
-//   3. Nothing to redeploy here — the SDK loads lazily on first tap.
+// SWITCHING IT ON (owner, in the Firebase console for creative-minds-cambodia):
+//   1. Build → AI Logic → "Get started" → choose the **Gemini Developer API**
+//      backend (not Vertex) → enable it for the web app.
+//   2. Build → App Check → Apps → the web app → register with
+//      **reCAPTCHA Enterprise**, copy the *site key*, and put it in
+//      VITE_FIREBASE_APPCHECK_KEY (see ensureAppCheck() below).
+//   3. Nothing to redeploy in code — the SDK is a lazy import on first tap.
+// How to know it worked: the trend card's status line shows
+// "AI coach: connected" after you press "Test connection" (see probeAICoach).
+// Each failure mode below maps to one console step, so the card tells you which
+// step is still missing instead of failing silently.
 
 import { getFirebaseApp } from './firebase';
 
@@ -158,3 +163,246 @@ export async function askCoach(
 }
 
 export const AI_COACH_MODEL = MODEL;
+
+// ── App Check ───────────────────────────────────────────────────────
+// AI Logic refuses browser calls without an App Check token. The site key is
+// public (it is a reCAPTCHA Enterprise key bound to the domain), so it ships in
+// the bundle; registering the domain in the console is what makes it work.
+
+const APPCHECK_KEY = (import.meta.env.VITE_FIREBASE_APPCHECK_KEY as string | undefined)?.trim() || '';
+
+let appCheckPromise: Promise<'on' | 'no-key' | 'failed'> | null = null;
+
+export function appCheckConfigured(): boolean {
+  return APPCHECK_KEY.length > 0;
+}
+
+/** Initialise App Check exactly once. Returns what actually happened, so the
+ *  diagnostics can say "key missing" instead of blaming the model. */
+export async function ensureAppCheck(): Promise<'on' | 'no-key' | 'failed'> {
+  if (!APPCHECK_KEY) return 'no-key';
+  if (typeof window === 'undefined') return 'failed';
+  appCheckPromise ??= (async () => {
+    try {
+      const [{ initializeAppCheck, ReCaptchaEnterpriseProvider }, app] = await Promise.all([
+        import('firebase/app-check'),
+        getFirebaseApp(),
+      ]);
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(APPCHECK_KEY),
+        isTokenAutoRefreshEnabled: true,
+      });
+      return 'on' as const;
+    } catch {
+      return 'failed' as const;
+    }
+  })();
+  return appCheckPromise;
+}
+
+// ── diagnostics ─────────────────────────────────────────────────────
+
+export type AiStatus =
+  | 'connected'
+  | 'not-configured'
+  | 'app-check'
+  | 'not-enabled'
+  | 'quota'
+  | 'error';
+
+export interface AiProbe {
+  status: AiStatus;
+  model: string;
+  /** One line, in the owner's language, naming the exact console step. */
+  message: string;
+  /** What was actually returned, for debugging (never shown to a student). */
+  detail?: string;
+}
+
+const STEP = {
+  configured:
+    'Set VITE_FIREBASE_APPCHECK_KEY (or VITE_FIREBASE_APP_ID) — or simply check Firebase → Build → AI Logic.',
+  appCheck:
+    'App Check is missing or rejected. Firebase → Build → App Check → register this web app with reCAPTCHA Enterprise, then set VITE_FIREBASE_APPCHECK_KEY and redeploy.',
+  notEnabled:
+    'AI Logic is not switched on. Firebase → Build → AI Logic → Get started → Gemini Developer API backend, enable it for this web app.',
+  quota: 'This browser has used its reviews for today. It resets at midnight.',
+  error: 'The request failed before reaching the model — check the browser console and the project quota.',
+} as const;
+
+/** Classify a raw failure into the console step that fixes it. */
+export function classifyAiFailure(detail: string): AiStatus {
+  const text = detail.toLowerCase();
+  if (/app ?check|recaptcha|appcheck/.test(text)) return 'app-check';
+  if (/not (been )?(enabled|configured|found|used)|has not been used|permission|api key|api_key|403|404|unauthor|disabled/.test(text)) {
+    return 'not-enabled';
+  }
+  return 'error';
+}
+
+/**
+ * Prove whether AI Logic actually works, right now, from this browser.
+ *
+ * Costs nothing when it fails, and one generation when it succeeds. It does not
+ * touch the student's daily cap (that is for real reviews).
+ */
+export async function probeAICoach(
+  deps: { generator?: (prompt: string) => Promise<string> } = {},
+): Promise<AiProbe> {
+  const model = MODEL;
+
+  if (!appCheckConfigured()) {
+    // App Check is mandatory for AI Logic in a browser: fail fast with the
+    // instruction, instead of a confusing 403 from the model.
+    return {
+      status: 'app-check',
+      model,
+      message: STEP.appCheck,
+      detail: 'VITE_FIREBASE_APPCHECK_KEY is empty',
+    };
+  }
+
+  const appCheck = await ensureAppCheck();
+  if (appCheck === 'failed') {
+    return { status: 'app-check', model, message: STEP.appCheck, detail: 'App Check init threw' };
+  }
+
+  const generate = deps.generator ?? defaultGenerator();
+  try {
+    const text = await generate('Reply with the single word: ready');
+    return {
+      status: 'connected',
+      model,
+      message: `AI coach connected · ${model}`,
+      detail: text.slice(0, 80),
+    };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    const status = classifyAiFailure(detail);
+    return {
+      status,
+      model,
+      message: status === 'not-enabled' ? STEP.notEnabled : status === 'app-check' ? STEP.appCheck : STEP.error,
+      detail: detail.slice(0, 200),
+    };
+  }
+}
+
+/** The steps, in order, for a UI that wants to show the whole checklist. */
+export const AI_SETUP_STEPS: ReadonlyArray<{ id: string; label: string }> = [
+  { id: 'ai-logic', label: 'Firebase → Build → AI Logic → Get started (Gemini Developer API backend)' },
+  { id: 'app-check', label: 'Firebase → Build → App Check → register the web app with reCAPTCHA Enterprise' },
+  {
+    id: 'key',
+    label: 'Add the reCAPTCHA site key as VITE_FIREBASE_APPCHECK_KEY, then rebuild & deploy',
+  },
+  { id: 'probe', label: 'Press “Test connection” on the home trend card — it should say connected' },
+];
+
+// ── speaking second opinion ────────────────────────────────────────
+// The rubric can only hear the signal. A model can hear the words. Same gates
+// as the essay coach: on demand, capped, explained in plain English.
+
+export const AI_SPEECH_MAX_BYTES = 5 * 1024 * 1024;
+
+export type SpeechCoachResult =
+  | { ok: true; text: string }
+  | { ok: false; reason: 'no-audio' | 'too-large' | 'quota' | 'unavailable' | 'failed'; detail?: string };
+
+/** Base64 for an inline audio part (chunked so big recordings do not blow the stack). */
+export function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error('read-failed'));
+    reader.onload = () => {
+      const result = String(reader.result || '');
+      const comma = result.indexOf(',');
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+export function speechCoachPrompt(input: {
+  targetSeconds: number;
+  band: number;
+  stats?: Record<string, number>;
+}): string {
+  const stats = Object.entries(input.stats || {})
+    .filter(([, value]) => Number.isFinite(value))
+    .map(([key, value]) => `${key}: ${Math.round(Number(value) * 100) / 100}`)
+    .join(', ');
+  return [
+    'You are a TOEFL speaking coach listening to a Cambodian student who speaks English as a second language.',
+    `The task was ${Math.round(input.targetSeconds)} seconds long.`,
+    `An on-device signal check gave ${Number(input.band).toFixed(1)} / 5 for delivery${stats ? ` (${stats})` : ''}.`,
+    '',
+    'Listen to the recording and reply with exactly three sentences, plain English (CEFR B1):',
+    '1. one pronunciation or word-stress problem you actually heard, quoting the word;',
+    '2. one thing that made the answer easy or hard to follow;',
+    '3. one drill to practise this week.',
+    'Do not give a band or a score. If the audio is silent or too short, say that in one sentence.',
+  ].join('\n');
+}
+
+/**
+ * Ask the model to listen to one recorded answer.
+ *
+ * @param input audio (base64 + mime) and the deterministic band it already has
+ * @param deps.generator injected for tests; the default posts an inline-audio part
+ */
+export async function askSpeechCoach(
+  input: { audioBase64: string; mimeType: string; targetSeconds: number; band: number; stats?: Record<string, number> },
+  deps: { generator?: (prompt: string, audio: { base64: string; mimeType: string }) => Promise<string>; now?: number } = {},
+): Promise<SpeechCoachResult> {
+  const base64 = String(input.audioBase64 || '').trim();
+  if (base64.length < 64) return { ok: false, reason: 'no-audio' };
+  if (base64.length * 0.75 > AI_SPEECH_MAX_BYTES) return { ok: false, reason: 'too-large' };
+
+  const now = deps.now ?? Date.now();
+  const usage = typeof localStorage === 'undefined' ? { day: today(now), count: 0 } : readUsage(now);
+  if (usage.count >= AI_COACH_DAILY_LIMIT) return { ok: false, reason: 'quota' };
+
+  const generate = deps.generator ?? defaultAudioGenerator();
+  try {
+    const text = (
+      await generate(
+        speechCoachPrompt({ targetSeconds: input.targetSeconds, band: input.band, stats: input.stats }),
+        { base64, mimeType: input.mimeType || 'audio/webm' },
+      )
+    ).trim();
+    if (!text) return { ok: false, reason: 'failed', detail: 'empty-response' };
+    if (typeof localStorage !== 'undefined') writeUsage({ day: usage.day, count: usage.count + 1 });
+    return { ok: true, text: text.slice(0, 900) };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    const status = classifyAiFailure(detail);
+    return {
+      ok: false,
+      reason: status === 'not-enabled' || status === 'app-check' ? 'unavailable' : 'failed',
+      detail: detail.slice(0, 200),
+    };
+  }
+}
+
+/** Default generator for audio: one inline-data part + the coach prompt. */
+export function defaultAudioGenerator(): (
+  prompt: string,
+  audio: { base64: string; mimeType: string },
+) => Promise<string> {
+  return async (prompt, audio) => {
+    const [{ getAI, getGenerativeModel, GoogleAIBackend }, app] = await Promise.all([
+      import('firebase/ai'),
+      getFirebaseApp(),
+    ]);
+    await ensureAppCheck();
+    const ai = getAI(app, { backend: new GoogleAIBackend() });
+    const model = getGenerativeModel(ai, { model: MODEL });
+    const result = await model.generateContent([
+      { type: 'inlineData', inlineData: { mimeType: audio.mimeType, data: audio.base64 } },
+      { type: 'text', text: prompt },
+    ]);
+    return result.response.text();
+  };
+}
+
