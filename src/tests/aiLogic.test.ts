@@ -220,6 +220,21 @@ describe('the App Check key can be set from the console (no rebuild)', () => {
     expect(describeMissingAppCheckKey(found)).not.toMatch(/rules/);
   });
 
+  it('proves the setup on a quota failure: the key came from Firestore', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ fields: { appCheckKey: { stringValue: '6L-firestore-key' } } }),
+    });
+    const { probeAICoach: fresh } = await load(fetchMock);
+    const probe = await fresh({
+      generator: vi.fn().mockRejectedValue(new Error('[429] Your prepayment credits are depleted.')),
+    });
+    expect(probe.status).toBe('quota');
+    expect(probe.detail).toContain('key: site_config/ai');
+    expect(probe.detail).toContain('429');
+  });
+
   it('remembers the answer so the probe and the coach agree', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
