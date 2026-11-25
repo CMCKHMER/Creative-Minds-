@@ -316,7 +316,7 @@ const STEP = {
     'AI Logic is not switched on. Firebase → Build → AI Logic → Get started → Gemini Developer API backend, enable it for this web app.',
   quota: 'This browser has used its reviews for today. It resets at midnight.',
   projectQuota:
-    'The project’s AI quota is used up (HTTP 429) — the model refused the call, not the code. Rubric scores and the rest of the site are unaffected. Free-tier quota resets daily; if the message mentions prepayment credits, Google Cloud billing for creative-minds-cambodia has run out of credits.',
+    'Setup is verified — App Check accepted the token and the site key was found, so the model did answer. It answered 429 (quota/credits): the project has none left for the model. Rubric scores and the rest of the site are unaffected. Free-tier quota resets daily; “prepayment credits are depleted” means Google Cloud billing for creative-minds-cambodia is at zero credits.',
   error: 'The request failed before reaching the model — check the browser console and the project quota.',
 } as const;
 
@@ -386,7 +386,9 @@ export async function probeAICoach(
             : status === 'quota'
               ? STEP.projectQuota
               : STEP.error,
-      detail: detail.slice(0, 200),
+      // Keep the raw text, and say where the key came from: on a quota failure
+      // that is the proof the owner's setup is complete.
+      detail: `${detail.slice(0, 160)}${found.from === 'firestore' ? ' · key: site_config/ai' : ''}`,
     };
   }
 }
