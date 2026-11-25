@@ -148,6 +148,12 @@ describe('PracticeTrajectoryCard', () => {
     const { unmount } = render(React.createElement(PracticeTrajectoryCard));
     await waitFor(() => expect(screen.getByText(/App Check key not set/i)).toBeTruthy());
     expect(screen.getByRole('button', { name: /Test connection/i })).toBeTruthy();
+    // every console step is a link, so the owner never has to hunt the left nav
+    const steps = Array.from(document.querySelectorAll('.cmc-ai-steps a')).map((a) => a.getAttribute('href'));
+    expect(steps).toContain('https://console.firebase.google.com/project/creative-minds-cambodia/appcheck/apps');
+    expect(steps).toContain(
+      'https://console.firebase.google.com/project/creative-minds-cambodia/firestore/data/~2Fsite_config~2Fai',
+    );
     // and when the charts are empty, the teacher is told WHY in one line
     await waitFor(() => expect(screen.getByText(/Score storage:/)).toBeTruthy());
     expect(screen.getByText(/HTTP 403/)).toBeTruthy();
