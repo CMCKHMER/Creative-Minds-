@@ -17,8 +17,10 @@
    SETUP (owner): see docs/ai-phase-01.md §4. In short:
      Firebase → Build → AI Logic → Gemini Developer API backend,
      Firebase → Build → App Check → reCAPTCHA Enterprise,
-     then set window.CMC_APPCHECK_KEY on the page (or VITE_FIREBASE_APPCHECK_KEY
-     for the React app) and redeploy.
+     then paste that site key into Firestore → site_config → ai → appCheckKey.
+     Both this page and the React app read it from there on load, so the owner
+     never needs a rebuild; window.CMC_APPCHECK_KEY / VITE_FIREBASE_APPCHECK_KEY
+     still win when they are set.
 
    The React app has its own typed twin (src/lib/aiCoach.ts) with the same
    prompts and the same guards; the essay prompt is not duplicated here because
@@ -44,15 +46,61 @@ const MAX_BYTES = 5 * 1024 * 1024;
 
 let sdkPromise = null;
 
-function appCheckKey() {
+// Public read / owner-only write, so the site key can be pasted into the
+// Firebase console (Firestore → site_config → ai → appCheckKey) and take effect
+// on the next page load — no rebuild, no redeploy. A reCAPTCHA Enterprise site
+// key is public by design; the secret half never leaves Google.
+const CONFIG_URL =
+  'https://firestore.googleapis.com/v1/projects/creative-minds-cambodia/databases/(default)/documents/site_config/ai';
+
+let keyPromise = null;
+
+function inlineKey() {
   if (typeof window === 'undefined') return '';
   var key = window.CMC_APPCHECK_KEY;
   return typeof key === 'string' ? key.trim() : '';
 }
 
+/** The site key from the page global, else from site_config/ai (cached). */
+export function resolveAppCheckKey() {
+  if (keyPromise) return keyPromise;
+  keyPromise = (async function () {
+    var inline = inlineKey();
+    if (inline) return inline;
+    try {
+      var res = await fetch(CONFIG_URL);
+      if (!res.ok) return '';
+      var data = await res.json();
+      var fields = data && data.fields;
+      var key = fields && fields.appCheckKey && fields.appCheckKey.stringValue;
+      key = typeof key === 'string' ? key.trim() : '';
+      if (key && typeof window !== 'undefined') window.CMC_APPCHECK_KEY = key;
+      return key;
+    } catch (error) {
+      return '';
+    }
+  })();
+  return keyPromise;
+}
+
+/** Called once on page load so the button is already decided when a student
+ *  finishes recording (a 45-second answer is plenty of time for one read). */
+export function refreshAiConfig() {
+  return resolveAppCheckKey();
+}
+
+function appCheckKey() {
+  return inlineKey();
+}
+
+/** Test hook: forget the cached key (a page load never needs this twice). */
+export function resetAiConfigCache() {
+  keyPromise = null;
+}
+
 /** True only when the owner has wired App Check — otherwise hide the button. */
 export function aiConfigured() {
-  return appCheckKey().length > 0;
+  return inlineKey().length > 0;
 }
 
 function usageToday(now) {
@@ -156,7 +204,7 @@ function classify(detail) {
  *   {ok: false, reason: 'not-configured'|'no-audio'|'too-large'|'quota'|'unavailable'|'failed', detail?: string}>}
  */
 export async function askAboutRecording(input) {
-  if (!aiConfigured()) return { ok: false, reason: 'not-configured' };
+  if (!(await resolveAppCheckKey())) return { ok: false, reason: 'not-configured' };
   if (!input || !input.blob || !input.blob.size) return { ok: false, reason: 'no-audio' };
   if (input.blob.size > MAX_BYTES) return { ok: false, reason: 'too-large' };
 
@@ -203,6 +251,8 @@ export const AI_DAILY_LIMIT = DAILY_LIMIT;
 
 export default {
   aiConfigured,
+  resolveAppCheckKey,
+  refreshAiConfig,
   askAboutRecording,
   remainingUses,
   speechPrompt,

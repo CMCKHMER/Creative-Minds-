@@ -1505,7 +1505,10 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
     window.CMCSpeakingRubric = { analyseAudioBlob, RUBRIC_VERSION };
     window.CMCPractice = practice;
     // Only renders the "Ask the AI to listen" button when App Check is wired.
+    // The key is read from Firestore (site_config/ai) on load, so the owner can
+    // set it in the console without a rebuild.
     window.CMCAiLogic = aiLogic;
+    aiLogic.refreshAiConfig();
     practice.flushOutbox();
 </script>
 

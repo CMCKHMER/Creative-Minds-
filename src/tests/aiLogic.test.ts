@@ -11,10 +11,20 @@ import {
   AI_DAILY_LIMIT,
   aiConfigured,
   askAboutRecording,
+  refreshAiConfig,
   remainingUses,
+  resetAiConfigCache,
+  resolveAppCheckKey,
   speechPrompt,
 } from '../../public/assets/js/cmc-ai-logic.js';
 import { classifyAiFailure, probeAICoach, speechCoachPrompt } from '../lib/aiCoach';
+
+// App Check init is local, but keep the SDK out of the test: the probe's job here
+// is to decide, not to talk to Google.
+vi.mock('firebase/app-check', () => ({
+  initializeAppCheck: () => ({}),
+  ReCaptchaEnterpriseProvider: class {},
+}));
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..', '..');
@@ -32,6 +42,11 @@ function audioBlob(bytes = 4096): Blob {
 beforeEach(() => {
   localStorage.clear();
   delete (window as unknown as { CMC_APPCHECK_KEY?: string }).CMC_APPCHECK_KEY;
+  resetAiConfigCache();
+  vi.unstubAllGlobals();
+  // No test may reach the network: the key read is stubbed unless a test says
+  // otherwise.
+  vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
 });
 
 describe('cmc-ai-logic — the button only exists when AI Logic is wired', () => {
@@ -90,11 +105,26 @@ describe('diagnostics — probeAICoach tells the owner which step is missing', (
   });
 
   it('reports connected when a generation actually comes back', async () => {
-    const probe = await probeAICoach({
-      generator: vi.fn().mockResolvedValue('ready'),
+    // A key on the page is enough to get past the guard; the generator stands in
+    // for the SDK call so no request leaves the test.
+    (window as unknown as { CMC_APPCHECK_KEY?: string }).CMC_APPCHECK_KEY = 'site-key';
+    vi.resetModules();
+    const { probeAICoach: fresh } = await import('../lib/aiCoach');
+    const probe = await fresh({ generator: vi.fn().mockResolvedValue('ready') });
+    expect(probe.status).toBe('connected');
+    expect(probe.message).toContain('AI coach connected');
+    expect(probe.detail).toBe('ready');
+  });
+
+  it('maps a model failure thrown by the generator onto a console step', async () => {
+    (window as unknown as { CMC_APPCHECK_KEY?: string }).CMC_APPCHECK_KEY = 'site-key';
+    vi.resetModules();
+    const { probeAICoach: fresh } = await import('../lib/aiCoach');
+    const probe = await fresh({
+      generator: vi.fn().mockRejectedValue(new Error('AI Logic API has not been used in project 1')),
     });
-    // no key in this environment, so the guard fires first — assert that instead
-    expect(probe.status).toBe('app-check');
+    expect(probe.status).toBe('not-enabled');
+    expect(probe.detail).toContain('has not been used');
   });
 
   it('maps model errors onto console steps', () => {
@@ -112,6 +142,56 @@ describe('diagnostics — probeAICoach tells the owner which step is missing', (
   });
 });
 
+describe('the App Check key can be set from the console (no rebuild)', () => {
+  const load = async (fetchImpl?: () => Promise<unknown>) => {
+    vi.resetModules();
+    vi.unstubAllGlobals();
+    if (fetchImpl) vi.stubGlobal('fetch', fetchImpl);
+    return import('../lib/aiCoach');
+  };
+
+  it('takes a site key straight from site_config/ai in Firestore', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ fields: { appCheckKey: { stringValue: ' firestore-key ' } } }),
+    });
+    const { resolveAppCheckKey } = await load(fetchMock);
+    expect(await resolveAppCheckKey()).toBe('firestore-key');
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/site_config/ai');
+  });
+
+  it('prefers a page global over Firestore (no request made)', async () => {
+    const fetchMock = vi.fn();
+    const { resolveAppCheckKey } = await load(fetchMock);
+    (window as unknown as { CMC_APPCHECK_KEY?: string }).CMC_APPCHECK_KEY = 'global-key';
+    expect(await resolveAppCheckKey()).toBe('global-key');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('is empty when the document or field is missing, and survives a network error', async () => {
+    const empty = await load(vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) }));
+    expect(await empty.resolveAppCheckKey()).toBe('');
+
+    const fieldMissing = await load(vi.fn().mockResolvedValue({ ok: true, json: async () => ({ fields: {} }) }));
+    expect(await fieldMissing.resolveAppCheckKey()).toBe('');
+
+    const offline = await load(vi.fn().mockRejectedValue(new Error('Failed to fetch')));
+    expect(await offline.resolveAppCheckKey()).toBe('');
+    vi.unstubAllGlobals();
+  });
+
+  it('remembers the answer so the probe and the coach agree', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ fields: { appCheckKey: { stringValue: 'k' } } }),
+    });
+    const { resolveAppCheckKey } = await load(fetchMock);
+    expect(await resolveAppCheckKey()).toBe('k');
+    expect(await resolveAppCheckKey()).toBe('k');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('speaking page wiring', () => {
   it('keeps recordings in memory and only sends them on an explicit tap', () => {
     expect(speakingPage).toContain("import * as aiLogic from '../assets/js/cmc-ai-logic.js';");
@@ -122,6 +202,27 @@ describe('speaking page wiring', () => {
     // the blob is only read inside the click handler
     expect(speakingPage.indexOf('function cmcAskAi')).toBeGreaterThan(0);
     expect(speakingPage).toContain('nothing is stored or sent');
+  });
+
+  it('reads the App Check key on load, so no rebuild is needed to switch AI on', () => {
+    expect(speakingPage).toContain('aiLogic.refreshAiConfig()');
+  });
+});
+
+describe('the static page picks the key up from the console too', () => {
+  it('becomes configured after one Firestore read, and asks for nothing else', async () => {
+    expect(aiConfigured()).toBe(false);
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ fields: { appCheckKey: { stringValue: 'firestore-key' } } }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await refreshAiConfig();
+    // the same key both switches the button on and initialises App Check
+    expect(resolveAppCheckKey && (await resolveAppCheckKey())).toBe('firestore-key');
+    expect(aiConfigured()).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/site_config/ai');
   });
 });
 

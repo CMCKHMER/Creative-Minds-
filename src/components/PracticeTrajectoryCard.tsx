@@ -12,9 +12,9 @@ import {
   AI_COACH_DAILY_LIMIT,
   AI_COACH_MODEL,
   AI_SETUP_STEPS,
-  appCheckConfigured,
   askCoach,
   probeAICoach,
+  resolveAppCheckKey,
   remainingCoachUses,
   type AiProbe,
 } from '../lib/aiCoach';
@@ -136,7 +136,23 @@ export function PracticeTrajectoryCard() {
   const [probe, setProbe] = useState<AiProbe | null>(null);
   const [probing, setProbing] = useState(false);
   const [storeDiag, setStoreDiag] = useState<StoreDiagnosis | null>(null);
-  const appCheckReady = appCheckConfigured();
+  // The key can come from the build, a page global, or site_config/ai in
+  // Firestore — resolved once on mount, so pasting it into the console is
+  // enough (no rebuild, no redeploy).
+  const [appCheckReady, setAppCheckReady] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    resolveAppCheckKey()
+      .then((key) => {
+        if (alive) setAppCheckReady(Boolean(key));
+      })
+      .catch(() => {
+        if (alive) setAppCheckReady(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
   // The console checklist is for the owner, not for a 12-year-old: only a
   // verified teacher/admin sees the status line and the setup steps.
   const isTeacherView = Boolean(session && (session.teacherVerified || session.role === 'teacher'));

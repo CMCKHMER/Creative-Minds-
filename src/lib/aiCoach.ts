@@ -20,15 +20,17 @@
 //   1. Build → AI Logic → "Get started" → choose the **Gemini Developer API**
 //      backend (not Vertex) → enable it for the web app.
 //   2. Build → App Check → Apps → the web app → register with
-//      **reCAPTCHA Enterprise**, copy the *site key*, and put it in
-//      VITE_FIREBASE_APPCHECK_KEY (see ensureAppCheck() below).
-//   3. Nothing to redeploy in code — the SDK is a lazy import on first tap.
+//      **reCAPTCHA Enterprise**, copy the *site key*, and paste it into
+//      Firestore → site_config → ai → appCheckKey.
+//   3. Nothing to redeploy in code — the SDK is a lazy import on first tap, and
+//      the key is read from site_config/ai on load (see resolveAppCheckKey()).
 // How to know it worked: the trend card's status line shows
 // "AI coach: connected" after you press "Test connection" (see probeAICoach).
 // Each failure mode below maps to one console step, so the card tells you which
 // step is still missing instead of failing silently.
 
 import { getFirebaseApp } from './firebase';
+import { FIREBASE_PROJECT_ID } from './firebaseAuth';
 
 export const AI_COACH_DAILY_LIMIT = 10;
 export const AI_COACH_MAX_ESSAY = 2400;
@@ -169,18 +171,62 @@ export const AI_COACH_MODEL = MODEL;
 // public (it is a reCAPTCHA Enterprise key bound to the domain), so it ships in
 // the bundle; registering the domain in the console is what makes it work.
 
-const APPCHECK_KEY = (import.meta.env.VITE_FIREBASE_APPCHECK_KEY as string | undefined)?.trim() || '';
+const APPCHECK_ENV = (import.meta.env.VITE_FIREBASE_APPCHECK_KEY as string | undefined)?.trim() || '';
+
+/** Firestore REST base — the public site config lives here too. */
+const CONFIG_BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
+
+let keyPromise: Promise<string> | null = null;
+
+/**
+ * The reCAPTCHA Enterprise site key, from the first place that has one:
+ *
+ *   1. `VITE_FIREBASE_APPCHECK_KEY` (build-time env / GitHub secret);
+ *   2. `window.CMC_APPCHECK_KEY` (a tiny inline script on a static page);
+ *   3. `site_config/ai` → `appCheckKey` in Firestore — PUBLIC READ, owner-only
+ *      write, so the key can be pasted into the Firebase console and take
+ *      effect on the next page load, with no rebuild.
+ *
+ * A site key is public by design (it ships inside every client bundle); the
+ * secret half never leaves Google. This is why the Firestore fallback is safe.
+ */
+export function resolveAppCheckKey(): Promise<string> {
+  if (keyPromise) return keyPromise;
+  keyPromise = (async () => {
+    if (APPCHECK_ENV) return APPCHECK_ENV;
+    const globalKey =
+      typeof window !== 'undefined' && typeof (window as { CMC_APPCHECK_KEY?: unknown }).CMC_APPCHECK_KEY === 'string'
+        ? String((window as { CMC_APPCHECK_KEY?: string }).CMC_APPCHECK_KEY).trim()
+        : '';
+    if (globalKey) return globalKey;
+    try {
+      const res = await fetch(`${CONFIG_BASE}/site_config/ai`);
+      if (!res.ok) return '';
+      const data = (await res.json().catch(() => null)) as {
+        fields?: { appCheckKey?: { stringValue?: string } };
+      } | null;
+      const key = data?.fields?.appCheckKey?.stringValue || '';
+      return key.trim();
+    } catch {
+      return '';
+    }
+  })();
+  return keyPromise;
+}
+
+/** Synchronous hint only: true when a build-time key exists. Use
+ *  resolveAppCheckKey() before deciding whether AI is available. */
+export function appCheckConfigured(): boolean {
+  return APPCHECK_ENV.length > 0;
+}
 
 let appCheckPromise: Promise<'on' | 'no-key' | 'failed'> | null = null;
-
-export function appCheckConfigured(): boolean {
-  return APPCHECK_KEY.length > 0;
-}
 
 /** Initialise App Check exactly once. Returns what actually happened, so the
  *  diagnostics can say "key missing" instead of blaming the model. */
 export async function ensureAppCheck(): Promise<'on' | 'no-key' | 'failed'> {
-  if (!APPCHECK_KEY) return 'no-key';
+  const key = await resolveAppCheckKey();
+  if (!key) return 'no-key';
   if (typeof window === 'undefined') return 'failed';
   appCheckPromise ??= (async () => {
     try {
@@ -189,7 +235,7 @@ export async function ensureAppCheck(): Promise<'on' | 'no-key' | 'failed'> {
         getFirebaseApp(),
       ]);
       initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(APPCHECK_KEY),
+        provider: new ReCaptchaEnterpriseProvider(key),
         isTokenAutoRefreshEnabled: true,
       });
       return 'on' as const;
@@ -223,7 +269,7 @@ const STEP = {
   configured:
     'Set VITE_FIREBASE_APPCHECK_KEY (or VITE_FIREBASE_APP_ID) — or simply check Firebase → Build → AI Logic.',
   appCheck:
-    'App Check is missing or rejected. Firebase → Build → App Check → register this web app with reCAPTCHA Enterprise, then set VITE_FIREBASE_APPCHECK_KEY and redeploy.',
+    'App Check is missing or rejected. Firebase → Build → App Check → register this web app with reCAPTCHA Enterprise, then paste the site key into Firestore → site_config → ai → field appCheckKey (no rebuild needed).',
   notEnabled:
     'AI Logic is not switched on. Firebase → Build → AI Logic → Get started → Gemini Developer API backend, enable it for this web app.',
   quota: 'This browser has used its reviews for today. It resets at midnight.',
@@ -251,14 +297,15 @@ export async function probeAICoach(
 ): Promise<AiProbe> {
   const model = MODEL;
 
-  if (!appCheckConfigured()) {
+  const key = await resolveAppCheckKey();
+  if (!key) {
     // App Check is mandatory for AI Logic in a browser: fail fast with the
     // instruction, instead of a confusing 403 from the model.
     return {
       status: 'app-check',
       model,
       message: STEP.appCheck,
-      detail: 'VITE_FIREBASE_APPCHECK_KEY is empty',
+      detail: 'no App Check site key in site_config/ai, VITE_FIREBASE_APPCHECK_KEY or window.CMC_APPCHECK_KEY',
     };
   }
 
@@ -294,7 +341,7 @@ export const AI_SETUP_STEPS: ReadonlyArray<{ id: string; label: string }> = [
   { id: 'app-check', label: 'Firebase → Build → App Check → register the web app with reCAPTCHA Enterprise' },
   {
     id: 'key',
-    label: 'Add the reCAPTCHA site key as VITE_FIREBASE_APPCHECK_KEY, then rebuild & deploy',
+    label: 'Firestore → site_config → ai → field appCheckKey = the reCAPTCHA site key (no rebuild)',
   },
   { id: 'probe', label: 'Press “Test connection” on the home trend card — it should say connected' },
 ];
