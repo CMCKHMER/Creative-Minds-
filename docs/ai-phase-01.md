@@ -114,9 +114,14 @@ All in the console for **creative-minds-cambodia**:
    - Firebase → Build → **App Check** → **Apps** → click the **CMC / Web app**
      row: the registration panel shows the *reCAPTCHA Enterprise site key* (and
      a **Create key** link if the field is empty);
-   - Google Cloud → **Security → reCAPTCHA Enterprise → Keys** → open the key →
-     the **ID** field, a string starting `6L…`. A key Firebase made for you is
-     named like `Firebase App Check <project> (web)`.
+   - Google Cloud → **Security → Fraud Defense** (this is reCAPTCHA Enterprise
+     under its new name) → **Create key** → *Web* → display name, domains
+     `cmckhmer.github.io`, `creative-minds-cambodia.firebaseapp.com`,
+     `localhost` → **Challenge: No, Test key: No** (score-based, which is what
+     App Check needs) → **Create key**. The confirmation shows the **ID**, a
+     string starting `6L…` — that is the site key to copy. Existing keys are
+     listed under **Security → Fraud Defense → Keys**; a key Firebase made for
+     you is named like `Firebase App Check <project> (web)`.
 
    A reCAPTCHA Enterprise *site* key is public by design (it ships inside every
    client bundle), which is why a public-read Firestore document is safe here;
