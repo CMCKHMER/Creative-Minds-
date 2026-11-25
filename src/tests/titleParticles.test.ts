@@ -354,4 +354,18 @@ describe('how the effect is wired into the page', () => {
     const rule = css.match(/\.cmc-title-canvas\s*\{([^}]*)\}/);
     expect(rule?.[1]).toMatch(/pointer-events:\s*none/);
   });
+
+  it('keeps dispersing dots crisp and non-blotchy in both WebGL and 2D painters', () => {
+    // Pushed/flying dots never bloat past rest size into overlapping clumps
+    expect(LOOK_SIZE[Look.Pushed]).toBeLessThanOrEqual(1);
+    expect(LOOK_SIZE[Look.Flying]).toBeLessThanOrEqual(LOOK_SIZE[Look.Pushed]);
+    // WebGL shader uses a pixel-aware anti-aliased edge rather than a wide fuzzy halo
+    const webgl = readFileSync('src/lib/titleParticles.ts', 'utf8');
+    expect(webgl).toContain('vPointSize');
+    expect(webgl).toContain('smoothstep(0.5, 0.5 - aa, d)');
+    // 2D painter draws smooth circles everywhere instead of snapping small dots to blocky rects
+    const painter2d = readFileSync('src/lib/titleParticles2d.ts', 'utf8');
+    expect(painter2d).not.toContain('ctx.rect(');
+    expect(painter2d).toContain('ctx.arc(');
+  });
 });

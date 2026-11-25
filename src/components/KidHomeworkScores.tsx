@@ -14,10 +14,11 @@ import { createPortal } from 'react-dom';
 import { BarChart3, Download, RefreshCw, X } from 'lucide-react';
 import { downloadBlob } from '../lib/biweeklyScores';
 import {
-  attemptsForHomework, countHomeworkPageAttempts, fetchHomeworkPageAttempts, homeworkRefFromHref,
+  attemptsForHomework, countHomeworkPageAttempts, fetchHomeworkArchive, fetchHomeworkPageAttempts,
+  homeworkExportDocId, homeworkRefFromHref,
   scoresByStudent, scoresToCsv, scoreWhen, sortScores, summarizeScores, wholePageRefFromHref,
 } from '../lib/kidHomework';
-import type { HomeworkAttempt, ScoreSort } from '../lib/kidHomework';
+import type { HomeworkArchive, HomeworkAttempt, ScoreSort } from '../lib/kidHomework';
 
 export interface KidHomeworkScoresProps {
   /** Homework title as on the card, e.g. 'Unit 13 · Homework 2 — Relocation Mission'. */
@@ -69,6 +70,13 @@ export function KidHomeworkScores({ title, href, gradeLabel, wholePage, drillSlu
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const knownCount = useRef(-1);
   const inFlight = useRef(false);
+  // Nightly archive (Blaze): the exportHomeworkSheets Cloud Function writes a
+  // ready-made CSV per homework per day into homework_exports. One extra GET
+  // when the sheet opens; null until the function has run (or until the new
+  // rules are published), in which case the sheet simply renders without it.
+  // Stored with its document id so a sheet opened for another homework never
+  // shows the previous homework's file.
+  const [archive, setArchive] = useState<{ id: string; data: HomeworkArchive } | null>(null);
 
   const load = useCallback(async () => {
     if (!ref || inFlight.current) return;
@@ -116,6 +124,17 @@ export function KidHomeworkScores({ title, href, gradeLabel, wholePage, drillSlu
     };
   }, [ref, load]);
 
+  // The nightly archive is not polled: it changes at most once a day.
+  useEffect(() => {
+    if (!ref || ref.number === null) return;
+    const id = homeworkExportDocId(ref.slug, ref.number);
+    let alive = true;
+    fetchHomeworkArchive(ref.slug, ref.number)
+      .then((data) => { if (alive && data) setArchive({ id, data }); })
+      .catch(() => { /* no archive, or rules not published — no dead UI */ });
+    return () => { alive = false; };
+  }, [ref]);
+
   // Dialog manners: focus the close button, Esc closes, focus goes back to
   // the button that opened the sheet.
   // onClose is read through a ref so the effect runs once — the cards behind
@@ -160,6 +179,18 @@ export function KidHomeworkScores({ title, href, gradeLabel, wholePage, drillSlu
     const safe = title.replace(/[^\w]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'homework';
     // BOM so Excel reads the "·" and "—" in the title as UTF-8.
     downloadBlob('\uFEFF' + scoresToCsv(`${gradeLabel} — ${title}`, rows), `scores-${safe}.csv`, 'text/csv;charset=utf-8');
+  };
+
+  const archiveId = ref && ref.number !== null ? homeworkExportDocId(ref.slug, ref.number) : null;
+  const archiveData = archive && archiveId && archive.id === archiveId ? archive.data : null;
+
+  const downloadArchive = () => {
+    if (!archive || !archive.data.csv) return;
+    const day = archive.data.generatedAt
+      ? new Date(archive.data.generatedAt).toISOString().slice(0, 10)
+      : 'latest';
+    // Same BOM as the live download so Excel reads the “·” and “—” in the title.
+    downloadBlob('\uFEFF' + archive.data.csv, `archive-${archive.id}-${day}.csv`, 'text/csv;charset=utf-8');
   };
 
   const selectClass = 'rounded-lg border border-slate-700 bg-slate-800 px-2 py-1.5 text-[11px] font-semibold text-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300';
@@ -312,6 +343,15 @@ export function KidHomeworkScores({ title, href, gradeLabel, wholePage, drillSlu
                   {unnumbered > 0 && <p>{unnumbered} older {unnumbered === 1 ? 'submission' : 'submissions'} from this page {unnumbered === 1 ? 'does' : 'do'} not say which homework {unnumbered === 1 ? 'it belongs' : 'they belong'} to and {unnumbered === 1 ? 'is' : 'are'} not listed.</p>}
                   {capped && <p className="text-amber-300">This page has a very large number of submissions — the list may be incomplete.</p>}
                   {updatedAt > 0 && <p className="text-slate-500" data-score-updated>Updated {scoreWhen(updatedAt)} · checks for new submissions every {POLL_MS / 1000} seconds while this sheet is open.</p>}
+                  {archiveData && archiveData.csv && (
+                    <p className="flex flex-wrap items-center gap-2 pt-1" data-hw-archive>
+                      <button type="button" onClick={downloadArchive} className={buttonClass}>
+                        <Download className="h-3 w-3" aria-hidden="true" />
+                        Download nightly archive · {archiveData.students} {archiveData.students === 1 ? 'student' : 'students'} · {scoreWhen(archiveData.generatedAt)}
+                      </button>
+                      <span className="text-slate-500">Saved every evening at 21:00, so it survives a later cleanup of the live list.</span>
+                    </p>
+                  )}
                 </div>
               )}
             </>

@@ -1,0 +1,493 @@
+/* ============================================================
+   MOTION SYSTEM (Nov 2026)
+   ------------------------------------------------------------
+   The five motion behaviours the owner picked from the Button Lab
+   (docs/lab/buttons.html). Imported LAST in src/main.tsx, after
+   glass.css and iridescent.css, so its transform rules win the
+   cascade against the button skins without piling on !important.
+
+   Rules this file keeps:
+     · animate transform + opacity only — never width/height/top,
+       and never a repeating box-shadow;
+     · every effect has a prefers-reduced-motion off-switch at the
+       bottom;
+     · every effect has an html.light variant, because the pale
+       theme re-states the dark skins (index.css ~line 940+).
+
+   Classes
+     .cmc-press            press-depth (the physical key)
+     .cmc-tilt             magnetic tilt + glare  (needs useMagneticTilt)
+     .cmc-busy             label becomes progress  (BusyButton)
+     .cmc-busy--stamp      done state stamps a tick + halo
+     .cmc-nudge            idle nudge              (needs useIdleNudge)
+   ============================================================ */
+
+:root {
+  --cmc-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --cmc-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --cmc-press-ms: 120ms;
+  --cmc-think-ms: 180ms;
+  --cmc-reveal-ms: 340ms;
+}
+
+/* ------------------------------------------------------------
+   1 · PRESS DEPTH
+   A finger has no hover, so :active is the only channel a phone
+   gets. These rules make the press answer on every input type.
+   ------------------------------------------------------------ */
+
+.cmc-btn-primary,
+.cmc-btn-3d,
+.cmc-btn-3d--emerald,
+.cmc-btn-3d--violet,
+.cmc-btn-ghost,
+.cmc-press {
+  /* Removes the double-tap-to-zoom delay and the blue flash on
+     Android/iOS — the press starts on touchstart, not 300ms later. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cmc-press {
+  position: relative;
+  transition:
+    transform var(--cmc-press-ms) var(--cmc-spring),
+    box-shadow var(--cmc-press-ms) ease,
+    filter 0.2s ease;
+}
+
+.cmc-press:hover {
+  transform: translateY(-1px);
+}
+
+.cmc-press:active {
+  transform: translateY(2px) scale(0.992);
+  filter: brightness(0.97);
+}
+
+/* On touch screens the hover lift never fires, so the press has to
+   carry the whole physicality on its own. */
+@media (hover: none) {
+  .cmc-btn-primary:active,
+  .cmc-btn-3d:active,
+  .cmc-btn-3d--emerald:active,
+  .cmc-btn-3d--violet:active {
+    transform: translateY(3px) scale(0.992) !important;
+  }
+  .cmc-btn-ghost:active {
+    transform: translateY(2px) scale(0.99);
+    background: rgba(103, 232, 249, 0.16);
+  }
+}
+
+/* ------------------------------------------------------------
+   1b · PRESS EVERYWHERE (the site-wide default)
+   .cmc-press is the opt-in utility; this is the default, so every
+   native control answers a finger without adding a class to 200
+   components.
+
+   It uses the individual `translate` property, NOT `transform`:
+   `transform` is already spoken for by entrance animations, the
+   hero tilt and Tailwind's -translate-y utilities, and overwriting
+   it would make those elements jump. `translate` composes with
+   whatever transform the element already has.
+
+   Opt out with data-press="off" on anything positioned BY
+   translate (a centred close button, a draggable handle).
+   ------------------------------------------------------------ */
+
+/* The skins (.cmc-btn-*) and .cmc-press already carry their own press
+   physics, so they are excluded here — otherwise a primary button would
+   sink 2px from this rule AND 20 from the skin. */
+button:not(:disabled):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]):active,
+[role="button"]:not([aria-disabled="true"]):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]):active,
+summary:not([class*="cmc-btn-"]):not([data-press="off"]):active,
+input[type="submit"]:not(:disabled):not([data-press="off"]):active,
+input[type="button"]:not(:disabled):not([data-press="off"]):active,
+input[type="reset"]:not(:disabled):not([data-press="off"]):active {
+  translate: 0 2px;
+}
+
+/* Zero specificity: a component's own `transition-*` utility wins, and a
+   button with no transition at all gets a spring on the way down. */
+:where(
+  button:not(:disabled):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]),
+  [role="button"]:not([aria-disabled="true"]):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]),
+  summary:not([class*="cmc-btn-"]):not([data-press="off"]),
+  input[type="submit"]:not(:disabled):not([data-press="off"]),
+  input[type="button"]:not(:disabled):not([data-press="off"]),
+  input[type="reset"]:not(:disabled):not([data-press="off"])
+) {
+  transition: translate 110ms var(--cmc-spring);
+}
+
+/* ------------------------------------------------------------
+   2 · MAGNETIC TILT + GLARE
+   Max 8° so it reads as a lit object, not a toy. The hook writes
+   --cmc-tilt-x/y (rotation) and --cmc-tilt-gx/gy (glare centre).
+   `perspective()` sits on the element itself so no parent needs
+   transform-style: preserve-3d.
+   ------------------------------------------------------------ */
+
+.cmc-tilt {
+  --cmc-tilt-x: 0deg;
+  --cmc-tilt-y: 0deg;
+  --cmc-tilt-gx: 50%;
+  --cmc-tilt-gy: 50%;
+  position: relative;
+  isolation: isolate;
+  will-change: transform;
+  transform: perspective(620px) rotateX(var(--cmc-tilt-x)) rotateY(var(--cmc-tilt-y));
+  transition:
+    transform 0.18s var(--cmc-ease),
+    box-shadow 0.18s ease,
+    filter 0.2s ease;
+}
+
+/* `.cmc-btn-primary` / `.cmc-btn-3d` already own a :hover transform
+   (iridescent.css, !important). The extra `html` element in the
+   selector lifts this above them so the tilt is not overridden. */
+html .cmc-tilt:hover,
+html .cmc-tilt:focus-visible {
+  transform:
+    perspective(620px)
+    rotateX(var(--cmc-tilt-x))
+    rotateY(var(--cmc-tilt-y))
+    translateY(-2px) !important;
+}
+
+/* ::before, not ::after — the primary skin already uses ::after for
+   its travelling sheen. z-index keeps the glare under the label. */
+.cmc-tilt::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--cmc-tilt-gx) var(--cmc-tilt-gy),
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0.08) 38%,
+    transparent 62%
+  );
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+html .cmc-tilt:hover::before,
+html .cmc-tilt:focus-visible::before {
+  opacity: 1;
+}
+
+html.light .cmc-tilt::before {
+  background: radial-gradient(
+    circle at var(--cmc-tilt-gx) var(--cmc-tilt-gy),
+    rgba(255, 255, 255, 0.9),
+    rgba(14, 116, 144, 0.14) 40%,
+    transparent 64%
+  );
+}
+
+/* ------------------------------------------------------------
+   3 · BUSY / AI WORKING STATE
+   The button becomes the progress read-out. §4 (the stamp) is the
+   same component in its done state, so the two cannot disagree.
+   ------------------------------------------------------------ */
+
+.cmc-busy {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--cmc-press-ms) var(--cmc-spring),
+    filter 0.2s ease,
+    background-color 0.25s ease;
+}
+
+.cmc-busy:active:not(:disabled) {
+  transform: translateY(2px) scale(0.994);
+}
+
+.cmc-busy__label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.cmc-busy__spin {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid rgba(2, 13, 20, 0.35);
+  border-top-color: #04121a;
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s var(--cmc-spring);
+}
+
+.cmc-busy[data-state="working"] .cmc-busy__spin {
+  opacity: 1;
+  transform: scale(1);
+  animation: cmc-busy-spin 0.9s linear infinite;
+}
+
+.cmc-busy[data-state="working"] {
+  animation: cmc-busy-breathe 1.9s ease-in-out infinite;
+  cursor: progress;
+}
+
+/* While working the button is disabled (no double submit) but it must NOT be
+   dimmed by a caller's `disabled:opacity-50` — the progress read-out is the
+   whole point of the state. */
+.cmc-busy[data-state="working"]:disabled,
+.cmc-busy[data-state="done"]:disabled {
+  opacity: 1;
+}
+
+/* Deterministic progress: scaleX of a 3px bar, no layout thrash. */
+.cmc-busy__fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--cmc-busy-p, 0));
+  background: #04121a;
+  opacity: 0;
+  transition:
+    transform 0.35s linear,
+    opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.cmc-busy[data-state="working"] .cmc-busy__fill {
+  opacity: 0.55;
+}
+
+.cmc-busy[data-state="done"] .cmc-busy__fill {
+  opacity: 0;
+}
+
+/* ------------------------------------------------------------
+   4 · SUCCESS STAMP
+   ------------------------------------------------------------ */
+
+/* The tick is only rendered in the done state (no reserved gap at rest), so
+   it stamps in with an animation rather than a transition. */
+.cmc-busy--stamp[data-state="done"] .cmc-busy__tick {
+  display: inline-block;
+  animation: cmc-busy-tick 0.32s var(--cmc-spring) both;
+}
+
+.cmc-busy--stamp[data-state="done"] {
+  animation: cmc-busy-pop 0.42s var(--cmc-spring);
+}
+
+.cmc-busy__halo {
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 2px solid rgba(110, 231, 183, 0.85);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cmc-busy--stamp[data-state="done"] .cmc-busy__halo {
+  animation: cmc-busy-halo 0.6s ease-out;
+}
+
+html.light .cmc-busy__spin {
+  border-color: rgba(2, 13, 20, 0.28);
+  border-top-color: #04121a;
+}
+
+html.light .cmc-busy__halo {
+  border-color: rgba(5, 150, 105, 0.6);
+}
+
+@keyframes cmc-busy-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cmc-busy-breathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.07); }
+}
+
+@keyframes cmc-busy-tick {
+  from { transform: scale(0) rotate(-24deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes cmc-busy-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.94); }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cmc-busy-halo {
+  0% { opacity: 0.9; transform: scale(0.97); }
+  100% { opacity: 0; transform: scale(1.22); }
+}
+
+/* ------------------------------------------------------------
+   5 · IDLE NUDGE
+   Nothing at rest; after the idle window the control breathes
+   twice and its bubble appears. `useIdleNudge` toggles
+   `.is-nudging` and clears it on any interaction.
+   ------------------------------------------------------------ */
+
+.cmc-nudge {
+  position: relative;
+  transition: transform 0.18s var(--cmc-spring);
+}
+
+.cmc-nudge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 0 rgba(196, 181, 253, 0);
+}
+
+.cmc-nudge.is-nudging::after {
+  animation: cmc-nudge-ring 2.4s ease-out infinite;
+}
+
+.cmc-nudge.is-nudging {
+  animation: cmc-nudge-tap 2.4s ease-in-out infinite;
+}
+
+.cmc-nudge__bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  translate: -50% 0;
+  white-space: nowrap;
+  padding: 5px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(196, 181, 253, 0.28);
+  background: rgba(196, 181, 253, 0.12);
+  color: #d7ccff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s var(--cmc-ease);
+  pointer-events: none;
+}
+
+.cmc-nudge.is-nudging .cmc-nudge__bubble {
+  opacity: 1;
+  transform: none;
+}
+
+/* Bubble below the control (forms near the top of a sheet, where an
+   above-the-button bubble would be clipped). */
+.cmc-nudge--below .cmc-nudge__bubble {
+  bottom: auto;
+  top: calc(100% + 8px);
+  transform: translateY(-4px);
+}
+
+html.light .cmc-nudge__bubble {
+  background: rgba(124, 58, 237, 0.1);
+  border-color: rgba(124, 58, 237, 0.28);
+  color: #4c1d95;
+}
+
+@keyframes cmc-nudge-ring {
+  0% { box-shadow: 0 0 0 0 rgba(196, 181, 253, 0.5); }
+  70% { box-shadow: 0 0 0 14px rgba(196, 181, 253, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(196, 181, 253, 0); }
+}
+
+@keyframes cmc-nudge-tap {
+  0%, 100% { transform: translateY(0); }
+  6% { transform: translateY(-2px) scale(1.015); }
+  12% { transform: translateY(0); }
+}
+
+/* ------------------------------------------------------------
+   REDUCED MOTION — every decorative behaviour above turns off.
+   The state changes still happen; only the motion goes.
+   ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .cmc-press,
+  .cmc-press:hover,
+  .cmc-press:active,
+  html .cmc-tilt,
+  html .cmc-tilt:hover,
+  html .cmc-tilt:focus-visible {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .cmc-tilt::before {
+    display: none;
+  }
+
+  /* the site-wide press */
+  button:active,
+  [role="button"]:active,
+  summary:active,
+  input[type="submit"]:active,
+  input[type="button"]:active,
+  input[type="reset"]:active {
+    translate: none !important;
+  }
+
+  .cmc-busy,
+  .cmc-busy:active:not(:disabled),
+  .cmc-busy--stamp[data-state="done"],
+  .cmc-busy[data-state="working"] {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .cmc-busy__spin {
+    animation: none !important;
+  }
+
+  .cmc-busy--stamp[data-state="done"] .cmc-busy__tick {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .cmc-busy__fill {
+    transition: none !important;
+  }
+
+  .cmc-busy__halo {
+    display: none;
+  }
+
+  .cmc-nudge,
+  .cmc-nudge.is-nudging,
+  .cmc-nudge.is-nudging::after {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .cmc-nudge__bubble {
+    transition: none !important;
+  }
+}

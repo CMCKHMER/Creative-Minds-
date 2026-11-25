@@ -7,9 +7,33 @@
     --font-hero: 'Syne', 'Space Grotesk', system-ui, sans-serif;
   }
 
+  html {
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     font-family: var(--font-sans);
-    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  /* Eliminate 300ms tap delay on mobile touch devices */
+  a,
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  /* Prevent iOS Safari forced viewport auto-zoom when tapping <16px form fields */
+  @media (pointer: coarse) and (max-width: 767px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    select,
+    textarea {
+      font-size: max(16px, 1em);
+    }
   }
 }
 

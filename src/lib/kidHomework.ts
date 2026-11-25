@@ -415,6 +415,57 @@ export async function fetchMyHomeworkScore(
   return myHomeworkScore(attemptsForHomework(attempts, number), identity);
 }
 
+/** Archive document id for one homework — mirrors exportDocId() in
+ *  functions/lib/homeworkExport.cjs: 'unit13hw.html', 2 → 'unit13hw__hw2'. */
+export function homeworkExportDocId(slug: string, number: number): string {
+  const base = String(slug || '').replace(/\.html$/i, '').replace(/[^a-z0-9_-]+/gi, '-');
+  return `${base}__hw${number}`;
+}
+
+export interface HomeworkArchive {
+  /** Students in the sheet (one line per name). */
+  students: number;
+  /** Rows handed in (a student may have submitted more than once). */
+  submissions: number;
+  /** Rows the function had to leave out to keep the document small. */
+  omitted: number;
+  /** Ready-made CSV — exactly the columns the live sheet downloads. */
+  csv: string;
+  /** Epoch ms of the nightly run that produced it; 0 when unknown. */
+  generatedAt: number;
+  title: string;
+}
+
+/** One homework_exports document (written by exportHomeworkSheets) → archive. */
+export function parseHomeworkArchive(doc: FsDoc): HomeworkArchive | null {
+  const f = doc.fields;
+  if (!f) return null;
+  const csv = f.csv?.stringValue || '';
+  const t = f.generatedAt?.timestampValue ? Date.parse(f.generatedAt.timestampValue) : 0;
+  return {
+    students: Math.max(0, intOf(f.students) ?? 0),
+    submissions: Math.max(0, intOf(f.submissions) ?? 0),
+    omitted: Math.max(0, intOf(f.omitted) ?? 0),
+    csv,
+    generatedAt: Number.isNaN(t) ? 0 : t,
+    title: f.title?.stringValue || '',
+  };
+}
+
+/**
+ * The nightly archive of ONE homework, or null when the function has not run
+ * yet (or the rules were not republished). Teacher-only: firestore.rules
+ * grants read on homework_exports to verified teachers and denies writes to
+ * everyone, so a student's request simply 403s and the sheet renders without
+ * the download.
+ */
+export async function fetchHomeworkArchive(slug: string, number: number): Promise<HomeworkArchive | null> {
+  const res = await fetch(`${FS_DOCS}/homework_exports/${encodeURIComponent(homeworkExportDocId(slug, number))}`);
+  if (!res.ok) return null;
+  const doc = (await res.json()) as FsDoc;
+  return parseHomeworkArchive(doc);
+}
+
 /** How many rows the page has — one cheap read, used to notice new
  *  submissions without downloading the whole list again. */
 export async function countHomeworkPageAttempts(slug: string): Promise<number> {

@@ -91,8 +91,8 @@ export function AccountTypePicker({
       </div>
       {value === 'teacher' && (
         <p className="rounded-lg border border-amber-200/20 bg-amber-100/[0.05] px-3 py-2 text-[10.5px] leading-relaxed text-amber-100/90">
-          Teacher tools unlock once your email is verified <strong>and</strong> it is a school
-          address containing &ldquo;edu&rdquo; (e.g. <code className="rounded bg-white/10 px-1">you@school.edu.kh</code>).
+          Teacher tools unlock once your email is verified <strong>and</strong> it is your school
+          address (e.g. <code className="rounded bg-white/10 px-1">name@aii.edu.kh</code>).
           Gmail teachers: an admin approves your account — everything works right away, and teacher
           tools unlock after approval.
         </p>

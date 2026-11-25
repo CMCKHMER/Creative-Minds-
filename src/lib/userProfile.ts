@@ -86,31 +86,59 @@ export function emailDomainOf(email?: string | null): string {
   return parts.length >= 2 && domain ? domain : '';
 }
 
-/** True when the email's domain passes the owner's school-domain whitelist.
- *  An empty (or absent) list means "no per-school restriction" — the
- *  TLD-anchored education-domain heuristic alone governs. This mirrors
- *  isAllowedSchoolDomain() in firestore.rules (which consumes the pattern
- *  derived from the same list) — keep the two in sync. */
-export function isEmailDomainAllowed(email?: string | null, allowedEmailDomains?: readonly string[] | null): boolean {
-  const list = allowedEmailDomains ?? [];
-  if (list.length === 0) return true;
-  const domain = emailDomainOf(email);
-  return Boolean(domain) && list.includes(domain);
+/** The school's own domain(s) — the teacher policy bottom line.
+ *
+ *  A teacher account is verified automatically only when its address is on
+ *  the owner's school-domain list; when that list is empty (fresh project, or
+ *  cleared by mistake) this default applies instead, so the gate can never
+ *  silently fall back to "any education address on the internet".
+ *
+ *  Adding a second school is a click in Admin → Users & Teacher Verification
+ *  (no deploy). Keep in sync with `isAllowedSchoolDomain()` in
+ *  firestore.rules, which hardcodes the same default. */
+export const DEFAULT_TEACHER_EMAIL_DOMAINS: readonly string[] = ['aii.edu.kh'];
+
+/** The list that actually applies: the owner's configured domains, or the
+ *  school default when nothing is configured. */
+export function effectiveTeacherEmailDomains(allowedEmailDomains?: readonly string[] | null): string[] {
+  const list = (allowedEmailDomains ?? []).map((d) => String(d).trim().toLowerCase()).filter(Boolean);
+  return list.length > 0 ? [...new Set(list)] : [...DEFAULT_TEACHER_EMAIL_DOMAINS];
 }
 
-/** RE2 pattern for the owner's domain list, consumed by
+/** True when the email's domain passes the school-domain whitelist.
+ *  An empty (or absent) list falls back to DEFAULT_TEACHER_EMAIL_DOMAINS —
+ *  it never means "no restriction". This mirrors isAllowedSchoolDomain() in
+ *  firestore.rules (which consumes the pattern derived from the same list) —
+ *  keep the two in sync. */
+export function isEmailDomainAllowed(email?: string | null, allowedEmailDomains?: readonly string[] | null): boolean {
+  const domain = emailDomainOf(email);
+  return Boolean(domain) && effectiveTeacherEmailDomains(allowedEmailDomains).includes(domain);
+}
+
+/** True when the address is an education address on the school's own domain —
+ *  the client-side equivalent of firestore.rules' isCmcTeacher(). Static pages
+ *  and previews that have no access to the owner's config call this (it falls
+ *  back to DEFAULT_TEACHER_EMAIL_DOMAINS); a foreign .edu address is NOT a
+ *  teacher by email and must be approved by the admin. */
+export function isSchoolDomainEmail(email?: string | null, allowedEmailDomains?: readonly string[] | null): boolean {
+  return isEduEmailDomain(email) && isEmailDomainAllowed(email, allowedEmailDomains);
+}
+
+/** RE2 pattern for the school-domain list, consumed by
  *  isAllowedSchoolDomain() in firestore.rules as a FULL-string match against
  *  the whole email address. Dots and other regex metacharacters are escaped
- *  and unique entries are joined with '|'; '' when the list is empty. */
+ *  and unique entries are joined with '|'. An empty list yields the DEFAULT
+ *  domain pattern (never ''), so saving an empty list narrows teacher access
+ *  to the school's own domain instead of opening it to every .edu address. */
 export function deriveAllowedEmailDomainsPattern(domains?: readonly string[] | null): string {
-  return [...new Set((domains ?? []).map((d) => d.trim().toLowerCase()).filter(Boolean))]
+  return effectiveTeacherEmailDomains(domains)
     .map((d) => d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
     .join('|');
 }
 
 /** Admin-managed override list stored in Firestore `site_config/teacher_access`.
  *  `allowedEmailDomains` optionally narrows the school-email heuristic to the
- *  owner's exact school domains (empty = any real education TLD qualifies). */
+ *  school's own domains (empty list = DEFAULT_TEACHER_EMAIL_DOMAINS). */
 export interface TeacherAccessConfig {
   approvedUids: string[];
   revokedUids: string[];
@@ -120,7 +148,9 @@ export interface TeacherAccessConfig {
 export const EMPTY_TEACHER_ACCESS: TeacherAccessConfig = {
   approvedUids: [],
   revokedUids: [],
-  allowedEmailDomains: [],
+  // Not [] — an absent/cleared config still means the school's own domain
+  // (DEFAULT_TEACHER_EMAIL_DOMAINS); see isEmailDomainAllowed().
+  allowedEmailDomains: [...DEFAULT_TEACHER_EMAIL_DOMAINS],
 };
 
 export interface EffectiveAccessInput {
@@ -158,9 +188,10 @@ export interface EffectiveAccess {
  *  - `student` and `user`: IDENTICAL privileges (`role: 'student'`), unless an admin
  *    explicitly approved their UID as a verified teacher.
  *  - `teacher`: receives `role: 'teacher'` (`isVerifiedTeacher: true`) ONLY when NOT
- *    revoked AND (email is verified with an `edu` domain OR UID is in `approvedUids`).
- *    Otherwise stays at `role: 'student'` with `isPendingTeacher: true`.
- *  - Legacy session (`accountType` null/undefined): falls back to verified `edu` domain
+ *    revoked AND (email is verified on one of the school's own domains (name@aii.edu.kh,
+ *    or a domain the owner added) OR UID is in `approvedUids`). Otherwise stays at
+ *    `role: 'student'` with `isPendingTeacher: true`.
+ *  - Legacy session (`accountType` null/undefined): falls back to the verified school domain
  *    or `approvedUids` (unless revoked) so pre-existing sessions do not break.
  */
 export function resolveEffectiveAccess(input: EffectiveAccessInput): EffectiveAccess {
@@ -183,8 +214,8 @@ export function resolveEffectiveAccess(input: EffectiveAccessInput): EffectiveAc
 
   const isRevoked = Boolean(uid) && access.revokedUids.includes(uid);
   const isAdminApproved = Boolean(uid) && !isRevoked && access.approvedUids.includes(uid);
-  // The school-domain whitelist (owner-managed, empty = unrestricted) narrows
-  // the heuristic exactly like isAllowedSchoolDomain() does in the rules.
+  // The school-domain gate (owner's list, else DEFAULT_TEACHER_EMAIL_DOMAINS)
+  // narrows the heuristic exactly like isAllowedSchoolDomain() does in the rules.
   const isVerifiedEdu = emailVerified
     && isEduEmailDomain(email)
     && isEmailDomainAllowed(email, access.allowedEmailDomains);
@@ -391,7 +422,8 @@ function readStringArray(field?: FsStringArray): string[] {
 }
 
 /** Parse Firestore `site_config/teacher_access` into clean UID arrays plus
- *  the owner's optional school-domain whitelist (lowercased, deduped). */
+ *  the owner's school-domain list (lowercased, deduped; empty = the school
+ *  default, see DEFAULT_TEACHER_EMAIL_DOMAINS). */
 export function parseTeacherAccessDoc(doc: unknown): TeacherAccessConfig {
   const f = (doc as FsDoc | null)?.fields;
   if (!f) return EMPTY_TEACHER_ACCESS;
@@ -420,12 +452,13 @@ export async function fetchTeacherAccessConfig(): Promise<TeacherAccessConfig> {
   }
 }
 
-/** Admin-only: save approved/revoked teacher UID lists and the optional
- *  school-domain whitelist to `site_config/teacher_access`. The whitelist is
- *  stored BOTH as the owner-friendly `allowedEmailDomains` list and as the
- *  derived RE2 `allowedEmailDomainsPattern` that firestore.rules
- *  (isAllowedSchoolDomain) matches the email against — always written
- *  together so the two can never drift apart. */
+/** Admin-only: save approved/revoked teacher UID lists and the school-domain
+ *  list to `site_config/teacher_access`. The list is stored BOTH as the
+ *  owner-friendly `allowedEmailDomains` array and as the derived RE2
+ *  `allowedEmailDomainsPattern` that firestore.rules (isAllowedSchoolDomain)
+ *  matches the email against — always written together so the two can never
+ *  drift apart. An empty list still writes the school-default pattern, so the
+ *  rules can never fall back to "any .edu address". */
 export async function saveTeacherAccessConfig(
   idToken: string,
   config: TeacherAccessConfig,

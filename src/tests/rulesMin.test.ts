@@ -58,29 +58,48 @@ describe('firestore.rules access guards', () => {
     expect(teachersBlock).toMatch(/allow update: if false;/);
   });
 
-  describe('owner-managed school-domain whitelist (optional tightening)', () => {
+  describe('school-domain gate (default aii.edu.kh, owner can add more)', () => {
     // The rules match the email against a doc-derived pattern with a
-    // WHOLE-string match: `email.lower().matches('(.*)@(PATTERN)')`. This
-    // harness mirrors that exactly (anchors + lowercasing) to prove the
+    // WHOLE-string match:
+    //   email.lower().matches('^[^@]+@(' + schoolDomainPattern() + ')$')
+    // This harness mirrors that exactly (anchors + lowercasing) to prove the
     // semantics the panel-derived pattern produces.
     const fullMatch = (email: string, pattern: string): boolean =>
-      new RegExp(`^(.*)@(${pattern})$`).test(email.toLowerCase());
+      new RegExp(`^[^@]+@(${pattern})$`).test(email.toLowerCase());
 
-    it('is wired into the heuristic branch of isCmcTeacher, fail-open when unset', () => {
-      const helper = rules.slice(rules.indexOf('function isAllowedSchoolDomain()'), rules.indexOf('function isVerifiedUser()'));
+    it('is wired into the heuristic branch of isCmcTeacher, defaulting to the school domain', () => {
+      const helper = rules.slice(rules.indexOf('function schoolDomainPattern()'), rules.indexOf('function isVerifiedUser()'));
       expect(helper).toContain("'allowedEmailDomainsPattern' in teacherAccessDoc()");
-      expect(helper).toContain("email.lower().matches('(.*)@(' + teacherAccessDoc().allowedEmailDomainsPattern + ')')");
-      // Fail-open guards: missing doc, missing field, wrong type, empty string.
+      expect(helper).toContain("email.lower().matches('^[^@]+@(' + schoolDomainPattern() + ')$')");
+      // Guards before the doc value is trusted: missing doc, missing field,
+      // wrong type, empty string.
       expect(helper).toContain('exists(/databases/$(database)/documents/site_config/teacher_access)');
       expect(helper).toContain('is string');
       expect(helper).toContain('.size() > 0');
+      // SECURITY: clearing the panel list must NOT re-open every .edu address.
+      expect(helper).toContain("'aii\\\\.edu\\\\.kh'");
       const cmcTeacher = rules.slice(rules.indexOf('function isCmcTeacher()'), rules.indexOf('ADMIN TEACHER-VERIFICATION OVERRIDES'));
       expect(cmcTeacher).toMatch(/&& isAllowedSchoolDomain\(\)/);
-      // The admin-grant branch must stay outside the whitelist narrowing.
+      // The admin-grant branch must stay outside the domain narrowing.
       expect(cmcTeacher).toMatch(/\|\| isCmcAdmin\(\)/);
     });
 
-    it('matches exactly the whitelisted domains — nothing more', () => {
+    it('matches the school domain when nothing is configured', () => {
+      const pattern = deriveAllowedEmailDomainsPattern([]);
+      expect(pattern).toBe('aii\\.edu\\.kh');
+      expect(fullMatch('teacher@aii.edu.kh', pattern)).toBe(true);
+      expect(fullMatch('Dara.Sok@AII.EDU.KH', pattern)).toBe(true);
+      // Subdomains and suffix injection stay out.
+      expect(fullMatch('x@sub.aii.edu.kh', pattern)).toBe(false);
+      expect(fullMatch('x@aii.edu.kh.evil.io', pattern)).toBe(false);
+      expect(fullMatch('x@aiiXeduXkh', pattern)).toBe(false);
+      // Other schools' addresses need an explicit add by the owner.
+      expect(fullMatch('you@harvard.edu', pattern)).toBe(false);
+      expect(fullMatch('you@school.edu.kh', pattern)).toBe(false);
+      expect(fullMatch('aii.edu.kh@gmail.com', pattern)).toBe(false);
+    });
+
+    it('matches exactly the owner-added domains — nothing more', () => {
       const pattern = deriveAllowedEmailDomainsPattern(['school.edu.kh', 'myschool.org']);
       expect(pattern).toBe('school\\.edu\\.kh|myschool\\.org');
       expect(fullMatch('you@school.edu.kh', pattern)).toBe(true);
@@ -92,7 +111,8 @@ describe('firestore.rules access guards', () => {
       expect(fullMatch('attacker@fakeschool.edu.kh.tld', pattern)).toBe(false);
       // Subdomains are not implied; list them explicitly.
       expect(fullMatch('you@sub.myschool.org', pattern)).toBe(false);
-      // Everything else stays out.
+      // Everything else stays out — including the school default once the
+      // owner has replaced it with an explicit list.
       expect(fullMatch('you@harvard.edu', pattern)).toBe(false);
       expect(fullMatch('eduardo@gmail.com', pattern)).toBe(false);
     });

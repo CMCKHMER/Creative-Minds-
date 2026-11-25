@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DEFAULT_TEACHER_EMAIL_DOMAINS,
   deriveAllowedEmailDomainsPattern,
+  effectiveTeacherEmailDomains,
   emailDomainOf,
   EMPTY_TEACHER_ACCESS,
   isEduEmailDomain,
@@ -65,19 +67,42 @@ describe('deriveAllowedEmailDomainsPattern (rules-side RE2 pattern)', () => {
 
   it('normalises, dedupes and drops empties', () => {
     expect(deriveAllowedEmailDomainsPattern([' A.edu ', 'a.edu', '', '  '])).toBe('a\\.edu');
-    expect(deriveAllowedEmailDomainsPattern([])).toBe('');
-    expect(deriveAllowedEmailDomainsPattern(undefined)).toBe('');
-    expect(deriveAllowedEmailDomainsPattern(null)).toBe('');
+    // An empty list is NOT a wildcard: it falls back to the school's own
+    // domain, so the rules can never be relaxed by clearing the panel.
+    expect(deriveAllowedEmailDomainsPattern([])).toBe('aii\\.edu\\.kh');
+    expect(deriveAllowedEmailDomainsPattern(undefined)).toBe('aii\\.edu\\.kh');
+    expect(deriveAllowedEmailDomainsPattern(null)).toBe('aii\\.edu\\.kh');
+  });
+});
+
+describe('DEFAULT_TEACHER_EMAIL_DOMAINS (the school policy bottom line)', () => {
+  it('is the school domain teachers sign up with', () => {
+    expect(DEFAULT_TEACHER_EMAIL_DOMAINS).toEqual(['aii.edu.kh']);
+    // Mirrored by the hardcoded default in schoolDomainPattern() in firestore.rules.
+  });
+
+  it('applies only when the owner has not configured a list', () => {
+    expect(effectiveTeacherEmailDomains([])).toEqual(['aii.edu.kh']);
+    expect(effectiveTeacherEmailDomains(null)).toEqual(['aii.edu.kh']);
+    expect(effectiveTeacherEmailDomains([' School.EDU.kh ', 'school.edu.kh'])).toEqual(['school.edu.kh']);
   });
 });
 
 describe('isEmailDomainAllowed (client mirror of isAllowedSchoolDomain)', () => {
   const LIST = ['school.edu.kh', 'myschool.org'];
-  it('passes everything when the whitelist is empty (TLD anchor governs)', () => {
-    expect(isEmailDomainAllowed('you@harvard.edu', [])).toBe(true);
-    expect(isEmailDomainAllowed('you@harvard.edu', undefined)).toBe(true);
-    expect(isEmailDomainAllowed('you@harvard.edu', null)).toBe(true);
-    expect(isEmailDomainAllowed('eduardo@gmail.com', [])).toBe(true);
+  it('falls back to the school domain when the list is empty — never a wildcard', () => {
+    // name@aii.edu.kh is the teacher sign-up address; it passes by default.
+    expect(isEmailDomainAllowed('teacher@aii.edu.kh', [])).toBe(true);
+    expect(isEmailDomainAllowed('Teacher@AII.EDU.KH', undefined)).toBe(true);
+    expect(isEmailDomainAllowed('teacher@aii.edu.kh', null)).toBe(true);
+    // Any OTHER education address is not a teacher until the owner lists it.
+    expect(isEmailDomainAllowed('you@harvard.edu', [])).toBe(false);
+    expect(isEmailDomainAllowed('you@other.edu.kh', undefined)).toBe(false);
+    expect(isEmailDomainAllowed('eduardo@gmail.com', [])).toBe(false);
+    // Lookalikes and subdomains never pass, even for the school domain.
+    expect(isEmailDomainAllowed('x@aii.edu.kh.evil.io', [])).toBe(false);
+    expect(isEmailDomainAllowed('x@sub.aii.edu.kh', [])).toBe(false);
+    expect(isEmailDomainAllowed('aii.edu.kh@gmail.com', [])).toBe(false);
   });
 
   it('restricts to exact whitelisted domains when set', () => {
@@ -117,14 +142,38 @@ describe('resolveEffectiveAccess integrates the school-domain whitelist', () => 
     expect(out.isPendingTeacher).toBe(true);
   });
 
-  it('leaves the heuristic untouched while the whitelist is empty', () => {
+  it('auto-verifies the school domain even with an empty config', () => {
     const out = resolveEffectiveAccess({
       ...base,
       uid: 'u3',
+      email: 'teacher@aii.edu.kh',
+      teacherAccess: { ...EMPTY_TEACHER_ACCESS },
+    });
+    expect(out.role).toBe('teacher');
+    expect(out.isVerifiedTeacher).toBe(true);
+  });
+
+  it('keeps a foreign education address pending until the owner lists its domain', () => {
+    const out = resolveEffectiveAccess({
+      ...base,
+      uid: 'u5',
       email: 'you@harvard.edu',
       teacherAccess: { ...EMPTY_TEACHER_ACCESS },
     });
-    expect(out.isVerifiedTeacher).toBe(true);
+    expect(out.isVerifiedTeacher).toBe(false);
+    expect(out.isPendingTeacher).toBe(true);
+  });
+
+  it('still requires a verified email for the school domain', () => {
+    const out = resolveEffectiveAccess({
+      ...base,
+      uid: 'u6',
+      email: 'teacher@aii.edu.kh',
+      emailVerified: false,
+      teacherAccess: { ...EMPTY_TEACHER_ACCESS },
+    });
+    expect(out.isVerifiedTeacher).toBe(false);
+    expect(out.isPendingTeacher).toBe(true);
   });
 
   it('never restricts admin-approved or admin accounts', () => {

@@ -28,7 +28,7 @@ function teacherGateCopy(session: RestoredSession | null, fallbackTitle: string)
   if (session.accountType === 'teacher') {
     return {
       title: 'Teacher verification pending',
-      description: 'This section is for verified teachers. School (.edu) addresses unlock it automatically once your email is verified; other addresses unlock after the site admin approves your account.',
+      description: 'This section is for verified teachers. A school address on the school domain (name@aii.edu.kh) unlocks it automatically once your email is verified; other addresses unlock after the site admin approves your account.',
       cta: 'View account status',
     };
   }
@@ -156,7 +156,7 @@ export function RoleGate({
         </button>
 
         <p className="mt-6 text-[10px] leading-relaxed text-slate-500">
-          Teachers verify with a school email containing &ldquo;edu&rdquo; — for example <code className="rounded bg-white/5 px-1.5 py-0.5">you@school.edu.kh</code> or <code className="rounded bg-white/5 px-1.5 py-0.5">you@university.edu</code>.
+          Teachers verify with a school address — for example <code className="rounded bg-white/5 px-1.5 py-0.5">name@aii.edu.kh</code>. A partner school's domain can be added by the site admin.
           Gmail teachers are approved by the site admin. Students and general users get every game, worksheet, test and student-copy download.
         </p>
       </div>

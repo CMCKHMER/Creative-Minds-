@@ -138,7 +138,7 @@ export function LMSCard({ onOpenAuth }: { onOpenAuth: () => void }) {
                   <p className="text-sm font-semibold text-white">Teacher access required</p>
                   <p className="text-xs leading-relaxed text-slate-500">
                     Creative Minds Studio is available to verified teachers. Create a free teacher
-                    account (work email ending in .edu or .edu.kh) to launch the design canvas.
+                    account with your school address (e.g. name@aii.edu.kh) to launch the design canvas.
                   </p>
                   <button
                     type="button"

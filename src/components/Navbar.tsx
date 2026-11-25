@@ -104,6 +104,21 @@ export const Navbar: React.FC<NavbarProps> = ({
       ? 'bg-emerald-400/20 text-emerald-200'
       : 'bg-cyan-400/20 text-cyan-200';
 
+  // Close mobile dropdown on Escape or route hash change (e.g. browser back)
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    const onHash = () => setMobileMenuOpen(false);
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('hashchange', onHash);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('hashchange', onHash);
+    };
+  }, [mobileMenuOpen]);
+
   const handleSignOut = () => {
     clearPersistedSession();
     setUserMenuOpen(false);
@@ -115,7 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       {/* Top Announcement Bar */}
       {bannerVisible && (
-        <div data-keep-dark className="cmc-topbar bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium relative z-50 flex items-center justify-center gap-2">
+        <div data-keep-dark className="cmc-topbar bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white text-xs sm:text-sm py-2 pl-4 pr-10 sm:px-10 text-center font-medium relative z-50 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
           <span className="inline-flex items-center gap-1.5 bg-white/20 px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase">
             <Sparkles className="w-3 h-3 text-cyan-200" /> New
           </span>
@@ -131,7 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => setBannerVisible(false)}
             aria-label="Close notification"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-1 rounded"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-white/75 hover:text-white min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg"
           >
             <X className="w-4 h-4" />
           </button>
@@ -141,18 +156,19 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Main Sticky Navbar */}
       <header className={`cmc-nav sticky top-0 z-40 w-full transition-all duration-300 ${
         isScrolled 
-          ? 'cmc-nav-scrolled bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 shadow-2xl shadow-cyan-950/20 py-3' 
-          : 'bg-slate-950/50 backdrop-blur-sm border-b border-white/5 py-4'
+          ? 'cmc-nav-scrolled bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 shadow-2xl shadow-cyan-950/20 py-2.5 sm:py-3' 
+          : 'bg-slate-950/50 backdrop-blur-sm border-b border-white/5 py-3 sm:py-4'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
             
             {/* Left: Quick Links button + Logo */}
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={onOpenQuickLinks}
-                className="group relative flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-700/60 hover:border-cyan-500/50 text-slate-200 hover:text-white transition shadow-sm hover:shadow-cyan-500/10 active:scale-95 cursor-pointer"
+                className="group relative flex items-center gap-2 px-3 py-2 min-h-[40px] rounded-xl bg-slate-900/90 border border-slate-700/60 hover:border-cyan-500/50 text-slate-200 hover:text-white transition shadow-sm hover:shadow-cyan-500/10 active:scale-95 cursor-pointer"
                 title="Open Quick Navigation Menu"
+                aria-label="Open Quick Navigation Menu"
               >
                 <div className="flex flex-col gap-1 w-4">
                   <span className="h-0.5 w-4 bg-cyan-400 rounded-full transition group-hover:w-3"></span>
@@ -163,8 +179,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               {/* Official CMC logo — the spinning coin (teacher's 360° spin video) */}
-              <a href="#top" aria-label="CMC Network home" className="flex items-center gap-2.5 group">
-                <SpinLogo size={56} className="w-[56px] h-[56px]" />
+              <a href="#top" aria-label="CMC Network home" className="flex items-center gap-2 sm:gap-2.5 group">
+                <SpinLogo size={56} className="w-11 h-11 sm:w-[56px] sm:h-[56px]" />
                 <div className="flex flex-col leading-none">
                   <span className="cmc-nav-wordmark hidden whitespace-nowrap font-bold text-base sm:inline sm:text-lg tracking-tight text-white group-hover:text-cyan-200 transition">
                     CMC Network Hub
@@ -190,7 +206,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {/* Light/dark theme toggle — site-wide, choice persisted */}
               <ThemeToggle />
 
@@ -213,7 +229,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div ref={userMenuRef} className="relative">
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="inline-flex items-center gap-2 !min-h-0 !rounded-full !px-3 !py-2 !text-xs sm:!text-sm font-semibold transition active:scale-95 border border-cyan-300/30 bg-gradient-to-r from-cyan-300/10 to-emerald-300/10 text-cyan-100 hover:from-cyan-300/20 hover:to-emerald-300/20"
+                    className="inline-flex items-center gap-2 !min-h-0 !rounded-full !px-2.5 sm:!px-3 !py-2 !text-xs sm:!text-sm font-semibold transition active:scale-95 border border-cyan-300/30 bg-gradient-to-r from-cyan-300/10 to-emerald-300/10 text-cyan-100 hover:from-cyan-300/20 hover:to-emerald-300/20"
                     aria-label={`Signed in as ${session.email}. Click to open user menu.`}
                     aria-expanded={userMenuOpen}
                   >
@@ -229,7 +245,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {userMenuOpen && (
                     <div
                       role="menu"
-                      className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-700/80 bg-slate-900/95 backdrop-blur-xl p-2 shadow-2xl z-50"
+                      className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-1.5rem)] rounded-xl border border-slate-700/80 bg-slate-900/95 backdrop-blur-xl p-2 shadow-2xl z-50"
                     >
                       <div className="px-3 py-2 border-b border-slate-700/60 mb-1">
                         <div className="flex items-center gap-2.5">
@@ -326,8 +342,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="xl:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition"
+                className="xl:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition"
                 aria-label="Toggle Mobile Menu"
+                aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -335,9 +352,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Mobile Dropdown Menu — bounded to viewport height so all links & sign-out remain scrollable on small phones */}
         {mobileMenuOpen && (
-          <div className="xl:hidden border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-xl px-4 pt-4 pb-6 space-y-3 animate-in slide-in-from-top-2 duration-200">
+          <div className="xl:hidden max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-xl px-4 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-3 animate-in slide-in-from-top-2 duration-200">
             <div className="grid grid-cols-2 gap-2 pb-2">
               <button
                 onClick={() => {

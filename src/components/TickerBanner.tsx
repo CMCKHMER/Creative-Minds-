@@ -1,7 +1,8 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Activity, ChevronRight, ClipboardList, Sparkles, TrendingUp, Trophy, Users, X } from 'lucide-react';
+import { Activity, ChevronRight, ClipboardList, Megaphone, Sparkles, TrendingUp, Trophy, Users, X } from 'lucide-react';
 import { FIREBASE_PROJECT_ID } from '../lib/firebaseAuth';
 import { displayStudentName } from '../lib/studentName';
+import { TICKER_HIGHLIGHTS, type TickerHighlight, type TickerHighlightAccent } from '../data/tickerHighlights';
 
 interface TickerBannerProps {
   /** Called when the user clicks the "Be the first teacher" CTA in the
@@ -491,7 +492,7 @@ export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: Ti
     <div
       role="region"
       aria-label="Live activity ticker"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-cyan-300/15 bg-[#04111c]/95 backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-cyan-300/15 bg-[#04111c]/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
     >
       {/* Two stacked layers: a thin progress bar on top when loading, and
           the marquee below. Both inside the same fixed container so the
@@ -518,10 +519,10 @@ export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: Ti
         {/* CENTER — scrolling marquee */}
         <div className="relative flex-1 overflow-hidden">
           {/* edge fade masks */}
-          <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-12 bg-gradient-to-r from-[#04111c] to-transparent" aria-hidden="true" />
-          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-12 bg-gradient-to-l from-[#04111c] to-transparent" aria-hidden="true" />
+          <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-8 sm:w-12 bg-gradient-to-r from-[#04111c] to-transparent" aria-hidden="true" />
+          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 sm:w-12 bg-gradient-to-l from-[#04111c] to-transparent" aria-hidden="true" />
 
-          <div className="flex w-max animate-[ticker-scroll_60s_linear_infinite] hover:[animation-play-state:paused]">
+          <div className="flex w-max animate-[ticker-scroll_95s_linear_infinite] hover:[animation-play-state:paused] active:[animation-play-state:paused] focus-within:[animation-play-state:paused]">
             {/* Render items twice so the marquee loops seamlessly. Two stable
                 key prefixes ("a" and "b" halves) instead of one doubled
                 index-keyed array: React matches each span across updates
@@ -540,7 +541,7 @@ export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: Ti
           type="button"
           onClick={() => setVisible(false)}
           aria-label="Dismiss live activity ticker"
-          className="shrink-0 px-3 text-slate-500 transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+          className="shrink-0 min-w-[44px] min-h-[40px] flex items-center justify-center text-slate-400 transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -562,6 +563,39 @@ export const TickerBanner = memo(function TickerBanner({ onOpenTeacherPass }: Ti
   );
 
 });
+
+const HIGHLIGHT_BADGE_STYLES: Record<TickerHighlightAccent, string> = {
+  cyan: 'border-cyan-300/40 bg-cyan-400/15 text-cyan-200',
+  emerald: 'border-emerald-300/40 bg-emerald-400/15 text-emerald-200',
+  violet: 'border-violet-300/40 bg-violet-400/15 text-violet-200',
+  amber: 'border-amber-300/40 bg-amber-400/15 text-amber-200',
+};
+
+function TickerHighlightItem({ item }: { item: TickerHighlight }) {
+  return (
+    <a
+      href={item.href}
+      aria-label={`${item.badge}: ${item.title} — ${item.summary}`}
+      className="group inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 transition hover:border-cyan-300/40 hover:bg-cyan-400/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+    >
+      <span
+        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-extrabold tracking-wider uppercase ${HIGHLIGHT_BADGE_STYLES[item.accent]}`}
+      >
+        {item.badge}
+      </span>
+      <span className="text-[12px] font-semibold text-white group-hover:text-cyan-100">
+        {item.title}
+      </span>
+      <span className="hidden text-[11px] text-slate-300 sm:inline">
+        {item.summary}
+      </span>
+      <ChevronRight
+        className="h-3 w-3 text-cyan-300/80 transition-transform group-hover:translate-x-0.5 group-hover:text-cyan-200"
+        aria-hidden="true"
+      />
+    </a>
+  );
+}
 
 function TickerStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
@@ -599,6 +633,21 @@ lastError: string | null,
   );
 
   const nodes: React.ReactNode[] = [];
+
+  // Promoted new & upgraded features — right at the front so visitors
+  // immediately discover what is new and can click straight in.
+  nodes.push(
+    <span key="whats-new-header" className="inline-flex items-center gap-1.5 px-2 text-[11px] font-bold uppercase tracking-wider text-cyan-200">
+      <Megaphone className="h-3.5 w-3.5 text-cyan-300" aria-hidden="true" />
+      What&apos;s New
+    </span>
+  );
+  nodes.push(separator);
+
+  TICKER_HIGHLIGHTS.forEach((item) => {
+    nodes.push(<TickerHighlightItem key={`feat-${item.id}`} item={item} />);
+    nodes.push(separator);
+  });
 
   // Stat: drills today
   nodes.push(

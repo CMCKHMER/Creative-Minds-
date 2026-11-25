@@ -434,7 +434,7 @@ export function AssignmentPreview({ assignment, onClose }: AssignmentPreviewProp
                 Teacher key
               </button>
             ) : (
-              <button type="button" disabled title="Sign in as a teacher (work email ending in .edu or .edu.kh) to view the teacher key" className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 cursor-not-allowed sm:px-4">
+              <button type="button" disabled title="Sign in as a teacher (school address such as name@aii.edu.kh) to view the teacher key" className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 cursor-not-allowed sm:px-4">
                 <LockKeyhole className="h-3 w-3" aria-hidden="true" />
                 Teacher key
               </button>

@@ -19,6 +19,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LogIn, RefreshCw, Target, Trophy, X } from 'lucide-react';
 import { fetchMyHomeworkScore, homeworkRefFromHref, scoreBandLabel, scoreWhen, wholePageRefFromHref } from '../lib/kidHomework';
+import { useIdleNudge } from '../hooks/useIdleNudge';
 import type { StudentScore } from '../lib/kidHomework';
 
 export interface KidMyHomeworkScoreProps {
@@ -117,6 +118,10 @@ export function KidMyHomeworkScore({
     };
   }, []);
 
+  // Stuck-student nudge: after 6s of nothing, the "find my score" button
+  // breathes once and says which name to use. Any interaction silences it.
+  const findNudgeRef = useIdleNudge<HTMLButtonElement>();
+
   const pct = score ? score.firstTry.pct : 0;
   const headLine = score
     ? score.firstTryMeasured
@@ -191,11 +196,13 @@ export function KidMyHomeworkScore({
                   className="cmc-score-input min-w-0 flex-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--iri-c)] sm:flex-none"
                 />
                 <button
+                  ref={findNudgeRef}
                   type="submit"
                   disabled={draft.trim() === ''}
-                  className="cmc-score-cta inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--iri-c)] disabled:opacity-50"
+                  className="cmc-nudge cmc-nudge--below cmc-score-cta cmc-press inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--iri-c)] disabled:opacity-50"
                 >
                   Find my score
+                  <span className="cmc-nudge__bubble" aria-hidden="true">The name you wrote on the homework</span>
                 </button>
               </form>
             </div>
@@ -207,7 +214,7 @@ export function KidMyHomeworkScore({
                 type="button"
                 onClick={() => { setBusy(true); void load(); }}
                 disabled={busy}
-                className="cmc-score-cta mt-3 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--iri-c)] disabled:opacity-50"
+                className="cmc-score-cta cmc-press mt-3 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--iri-c)] disabled:opacity-50"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${busy ? 'animate-spin' : ''}`} aria-hidden="true" /> Try again
               </button>

@@ -61,9 +61,14 @@
   }
 
   /* ── 3. Verified teacher check (mirrors biweek-planner/teacher-gate.js) ── */
+  /* School-domain gate — mirrors DEFAULT_TEACHER_EMAIL_DOMAINS in
+     src/lib/userProfile.ts and schoolDomainPattern() in firestore.rules: only
+     the school's own domain is a teacher by email. A foreign .edu address
+     stays a student until the site admin approves the account. */
+  var SCHOOL_DOMAINS = ['aii.edu.kh'];
   function detectRoleFromEmail(email) {
     var domain = (String(email || '').split('@')[1] || '').toLowerCase();
-    return domain && domain.indexOf('edu') !== -1 ? 'teacher' : 'student';
+    return SCHOOL_DOMAINS.indexOf(domain) !== -1 ? 'teacher' : 'student';
   }
 
   function decodeEmailVerified(token) {
