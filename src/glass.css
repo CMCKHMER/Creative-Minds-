@@ -1896,6 +1896,14 @@ html.light .cmc-holo-stage {
   box-shadow: 0 0 14px -2px var(--holo-glow);
 }
 
+/* Live half of a phase (Phase 01 essay feedback ships before the rest). */
+.cmc-holo-soon[data-live="true"] {
+  color: #ecfdf5;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.88), rgba(13, 148, 136, 0.78));
+  border-color: rgba(167, 243, 208, 0.5);
+  box-shadow: 0 0 14px -2px rgba(16, 185, 129, 0.55);
+}
+
 /* Levitating 3D Hologram Wrapper + Screen-Blended Wireframe Artwork */
 .cmc-holo-float-wrap {
   position: relative;
@@ -1985,6 +1993,12 @@ html.light .cmc-holo-title { color: #0f172a; }
   color: #b8c4e0;
 }
 html.light .cmc-holo-summary { color: #334155; }
+html.light .cmc-holo-soon[data-live="true"] {
+  color: #064e3b;
+  background: linear-gradient(135deg, rgba(167, 243, 208, 0.95), rgba(153, 246, 228, 0.9));
+  border-color: rgba(13, 148, 136, 0.45);
+  box-shadow: none;
+}
 
 .cmc-holo-tags {
   margin-top: 0.9rem;
