@@ -109,6 +109,15 @@ All in the console for **creative-minds-cambodia**:
    | `window.CMC_APPCHECK_KEY` | Firestore | one static page, quick override |
    | `site_config/ai.appCheckKey` | — | **the console path: paste, reload, done** |
 
+   **Where is the key?** Two places show the same value:
+
+   - Firebase → Build → **App Check** → **Apps** → click the **CMC / Web app**
+     row: the registration panel shows the *reCAPTCHA Enterprise site key* (and
+     a **Create key** link if the field is empty);
+   - Google Cloud → **Security → reCAPTCHA Enterprise → Keys** → open the key →
+     the **ID** field, a string starting `6L…`. A key Firebase made for you is
+     named like `Firebase App Check <project> (web)`.
+
    A reCAPTCHA Enterprise *site* key is public by design (it ships inside every
    client bundle), which is why a public-read Firestore document is safe here;
    the secret half never leaves Google.
