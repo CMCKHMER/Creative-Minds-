@@ -14,6 +14,12 @@ declare module '*cmc-ai-logic.js' {
     stats?: Record<string, number>;
   }
 
+  /** Site key from window.CMC_APPCHECK_KEY or site_config/ai (cached). */
+  export function resolveAppCheckKey(): Promise<string>;
+  /** Fire the key read once on page load. */
+  export function refreshAiConfig(): Promise<string>;
+  /** Test hook: forget the cached key. */
+  export function resetAiConfigCache(): void;
   export function aiConfigured(): boolean;
   export function remainingUses(now?: number): number;
   export function blobToBase64(blob: Blob): Promise<string>;
@@ -29,6 +35,8 @@ declare module '*cmc-ai-logic.js' {
 
   const api: {
     aiConfigured: typeof aiConfigured;
+    resolveAppCheckKey: typeof resolveAppCheckKey;
+    refreshAiConfig: typeof refreshAiConfig;
     askAboutRecording: typeof askAboutRecording;
     remainingUses: typeof remainingUses;
     speechPrompt: typeof speechPrompt;

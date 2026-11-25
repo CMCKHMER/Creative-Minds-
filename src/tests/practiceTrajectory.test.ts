@@ -28,10 +28,15 @@ vi.mock('../lib/practiceAttempts', async (importOriginal) => {
   return { ...actual, loadMyTrajectory: h.load, diagnosePracticeStore: h.diag };
 });
 
-// App Check state is a build-time env var in production; the tests flip it here.
+// The real key resolution is env → window → site_config/ai in Firestore, so it
+// is async; the tests flip one flag and stand in for all three sources.
 vi.mock('../lib/aiCoach', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../lib/aiCoach')>();
-  return { ...actual, appCheckConfigured: () => h.appCheck };
+  return {
+    ...actual,
+    appCheckConfigured: () => h.appCheck,
+    resolveAppCheckKey: () => Promise.resolve(h.appCheck ? 'test-site-key' : ''),
+  };
 });
 
 import { buildTrajectory as buildTs } from '../lib/practiceAttempts';

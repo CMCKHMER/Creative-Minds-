@@ -97,15 +97,27 @@ All in the console for **creative-minds-cambodia**:
 2. **Build → App Check → Apps → your web app → Register**, provider
    **reCAPTCHA Enterprise**. Copy the **site key**. Firebase refuses browser
    calls to AI Logic without an App Check token, so this step is mandatory.
-3. Put the site key where the code expects it:
-   - React app: `VITE_FIREBASE_APPCHECK_KEY=<site key>` then rebuild/redeploy;
-   - static TOEFL pages: set `window.CMC_APPCHECK_KEY = '<site key>'` in a tiny
-     inline script (or bake it into `cmc-ai-logic.js`'s `appCheckKey()`).
+3. Put the site key where the code expects it — **no rebuild required**.
+   Firestore → **`site_config`** → **`ai`** → field **`appCheckKey`** (type
+   string), value = the reCAPTCHA Enterprise site key. `site_config` is already
+   `allow read: if true; allow write: if isCmcAdmin();`, so nothing to publish.
+   Both the React app and the static TOEFL pages read it on load:
+
+   | Source | Wins over | When to use |
+   |---|---|---|
+   | `VITE_FIREBASE_APPCHECK_KEY` | everything | CI / a build that owns its own key |
+   | `window.CMC_APPCHECK_KEY` | Firestore | one static page, quick override |
+   | `site_config/ai.appCheckKey` | — | **the console path: paste, reload, done** |
+
+   A reCAPTCHA Enterprise *site* key is public by design (it ships inside every
+   client bundle), which is why a public-read Firestore document is safe here;
+   the secret half never leaves Google.
+
    Also add the site's domains (`cmckhmer.github.io`, `localhost`) in the
    reCAPTCHA Enterprise key's allowed domains.
 
 Nothing else needs deploying: the SDK is a lazy import that loads on the first
-tap.
+tap, and the key is read from Firestore on page load.
 
 ### How do I know it is actually working?
 
@@ -113,7 +125,7 @@ The home trend card carries a **status line with a “Test connection” button*
 
 | Status line | Meaning | Fix |
 |---|---|---|
-| `AI coach: App Check key not set` | step 2/3 missing — no call is even attempted | add the site key |
+| `AI coach: App Check key not set` | step 2/3 missing — no call is even attempted | register App Check, then paste the site key into `site_config/ai` → `appCheckKey` |
 | `AI coach: App Check token rejected` | key set but the domain is not allowed, or App Check is not registered | check the reCAPTCHA allowed domains + App Check registration |
 | `AI coach: AI Logic not switched on` | step 1 missing (API not enabled / wrong backend) | Build → AI Logic → Get started |
 | `AI coach connected · gemini-2.5-flash` | a real generation came back | nothing — it works |
