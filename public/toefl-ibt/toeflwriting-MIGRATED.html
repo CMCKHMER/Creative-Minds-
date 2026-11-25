@@ -928,12 +928,42 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
             <button onclick="submitWriting()" class="btn-3d">
                 <i class="fas fa-paper-plane mr-2"></i>Submit
             </button>
+            <p class="cmc-rubric-muted" style="margin-top:.6rem">Submitting also scores both responses against the class rubric and tells you what to fix.</p>
         </div>
     </div>
 
     <!-- ========================================
          RESULTS MODAL
          ======================================== -->
+<style id="cmc-rubric-styles">
+  /* AI Phase 01 · Essay Feedback — scoped to the results modal. */
+  #results-modal.modal-backdrop { align-items: flex-start; overflow-y: auto; padding: 1.5rem 1rem; }
+  #results-modal .modal-content { max-width: 44rem; margin: auto; text-align: left; }
+  .cmc-rubric { margin-top: 1.75rem; }
+  .cmc-rubric[hidden] { display: none; }
+  .cmc-rubric-title { font-size: 1.125rem; font-weight: 700; color: #f8fafc; margin: 0 0 .25rem; }
+  .cmc-rubric-muted { color: #94a3b8; font-size: .8125rem; line-height: 1.55; margin: 0; }
+  .cmc-rubric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; margin-top: 1rem; }
+  .cmc-rubric-card { padding: 1.25rem; }
+  .cmc-rubric-card h4 { margin: 0 0 .5rem; font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+  .cmc-rubric-band { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .cmc-rubric-band strong { font-size: 2rem; line-height: 1; color: #fff; }
+  .cmc-rubric-trait { margin-bottom: .6rem; }
+  .cmc-rubric-trait-head { display: flex; justify-content: space-between; gap: .5rem; font-size: .8125rem; color: #cbd5e1; margin-bottom: .25rem; }
+  .cmc-rubric-track { height: 8px; border-radius: 999px; background: rgba(148, 163, 184, .22); overflow: hidden; }
+  .cmc-rubric-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--section-primary, #38bdf8), var(--section-accent, #a855f7)); }
+  .cmc-rubric-label { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; margin: 1rem 0 .5rem; }
+  .cmc-rubric-fix { border-left: 3px solid #f59e0b; padding-left: .65rem; margin-bottom: .6rem; }
+  .cmc-rubric-fix[data-tone="med"] { border-color: #38bdf8; }
+  .cmc-rubric-fix[data-tone="low"] { border-color: #94a3b8; }
+  .cmc-rubric-fix-title { font-weight: 600; font-size: .875rem; color: #f1f5f9; margin-bottom: .1rem; }
+  .cmc-rubric-strengths { margin: 0; padding-left: 1.1rem; color: #cbd5e1; font-size: .8125rem; line-height: 1.6; }
+  @media (max-width: 480px) {
+    #results-modal .modal-content { padding: 1.25rem; }
+    .cmc-rubric-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
     <div id="results-modal" class="modal-backdrop hidden">
         <div class="modal-content text-center">
             <div class="modal-icon">
@@ -956,6 +986,8 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
                     <div class="text-sm text-slate-400 mt-1">Discussion Words</div>
                 </div>
             </div>
+
+            <div id="rubric-feedback" class="cmc-rubric" aria-live="polite" hidden></div>
 
             <button onclick="closeResults()" class="btn-3d px-8 py-3">Continue</button>
         </div>
@@ -1186,10 +1218,93 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
             document.getElementById('result-email').textContent = emailText.trim().split(/\s+/).filter(w => w.length > 0).length;
             document.getElementById('result-discussion').textContent = discussionText.trim().split(/\s+/).filter(w => w.length > 0).length;
             
+            cmcRenderRubric(emailText, discussionText);
+
             document.getElementById('results-modal').classList.remove('hidden');
             clearInterval(timerInterval);
             clearInterval(emailTimerInterval);
             clearInterval(discussionTimerInterval);
+        }
+
+        // ============================================================
+        //  AI PHASE 01 · ESSAY FEEDBACK (automatic, on-device)
+        //  The rubric engine lives in /assets/js/cmc-writing-rubric.js as a
+        //  plain ES module (no build step, no API key, nothing uploaded).
+        //  This classic script only turns its result into markup.
+        // ============================================================
+        var CMC_EMAIL_PROMPT = 'planning a business trip to another city colleague Maria recommendations restaurants activities what you would most like to do and what you would like to avoid';
+        var CMC_DISCUSSION_PROMPT = 'digital nomadism remote work travel Claire Andrew opinion agree disagree support';
+
+        function cmcEsc(value) {
+            return String(value).replace(/[&<>"']/g, function (ch) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+            });
+        }
+
+        function cmcTrait(label, value) {
+            var pct = Math.max(0, Math.min(100, (value / 5) * 100)).toFixed(1);
+            return '<div class="cmc-rubric-trait">' +
+                '<div class="cmc-rubric-trait-head"><span>' + cmcEsc(label) + '</span>' +
+                '<span>' + value.toFixed(1) + ' / 5</span></div>' +
+                '<div class="cmc-rubric-track" role="img" aria-label="' + cmcEsc(label) + ': ' + value.toFixed(1) + ' out of 5">' +
+                '<div class="cmc-rubric-fill" style="width:' + pct + '%"></div>' +
+                '</div></div>';
+        }
+
+        function cmcTaskBlock(title, result) {
+            if (!result || !result.ok) {
+                var why = result && result.fixes && result.fixes[0]
+                    ? result.fixes[0].detail
+                    : 'There is not enough text to analyse yet.';
+                return '<div class="glass-frame cmc-rubric-card">' +
+                    '<h4>' + cmcEsc(title) + '</h4>' +
+                    '<p class="cmc-rubric-muted">' + cmcEsc(why) + '</p>' +
+                    '</div>';
+            }
+            var fixes = result.fixes.length
+                ? '<div class="cmc-rubric-label">Fix these first</div>' + result.fixes.map(function (fix) {
+                    return '<div class="cmc-rubric-fix" data-tone="' + fix.tone + '">' +
+                        '<div class="cmc-rubric-fix-title">' + cmcEsc(fix.title) + '</div>' +
+                        '<div class="cmc-rubric-muted">' + cmcEsc(fix.detail) + '</div>' +
+                        '</div>';
+                }).join('')
+                : '<div class="cmc-rubric-label">Nothing to fix</div>' +
+                  '<p class="cmc-rubric-muted">This response is already at the top of the rubric. Keep this shape and try the same task under the timer.</p>';
+            var strengths = result.strengths.map(function (line) {
+                return '<li>' + cmcEsc(line) + '</li>';
+            }).join('');
+            return '<div class="glass-frame cmc-rubric-card">' +
+                '<h4>' + cmcEsc(title) + '</h4>' +
+                '<div class="cmc-rubric-band"><strong>' + result.band.toFixed(1) + '</strong>' +
+                '<span class="cmc-rubric-muted">/ 5 band · about ' + result.estimate + ' / 30 on the writing scale</span></div>' +
+                cmcTrait('Task response', result.scores.task) +
+                cmcTrait('Development', result.scores.development) +
+                cmcTrait('Coherence', result.scores.coherence) +
+                cmcTrait('Language', result.scores.language) +
+                fixes +
+                '<div class="cmc-rubric-label">What worked</div>' +
+                '<ul class="cmc-rubric-strengths">' + strengths + '</ul>' +
+                '<p class="cmc-rubric-muted" style="margin-top:.75rem">' + result.words + ' words · ' +
+                result.sentences + ' sentences · ' + result.connectives.count + ' linking words</p>' +
+                '</div>';
+        }
+
+        function cmcRenderRubric(emailText, discussionText) {
+            var panel = document.getElementById('rubric-feedback');
+            if (!panel) return;
+            var lib = window.CMCWritingRubric;
+            if (!lib) { panel.hidden = true; return; }
+            var emailResult = lib.analyseEssay(emailText, { kind: 'email', minWords: 70, prompt: CMC_EMAIL_PROMPT });
+            var discussionResult = lib.analyseEssay(discussionText, { kind: 'discussion', minWords: 100, prompt: CMC_DISCUSSION_PROMPT });
+            panel.innerHTML =
+                '<h3 class="cmc-rubric-title">Automatic feedback</h3>' +
+                '<p class="cmc-rubric-muted">Scored on the rubric your class uses — task, development, coherence and language. It runs on this device; nothing is uploaded.</p>' +
+                '<div class="cmc-rubric-grid">' +
+                cmcTaskBlock('E-mail · Maria', emailResult) +
+                cmcTaskBlock('Academic discussion', discussionResult) +
+                '</div>' +
+                '<p class="cmc-rubric-muted" style="margin-top:.75rem">An estimate to guide practice, not an official TOEFL score.</p>';
+            panel.hidden = false;
         }
 
         // Close Results
@@ -1204,6 +1319,12 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
                 modal.classList.add('hidden');
             }
         }
+    </script>
+    <script type="module">
+        // The rubric engine is an ES module so the vitest suite can import the
+        // exact same file the browser runs (no second copy to drift).
+        import { analyseEssay } from '../assets/js/cmc-writing-rubric.js';
+        window.CMCWritingRubric = { analyseEssay };
     </script>
 
 

@@ -130,7 +130,12 @@ export const AiFutureShowcase: React.FC<AiFutureShowcaseProps> = ({ variant = 'h
                       <span className="cmc-holo-pulse" aria-hidden="true" />
                       {card.phase}
                     </span>
-                    <span className="cmc-holo-soon">AI SOON</span>
+                    <span
+                      className="cmc-holo-soon"
+                      data-live={card.status === 'beta' ? 'true' : undefined}
+                    >
+                      {card.status === 'beta' ? 'ESSAY FEEDBACK · LIVE' : 'AI SOON'}
+                    </span>
                   </div>
 
                   {/* Levitating 3D Holographic Wireframe Image */}

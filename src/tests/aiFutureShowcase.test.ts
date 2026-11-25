@@ -73,4 +73,16 @@ describe('AiFutureShowcase — futuristic floating-3D holographic AI cards', () 
     expect(glassCss).toContain('.cmc-holo-float-wrap');
     expect(glassCss).toContain('@media (prefers-reduced-motion: reduce)');
   });
+
+  it('advertises only the phase whose feature actually works, and says which one', () => {
+    const html = renderToStaticMarkup(React.createElement(AiFutureShowcase));
+    const live = AI_FUTURE_CARDS.filter((card) => card.status === 'beta');
+    // Phase 01 is the only beta: essay feedback shipped, speaking coach did not.
+    expect(live.map((card) => card.id)).toEqual(['smart-learning']);
+    expect(html.match(/ESSAY FEEDBACK · LIVE/g)?.length).toBe(1);
+    // the other three keep the honest "not built" pill
+    expect(html.match(/AI SOON/g)?.length).toBe(3);
+    expect(glassCss).toContain('.cmc-holo-soon[data-live="true"]');
+    expect(glassCss).toContain('html.light .cmc-holo-soon[data-live="true"]');
+  });
 });
