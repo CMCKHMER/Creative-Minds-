@@ -32,21 +32,43 @@ A student should be able to tell, from the motion alone, whether a control is
 going to submit, open something, or think. That is the whole design goal — not
 decoration.
 
-## 1 · Press depth — everywhere
+## 1 · Press depth — everywhere (site-wide default)
 
-`.cmc-btn-primary`, `.cmc-btn-3d*`, `.cmc-btn-ghost` and anything with
-`.cmc-press` get `touch-action: manipulation` (kills the 300 ms double-tap
-delay on phones) and `-webkit-tap-highlight-color: transparent`.
+**Nothing to add to a component.** `motion.css` applies the press to every
+`<button>`, `[role="button"]`, `<summary>` and submit/button/reset input:
 
-A phone never fires `:hover`, so under `@media (hover: none)` the `:active`
-state carries the full press: 3px down, 0.992 scale, shadow collapse.
-
-```html
-<button class="cmc-press rounded-lg px-3 py-2">Retry</button>
+```css
+button:not(:disabled):not([class*="cmc-btn-"]):not([class*="cmc-press"]):active { translate: 0 2px; }
 ```
 
-Do not add press depth to a control that already has
-`.cmc-btn-primary` / `.cmc-btn-3d` — they carry it themselves.
+Three details make that safe:
+
+- **`translate`, not `transform`.** `transform` is already spoken for by
+  entrance animations, the hero tilt and Tailwind's `-translate-y-*`; writing
+  `transform` here would make those elements jump. The individual `translate`
+  property composes with whatever transform the element already has. A test
+  scans the components to make sure no `<button>` is positioned *by* translate
+  (a centred close button) without `data-press="off"`.
+- **The skins are excluded** (`.cmc-btn-*`, `.cmc-press`). They already collapse
+  their own edge; without the exclusion a primary button would sink twice.
+- **Zero-specificity transition.** The `:where(...)` rule sets
+  `transition: translate 110ms`, so a component's own `transition-*` utility
+  still wins and nothing else changes behaviour.
+
+`.cmc-press` remains for `<a>`/custom elements that are not native controls, and
+gives the stronger version (2px + sheen + brightness). `.cmc-btn-primary`,
+`.cmc-btn-3d*` and `.cmc-btn-ghost` also carry `touch-action: manipulation`
+(kills the 300 ms double-tap delay) and `-webkit-tap-highlight-color`.
+
+A phone never fires `:hover`, so under `@media (hover: none)` the skins' press is
+deepened to 3px: on touch, `:active` is the whole show.
+
+**Static pages** (`public/rfc3/*`, quizzes, planner) are plain HTML and do not
+load `motion.css`; the same rule is appended to
+`public/assets/css/cmc-iridescent.css`, which those pages already include.
+`cmc-utilities.css` is generated — never hand-edit it.
+
+**Opt out** with `data-press="off"` on anything positioned by `translate`.
 
 ## 2 · Magnetic tilt — one hero CTA, hover devices only
 

@@ -10,7 +10,7 @@
 //   wiring  the hero CTA tilts, the class-creation button reports progress,
 //           the score button nudges — and the hero has exactly one tilt
 //   logic   the tilt maths clamps, and the hooks respect the device
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createElement } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -61,7 +61,48 @@ describe('motion.css — the five behaviours', () => {
     expect(MOTION).toMatch(/--cmc-press-ms:\s*120ms/);
   });
 
-  it('1 · press depth answers the finger on touch screens', () => {
+  it('1a · press depth is the default for every native control', () => {
+    // No class needed: button / [role=button] / summary / submit inputs.
+    expect(MOTION).toMatch(/button:not\(:disabled\)[^{]*:active\s*\{\s*translate: 0 2px;/);
+    expect(MOTION).toContain('[role="button"]:not([aria-disabled="true"])');
+    expect(MOTION).toContain('summary:not([class*="cmc-btn-"]):not([data-press="off"]):active');
+    expect(MOTION).toContain('input[type="submit"]:not(:disabled)');
+    // Uses the individual `translate` property so it composes with a
+    // component's own transform instead of overwriting it.
+    expect(MOTION).toMatch(/:active\s*\{\s*translate: 0 2px;/);
+    // The skins already sink on their own — they must be excluded.
+    expect(MOTION).toContain(':not([class*="cmc-btn-"])');
+    expect(MOTION).toContain(':not([class*="cmc-press"])');
+    // Escape hatch for anything positioned BY translate.
+    expect(MOTION).toContain('[data-press="off"]');
+    // Zero-specificity default transition so utilities still win.
+    expect(MOTION).toMatch(/:where\(\s*button:not\(:disabled\)/);
+  });
+
+  it('1b · the static worksheet pages get the same press rule', () => {
+    const staticCss = readFileSync(resolve(process.cwd(), 'public/assets/css/cmc-iridescent.css'), 'utf8');
+    expect(staticCss).toContain('translate: 0 2px;');
+    expect(staticCss).toContain(':not([class*="cmc-btn-"])');
+    expect(staticCss).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(staticCss).toContain('translate: none !important;');
+  });
+
+  it('1c · no <button> is positioned by translate without opting out', () => {
+    // A global `translate` on :active would fight a centring utility, so any
+    // such button has to carry data-press="off" (none need it today).
+    const files = ['src/App.tsx', ...readdirSync(resolve(process.cwd(), 'src/components')).map((f) => `src/components/${f}`)]
+      .filter((f) => f.endsWith('.tsx'));
+    for (const file of files) {
+      const src = readFileSync(resolve(process.cwd(), file), 'utf8');
+      for (const tag of src.match(/<button\b[^>]*>/gs) ?? []) {
+        if (/-translate-[xy]-1\/2/.test(tag) && !tag.includes('data-press="off"')) {
+          throw new Error(`${file}: a <button> centred with translate must set data-press="off" — ${tag.slice(0, 120)}`);
+        }
+      }
+    }
+  });
+
+  it('1d · press depth answers the finger on touch screens', () => {
     const press = block(MOTION, '.cmc-press:active');
     expect(press).toContain('translateY(2px)');
     // Hover never fires on a phone, so :active has to carry it.
@@ -116,6 +157,8 @@ describe('motion.css — the five behaviours', () => {
     expect(reduced).toContain('.cmc-busy[data-state="working"]');
     expect(reduced).toContain('.cmc-nudge.is-nudging');
     expect(reduced).toContain('animation: none !important');
+    // the site-wide press is turned off too
+    expect(reduced).toContain('translate: none !important');
     // Nothing after the block may re-enable motion.
     expect(MOTION.trimEnd().endsWith('}')).toBe(true);
     expect(MOTION.lastIndexOf('@media (prefers-reduced-motion: reduce)')).toBeGreaterThan(

@@ -439,3 +439,33 @@ body.light textarea:focus-visible {
     transform: none !important;
   }
 }
+
+/* ============================================================
+   PRESS EVERYWHERE — static pages (Nov 2026)
+   The app gets this from src/motion.css; these pages are plain
+   HTML, so they carry their own copy. Same rule, same reasoning:
+   the individual `translate` property (not `transform`) so it
+   composes with any entrance animation or -translate utility the
+   element already has, and the .cmc-btn-* skins are excluded
+   because they sink on their own.
+   Opt out with data-press="off".
+   ============================================================ */
+button:not(:disabled):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]):active,
+[role="button"]:not([aria-disabled="true"]):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]):active,
+summary:not([class*="cmc-btn-"]):not([data-press="off"]):active,
+input[type="submit"]:not(:disabled):not([data-press="off"]):active,
+input[type="button"]:not(:disabled):not([data-press="off"]):active,
+input[type="reset"]:not(:disabled):not([data-press="off"]):active {
+  translate: 0 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active,
+  [role="button"]:active,
+  summary:active,
+  input[type="submit"]:active,
+  input[type="button"]:active,
+  input[type="reset"]:active {
+    translate: none !important;
+  }
+}
