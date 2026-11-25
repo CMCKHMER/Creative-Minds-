@@ -14,6 +14,7 @@ try{var t=localStorage.getItem('cmc-theme')||localStorage.getItem('toefl-theme')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Shared TOEFL Design System -->
     <link rel="stylesheet" href="toefl-styles.css">
+    <link rel="stylesheet" href="../assets/css/cmc-coach.css">
     <link rel="stylesheet" href="toefl-section-colors.css">
     
     <style>
@@ -1018,9 +1019,11 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
                 </div>
             </div>
 
-            <p class="text-slate-400 text-sm mb-6">Your responses have been saved. In a real test, they would be sent to ETS for scoring.</p>
+            <p class="text-slate-400 text-sm mb-6">Delivery is scored on this device as you record — your audio is never uploaded.</p>
 
-            <button onclick="closeResults()" class="btn-3d px-8 py-3">Continue</button>
+            <div id="speaking-feedback" class="cmc-rubric" aria-live="polite" hidden></div>
+
+            <button onclick="closeResults()" class="btn-3d px-8 py-3" style="margin-top:1.25rem">Continue</button>
         </div>
     </div>
 
@@ -1032,6 +1035,9 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
         let currentlyPlaying = null;
         let mediaRecorder = null;
         let audioChunks = [];
+        // Delivery analysis per question (AI Phase 01 · Speaking Coach).
+        // Kept in memory only — the audio itself is never stored or uploaded.
+        const speechResults = {};
         let isRecording = false;
         // Which question owns the current recording + its auto-stop timer.
         let currentRecordingQuestion = null;
@@ -1091,6 +1097,163 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
             currentlyPlaying = null;
         }
 
+        // ============================================================
+        //  AI PHASE 01 · SPEAKING COACH (automatic, on-device)
+        //  cmc-speaking-rubric.js decodes the recording with WebAudio and
+        //  scores fluency, clarity and pacing from the signal. No transcript,
+        //  no upload, no API. It cannot judge pronunciation or content — the
+        //  UI says so.
+        // ============================================================
+        function cmcEsc(value) {
+            return String(value).replace(/[&<>"']/g, function (ch) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+            });
+        }
+
+        function cmcTargetSeconds(questionId) {
+            // Same rule the auto-stop timer uses: interview answers get 45 s,
+            // repeat/read-aloud items get 10 s.
+            const isInterview = questionId.indexOf('s1q') === 0 && parseInt(questionId.replace('s1q', ''), 10) >= 8;
+            return { isInterview: isInterview, targetSeconds: isInterview ? 45 : 10 };
+        }
+
+        function cmcAnalyseResponse(questionId, blob) {
+            const host = document.getElementById('delivery-' + questionId);
+            const rubric = window.CMCSpeakingRubric;
+            if (!host || !rubric) return;
+            const opts = cmcTargetSeconds(questionId);
+            host.hidden = false;
+            host.innerHTML = '<p class="cmc-rubric-muted">Scoring your delivery…</p>';
+
+            rubric.analyseAudioBlob(blob, {
+                targetSeconds: opts.targetSeconds,
+                kind: opts.isInterview ? 'interview' : 'repeat'
+            }).then(function (result) {
+                if (!result) {
+                    // The browser could not decode this format — say nothing
+                    // rather than invent a score.
+                    host.hidden = true;
+                    return;
+                }
+                if (!result.ok) {
+                    speechResults[questionId] = null;
+                    host.innerHTML = '<p class="cmc-rubric-muted">' + cmcEsc(result.fixes[0].title) + ' — ' + cmcEsc(result.fixes[0].detail) + '</p>';
+                    return;
+                }
+                speechResults[questionId] = result;
+                host.setAttribute('data-band-tier', result.band >= 4 ? 'high' : result.band < 3 ? 'low' : 'mid');
+                const fix = result.fixes[0];
+                host.innerHTML =
+                    '<div class="cmc-delivery-head">' +
+                    '<span class="cmc-delivery-band">' + result.band.toFixed(1) + '</span>' +
+                    '<span class="cmc-rubric-muted">/ 5 for delivery</span>' +
+                    '</div>' +
+                    '<p class="cmc-delivery-label" style="margin:0 0 .35rem">' +
+                    result.seconds.toFixed(0) + ' s · ' + Math.round(result.pauseRatio * 100) + '% silence · ~' +
+                    result.wordsPerMinute + ' words/min</p>' +
+                    (fix
+                        ? '<p class="cmc-delivery-fix"><strong>' + cmcEsc(fix.title) + '</strong> ' + cmcEsc(fix.detail) + '</p>'
+                        : '<p class="cmc-delivery-fix">Clean delivery — keep this pace.</p>');
+            }).catch(function () { host.hidden = true; });
+        }
+
+        function cmcAvg(values) {
+            const usable = values.filter(function (v) { return typeof v === 'number' && isFinite(v); });
+            if (!usable.length) return 0;
+            return Math.round((usable.reduce(function (a, b) { return a + b; }, 0) / usable.length) * 100) / 100;
+        }
+
+        function cmcTrait(label, value) {
+            const pct = Math.max(0, Math.min(100, (value / 5) * 100)).toFixed(1);
+            return '<div class="cmc-rubric-trait">' +
+                '<div class="cmc-rubric-trait-head"><span>' + label + '</span><span>' + value.toFixed(1) + ' / 5</span></div>' +
+                '<div class="cmc-rubric-track" role="img" aria-label="' + label + ': ' + value.toFixed(1) + ' out of 5">' +
+                '<div class="cmc-rubric-fill" style="width:' + pct + '%"></div></div></div>';
+        }
+
+        function cmcRenderSpeakingSummary() {
+            const host = document.getElementById('speaking-feedback');
+            if (!host) return;
+            const results = Object.keys(speechResults)
+                .map(function (id) { return speechResults[id]; })
+                .filter(Boolean);
+            if (!results.length) { host.hidden = true; return; }
+
+            const band = cmcAvg(results.map(function (r) { return r.band; }));
+            const traits = {
+                fluency: cmcAvg(results.map(function (r) { return r.scores.fluency; })),
+                clarity: cmcAvg(results.map(function (r) { return r.scores.clarity; })),
+                pacing: cmcAvg(results.map(function (r) { return r.scores.pacing; }))
+            };
+            const stats = {
+                responses: results.length,
+                seconds: Math.round(results.reduce(function (n, r) { return n + r.seconds; }, 0)),
+                pauseRatio: cmcAvg(results.map(function (r) { return r.pauseRatio; })),
+                wordsPerMinute: cmcAvg(results.map(function (r) { return r.wordsPerMinute; }))
+            };
+
+            // Aggregate the per-answer advice: frequency first, then severity.
+            const seen = {};
+            results.forEach(function (r) {
+                r.fixes.forEach(function (fix) {
+                    const key = fix.title;
+                    if (!seen[key]) seen[key] = { fix: fix, count: 0 };
+                    seen[key].count += 1;
+                });
+            });
+            const order = { high: 0, med: 1, low: 2 };
+            const fixes = Object.keys(seen)
+                .map(function (k) { return seen[k]; })
+                .sort(function (a, b) { return (order[a.fix.tone] - order[b.fix.tone]) || (b.count - a.count); })
+                .slice(0, 3);
+
+            host.hidden = false;
+            host.innerHTML =
+                '<div class="cmc-rubric-grid" style="grid-template-columns:1fr">' +
+                '<div class="glass-frame cmc-rubric-card">' +
+                '<h4>Delivery across ' + results.length + ' response' + (results.length === 1 ? '' : 's') + '</h4>' +
+                '<div class="cmc-rubric-band"><strong>' + band.toFixed(1) + '</strong>' +
+                '<span class="cmc-rubric-muted">/ 5 delivery band</span></div>' +
+                cmcTrait('Fluency', traits.fluency) +
+                cmcTrait('Clarity', traits.clarity) +
+                cmcTrait('Pacing', traits.pacing) +
+                '<div class="cmc-rubric-label">Work on this next</div>' +
+                fixes.map(function (entry) {
+                    return '<div class="cmc-rubric-fix" data-tone="' + entry.fix.tone + '">' +
+                        '<div class="cmc-rubric-fix-title">' + cmcEsc(entry.fix.title) + '</div>' +
+                        '<div class="cmc-rubric-muted">' + cmcEsc(entry.fix.detail) +
+                        (entry.count > 1 ? ' (in ' + entry.count + ' of your answers)' : '') + '</div></div>';
+                }).join('') +
+                '<p class="cmc-rubric-muted" style="margin-top:.75rem">' + stats.seconds + ' s recorded · ' +
+                Math.round(stats.pauseRatio * 100) + '% silence on average · ~' + Math.round(stats.wordsPerMinute) +
+                ' words/min. Delivery only — pronunciation and content need a listener or a transcript.</p>' +
+                '<div id="speaking-trajectory"></div>' +
+                '</div></div>';
+
+            const practice = window.CMCPractice;
+            if (!practice) return;
+            practice.saveAttempt({
+                skill: 'speaking',
+                band: band,
+                traits: traits,
+                stats: stats,
+                source: 'toefl-ibt/speaking',
+                rubricVersion: (window.CMCSpeakingRubric && window.CMCSpeakingRubric.RUBRIC_VERSION) || ''
+            }).then(function (saved) {
+                var note = saved && saved.queued
+                    ? '<p class="cmc-rubric-muted" style="margin-top:.5rem">Saved on this device for now — it will join your score history when the connection returns.</p>'
+                    : '';
+                return practice.loadTrajectory({ skill: 'speaking', limit: 8 }).then(function (res) {
+                    const slot = document.getElementById('speaking-trajectory');
+                    if (!slot || !res) return;
+                    slot.innerHTML = note + practice.trajectoryMarkup(res.trajectory, {
+                        label: 'Speaking band trend',
+                        empty: 'This session starts your trend. Record again tomorrow to compare.'
+                    });
+                });
+            }).catch(function () { /* history must never break the summary */ });
+        }
+
         // Toggle Recording
         async function toggleRecord(questionId) {
             const recordBtn = document.getElementById('record-' + questionId);
@@ -1108,9 +1271,13 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
                     };
                     
                     mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        // In a real app, you would upload this blob to a server
-                        
+                        // Use the recorder's ACTUAL mime type. Claiming audio/wav
+                        // for webm/opus chunks made decoders reject the blob, and
+                        // the recorder never produced wav.
+                        const mime = (mediaRecorder && mediaRecorder.mimeType) || 'audio/webm';
+                        const audioBlob = new Blob(audioChunks, { type: mime });
+                        cmcAnalyseResponse(questionId, audioBlob);
+
                         // Mark as completed
                         completedQuestions.add(questionId);
                         updateProgress();
@@ -1187,7 +1354,9 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
         // Submit Speaking
         function submitSpeaking() {
             const completed = completedQuestions.size;
-            
+
+            cmcRenderSpeakingSummary();
+
             document.getElementById('result-recorded').textContent = completed;
             document.getElementById('results-modal').classList.remove('hidden');
             clearInterval(timerInterval);
@@ -1210,6 +1379,16 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
         document.addEventListener('DOMContentLoaded', function() {
             startTimer();
             updateProgress();
+            // One delivery chip per question, hidden until that answer exists.
+            document.querySelectorAll('.question-frame[id^="question-"]').forEach(function (frame) {
+                const id = frame.id.replace('question-', '');
+                if (document.getElementById('delivery-' + id)) return;
+                const chip = document.createElement('div');
+                chip.id = 'delivery-' + id;
+                chip.className = 'cmc-delivery';
+                chip.hidden = true;
+                frame.appendChild(chip);
+            });
         });
     </script>
 
@@ -1262,6 +1441,15 @@ html[data-theme="light"] #cmc-share-panel hr{border-top-color:rgba(0,0,0,.10)}
     });
   }
 })();
+</script>
+
+<script type="module">
+    // Same files the vitest suite imports — one implementation, no drift.
+    import { analyseAudioBlob, RUBRIC_VERSION } from '../assets/js/cmc-speaking-rubric.js';
+    import * as practice from '../assets/js/cmc-practice-attempts.js';
+    window.CMCSpeakingRubric = { analyseAudioBlob, RUBRIC_VERSION };
+    window.CMCPractice = practice;
+    practice.flushOutbox();
 </script>
 
 </body>

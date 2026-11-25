@@ -1904,6 +1904,259 @@ html.light .cmc-holo-stage {
   box-shadow: 0 0 14px -2px rgba(16, 185, 129, 0.55);
 }
 
+/* ---- Phase 01 live strip: the student's own practice trend ----------
+   Sits between the roadmap header and the holographic cards. Static: no
+   motion at all, so nothing to disable under prefers-reduced-motion. */
+
+.cmc-ai-live {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 2.25rem;
+  padding: 1.35rem 1.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  background: linear-gradient(150deg, rgba(6, 24, 30, 0.92), rgba(10, 16, 34, 0.9));
+  box-shadow: 0 24px 60px -32px rgba(16, 185, 129, 0.45);
+}
+
+.cmc-ai-live-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.cmc-ai-live-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #f1f5f9;
+}
+
+.cmc-ai-live-sub {
+  margin: 0;
+  max-width: 46rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #94a3b8;
+}
+
+.cmc-pt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 0.9rem;
+}
+
+.cmc-pt-row {
+  padding: 0.85rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 197, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cmc-pt-row.is-empty {
+  border-style: dashed;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+.cmc-pt-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.cmc-pt-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.cmc-pt-band {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.cmc-pt-band strong {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #f8fafc;
+}
+
+.cmc-pt-outof {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.cmc-pt-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.cmc-pt-row-body {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.cmc-pt-spark {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 36px;
+}
+
+.cmc-pt-spark > span {
+  display: inline-block;
+  width: 7px;
+  border-radius: 3px;
+  background: rgba(148, 163, 184, 0.45);
+}
+
+.cmc-pt-spark > span.is-latest {
+  background: #38bdf8;
+}
+
+.cmc-pt-note {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: #94a3b8;
+}
+
+.cmc-pt-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.55rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 197, 255, 0.28);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #dbeafe;
+  text-decoration: none;
+}
+
+.cmc-pt-cta:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #f0f9ff;
+}
+
+.cmc-pt-cta:active {
+  translate: 0 2px;
+}
+
+.cmc-pt-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cmc-pt-coach {
+  margin-top: 1rem;
+}
+
+.cmc-pt-coach-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  background: rgba(56, 189, 248, 0.12);
+  color: #e0f2fe;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cmc-pt-coach-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cmc-pt-coach-btn:active {
+  translate: 0 2px;
+}
+
+.cmc-pt-coach-card {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.cmc-pt-coach-text {
+  margin: 0.4rem 0;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: #e2e8f0;
+}
+
+/* Light theme twin — the strip sits on a dark aurora, but the app's light
+   theme must still read correctly when it is reparented or printed. */
+html.light .cmc-ai-live {
+  border-color: rgba(4, 120, 87, 0.28);
+  background: linear-gradient(150deg, #ecfdf5, #f1f5f9);
+  box-shadow: 0 18px 40px -30px rgba(15, 23, 42, 0.35);
+}
+
+html.light .cmc-ai-live-title,
+html.light .cmc-pt-band strong {
+  color: #0f172a;
+}
+
+html.light .cmc-ai-live-sub,
+html.light .cmc-pt-note,
+html.light .cmc-pt-label,
+html.light .cmc-pt-outof {
+  color: #475569;
+}
+
+html.light .cmc-pt-row {
+  border-color: rgba(100, 116, 139, 0.28);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+html.light .cmc-pt-spark > span {
+  background: rgba(100, 116, 139, 0.45);
+}
+
+html.light .cmc-pt-cta {
+  border-color: rgba(2, 132, 199, 0.4);
+  color: #075985;
+}
+
+html.light .cmc-pt-coach-btn {
+  border-color: rgba(2, 132, 199, 0.4);
+  background: rgba(2, 132, 199, 0.1);
+  color: #075985;
+}
+
+html.light .cmc-pt-coach-card {
+  border-color: rgba(79, 70, 229, 0.32);
+  background: rgba(79, 70, 229, 0.08);
+}
+
+html.light .cmc-pt-coach-text {
+  color: #1e293b;
+}
+
 /* Levitating 3D Hologram Wrapper + Screen-Blended Wireframe Artwork */
 .cmc-holo-float-wrap {
   position: relative;

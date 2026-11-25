@@ -57,6 +57,12 @@ function firebaseApp(): Promise<FirebaseApp> {
   return appPromise;
 }
 
+/** The initialized FirebaseApp — for SDK features that need the app handle
+ *  (Firebase AI Logic, App Check). Same memoized singleton as every getter. */
+export function getFirebaseApp(): Promise<FirebaseApp> {
+  return firebaseApp();
+}
+
 /** Resolve the Firebase Auth instance, or null when Firebase is not configured / init failed. */
 export function getFirebaseAuth(): Promise<Auth | null> {
   if (!firebaseConfigured) return Promise.resolve(null);

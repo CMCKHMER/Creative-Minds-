@@ -12,8 +12,9 @@ export interface AiFutureCard {
   readonly liveLabel: string;
   readonly todayState: string;
   readonly aiNextState: string;
-  /** 'beta' = part of this phase already works on the site; 'soon' = not built. */
-  readonly status?: 'soon' | 'beta';
+  /** 'live' = the phase works end to end; 'beta' = part of it ships;
+   *  'soon' = nothing built yet. Drives the pill on the card. */
+  readonly status?: 'soon' | 'beta' | 'live';
   readonly icon: 'book' | 'brain' | 'chart' | 'globe';
 }
 
@@ -33,10 +34,10 @@ export const AI_FUTURE_CARDS: readonly AiFutureCard[] = [
     liveHref: '#toefl-ibt-mock',
     liveLabel: 'Open live TOEFL Mock',
     todayState:
-      'Full 4-section timed TOEFL iBT practice with audio recording and teacher review. Essay feedback is live: submit either writing task and get a band, four rubric bars and three fixes.',
+      'Live now: write either TOEFL writing task and get a band, four rubric bars and the three fixes that matter; record any speaking answer and get delivery feedback (pauses, pace, clarity) as you go; every attempt is saved so your trend line moves on the home page.',
     aiNextState:
-      'Speaking Coach next — talk into the existing recorder and get the same rubric read-out for fluency and pronunciation.',
-    status: 'beta',
+      'Next: pronunciation and content on speaking (needs a transcript), plus a teacher review pass that can override an automatic band.',
+    status: 'live',
     icon: 'book',
   },
   {
