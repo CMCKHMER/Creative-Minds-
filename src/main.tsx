@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import "./glass.css";
@@ -8,6 +8,11 @@ import "./iridescent.css";
 import "./motion.css";
 import App from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+
+// /?motion=demo — the one page where every button behaviour can be seen and
+// tapped without a login. Lazy, so it costs nothing on the real site.
+const MotionShowcase = lazy(() => import("./components/MotionShowcase"));
+const motionDemo = new URLSearchParams(window.location.search).has("motion");
 import { loadGoogleClient } from "./lib/google";
 
 // Prevent the browser from restoring the scroll position on page refresh.
@@ -34,7 +39,13 @@ createRoot(document.getElementById("root")!).render(
         route chunk that failed to download) shows a Reload prompt instead
         of leaving a blank page. */}
     <ErrorBoundary variant="page" label="app">
-      <App />
+      {motionDemo ? (
+        <Suspense fallback={<div style={{ minHeight: "60vh" }} />}>
+          <MotionShowcase />
+        </Suspense>
+      ) : (
+        <App />
+      )}
     </ErrorBoundary>
   </StrictMode>
 );
