@@ -81,6 +81,47 @@
 }
 
 /* ------------------------------------------------------------
+   1b · PRESS EVERYWHERE (the site-wide default)
+   .cmc-press is the opt-in utility; this is the default, so every
+   native control answers a finger without adding a class to 200
+   components.
+
+   It uses the individual `translate` property, NOT `transform`:
+   `transform` is already spoken for by entrance animations, the
+   hero tilt and Tailwind's -translate-y utilities, and overwriting
+   it would make those elements jump. `translate` composes with
+   whatever transform the element already has.
+
+   Opt out with data-press="off" on anything positioned BY
+   translate (a centred close button, a draggable handle).
+   ------------------------------------------------------------ */
+
+/* The skins (.cmc-btn-*) and .cmc-press already carry their own press
+   physics, so they are excluded here — otherwise a primary button would
+   sink 2px from this rule AND 20 from the skin. */
+button:not(:disabled):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]):active,
+[role="button"]:not([aria-disabled="true"]):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]):active,
+summary:not([class*="cmc-btn-"]):not([data-press="off"]):active,
+input[type="submit"]:not(:disabled):not([data-press="off"]):active,
+input[type="button"]:not(:disabled):not([data-press="off"]):active,
+input[type="reset"]:not(:disabled):not([data-press="off"]):active {
+  translate: 0 2px;
+}
+
+/* Zero specificity: a component's own `transition-*` utility wins, and a
+   button with no transition at all gets a spring on the way down. */
+:where(
+  button:not(:disabled):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]),
+  [role="button"]:not([aria-disabled="true"]):not([class*="cmc-btn-"]):not([class*="cmc-press"]):not([data-press="off"]),
+  summary:not([class*="cmc-btn-"]):not([data-press="off"]),
+  input[type="submit"]:not(:disabled):not([data-press="off"]),
+  input[type="button"]:not(:disabled):not([data-press="off"]),
+  input[type="reset"]:not(:disabled):not([data-press="off"])
+) {
+  transition: translate 110ms var(--cmc-spring);
+}
+
+/* ------------------------------------------------------------
    2 · MAGNETIC TILT + GLARE
    Max 8° so it reads as a lit object, not a toy. The hook writes
    --cmc-tilt-x/y (rotation) and --cmc-tilt-gx/gy (glare centre).
@@ -401,6 +442,16 @@ html.light .cmc-nudge__bubble {
 
   .cmc-tilt::before {
     display: none;
+  }
+
+  /* the site-wide press */
+  button:active,
+  [role="button"]:active,
+  summary:active,
+  input[type="submit"]:active,
+  input[type="button"]:active,
+  input[type="reset"]:active {
+    translate: none !important;
   }
 
   .cmc-busy,
