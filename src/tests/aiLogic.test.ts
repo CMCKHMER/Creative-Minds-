@@ -17,7 +17,7 @@ import {
   resolveAppCheckKey,
   speechPrompt,
 } from '../../public/assets/js/cmc-ai-logic.js';
-import { classifyAiFailure, probeAICoach, speechCoachPrompt } from '../lib/aiCoach';
+import { AI_SETUP_STEPS, classifyAiFailure, probeAICoach, speechCoachPrompt } from '../lib/aiCoach';
 
 // App Check init is local, but keep the SDK out of the test: the probe's job here
 // is to decide, not to talk to Google.
@@ -189,6 +189,21 @@ describe('the App Check key can be set from the console (no rebuild)', () => {
     expect(await resolveAppCheckKey()).toBe('k');
     expect(await resolveAppCheckKey()).toBe('k');
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('the setup checklist points at the exact console pages', () => {
+  it('links every step that happens in the console, with no typing of URLs', () => {
+    const hrefs = AI_SETUP_STEPS.map((step) => step.href);
+    expect(hrefs[0]).toBe('https://console.firebase.google.com/project/creative-minds-cambodia/ailogic');
+    expect(hrefs[1]).toBe('https://console.firebase.google.com/project/creative-minds-cambodia/appcheck/apps');
+    expect(hrefs[2]).toBe(
+      'https://console.firebase.google.com/project/creative-minds-cambodia/firestore/data/~2Fsite_config~2Fai',
+    );
+    // the last step happens on the card itself, so it is not a link
+    expect(hrefs[3]).toBe('');
+    // and the key step names the exact document + field
+    expect(AI_SETUP_STEPS.find((step) => step.id === 'key')?.label).toMatch(/site_config → ai → field appCheckKey/);
   });
 });
 
