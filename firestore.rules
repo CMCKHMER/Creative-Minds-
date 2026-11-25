@@ -822,6 +822,34 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // PRACTICE REVIEWS (Nov 2026) — a teacher's word on an automatic band.
+    //
+    // One document per attempt, keyed by the ATTEMPT's id so a student can read
+    // the review back with the id they already hold:
+    //   practice_reviews/{attemptId}: attemptId, studentUid, reviewerUid,
+    //   reviewerName, band (0–5, or null = "the automatic band stands"),
+    //   comment (<= 600 chars), createdAt
+    //
+    // WHY A SEPARATE COLLECTION
+    //   An attempt is a fact and stays immutable; a review is an opinion that can
+    //   be revised. Splitting them means a teacher correcting themselves never
+    //   rewrites what the student actually produced, and the rules stay simple.
+    match /practice_reviews/{attemptId} {
+      allow read: if isVerifiedTeacher()
+        || (request.auth != null && request.auth.uid == resource.data.studentUid);
+      allow create, update: if isVerifiedTeacher()
+        && request.resource.data.reviewerUid == request.auth.uid
+        && request.resource.data.attemptId == attemptId
+        && request.resource.data.studentUid is string
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() <= 600
+        && (request.resource.data.band == null
+            || (request.resource.data.band is number
+                && request.resource.data.band >= 0
+                && request.resource.data.band <= 5));
+      allow delete: if false;
+    }
+
     match /test_scores/{docId} {
       allow read: if isVerifiedTeacher()
         && (resource.data.teacherUid == request.auth.uid

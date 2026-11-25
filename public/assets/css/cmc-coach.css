@@ -190,6 +190,43 @@
   font-weight: 650;
 }
 
+/* ---- optional AI listen button (speaking page) ---- */
+
+.cmc-delivery-ai {
+  margin-top: 0.6rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(129, 140, 248, 0.45);
+  background: rgba(99, 102, 241, 0.16);
+  color: #e0e7ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cmc-delivery-ai:active {
+  translate: 0 2px;
+}
+
+.cmc-delivery-ai-out {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+html[data-theme="light"] .cmc-delivery-ai {
+  border-color: rgba(79, 70, 229, 0.4);
+  background: rgba(79, 70, 229, 0.1);
+  color: #3730a3;
+}
+
+html[data-theme="light"] .cmc-delivery-ai-out {
+  border-color: rgba(79, 70, 229, 0.28);
+  background: rgba(79, 70, 229, 0.06);
+}
+
 /* ---- results modal (both pages) ----
    The speaking page's results shell relies on Tailwind classes (.fixed,
    .inset-0, .bg-black/90) that this stylesheet never shipped, so it used to

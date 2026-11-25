@@ -2,7 +2,16 @@ import { useCallback, useEffect, useState } from 'react';
 import { Sparkles, TrendingDown, TrendingUp } from 'lucide-react';
 import { useSignedInSession } from '../hooks/useSignedInSession';
 import { loadMyTrajectory, type PracticeAttempt, type Trajectory } from '../lib/practiceAttempts';
-import { AI_COACH_DAILY_LIMIT, askCoach, remainingCoachUses } from '../lib/aiCoach';
+import {
+  AI_COACH_DAILY_LIMIT,
+  AI_COACH_MODEL,
+  AI_SETUP_STEPS,
+  appCheckConfigured,
+  askCoach,
+  probeAICoach,
+  remainingCoachUses,
+  type AiProbe,
+} from '../lib/aiCoach';
 
 /**
  * PracticeTrajectoryCard — the visible half of AI Phase 01 on the home page.
@@ -118,6 +127,9 @@ export function PracticeTrajectoryCard() {
   const [state, setState] = useState<CardState>({ phase: 'loading' });
   const [coach, setCoach] = useState<CoachState>({ status: 'idle' });
   const [remaining, setRemaining] = useState(AI_COACH_DAILY_LIMIT);
+  const [probe, setProbe] = useState<AiProbe | null>(null);
+  const [probing, setProbing] = useState(false);
+  const appCheckReady = appCheckConfigured();
   const sessionKey = session?.email || null;
 
   useEffect(() => {
@@ -150,6 +162,17 @@ export function PracticeTrajectoryCard() {
       alive = false;
     };
   }, [sessionKey]);
+
+  const onProbe = useCallback(async () => {
+    setProbing(true);
+    try {
+      // The real check: one tiny generation through Firebase AI Logic, then a
+      // plain answer — connected, or the exact console step that is missing.
+      setProbe(await probeAICoach());
+    } finally {
+      setProbing(false);
+    }
+  }, []);
 
   const onAskCoach = useCallback(async () => {
     if (state.phase !== 'ready' || !state.lastEssay) return;
@@ -227,6 +250,34 @@ export function PracticeTrajectoryCard() {
           </div>
 
           <div className="cmc-pt-coach" aria-live="polite">
+            <div className="cmc-ai-status" data-state={probe ? probe.status : appCheckReady ? 'untested' : 'app-check'}>
+              <span className="cmc-ai-status-dot" aria-hidden="true" />
+              <span className="cmc-ai-status-text">
+                {probe
+                  ? probe.message
+                  : appCheckReady
+                    ? `AI coach: not tested yet · ${AI_COACH_MODEL}`
+                    : 'AI coach: App Check key not set — see the steps'}
+              </span>
+              <button type="button" className="cmc-ai-status-btn" onClick={onProbe} disabled={probing}>
+                {probing ? 'Testing…' : probe ? 'Test again' : 'Test connection'}
+              </button>
+            </div>
+
+            {probe && probe.status !== 'connected' && (
+              <div className="cmc-ai-steps">
+                <p className="cmc-pt-note">
+                  What is still missing (Firebase console for creative-minds-cambodia):
+                </p>
+                <ol>
+                  {AI_SETUP_STEPS.map((step) => (
+                    <li key={step.id}>{step.label}</li>
+                  ))}
+                </ol>
+                {probe.detail && <p className="cmc-pt-note">Reported: {probe.detail}</p>}
+              </div>
+            )}
+
             {coach.status === 'done' ? (
               <div className="cmc-pt-coach-card">
                 <span className="cmc-pt-label">

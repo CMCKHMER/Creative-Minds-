@@ -1904,6 +1904,290 @@ html.light .cmc-holo-stage {
   box-shadow: 0 0 14px -2px rgba(16, 185, 129, 0.55);
 }
 
+/* ---- Teacher review of practice attempts (AI Phase 01) ---- */
+
+.cmc-review {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  background: linear-gradient(155deg, rgba(8, 20, 38, 0.92), rgba(4, 12, 26, 0.92));
+}
+
+.cmc-review-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.cmc-review-sub,
+.cmc-review-note {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #94a3b8;
+}
+
+.cmc-review-foot {
+  margin-top: 0.9rem;
+  color: #cbd5e1;
+}
+
+.cmc-review-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-top: 1rem;
+}
+
+.cmc-review-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.cmc-review-field-wide {
+  flex: 1 1 20rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cmc-review-field select,
+.cmc-review-field textarea {
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 197, 255, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-family: inherit;
+}
+
+.cmc-review-students {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  flex: 1 1 18rem;
+}
+
+.cmc-review-student {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 197, 255, 0.22);
+  background: rgba(255, 255, 255, 0.03);
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cmc-review-student.is-active {
+  border-color: rgba(56, 189, 248, 0.65);
+  background: rgba(56, 189, 248, 0.16);
+  color: #e0f2fe;
+}
+
+.cmc-review-student:active,
+.cmc-review-toggle:active,
+.cmc-review-save:active {
+  translate: 0 2px;
+}
+
+.cmc-review-list {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.cmc-review-attempt {
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cmc-review-attempt-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.cmc-review-skill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+}
+
+.cmc-review-band {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.cmc-review-band strong {
+  font-size: 0.95rem;
+  color: #f1f5f9;
+}
+
+.cmc-review-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.cmc-review-date {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.cmc-review-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 197, 255, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cmc-review-traits {
+  margin: 0.35rem 0 0;
+  font-size: 0.74rem;
+  color: #94a3b8;
+}
+
+.cmc-review-text {
+  margin-top: 0.45rem;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+}
+
+.cmc-review-text summary {
+  cursor: pointer;
+  color: #7dd3fc;
+}
+
+.cmc-review-text pre {
+  margin: 0.4rem 0 0;
+  max-height: 14rem;
+  overflow: auto;
+  padding: 0.6rem;
+  border-radius: 8px;
+  background: rgba(2, 8, 20, 0.7);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cmc-review-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: flex-end;
+  margin-top: 0.7rem;
+}
+
+.cmc-review-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.cmc-review-save {
+  padding: 0.42rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.18);
+  color: #d1fae5;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cmc-review-save:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.cmc-review-result {
+  font-size: 0.75rem;
+  color: #a7f3d0;
+}
+
+html.light .cmc-review {
+  border-color: rgba(2, 132, 199, 0.28);
+  background: linear-gradient(155deg, #f8fafc, #eef2f7);
+}
+
+html.light .cmc-review-title {
+  color: #0f172a;
+}
+
+html.light .cmc-review-sub,
+html.light .cmc-review-note,
+html.light .cmc-review-band,
+html.light .cmc-review-traits,
+html.light .cmc-review-date {
+  color: #475569;
+}
+
+html.light .cmc-review-field select,
+html.light .cmc-review-field textarea,
+html.light .cmc-review-student,
+html.light .cmc-review-toggle {
+  border-color: rgba(100, 116, 139, 0.35);
+  background: #ffffff;
+  color: #1e293b;
+}
+
+html.light .cmc-review-attempt {
+  border-color: rgba(100, 116, 139, 0.22);
+  background: #ffffff;
+}
+
+html.light .cmc-review-band strong,
+html.light .cmc-review-text,
+html.light .cmc-review-text pre {
+  color: #1e293b;
+}
+
+html.light .cmc-review-text pre {
+  background: #eef2f7;
+}
+
+html.light .cmc-review-skill {
+  color: #0369a1;
+}
+
+html.light .cmc-review-save {
+  border-color: rgba(4, 120, 87, 0.4);
+  background: rgba(16, 185, 129, 0.16);
+  color: #065f46;
+}
+
 /* ---- Phase 01 live strip: the student's own practice trend ----------
    Sits between the roadmap header and the holographic cards. Static: no
    motion at all, so nothing to disable under prefers-reduced-motion. */
@@ -2106,6 +2390,115 @@ html.light .cmc-holo-stage {
   font-size: 0.875rem;
   line-height: 1.65;
   color: #e2e8f0;
+}
+
+/* AI coach status line + setup checklist (diagnostics for the owner) */
+
+.cmc-ai-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.65rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.cmc-ai-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex: none;
+  background: #94a3b8;
+}
+
+.cmc-ai-status[data-state="connected"] {
+  border-color: rgba(16, 185, 129, 0.42);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.cmc-ai-status[data-state="connected"] .cmc-ai-status-dot {
+  background: #10b981;
+}
+
+.cmc-ai-status[data-state="not-enabled"],
+.cmc-ai-status[data-state="app-check"],
+.cmc-ai-status[data-state="error"],
+.cmc-ai-status[data-state="not-configured"] {
+  border-color: rgba(245, 158, 11, 0.42);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.cmc-ai-status[data-state="not-enabled"] .cmc-ai-status-dot,
+.cmc-ai-status[data-state="app-check"] .cmc-ai-status-dot,
+.cmc-ai-status[data-state="error"] .cmc-ai-status-dot,
+.cmc-ai-status[data-state="not-configured"] .cmc-ai-status-dot {
+  background: #f59e0b;
+}
+
+.cmc-ai-status-text {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+.cmc-ai-status-btn {
+  margin-left: auto;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 197, 255, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cmc-ai-status-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.cmc-ai-status-btn:active {
+  translate: 0 2px;
+}
+
+.cmc-ai-steps {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.cmc-ai-steps ol {
+  margin: 0.4rem 0 0.4rem 1.1rem;
+  padding: 0;
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: #cbd5e1;
+}
+
+html.light .cmc-ai-status {
+  border-color: rgba(100, 116, 139, 0.3);
+  background: rgba(100, 116, 139, 0.08);
+}
+
+html.light .cmc-ai-status-text,
+html.light .cmc-ai-steps ol {
+  color: #334155;
+}
+
+html.light .cmc-ai-status-btn {
+  border-color: rgba(2, 132, 199, 0.35);
+  color: #075985;
+}
+
+html.light .cmc-ai-steps {
+  border-color: rgba(180, 83, 9, 0.35);
+  background: rgba(245, 158, 11, 0.1);
 }
 
 /* Light theme twin — the strip sits on a dark aurora, but the app's light
