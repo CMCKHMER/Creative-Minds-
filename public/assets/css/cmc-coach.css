@@ -1,0 +1,280 @@
+/* ============================================================
+   CMC COACH — shared styles for AI Phase 01 feedback surfaces.
+   Used by public/toefl-ibt/toeflwriting-MIGRATED.html and
+   public/toefl-ibt/toeflspeaking-MIGRATED.html (and anything else
+   that shows a rubric read-out or a delivery chip).
+
+   Rules this file follows:
+     · no animation at all — bars are painted at their final width,
+       so nothing fights prefers-reduced-motion;
+     · every colour is restated for html[data-theme="light"];
+     · the light theme never uses pure white surfaces (the pages
+       already paint their own backgrounds — we only restyle text,
+       tracks and borders).
+   ============================================================ */
+
+.cmc-rubric {
+  margin-top: 1.75rem;
+}
+
+.cmc-rubric[hidden] {
+  display: none;
+}
+
+.cmc-rubric-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 0.25rem;
+  text-align: left;
+}
+
+.cmc-rubric-muted {
+  color: #94a3b8;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  margin: 0;
+  text-align: left;
+}
+
+.cmc-rubric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.cmc-rubric-card {
+  padding: 1.25rem;
+  text-align: left;
+}
+
+.cmc-rubric-card h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.cmc-rubric-band {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.cmc-rubric-band strong {
+  font-size: 2rem;
+  line-height: 1;
+  color: #fff;
+}
+
+.cmc-rubric-trait {
+  margin-bottom: 0.6rem;
+}
+
+.cmc-rubric-trait-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+  margin-bottom: 0.25rem;
+}
+
+.cmc-rubric-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+  overflow: hidden;
+}
+
+.cmc-rubric-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--section-primary, #38bdf8), var(--section-accent, #a855f7));
+}
+
+.cmc-rubric-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 1rem 0 0.5rem;
+  text-align: left;
+}
+
+.cmc-rubric-fix {
+  border-left: 3px solid #f59e0b;
+  padding-left: 0.65rem;
+  margin-bottom: 0.6rem;
+}
+
+.cmc-rubric-fix[data-tone="med"] {
+  border-color: #38bdf8;
+}
+
+.cmc-rubric-fix[data-tone="low"] {
+  border-color: #94a3b8;
+}
+
+.cmc-rubric-fix-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #f1f5f9;
+  margin-bottom: 0.1rem;
+}
+
+.cmc-rubric-strengths {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #cbd5e1;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* ---- per-question delivery chip (speaking page) ---- */
+
+.cmc-delivery {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  background: rgba(56, 189, 248, 0.08);
+  text-align: left;
+}
+
+.cmc-delivery[data-band-tier="low"] {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.cmc-delivery[data-band-tier="high"] {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.cmc-delivery-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.cmc-delivery-band {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1;
+}
+
+.cmc-delivery-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.cmc-delivery-fix {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+.cmc-delivery-fix strong {
+  color: #f1f5f9;
+  font-weight: 650;
+}
+
+/* ---- results modal (both pages) ----
+   The speaking page's results shell relies on Tailwind classes (.fixed,
+   .inset-0, .bg-black/90) that this stylesheet never shipped, so it used to
+   open INLINE at the bottom of the page. Give it a real overlay, and let the
+   longer feedback content scroll instead of overflowing the viewport. */
+
+#results-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+  background: rgba(2, 6, 23, 0.9);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+#results-modal.hidden {
+  display: none !important;
+}
+
+#results-modal > .modal-content,
+#results-modal > .glass-frame {
+  margin: auto;
+  width: 100%;
+  max-width: 44rem;
+  text-align: left;
+}
+
+@media (max-width: 480px) {
+  #results-modal .modal-content {
+    padding: 1.25rem;
+  }
+
+  .cmc-rubric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- light theme ---------------------------------------------------
+   The TOEFL modals stay dark by design (they sit on a dark backdrop),
+   but these classes are also used inline on the page in light mode. */
+
+html[data-theme="light"] .cmc-rubric-title,
+html[data-theme="light"] .cmc-rubric-card h4 {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .cmc-rubric-muted,
+html[data-theme="light"] .cmc-rubric-label {
+  color: #475569;
+}
+
+html[data-theme="light"] .cmc-rubric-trait-head {
+  color: #334155;
+}
+
+html[data-theme="light"] .cmc-rubric-track {
+  background: rgba(100, 116, 139, 0.25);
+}
+
+html[data-theme="light"] .cmc-rubric-fix-title,
+html[data-theme="light"] .cmc-delivery-band {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .cmc-rubric-strengths,
+html[data-theme="light"] .cmc-delivery-fix {
+  color: #334155;
+}
+
+html[data-theme="light"] .cmc-delivery {
+  border-color: rgba(2, 132, 199, 0.3);
+  background: rgba(2, 132, 199, 0.07);
+}
+
+html[data-theme="light"] .cmc-delivery[data-band-tier="low"] {
+  border-color: rgba(180, 83, 9, 0.32);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+html[data-theme="light"] .cmc-delivery[data-band-tier="high"] {
+  border-color: rgba(4, 120, 87, 0.32);
+  background: rgba(16, 185, 129, 0.12);
+}

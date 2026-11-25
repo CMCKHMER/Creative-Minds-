@@ -10,6 +10,7 @@ import {
   Cpu,
 } from 'lucide-react';
 import { AI_FUTURE_CARDS, type AiFutureCard } from '../data/aiFutureCards';
+import { PracticeTrajectoryCard } from './PracticeTrajectoryCard';
 
 const CARD_ICONS: Record<AiFutureCard['icon'], React.ComponentType<{ className?: string }>> = {
   book: BookOpenCheck,
@@ -65,7 +66,7 @@ export const AiFutureShowcase: React.FC<AiFutureShowcaseProps> = ({ variant = 'h
           <div className="cmc-ai-eyebrow">
             <span className="cmc-ai-beacon" aria-hidden="true" />
             <Cpu className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>AI-INTEGRATED ROADMAP · COMING SOON</span>
+            <span>AI-INTEGRATED ROADMAP · PHASE 01 LIVE</span>
           </div>
 
           <h2 id={headingId} className="cmc-ai-title">
@@ -82,8 +83,8 @@ export const AiFutureShowcase: React.FC<AiFutureShowcaseProps> = ({ variant = 'h
 
           <p className="cmc-ai-subtitle">
             Creative Minds Cambodia is evolving into a next-generation AI-integrated learning
-            platform. Preview the intelligent capabilities arriving on top of our live classroom
-            tools.
+            platform. Phase 01 is already working: write a TOEFL essay or record a speaking answer
+            and you get a band, the reasons, and a trend — all on this device.
           </p>
 
           {/* Four Vision Pillars strip */}
@@ -96,6 +97,9 @@ export const AiFutureShowcase: React.FC<AiFutureShowcaseProps> = ({ variant = 'h
             ))}
           </div>
         </header>
+
+        {/* Phase 01 live: the student's own practice trend */}
+        <PracticeTrajectoryCard />
 
         {/* 4 Futuristic Floating-3D Holographic Cards */}
         <div className="cmc-ai-grid">
@@ -132,9 +136,13 @@ export const AiFutureShowcase: React.FC<AiFutureShowcaseProps> = ({ variant = 'h
                     </span>
                     <span
                       className="cmc-holo-soon"
-                      data-live={card.status === 'beta' ? 'true' : undefined}
+                      data-live={card.status === 'live' || card.status === 'beta' ? 'true' : undefined}
                     >
-                      {card.status === 'beta' ? 'ESSAY FEEDBACK · LIVE' : 'AI SOON'}
+                      {card.status === 'live'
+                        ? 'PHASE 01 · LIVE'
+                        : card.status === 'beta'
+                          ? 'ESSAY FEEDBACK · LIVE'
+                          : 'AI SOON'}
                     </span>
                   </div>
 

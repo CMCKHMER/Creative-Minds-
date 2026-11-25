@@ -178,7 +178,8 @@ describe('analyseEssay — guard rails', () => {
 describe('essay feedback — wired into the TOEFL writing page', () => {
   it('shows the panel, loads the same engine file the tests use, and fills it on submit', () => {
     expect(writingPage).toContain('id="rubric-feedback"');
-    expect(writingPage).toContain("import { analyseEssay } from '../assets/js/cmc-writing-rubric.js';");
+    expect(writingPage).toContain("import { analyseEssay, RUBRIC_VERSION } from '../assets/js/cmc-writing-rubric.js';");
+    expect(writingPage).toContain("import * as practice from '../assets/js/cmc-practice-attempts.js';");
     expect(existsSync(join(root, 'public', 'assets', 'js', 'cmc-writing-rubric.js'))).toBe(true);
 
     // the call sits inside submitWriting, before the modal opens

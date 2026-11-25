@@ -776,6 +776,52 @@ service cloud.firestore {
     // dashboard graded it. Students never read scores here — their teacher
     // hands them their result personally. Legacy scores (pre-stamp) stay
     // readable until the owner re-grades, which claims the doc.
+    // PRACTICE ATTEMPTS (Nov 2026) — AI Phase 01 score history.
+    //
+    // One document per scored TOEFL response, kept under the student's own uid:
+    //   practice_attempts/{uid}/attempts/{attemptId}
+    //     uid, skill ('writing' | 'speaking'), band (0–5, half points),
+    //     traits{}, stats{}, text (optional, <= 4000 chars), source,
+    //     rubricVersion, createdAt
+    //
+    // WHY THIS IS NOT drill_attempts
+    //   drill_attempts is a public scoreboard (anyone may read it) and scores
+    //   are percent-based. A student's essay is not public data, and a band is
+    //   not a percentage, so mixing them would leak written work to every
+    //   visitor and feed nonsense into the ticker.
+    //
+    // ACCESS
+    //   · a student writes ONLY under their own uid (the uid field is checked
+    //     as well as the path, so a forged row cannot be attributed to a
+    //     classmate);
+    //   · the student reads their own trend;
+    //   · a verified teacher reads any student's attempts for review;
+    //   · nothing is ever updated or deleted by a client — a score is a fact
+    //     and a teacher's review lands in a separate field/collection.
+    function isOwnPracticePath(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function isValidPracticeAttempt(uid) {
+      let d = request.resource.data;
+      return d.uid is string
+        && d.uid == uid
+        && d.skill in ['writing', 'speaking']
+        && d.band is number
+        && d.band >= 0
+        && d.band <= 5
+        && d.createdAt is timestamp
+        && (!('text' in d) || (d.text is string && d.text.size() <= 4000))
+        && (!('traits' in d) || d.traits is map)
+        && (!('stats' in d) || d.stats is map);
+    }
+
+    match /practice_attempts/{uid}/attempts/{attemptId} {
+      allow read: if isOwnPracticePath(uid) || isVerifiedTeacher();
+      allow create: if isVerifiedUser() && isOwnPracticePath(uid) && isValidPracticeAttempt(uid);
+      allow update, delete: if false;
+    }
+
     match /test_scores/{docId} {
       allow read: if isVerifiedTeacher()
         && (resource.data.teacherUid == request.auth.uid

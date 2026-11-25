@@ -76,10 +76,14 @@ describe('AiFutureShowcase — futuristic floating-3D holographic AI cards', () 
 
   it('advertises only the phase whose feature actually works, and says which one', () => {
     const html = renderToStaticMarkup(React.createElement(AiFutureShowcase));
-    const live = AI_FUTURE_CARDS.filter((card) => card.status === 'beta');
-    // Phase 01 is the only beta: essay feedback shipped, speaking coach did not.
+    const live = AI_FUTURE_CARDS.filter((card) => card.status === 'live');
+    // Phase 01 is the only live phase: essay feedback, speaking coach and the
+    // saved trend all ship; nothing else claims to work.
     expect(live.map((card) => card.id)).toEqual(['smart-learning']);
-    expect(html.match(/ESSAY FEEDBACK · LIVE/g)?.length).toBe(1);
+    // twice on purpose: the Phase 01 card pill, plus the live trend strip above
+    // the grid (both say the same thing, so the page cannot contradict itself).
+    expect(html.match(/PHASE 01 · LIVE/g)?.length).toBe(2);
+    expect(html).toContain('cmc-ai-live');
     // the other three keep the honest "not built" pill
     expect(html.match(/AI SOON/g)?.length).toBe(3);
     expect(glassCss).toContain('.cmc-holo-soon[data-live="true"]');

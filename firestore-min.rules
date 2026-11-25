@@ -382,6 +382,27 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/test_assignments/$(request.resource.data.assignmentId)).data.closesAt >= request.time;
       allow update, delete: if false;
     }
+    function isOwnPracticePath(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    function isValidPracticeAttempt(uid) {
+      let d = request.resource.data;
+      return d.uid is string
+        && d.uid == uid
+        && d.skill in ['writing', 'speaking']
+        && d.band is number
+        && d.band >= 0
+        && d.band <= 5
+        && d.createdAt is timestamp
+        && (!('text' in d) || (d.text is string && d.text.size() <= 4000))
+        && (!('traits' in d) || d.traits is map)
+        && (!('stats' in d) || d.stats is map);
+    }
+    match /practice_attempts/{uid}/attempts/{attemptId} {
+      allow read: if isOwnPracticePath(uid) || isVerifiedTeacher();
+      allow create: if isVerifiedUser() && isOwnPracticePath(uid) && isValidPracticeAttempt(uid);
+      allow update, delete: if false;
+    }
     match /test_scores/{docId} {
       allow read: if isVerifiedTeacher()
         && (resource.data.teacherUid == request.auth.uid
