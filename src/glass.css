@@ -2499,6 +2499,27 @@ html.light .cmc-review-save {
   font-weight: 700;
 }
 
+/* Each step opens the exact console page; keep it looking like text, not a
+   banner of blue links, and give it a visible hover/focus affordance. */
+.cmc-ai-steps a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(245, 158, 11, 0.55);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.cmc-ai-steps a:hover,
+.cmc-ai-steps a:focus-visible {
+  color: #fbbf24;
+  text-decoration-color: currentColor;
+}
+
+html.light .cmc-ai-steps a:hover,
+html.light .cmc-ai-steps a:focus-visible {
+  color: #b45309;
+}
+
 html.light .cmc-ai-status {
   border-color: rgba(100, 116, 139, 0.3);
   background: rgba(100, 116, 139, 0.08);

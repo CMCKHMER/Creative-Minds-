@@ -119,6 +119,20 @@ All in the console for **creative-minds-cambodia**:
 Nothing else needs deploying: the SDK is a lazy import that loads on the first
 tap, and the key is read from Firestore on page load.
 
+### Two AI Logic settings that matter
+
+On **Build → AI Logic → Settings**:
+
+- **Gemini Developer API — Enabled** is the one the code needs (the SDK is
+  initialised with `new GoogleAIBackend()`). *Agent Platform Gemini API* may also
+  show as enabled; the code never uses it, so it can stay as it is.
+- **Enforce template-only mode must stay Unenforced.** The coach sends plain
+  prompts; enforcing server prompt templates would block every call.
+
+The checklist on the home trend card links each step straight to its console
+page (AI Logic, App Check apps, and the `site_config/ai` document), so nobody has
+to hunt through the left nav.
+
 ### How do I know it is actually working?
 
 The home trend card carries a **status line with a “Test connection” button**:

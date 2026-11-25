@@ -173,6 +173,9 @@ export const AI_COACH_MODEL = MODEL;
 
 const APPCHECK_ENV = (import.meta.env.VITE_FIREBASE_APPCHECK_KEY as string | undefined)?.trim() || '';
 
+/** The owner's console, so every checklist step is one click away. */
+const CONSOLE = `https://console.firebase.google.com/project/${FIREBASE_PROJECT_ID}`;
+
 /** Firestore REST base — the public site config lives here too. */
 const CONFIG_BASE = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents`;
 
@@ -336,14 +339,27 @@ export async function probeAICoach(
 }
 
 /** The steps, in order, for a UI that wants to show the whole checklist. */
-export const AI_SETUP_STEPS: ReadonlyArray<{ id: string; label: string }> = [
-  { id: 'ai-logic', label: 'Firebase → Build → AI Logic → Get started (Gemini Developer API backend)' },
-  { id: 'app-check', label: 'Firebase → Build → App Check → register the web app with reCAPTCHA Enterprise' },
+export const AI_SETUP_STEPS: ReadonlyArray<{ id: string; label: string; href: string }> = [
+  {
+    id: 'ai-logic',
+    label: 'Firebase → Build → AI Logic → Get started (Gemini Developer API backend)',
+    href: `${CONSOLE}/ailogic`,
+  },
+  {
+    id: 'app-check',
+    label: 'Firebase → Build → App Check → register the web app with reCAPTCHA Enterprise',
+    href: `${CONSOLE}/appcheck/apps`,
+  },
   {
     id: 'key',
     label: 'Firestore → site_config → ai → field appCheckKey = the reCAPTCHA site key (no rebuild)',
+    href: `${CONSOLE}/firestore/data/~2Fsite_config~2Fai`,
   },
-  { id: 'probe', label: 'Press “Test connection” on the home trend card — it should say connected' },
+  {
+    id: 'probe',
+    label: 'Press “Test connection” on the home trend card — it should say connected',
+    href: '',
+  },
 ];
 
 // ── speaking second opinion ────────────────────────────────────────

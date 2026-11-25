@@ -328,7 +328,15 @@ export function PracticeTrajectoryCard() {
                 </p>
                 <ol>
                   {AI_SETUP_STEPS.map((step) => (
-                    <li key={step.id}>{step.label}</li>
+                    <li key={step.id}>
+                      {step.href ? (
+                        <a href={step.href} target="_blank" rel="noreferrer">
+                          {step.label}
+                        </a>
+                      ) : (
+                        step.label
+                      )}
+                    </li>
                   ))}
                 </ol>
                 {probe.detail && <p className="cmc-pt-note">Reported: {probe.detail}</p>}
