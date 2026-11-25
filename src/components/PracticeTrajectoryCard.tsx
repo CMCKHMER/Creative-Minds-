@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Sparkles, TrendingDown, TrendingUp } from 'lucide-react';
 import { useSignedInSession } from '../hooks/useSignedInSession';
-import { loadMyTrajectory, type PracticeAttempt, type Trajectory } from '../lib/practiceAttempts';
+import {
+  diagnosePracticeStore,
+  loadMyTrajectory,
+  type PracticeAttempt,
+  type StoreDiagnosis,
+  type Trajectory,
+} from '../lib/practiceAttempts';
 import {
   AI_COACH_DAILY_LIMIT,
   AI_COACH_MODEL,
@@ -129,7 +135,11 @@ export function PracticeTrajectoryCard() {
   const [remaining, setRemaining] = useState(AI_COACH_DAILY_LIMIT);
   const [probe, setProbe] = useState<AiProbe | null>(null);
   const [probing, setProbing] = useState(false);
+  const [storeDiag, setStoreDiag] = useState<StoreDiagnosis | null>(null);
   const appCheckReady = appCheckConfigured();
+  // The console checklist is for the owner, not for a 12-year-old: only a
+  // verified teacher/admin sees the status line and the setup steps.
+  const isTeacherView = Boolean(session && (session.teacherVerified || session.role === 'teacher'));
   const sessionKey = session?.email || null;
 
   useEffect(() => {
@@ -162,6 +172,21 @@ export function PracticeTrajectoryCard() {
       alive = false;
     };
   }, [sessionKey]);
+
+  useEffect(() => {
+    if (!isTeacherView || state.phase !== 'ready') return;
+    if (state.writing.count || state.speaking.count) {
+      setStoreDiag(null);
+      return;
+    }
+    let alive = true;
+    diagnosePracticeStore().then((diag) => {
+      if (alive) setStoreDiag(diag);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [isTeacherView, state]);
 
   const onProbe = useCallback(async () => {
     setProbing(true);
@@ -249,7 +274,22 @@ export function PracticeTrajectoryCard() {
             />
           </div>
 
+          {isTeacherView && !state.writing.count && !state.speaking.count && (
+            <p
+              className="cmc-pt-note"
+              data-store-state={storeDiag?.state || 'checking'}
+              style={{ marginTop: '0.6rem' }}
+            >
+              {storeDiag
+                ? `Score storage: ${storeDiag.message}${
+                    storeDiag.status ? ` (HTTP ${storeDiag.status})` : ''
+                  }`
+                : 'Nothing saved yet — checking whether the database is accepting attempts…'}
+            </p>
+          )}
+
           <div className="cmc-pt-coach" aria-live="polite">
+            {isTeacherView && (
             <div className="cmc-ai-status" data-state={probe ? probe.status : appCheckReady ? 'untested' : 'app-check'}>
               <span className="cmc-ai-status-dot" aria-hidden="true" />
               <span className="cmc-ai-status-text">
@@ -263,8 +303,9 @@ export function PracticeTrajectoryCard() {
                 {probing ? 'Testing…' : probe ? 'Test again' : 'Test connection'}
               </button>
             </div>
+            )}
 
-            {probe && probe.status !== 'connected' && (
+            {isTeacherView && probe && probe.status !== 'connected' && (
               <div className="cmc-ai-steps">
                 <p className="cmc-pt-note">
                   What is still missing (Firebase console for creative-minds-cambodia):
@@ -278,7 +319,7 @@ export function PracticeTrajectoryCard() {
               </div>
             )}
 
-            {coach.status === 'done' ? (
+            {appCheckReady && (coach.status === 'done' ? (
               <div className="cmc-pt-coach-card">
                 <span className="cmc-pt-label">
                   <Sparkles size={12} aria-hidden="true" /> AI coach on your last essay
@@ -309,7 +350,7 @@ export function PracticeTrajectoryCard() {
               <p className="cmc-pt-note">
                 Submit a writing response and the AI coach can read it back to you here.
               </p>
-            )}
+            ))}
           </div>
         </>
       )}

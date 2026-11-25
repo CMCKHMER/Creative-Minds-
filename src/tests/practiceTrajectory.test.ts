@@ -9,8 +9,14 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const h = vi.hoisted(() => ({
-  session: null as { email: string } | null,
+  session: null as { email: string; role?: string; teacherVerified?: boolean } | null,
   load: vi.fn(),
+  appCheck: false,
+  diag: vi.fn().mockResolvedValue({
+    status: 403,
+    state: 'rules',
+    message: 'Score storage is refused by the database rules. Firestore → Rules → paste firestore-min.rules → Publish.',
+  }),
 }));
 
 vi.mock('../hooks/useSignedInSession', () => ({
@@ -19,7 +25,13 @@ vi.mock('../hooks/useSignedInSession', () => ({
 
 vi.mock('../lib/practiceAttempts', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../lib/practiceAttempts')>();
-  return { ...actual, loadMyTrajectory: h.load };
+  return { ...actual, loadMyTrajectory: h.load, diagnosePracticeStore: h.diag };
+});
+
+// App Check state is a build-time env var in production; the tests flip it here.
+vi.mock('../lib/aiCoach', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/aiCoach')>();
+  return { ...actual, appCheckConfigured: () => h.appCheck };
 });
 
 import { buildTrajectory as buildTs } from '../lib/practiceAttempts';
@@ -50,6 +62,7 @@ describe('PracticeTrajectoryCard', () => {
   beforeEach(() => {
     localStorage.clear();
     h.load.mockReset();
+    h.appCheck = false;
   });
 
   it('asks signed-out visitors to sign in and links straight to both practices', async () => {
@@ -98,8 +111,8 @@ describe('PracticeTrajectoryCard', () => {
     );
   });
 
-  it('only mentions the AI coach when there is an essay, and explains when it cannot run', async () => {
-    h.session = { email: 'kid@example.com' };
+  it('says nothing about the AI coach to a student while AI is switched off', async () => {
+    h.session = { email: 'kid@example.com', role: 'student' };
     h.load.mockResolvedValue({
       attempts: [],
       writing: buildTs([{ band: 4, createdAt: 1 }]),
@@ -110,12 +123,57 @@ describe('PracticeTrajectoryCard', () => {
     });
     render(React.createElement(PracticeTrajectoryCard));
     await waitFor(() => expect(screen.getByText('Writing band')).toBeTruthy());
+    // no console instructions, no dead button, no promise of a disabled feature
+    expect(screen.queryByText(/App Check/i)).toBeNull();
+    expect(screen.queryByText(/Firebase →/)).toBeNull();
     expect(screen.queryByRole('button', { name: /Ask the AI coach/i })).toBeNull();
+    expect(screen.queryByText(/the AI coach can read it back/i)).toBeNull();
+  });
+
+  it('shows the setup checklist to a teacher, and never to a student', async () => {
+    h.load.mockResolvedValue({
+      attempts: [],
+      writing: buildTs([]),
+      speaking: buildTs([]),
+      lastEssay: '',
+      lastWriting: null,
+      lastSpeaking: null,
+    });
+    h.session = { email: 'owner@aii.edu.kh', role: 'teacher', teacherVerified: true };
+    const { unmount } = render(React.createElement(PracticeTrajectoryCard));
+    await waitFor(() => expect(screen.getByText(/App Check key not set/i)).toBeTruthy());
+    expect(screen.getByRole('button', { name: /Test connection/i })).toBeTruthy();
+    // and when the charts are empty, the teacher is told WHY in one line
+    await waitFor(() => expect(screen.getByText(/Score storage:/)).toBeTruthy());
+    expect(screen.getByText(/HTTP 403/)).toBeTruthy();
+    unmount();
+
+    h.session = { email: 'kid@example.com', role: 'student' };
+    render(React.createElement(PracticeTrajectoryCard));
+    await waitFor(() => expect(screen.getByText('Writing band')).toBeTruthy());
+    expect(screen.queryByText(/App Check key not set/i)).toBeNull();
+  });
+
+  it('offers the coach to a student once App Check is wired and an essay exists', async () => {
+    h.appCheck = true;
+    h.session = { email: 'kid@example.com', role: 'student' };
+    h.load.mockResolvedValue({
+      attempts: [],
+      writing: buildTs([{ band: 4, createdAt: 1 }]),
+      speaking: buildTs([]),
+      lastEssay: '',
+      lastWriting: null,
+      lastSpeaking: null,
+    });
+    render(React.createElement(PracticeTrajectoryCard));
+    await waitFor(() => expect(screen.getByText('Writing band')).toBeTruthy());
     expect(screen.getByText(/Submit a writing response and the AI coach/i)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Ask the AI coach/i })).toBeNull();
   });
 
   it('runs the coach on a tap and shows the second opinion', async () => {
-    h.session = { email: 'kid@example.com' };
+    h.appCheck = true;
+    h.session = { email: 'kid@example.com', role: 'student' };
     h.load.mockResolvedValue({
       attempts: [],
       writing: buildTs([{ band: 4, createdAt: 1 }]),
