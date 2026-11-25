@@ -93,7 +93,7 @@ const shortcuts: HeroShortcut[] = [
     description: 'Grade-by-grade Reading Future worksheets. Kid 6 + Kid 11 live; other grades planned.',
     icon: ClipboardCheck,
     accent: 'emerald',
-    image: './images/quick-kids.png',
+    image: './images/quick-kids.webp',
     stats: [
       { value: '5–12', label: 'Kid grades' },
       { value: '2', label: 'Live now' },
