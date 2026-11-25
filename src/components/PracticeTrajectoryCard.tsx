@@ -321,7 +321,10 @@ export function PracticeTrajectoryCard() {
             </div>
             )}
 
-            {isTeacherView && probe && probe.status !== 'connected' && (
+            {/* Shown before the first probe too: a key that is missing is already
+                a known problem, and the owner should not have to press a button
+                to learn where the steps are. */}
+            {isTeacherView && (appCheckReady === false || (probe && probe.status !== 'connected')) && (
               <div className="cmc-ai-steps">
                 <p className="cmc-pt-note">
                   What is still missing (Firebase console for creative-minds-cambodia):
@@ -339,7 +342,7 @@ export function PracticeTrajectoryCard() {
                     </li>
                   ))}
                 </ol>
-                {probe.detail && <p className="cmc-pt-note">Reported: {probe.detail}</p>}
+                {probe?.detail && <p className="cmc-pt-note">Reported: {probe.detail}</p>}
               </div>
             )}
 
