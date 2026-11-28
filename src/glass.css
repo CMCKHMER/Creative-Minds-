@@ -20,87 +20,85 @@
 :root {
   --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --g-ink: #f3f6fb;              /* headings */
-  --g-body: #c7d0dd;             /* running text */
-  --g-mute: #8f9bae;             /* captions */
-  --g-page: #0b1220;             /* behind everything */
-  --g-page-2: #0e182b;
-  --g-pane: rgba(13, 21, 37, 0.5);            /* the big frosted pane */
-  --g-glass: rgba(255, 255, 255, 0.055);      /* cards */
-  --g-glass-2: rgba(255, 255, 255, 0.095);    /* cards, raised / hovered */
-  --g-line: rgba(255, 255, 255, 0.12);        /* glass edge */
-  --g-line-2: rgba(255, 255, 255, 0.3);       /* glass edge, lit */
-  --g-shadow: 0 44px 80px -48px rgba(0, 0, 0, 0.75);
-  --g-accent: #a9baff;           /* iridescent blue, readable on the page */
-  --g-accent-deep: #5a72ff;      /* the spheres' blue */
-  --g-warm: #f3c296;             /* the light leak */
+  --g-ink: #f4f8fc;              /* headings */
+  --g-body: #c4d2df;             /* running text */
+  --g-mute: #8ca2b5;             /* captions */
+  --g-page: #06111e;             /* deep-space canvas */
+  --g-page-2: #091a2b;
+  --g-pane: rgba(6, 18, 31, 0.68);            /* the big frosted pane */
+  --g-glass: rgba(49, 133, 166, 0.075);       /* cards */
+  --g-glass-2: rgba(65, 167, 197, 0.13);      /* cards, raised / hovered */
+  --g-line: rgba(111, 214, 239, 0.17);        /* glass edge */
+  --g-line-2: rgba(132, 228, 249, 0.42);      /* glass edge, lit */
+  --g-shadow: 0 44px 80px -48px rgba(0, 0, 0, 0.76);
+  --g-accent: #56dfff;           /* electric cyan for active learning states */
+  --g-accent-deep: #087e9b;      /* deep cyan for selected controls */
+  --g-warm: #f2c66d;             /* gold for progress and achievements */
   --g-pill: #ffffff;             /* main button */
   --g-pill-ink: #10151d;
   --g-blur: 22px;
 }
 
 html.light {
-  --g-ink: #11151c;
-  --g-body: #37404d;
-  --g-mute: #626d7e;
-  --g-page: #d3d9e3;
-  --g-page-2: #c6cedb;
-  --g-pane: rgba(240, 243, 247, 0.5);
-  --g-glass: rgba(255, 255, 255, 0.46);
-  --g-glass-2: rgba(255, 255, 255, 0.68);
-  --g-line: rgba(255, 255, 255, 0.7);
-  --g-line-2: rgba(255, 255, 255, 0.95);
-  --g-shadow: 0 44px 80px -50px rgba(40, 56, 98, 0.5);
-  --g-accent: #2b3fd6;
-  --g-accent-deep: #2b3fd6;
-  --g-warm: #e9a36a;
+  --g-ink: #101d2a;
+  --g-body: #344b5b;
+  --g-mute: #5e7483;
+  --g-page: #d7e3e9;
+  --g-page-2: #cbdbe3;
+  --g-pane: rgba(237, 247, 250, 0.62);
+  --g-glass: rgba(255, 255, 255, 0.52);
+  --g-glass-2: rgba(255, 255, 255, 0.74);
+  --g-line: rgba(49, 112, 133, 0.16);
+  --g-line-2: rgba(23, 150, 178, 0.4);
+  --g-shadow: 0 44px 80px -50px rgba(17, 61, 82, 0.28);
+  --g-accent: #087e9b;
+  --g-accent-deep: #075f78;
+  --g-warm: #9d6c15;
   --g-pill: #ffffff;
   --g-pill-ink: #10151d;
 }
 
-/* ---- accents: the old cyan / teal / sky become the spheres' blues.
-   Tailwind v4 reads its palette from these variables, so every utility
-   (text-cyan-300, from-cyan-500, border-teal-200/20 …) follows. Emerald,
-   amber and rose keep their meaning (done, warning, error). ---- */
+/* ---- mission-control accents: electric cyan for active tools, gold for
+   progress, with emerald/amber/rose retaining their status meanings. ---- */
 :root {
-  --color-cyan-50: #f2f5ff;
-  --color-cyan-100: #e4eaff;
-  --color-cyan-200: #cdd7ff;
-  --color-cyan-300: #a9baff;
-  --color-cyan-400: #8198ff;
-  --color-cyan-500: #5a72ff;
-  --color-cyan-600: #3f55e8;
-  --color-cyan-700: #3142c4;
-  --color-cyan-800: #2a389c;
-  --color-cyan-900: #27357a;
-  --color-cyan-950: #171f4a;
+  --color-cyan-50: #ecfeff;
+  --color-cyan-100: #cffafe;
+  --color-cyan-200: #a5f3fc;
+  --color-cyan-300: #67e8f9;
+  --color-cyan-400: #22d3ee;
+  --color-cyan-500: #06b6d4;
+  --color-cyan-600: #0891b2;
+  --color-cyan-700: #0e7490;
+  --color-cyan-800: #155e75;
+  --color-cyan-900: #164e63;
+  --color-cyan-950: #083344;
 
-  --color-teal-50: #f0f7ff;
-  --color-teal-100: #deeeff;
-  --color-teal-200: #c2e0ff;
-  --color-teal-300: #9ccbff;
-  --color-teal-400: #6fb1fb;
-  --color-teal-500: #4593ee;
-  --color-teal-600: #2d76d6;
-  --color-teal-700: #255fb0;
-  --color-teal-800: #224f8d;
-  --color-teal-900: #204371;
-  --color-teal-950: #142a49;
+  --color-teal-50: #f0fdfa;
+  --color-teal-100: #ccfbf1;
+  --color-teal-200: #99f6e4;
+  --color-teal-300: #5eead4;
+  --color-teal-400: #2dd4bf;
+  --color-teal-500: #14b8a6;
+  --color-teal-600: #0d9488;
+  --color-teal-700: #0f766e;
+  --color-teal-800: #115e59;
+  --color-teal-900: #134e4a;
+  --color-teal-950: #042f2e;
 
-  --color-sky-100: #e6ecff;
-  --color-sky-200: #d2dbff;
-  --color-sky-300: #b3c0ff;
-  --color-sky-400: #8ea0ff;
-  --color-sky-500: #6a7cf6;
+  --color-sky-100: #e0f2fe;
+  --color-sky-200: #bae6fd;
+  --color-sky-300: #7dd3fc;
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
 }
 html.light {
-  --cmc-l-ink: #11151c;
-  --cmc-l-accent: #2b3fd6;
+  --cmc-l-ink: #101d2a;
+  --cmc-l-accent: #087e9b;
 }
 html.light .text-cyan-100,
-html.light .text-cyan-200 { color: #27357a; }
-html.light .text-teal-300 { color: #255fb0; }
-html.light .text-sky-300 { color: #3142c4; }
+html.light .text-cyan-200 { color: #155e75; }
+html.light .text-teal-300 { color: #0f766e; }
+html.light .text-sky-300 { color: #0369a1; }
 html.light [data-keep-dark] .text-cyan-100,
 html.light [data-keep-dark] .text-cyan-200 { color: var(--color-cyan-200); }
 /* pale accent words that had no light-theme colour and vanished on pale glass */
@@ -136,17 +134,19 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(60vmax 46vmax at 88% 8%, rgba(90, 114, 255, 0.2), transparent 62%),
-    radial-gradient(52vmax 40vmax at 48% 104%, rgba(243, 176, 124, 0.13), transparent 60%),
-    radial-gradient(48vmax 44vmax at 4% 38%, rgba(72, 164, 214, 0.12), transparent 62%),
-    linear-gradient(165deg, var(--g-page-2) 0%, var(--g-page) 55%, #090e19 100%);
+    radial-gradient(56vmax 44vmax at 88% 8%, rgba(24, 184, 221, 0.17), transparent 64%),
+    radial-gradient(48vmax 40vmax at 84% 90%, rgba(242, 198, 109, 0.09), transparent 64%),
+    radial-gradient(44vmax 40vmax at 4% 34%, rgba(15, 116, 144, 0.15), transparent 64%),
+    radial-gradient(circle, rgba(130, 221, 242, 0.16) 0.8px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(165deg, var(--g-page-2) 0%, var(--g-page) 55%, #040b14 100%);
 }
 html.light body::before {
   background:
-    radial-gradient(60vmax 46vmax at 90% 6%, rgba(122, 146, 255, 0.24), transparent 62%),
-    radial-gradient(54vmax 40vmax at 46% 104%, rgba(255, 199, 150, 0.5), transparent 60%),
-    radial-gradient(50vmax 46vmax at 2% 30%, rgba(255, 255, 255, 0.7), transparent 60%),
-    linear-gradient(165deg, #e4e8ef 0%, var(--g-page) 52%, var(--g-page-2) 100%);
+    radial-gradient(56vmax 44vmax at 90% 6%, rgba(48, 188, 219, 0.16), transparent 64%),
+    radial-gradient(52vmax 40vmax at 46% 104%, rgba(242, 198, 109, 0.22), transparent 62%),
+    radial-gradient(50vmax 46vmax at 2% 30%, rgba(255, 255, 255, 0.75), transparent 62%),
+    radial-gradient(circle, rgba(33, 111, 131, 0.09) 0.8px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(165deg, #eaf3f6 0%, var(--g-page) 52%, var(--g-page-2) 100%);
 }
 .cmc-app.bg-slate-950,
 html.light .cmc-app.bg-slate-950 { background-color: transparent; }
@@ -310,15 +310,21 @@ html.light .cmc-btn-3d {
 html.light .cmc-card {
   border-radius: 1.5rem;
   border: 1px solid var(--g-line);
-  background: linear-gradient(160deg, var(--g-glass-2), var(--g-glass));
+  background:
+    linear-gradient(145deg, rgba(43, 189, 218, 0.075), transparent 48%),
+    linear-gradient(160deg, var(--g-glass-2), var(--g-glass));
   -webkit-backdrop-filter: blur(var(--g-blur)) saturate(135%);
   backdrop-filter: blur(var(--g-blur)) saturate(135%);
   box-shadow: inset 0 1px 0 var(--g-line), var(--g-shadow);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 .cmc-card:hover,
 html.light .cmc-card:hover {
   border-color: var(--g-line-2);
-  box-shadow: inset 0 1px 0 var(--g-line-2), 0 40px 70px -40px rgba(60, 86, 220, 0.45);
+  box-shadow:
+    inset 0 1px 0 var(--g-line-2),
+    0 32px 64px -38px rgba(19, 177, 211, 0.34),
+    0 0 24px -18px rgba(242, 198, 109, 0.28);
 }
 .cmc-glass,
 html.light .cmc-glass {
@@ -368,6 +374,31 @@ html.light .cmc-section::before {
   background: linear-gradient(90deg, transparent, var(--g-line), transparent);
 }
 .cmc-quickstrip { -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* Quick-launch cards echo the station panels without adding decorative copy
+   to the existing content. */
+.cmc-quick {
+  border-radius: 1.35rem;
+  border-color: rgba(104, 221, 245, 0.18);
+  box-shadow: inset 0 1px 0 rgba(196, 245, 255, 0.09), 0 28px 54px -42px rgba(0, 0, 0, 0.84);
+}
+.cmc-quick:hover {
+  border-color: rgba(86, 223, 255, 0.55);
+  box-shadow: inset 0 1px 0 rgba(206, 250, 255, 0.2), 0 28px 56px -32px rgba(15, 180, 214, 0.38);
+}
+.cmc-stat-num {
+  background: linear-gradient(105deg, #ffffff 0%, #f2c66d 58%, #70e5fb 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+html.light .cmc-stat-num,
+html.light [data-keep-dark] .cmc-stat-num {
+  background: linear-gradient(105deg, #087e9b 0%, #9d6c15 58%, #075f78 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
 /* section photographs and their veils melt into the backdrop instead of
    ending on a hard line */
@@ -829,7 +860,10 @@ html.light .cmc-page-card { box-shadow: inset 0 1px 0 var(--g-line), 0 22px 40px
   transform: translateY(-2px);
   border-color: var(--g-line-2);
   background: linear-gradient(160deg, var(--g-glass-2), var(--g-glass-2));
-  box-shadow: inset 0 1px 0 var(--g-line-2), 0 28px 46px -30px rgba(60, 86, 220, 0.5);
+  box-shadow:
+    inset 0 1px 0 var(--g-line-2),
+    0 24px 42px -30px rgba(19, 177, 211, 0.3),
+    0 0 20px -16px rgba(242, 198, 109, 0.34);
 }
 .cmc-page-card:focus-visible { outline: 2px solid var(--g-accent); outline-offset: 2px; }
 .cmc-page-card-top {
@@ -1015,8 +1049,14 @@ html.light .cmc-page-body .cmc-section::before { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .cmc-page-card,
-  .cmc-page-card-arrow { transition: none; }
-  .cmc-page-card:hover { transform: none; }
+  .cmc-page-card-arrow,
+  .cmc-card,
+  .cmc-quick,
+  .cmc-quick-chip { transition: none !important; }
+  .cmc-page-card:hover,
+  .cmc-card:hover,
+  .cmc-quick:hover,
+  .cmc-quick:hover .cmc-quick-chip { transform: none !important; }
 }
 
 /* ============================================================
