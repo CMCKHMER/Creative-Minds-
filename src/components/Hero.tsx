@@ -90,13 +90,13 @@ const shortcuts: HeroShortcut[] = [
   {
     id: 'kid-grades',
     title: 'Kid 5–12 Pathway',
-    description: 'Grade-by-grade Reading Future worksheets. Kid 6 + Kid 11 live; other grades planned.',
+    description: 'Grade-by-grade Reading Future worksheets. Kid 6, Kid 7, Kid 8 and Kid 11 are live; other grades are planned.',
     icon: ClipboardCheck,
     accent: 'emerald',
     image: './images/quick-kids.webp',
     stats: [
       { value: '5–12', label: 'Kid grades' },
-      { value: '2', label: 'Live now' },
+      { value: '4', label: 'Live now' },
     ],
   },
 ];

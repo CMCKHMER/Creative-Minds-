@@ -40,6 +40,7 @@ export interface KidGradeHubProps {
 export const GRADE_BOOK_NAMES: Record<number, string> = {
   6: 'Reading Future Connect 2',
   7: 'Reading Future Change 1',
+  8: 'Reading Future Change 3',
   11: 'Reading Future Create 3',
 };
 
@@ -251,7 +252,7 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
           <div className="max-w-3xl">
             <span className="cmc-eyebrow"><GraduationCap className="h-3.5 w-3.5" aria-hidden="true" /> Kid Program · Grades 5–12</span>
             <h2 id="kid-grade-hub-title" className="cmc-h2">A grade-by-grade home<br /><span className="cmc-gradient-text">for what comes next.</span></h2>
-            <p className="cmc-lead">Build a clear path from Kid 5 through Kid 12. Kid 6 has four Reading Future Connect 2 worksheets and Kid 7 has four Reading Future Change 1 worksheets — Word List, Unscramble, Dictation, and Unit Test; Kid 11 has four Reading Future Create 3 worksheets plus online homework — Units 2, 3, 4, 13, 14 and 15 each come as three homeworks the teacher shares one at a time, plus the teacher-only Units 12–13 Secure Quiz (Version B, 35-min live, violation report & leaderboard — companion to Review Tests 1–4), auto-graded, and every completion is sent straight to the teacher.</p>
+            <p className="cmc-lead">Build a clear path from Kid 5 through Kid 12. Kid 6 has Reading Future Connect 2, Kid 7 has Reading Future Change 1, and Kid 8 now has two live Reading Future Change 3 worksheets — 16-unit Dictation and Unscramble sheets built from the supplied PDFs. Kid 11 has Reading Future Create 3 worksheets plus teacher-shared online homework — Units 2, 3, 4, 13, 14 and 15 each come as three separate homeworks, alongside the teacher-only Units 12–13 Secure Quiz.</p>
           </div>
           <div className="flex max-w-md items-start gap-3 border-l border-cyan-200/25 pl-4 text-xs leading-relaxed text-slate-400 lg:mb-1">
             <Layers3 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" aria-hidden="true" />
@@ -586,7 +587,7 @@ export function KidGradeHub({ onOpenAuth }: KidGradeHubProps) {
         </Reveal>
 
         <Reveal className="mt-5">
-        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6 and Kid 7 worksheets open in this site (each with a back-to-CMC button; answer keys on Kid 7 dictation are teacher-locked); Kid 11 links to the separate Reading Future Create 3 pages, and its online homework opens here too — the teacher flips the Share-with-students switch for each homework (Units 2, 3, 4, 13, 14 and 15 each come as three homeworks the teacher shares one at a time, plus the Units 12–13 Secure Quiz · Version B live worksheet — 40 pts, 35-min timed, anti-screenshot/window-switch with violation report & leaderboard, companion to Review Tests 1–4 — so students only ever see the homework/quiz that was assigned to them), and every page carries a Submit-to-Teacher completion button plus a share link for the class chat. Grades without linked material are intentionally marked planned; no placeholder worksheets are offered. For older learners, see the GEP &amp; ISEC Program Resources section below.</span></p>
+        <p className="flex items-start gap-2 text-[10px] leading-relaxed text-slate-600"><Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/60" aria-hidden="true" /><span>Kid 6, Kid 7 and Kid 8 worksheets open in this site with a back-to-CMC button and print options; the Kid 7 and Kid 8 dictation answer keys are teacher-locked. Kid 8 Reading Future Change 3 includes the 16-unit Dictation and Unscramble sheets; dictation track numbers follow the supplied PDF, but course audio is not hosted here. Kid 11 links to Reading Future Create 3 and its online homework opens here too — the teacher shares each homework separately (Units 2, 3, 4, 13, 14 and 15 each come as three homeworks, plus the Units 12–13 Secure Quiz · Version B live worksheet — 40 pts, 35-min timed, anti-screenshot/window-switch with violation report &amp; leaderboard, companion to Review Tests 1–4 — so students only ever see assigned work). Its homework pages carry a Submit-to-Teacher button and class share link. Grades without linked material are intentionally marked planned. For older learners, see the GEP &amp; ISEC Program Resources section below.</span></p>
         </Reveal>
       </div>
       {isTeacher && scoresFor && (
