@@ -87,12 +87,10 @@ interface Palette { rest: Rgb; spark: Rgb; pushed: Rgb; flying: Rgb; far: Rgb; p
 
 const hex = (h: string): Rgb => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
 
-// The glass theme's colours (src/glass.css): letters in the page's ink, sparks
-// in the warm light leak, dots in flight in the spheres' blue.
-// Dark page: near-white letters. Light page: ink letters and deeper accents —
-// pale dots vanish on the light background.
-const DARK: Palette = { rest: hex('#f3f6fb'), spark: hex('#ffd0a8'), pushed: hex('#ffffff'), flying: hex('#a9baff'), far: hex('#8198ff'), pressHue: 0.64, pressSat: 1, pressLight: 0.74 };
-const LIGHT: Palette = { rest: hex('#11151c'), spark: hex('#c8622c'), pushed: hex('#11151c'), flying: hex('#2b3fd6'), far: hex('#2b3fd6'), pressHue: 0.65, pressSat: 0.85, pressLight: 0.42 };
+// White and warm-gold accents keep every animated section heading in one
+// palette; the title canvases sit over dark glass panels in both themes.
+const DARK: Palette = { rest: hex('#ffffff'), spark: hex('#f2c66d'), pushed: hex('#ffffff'), flying: hex('#f2c66d'), far: hex('#ffe5a8'), pressHue: 0.11, pressSat: 0.86, pressLight: 0.72 };
+const LIGHT: Palette = { rest: hex('#ffffff'), spark: hex('#f2c66d'), pushed: hex('#ffffff'), flying: hex('#f2c66d'), far: hex('#ffe5a8'), pressHue: 0.11, pressSat: 0.86, pressLight: 0.72 };
 
 interface Sampled {
   points: Float32Array;

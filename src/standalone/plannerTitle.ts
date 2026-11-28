@@ -14,11 +14,10 @@ import { mountDots } from '../lib/titleParticlesCore';
 import { canvasPainter } from '../lib/titleParticles2d';
 import { shouldAnimateTitle, smallTitleSpacing, type DotGradient } from '../lib/titleParticlesMath';
 
-// The second line's colours — the stops of .bp-title-row--accent .bp-title-solid
-// in the page's own CSS (dark page / light page).
+// White-and-gold stops matching the section-heading palette in the page CSS.
 const GRADIENT: { dark: DotGradient; light: DotGradient } = {
-  dark: [[0, '#dfe6ff'], [0.5, '#a9baff'], [1, '#f3c296']],
-  light: [[0, '#2433c9'], [0.5, '#5a4be0'], [1, '#b3643c']],
+  dark: [[0, '#ffffff'], [0.5, '#f2c66d'], [1, '#ffffff']],
+  light: [[0, '#ffffff'], [0.5, '#f2c66d'], [1, '#ffffff']],
 };
 
 function start(): void {
