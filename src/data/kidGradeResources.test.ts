@@ -30,11 +30,15 @@ describe('Kid Program grade resource pathway', () => {
     ]);
     expect(kid8?.status).toBe('available');
     expect(kid8?.materials.map((material) => material.href)).toEqual([
+      './rfc-change3/word-list.html',
       './rfc-change3/dictation.html',
       './rfc-change3/unscramble.html',
+      './rfc-change3/review-tests.html',
     ]);
     expect(kid8?.materials.every((material) => material.units === 16)).toBe(true);
-    expect(kid8?.materials.map((material) => material.kind)).toEqual(['Dictation worksheet', 'Unscramble sheet']);
+    expect(kid8?.materials.map((material) => material.kind)).toEqual([
+      'Vocabulary list', 'Dictation worksheet', 'Unscramble sheet', 'Review test',
+    ]);
     expect(kid11?.status).toBe('available');
     // Kid 11 worksheets are served from this site's public/rfc3/ directory
     // (absolute URLs so the links also work from the static HTML worksheets),

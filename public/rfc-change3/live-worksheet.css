@@ -488,3 +488,124 @@ body.light .toast { color: #0e7490; background: #fff; }
   .chunk { min-height: 24px; padding: 3px 6px; border: 1px solid #777; border-radius: 0; color: #111 !important; background: #fff !important; font-size: 9pt; }
   .footer { margin-top: 12px; padding: 7px 0 0; border-color: #aaa; color: #333; }
 }
+
+/* Kid 8 · Change 3 Word List */
+.word-list-toolbar { display: flex; align-items: end; gap: 12px; margin: 0 0 17px; }
+.word-search-field { display: grid; gap: 6px; width: min(100%, 420px); color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.word-search-field input { width: 100%; min-height: 42px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 9px; color: var(--text); background: #0a101f; letter-spacing: normal; text-transform: none; }
+.word-search-field input:focus { outline: 2px solid rgba(103, 232, 249, .35); border-color: var(--cyan); }
+.word-list-count { margin-left: auto; color: var(--muted); font-size: 11px; }
+.vocabulary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.vocab-card { min-width: 0; padding: 16px 17px; border: 1px solid var(--border); border-left: 3px solid var(--cyan); border-radius: 12px; background: linear-gradient(180deg, rgba(17, 24, 39, .88), rgba(13, 19, 35, .84)); break-inside: avoid; }
+.vocab-card[hidden] { display: none; }
+.vocab-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.vocab-index { color: var(--muted); font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+.vocab-term { margin: 0; color: var(--cyan); font-family: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif; font-size: 17px; font-weight: 800; }
+.vocab-pos { margin-left: auto; padding: 4px 8px; border: 1px solid rgba(139, 92, 246, .35); border-radius: 99px; color: var(--violet); background: rgba(139, 92, 246, .09); font-size: 9px; font-weight: 900; letter-spacing: .09em; white-space: nowrap; }
+.vocab-definition { margin: 0 0 9px; color: #cbd5e1; font-size: 13px; line-height: 1.65; }
+.vocab-example { margin: 0; padding-left: 11px; border-left: 2px solid rgba(139, 92, 246, .42); color: var(--muted); font-size: 12px; font-style: italic; line-height: 1.6; }
+body.light .word-search-field { color: #475569; }
+body.light .word-search-field input { color: #0f172a; background: #fff; }
+body.light .word-list-count { color: #475569; }
+body.light .vocab-card { border-color: #cbd5e1; background: #fff; }
+body.light .vocab-term { color: #0e7490; }
+body.light .vocab-pos { border-color: rgba(109, 40, 217, .35); color: #6d28d9; background: rgba(109, 40, 217, .06); }
+body.light .vocab-definition { color: #334155; }
+body.light .vocab-example { color: #64748b; }
+
+/* Kid 8 · Change 3 four-part review tests */
+.review-test-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 8px; }
+.review-test-title { margin: 0; color: #f1f5f9; font-family: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif; font-size: clamp(21px, 3vw, 28px); line-height: 1.2; }
+.review-test-units { margin-left: auto; padding: 5px 10px; border: 1px solid rgba(34, 211, 238, .34); border-radius: 99px; color: var(--cyan); background: rgba(34, 211, 238, .08); font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.review-instruction { margin: 0 0 19px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+.review-section { margin: 25px 0 0; padding-top: 18px; border-top: 1px solid var(--border); }
+.review-section-title { display: flex; align-items: center; gap: 10px; margin: 0 0 13px; color: var(--violet); font-size: 11px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+.review-section-title::after { height: 1px; flex: 1; background: var(--border); content: ""; }
+.word-bank-display { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 12px; }
+.bank-chip { padding: 5px 10px; border: 1px dashed rgba(34, 211, 238, .4); border-radius: 99px; color: var(--cyan); background: rgba(34, 211, 238, .06); font-size: 11px; font-weight: 700; }
+.question-card { min-width: 0; margin: 0 0 10px; padding: 13px 15px; border: 1px solid var(--border); border-left: 3px solid var(--cyan); border-radius: 11px; background: rgba(13, 19, 35, .82); transition: border-color .18s, background .18s; }
+.question-card.correct { border-left-color: var(--green); background: rgba(16, 45, 43, .38); }
+.question-card.incorrect { border-left-color: var(--red); background: rgba(66, 20, 32, .28); }
+.question-head { display: flex; align-items: flex-start; gap: 9px; }
+.question-number { flex: 0 0 auto; color: var(--cyan); font-size: 12px; font-weight: 900; }
+.question-prompt { margin: 0; color: var(--text); font-size: 13px; font-weight: 650; line-height: 1.55; }
+.fill-select { max-width: min(100%, 230px); min-height: 34px; margin: 0 4px; padding: 4px 26px 4px 8px; border: 1px dashed rgba(34, 211, 238, .45); border-radius: 7px; color: var(--cyan); background: #0a101f; font: inherit; font-size: 12px; }
+.fill-select.correct, .gap-select.correct { border-color: var(--green); color: var(--green); background: rgba(52, 211, 153, .1); }
+.fill-select.incorrect, .gap-select.incorrect { border-color: var(--red); color: var(--red); background: rgba(251, 113, 133, .1); }
+.choice-options { display: grid; gap: 7px; margin: 10px 0 0 25px; }
+.choice-option { display: flex; align-items: flex-start; gap: 8px; padding: 7px 9px; border: 1px solid transparent; border-radius: 7px; color: var(--muted); background: rgba(2, 6, 23, .2); cursor: pointer; font-size: 12px; line-height: 1.5; }
+.choice-option:hover { border-color: rgba(34, 211, 238, .25); color: var(--text); }
+.choice-option input { flex: 0 0 auto; margin: 2px 0 0; accent-color: #22d3ee; }
+.sentence-to-insert { margin: 9px 0 0 25px; padding: 10px 12px; border-left: 2px solid var(--violet); color: var(--violet); background: rgba(139, 92, 246, .07); font-size: 12px; font-style: italic; }
+.review-passage { margin: 0 0 12px; padding: 16px 18px; border: 1px dashed rgba(148, 163, 184, .28); border-radius: 11px; color: #cbd5e1; background: rgba(2, 6, 23, .24); font-size: 13px; line-height: 1.85; white-space: pre-wrap; }
+.review-passage .gap-select { max-width: min(100%, 180px); margin: 2px 3px; vertical-align: middle; }
+.review-passage-label { margin: 0 0 7px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.answer-line { width: 100%; min-height: 39px; margin-top: 9px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: #0a101f; font: inherit; font-size: 12px; }
+.answer-line:focus { outline: 2px solid rgba(103, 232, 249, .25); border-color: var(--cyan); }
+.model-answer { margin: 9px 0 0 25px; padding: 9px 11px; border: 1px solid rgba(52, 211, 153, .3); border-radius: 8px; color: #a7f3d0; background: rgba(52, 211, 153, .07); font-size: 11px; line-height: 1.55; }
+.model-answer[hidden] { display: none; }
+.unscramble-card .build-line { margin: 10px 0 8px 25px; }
+.unscramble-card .word-bank { margin-left: 25px; }
+.review-status { min-height: 20px; margin: 12px 0 0; color: var(--muted); text-align: center; font-size: 12px; font-weight: 750; }
+.review-status.visible { color: var(--cyan); }
+.review-actions { margin-top: 18px; }
+body.light .review-test-title { color: #0f172a; }
+body.light .review-test-units { border-color: rgba(8, 145, 178, .35); color: #0e7490; background: rgba(8, 145, 178, .06); }
+body.light .review-instruction { color: #475569; }
+body.light .review-section { border-color: #cbd5e1; }
+body.light .review-section-title { color: #6d28d9; }
+body.light .bank-chip { border-color: rgba(8, 145, 178, .4); color: #0e7490; background: rgba(8, 145, 178, .05); }
+body.light .question-card { border-color: #cbd5e1; background: #fff; }
+body.light .question-card.correct { border-left-color: #059669; background: #ecfdf5; }
+body.light .question-card.incorrect { border-left-color: #dc2626; background: #fef2f2; }
+body.light .question-number { color: #0e7490; }
+body.light .question-prompt { color: #0f172a; }
+body.light .fill-select { border-color: rgba(8, 145, 178, .4); color: #0e7490; background: #f8fafc; }
+body.light .choice-option { color: #475569; background: #f8fafc; }
+body.light .choice-option:hover { color: #0f172a; }
+body.light .sentence-to-insert { color: #6d28d9; background: #f5f3ff; }
+body.light .review-passage { border-color: #cbd5e1; color: #334155; background: #f8fafc; }
+body.light .review-passage-label { color: #475569; }
+body.light .answer-line { border-color: #cbd5e1; color: #0f172a; background: #fff; }
+body.light .model-answer { color: #047857; background: #ecfdf5; }
+body.light .review-status { color: #475569; }
+body.light .review-status.visible { color: #0e7490; }
+
+@media (max-width: 720px) {
+  .vocabulary-grid { grid-template-columns: 1fr; }
+  .review-test-units { margin-left: 0; }
+  .word-list-toolbar { align-items: stretch; flex-direction: column; }
+  .word-list-count { margin-left: 0; }
+  .choice-options { margin-left: 0; }
+  .sentence-to-insert { margin-left: 0; }
+  .unscramble-card .build-line, .unscramble-card .word-bank { margin-left: 0; }
+}
+
+@media print {
+  .word-list-toolbar { display: none !important; }
+  .vocabulary-grid { display: block; }
+  .vocab-card { margin-bottom: 5mm; padding: 3mm; border: .5pt solid #888; border-left: 2pt solid #111; border-radius: 0; color: #111; background: #fff !important; }
+  .vocab-term, .vocab-index, .vocab-pos { color: #111 !important; }
+  .vocab-pos { border: .5pt solid #777; background: #fff !important; }
+  .vocab-definition, .vocab-example { color: #111 !important; font-size: 9.5pt; }
+  body[data-sheet-type="reviewtest"] .review-test-title { color: #111; }
+  body[data-sheet-type="reviewtest"] .review-test-units { border-color: #777; color: #111; background: #fff !important; }
+  body[data-sheet-type="reviewtest"] .review-test-heading .unit-bar { background: #111; }
+  body[data-sheet-type="reviewtest"] .bank-chip { border-color: #777; color: #111; background: #fff !important; }
+  body[data-sheet-type="reviewtest"] .review-section { margin-top: 7mm; padding-top: 3mm; break-inside: auto; }
+  body[data-sheet-type="reviewtest"] .review-section-title { color: #111; }
+  body[data-sheet-type="reviewtest"] .question-card { margin-bottom: 3mm; padding: 2.5mm 3mm; border: .5pt solid #777; border-left: 1.5pt solid #111; border-radius: 0; color: #111; background: #fff !important; break-inside: avoid; }
+  body[data-sheet-type="reviewtest"] .question-card.correct, body[data-sheet-type="reviewtest"] .question-card.incorrect { border-color: #777; background: #fff !important; }
+  body[data-sheet-type="reviewtest"] .question-prompt, body[data-sheet-type="reviewtest"] .question-number { color: #111; }
+  body[data-sheet-type="reviewtest"] .choice-options { gap: 1mm; }
+  body[data-sheet-type="reviewtest"] .choice-option { padding: 1mm; border: 0; color: #111; background: #fff; }
+  body[data-sheet-type="reviewtest"] .choice-option input { accent-color: #111; }
+  body[data-sheet-type="reviewtest"] .sentence-to-insert { margin-left: 6mm; border-color: #777; color: #111; background: #fff; }
+  body[data-sheet-type="reviewtest"] .review-passage { padding: 3mm; border: .5pt solid #777; border-radius: 0; color: #111; background: #fff !important; font-size: 10pt; line-height: 1.65; break-inside: avoid; }
+  body[data-sheet-type="reviewtest"] .fill-select, body[data-sheet-type="reviewtest"] .gap-select { border: 0; border-bottom: .7pt solid #111; border-radius: 0; color: #111 !important; background: #fff !important; appearance: none; }
+  body[data-sheet-type="reviewtest"] .answer-line { min-height: 7mm; border: 0; border-bottom: .7pt solid #111; border-radius: 0; color: #111; background: #fff !important; }
+  body[data-sheet-type="reviewtest"] .model-answer { display: none !important; }
+  body[data-sheet-type="reviewtest"] .unscramble-card .build-line { border: 0; border-bottom: .7pt solid #111; border-radius: 0; background: #fff !important; }
+  body[data-sheet-type="reviewtest"] .unscramble-card .word-bank { border: 0; padding-left: 0; background: #fff !important; }
+  body[data-sheet-type="reviewtest"] .review-status { display: none; }
+}

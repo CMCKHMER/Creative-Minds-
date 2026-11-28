@@ -108,11 +108,18 @@ const kid7Resources: KidGradeMaterial[] = [
   },
 ];
 
-// Kid 8 — Reading Future Change 3 live worksheets transcribed from the
-// supplied Dictation and Unscramble PDFs. The source includes 16 units; the
-// live pages preserve the unit track numbers and provide auto-checking,
-// sharing, and print/PDF support. Course audio is not bundled with the PDFs.
+// Kid 8 — Reading Future Change 3 materials transcribed from the supplied
+// Word List, Dictation, Unscramble, and Review Test PDFs. The interactive
+// pages cover the full 16-unit book; matching course audio is not bundled.
 const kid8Resources: KidGradeMaterial[] = [
+  {
+    id: 'kid-8-change3-word-list',
+    title: 'Reading Future Change 3 · Word List',
+    kind: 'Vocabulary list',
+    description: 'Interactive vocabulary reference for all 16 units with parts of speech, English definitions, examples, search, and print/PDF.',
+    href: './rfc-change3/word-list.html',
+    units: 16,
+  },
   {
     id: 'kid-8-change3-dictation',
     title: 'Reading Future Change 3 · Dictation Sheet',
@@ -127,6 +134,14 @@ const kid8Resources: KidGradeMaterial[] = [
     kind: 'Unscramble sheet',
     description: 'Rebuild sentences A–D from interactive word chunks, place them in gaps ①–④, and get an instant score. 16 units with share and print/PDF options.',
     href: './rfc-change3/unscramble.html',
+    units: 16,
+  },
+  {
+    id: 'kid-8-change3-review-tests',
+    title: 'Reading Future Change 3 · Review Tests 1–4',
+    kind: 'Review test',
+    description: 'Four interactive review tests across Units 1–16: word-bank vocabulary, multiple choice, cloze, sentence unscramble, and written responses. Includes a best-effort auto-check and teacher-gated suggested models (the supplied PDF has no answer key), plus share and print/PDF.',
+    href: './rfc-change3/review-tests.html',
     units: 16,
   },
 ];
