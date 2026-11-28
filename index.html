@@ -50,16 +50,19 @@
 
     <!-- PWA — installable app + offline support (see public/sw.js) -->
     <link rel="manifest" href="./manifest.webmanifest" />
-    <meta name="theme-color" content="#0b1220" />
-    <!-- Theme pre-paint: apply the saved light-mode choice before first
-         paint so reloading in light mode never flashes dark. Default dark. -->
+    <meta name="theme-color" content="#f4f7f2" />
+    <!-- Theme pre-paint: the bright learning studio is the default. A saved
+         dark preference remains available through the theme toggle. -->
     <script>
       try {
-        if (localStorage.getItem('cmc-theme') === 'light') {
+        if (localStorage.getItem('cmc-theme') !== 'dark') {
           document.documentElement.classList.add('light');
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#d3d9e3');
+        } else {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#06111e');
         }
-      } catch (e) { /* storage unavailable — stay dark */ }
+      } catch (e) {
+        document.documentElement.classList.add('light');
+      }
     </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

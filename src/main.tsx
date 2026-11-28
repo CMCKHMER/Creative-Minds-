@@ -3,9 +3,10 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import "./glass.css";
 import "./iridescent.css";
-// Motion layer LAST: press-depth, tilt, busy/progress, stamp, nudge — it has to
-// out-cascade the button skins in iridescent.css (see docs/button-motion.md).
+// Motion follows the button skins; the final learning layer adds the bright
+// studio palette and carousel transforms without changing the shared skins.
 import "./motion.css";
+import "./future-learning.css";
 import App from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { SectionHeadingParticles } from "./components/SectionHeadingParticles";
