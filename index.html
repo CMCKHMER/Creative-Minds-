@@ -50,7 +50,7 @@
 
     <!-- PWA — installable app + offline support (see public/sw.js) -->
     <link rel="manifest" href="./manifest.webmanifest" />
-    <meta name="theme-color" content="#f4f7f2" />
+    <meta name="theme-color" content="#ffffff" />
     <!-- Theme pre-paint: the bright learning studio is the default. A saved
          dark preference remains available through the theme toggle. -->
     <script>
@@ -58,7 +58,7 @@
         if (localStorage.getItem('cmc-theme') !== 'dark') {
           document.documentElement.classList.add('light');
         } else {
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#171b17');
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d1b2a');
         }
       } catch (e) {
         document.documentElement.classList.add('light');

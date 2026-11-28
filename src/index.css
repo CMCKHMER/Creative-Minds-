@@ -321,7 +321,7 @@
   align-items: center;
   min-height: min(860px, calc(100svh - 98px));
   padding: 90px 0 100px;
-  background: #171b17;
+  background: #0d1b2a;
 }
 
 .cmc-hero::after {
@@ -363,8 +363,8 @@
   /* Lighter than before: the new artwork ships dark, so the veil only needs
      to guarantee text contrast on the left and calm the top/bottom edges. */
   background:
-    linear-gradient(90deg, rgba(24, 30, 24, 0.97) 0%, rgba(24, 30, 24, 0.9) 25%, rgba(24, 30, 24, 0.6) 48%, rgba(24, 30, 24, 0.1) 100%),
-    linear-gradient(0deg, rgba(24, 30, 24, 0.68) 0%, transparent 30%, transparent 76%, rgba(24, 30, 24, 0.26) 100%);
+    linear-gradient(90deg, rgba(13, 27, 42, 0.97) 0%, rgba(13, 27, 42, 0.9) 25%, rgba(13, 27, 42, 0.6) 48%, rgba(13, 27, 42, 0.1) 100%),
+    linear-gradient(0deg, rgba(13, 27, 42, 0.68) 0%, transparent 30%, transparent 76%, rgba(13, 27, 42, 0.26) 100%);
 }
 
 .cmc-hero-light {
@@ -397,7 +397,7 @@
 
 /* ---- features bento: renaissance workshop photo plane (same art direction as the hero) ---- */
 .cmc-features-scene {
-  background: #171b17;
+  background: #0d1b2a;
 }
 
 .cmc-bento-photo-plane {
@@ -422,8 +422,8 @@
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(180deg, rgba(24, 30, 24, 0.9) 0%, rgba(24, 30, 24, 0.6) 22%, rgba(24, 30, 24, 0.64) 55%, rgba(24, 30, 24, 0.88) 100%),
-    linear-gradient(90deg, rgba(24, 30, 24, 0.5) 0%, rgba(24, 30, 24, 0.16) 50%, rgba(24, 30, 24, 0.5) 100%);
+    linear-gradient(180deg, rgba(13, 27, 42, 0.9) 0%, rgba(13, 27, 42, 0.6) 22%, rgba(13, 27, 42, 0.64) 55%, rgba(13, 27, 42, 0.88) 100%),
+    linear-gradient(90deg, rgba(13, 27, 42, 0.5) 0%, rgba(13, 27, 42, 0.16) 50%, rgba(13, 27, 42, 0.5) 100%);
 }
 
 .cmc-bento-glow {
@@ -471,12 +471,12 @@
   z-index: 1;
   display: block;
   color: #f4faff;
-  text-shadow: 0 8px 35px rgba(24, 30, 24, 0.2);
+  text-shadow: 0 8px 35px rgba(13, 27, 42, 0.2);
 }
 
 .cmc-title-row-second .cmc-title-solid {
   color: #f4faff;
-  text-shadow: 0 8px 35px rgba(24, 30, 24, 0.2);
+  text-shadow: 0 8px 35px rgba(13, 27, 42, 0.2);
 }
 
 .cmc-title-outline {
@@ -672,8 +672,8 @@
 
   .cmc-hero-veil {
     background:
-      linear-gradient(90deg, rgba(24, 30, 24, 0.96) 0%, rgba(24, 30, 24, 0.84) 60%, rgba(24, 30, 24, 0.52) 100%),
-      linear-gradient(0deg, rgba(24, 30, 24, 0.78), transparent 43%, rgba(24, 30, 24, 0.42));
+      linear-gradient(90deg, rgba(13, 27, 42, 0.96) 0%, rgba(13, 27, 42, 0.84) 60%, rgba(13, 27, 42, 0.52) 100%),
+      linear-gradient(0deg, rgba(13, 27, 42, 0.78), transparent 43%, rgba(13, 27, 42, 0.42));
   }
 
   .cmc-hero-orbit {
@@ -943,24 +943,23 @@
 
 /* ============================================================
    CMC LIGHT THEME — opt-in via html.light (sun/moon toggle in
-   the navbar). Cool-white look built from light gray + light
-   blue surfaces — never solid white (per design brief).
+   the navbar). White surfaces with gold accents and dark navy text.
    Unlayered rules: they outrank every Tailwind v4 utility layer
    without needing !important.
    ============================================================ */
 
 :root {
-  --cmc-l-page: #f4f7f2;          /* warm, easy-on-the-eyes canvas */
-  --cmc-l-surface: #edf4f1;       /* raised section surface       */
-  --cmc-l-surface-2: #e0ece8;     /* deeper section surface       */
-  --cmc-l-card: rgba(255, 255, 251, 0.9);
-  --cmc-l-border: rgba(24, 68, 82, 0.12);
-  --cmc-l-ink: #183446;           /* headings                     */
-  --cmc-l-text: #2b4653;          /* body                         */
-  --cmc-l-text-mid: #465f6b;      /* secondary body               */
-  --cmc-l-text-soft: #627780;     /* captions                     */
-  --cmc-l-text-dim: #71858b;      /* meta                         */
-  --cmc-l-accent: #168eb6;        /* bright sky-blue action       */
+  --cmc-l-page: #ffffff;          /* clean white canvas */
+  --cmc-l-surface: #fbfaf6;       /* warm white section surface */
+  --cmc-l-surface-2: #f3f0e5;     /* pale gold-tinted surface */
+  --cmc-l-card: rgba(255, 255, 255, 0.96);
+  --cmc-l-border: rgba(179, 175, 143, 0.38);
+  --cmc-l-ink: #0d1b2a;           /* midnight-navy headings */
+  --cmc-l-text: #1b263b;          /* body */
+  --cmc-l-text-mid: #415a77;      /* secondary body */
+  --cmc-l-text-soft: #5f6470;     /* captions */
+  --cmc-l-text-dim: #6f6c58;      /* meta */
+  --cmc-l-accent: #786f4b;        /* accessible stone-gold action */
 }
 
 /* ---- page base ---- */
@@ -1039,8 +1038,8 @@ html.light .cmc-hero-orbit { opacity: 0.45; }
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(24, 30, 24, 0.5) 0%, rgba(24, 30, 24, 0.7) 34%, rgba(24, 30, 24, 0.93) 68%, rgba(24, 30, 24, 1) 100%),
-    linear-gradient(90deg, rgba(24, 30, 24, 0.78) 0%, rgba(24, 30, 24, 0.32) 50%, rgba(24, 30, 24, 0.72) 100%);
+    linear-gradient(180deg, rgba(13, 27, 42, 0.5) 0%, rgba(13, 27, 42, 0.7) 34%, rgba(13, 27, 42, 0.93) 68%, rgba(13, 27, 42, 1) 100%),
+    linear-gradient(90deg, rgba(13, 27, 42, 0.78) 0%, rgba(13, 27, 42, 0.32) 50%, rgba(13, 27, 42, 0.72) 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
