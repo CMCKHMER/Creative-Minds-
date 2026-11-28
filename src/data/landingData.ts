@@ -24,7 +24,7 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     title: 'Kid Program · Grades 5–12',
     category: 'Curriculum Paths',
     badge: 'Kid 6, 7, 8 + 11 live',
-    description: 'Open the grade pathway for Kid 5 through Kid 12. Kid 8 now includes live Reading Future Change 3 Dictation and Unscramble worksheets alongside the Kid 6, 7, and 11 collections.',
+    description: 'Open the grade pathway for Kid 5 through Kid 12. Kid 8 now includes the Reading Future Change 3 Word List, Dictation, Unscramble, and four interactive Review Tests alongside the Kid 6, 7, and 11 collections.',
     iconName: 'GraduationCap',
     path: '#kid-grades'
   },
@@ -166,7 +166,7 @@ export const QUICK_LINKS: QuickLinkItem[] = [
     title: 'Kid Program · Grades 5–12',
     category: 'Curriculum Paths',
     badge: 'Kid 6, 7, 8 + 11',
-    description: 'Open the grade pathway for Kid 5 through Kid 12, including Kid 8 Reading Future Change 3 Dictation and Unscramble live worksheets.',
+    description: 'Open the grade pathway for Kid 5 through Kid 12, including Kid 8 Reading Future Change 3 Word List, Dictation, Unscramble, and Review Tests.',
     iconName: 'GraduationCap',
     path: '#kid-grades'
   },

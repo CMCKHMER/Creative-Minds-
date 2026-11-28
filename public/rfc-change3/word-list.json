@@ -1,0 +1,1559 @@
+{
+  "book": "Reading Future Change 3",
+  "units": [
+    {
+      "number": 1,
+      "title": "Smart Use of Smartphones",
+      "words": [
+        {
+          "word": "isolate",
+          "pos": "v.",
+          "definition": "to make someone or something be alone and apart from others",
+          "example": "A high wall isolated the house from the rest of the village."
+        },
+        {
+          "word": "solve",
+          "pos": "v.",
+          "definition": "to find an answer",
+          "example": "They are working to solve the traffic problem."
+        },
+        {
+          "word": "text",
+          "pos": "v.",
+          "definition": "to send someone a text message",
+          "example": "Text me when you’re on your way."
+        },
+        {
+          "word": "rely on",
+          "pos": "phr.",
+          "definition": "to need",
+          "example": "My son relied on me for financial support."
+        },
+        {
+          "word": "pay attention",
+          "pos": "phr.",
+          "definition": "to carefully think about, listen to, or watch someone or something",
+          "example": "I will pay attention to what she says."
+        },
+        {
+          "word": "transportation",
+          "pos": "n.",
+          "definition": "a way, such as a bus or train, of moving from one place to another place",
+          "example": "She arranged for the transportation of her furniture to her new apartment."
+        },
+        {
+          "word": "entertainment",
+          "pos": "n.",
+          "definition": "shows, games, etc., that people watch for enjoyment",
+          "example": "This film is good family entertainment."
+        },
+        {
+          "word": "balance",
+          "pos": "n.",
+          "definition": "when two or more things are equal",
+          "example": "It’s important to maintain the balance between work and life."
+        },
+        {
+          "word": "connect",
+          "pos": "v.",
+          "definition": "to become joined",
+          "example": "The two rooms connect by a hallway."
+        },
+        {
+          "word": "create",
+          "pos": "v.",
+          "definition": "to make something new",
+          "example": "The Bible says that God created the world."
+        },
+        {
+          "word": "communicate",
+          "pos": "v.",
+          "definition": "to talk or share something with others",
+          "example": "I can’t communicate with her."
+        },
+        {
+          "word": "alone",
+          "pos": "adj.",
+          "definition": "without other people",
+          "example": "Do you like living alone?"
+        },
+        {
+          "word": "accident",
+          "pos": "n.",
+          "definition": "something bad that happens that is not expected",
+          "example": "She was injured in a car accident."
+        },
+        {
+          "word": "direction",
+          "pos": "n.",
+          "definition": "the line on which is aimed to move",
+          "example": "We are walking in the same direction."
+        },
+        {
+          "word": "interact",
+          "pos": "v.",
+          "definition": "to communicate with others",
+          "example": "We should interact with each other."
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Street Food",
+      "words": [
+        {
+          "word": "prepare",
+          "pos": "v.",
+          "definition": "to make something",
+          "example": "I will prepare food for dinner"
+        },
+        {
+          "word": "fry",
+          "pos": "v.",
+          "definition": "to cook food in hot oil",
+          "example": "Fry the mushrooms in a little butter."
+        },
+        {
+          "word": "taste",
+          "pos": "v.",
+          "definition": "to eat or drink something to know its flavor",
+          "example": "Taste it and see if you think there’s enough salt in it."
+        },
+        {
+          "word": "shave",
+          "pos": "v.",
+          "definition": "to cut a very thing slice of something",
+          "example": "He is shaving wood."
+        },
+        {
+          "word": "boil",
+          "pos": "v.",
+          "definition": "to cook food in hot water",
+          "example": "My mom likes a boiled carrot."
+        },
+        {
+          "word": "miss",
+          "pos": "v.",
+          "definition": "to fail to do or have something",
+          "example": "You'll miss your flight if you don't hurry up."
+        },
+        {
+          "word": "traditional",
+          "pos": "adj.",
+          "definition": "based on the way something has been done for a long time",
+          "example": "Bibimbap is a traditional Korean food."
+        },
+        {
+          "word": "consist of",
+          "pos": "phr.",
+          "definition": "to be made up of",
+          "example": "The team consists of 4 Koreans and 2 Americans."
+        },
+        {
+          "word": "mean",
+          "pos": "v.",
+          "definition": "to have a particular result",
+          "example": "I didn't mean to upset you."
+        },
+        {
+          "word": "mix",
+          "pos": "v.",
+          "definition": "to combine many things to be one.",
+          "example": "Oil and water don't mix."
+        },
+        {
+          "word": "look for",
+          "pos": "phr.",
+          "definition": "to search or find something",
+          "example": "I’m looking for a new car."
+        },
+        {
+          "word": "popular",
+          "pos": "adj.",
+          "definition": "liked, enjoyed, or supported by many people",
+          "example": "She's the most popular teacher in school."
+        },
+        {
+          "word": "as well",
+          "pos": "adv.",
+          "definition": "also, too",
+          "example": "They advertised the new movie on television, and in newspapers as well."
+        },
+        {
+          "word": "travel",
+          "pos": "v.",
+          "definition": "to move or go from one place to another",
+          "example": "I want to travel all over the world."
+        },
+        {
+          "word": "dessert",
+          "pos": "n.",
+          "definition": "sweet food eaten at the end of a meal",
+          "example": "If you make the main course, I'll make a dessert."
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Interesting Festivals Around the World",
+      "words": [
+        {
+          "word": "celebrate",
+          "pos": "v.",
+          "definition": "to have an event for a special person, time, thing, etc.",
+          "example": "We always celebrate our wedding anniversary."
+        },
+        {
+          "word": "foreign",
+          "pos": "adj.",
+          "definition": "coming from or belonging to a different place or country",
+          "example": "Spain was the first foreign country she had visited."
+        },
+        {
+          "word": "during",
+          "pos": "prep.",
+          "definition": "throughout the entire time of an event, period, occurrence, etc.",
+          "example": "You're not allowed to talk during the exam."
+        },
+        {
+          "word": "tourist",
+          "pos": "n.",
+          "definition": "a person who travels from a place to another place for fun",
+          "example": "The island is very busy during the tourist season."
+        },
+        {
+          "word": "parade",
+          "pos": "n.",
+          "definition": "a public celebration of a special day or event that usually has many people and groups moving down a street",
+          "example": "Tomorrow's parade will mark the 50th anniversary of the battle."
+        },
+        {
+          "word": "throw",
+          "pos": "v.",
+          "definition": "to use the hand and arm to move something quickly through the air",
+          "example": "My friend threw the ball back over the fence."
+        },
+        {
+          "word": "messy",
+          "pos": "adj.",
+          "definition": "not clean",
+          "example": "My hair is so messy."
+        },
+        {
+          "word": "costume",
+          "pos": "n.",
+          "definition": "the clothes that people wear when they are trying to look like a different person or thing",
+          "example": "Our host was wearing a clown costume."
+        },
+        {
+          "word": "powder",
+          "pos": "n.",
+          "definition": "dry substance that consists of extremely small pieces",
+          "example": "You can buy milk in powder form."
+        },
+        {
+          "word": "hold",
+          "pos": "v.",
+          "definition": "to organize an event",
+          "example": "The president held a conference."
+        },
+        {
+          "word": "fill",
+          "pos": "v.",
+          "definition": "to supply with a full complement",
+          "example": "Her class is filled."
+        },
+        {
+          "word": "beginning",
+          "pos": "n.",
+          "definition": "the first part",
+          "example": "We missed the beginning of the movie."
+        },
+        {
+          "word": "colorful",
+          "pos": "adj.",
+          "definition": "having a bright color or a lot of different colors",
+          "example": "I have a colorful blue and yellow dress"
+        },
+        {
+          "word": "continue",
+          "pos": "v.",
+          "definition": "to keep happening, existing, or doing something",
+          "example": "If she continues drinking like that, I'll have to carry her home."
+        },
+        {
+          "word": "learn",
+          "pos": "v.",
+          "definition": "to get knowledge or skill in a new subject or activity",
+          "example": "I'm learning to play the piano."
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Good Luck and Bad Luck",
+      "words": [
+        {
+          "word": "luck",
+          "pos": "n.",
+          "definition": "something good or bad that happens by chance",
+          "example": "He seems to have had a lot of bad luck in his life."
+        },
+        {
+          "word": "clover",
+          "pos": "n.",
+          "definition": "a kind of plant that usually has three leaves",
+          "example": "I found a clover with 4 leaves! I’m lucky!"
+        },
+        {
+          "word": "wholeness",
+          "pos": "n.",
+          "definition": "the state of being whole or complete",
+          "example": "It’s just a small part of wholeness about me."
+        },
+        {
+          "word": "superstition",
+          "pos": "n.",
+          "definition": "a belief that doing or having certain things will change what happens in the future",
+          "example": "According to superstition, number 4 is unlucky."
+        },
+        {
+          "word": "wealth",
+          "pos": "n.",
+          "definition": "a large amount of money and valuable things",
+          "example": "During a successful business career, she accumulated a great amount of wealth."
+        },
+        {
+          "word": "hope",
+          "pos": "n.",
+          "definition": "a feeling that something good will happen or be true",
+          "example": "Is there any hope that they will be home in time?"
+        },
+        {
+          "word": "rainbow",
+          "pos": "n.",
+          "definition": "a curved line of colors in the sky caused by sunlight shining on water in the air",
+          "example": "The sun came out and we saw a rainbow."
+        },
+        {
+          "word": "negative",
+          "pos": "adj.",
+          "definition": "bad",
+          "example": "Don’t be negative person!"
+        },
+        {
+          "word": "situation",
+          "pos": "n.",
+          "definition": "a condition of conditions that exist at a particular time",
+          "example": "I thought he handled the situation very well."
+        },
+        {
+          "word": "represent",
+          "pos": "v.",
+          "definition": "to be a sign or symbol of something",
+          "example": "To many people the White House represents the identity of the United States."
+        },
+        {
+          "word": "similar",
+          "pos": "adj.",
+          "definition": "looking or being almost, but not exactly, the same",
+          "example": "Paul is very similar in appearance to his brother."
+        },
+        {
+          "word": "common",
+          "pos": "adj.",
+          "definition": "the same in a lot of places or for a lot of people",
+          "example": "\"Smith\" is a very common name in Britain."
+        },
+        {
+          "word": "bring",
+          "pos": "v.",
+          "definition": "to take or carry someone or something to a place",
+          "example": "When they visit us they always bring their dog with them."
+        },
+        {
+          "word": "eastern",
+          "pos": "adj.",
+          "definition": "from the east part of an area",
+          "example": "Buddhism and other Eastern religions fascinate me."
+        },
+        {
+          "word": "western",
+          "pos": "adj.",
+          "definition": "from the west part of an area",
+          "example": "He was an officer on the western front."
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Insects as Food",
+      "words": [
+        {
+          "word": "limited",
+          "pos": "adj.",
+          "definition": "not a lot",
+          "example": "This restaurant serves a limited choice."
+        },
+        {
+          "word": "protein",
+          "pos": "n.",
+          "definition": "a thing found in foods (such as meat, milk, eggs, and beans) that is important for human health",
+          "example": "Meat and fish are a vital source of protein."
+        },
+        {
+          "word": "maintain",
+          "pos": "v.",
+          "definition": "to take care of and keep in good condition",
+          "example": "We maintain contact with many large and small businesses."
+        },
+        {
+          "word": "snack",
+          "pos": "n.",
+          "definition": "a small amount of food that you eat between meals",
+          "example": "The boy is eating a snack."
+        },
+        {
+          "word": "raise",
+          "pos": "v.",
+          "definition": "to grow a plant or animal",
+          "example": "My plan is to raise a puppy."
+        },
+        {
+          "word": "steam",
+          "pos": "v.",
+          "definition": "to cook or heat something with steam",
+          "example": "I steamed sweet potatoes for snack."
+        },
+        {
+          "word": "source",
+          "pos": "n.",
+          "definition": "someone or something that gives what is wanted or needed",
+          "example": "She has been a great source of strength to me."
+        },
+        {
+          "word": "mushroom",
+          "pos": "n.",
+          "definition": "a plant that looks like a small umbrella",
+          "example": "I had mushroom soup for lunch."
+        },
+        {
+          "word": "healthy",
+          "pos": "adj.",
+          "definition": "good for your health",
+          "example": "A healthy diet is important for children as well as adults."
+        },
+        {
+          "word": "enough",
+          "pos": "adj.",
+          "definition": "as much as is necessary",
+          "example": "Have you got enough money?"
+        },
+        {
+          "word": "transport",
+          "pos": "v.",
+          "definition": "to take goods or people from one place to another",
+          "example": "Such heavy items are expensive to transport."
+        },
+        {
+          "word": "farm",
+          "pos": "n.",
+          "definition": "a place where a particular type of animal or plant are kept in large numbers",
+          "example": "He worked hard on his farm."
+        },
+        {
+          "word": "become",
+          "pos": "v.",
+          "definition": "to come to be",
+          "example": "It has become more complex."
+        },
+        {
+          "word": "full",
+          "pos": "adj.",
+          "definition": "containing a lot of things",
+          "example": "You're always so full of energy."
+        },
+        {
+          "word": "way",
+          "pos": "n.",
+          "definition": "an action that can produce the result you want",
+          "example": "There are many ways of solving the problem."
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "World Penguin Day",
+      "words": [
+        {
+          "word": "migrate",
+          "pos": "v.",
+          "definition": "to move from one place to another",
+          "example": "Swallows migrate south in winter."
+        },
+        {
+          "word": "terrific",
+          "pos": "adj.",
+          "definition": "very good",
+          "example": "I feel absolutely terrific today!"
+        },
+        {
+          "word": "capable",
+          "pos": "adj.",
+          "definition": "being able to do something",
+          "example": "You are capable of better work than this."
+        },
+        {
+          "word": "similarity",
+          "pos": "n.",
+          "definition": "something that makes one person, place, or thing like another",
+          "example": "There is some similarity in the way they sing."
+        },
+        {
+          "word": "iceberg",
+          "pos": "n.",
+          "definition": "a large piece of ice floating in the ocean",
+          "example": "The cruise ship sank after crashing into an iceberg."
+        },
+        {
+          "word": "declare",
+          "pos": "v.",
+          "definition": "to say something officially and formally so that many people know",
+          "example": "The government has declared a state of emergency."
+        },
+        {
+          "word": "dark",
+          "pos": "adj.",
+          "definition": "having very little or no light",
+          "example": "What time does it get dark in summer?"
+        },
+        {
+          "word": "hunt",
+          "pos": "v.",
+          "definition": "to find, chase, and kill wild animals for food",
+          "example": "Many predators hunt in the night time."
+        },
+        {
+          "word": "unique",
+          "pos": "adj.",
+          "definition": "being the only existing one of its type",
+          "example": "Everyone’s fingerprints are unique."
+        },
+        {
+          "word": "escape",
+          "pos": "v.",
+          "definition": "to get away",
+          "example": "Two prisoners have escaped."
+        },
+        {
+          "word": "kind",
+          "pos": "n.",
+          "definition": "a group with similar characteristics, or a particular type",
+          "example": "What kind of house do you live in?"
+        },
+        {
+          "word": "find",
+          "pos": "v.",
+          "definition": "to discover, especially where a thing or person is",
+          "example": "I found a coin on the street."
+        },
+        {
+          "word": "return",
+          "pos": "v.",
+          "definition": "to come or go back to a previous place",
+          "example": "I waited a long time for him to return."
+        },
+        {
+          "word": "recognize",
+          "pos": "v.",
+          "definition": "to know someone or something",
+          "example": "I recognized him as soon as he came in the room."
+        },
+        {
+          "word": "remember",
+          "pos": "v.",
+          "definition": "to keep something in your mind",
+          "example": "Do you remember the girl who wore a weird skirt?"
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "The Amazing Cockroach",
+      "words": [
+        {
+          "word": "disgusting",
+          "pos": "adj.",
+          "definition": "very dirty and unpleasant",
+          "example": "These pictures disgust me."
+        },
+        {
+          "word": "same",
+          "pos": "adj.",
+          "definition": "exactly alike",
+          "example": "He’s the same age as me."
+        },
+        {
+          "word": "dinosaur",
+          "pos": "n.",
+          "definition": "one of many reptiles that lived on Earth millions of years ago",
+          "example": "The dinosaur fell away long time ago."
+        },
+        {
+          "word": "survivor",
+          "pos": "n.",
+          "definition": "a living thing or person that continues to live through a difficult situation",
+          "example": "Rescuers have given up hope of finding any more survivors."
+        },
+        {
+          "word": "amazing",
+          "pos": "adj.",
+          "definition": "very surprising",
+          "example": "It’s amazing that they survived the crash."
+        },
+        {
+          "word": "toothpaste",
+          "pos": "n.",
+          "definition": "a substance that you use to clean your teeth",
+          "example": "Don't squeeze the toothpaste in the middle."
+        },
+        {
+          "word": "soap",
+          "pos": "n.",
+          "definition": "a substance that you use for washing",
+          "example": "The soap is too harsh for my skin."
+        },
+        {
+          "word": "harsh",
+          "pos": "adj.",
+          "definition": "extremely difficult and bad",
+          "example": "He claimed harsh criticism."
+        },
+        {
+          "word": "condition",
+          "pos": "n.",
+          "definition": "the situation in which something exists, the surroundings",
+          "example": "My bike’s a few years old but it’s in really good condition."
+        },
+        {
+          "word": "avoid",
+          "pos": "v.",
+          "definition": "to stay away from a person or place",
+          "example": "Try to avoid the city center."
+        },
+        {
+          "word": "detect",
+          "pos": "v.",
+          "definition": "to find or notice something",
+          "example": "This special camera can detect movement."
+        },
+        {
+          "word": "movement",
+          "pos": "n.",
+          "definition": "a change of position or place",
+          "example": "His movements were rather clumsy."
+        },
+        {
+          "word": "weakness",
+          "pos": "n.",
+          "definition": "a lack of strength or power",
+          "example": "Asking for help is not a sign of weakness."
+        },
+        {
+          "word": "instead",
+          "pos": "adv.",
+          "definition": "in the place of someone or something else",
+          "example": "There’s no chicken – would you like lamb instead?"
+        },
+        {
+          "word": "confuse",
+          "pos": "v.",
+          "definition": "to feel uncertain",
+          "example": "My explanation just confused her."
+        },
+        {
+          "word": "vacuum",
+          "pos": "n.",
+          "definition": "a space absolutely devoid of matter",
+          "example": "I heard a vacuum cleaner whirring."
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Animal Defenses",
+      "words": [
+        {
+          "word": "surrounding",
+          "pos": "adj.",
+          "definition": "the places, conditions, or objects that are around you",
+          "example": "The river has flooded the surrounding area."
+        },
+        {
+          "word": "webbed",
+          "pos": "adj.",
+          "definition": "having pieces of skin that connect all the toes on a foot",
+          "example": "Ducks can swim well with webbed feet."
+        },
+        {
+          "word": "develop",
+          "pos": "v.",
+          "definition": "to grow or change into a more advanced",
+          "example": "Identical twins develop from a single fertilized egg which then splits into two."
+        },
+        {
+          "word": "protect",
+          "pos": "v.",
+          "definition": "to keep someone or something from being hurt",
+          "example": "Parents have the right to protect their children."
+        },
+        {
+          "word": "enemy",
+          "pos": "n.",
+          "definition": "someone who wants to hurt you",
+          "example": "My best friend was once my enemy."
+        },
+        {
+          "word": "speed",
+          "pos": "n.",
+          "definition": "how fast someone or something moves or travels",
+          "example": "He was travelling at a speed of 90 mph."
+        },
+        {
+          "word": "camouflage",
+          "pos": "n.",
+          "definition": "something, such as color or shape, that makes an animal hard to see in the area around it",
+          "example": "The lizard's light brown skin acts as camouflage in the desert sand."
+        },
+        {
+          "word": "attack",
+          "pos": "v.",
+          "definition": "to try to hurt",
+          "example": "He was attacked and seriously injured by a gang of youths."
+        },
+        {
+          "word": "direction",
+          "pos": "n.",
+          "definition": "the position towards which someone or something moves or faces",
+          "example": "He was going in the direction of the bedroom."
+        },
+        {
+          "word": "hide",
+          "pos": "v.",
+          "definition": "to prevent something from being seen",
+          "example": "He tries to hide his bald spot by sweeping his hair over to one side."
+        },
+        {
+          "word": "environment",
+          "pos": "n.",
+          "definition": "the air, water, and land in or on which people, animals, and plants live",
+          "example": "We’re trying to protect the environment from pollution."
+        },
+        {
+          "word": "texture",
+          "pos": "n.",
+          "definition": "the way that something feels when you touch it",
+          "example": "This artificial fabric has the texture of silk."
+        },
+        {
+          "word": "tail",
+          "pos": "n.",
+          "definition": "a part of an animal's body",
+          "example": "The dog wagged its tail excitedly."
+        },
+        {
+          "word": "transform",
+          "pos": "v.",
+          "definition": "to change something completely",
+          "example": "The reorganization will transform the entertainment industry."
+        },
+        {
+          "word": "nearby",
+          "pos": "adv.",
+          "definition": "not far away",
+          "example": "If there's a café nearby, we could stop for a snack."
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "AI Music",
+      "words": [
+        {
+          "word": "intelligence",
+          "pos": "n.",
+          "definition": "the ability to learn and understand things",
+          "example": "It's the intelligence of her writing that impresses me."
+        },
+        {
+          "word": "copy",
+          "pos": "v.",
+          "definition": "to make something that is the same as something else",
+          "example": "Patricia's going to copy her novel onto a flash drive and send it to me."
+        },
+        {
+          "word": "behavior",
+          "pos": "n.",
+          "definition": "the way a person or animal acts",
+          "example": "I will overlook your behavior this time."
+        },
+        {
+          "word": "even",
+          "pos": "adv.",
+          "definition": "used to emphasize something that is surprising",
+          "example": "I don't even know where it is"
+        },
+        {
+          "word": "chess",
+          "pos": "n.",
+          "definition": "a game for two people on a square board, in which each player has pieces that can be moved to get opponent’s king",
+          "example": "She's quite a hotshot at chess."
+        },
+        {
+          "word": "opponent",
+          "pos": "n.",
+          "definition": "a person who disagrees with something and speaks",
+          "example": "I overwhelmed my opponent in the first game."
+        },
+        {
+          "word": "creative",
+          "pos": "adj.",
+          "definition": "producing or using original and unusual ideas",
+          "example": "Their designs are creative and beautiful."
+        },
+        {
+          "word": "compose",
+          "pos": "v.",
+          "definition": "to create and write music",
+          "example": "They learn how to compose music."
+        },
+        {
+          "word": "melody",
+          "pos": "n.",
+          "definition": "a series of musical notes that form the main part of a song or piece of music",
+          "example": "He played a few well-known melodies."
+        },
+        {
+          "word": "register",
+          "pos": "v.",
+          "definition": "to record information about something on an official list",
+          "example": "I registered the car in my name."
+        },
+        {
+          "word": "album",
+          "pos": "n.",
+          "definition": "a long recording of songs or pieces of music on a record, MP3, etc.",
+          "example": "Have you heard their new album?"
+        },
+        {
+          "word": "advertisement",
+          "pos": "n.",
+          "definition": "something that helps sell a product",
+          "example": "I put an advertisement in the newspaper."
+        },
+        {
+          "word": "rights",
+          "pos": "n.",
+          "definition": "the legal power to make money from a piece of music, a book, etc.",
+          "example": "Robot has the same rights for their music just like human."
+        },
+        {
+          "word": "create",
+          "pos": "v.",
+          "definition": "to make something new",
+          "example": "He created a unique sculpture."
+        },
+        {
+          "word": "famous",
+          "pos": "adj.",
+          "definition": "known by many people",
+          "example": "She is a famous sci-fi writer in Britain."
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "title": "Sam Cooke: The King of Soul",
+      "words": [
+        {
+          "word": "pioneer",
+          "pos": "n.",
+          "definition": "a person who is one of the first people to do something",
+          "example": "He is a pioneer in computer programming."
+        },
+        {
+          "word": "distinct",
+          "pos": "adj.",
+          "definition": "different in a way that you can see, hear, smell, feel, etc.",
+          "example": "There's a distinct smell of cigarettes in here."
+        },
+        {
+          "word": "contribution",
+          "pos": "n.",
+          "definition": "something that is done that helps build or improve something else",
+          "example": "This invention made a major contribution to road safety."
+        },
+        {
+          "word": "biographer",
+          "pos": "n.",
+          "definition": "a person who writes the story of another real person’s life",
+          "example": "Boswell was Dr. Johnson's biographer."
+        },
+        {
+          "word": "inventor",
+          "pos": "n.",
+          "definition": "someone who designs and makes new things",
+          "example": "Alfred Nobel was the inventor of dynamite."
+        },
+        {
+          "word": "influential",
+          "pos": "adj.",
+          "definition": "having the power and ability to cause changes",
+          "example": "She wanted to work for a bigger and more influential newspaper."
+        },
+        {
+          "word": "career",
+          "pos": "n.",
+          "definition": "a job that someone does for a long time",
+          "example": "He's hoping for a career as a police officer."
+        },
+        {
+          "word": "sibling",
+          "pos": "n.",
+          "definition": "a brother or sister",
+          "example": "I have four siblings: three brothers and a sister."
+        },
+        {
+          "word": "found",
+          "pos": "v.",
+          "definition": "to start a company, school, etc.",
+          "example": "It was founded in 859 A.D."
+        },
+        {
+          "word": "company",
+          "pos": "n.",
+          "definition": "an organization that sells things or services",
+          "example": "I worked for 10 years at the company."
+        },
+        {
+          "word": "include",
+          "pos": "v.",
+          "definition": "to contain something as a part of something else",
+          "example": "The bill includes tax and service."
+        },
+        {
+          "word": "tragic",
+          "pos": "adj.",
+          "definition": "causing strong feelings of sadness",
+          "example": "The bomb explosion resulted in a tragic loss of life."
+        },
+        {
+          "word": "violence",
+          "pos": "n.",
+          "definition": "actions or words that are intended to hurt people",
+          "example": "He did violence to his students."
+        },
+        {
+          "word": "celebrate",
+          "pos": "v.",
+          "definition": "to have a party or a meal because it is a special day or something good has happened",
+          "example": "We always celebrate our wedding anniversary by going out to dinner."
+        },
+        {
+          "word": "manage",
+          "pos": "v.",
+          "definition": "to succeed in doing or dealing with something",
+          "example": "Did you manage to get any bread?"
+        },
+        {
+          "word": "publish",
+          "pos": "v.",
+          "definition": "to make information available to people, especially in a book",
+          "example": "She's just had an article published in their weekend supplement."
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "title": "Jazz",
+      "words": [
+        {
+          "word": "musician",
+          "pos": "n.",
+          "definition": "someone who plays a musical instrument, often as a job",
+          "example": "The concert features dancers and musicians of all nationalities."
+        },
+        {
+          "word": "poor",
+          "pos": "adj.",
+          "definition": "having little money",
+          "example": "Most of the world's poorest countries are in Africa."
+        },
+        {
+          "word": "childhood",
+          "pos": "n.",
+          "definition": "the time when someone is a child",
+          "example": "She had an unhappy childhood."
+        },
+        {
+          "word": "troubled",
+          "pos": "adj.",
+          "definition": "having many problem",
+          "example": "She's so good with troubled children."
+        },
+        {
+          "word": "interest",
+          "pos": "v.",
+          "definition": "to attract your attention so that you want to learn or hear more about it",
+          "example": "Sailing has never really interested me."
+        },
+        {
+          "word": "naturally",
+          "pos": "adv.",
+          "definition": "in a way that shows an ability or quality that someone is born with",
+          "example": "A healthy body will be able to fight off the illness naturally without the use of medicine."
+        },
+        {
+          "word": "talented",
+          "pos": "adj.",
+          "definition": "having a special ability to do something well",
+          "example": "She is a talented painter as well as fashion designer."
+        },
+        {
+          "word": "sail",
+          "pos": "v.",
+          "definition": "to travel on water",
+          "example": "The boat sailed along the coast."
+        },
+        {
+          "word": "unique",
+          "pos": "adj.",
+          "definition": "being the only existing one of its type",
+          "example": "I'd recognize your unique handwriting."
+        },
+        {
+          "word": "improvise",
+          "pos": "v.",
+          "definition": "to speak or perform without any practice or preparation",
+          "example": "The bands started to improvise new melodies."
+        },
+        {
+          "word": "lyrics",
+          "pos": "n.",
+          "definition": "the words of a song",
+          "example": "Paul Simon writes the lyrics for most of his songs."
+        },
+        {
+          "word": "travel",
+          "pos": "v.",
+          "definition": "to make a journey",
+          "example": "I travel to work by train."
+        },
+        {
+          "word": "still",
+          "pos": "adv.",
+          "definition": "continuing to happen or continuing to be done",
+          "example": "I'm still hungry."
+        },
+        {
+          "word": "take part",
+          "pos": "phr.",
+          "definition": "to be involved in an activity with other people",
+          "example": "She doesn't usually take part in any of the class activities."
+        },
+        {
+          "word": "become",
+          "pos": "v.",
+          "definition": "to start to be",
+          "example": "It was becoming cold, so we lit the fire."
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "title": "Music Therapy",
+      "words": [
+        {
+          "word": "probably",
+          "pos": "adv.",
+          "definition": "used to mean that something is very likely",
+          "example": "I'll probably be home by midnight."
+        },
+        {
+          "word": "medical",
+          "pos": "adj.",
+          "definition": "related to the treatment of illness and injuries",
+          "example": "A person's medical records are confidential."
+        },
+        {
+          "word": "pressure",
+          "pos": "n.",
+          "definition": "the force you produce when you press something",
+          "example": "He put too much pressure on the door handle and it snapped."
+        },
+        {
+          "word": "own",
+          "pos": "n.",
+          "definition": "belonging to or done by a particular person or thing",
+          "example": "I'd like to have my very own apartment."
+        },
+        {
+          "word": "active",
+          "pos": "adj.",
+          "definition": "busy with a particular activity",
+          "example": "You have to try to keep active as you grow older."
+        },
+        {
+          "word": "therapy",
+          "pos": "n.",
+          "definition": "a way to help someone who is hurt or sick get well",
+          "example": "Joining a club can be a therapy for loneliness."
+        },
+        {
+          "word": "already",
+          "pos": "adv.",
+          "definition": "before the present time",
+          "example": "I've already told him."
+        },
+        {
+          "word": "mood",
+          "pos": "n.",
+          "definition": "the way someone feels",
+          "example": "She's in a good mood."
+        },
+        {
+          "word": "approved",
+          "pos": "adj.",
+          "definition": "officially accepted",
+          "example": "It is an approved drug for cancer."
+        },
+        {
+          "word": "pain",
+          "pos": "n.",
+          "definition": "a feeling of hurt in the mind or body",
+          "example": "These pills will help to ease the pain."
+        },
+        {
+          "word": "patient",
+          "pos": "n.",
+          "definition": "a person getting treatment",
+          "example": "The patient had surgery on his heart."
+        },
+        {
+          "word": "rhythm",
+          "pos": "n.",
+          "definition": "a regular, repeated pattern of sounds or movements",
+          "example": "He beat out a jazz rhythm on the drums."
+        },
+        {
+          "word": "relax",
+          "pos": "v.",
+          "definition": "to stop feeling nervous or worried",
+          "example": "A good massage will relax your tired muscles."
+        },
+        {
+          "word": "therapist",
+          "pos": "n.",
+          "definition": "a person who is trained in methods of treating sickness especially without using medicine or surgery",
+          "example": "I'm seeing my therapist on Friday morning."
+        },
+        {
+          "word": "calm",
+          "pos": "adj.",
+          "definition": "peaceful, quiet, and without worry",
+          "example": "He has a very calm manner."
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "title": "Coding Jobs",
+      "words": [
+        {
+          "word": "past",
+          "pos": "n.",
+          "definition": "the time before the present",
+          "example": "In the past, this sort of work was all done by hand."
+        },
+        {
+          "word": "require",
+          "pos": "v.",
+          "definition": "to need for something",
+          "example": "Office jobs require little physical effort."
+        },
+        {
+          "word": "labor",
+          "pos": "n.",
+          "definition": "physical work",
+          "example": "It cost me lots of labor."
+        },
+        {
+          "word": "factory",
+          "pos": "n.",
+          "definition": "a building or set of buildings where things are made or put together",
+          "example": "The factory has its own generating plant."
+        },
+        {
+          "word": "machine",
+          "pos": "n.",
+          "definition": "a piece of equipment that uses power to do a particular job",
+          "example": "If I'm not home when you call, leave a message on the machine."
+        },
+        {
+          "word": "stable",
+          "pos": "adj.",
+          "definition": "in a good state or condition that is not easily changed or likely to change",
+          "example": "After several part-time jobs, he's now got a stable job in a bank."
+        },
+        {
+          "word": "technology",
+          "pos": "n.",
+          "definition": "knowledge, equipment, and methods that are used in science and industry",
+          "example": "Modern technology is amazing, isn't it?"
+        },
+        {
+          "word": "coding",
+          "pos": "n.",
+          "definition": "the process of assigning a code to something",
+          "example": "He devised a way of coding every statement uniquely"
+        },
+        {
+          "word": "instructions",
+          "pos": "n.",
+          "definition": "a set of rules to help do something",
+          "example": "She remembered Ann's instruction not to be late."
+        },
+        {
+          "word": "software",
+          "pos": "n.",
+          "definition": "programs that you use to make a computer do different things",
+          "example": "He works for a software company."
+        },
+        {
+          "word": "purpose",
+          "pos": "n.",
+          "definition": "why you do something or why something exists",
+          "example": "His only purpose in life seems to be to enjoy himself."
+        },
+        {
+          "word": "familiar",
+          "pos": "adj.",
+          "definition": "knowing something well",
+          "example": "The street was familiar to me."
+        },
+        {
+          "word": "field",
+          "pos": "n.",
+          "definition": "an area of activity or interest",
+          "example": "Are you still in the same field?"
+        },
+        {
+          "word": "customer",
+          "pos": "n.",
+          "definition": "a person who buys goods or a service",
+          "example": "Mrs. Wilson is one of our regular customers."
+        },
+        {
+          "word": "purchase",
+          "pos": "v.",
+          "definition": "to buy something",
+          "example": "She purchased her first house with the money."
+        },
+        {
+          "word": "secure",
+          "pos": "adj.",
+          "definition": "protected from danger or harm",
+          "example": "I feel secure about my future."
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "title": "Choosing a Career",
+      "words": [
+        {
+          "word": "career",
+          "pos": "n.",
+          "definition": "a job that someone does for a long time",
+          "example": "I should think about changing my career."
+        },
+        {
+          "word": "option",
+          "pos": "n.",
+          "definition": "a choice",
+          "example": "I will leave the decision to your option."
+        },
+        {
+          "word": "enjoy",
+          "pos": "v.",
+          "definition": "to like and have fun doing something",
+          "example": "I really enjoyed that movie."
+        },
+        {
+          "word": "perhaps",
+          "pos": "adv.",
+          "definition": "possibly",
+          "example": "Perhaps I'll come in thirty minutes."
+        },
+        {
+          "word": "architecture",
+          "pos": "n.",
+          "definition": "the art of science of designing and creating buildings",
+          "example": "I like the Gothic style of architecture."
+        },
+        {
+          "word": "suit",
+          "pos": "v.",
+          "definition": "to match well with someone’s individual personality",
+          "example": "The city lifestyle seems to suit her."
+        },
+        {
+          "word": "journalism",
+          "pos": "n.",
+          "definition": "the job of collecting, writing, and editing news stories for newspapers, magazines, televisions, or radio",
+          "example": "She majored in journalism in college."
+        },
+        {
+          "word": "athletic",
+          "pos": "adj.",
+          "definition": "good at sports",
+          "example": "She looks very athletic."
+        },
+        {
+          "word": "lifestyle",
+          "pos": "n.",
+          "definition": "the way a person usually lives",
+          "example": "He doesn't have a very healthy lifestyle."
+        },
+        {
+          "word": "consider",
+          "pos": "v.",
+          "definition": "to think carefully about something",
+          "example": "She's being considered for the job."
+        },
+        {
+          "word": "in addition (to)",
+          "pos": "phr.",
+          "definition": "as well (as)",
+          "example": "He speaks Japanese well in addition to English."
+        },
+        {
+          "word": "commute",
+          "pos": "n.",
+          "definition": "to travel regularly to and from a place and especially between where you live and where you work",
+          "example": "It's at least an hour's commute to work."
+        },
+        {
+          "word": "locate",
+          "pos": "v.",
+          "definition": "be located in, near, on, etc.",
+          "example": "The school is located near the river."
+        },
+        {
+          "word": "should",
+          "pos": "v.",
+          "definition": "used to say or ask what is the correct or best thing to do",
+          "example": "You should prepare the project work."
+        },
+        {
+          "word": "plan",
+          "pos": "v.",
+          "definition": "to decide what you are going to do",
+          "example": "She helped them to plan their route."
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "title": "Odd Jobs",
+      "words": [
+        {
+          "word": "society",
+          "pos": "n.",
+          "definition": "a large group of people who live together",
+          "example": "The family is society in miniature."
+        },
+        {
+          "word": "forward",
+          "pos": "adv.",
+          "definition": "towards the direction that is in front of you",
+          "example": "She leaned forward to whisper something in my ear."
+        },
+        {
+          "word": "around",
+          "pos": "adv.",
+          "definition": "on all sides of something",
+          "example": "We sat around the table."
+        },
+        {
+          "word": "might",
+          "pos": "v.",
+          "definition": "to talk about what will possibly happen",
+          "example": "He might have forgotten the appointment."
+        },
+        {
+          "word": "prefer",
+          "pos": "v.",
+          "definition": "to like something better than another",
+          "example": "Do you prefer hot or cold weather?"
+        },
+        {
+          "word": "occupation",
+          "pos": "n.",
+          "definition": "a job",
+          "example": "Would you let me know your occupation?"
+        },
+        {
+          "word": "unusual",
+          "pos": "adj.",
+          "definition": "different from others",
+          "example": "I was actually on time, which is unusual for me."
+        },
+        {
+          "word": "excite",
+          "pos": "v.",
+          "definition": "to make someone have strong feelings of happiness and enthusiasm",
+          "example": "Nothing about my life excites me at present."
+        },
+        {
+          "word": "release",
+          "pos": "v.",
+          "definition": "to let the public have news or information about something",
+          "example": "Police have released a picture of the man they want to question."
+        },
+        {
+          "word": "rank",
+          "pos": "n.",
+          "definition": "a position in society or in an organization",
+          "example": "Having a large income is one of the advantages of rank."
+        },
+        {
+          "word": "suggest",
+          "pos": "v.",
+          "definition": "to mention an idea, possible plan, or action for other people to consider",
+          "example": "I suggested an Italian restaurant near the station for the party."
+        },
+        {
+          "word": "quality",
+          "pos": "n.",
+          "definition": "how good or bad something is",
+          "example": "This floor is made of high quality wood."
+        },
+        {
+          "word": "check",
+          "pos": "v.",
+          "definition": "to look at something to make sure that it is right or safe",
+          "example": "I checked my answers for mistakes."
+        },
+        {
+          "word": "taste bud",
+          "pos": "n.",
+          "definition": "part of tongue that recognizes flavor",
+          "example": "Our taste buds work together with our noses to allow us to taste food."
+        },
+        {
+          "word": "assurance",
+          "pos": "n.",
+          "definition": "a promise",
+          "example": "I have full assurance of her success."
+        }
+      ]
+    },
+    {
+      "number": 16,
+      "title": "Changing Careers",
+      "words": [
+        {
+          "word": "bored",
+          "pos": "adj.",
+          "definition": "feeling tired and not interested",
+          "example": "He was getting bored of doing the same thing every day."
+        },
+        {
+          "word": "accountant",
+          "pos": "n.",
+          "definition": "a person who keeps records of money as a job",
+          "example": "My accountant prepares my tax returns every year."
+        },
+        {
+          "word": "oddly",
+          "pos": "adv.",
+          "definition": "in a strange or surprising way",
+          "example": "Didn't you think she was behaving very oddly at the party yesterday?"
+        },
+        {
+          "word": "dive",
+          "pos": "v.",
+          "definition": "to go underwater",
+          "example": "Mark dive off the bridge into the river."
+        },
+        {
+          "word": "sewer",
+          "pos": "n.",
+          "definition": "a set of pipes that are usually underground that get rid of dirty water and waste",
+          "example": "That's the sewer system of the whole building."
+        },
+        {
+          "word": "block",
+          "pos": "v.",
+          "definition": "to keep people or things from passing",
+          "example": "A fallen tree is blocking the road."
+        },
+        {
+          "word": "flood",
+          "pos": "v.",
+          "definition": "to become covered with water",
+          "example": "The whole town flooded when the river burst its banks."
+        },
+        {
+          "word": "pipe",
+          "pos": "n.",
+          "definition": "a long tube that liquid or gas can move through",
+          "example": "Pipe builders put oil pipes across Alaska."
+        },
+        {
+          "word": "garbage",
+          "pos": "n.",
+          "definition": "waste material or unwanted things that you throw away",
+          "example": "She threw the cheese in the garbage."
+        },
+        {
+          "word": "terrible",
+          "pos": "adj.",
+          "definition": "very unpleasant or serious or of low quality",
+          "example": "The weather was terrible."
+        },
+        {
+          "word": "disagree",
+          "pos": "v.",
+          "definition": "to not have the same opinion, idea",
+          "example": "I'm afraid I have to disagree with you"
+        },
+        {
+          "word": "without",
+          "pos": "adv.",
+          "definition": "not having or doing something",
+          "example": "I left without my umbrella."
+        },
+        {
+          "word": "street",
+          "pos": "n.",
+          "definition": "a road in a town or city that has houses or other buildings",
+          "example": "Diane's house is in Cherry Street."
+        },
+        {
+          "word": "glad",
+          "pos": "adj.",
+          "definition": "happy",
+          "example": "We were glad about her success."
+        },
+        {
+          "word": "scuba diver",
+          "pos": "n.",
+          "definition": "someone who swims underwater using special breathing equipment",
+          "example": "Some scuba divers found a new fish in Indonesia."
+        }
+      ]
+    }
+  ]
+}

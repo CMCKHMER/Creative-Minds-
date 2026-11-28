@@ -1,0 +1,217 @@
+{
+  "book": "Reading Future Change 3",
+  "tests": [
+    {
+      "number": 1,
+      "title": "Review Test 1",
+      "unitsLabel": "Units 1–4",
+      "wordBank": ["prepared", "tastes", "boiled", "celebrates", "during"],
+      "fillIns": [
+        { "number": 1, "prompt": "Street food is ___ and sold on the street.", "answer": "prepared" },
+        { "number": 2, "prompt": "A festival is a big event that ___ a holiday.", "answer": "celebrates" },
+        { "number": 3, "prompt": "This ice cream ___ like roses.", "answer": "tastes" }
+      ],
+      "vocabularyChoices": [
+        { "number": 4, "prompt": "___ have seven different colors.", "choices": ["Rainbows", "Clovers", "Tourists"], "answer": 0 },
+        { "number": 5, "prompt": "Tim Tams are an Australian snack that ___ chocolate and cookies.", "choices": ["fries", "isolates", "consists of"], "answer": 2 }
+      ],
+      "reading": {
+        "passage": "Some western people think that clovers with four leaves are lucky. ① Four-leaf clovers are not as common as three-leaf clovers, so finding a four-leaf clover is a good sign. The number seven is thought to represent wholeness in some western cultures. ② The number seven is in many things that are whole. Some people think it’s good to see this number. ③",
+        "questions": [
+          { "number": 6, "prompt": "What is the passage mainly about?", "choices": ["The four-leaf clover is hard to find.", "The number seven represents wholeness.", "Things that bring good luck."], "answer": 2 },
+          { "number": 7, "prompt": "Which is NOT true about the passage?", "choices": ["There are more four-leaf clovers than three-leaf clovers.", "Finding a four-leaf clover is a good sign.", "People think four-leaf clovers bring luck."], "answer": 0 },
+          { "number": 8, "type": "sentence-location", "prompt": "What is the best place for the sentence below?", "sentence": "They say that the leaves represent wealth, hope, love, and luck.", "choices": ["①", "②", "③"], "answer": 0 }
+        ]
+      },
+      "cloze": {
+        "passage": "There are many {{1}} of using smartphones, but there are also disadvantages. We can {{2}} our phones so much that we feel lost when we don’t have them. Sometimes we don’t pay attention to people who are next to us and trying to communicate. We can also cause accidents by talking or texting while using {{3}}.",
+        "gaps": [
+          { "number": 1, "choices": ["wealth", "superstitions", "advantages"], "answer": "advantages" },
+          { "number": 2, "choices": ["throw", "pay attention", "rely on"], "answer": "rely on" },
+          { "number": 3, "choices": ["transportation", "entertainment", "parade"], "answer": "transportation" }
+        ],
+        "questions": [
+          { "number": 9, "prompt": "How do some people feel without their smartphones?", "choices": ["Lost", "Glad", "Positive"], "answer": 0 },
+          { "number": 10, "prompt": "How can mobile phones cause accidents?", "choices": ["Using directions", "Connecting people", "Talking or texting while driving"], "answer": 2 }
+        ]
+      },
+      "writtenGroups": [
+        {
+          "label": "Questions 12–13",
+          "passage": "While traveling, look for street sellers when you get hungry. You will enjoy cheap and delicious food. If you are in the Philippines, look for halo-halo, which means mix-mix. It is a famous cold dessert with shaved ice and sweet milk. It is a mix of boiled sweet beans, fresh fruit, and ice cream. ①",
+          "questions": [
+            { "number": 12, "type": "short-answer", "prompt": "What is the famous cold dessert in the Philippines called?", "model": "Halo-halo.", "accepted": ["halo halo"] },
+            { "number": 13, "type": "unscramble", "prompt": "Unscramble sentence ①.", "chunks": ["in a", "It", "tall glass", "or bowl", "usually served", "is"], "answer": ["It", "is", "usually served", "in a", "tall glass", "or bowl"], "model": "It is usually served in a tall glass or bowl." }
+          ]
+        },
+        {
+          "label": "Questions 14–15",
+          "passage": "The world is full of interesting festivals. La Tomatino is a messy festival in Spain. It is held on the last Wednesday in August. About thirty thousand people come to the festival. Trucks bring lots of tomatoes for people to throw at each other. The tomato fight continues for one or two hours.",
+          "questions": [
+            { "number": 14, "type": "short-answer", "prompt": "Why is La Tomatino messy?", "model": "People throw lots of tomatoes at each other.", "accepted": ["throw lots of tomatoes at each other", "throw tomatoes at each other", "tomatoes at each other"] },
+            { "number": 15, "type": "short-answer", "prompt": "When is La Tomatino?", "model": "On the last Wednesday in August.", "accepted": ["last wednesday in august"] }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Review Test 2",
+      "unitsLabel": "Units 5–8",
+      "wordBank": ["protein", "disgusting", "hunt", "detect", "speed"],
+      "fillIns": [
+        { "number": 1, "prompt": "Many people think cockroaches are ___.", "answer": "disgusting" },
+        { "number": 2, "prompt": "In order to be healthy, you must eat some ___ every day.", "answer": "protein" },
+        { "number": 3, "prompt": "Owls ___ for food at night.", "answer": "hunt" }
+      ],
+      "vocabularyChoices": [
+        { "number": 4, "prompt": "Over time, animals have had to change to survive in their ___.", "choices": ["source", "surroundings", "conditions"], "answer": 1 },
+        { "number": 5, "prompt": "Seats are ___, so buy your tickets soon.", "choices": ["limited", "capable", "harsh"], "answer": 0 }
+      ],
+      "reading": {
+        "passage": "Many animals have developed ways to protect themselves from enemies, including speed, camouflage, and other defenses. ① One of the most interesting animal defenses is the quills that are all over a porcupine’s body. A porcupine can transform to protect itself. ② The quills can stick into a nearby enemy, causing pain. The porcupine’s quills are an amazing example of self-protection. ③",
+        "questions": [
+          { "number": 6, "prompt": "What is the passage mainly about?", "choices": ["What quills are made of", "How porcupines protect themselves", "Why porcupines have many enemies"], "answer": 1 },
+          { "number": 7, "prompt": "Which is NOT true about the passage?", "choices": ["The quills can stick into an enemy.", "The quills can cause pain.", "The quills are only on the tail."], "answer": 2 },
+          { "number": 8, "type": "sentence-location", "prompt": "What is the best place for the sentence below?", "sentence": "When a porcupine is in danger, it puts its quills up and swings its tail.", "choices": ["①", "②", "③"], "answer": 1 }
+        ]
+      },
+      "cloze": {
+        "passage": "Since penguins usually live in Antarctica, they migrate in April. They migrate to escape the long hours of darkness. It is hard for penguins to find food in the {{1}}. Therefore, they swim hundreds of kilometers north where winter days are a little longer and they have more time to find food. They live on {{2}} for a few months until spring returns to Antarctica, and then they swim back. To recognize these special birds, people have {{3}} April 25th to be World Penguin Day.",
+        "gaps": [
+          { "number": 1, "choices": ["dark", "speed", "enemy"], "answer": "dark" },
+          { "number": 2, "choices": ["mushrooms", "icebergs", "survivors"], "answer": "icebergs" },
+          { "number": 3, "choices": ["raised", "confused", "declared"], "answer": "declared" }
+        ],
+        "questions": [
+          { "number": 9, "prompt": "Why do penguins migrate?", "choices": ["To go somewhere warmer", "To go somewhere cold", "To go somewhere with more light"], "answer": 2 },
+          { "number": 10, "prompt": "Why is World Penguin Day on April 25th?", "choices": ["Because penguins migrate every April", "Because penguins live on icebergs", "Because penguins need food"], "answer": 0 }
+        ]
+      },
+      "writtenGroups": [
+        {
+          "label": "Questions 12–13",
+          "passage": "Insects are a traditional food in many places and some people think they could be a good way to make enough food for everyone. Insects are full of protein, so they are healthy for the human body. They are small and easy to transport, so they are great as a snack. Insects are found almost everywhere and are easy to raise. Farms for insects are easier to maintain than farm animals or vegetables. ①",
+          "questions": [
+            { "number": 12, "type": "short-answer", "prompt": "Why are insects healthy for humans?", "model": "Insects are full of protein.", "accepted": ["full of protein", "contain protein", "rich in protein"] },
+            { "number": 13, "type": "unscramble", "prompt": "Unscramble sentence ①.", "chunks": ["a lot of", "farms", "don’t", "room", "Insect", "take up"], "answer": ["Insect", "farms", "don’t", "take up", "a lot of", "room"], "model": "Insect farms don’t take up a lot of room." }
+          ]
+        },
+        {
+          "label": "Questions 14–15",
+          "passage": "Cockroaches are great survivors. They can live up to a week without their heads. These amazing insects can last a month without eating. They can also avoid dangerous situations easily. They have special hairs on the bottom of their bodies that detect movements. However, they do have one weakness. For some reason, they can’t sense vacuum cleaners. The shaking movement from this machine confuses them. They rush right into them.",
+          "questions": [
+            { "number": 14, "type": "short-answer", "prompt": "What is the cockroach’s weakness?", "model": "It can’t sense vacuum cleaners.", "accepted": ["can't sense vacuum cleaners", "cannot sense vacuum cleaners", "doesn't sense vacuum cleaners"] },
+            { "number": 15, "type": "short-answer", "prompt": "What happens to the cockroach when a vacuum cleaner is turned on?", "model": "The shaking movement confuses it, and it rushes into the vacuum cleaner.", "accepted": ["rush right into them", "rush into the vacuum", "rush into the vacuum cleaner", "shaking movement confuses"] }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Review Test 3",
+      "unitsLabel": "Units 9–12",
+      "wordBank": ["approved", "troubled", "therapy", "relax", "melody"],
+      "fillIns": [
+        { "number": 1, "prompt": "I listen to music when I need to ___ after a long day of work.", "answer": "relax" },
+        { "number": 2, "prompt": "Mike likes this song because it has a beautiful ___.", "answer": "melody" },
+        { "number": 3, "prompt": "Trained music therapists study in a(n) ___ program.", "answer": "approved" }
+      ],
+      "vocabularyChoices": [
+        { "number": 4, "prompt": "Annie composes her own music and sells her ___ in stores.", "choices": ["albums", "behavior", "rhythm"], "answer": 0 },
+        { "number": 5, "prompt": "Michael Jordon is famous for his ___ to basketball.", "choices": ["rights", "contributions", "careers"], "answer": 1 }
+      ],
+      "reading": {
+        "passage": "Sam Cooke is often called the King of Soul. He was a musical pioneer. ① He was in a singing group with his siblings. By the age of fourteen, he became the leader of another singing group. ② By age thirty-three, Cooke was one of the most popular singers in the U.S. He was one of the first black musical artists to manage the business side of his musical career. He founded a record label and a publishing company. ③ Cooke’s work also helped some of the world’s most famous soul artists, including Aretha Franklin, Stevie Wonder, and James Brown.",
+        "questions": [
+          { "number": 6, "prompt": "What is the passage mainly about?", "choices": ["Some of the world’s famous singers", "The story of the King of Soul", "An amazing album"], "answer": 1 },
+          { "number": 7, "prompt": "Which is NOT true about the passage?", "choices": ["Sam Cooke managed his own musical career.", "Sam Cooke helped other famous artists.", "Sam Cooke started his career alone."], "answer": 2 },
+          { "number": 8, "type": "sentence-location", "prompt": "What is the best place for the sentence below?", "sentence": "He started his singing career at age six.", "choices": ["①", "②", "③"], "answer": 0 }
+        ]
+      },
+      "cloze": {
+        "passage": "AI can create classical music. It copies human learning, and this allows it to understand the art of composing music. First, the AI composer {{1}} to famous composers such as Bach. Then it {{2}} its own classical melodies. It can create and write a piece of music in minutes. One AI composer is registered as a composer. It has an album and also has customers. Its musical pieces can be heard in movies, TV {{3}}, and video games. It has rights for its music just like a human composer does.",
+        "gaps": [
+          { "number": 1, "choices": ["sails", "listens", "approves"], "answer": "listens" },
+          { "number": 2, "choices": ["registers", "composes", "founds"], "answer": "composes" },
+          { "number": 3, "choices": ["biographers", "patients", "advertisements"], "answer": "advertisements" }
+        ],
+        "questions": [
+          { "number": 9, "prompt": "What does the AI composer first do when composing music?", "choices": ["Composes its own classical music", "Sells its music to customers", "Listens to famous composers"], "answer": 2 },
+          { "number": 10, "prompt": "What do human composers have?", "choices": ["Video games", "Artificial intelligence", "Rights to their music"], "answer": 2 }
+        ]
+      },
+      "writtenGroups": [
+        {
+          "label": "Questions 12–13",
+          "passage": "① ________________. People have regular therapy each week or month. They listen to music as they relax or do an activity. Therapists think about the rhythm and tone of the music to make sure it is right for each individual patient. In some kinds of music therapy, patients actually make their own music. In other kinds, patients dance or move around to music.",
+          "questions": [
+            { "number": 12, "type": "short-answer", "prompt": "What do patients do while they listen to music?", "model": "They relax or do an activity while they listen.", "accepted": ["relax", "do an activity", "relax or do an activity"] },
+            { "number": 13, "type": "unscramble", "prompt": "Unscramble sentence ①.", "chunks": ["better", "many people", "helps", "Music", "feel", "therapy"], "answer": ["Music", "therapy", "helps", "many people", "feel", "better"], "model": "Music therapy helps many people feel better." }
+          ]
+        },
+        {
+          "label": "Questions 14–15",
+          "passage": "It is hard to think of jazz music and not think of Louis Armstrong. When he was young, he learned the trumpet. He was naturally talented and began playing on steamboats. At first, Armstrong was famous for his fantastic trumpet playing, but later he became known for his unique voice. Sometimes, Louis would improvise. This was new to the music world. Once, in the middle of a song, he dropped his lyrics on the floor, but he continued singing by making up sounds in time to the music. This is now called “scat singing.”",
+          "questions": [
+            { "number": 14, "type": "short-answer", "prompt": "What was Louis Armstrong naturally talented at?", "model": "Playing the trumpet.", "accepted": ["playing the trumpet", "trumpet playing", "the trumpet"] },
+            { "number": 15, "type": "short-answer", "prompt": "What is “scat singing”?", "model": "Making up sounds in time to the music.", "accepted": ["making up sounds in time", "making up sounds to the music", "sounds in time to the music"] }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Review Test 4",
+      "unitsLabel": "Units 13–16",
+      "wordBank": ["taste buds", "instructions", "quality", "options", "society"],
+      "fillIns": [
+        { "number": 1, "prompt": "Coding is a way of writing ___ for computers.", "answer": "instructions" },
+        { "number": 2, "prompt": "People with good ___ can become taste testers.", "answer": "taste buds" },
+        { "number": 3, "prompt": "You can choose from two ___: go home or stay at school.", "answer": "options" }
+      ],
+      "vocabularyChoices": [
+        { "number": 4, "prompt": "Can you ___ answers after I finish the exam?", "choices": ["block", "check", "dive"], "answer": 1 },
+        { "number": 5, "prompt": "I have never seen this ___ animal before.", "choices": ["secure", "familiar", "unusual"], "answer": 2 }
+      ],
+      "reading": {
+        "passage": "Carlos Barrios was an accountant. One day he got bored with his job and made a change. He became a scuba diver. ① He dives in the sewer system of Mexico City. When the pipes get blocked, the city calls Carlos. ② He swims through a mix of water, garbage, and sewage. He finds the problem and removes whatever is blocking the pipe. ③ Many people would consider this job a terrible one, but Carlos disagrees.",
+        "questions": [
+          { "number": 6, "prompt": "What is the passage mainly about?", "choices": ["Many people would never swim in the sewer system.", "Carlos Barrios’ job is to dive and fix the sewer system.", "The city pays Carlos Barrios a lot of money to work."], "answer": 1 },
+          { "number": 7, "prompt": "Which is NOT true about the passage?", "choices": ["Carlos Barrios swims in water, garbage, and sewage.", "Carlos Barrios got bored being an accountant.", "Carlos Barrios thinks his job is terrible."], "answer": 2 },
+          { "number": 8, "type": "sentence-location", "prompt": "What is the best place for the sentence below?", "sentence": "Oddly, Carlos does not dive in the ocean.", "choices": ["①", "②", "③"], "answer": 0 }
+        ]
+      },
+      "cloze": {
+        "passage": "Here are a few things to {{1}} when choosing a career. First, think about what you enjoy. Next, think about any special {{2}} you have. If you are good at sports, athletes have exciting careers. After that, you must consider your {{3}}. You should think about the time of day you work. Most people work during the daytime, but some careers have nighttime hours. You should also think about how much time it will take to commute. Some companies could be located far from your home.",
+        "gaps": [
+          { "number": 1, "choices": ["prefer", "consider", "suit"], "answer": "consider" },
+          { "number": 2, "choices": ["occupations", "aims", "skills"], "answer": "skills" },
+          { "number": 3, "choices": ["lifestyle", "architecture", "labor"], "answer": "lifestyle" }
+        ],
+        "questions": [
+          { "number": 9, "prompt": "What should you think about after you think about your special skills?", "choices": ["What you enjoy", "Your lifestyle", "Who to talk to"], "answer": 1 },
+          { "number": 10, "prompt": "Why should you think about the commute?", "choices": ["Some companies are far away.", "Transportation is expensive.", "It is hard to drive early in the morning."], "answer": 0 }
+        ]
+      },
+      "writtenGroups": [
+        {
+          "label": "Questions 12–13",
+          "passage": "① But some people might prefer a different kind of occupation. Deodorant helps people to smell good and is used by many people around the world. People who work in quality assurance must check that the product works well. They ask other people to put the deodorant under their arms. Later, a quality assurance worker checks to see how well the deodorant is working.",
+          "questions": [
+            { "number": 12, "type": "short-answer", "prompt": "What do people in quality assurance do?", "model": "They check whether the deodorant works well, including asking people to test it.", "accepted": ["check that the product works well", "check how well the deodorant is working", "ask other people to put the deodorant under their arms", "test the deodorant"] },
+            { "number": 13, "type": "unscramble", "prompt": "Unscramble sentence ①.", "chunks": ["all around", "see", "We", "jobs", "us", "common"], "answer": ["We", "see", "common", "jobs", "all around", "us"], "model": "We see common jobs all around us." }
+          ]
+        },
+        {
+          "label": "Questions 14–15",
+          "passage": "In the past, many jobs required labor. For example, a lot of jobs were in factories. But today, machines and robots are replacing people’s labor jobs. So people need to find new jobs. The work that needs to be done now is different than in the past because digital technology is more important now. Coding is a new kind of skill that is needed in the future. It is needed for making web pages, apps, and computer software. Many businesses need coders to keep their websites safe and secure.",
+          "questions": [
+            { "number": 14, "type": "short-answer", "prompt": "What is replacing labor jobs?", "model": "Machines and robots.", "accepted": ["machines and robots", "robots and machines"] },
+            { "number": 15, "type": "short-answer", "prompt": "Why do businesses need coders?", "model": "To keep their websites safe and secure.", "accepted": ["keep their websites safe and secure", "keep websites safe and secure", "websites safe and secure"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

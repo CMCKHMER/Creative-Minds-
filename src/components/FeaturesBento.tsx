@@ -210,7 +210,7 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
                 Kid Program Grade Path
               </h3>
               <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                Explore Reading Future worksheets for Kid 6 (Connect 2), Kid 7 (Change 1), Kid 8 (Change 3), and Kid 11 (Create 3).
+                Explore Reading Future materials for Kid 6 (Connect 2), Kid 7 (Change 1), Kid 8 (Change 3 Word List, Dictation, Unscramble, and Review Tests), and Kid 11 (Create 3).
               </p>
 
               <div className="flex flex-wrap gap-2 text-[11px]">

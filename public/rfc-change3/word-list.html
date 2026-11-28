@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070f">
+  <title>Reading Future Change 3 — Word List</title>
+  <script src="../assets/js/cmc-auth-gate.js"></script>
+  <link rel="stylesheet" href="./live-worksheet.css">
+</head>
+<body data-sheet-type="wordlist">
+  <script>CMC_GATE.guard('account', 'Sign up free to open this worksheet.');</script>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <a class="back-button" href="../#kid-grades" aria-label="Back to Kid Program grade cards"><span aria-hidden="true">←</span> Back to Kid cards</a>
+  <div class="page-shell">
+    <div class="sponsor-banner"><img src="../images/aii-language-center-logo-print.png" alt="Aii Language Center · A Mengly J. Quach Education School"></div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-dot" aria-hidden="true"></span>Creative Minds · Worksuite</div>
+      <div class="live-pill"><span class="live-dot" aria-hidden="true"></span>Live Word List</div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light theme">☀️ Light</button>
+    </header>
+    <nav class="sheet-nav" aria-label="Reading Future Change 3 materials">
+      <a class="active" href="./word-list.html" aria-current="page">Word List</a>
+      <a href="./dictation.html">Dictation</a>
+      <a href="./unscramble.html">Unscramble</a>
+      <a href="./review-tests.html">Review Tests</a>
+    </nav>
+    <section class="hero">
+      <span class="eyebrow">Reading Future · Change 3 · Word List</span>
+      <h1>Every unit. Every word.<br><span class="gradient">One live reference.</span></h1>
+      <p class="hero-copy">Review the vocabulary from all 16 units, with parts of speech, English definitions, and sample sentences transcribed from the supplied Word List. Choose a unit, search its entries, or print the selected list.</p>
+    </section>
+    <section class="profile-grid" aria-label="Student and unit details">
+      <div class="field"><label for="studentName">Student name</label><input id="studentName" type="text" maxlength="60" autocomplete="name" placeholder="Enter your name"></div>
+      <div class="field"><label for="dateField">Date</label><input id="dateField" type="date"></div>
+      <div class="field"><label for="unitSelect">Choose a unit</label><select id="unitSelect"><option value="">Loading units…</option></select></div>
+    </section>
+    <main class="content" id="content" aria-live="polite">
+      <div class="placeholder"><span class="placeholder-mark" aria-hidden="true">❖</span><p>Loading the 16 vocabulary lists…</p></div>
+    </main>
+    <div class="share-panel" id="sharePanel"><button class="share-copy" id="copyShareLink" type="button">Copy link to this unit</button></div>
+    <footer class="footer"><span>Reading Future Change 3 · Word List</span><span>16 units · 243 vocabulary entries</span></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./change3-extra.js"></script>
+  <script src="./word-list.js"></script>
+</body>
+</html>
