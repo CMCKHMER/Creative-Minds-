@@ -508,6 +508,11 @@
   pointer-events: none;
 }
 
+/* Local canvas stage for section headings that borrow the hero's pointer
+   dispersion. The source letters stay in the DOM for accessibility. */
+.cmc-title-particle-stage { position: relative; }
+.cmc-heading-particles-active { opacity: 0 !important; }
+
 .cmc-title-solid,
 .cmc-title-outline {
   transition: opacity 450ms ease-out, transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
