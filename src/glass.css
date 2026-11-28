@@ -11,8 +11,8 @@
    specificity they win over index.css and over every Tailwind utility.
 
    Two versions of the same design:
-     light (html.light)   warm bright learning studio, pale glass
-     dark  (html:not(.light)) forest-charcoal canvas, smoked glass
+     light (html.light)   clean white surfaces with muted antique gold
+     dark  (html:not(.light)) midnight navy canvas with steel-blue glass
    The app now opens in the bright studio by default; dark remains available
    from the theme toggle.
    ============================================================ */
@@ -20,56 +20,56 @@
 :root {
   --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* Tailwind slate utilities are the site-wide neutral surfaces. Shift them
-     from blue-slate to a quiet green-charcoal so dark mode is not navy. */
-  --color-slate-50: #f7f8f1;
-  --color-slate-100: #edf0e8;
-  --color-slate-200: #dce2d7;
-  --color-slate-300: #c4cebf;
-  --color-slate-400: #9ba997;
-  --color-slate-500: #7a8878;
-  --color-slate-600: #5e6b5d;
-  --color-slate-700: #414b40;
-  --color-slate-800: #2d352c;
-  --color-slate-900: #20261f;
-  --color-slate-950: #171b17;
+  /* Slate utilities and shared glass tokens use the requested steel-blue and
+     midnight-navy palette, warmed by the reference board's stone-gold. */
+  --color-slate-50: #f7f7f4;
+  --color-slate-100: #e0e1dd;
+  --color-slate-200: #d2d2ca;
+  --color-slate-300: #b3af8f;
+  --color-slate-400: #8f927f;
+  --color-slate-500: #66768a;
+  --color-slate-600: #415a77;
+  --color-slate-700: #33465f;
+  --color-slate-800: #1b263b;
+  --color-slate-900: #132033;
+  --color-slate-950: #0d1b2a;
 
-  --g-ink: #f2f4ec;              /* headings */
-  --g-body: #c8d0c3;             /* running text */
-  --g-mute: #98a595;             /* captions */
-  --g-page: #171b17;             /* neutral forest-charcoal canvas */
-  --g-page-2: #20261f;
-  --g-pane: rgba(25, 31, 25, 0.82);            /* the big frosted pane */
-  --g-glass: rgba(177, 193, 151, 0.075);       /* cards */
-  --g-glass-2: rgba(177, 193, 151, 0.13);      /* cards, raised / hovered */
-  --g-line: rgba(188, 205, 166, 0.18);         /* glass edge */
-  --g-line-2: rgba(124, 197, 153, 0.48);       /* glass edge, lit */
+  --g-ink: #e0e1dd;              /* headings */
+  --g-body: #d2d2ca;             /* running text */
+  --g-mute: #b3af8f;              /* captions */
+  --g-page: #0d1b2a;             /* midnight-navy canvas */
+  --g-page-2: #1b263b;
+  --g-pane: rgba(27, 38, 59, 0.84);            /* the big frosted pane */
+  --g-glass: rgba(65, 90, 119, 0.16);          /* cards */
+  --g-glass-2: rgba(65, 90, 119, 0.28);        /* cards, raised / hovered */
+  --g-line: rgba(179, 175, 143, 0.2);         /* glass edge */
+  --g-line-2: rgba(179, 175, 143, 0.52);      /* glass edge, lit */
   --g-shadow: 0 44px 80px -48px rgba(0, 0, 0, 0.72);
-  --g-accent: #83c9a1;           /* soft green for active learning states */
-  --g-accent-deep: #2c745b;      /* deep teal for selected controls */
-  --g-warm: #f0c45b;             /* sunshine for progress and achievements */
-  --g-pill: #f4d06c;             /* main button */
-  --g-pill-ink: #10151d;
+  --g-accent: #7893b0;           /* steel blue */
+  --g-accent-deep: #415a77;      /* selected blue controls */
+  --g-warm: #b3af8f;             /* stone gold */
+  --g-pill: #b3af8f;             /* main button */
+  --g-pill-ink: #0d1b2a;
   --g-blur: 22px;
 }
 
 html.light {
-  --g-ink: #183446;
-  --g-body: #465f6b;
-  --g-mute: #71858b;
-  --g-page: #f4f7f2;
-  --g-page-2: #eaf3f2;
-  --g-pane: rgba(251, 253, 248, 0.76);
-  --g-glass: rgba(255, 255, 255, 0.72);
-  --g-glass-2: rgba(255, 255, 255, 0.92);
-  --g-line: rgba(42, 113, 129, 0.16);
-  --g-line-2: rgba(20, 145, 166, 0.42);
-  --g-shadow: 0 36px 72px -48px rgba(35, 75, 81, 0.24);
-  --g-accent: #168eb6;
-  --g-accent-deep: #146f88;
-  --g-warm: #d99d24;
-  --g-pill: #f7cc63;
-  --g-pill-ink: #19384a;
+  --g-ink: #1b263b;
+  --g-body: #33465f;
+  --g-mute: #6f6c58;
+  --g-page: #ffffff;
+  --g-page-2: #fbfaf6;
+  --g-pane: rgba(255, 255, 255, 0.88);
+  --g-glass: rgba(255, 255, 255, 0.82);
+  --g-glass-2: rgba(255, 255, 255, 0.96);
+  --g-line: rgba(179, 175, 143, 0.32);
+  --g-line-2: rgba(151, 140, 91, 0.58);
+  --g-shadow: 0 36px 72px -48px rgba(27, 38, 59, 0.16);
+  --g-accent: #8b8057;
+  --g-accent-deep: #6f6544;
+  --g-warm: #b3af8f;
+  --g-pill: #b3af8f;
+  --g-pill-ink: #0d1b2a;
 }
 
 /* ---- mission-control accents: electric cyan for active tools, gold for
@@ -148,27 +148,27 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(56vmax 44vmax at 88% 8%, rgba(96, 164, 123, 0.14), transparent 64%),
-    radial-gradient(48vmax 40vmax at 84% 90%, rgba(240, 196, 91, 0.09), transparent 64%),
-    radial-gradient(44vmax 40vmax at 4% 34%, rgba(105, 129, 86, 0.12), transparent 64%),
-    radial-gradient(circle, rgba(190, 205, 166, 0.11) 0.8px, transparent 1px) 0 0 / 32px 32px,
-    linear-gradient(165deg, var(--g-page-2) 0%, var(--g-page) 55%, #101410 100%);
+    radial-gradient(56vmax 44vmax at 88% 8%, rgba(65, 90, 119, 0.26), transparent 64%),
+    radial-gradient(48vmax 40vmax at 84% 90%, rgba(179, 175, 143, 0.11), transparent 64%),
+    radial-gradient(44vmax 40vmax at 4% 34%, rgba(27, 38, 59, 0.48), transparent 64%),
+    radial-gradient(circle, rgba(224, 225, 221, 0.09) 0.8px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(165deg, var(--g-page-2) 0%, var(--g-page) 55%, #091522 100%);
 }
 html.light body::before {
   background:
-    radial-gradient(58vmax 42vmax at 88% 7%, rgba(87, 190, 218, 0.19), transparent 66%),
-    radial-gradient(50vmax 40vmax at 78% 96%, rgba(247, 204, 99, 0.23), transparent 64%),
-    radial-gradient(52vmax 48vmax at 4% 30%, rgba(255, 255, 255, 0.9), transparent 64%),
-    radial-gradient(circle, rgba(44, 130, 139, 0.08) 0.8px, transparent 1px) 0 0 / 34px 34px,
-    linear-gradient(165deg, #fbfcf7 0%, var(--g-page) 54%, #e6f0ed 100%);
+    radial-gradient(58vmax 42vmax at 88% 7%, rgba(179, 175, 143, 0.17), transparent 66%),
+    radial-gradient(50vmax 40vmax at 78% 96%, rgba(179, 175, 143, 0.22), transparent 64%),
+    radial-gradient(52vmax 48vmax at 4% 30%, rgba(255, 255, 255, 0.96), transparent 64%),
+    radial-gradient(circle, rgba(179, 175, 143, 0.08) 0.8px, transparent 1px) 0 0 / 34px 34px,
+    linear-gradient(165deg, #ffffff 0%, var(--g-page) 54%, #f6f3e8 100%);
 }
 .cmc-app.bg-slate-950,
 html.light .cmc-app.bg-slate-950 { background-color: transparent; }
 
-::-webkit-scrollbar-track { background: #171b17; }
-::-webkit-scrollbar-thumb { background: #3b4438; }
-html.light ::-webkit-scrollbar-track { background: #e5eeea; }
-html.light ::-webkit-scrollbar-thumb { background: #8aa9aa; }
+::-webkit-scrollbar-track { background: #0d1b2a; }
+::-webkit-scrollbar-thumb { background: #415a77; }
+html.light ::-webkit-scrollbar-track { background: #ffffff; }
+html.light ::-webkit-scrollbar-thumb { background: #b3af8f; }
 ::selection { background: var(--g-accent-deep); color: #fff; }
 
 /* ---- lettering: lighter and calmer ---- */
@@ -426,7 +426,7 @@ html.light [data-keep-dark] .cmc-stat-num {
 
 /* ---- top bar and menu ---- */
 .cmc-topbar {
-  background-image: linear-gradient(90deg, #305b49, #2e8069 45%, #70a77a 76%, #d7ad48);
+  background-image: linear-gradient(90deg, #0d1b2a, #1b263b 42%, #415a77 74%, #b3af8f);
   letter-spacing: 0.01em;
 }
 .cmc-nav,
