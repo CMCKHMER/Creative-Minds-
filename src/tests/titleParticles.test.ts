@@ -344,10 +344,21 @@ describe('how the effect is wired into the page', () => {
     // the glass theme (src/glass.css, loaded after index.css) sets the gradient text
     const glass = readFileSync('src/glass.css', 'utf8');
     const dark = glass.match(/\n\.cmc-gradient-text\s*\{([^}]*)\}/)![1];
-    const light = glass.match(/\nhtml\.light \.cmc-gradient-text\s*\{([^}]*)\}/)![1];
+    const light = glass.match(/\nhtml\.light \[data-keep-dark\] \.cmc-gradient-text,\nhtml\.light \.cmc-gradient-text\s*\{([^}]*)\}/)![1];
     const pick = (name: string) => JSON.parse(planner.match(new RegExp(`${name}: (\\[\\[.*?\\]\\]),`))![1].replace(/'/g, '"'));
     expect(pick('dark')).toEqual(stops(dark));
     expect(pick('light')).toEqual(stops(light));
+  });
+
+  it('fills every main section heading with white and gold dots', () => {
+    const glass = readFileSync('src/glass.css', 'utf8');
+    const headingTargets = [
+      '.cmc-title-solid', '.cmc-section h2', '.cmc-page-body h2', '.cmc-directory-title',
+      '.cmc-directory-group-head h3', '.cmc-page-more h3', '.cmc-board-title',
+    ];
+    for (const target of headingTargets) expect(glass).toContain(target);
+    expect(glass).toContain('radial-gradient(circle, #ffffff 0 1.2px, transparent 1.45px)');
+    expect(glass).toContain('radial-gradient(circle, #f2c66d 0 1.2px, transparent 1.45px)');
   });
 
   it('the canvas can never swallow a click on the hero buttons', () => {

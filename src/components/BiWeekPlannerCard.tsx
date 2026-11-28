@@ -6,11 +6,10 @@ import { smallTitleSpacing, type DotGradient } from '../lib/titleParticlesMath';
 
 const PLANNER_URL = './biweek-planner/';
 
-// Dot colours for the heading's second line — the same stops as
-// .cmc-gradient-text in src/glass.css (dark page / light page).
+// White-and-gold dots, matching the section-heading palette in glass.css.
 const HEADING_DOTS: { dark: DotGradient; light: DotGradient } = {
-  dark: [[0, '#dfe6ff'], [0.45, '#a9baff'], [1, '#f3c296']],
-  light: [[0, '#2433c9'], [0.45, '#5a4be0'], [1, '#b3643c']],
+  dark: [[0, '#ffffff'], [0.5, '#f2c66d'], [1, '#ffffff']],
+  light: [[0, '#ffffff'], [0.5, '#f2c66d'], [1, '#ffffff']],
 };
 
 const sections = [

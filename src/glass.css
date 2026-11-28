@@ -182,25 +182,45 @@ html.light .cmc-eyebrow {
 }
 .cmc-eyebrow > span[aria-hidden='true'] { background: currentColor; opacity: 0.6; }
 
-/* the coloured half of a heading: the spheres' blue running into the warm
-   light leak. Same stops as the dot titles (BiWeekPlannerCard, plannerTitle.ts). */
+/* Section titles use a white-and-gold dotted fill. Keep the legacy accent
+   spans in that same palette so a heading still reads correctly before its
+   optional particle animation starts. */
 .cmc-gradient-text {
-  background: linear-gradient(100deg, #dfe6ff 0%, #a9baff 45%, #f3c296 100%);
+  background: linear-gradient(100deg, #ffffff 0%, #f2c66d 50%, #ffffff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-html.light [data-keep-dark] .cmc-gradient-text {
-  background: linear-gradient(100deg, #dfe6ff 0%, #a9baff 45%, #f3c296 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+html.light [data-keep-dark] .cmc-gradient-text,
 html.light .cmc-gradient-text {
-  background: linear-gradient(100deg, #2433c9 0%, #5a4be0 45%, #b3643c 100%);
+  background: linear-gradient(100deg, #ffffff 0%, #f2c66d 50%, #ffffff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* Main section headings across the home page and section pages. The two
+   offset radial patterns make clean white-and-gold pinpoints clipped to the
+   actual letter shapes, including inline accent spans. */
+:is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title) {
+  color: #ffffff;
+}
+@supports ((background-clip: text) or (-webkit-background-clip: text)) {
+  :is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title),
+  :is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title) :is(span, strong, em),
+  html.light :is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title),
+  html.light :is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title) :is(span, strong, em) {
+    background-image:
+      radial-gradient(circle, #ffffff 0 1.2px, transparent 1.45px),
+      radial-gradient(circle, #f2c66d 0 1.2px, transparent 1.45px) !important;
+    background-size: 7px 7px !important;
+    background-position: 0 0, 3.5px 3.5px !important;
+    background-repeat: repeat !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+  }
 }
 
 :focus-visible { outline-color: var(--g-accent); }
