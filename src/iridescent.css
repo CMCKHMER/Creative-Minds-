@@ -437,32 +437,19 @@ html.light .cmc-eyebrow {
 }
 
 /* ============================================================
-   5. GRADIENT HEADINGS
-   One word of the heading carries the iridescent sweep, like
-   "IRIDESCENT" on the reference board.
+   5. ACCENT HEADINGS
+   Secondary headings use solid readable text; only the main hero title
+   uses the decorative particle/dot treatment.
    ============================================================ */
 
-.cmc-gradient-text {
-  background: linear-gradient(100deg, var(--iri-a) 0%, var(--iri-b) 35%, var(--iri-c) 70%, var(--iri-d) 100%) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  color: transparent !important;
-}
-
-html.light .cmc-gradient-text {
-  background: linear-gradient(100deg, #168eb6 0%, #178f97 42%, #3c9b77 72%, #b98212 100%) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  color: transparent !important;
-}
-
-/* Keep the photographic hero title readable: it must not inherit the
-   gradient sweep. data-keep-dark zones keep their own ink. */
+.cmc-gradient-text,
+html.light .cmc-gradient-text,
 html.light [data-keep-dark] .cmc-gradient-text {
-  background: linear-gradient(100deg, #58bde8 0%, #27a8ad 35%, #55b99a 70%, #f2c653 100%) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  color: transparent !important;
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  color: var(--g-warm) !important;
+  -webkit-text-fill-color: currentColor !important;
 }
 
 /* ============================================================

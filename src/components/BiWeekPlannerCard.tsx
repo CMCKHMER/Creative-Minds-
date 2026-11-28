@@ -1,16 +1,7 @@
-import { useRef } from 'react';
 import { ArrowUpRight, CalendarCheck, Clock3, FileText, GraduationCap, LockKeyhole } from 'lucide-react';
 import { useSignedInSession } from '../hooks/useSignedInSession';
-import { useTitleParticles } from '../hooks/useTitleParticles';
-import { smallTitleSpacing, type DotGradient } from '../lib/titleParticlesMath';
 
 const PLANNER_URL = './biweek-planner/';
-
-// White-and-gold dots, matching the section-heading palette in glass.css.
-const HEADING_DOTS: { dark: DotGradient; light: DotGradient } = {
-  dark: [[0, '#ffffff'], [0.5, '#f2c66d'], [1, '#ffffff']],
-  light: [[0, '#ffffff'], [0.5, '#f2c66d'], [1, '#ffffff']],
-};
 
 const sections = [
   { label: 'Week 2 · Diagnostic', detail: 'Orientation + Grammar + Listening + Structure', icon: FileText, accent: 'teal' },
@@ -89,18 +80,8 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
   const session = useSignedInSession();
   const isTeacher = session?.role === 'teacher';
 
-  // The heading drawn as particles, like the hero title. It is fetched when
-  // the section comes near the screen; the <h2> stays the real text.
-  const sectionRef = useRef<HTMLElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const headingAsDots = useTitleParticles({
-    section: sectionRef, title: titleRef, canvas: canvasRef,
-    enabled: isTeacher, whenNear: true, letters: '.cmc-dots-line', gradient: HEADING_DOTS, spacing: smallTitleSpacing,
-  });
-
   return (
-    <section ref={sectionRef} id="toefl-itp-planner" aria-labelledby="biweek-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-violet-100/10 bg-[#0a0f1f] py-20 sm:py-24 lg:py-28">
+    <section id="toefl-itp-planner" aria-labelledby="biweek-title" className="cmc-section relative scroll-mt-24 overflow-hidden border-y border-violet-100/10 bg-[#0a0f1f] py-20 sm:py-24 lg:py-28">
       {/* Aii Language Center logo watermark (white bg removed to PNG alpha)
           — replaces the old classroom photo background at the owner's
           request so the section reads as Aii CAP Campus branded. */}
@@ -117,10 +98,10 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_.86fr] lg:gap-16">
         <div>
           <span className="cmc-eyebrow"><span className="h-px w-8 bg-violet-300" aria-hidden="true" />Aii CAP Campus · 8-Week Study Plan</span>
-          <h2 id="biweek-title" ref={titleRef} className={`cmc-h2 cmc-h2-hero${headingAsDots ? ' cmc-dots-on' : ''}`}>
-            <span className="cmc-dots-line">TOEFL ITP</span>
+          <h2 id="biweek-title" className="cmc-h2 cmc-h2-hero">
+            <span>TOEFL ITP</span>
             <br />
-            <span className="cmc-dots-line cmc-gradient-text" data-dot-gradient="">Bi-Weekly Planner.</span>
+            <span>Bi-Weekly Planner.</span>
           </h2>
           <p className="cmc-lead">Built for the teachers of Aii CAP Campus: a structured 8-week preparation plan covering all three TOEFL ITP sections — Listening, Structure & Written Expression, and Reading. Each week includes practice drills with timers, auto-scoring, and individual shareable links you can drop straight into your class group. Teacher-made materials from Oxford Skills World and Reading Explorer.</p>
           <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
@@ -203,8 +184,7 @@ export function BiWeekPlannerCard({ onOpenAuth }: { onOpenAuth?: () => void }) {
           </div>
         </div>
       )}
-      {/* The heading's particles are drawn here (src/lib/titleParticles.ts). */}
-      {isTeacher && <canvas ref={canvasRef} className="cmc-title-canvas" aria-hidden="true" />}
+
     </section>
   );
 }
