@@ -1,0 +1,165 @@
+/* Bright Learning Studio interaction layer. Imported after the shared motion
+   system so the carousel's transforms and the new button finish stay explicit. */
+
+.cmc-page-card {
+  transform: perspective(900px) rotateX(var(--card-tilt-x, 0deg)) rotateY(var(--card-tilt-y, 0deg));
+}
+.cmc-page-card:hover,
+.cmc-page-card:focus-visible {
+  transform: perspective(900px) translateY(-2px) rotateX(var(--card-tilt-x, 0deg)) rotateY(var(--card-tilt-y, 0deg));
+  transform-style: preserve-3d;
+}
+
+html.light .cmc-topbar {
+  background-image: linear-gradient(100deg, #168eb6 0%, #239e9b 58%, #e6b94a 100%);
+}
+
+/* Replace the old dark photo slabs in the home quick-launch area with warm,
+   readable glass. Artwork becomes a soft texture behind the card content. */
+html.light .cmc-quick {
+  border-color: rgba(31, 119, 137, 0.17);
+  background: linear-gradient(145deg, rgba(255, 255, 251, 0.96), rgba(237, 247, 243, 0.94));
+  color: #19384a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96), 0 22px 42px -30px rgba(39, 105, 116, 0.24);
+}
+html.light .cmc-quick:hover,
+html.light .cmc-quick:focus-visible {
+  border-color: rgba(22, 142, 182, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1), 0 28px 46px -28px rgba(22, 142, 182, 0.3), 0 0 24px -18px rgba(224, 169, 48, 0.38);
+}
+html.light .cmc-quick .text-white { color: #19384a; }
+html.light .cmc-quick .text-slate-400 { color: #526b75; }
+html.light .cmc-quick > img.cmc-quick-bg {
+  opacity: 0.16;
+  mix-blend-mode: multiply;
+}
+html.light .cmc-quick > span.cmc-quick-bg {
+  background: linear-gradient(90deg, rgba(250, 252, 247, 0.97), rgba(250, 252, 247, 0.82) 58%, rgba(250, 252, 247, 0.45));
+}
+html.light .cmc-quick .cmc-stat-row { border-top-color: rgba(24, 68, 82, 0.13); }
+html.light .cmc-quick .cmc-stat-row > .cmc-stat { border-left-color: rgba(24, 68, 82, 0.13); }
+
+/* The quick-launch strip is a small, manually controlled 3D card rack. */
+.cmc-quick-rack { max-width: 100%; }
+.cmc-quick-rack-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 980px;
+  min-height: 40px;
+  margin: 0 auto 8px;
+}
+.cmc-quick-rack-current {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  color: var(--g-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.cmc-quick-rack-current strong {
+  color: var(--g-accent);
+  font: 800 11px/1 var(--font-display);
+  letter-spacing: 0.12em;
+}
+.cmc-quick-rack-current > span[aria-hidden='true'] { color: var(--g-mute); }
+.cmc-quick-rack-buttons { display: flex; gap: 8px; flex: none; }
+.cmc-quick-rack-button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--g-line-2);
+  border-radius: 50%;
+  background: var(--g-glass-2);
+  color: var(--g-ink);
+  box-shadow: 0 8px 18px -14px rgba(22, 142, 182, 0.45);
+  transition: transform 180ms var(--cmc-spring), background-color 180ms ease, box-shadow 180ms ease;
+}
+.cmc-quick-rack-button svg { width: 17px; height: 17px; }
+.cmc-quick-rack-button:hover { transform: translateY(-2px); background: var(--g-pill); box-shadow: 0 12px 22px -14px rgba(22, 142, 182, 0.48); }
+.cmc-quick-rack-button:active { transform: translateY(1px) scale(0.96); }
+.cmc-quick-rack-button:focus-visible,
+.cmc-quick-rack-stage:focus-visible { outline: 3px solid var(--g-accent); outline-offset: 3px; }
+
+.cmc-quick-rack-stage {
+  position: relative;
+  width: 100%;
+  max-width: 980px;
+  min-height: 326px;
+  margin-inline: auto;
+  overflow: hidden;
+  perspective: 1100px;
+  transform-style: preserve-3d;
+  outline: none;
+}
+.cmc-quick-rack-card {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: var(--rack-layer, 1);
+  width: min(74%, 390px);
+  height: calc(100% - 16px);
+  transform: translate3d(calc(-50% + var(--rack-x, 0%)), 0, var(--rack-depth, 0px)) rotateY(var(--rack-angle, 0deg)) scale(var(--rack-scale, 1));
+  transform-origin: center;
+  transform-style: preserve-3d;
+  opacity: 1;
+  transition: transform 560ms cubic-bezier(0.22, 0.72, 0.2, 1), opacity 380ms ease, filter 380ms ease;
+  will-change: transform;
+}
+.cmc-quick-rack-card[data-position='previous'],
+.cmc-quick-rack-card[data-position='next'] { opacity: 0.68; filter: saturate(0.78); }
+.cmc-quick-rack-card[data-position='active'] { filter: none; }
+.cmc-quick-rack-card[data-position='hidden'] { opacity: 0; pointer-events: none; }
+.cmc-quick-rack-card > .cmc-quick {
+  width: 100%;
+  height: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  transform-style: preserve-3d;
+  transition: transform 220ms cubic-bezier(0.22, 0.72, 0.2, 1), box-shadow 250ms ease, border-color 250ms ease;
+}
+.cmc-quick-rack-card > .cmc-quick.cmc-rack-tilt {
+  transform: perspective(900px) rotateX(var(--card-tilt-x, 0deg)) rotateY(var(--card-tilt-y, 0deg));
+}
+.cmc-quick-rack-card > .cmc-quick.cmc-rack-tilt:hover,
+.cmc-quick-rack-card > .cmc-quick.cmc-rack-tilt:focus-visible {
+  transform: perspective(900px) translateY(-3px) rotateX(var(--card-tilt-x, 0deg)) rotateY(var(--card-tilt-y, 0deg));
+}
+.cmc-quick-rack-card .cmc-quick-chip,
+.cmc-quick-rack-card .cmc-stat-num { transform: translateZ(14px); }
+
+/* Keep the action controls lively but never auto-spin the menu. */
+.cmc-btn-primary,
+.cmc-btn-3d,
+.cmc-quick-rack-button {
+  transform-origin: center;
+}
+.cmc-btn-primary:hover,
+.cmc-btn-3d:hover { filter: saturate(1.08) brightness(1.03); }
+
+@media (max-width: 639px) {
+  .cmc-quick-rack-controls { margin-bottom: 6px; }
+  .cmc-quick-rack-current { font-size: 11px; }
+  .cmc-quick-rack-button { width: 36px; height: 36px; }
+  .cmc-quick-rack-stage { min-height: 350px; }
+  .cmc-quick-rack-card { width: 78%; }
+  .cmc-quick-rack-card > .cmc-quick { padding: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmc-quick-rack-card,
+  .cmc-quick-rack-card > .cmc-quick,
+  .cmc-quick-rack-button,
+  .cmc-btn-primary,
+  .cmc-btn-3d { transition: none !important; }
+  .cmc-quick-rack-card { transform: translateX(calc(-50% + var(--rack-x, 0%))); filter: none; }
+  .cmc-quick-rack-card > .cmc-quick.cmc-rack-tilt,
+  .cmc-quick-rack-card > .cmc-quick.cmc-rack-tilt:hover,
+  .cmc-page-card,
+  .cmc-page-card:hover,
+  .cmc-page-card:focus-visible { transform: none !important; }
+}

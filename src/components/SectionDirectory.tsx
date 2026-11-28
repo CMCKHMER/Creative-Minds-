@@ -10,7 +10,7 @@
  *                           previous / next)
  *   <MoreInGroup />       — the neighbouring pages, at the foot of a section page
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import {
   BookOpen, Megaphone, Newspaper, GraduationCap, Timer, ClipboardCheck, CalendarDays, NotebookPen,
   Backpack, Languages, Library, Gamepad2, Brain, Dices, PenTool, Activity, Wand2,
@@ -22,6 +22,21 @@ import {
   type PageIcon, type SitePage,
 } from '../lib/sitePages';
 import { fetchTeasers, teaserAge, type AnnouncementTeaser } from '../lib/announcementTeaser';
+
+function setDirectoryCardTilt(event: ReactPointerEvent<HTMLAnchorElement>, reset = false) {
+  const card = event.currentTarget;
+  if (reset || event.pointerType !== 'mouse') {
+    card.style.setProperty('--card-tilt-x', '0deg');
+    card.style.setProperty('--card-tilt-y', '0deg');
+    return;
+  }
+  const bounds = card.getBoundingClientRect();
+  if (!bounds.width || !bounds.height) return;
+  const x = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
+  const y = Math.max(0, Math.min(1, (event.clientY - bounds.top) / bounds.height));
+  card.style.setProperty('--card-tilt-x', `${((0.5 - y) * 6).toFixed(2)}deg`);
+  card.style.setProperty('--card-tilt-y', `${((x - 0.5) * 6).toFixed(2)}deg`);
+}
 
 const ICONS: Record<PageIcon, typeof Megaphone> = {
   megaphone: Megaphone,
@@ -56,7 +71,13 @@ const ICONS: Record<PageIcon, typeof Megaphone> = {
 function PageCard({ page }: { page: SitePage }) {
   const Icon = ICONS[page.icon];
   return (
-    <a href={`#${page.id}`} className="cmc-page-card group" data-page={page.id}>
+    <a
+      href={`#${page.id}`}
+      className="cmc-page-card group"
+      data-page={page.id}
+      onPointerMove={(event) => setDirectoryCardTilt(event)}
+      onPointerLeave={(event) => setDirectoryCardTilt(event, true)}
+    >
       <span className="cmc-page-card-top">
         <span className="cmc-page-card-icon" aria-hidden="true">
           <Icon className="h-4 w-4" />
@@ -89,7 +110,13 @@ function AnnouncementsCard({ page }: { page: SitePage }) {
 
   const Icon = ICONS[page.icon];
   return (
-    <a href={`#${page.id}`} className="cmc-page-card cmc-page-card--news group" data-page={page.id}>
+    <a
+      href={`#${page.id}`}
+      className="cmc-page-card cmc-page-card--news group"
+      data-page={page.id}
+      onPointerMove={(event) => setDirectoryCardTilt(event)}
+      onPointerLeave={(event) => setDirectoryCardTilt(event, true)}
+    >
       <span className="cmc-page-card-top">
         <span className="cmc-page-card-icon" aria-hidden="true">
           <Icon className="h-4 w-4" />

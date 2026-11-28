@@ -950,17 +950,17 @@
    ============================================================ */
 
 :root {
-  --cmc-l-page: #cbd5e1;          /* page base — clear light gray (slate-300; deepened from slate-200 because the owner could not tell it apart from white) */
-  --cmc-l-surface: #d6dde7;       /* raised section surface      */
-  --cmc-l-surface-2: #bcc9d7;     /* deeper section surface      */
-  --cmc-l-card: rgba(226, 232, 240, 0.85);  /* raised cards — slate-200 gray, never pure white (owner: light theme must not glare) */
-  --cmc-l-border: rgba(15, 23, 42, 0.10);
-  --cmc-l-ink: #0c1a2c;           /* headings                    */
-  --cmc-l-text: #1e293b;          /* body                        */
-  --cmc-l-text-mid: #334155;      /* secondary body              */
-  --cmc-l-text-soft: #475569;     /* captions                    */
-  --cmc-l-text-dim: #5c6b7d;      /* meta                        */
-  --cmc-l-accent: #0e7490;        /* readable cyan on light      */
+  --cmc-l-page: #f4f7f2;          /* warm, easy-on-the-eyes canvas */
+  --cmc-l-surface: #edf4f1;       /* raised section surface       */
+  --cmc-l-surface-2: #e0ece8;     /* deeper section surface       */
+  --cmc-l-card: rgba(255, 255, 251, 0.9);
+  --cmc-l-border: rgba(24, 68, 82, 0.12);
+  --cmc-l-ink: #183446;           /* headings                     */
+  --cmc-l-text: #2b4653;          /* body                         */
+  --cmc-l-text-mid: #465f6b;      /* secondary body               */
+  --cmc-l-text-soft: #627780;     /* captions                     */
+  --cmc-l-text-dim: #71858b;      /* meta                         */
+  --cmc-l-accent: #168eb6;        /* bright sky-blue action       */
 }
 
 /* ---- page base ---- */
@@ -977,7 +977,7 @@ html.light .bg-slate-950 {
    family under the light theme instead of glaring white. Unlayered, so it
    outranks the utility layer and its hover variants. ---- */
 html.light .bg-white {
-  background-color: #e2e8f0;
+  background-color: #fffef9;
 }
 html.light [data-keep-dark].bg-slate-950,
 html.light [data-keep-dark] .bg-slate-950 {
@@ -1618,14 +1618,8 @@ html.light [data-keep-dark] .hover\:text-rose-300:hover { color: #fda4af; }
 .cmc-quick--amber .cmc-quick-arrow { color: #fcd34d; }
 .cmc-quick--emerald .cmc-quick-arrow { color: #6ee7b7; }
 
-/* AI artwork behind the quick-launch cards. Applies to both the <img>
-   layer and the gradient veil — visible in BOTH themes (light mode keeps
-   the dark photo-card look, see the html.light .cmc-quick rule below). */
-/* Light mode: the quick-launch cards KEEP the dark photo-card look so the
-   AI artwork shows in BOTH themes (user request, Oct 2026). Dark navy
-   cards on the white strip preserve text contrast over the art — title
-   stays white, description slate-400, veil unchanged. Comes after
-   html.light .cmc-card so this background wins the cascade. */
+/* Dark-theme photo-card treatment. The bright-studio finish for these cards
+   is applied in src/future-learning.css after the shared component skins. */
 html.light .cmc-quick {
   border-color: rgba(255, 255, 255, 0.14);
   background: #081622;

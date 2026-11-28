@@ -11,10 +11,10 @@
    specificity they win over index.css and over every Tailwind utility.
 
    Two versions of the same design:
-     dark  (default)      deep slate-blue studio at night, smoked glass
-     light (html.light)   pale grey-blue studio, milk glass
-   The light version is grey-blue on purpose, never white: the owner asked
-   earlier that the light theme must not glare.
+     light (html.light)   warm bright learning studio, pale glass
+     dark  (html:not(.light)) deep-space canvas, smoked glass
+   The app now opens in the bright studio by default; dark remains available
+   from the theme toggle.
    ============================================================ */
 
 :root {
@@ -40,22 +40,22 @@
 }
 
 html.light {
-  --g-ink: #101d2a;
-  --g-body: #344b5b;
-  --g-mute: #5e7483;
-  --g-page: #d7e3e9;
-  --g-page-2: #cbdbe3;
-  --g-pane: rgba(237, 247, 250, 0.62);
-  --g-glass: rgba(255, 255, 255, 0.52);
-  --g-glass-2: rgba(255, 255, 255, 0.74);
-  --g-line: rgba(49, 112, 133, 0.16);
-  --g-line-2: rgba(23, 150, 178, 0.4);
-  --g-shadow: 0 44px 80px -50px rgba(17, 61, 82, 0.28);
-  --g-accent: #087e9b;
-  --g-accent-deep: #075f78;
-  --g-warm: #9d6c15;
-  --g-pill: #ffffff;
-  --g-pill-ink: #10151d;
+  --g-ink: #183446;
+  --g-body: #465f6b;
+  --g-mute: #71858b;
+  --g-page: #f4f7f2;
+  --g-page-2: #eaf3f2;
+  --g-pane: rgba(251, 253, 248, 0.76);
+  --g-glass: rgba(255, 255, 255, 0.72);
+  --g-glass-2: rgba(255, 255, 255, 0.92);
+  --g-line: rgba(42, 113, 129, 0.16);
+  --g-line-2: rgba(20, 145, 166, 0.42);
+  --g-shadow: 0 36px 72px -48px rgba(35, 75, 81, 0.24);
+  --g-accent: #168eb6;
+  --g-accent-deep: #146f88;
+  --g-warm: #d99d24;
+  --g-pill: #f7cc63;
+  --g-pill-ink: #19384a;
 }
 
 /* ---- mission-control accents: electric cyan for active tools, gold for
@@ -142,19 +142,19 @@ body::before {
 }
 html.light body::before {
   background:
-    radial-gradient(56vmax 44vmax at 90% 6%, rgba(48, 188, 219, 0.16), transparent 64%),
-    radial-gradient(52vmax 40vmax at 46% 104%, rgba(242, 198, 109, 0.22), transparent 62%),
-    radial-gradient(50vmax 46vmax at 2% 30%, rgba(255, 255, 255, 0.75), transparent 62%),
-    radial-gradient(circle, rgba(33, 111, 131, 0.09) 0.8px, transparent 1px) 0 0 / 32px 32px,
-    linear-gradient(165deg, #eaf3f6 0%, var(--g-page) 52%, var(--g-page-2) 100%);
+    radial-gradient(58vmax 42vmax at 88% 7%, rgba(87, 190, 218, 0.19), transparent 66%),
+    radial-gradient(50vmax 40vmax at 78% 96%, rgba(247, 204, 99, 0.23), transparent 64%),
+    radial-gradient(52vmax 48vmax at 4% 30%, rgba(255, 255, 255, 0.9), transparent 64%),
+    radial-gradient(circle, rgba(44, 130, 139, 0.08) 0.8px, transparent 1px) 0 0 / 34px 34px,
+    linear-gradient(165deg, #fbfcf7 0%, var(--g-page) 54%, #e6f0ed 100%);
 }
 .cmc-app.bg-slate-950,
 html.light .cmc-app.bg-slate-950 { background-color: transparent; }
 
 ::-webkit-scrollbar-track { background: #0b1220; }
 ::-webkit-scrollbar-thumb { background: #2a3650; }
-html.light ::-webkit-scrollbar-track { background: #cfd6e0; }
-html.light ::-webkit-scrollbar-thumb { background: #9aa6b8; }
+html.light ::-webkit-scrollbar-track { background: #e5eeea; }
+html.light ::-webkit-scrollbar-thumb { background: #8aa9aa; }
 ::selection { background: var(--g-accent-deep); color: #fff; }
 
 /* ---- lettering: lighter and calmer ---- */
@@ -546,7 +546,7 @@ html.light .cmc-title-row-second .cmc-title-solid { color: var(--g-ink); text-sh
 .cmc-title-outline,
 .cmc-title-row-second .cmc-title-outline { -webkit-text-stroke-color: rgba(169, 186, 255, 0.55); }
 html.light .cmc-title-outline,
-html.light .cmc-title-row-second .cmc-title-outline { -webkit-text-stroke-color: rgba(43, 63, 214, 0.38); }
+html.light .cmc-title-row-second .cmc-title-outline { -webkit-text-stroke-color: rgba(22, 142, 182, 0.42); }
 
 .cmc-hero-eyebrow,
 html.light .cmc-hero-eyebrow { color: var(--g-mute); letter-spacing: 0.26em; font-size: 10.5px; }

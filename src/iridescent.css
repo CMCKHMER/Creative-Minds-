@@ -3,14 +3,15 @@
 
    Owner request (16 Nov 2026): "make all button and card designs like
    this in light and dark mode. extend design to kid pages section and
-   all cards on hero and linked pages", with a reference board showing a
-   dark card with a magenta→cyan iridescent border, a glowing avatar
-   ring, micro uppercase labels, a divided stat row, and a gradient
-   pill CTA.
+   all cards on hero and linked pages", with a reference board showing
+   iridescent edges, a glowing icon ring, micro uppercase labels, a
+   divided stat row, and a gradient pill CTA. The updated brand sweep uses
+   sky blue, teal, soft green, and sunshine.
 
    HOW THIS FILE WORKS
-   main.tsx loads index.css → glass.css → iridescent.css. This file is
-   last and unlayered, so on equal specificity it beats both. That is
+   main.tsx loads index.css → glass.css → iridescent.css → motion.css →
+   future-learning.css. This file owns shared component skins; the final
+   layers compose motion and the new carousel over them. That is
    deliberate: the components (55 of them, plus the static pages under
    public/) are NOT rewritten. They keep their existing class names and
    markup, and this layer restyles the surfaces those names describe:
@@ -26,35 +27,34 @@
    box. One element, no extra DOM, no layout shift, and it works with
    `border-radius` on every card shape already in use.
 
-   TWO THEMES, ONE SOURCE. Dark is the default (:root). `html.light`
-   swaps the same tokens for pale iridescent glass. Nothing here is
-   dark-only, so light mode gets the identical treatment rather than a
-   dimmed copy.
+   TWO THEMES, ONE SOURCE. The app defaults to `html.light` before paint;
+   users can still choose the deep-space theme. Both variants share these
+   component skins and differ through the same set of color tokens.
    ============================================================ */
 
 :root {
-  /* The iridescent stops — magenta → violet → cyan, as on the reference. */
-  --iri-a: #ff5ed2;   /* magenta */
-  --iri-b: #a78bfa;   /* violet  */
-  --iri-c: #22d3ee;   /* cyan    */
-  --iri-d: #5eead4;   /* mint    */
+  /* The learning-studio stops — sky blue → teal → soft green → sunshine. */
+  --iri-a: #58bde8;   /* clear sky */
+  --iri-b: #27a8ad;   /* lagoon teal */
+  --iri-c: #55b99a;   /* soft green */
+  --iri-d: #f2c653;   /* sunny yellow */
 
-  /* The edge: 135deg so the magenta catches the top-left corner and the
-     cyan the bottom-right — the reference's diagonal light direction. */
+  /* The edge: 135deg carries sky/teal from the top-left into sunshine
+     toward the bottom-right, keeping the surface lively but restrained. */
   --iri-edge: linear-gradient(
     135deg,
-    rgba(255, 94, 210, 0.95) 0%,
-    rgba(167, 139, 250, 0.85) 32%,
-    rgba(34, 211, 238, 0.9) 68%,
-    rgba(94, 234, 212, 0.95) 100%
+    rgba(88, 189, 232, 0.96) 0%,
+    rgba(39, 168, 173, 0.92) 34%,
+    rgba(85, 185, 154, 0.94) 68%,
+    rgba(242, 198, 83, 0.98) 100%
   );
   /* A muted edge for resting cards that must not shout. */
   --iri-edge-soft: linear-gradient(
     135deg,
-    rgba(255, 94, 210, 0.42) 0%,
-    rgba(167, 139, 250, 0.30) 35%,
-    rgba(34, 211, 238, 0.38) 70%,
-    rgba(94, 234, 212, 0.42) 100%
+    rgba(88, 189, 232, 0.42) 0%,
+    rgba(39, 168, 173, 0.34) 35%,
+    rgba(85, 185, 154, 0.38) 70%,
+    rgba(242, 198, 83, 0.46) 100%
   );
 
   /* Card face: smoked glass over the page art. */
@@ -74,12 +74,12 @@
   /* The bloom that sits under a hovered/focus card. */
   --iri-bloom:
     0 0 0 1px rgba(255, 255, 255, 0.04),
-    0 18px 40px -24px rgba(255, 94, 210, 0.55),
-    0 30px 70px -40px rgba(34, 211, 238, 0.55);
+    0 18px 40px -24px rgba(88, 189, 232, 0.55),
+    0 30px 70px -40px rgba(85, 185, 154, 0.55);
   --iri-bloom-strong:
     0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 22px 48px -26px rgba(255, 94, 210, 0.7),
-    0 38px 84px -42px rgba(34, 211, 238, 0.7);
+    0 22px 48px -26px rgba(88, 189, 232, 0.7),
+    0 38px 84px -42px rgba(85, 185, 154, 0.7);
 
   /* Inset top highlight — the glass lip that makes cards read as panes. */
   --iri-lip: inset 0 1px 0 rgba(255, 255, 255, 0.16);
@@ -95,49 +95,47 @@
 }
 
 html.light {
-  /* Same design, pale glass. The owner's standing rule is that light mode
-     must not glare, so the fill is a soft blue-grey rather than white and
-     the edge keeps its colour while losing its neon. */
+  /* Creamy white glass with calm sky/teal edges and a small sunshine note. */
   --iri-edge: linear-gradient(
     135deg,
-    rgba(219, 39, 119, 0.72) 0%,
-    rgba(124, 58, 237, 0.60) 32%,
-    rgba(8, 145, 178, 0.66) 68%,
-    rgba(13, 148, 136, 0.72) 100%
+    rgba(34, 151, 202, 0.72) 0%,
+    rgba(25, 151, 159, 0.62) 34%,
+    rgba(67, 165, 137, 0.62) 68%,
+    rgba(224, 169, 48, 0.7) 100%
   );
   --iri-edge-soft: linear-gradient(
     135deg,
-    rgba(219, 39, 119, 0.34) 0%,
-    rgba(124, 58, 237, 0.26) 35%,
-    rgba(8, 145, 178, 0.30) 70%,
-    rgba(13, 148, 136, 0.34) 100%
+    rgba(34, 151, 202, 0.28) 0%,
+    rgba(25, 151, 159, 0.22) 35%,
+    rgba(67, 165, 137, 0.23) 70%,
+    rgba(224, 169, 48, 0.28) 100%
   );
   --iri-face: linear-gradient(
     160deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(244, 246, 252, 0.88) 55%,
-    rgba(232, 238, 248, 0.90) 100%
+    rgba(255, 255, 251, 0.96) 0%,
+    rgba(248, 251, 246, 0.94) 55%,
+    rgba(238, 247, 243, 0.96) 100%
   );
   --iri-face-hover: linear-gradient(
     160deg,
-    rgba(255, 255, 255, 0.96) 0%,
-    rgba(246, 249, 255, 0.93) 55%,
-    rgba(236, 243, 253, 0.95) 100%
+    rgba(255, 255, 253, 0.98) 0%,
+    rgba(251, 253, 247, 0.97) 55%,
+    rgba(237, 248, 245, 0.98) 100%
   );
   --iri-bloom:
-    0 0 0 1px rgba(255, 255, 255, 0.55),
-    0 16px 36px -22px rgba(219, 39, 119, 0.30),
-    0 28px 60px -38px rgba(8, 145, 178, 0.32);
+    0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 16px 36px -22px rgba(34, 151, 202, 0.24),
+    0 28px 60px -38px rgba(224, 169, 48, 0.22);
   --iri-bloom-strong:
-    0 0 0 1px rgba(255, 255, 255, 0.65),
-    0 20px 44px -24px rgba(219, 39, 119, 0.38),
-    0 34px 74px -40px rgba(8, 145, 178, 0.40);
-  --iri-lip: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 0 0 1px rgba(255, 255, 255, 0.78),
+    0 20px 44px -24px rgba(34, 151, 202, 0.32),
+    0 34px 74px -40px rgba(224, 169, 48, 0.3);
+  --iri-lip: inset 0 1px 0 rgba(255, 255, 255, 0.96);
 
-  --iri-ink: #0f172d;
-  --iri-body: #334155;
-  --iri-mute: #5b6b80;
-  --iri-eyebrow: #0e7490;
+  --iri-ink: #19384a;
+  --iri-body: #49616a;
+  --iri-mute: #71858b;
+  --iri-eyebrow: #137c96;
 }
 
 /* ============================================================
@@ -209,8 +207,8 @@ html.light {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 8px 22px -10px rgba(255, 94, 210, 0.55),
-    0 10px 26px -12px rgba(34, 211, 238, 0.55);
+    0 8px 22px -10px rgba(88, 189, 232, 0.55),
+    0 10px 26px -12px rgba(85, 185, 154, 0.55);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
@@ -224,9 +222,9 @@ html.light {
   border-radius: inherit;
   background: radial-gradient(
     circle at 30% 25%,
-    rgba(255, 94, 210, 0.45),
-    rgba(167, 139, 250, 0.28) 40%,
-    rgba(34, 211, 238, 0.32) 70%,
+    rgba(88, 189, 232, 0.45),
+    rgba(39, 168, 173, 0.28) 40%,
+    rgba(85, 185, 154, 0.32) 70%,
     transparent 75%
   );
   filter: blur(10px);
@@ -249,8 +247,8 @@ html.light .cmc-icon-ring {
     var(--iri-edge) border-box !important;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.9),
-    0 8px 20px -12px rgba(219, 39, 119, 0.30),
-    0 10px 24px -14px rgba(8, 145, 178, 0.32);
+    0 8px 20px -12px rgba(34, 151, 202, 0.30),
+    0 10px 24px -14px rgba(224, 169, 48, 0.32);
 }
 html.light .cmc-quick-chip::before,
 html.light .cmc-icon-ring::before {
@@ -294,8 +292,8 @@ html.light .cmc-quick:hover .cmc-quick-chip::before {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.75),
     inset 0 -1px 0 rgba(0, 0, 0, 0.14),
-    0 10px 26px -12px rgba(255, 94, 210, 0.65),
-    0 14px 34px -16px rgba(34, 211, 238, 0.65) !important;
+    0 10px 26px -12px rgba(88, 189, 232, 0.65),
+    0 14px 34px -16px rgba(85, 185, 154, 0.65) !important;
   transition:
     transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.18s ease,
@@ -335,8 +333,8 @@ html.light .cmc-quick:hover .cmc-quick-chip::before {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.85),
     inset 0 -1px 0 rgba(0, 0, 0, 0.16),
-    0 14px 32px -12px rgba(255, 94, 210, 0.8),
-    0 20px 44px -18px rgba(34, 211, 238, 0.8) !important;
+    0 14px 32px -12px rgba(88, 189, 232, 0.8),
+    0 20px 44px -18px rgba(85, 185, 154, 0.8) !important;
 }
 
 .cmc-btn-primary:active,
@@ -347,7 +345,7 @@ html.light .cmc-quick:hover .cmc-quick-chip::before {
   filter: brightness(0.98) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 4px 12px -6px rgba(255, 94, 210, 0.55) !important;
+    0 4px 12px -6px rgba(88, 189, 232, 0.55) !important;
 }
 
 html.light .cmc-btn-primary,
@@ -358,8 +356,8 @@ html.light .cmc-btn-3d--emerald {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
     inset 0 -1px 0 rgba(0, 0, 0, 0.10),
-    0 10px 24px -14px rgba(219, 39, 119, 0.45),
-    0 14px 30px -18px rgba(8, 145, 178, 0.45) !important;
+    0 10px 24px -14px rgba(34, 151, 202, 0.45),
+    0 14px 30px -18px rgba(224, 169, 48, 0.45) !important;
 }
 
 /* Ghost buttons: a glass pill whose edge lights up in the same gradient. */
@@ -426,7 +424,7 @@ html.light .cmc-btn-ghost:hover {
   letter-spacing: 0.22em !important;
   text-transform: uppercase !important;
   color: var(--iri-eyebrow) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 18px -12px rgba(34, 211, 238, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 18px -12px rgba(85, 185, 154, 0.7);
 }
 
 html.light .cmc-eyebrow {
@@ -435,7 +433,7 @@ html.light .cmc-eyebrow {
     linear-gradient(160deg, rgba(255, 255, 255, 0.94), rgba(240, 245, 253, 0.92)) padding-box,
     var(--iri-edge) border-box !important;
   color: var(--iri-eyebrow) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 6px 16px -12px rgba(219, 39, 119, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 6px 16px -12px rgba(34, 151, 202, 0.35);
 }
 
 /* ============================================================
@@ -452,7 +450,7 @@ html.light .cmc-eyebrow {
 }
 
 html.light .cmc-gradient-text {
-  background: linear-gradient(100deg, #be185d 0%, #6d28d9 35%, #0e7490 70%, #0f766e 100%) !important;
+  background: linear-gradient(100deg, #168eb6 0%, #178f97 42%, #3c9b77 72%, #b98212 100%) !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;
@@ -461,7 +459,7 @@ html.light .cmc-gradient-text {
 /* Keep the photographic hero title readable: it must not inherit the
    gradient sweep. data-keep-dark zones keep their own ink. */
 html.light [data-keep-dark] .cmc-gradient-text {
-  background: linear-gradient(100deg, #ff5ed2 0%, #a78bfa 35%, #22d3ee 70%, #5eead4 100%) !important;
+  background: linear-gradient(100deg, #58bde8 0%, #27a8ad 35%, #55b99a 70%, #f2c653 100%) !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;
@@ -515,7 +513,7 @@ html.light [data-keep-dark] .cmc-gradient-text {
 html.light .cmc-stat-row { border-top-color: rgba(15, 23, 42, 0.10); }
 html.light .cmc-stat-row > .cmc-stat { border-left-color: rgba(15, 23, 42, 0.10); }
 html.light .cmc-stat-num {
-  background: linear-gradient(100deg, #be185d, #0e7490);
+  background: linear-gradient(100deg, #168eb6, #178f97 55%, #b98212);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -531,8 +529,8 @@ html.light .cmc-stat-label { color: var(--iri-mute); }
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.05),
     0 40px 80px -50px rgba(0, 0, 0, 0.8),
-    0 0 90px -60px rgba(255, 94, 210, 0.55),
-    0 0 120px -70px rgba(34, 211, 238, 0.55);
+    0 0 90px -60px rgba(88, 189, 232, 0.55),
+    0 0 120px -70px rgba(85, 185, 154, 0.55);
 }
 
 /* A hairline iridescent frame drawn just inside the hero's radius. */
@@ -650,8 +648,8 @@ html.light #kid-grades article div[class*='rounded-lg'] {
     linear-gradient(105deg, var(--iri-a) 0%, var(--iri-b) 38%, var(--iri-c) 72%, var(--iri-d) 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    0 10px 26px -12px rgba(255, 94, 210, 0.65),
-    0 14px 34px -16px rgba(34, 211, 238, 0.65);
+    0 10px 26px -12px rgba(88, 189, 232, 0.65),
+    0 14px 34px -16px rgba(85, 185, 154, 0.65);
   cursor: pointer;
   text-decoration: none;
   transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease, filter 0.2s ease;
@@ -661,8 +659,8 @@ html.light #kid-grades article div[class*='rounded-lg'] {
   filter: saturate(1.12) brightness(1.05);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    0 14px 32px -12px rgba(255, 94, 210, 0.8),
-    0 20px 44px -18px rgba(34, 211, 238, 0.8);
+    0 14px 32px -12px rgba(88, 189, 232, 0.8),
+    0 20px 44px -18px rgba(85, 185, 154, 0.8);
 }
 .iri-btn:active { transform: translateY(1px) scale(0.99); filter: brightness(0.98); }
 
@@ -678,8 +676,8 @@ html.light #kid-grades article div[class*='rounded-lg'] {
     var(--iri-edge) border-box;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 8px 22px -10px rgba(255, 94, 210, 0.55),
-    0 10px 26px -12px rgba(34, 211, 238, 0.55);
+    0 8px 22px -10px rgba(88, 189, 232, 0.55),
+    0 10px 26px -12px rgba(85, 185, 154, 0.55);
 }
 html.light .iri-ring {
   border: 1.5px solid transparent;
@@ -745,7 +743,7 @@ html.light .iri-ring {
   background:
     linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)) padding-box,
     var(--iri-edge-soft) border-box !important;
-  box-shadow: 0 18px 40px -30px rgba(34, 211, 238, 0.6);
+  box-shadow: 0 18px 40px -30px rgba(85, 185, 154, 0.6);
   transform: translateY(-2px);
 }
 
@@ -821,8 +819,8 @@ html.light .cmc-page-card:focus-visible {
   color: var(--iri-ink) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 6px 16px -10px rgba(255, 94, 210, 0.6),
-    0 8px 18px -12px rgba(34, 211, 238, 0.6) !important;
+    0 6px 16px -10px rgba(88, 189, 232, 0.6),
+    0 8px 18px -12px rgba(85, 185, 154, 0.6) !important;
 }
 
 html.light .cmc-page-card-icon {
@@ -833,8 +831,8 @@ html.light .cmc-page-card-icon {
   color: #0f172d !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 6px 14px -10px rgba(219, 39, 119, 0.45),
-    0 8px 18px -12px rgba(8, 145, 178, 0.45) !important;
+    0 6px 14px -10px rgba(34, 151, 202, 0.45),
+    0 8px 18px -12px rgba(224, 169, 48, 0.45) !important;
 }
 
 /* Title + blurb read at the reference's weights. */
@@ -891,18 +889,18 @@ html.light .cmc-page-card-badge {
 .cmc-my-score-btn {
   border: 1px solid transparent !important;
   background:
-    linear-gradient(160deg, rgba(255, 94, 210, 0.16), rgba(34, 211, 238, 0.12)) padding-box,
+    linear-gradient(160deg, rgba(88, 189, 232, 0.16), rgba(85, 185, 154, 0.12)) padding-box,
     var(--iri-edge) border-box !important;
   color: var(--iri-ink) !important;
-  box-shadow: 0 8px 20px -14px rgba(255, 94, 210, 0.7);
+  box-shadow: 0 8px 20px -14px rgba(88, 189, 232, 0.7);
 }
 .cmc-my-score-btn:hover,
 .cmc-my-score-btn:focus-visible {
   border: 1px solid transparent !important;
   background:
-    linear-gradient(160deg, rgba(255, 94, 210, 0.26), rgba(34, 211, 238, 0.2)) padding-box,
+    linear-gradient(160deg, rgba(88, 189, 232, 0.26), rgba(85, 185, 154, 0.2)) padding-box,
     var(--iri-edge) border-box !important;
-  box-shadow: 0 10px 24px -12px rgba(34, 211, 238, 0.65);
+  box-shadow: 0 10px 24px -12px rgba(85, 185, 154, 0.65);
 }
 html.light .cmc-my-score-btn {
   border: 1px solid transparent !important;
@@ -910,7 +908,7 @@ html.light .cmc-my-score-btn {
     linear-gradient(160deg, rgba(253, 242, 250, 0.98), rgba(236, 254, 255, 0.98)) padding-box,
     var(--iri-edge) border-box !important;
   color: #86198f !important;
-  box-shadow: 0 8px 18px -14px rgba(219, 39, 119, 0.45);
+  box-shadow: 0 8px 18px -14px rgba(34, 151, 202, 0.45);
 }
 html.light .cmc-my-score-btn:hover,
 html.light .cmc-my-score-btn:focus-visible {

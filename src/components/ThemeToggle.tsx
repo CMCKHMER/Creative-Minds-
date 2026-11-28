@@ -18,7 +18,7 @@ function applyTheme(light: boolean) {
     localStorage.setItem(STORAGE_KEY, light ? 'light' : 'dark');
   } catch { /* private mode — session-only choice */ }
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', light ? '#d3d9e3' : '#0b1220');
+  if (meta) meta.setAttribute('content', light ? '#f4f7f2' : '#06111e');
 }
 
 export function ThemeToggle({ className = '' }: { className?: string }) {

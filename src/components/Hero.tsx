@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
-import { ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, FileText, Gamepad2, GraduationCap, Play } from 'lucide-react';
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
+import { ArrowRight, ArrowUpRight, BookOpen, ChevronLeft, ChevronRight, ClipboardCheck, FileText, Gamepad2, GraduationCap, Play } from 'lucide-react';
 import { useCountUp } from '../hooks/useReveal';
 import { useMagneticTilt } from '../hooks/useMagneticTilt';
 import { useTitleParticles } from '../hooks/useTitleParticles';
@@ -41,9 +41,7 @@ interface HeroShortcut {
   /** Optional external link — when present the card renders as an <a>
    *  instead of a button that triggers onSelectFeatureCard. */
   href?: string;
-  /** Optional AI artwork rendered behind the card content (hidden in light
-   *  theme via the .cmc-quick-bg rule — the light theme turns the strip
-   *  white, so the dark-navy art would clash). */
+  /** Optional AI artwork rendered as a low-contrast texture behind the card. */
   image?: string;
   /** Optional divided stat pair, like the reference board's
    *  "48 Premium · 14.2k Followers" block. Rendered by .cmc-stat-row. */
@@ -101,6 +99,21 @@ const shortcuts: HeroShortcut[] = [
   },
 ];
 
+function setQuickCardTilt(event: PointerEvent<HTMLElement>, reset = false) {
+  const card = event.currentTarget;
+  if (reset || event.pointerType !== 'mouse') {
+    card.style.setProperty('--card-tilt-x', '0deg');
+    card.style.setProperty('--card-tilt-y', '0deg');
+    return;
+  }
+  const bounds = card.getBoundingClientRect();
+  if (!bounds.width || !bounds.height) return;
+  const x = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
+  const y = Math.max(0, Math.min(1, (event.clientY - bounds.top) / bounds.height));
+  card.style.setProperty('--card-tilt-x', `${((0.5 - y) * 8).toFixed(2)}deg`);
+  card.style.setProperty('--card-tilt-y', `${((x - 0.5) * 8).toFixed(2)}deg`);
+}
+
 export const Hero = ({
   onExploreTools,
   onOpenStudentDemo,
@@ -112,6 +125,10 @@ export const Hero = ({
 }: HeroProps) => {
   const shortcutsRef = useRef<HTMLElement>(null);
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
+  const [activeShortcut, setActiveShortcut] = useState(0);
+  const moveShortcut = (direction: number) => {
+    setActiveShortcut((current) => (current + direction + shortcuts.length) % shortcuts.length);
+  };
   const heroRef = useRef<HTMLElement>(null);
   // One hero CTA only — the tilt is a highlight, not a texture.
   const primaryCtaRef = useMagneticTilt<HTMLButtonElement>();
@@ -313,8 +330,45 @@ export const Hero = ({
             <span className="cmc-quick-hint hidden text-[10px] font-semibold uppercase tracking-[0.18em] sm:inline">Free for classrooms</span>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="cmc-quick-rack">
+            <div className="cmc-quick-rack-controls">
+              <span className="cmc-quick-rack-current" aria-live="polite">
+                <strong>{String(activeShortcut + 1).padStart(2, '0')}</strong>
+                <span aria-hidden="true">/</span>
+                {shortcuts[activeShortcut].title}
+              </span>
+              <div className="cmc-quick-rack-buttons">
+                <button type="button" className="cmc-quick-rack-button" onClick={() => moveShortcut(-1)} aria-label="Previous quick-launch card">
+                  <ChevronLeft aria-hidden="true" />
+                </button>
+                <button type="button" className="cmc-quick-rack-button" onClick={() => moveShortcut(1)} aria-label="Next quick-launch card">
+                  <ChevronRight aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+            <div
+              className="cmc-quick-rack-stage"
+              role="region"
+              aria-roledescription="carousel"
+              aria-label="Quick launch tools"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === 'ArrowLeft') { event.preventDefault(); moveShortcut(-1); }
+                if (event.key === 'ArrowRight') { event.preventDefault(); moveShortcut(1); }
+              }}
+            >
             {shortcuts.map((shortcut, index) => {
+              let offset = index - activeShortcut;
+              if (offset > shortcuts.length / 2) offset -= shortcuts.length;
+              if (offset < -shortcuts.length / 2) offset += shortcuts.length;
+              const visible = Math.abs(offset) <= 1;
+              const rackStyle = {
+                '--rack-x': `${offset * 76}%`,
+                '--rack-angle': `${offset * -17}deg`,
+                '--rack-depth': offset === 0 ? '42px' : '-45px',
+                '--rack-scale': offset === 0 ? '1' : '0.86',
+                '--rack-layer': offset === 0 ? 3 : 2,
+              } as CSSProperties;
               const Icon = shortcut.icon;
               const shortcutClass = `cmc-shortcut cmc-card cmc-quick cmc-quick--${shortcut.accent} group relative flex flex-col items-start gap-2.5 overflow-hidden p-5 text-left ${shortcutsVisible ? 'is-visible' : ''}`;
               const content = (
@@ -356,23 +410,41 @@ export const Hero = ({
               );
 
               return (
-                shortcut.href ? (
-                  <a key={shortcut.id} href={shortcut.href} className={shortcutClass} style={{ transitionDelay: `${index * 85}ms` }}>
-                    {content}
-                  </a>
-                ) : (
-                  <button
-                    key={shortcut.id}
-                    type="button"
-                    onClick={() => onSelectFeatureCard(shortcut.id)}
-                    className={shortcutClass}
-                    style={{ transitionDelay: `${index * 85}ms` }}
-                  >
-                    {content}
-                  </button>
-                )
+                <div
+                  key={shortcut.id}
+                  className="cmc-quick-rack-card"
+                  role="group"
+                  data-position={visible ? (offset === 0 ? 'active' : offset < 0 ? 'previous' : 'next') : 'hidden'}
+                  aria-roledescription="slide"
+                  aria-label={`Card ${index + 1} of ${shortcuts.length}: ${shortcut.title}`}
+                  aria-hidden={!visible}
+                  inert={!visible}
+                  style={rackStyle}
+                >
+                  {shortcut.href ? (
+                    <a
+                      href={shortcut.href}
+                      className={`${shortcutClass} cmc-rack-tilt`}
+                      onPointerMove={(event) => setQuickCardTilt(event)}
+                      onPointerLeave={(event) => setQuickCardTilt(event, true)}
+                    >
+                      {content}
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onSelectFeatureCard(shortcut.id)}
+                      className={`${shortcutClass} cmc-rack-tilt`}
+                      onPointerMove={(event) => setQuickCardTilt(event)}
+                      onPointerLeave={(event) => setQuickCardTilt(event, true)}
+                    >
+                      {content}
+                    </button>
+                  )}
+                </div>
               );
             })}
+            </div>
           </div>
         </div>
       </section>
