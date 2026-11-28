@@ -12,7 +12,7 @@
 
    Two versions of the same design:
      light (html.light)   warm bright learning studio, pale glass
-     dark  (html:not(.light)) deep-space canvas, smoked glass
+     dark  (html:not(.light)) forest-charcoal canvas, smoked glass
    The app now opens in the bright studio by default; dark remains available
    from the theme toggle.
    ============================================================ */
@@ -20,21 +20,35 @@
 :root {
   --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --g-ink: #f4f8fc;              /* headings */
-  --g-body: #c4d2df;             /* running text */
-  --g-mute: #8ca2b5;             /* captions */
-  --g-page: #06111e;             /* deep-space canvas */
-  --g-page-2: #091a2b;
-  --g-pane: rgba(6, 18, 31, 0.68);            /* the big frosted pane */
-  --g-glass: rgba(49, 133, 166, 0.075);       /* cards */
-  --g-glass-2: rgba(65, 167, 197, 0.13);      /* cards, raised / hovered */
-  --g-line: rgba(111, 214, 239, 0.17);        /* glass edge */
-  --g-line-2: rgba(132, 228, 249, 0.42);      /* glass edge, lit */
-  --g-shadow: 0 44px 80px -48px rgba(0, 0, 0, 0.76);
-  --g-accent: #56dfff;           /* electric cyan for active learning states */
-  --g-accent-deep: #087e9b;      /* deep cyan for selected controls */
-  --g-warm: #f2c66d;             /* gold for progress and achievements */
-  --g-pill: #ffffff;             /* main button */
+  /* Tailwind slate utilities are the site-wide neutral surfaces. Shift them
+     from blue-slate to a quiet green-charcoal so dark mode is not navy. */
+  --color-slate-50: #f7f8f1;
+  --color-slate-100: #edf0e8;
+  --color-slate-200: #dce2d7;
+  --color-slate-300: #c4cebf;
+  --color-slate-400: #9ba997;
+  --color-slate-500: #7a8878;
+  --color-slate-600: #5e6b5d;
+  --color-slate-700: #414b40;
+  --color-slate-800: #2d352c;
+  --color-slate-900: #20261f;
+  --color-slate-950: #171b17;
+
+  --g-ink: #f2f4ec;              /* headings */
+  --g-body: #c8d0c3;             /* running text */
+  --g-mute: #98a595;             /* captions */
+  --g-page: #171b17;             /* neutral forest-charcoal canvas */
+  --g-page-2: #20261f;
+  --g-pane: rgba(25, 31, 25, 0.82);            /* the big frosted pane */
+  --g-glass: rgba(177, 193, 151, 0.075);       /* cards */
+  --g-glass-2: rgba(177, 193, 151, 0.13);      /* cards, raised / hovered */
+  --g-line: rgba(188, 205, 166, 0.18);         /* glass edge */
+  --g-line-2: rgba(124, 197, 153, 0.48);       /* glass edge, lit */
+  --g-shadow: 0 44px 80px -48px rgba(0, 0, 0, 0.72);
+  --g-accent: #83c9a1;           /* soft green for active learning states */
+  --g-accent-deep: #2c745b;      /* deep teal for selected controls */
+  --g-warm: #f0c45b;             /* sunshine for progress and achievements */
+  --g-pill: #f4d06c;             /* main button */
   --g-pill-ink: #10151d;
   --g-blur: 22px;
 }
@@ -134,11 +148,11 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(56vmax 44vmax at 88% 8%, rgba(24, 184, 221, 0.17), transparent 64%),
-    radial-gradient(48vmax 40vmax at 84% 90%, rgba(242, 198, 109, 0.09), transparent 64%),
-    radial-gradient(44vmax 40vmax at 4% 34%, rgba(15, 116, 144, 0.15), transparent 64%),
-    radial-gradient(circle, rgba(130, 221, 242, 0.16) 0.8px, transparent 1px) 0 0 / 32px 32px,
-    linear-gradient(165deg, var(--g-page-2) 0%, var(--g-page) 55%, #040b14 100%);
+    radial-gradient(56vmax 44vmax at 88% 8%, rgba(96, 164, 123, 0.14), transparent 64%),
+    radial-gradient(48vmax 40vmax at 84% 90%, rgba(240, 196, 91, 0.09), transparent 64%),
+    radial-gradient(44vmax 40vmax at 4% 34%, rgba(105, 129, 86, 0.12), transparent 64%),
+    radial-gradient(circle, rgba(190, 205, 166, 0.11) 0.8px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(165deg, var(--g-page-2) 0%, var(--g-page) 55%, #101410 100%);
 }
 html.light body::before {
   background:
@@ -151,8 +165,8 @@ html.light body::before {
 .cmc-app.bg-slate-950,
 html.light .cmc-app.bg-slate-950 { background-color: transparent; }
 
-::-webkit-scrollbar-track { background: #0b1220; }
-::-webkit-scrollbar-thumb { background: #2a3650; }
+::-webkit-scrollbar-track { background: #171b17; }
+::-webkit-scrollbar-thumb { background: #3b4438; }
 html.light ::-webkit-scrollbar-track { background: #e5eeea; }
 html.light ::-webkit-scrollbar-thumb { background: #8aa9aa; }
 ::selection { background: var(--g-accent-deep); color: #fff; }
@@ -412,7 +426,7 @@ html.light [data-keep-dark] .cmc-stat-num {
 
 /* ---- top bar and menu ---- */
 .cmc-topbar {
-  background-image: linear-gradient(90deg, #1c2a6e, #3b55e6 45%, #7b6cf0 78%, #e8a878);
+  background-image: linear-gradient(90deg, #305b49, #2e8069 45%, #70a77a 76%, #d7ad48);
   letter-spacing: 0.01em;
 }
 .cmc-nav,
