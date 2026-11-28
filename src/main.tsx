@@ -8,6 +8,7 @@ import "./iridescent.css";
 import "./motion.css";
 import App from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { SectionHeadingParticles } from "./components/SectionHeadingParticles";
 
 // /?motion=demo — the one page where every button behaviour can be seen and
 // tapped without a login. Lazy, so it costs nothing on the real site.
@@ -47,5 +48,6 @@ createRoot(document.getElementById("root")!).render(
         <App />
       )}
     </ErrorBoundary>
+    <SectionHeadingParticles />
   </StrictMode>
 );

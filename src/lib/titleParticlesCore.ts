@@ -152,32 +152,74 @@ function sampleTitle(canvas: HTMLElement, title: HTMLElement, budget: number, le
   const SHADE = 20;
   const lines: Array<{ left: number; width: number; gradient: boolean }> = [];
   const range = document.createRange();
-  title.querySelectorAll<HTMLElement>(letters).forEach((span) => {
-    const node = span.firstChild;
-    if (!node || node.nodeType !== Node.TEXT_NODE || lines.length >= 11) return;
-    const text = node.textContent ?? '';
-    const line = span.getBoundingClientRect();
-    lines.push({ left: line.left - box.left + pad, width: Math.max(1, line.width), gradient: span.hasAttribute('data-dot-gradient') });
-    ctx.fillStyle = `rgb(${lines.length * SHADE},0,0)`;
-    const cs = getComputedStyle(span);
-    const size = parseFloat(cs.fontSize) || 16;
-    fontPx = Math.max(fontPx, size);
-    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${size * scale}px ${cs.fontFamily}`;
-    const m = ctx.measureText('H');
-    // A character's box runs from the font's ascent to its descent, so the
-    // baseline sits one ascent below the top of the box.
-    const ascent = Number.isFinite(m.fontBoundingBoxAscent) ? m.fontBoundingBoxAscent / scale : size * 0.8;
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
-      if (!ch.trim()) continue;
-      range.setStart(node, i);
-      range.setEnd(node, i + 1);
-      const r = range.getBoundingClientRect();
-      if (r.width === 0) continue;
-      ctx.fillText(ch, (r.left - box.left + pad) * scale, (r.top - box.top + pad + ascent) * scale);
-      drawn++;
+  if (letters === '*') {
+    // Generic section headings are sampled from all their real text nodes, so
+    // there is no need to wrap or otherwise mutate React-owned heading markup.
+    const walker = document.createTreeWalker(title, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const text = node.textContent ?? '';
+        const parent = node.parentElement;
+        if (!text.trim() || !parent || parent.closest('svg, canvas, script, style, [aria-hidden="true"]')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+    let node = walker.nextNode();
+    while (node) {
+      const textNode = node as Text;
+      const parent = textNode.parentElement ?? title;
+      const text = textNode.textContent ?? '';
+      const cs = getComputedStyle(parent);
+      const size = parseFloat(cs.fontSize) || 16;
+      fontPx = Math.max(fontPx, size);
+      ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${size * scale}px ${cs.fontFamily}`;
+      ctx.fillStyle = '#ffffff';
+      const m = ctx.measureText('H');
+      const ascent = Number.isFinite(m.fontBoundingBoxAscent) ? m.fontBoundingBoxAscent / scale : size * 0.8;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (!ch.trim()) continue;
+        range.setStart(textNode, i);
+        range.setEnd(textNode, i + 1);
+        const r = range.getBoundingClientRect();
+        if (r.width === 0) continue;
+        const glyph = cs.textTransform === 'uppercase' ? ch.toLocaleUpperCase()
+          : cs.textTransform === 'lowercase' ? ch.toLocaleLowerCase()
+            : ch;
+        ctx.fillText(glyph, (r.left - box.left + pad) * scale, (r.top - box.top + pad + ascent) * scale);
+        drawn++;
+      }
+      node = walker.nextNode();
     }
-  });
+  } else {
+    title.querySelectorAll<HTMLElement>(letters).forEach((span) => {
+      const node = span.firstChild;
+      if (!node || node.nodeType !== Node.TEXT_NODE || lines.length >= 11) return;
+      const text = node.textContent ?? '';
+      const line = span.getBoundingClientRect();
+      lines.push({ left: line.left - box.left + pad, width: Math.max(1, line.width), gradient: span.hasAttribute('data-dot-gradient') });
+      ctx.fillStyle = `rgb(${lines.length * SHADE},0,0)`;
+      const cs = getComputedStyle(span);
+      const size = parseFloat(cs.fontSize) || 16;
+      fontPx = Math.max(fontPx, size);
+      ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${size * scale}px ${cs.fontFamily}`;
+      const m = ctx.measureText('H');
+      // A character's box runs from the font's ascent to its descent, so the
+      // baseline sits one ascent below the top of the box.
+      const ascent = Number.isFinite(m.fontBoundingBoxAscent) ? m.fontBoundingBoxAscent / scale : size * 0.8;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (!ch.trim()) continue;
+        range.setStart(node, i);
+        range.setEnd(node, i + 1);
+        const r = range.getBoundingClientRect();
+        if (r.width === 0) continue;
+        ctx.fillText(ch, (r.left - box.left + pad) * scale, (r.top - box.top + pad + ascent) * scale);
+        drawn++;
+      }
+    });
+  }
   if (!drawn) return null;
 
   const data = ctx.getImageData(0, 0, mask.width, mask.height).data;
@@ -185,7 +227,9 @@ function sampleTitle(canvas: HTMLElement, title: HTMLElement, budget: number, le
   for (let i = 0; i < alpha.length; i++) alpha[i] = data[i * 4 + 3];
   const gap = Math.max(1, spacing(fontPx) || dotSpacing(fontPx));
   const pts = letterPoints(alpha, mask.width, mask.height, gap * scale, budget);
-  if (pts.length < 200) return null; // font not painted (still loading) — keep the text
+  // Small directory/group headers have fewer points than the large hero and
+  // page titles, but still look clear once they have a dozen dots per glyph.
+  if (pts.length < (letters === '*' ? 48 : 200)) return null; // font not painted (still loading) — keep the text
 
   let along: Float32Array | null = null;
   if (lines.some((l) => l.gradient)) {

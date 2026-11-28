@@ -361,6 +361,16 @@ describe('how the effect is wired into the page', () => {
     expect(glass).toContain('radial-gradient(circle, #f2c66d 0 1.2px, transparent 1.45px)');
   });
 
+  it('connects all section headings to the hero-style pointer dispersion', () => {
+    const manager = readFileSync('src/components/SectionHeadingParticles.tsx', 'utf8');
+    const core = readFileSync('src/lib/titleParticlesCore.ts', 'utf8');
+    expect(manager).toContain("'.cmc-section h2:not(#biweek-title)'");
+    expect(manager).toContain("letters: '*'");
+    expect(manager).toContain("import('../lib/titleParticles')");
+    expect(core).toContain("if (letters === '*')");
+    expect(core).toContain("section.addEventListener('pointermove', onMove");
+  });
+
   it('the canvas can never swallow a click on the hero buttons', () => {
     const rule = css.match(/\.cmc-title-canvas\s*\{([^}]*)\}/);
     expect(rule?.[1]).toMatch(/pointer-events:\s*none/);
