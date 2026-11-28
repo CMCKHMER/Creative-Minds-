@@ -210,11 +210,11 @@ export const FeaturesBento: React.FC<FeaturesBentoProps> = ({
                 Kid Program Grade Path
               </h3>
               <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                Find the Kid 6 Reading Future Connect 2 vocabulary review. Grade spaces 5 and 7–12 are ready for worksheets and materials as they are created.
+                Explore Reading Future worksheets for Kid 6 (Connect 2), Kid 7 (Change 1), Kid 8 (Change 3), and Kid 11 (Create 3).
               </p>
 
               <div className="flex flex-wrap gap-2 text-[11px]">
-                {[5, 6, 7, 8, 9, 10, 11, 12].map((grade) => <span key={grade} className={`rounded-md border px-2 py-1 ${grade === 6 ? 'border-cyan-300/25 bg-cyan-300/10 text-cyan-100' : 'border-slate-800 bg-slate-950 text-slate-500'}`}>{grade}</span>)}
+                {[5, 6, 7, 8, 9, 10, 11, 12].map((grade) => <span key={grade} className={`rounded-md border px-2 py-1 ${[6, 7, 8, 11].includes(grade) ? 'border-cyan-300/25 bg-cyan-300/10 text-cyan-100' : 'border-slate-800 bg-slate-950 text-slate-500'}`}>{grade}</span>)}
               </div>
             </div>
 

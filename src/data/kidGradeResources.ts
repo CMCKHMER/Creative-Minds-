@@ -108,6 +108,29 @@ const kid7Resources: KidGradeMaterial[] = [
   },
 ];
 
+// Kid 8 — Reading Future Change 3 live worksheets transcribed from the
+// supplied Dictation and Unscramble PDFs. The source includes 16 units; the
+// live pages preserve the unit track numbers and provide auto-checking,
+// sharing, and print/PDF support. Course audio is not bundled with the PDFs.
+const kid8Resources: KidGradeMaterial[] = [
+  {
+    id: 'kid-8-change3-dictation',
+    title: 'Reading Future Change 3 · Dictation Sheet',
+    kind: 'Dictation worksheet',
+    description: 'Interactive 16-unit dictation with 15 blanks per passage, instant checking, a verified-teacher answer key, share links, and print/PDF. Use the matching course audio track.',
+    href: './rfc-change3/dictation.html',
+    units: 16,
+  },
+  {
+    id: 'kid-8-change3-unscramble',
+    title: 'Reading Future Change 3 · Unscramble Sheet',
+    kind: 'Unscramble sheet',
+    description: 'Rebuild sentences A–D from interactive word chunks, place them in gaps ①–④, and get an instant score. 16 units with share and print/PDF options.',
+    href: './rfc-change3/unscramble.html',
+    units: 16,
+  },
+];
+
 // Kid 11 — Reading Future Create 3 worksheets, served from public/rfc3/,
 // plus the online-homework worksheets (public/rfc3/doctor-fish.html,
 // public/rfc3/unit13hw.html, public/rfc3/unit15hw.html and
@@ -353,7 +376,7 @@ const kidGradeResources = ([
   plannedGrade(5),
   { grade: 6, status: 'available', materials: kid6Resources },
   { grade: 7, status: 'available', materials: kid7Resources },
-  plannedGrade(8),
+  { grade: 8, status: 'available', materials: kid8Resources },
   plannedGrade(9),
   plannedGrade(10),
   { grade: 11, status: 'available', materials: kid11Resources },

@@ -6,9 +6,10 @@ describe('Kid Program grade resource pathway', () => {
     expect(KID_GRADE_RESOURCES.map((grade) => grade.grade)).toEqual([5, 6, 7, 8, 9, 10, 11, 12]);
   });
 
-  it('links all four Kid 6 RFC2 worksheets, all four Kid 7 RFC1 worksheets, and all four Kid 11 RFC3 resources', () => {
+  it('links Kid 6 RFC2, Kid 7 RFC1, Kid 8 Change 3, and Kid 11 RFC3 resources', () => {
     const kid6 = KID_GRADE_RESOURCES.find((grade) => grade.grade === 6);
     const kid7 = KID_GRADE_RESOURCES.find((grade) => grade.grade === 7);
+    const kid8 = KID_GRADE_RESOURCES.find((grade) => grade.grade === 8);
     const kid11 = KID_GRADE_RESOURCES.find((grade) => grade.grade === 11);
     expect(kid6?.status).toBe('available');
     // Kid 6 worksheets are served from this site's public/rfc2/ directory.
@@ -27,6 +28,13 @@ describe('Kid Program grade resource pathway', () => {
       './rfc1/dictation.html',
       './rfc1/unit-test.html',
     ]);
+    expect(kid8?.status).toBe('available');
+    expect(kid8?.materials.map((material) => material.href)).toEqual([
+      './rfc-change3/dictation.html',
+      './rfc-change3/unscramble.html',
+    ]);
+    expect(kid8?.materials.every((material) => material.units === 16)).toBe(true);
+    expect(kid8?.materials.map((material) => material.kind)).toEqual(['Dictation worksheet', 'Unscramble sheet']);
     expect(kid11?.status).toBe('available');
     // Kid 11 worksheets are served from this site's public/rfc3/ directory
     // (absolute URLs so the links also work from the static HTML worksheets),
@@ -125,7 +133,7 @@ describe('Kid Program grade resource pathway', () => {
     expect(kid11Secure?.description.toLowerCase()).toContain('teacher-only');
     expect(kid11Secure?.description.toLowerCase()).toContain('violation report');
     expect(kid11Secure?.description.toLowerCase()).toContain('leaderboard');
-    expect(KID_GRADE_RESOURCES.filter((grade) => grade.grade !== 6 && grade.grade !== 7 && grade.grade !== 11).every((grade) => grade.status === 'planned' && grade.materials.length === 0)).toBe(true);
+    expect(KID_GRADE_RESOURCES.filter((grade) => ![6, 7, 8, 11].includes(grade.grade)).every((grade) => grade.status === 'planned' && grade.materials.length === 0)).toBe(true);
   });
 
   it('uses the published Reading Future book name per available grade', async () => {

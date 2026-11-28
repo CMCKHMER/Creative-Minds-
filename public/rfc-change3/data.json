@@ -1,0 +1,309 @@
+{
+  "book": "Reading Future Change 3",
+  "units": [
+    {
+      "number": 1,
+      "title": "Smart Use of Smartphones",
+      "track": "03",
+      "dictation": {
+        "passage": "Smartphones change our lives. They can [1] people, but they can also [2] people. [3] can help us [4] problems. However, it can also [5] new problems. It is important to understand how to be [6] when using your smartphone. Smartphones let us call or [7] our family and friends easily. We can take photos. We can find information and [8] quickly. [9] with the advantages of using phones, there are [10]. We can [11] on our phones so much that we feel [12] when we don’t have them. Sometimes we don’t pay [13] to people who are next to us and trying to [14]. We can also cause accidents by talking or texting while using transportation. In addition, many of us use our phones for [15]. We can download or stream music, movies, and TV shows anytime and anywhere. But all this entertainment also has a bad side. For example, instead of sharing the fun with others, we often listen and watch alone. We need to create a better balance between enjoying things alone and doing them together. We should sometimes turn off the technology and interact with the people around us.",
+        "answers": [["connect"], ["isolate"], ["technology"], ["solve"], ["create"], ["responsible"], ["text"], ["directions"], ["along"], ["disadvantages"], ["rely"], ["lost"], ["attention"], ["talk", "communicate"], ["entertainment"]]
+      },
+      "unscramble": {
+        "passage": "[1] They can connect people, but they can also isolate people. Technology can help us solve problems. [2] It is important to understand how to be responsible when using your smartphone. Smartphones let us call or text our family and friends easily. [3] We can find information and directions quickly. [4] We can rely on our phones so much that we feel lost when we don’t have them.",
+        "sentences": [
+          {"letter": "A", "chunks": ["photos.", "can", "We", "take"], "answer": ["We", "can", "take", "photos."]},
+          {"letter": "B", "chunks": ["new problems.", "However,", "can also", "it", "create"], "answer": ["However,", "it", "can also", "create", "new problems."]},
+          {"letter": "C", "chunks": ["Smartphones", "lives.", "change", "our"], "answer": ["Smartphones", "change", "our", "lives."]},
+          {"letter": "D", "chunks": ["Along with the", "disadvantages", "of using phones.", "There are advantages"], "answer": ["There are advantages", "along with the", "disadvantages", "of using phones."]}
+        ],
+        "placements": ["C", "B", "A", "D"]
+      }
+    },
+    {
+      "number": 2,
+      "title": "Street Food",
+      "track": "05",
+      "dictation": {
+        "passage": "When people think about eating food, they [1] think of two places, their home or [2]. But some very [3] food is [4] and sold on the [5] as well. Street food is [6] and delicious. You can smell, taste, and enjoy it when you travel. In Italy, there is arancini, which means “little orange,” because it looks like a little orange. They are made with rice, meat, cheese, and [7]. They are [8] in bread, fried, and served warm. In the Philippines, one [9] street food is halo-halo, which means “mix-mix.” It’s a famous cold [10] that is a mix of [11] sweet beans, fresh fruit, ice cream, [12] ice, and sweet milk. It is usually served in a tall glass or a bowl. Don’t miss tang hu-lu when you are in China. This popular [13] snack [14] of different fruits, like oranges, strawberries, and pineapples. The fruits are covered in sugary [15]. The syrup becomes hard, and then the fruit is served on a bamboo stick. While traveling, look for street sellers when you get hungry. You will enjoy cheap and delicious food you can tell your friends about.",
+        "answers": [["usually"], ["restaurants", "a restaurant"], ["delicious", "popular", "tasty", "good"], ["prepared", "cooked"], ["street"], ["cheap", "popular"], ["peas"], ["covered"], ["popular"], ["dessert"], ["boiled"], ["shaved"], ["traditional"], ["consists"], ["syrup"]]
+      },
+      "unscramble": {
+        "passage": "In Italy, there is arancini, which means “little orange,” because it looks like a little orange. [1] They are covered in bread, fried, and served warm. In the Philippines, one popular street food is halo-halo, which means “mix-mix.” It’s a famous cold dessert that is a mix of boiled sweet beans, fresh fruit, ice cream, shaved ice, and sweet milk. It is usually served in a tall glass or a bowl. [2] This popular traditional snack consists of different fruits, like oranges, strawberries, and pineapples. [3] [4]",
+        "sentences": [
+          {"letter": "A", "chunks": ["in China.", "tang hu-lu", "Don’t miss", "when you are"], "answer": ["Don’t miss", "tang hu-lu", "when you are", "in China."]},
+          {"letter": "B", "chunks": ["covered in", "are", "sugary syrup.", "The fruits"], "answer": ["The fruits", "are", "covered in", "sugary syrup."]},
+          {"letter": "C", "chunks": ["becomes hard,", "is served on", "The syrup", "and then the fruit", "a bamboo stick."], "answer": ["The syrup", "becomes hard,", "and then the fruit", "is served on", "a bamboo stick."]},
+          {"letter": "D", "chunks": ["cheese, and peas.", "made with", "They are", "rice, meat,"], "answer": ["They are", "made with", "rice, meat,", "cheese, and peas."]}
+        ],
+        "placements": ["D", "A", "B", "C"]
+      }
+    },
+    {
+      "number": 3,
+      "title": "Interesting Festivals Around the World",
+      "track": "07",
+      "dictation": {
+        "passage": "A festival is a big event that [1] a [2] or something fun, such as music or food. There are many interesting festivals around the world. Carnival, in Brazil, is the biggest festival in the world. The [3] festival happens in [4] or March. About sixty thousand [5] tourists visit Brazil for this festival. Each day [6] the festival, over two million people fill the streets in the city of Rio de Janeiro. The samba [7] is one of the most popular events at Carnival. People wear special [8], sing, and dance to samba music. The Holi Festival, in India, is a celebration of the [9] of spring. People throw colorful [10] and water on each other. They light fires outside and dance to [11] music. La Tomatina is a food festival in Spain. It is [12] on the last [13] in August. About thirty thousand people come to the festival. Trucks bring lots of tomatoes for people to throw at each other. The [14] tomato fight continues for about two hours. The world is full of interesting festivals, and they are a great way to learn about another [15].",
+        "answers": [["celebrates"], ["holiday"], ["week-long", "week long"], ["February"], ["foreign", "international"], ["during"], ["parade"], ["costumes"], ["beginning"], ["powder"], ["traditional", "lively"], ["celebrated"], ["Wednesday"], ["huge", "giant"], ["culture"]]
+      },
+      "unscramble": {
+        "passage": "A festival is a big event that celebrates a holiday or something fun, like music or food. [1] Carnival, in Brazil, is the biggest festival in the world. [2] About sixty thousand tourists visit Brazil for the festival. Each day during the festival, over two million people fill the streets in the city of Rio de Janeiro. [3] People wear special costumes, sing, and dance to samba music. The Holi Festival, in India, is a celebration of the beginning of spring. [4]",
+        "sentences": [
+          {"letter": "A", "chunks": ["around the world.", "There are", "many interesting", "festivals"], "answer": ["There are", "many interesting", "festivals", "around the world."]},
+          {"letter": "B", "chunks": ["People throw", "and water", "colorful powder", "on each other."], "answer": ["People throw", "colorful powder", "and water", "on each other."]},
+          {"letter": "C", "chunks": ["The samba parade", "popular events", "is", "one of the most", "at Carnival."], "answer": ["The samba parade", "is", "one of the most", "popular events", "at Carnival."]},
+          {"letter": "D", "chunks": ["in February or March.", "festival happens", "The week-long"], "answer": ["The week-long", "festival happens", "in February or March."]}
+        ],
+        "placements": ["A", "D", "C", "B"]
+      }
+    },
+    {
+      "number": 4,
+      "title": "Good Luck and Bad Luck",
+      "track": "09",
+      "dictation": {
+        "passage": "Many cultures [1] that [2] [3], things, or [4] bring good or bad luck with them. These [5] are called superstitions. Different cultures have different superstitions. Learning about the superstitions of different cultures can teach us about those cultures. Some [6] people think that clovers with four leaves are [7]. They say that the leaves [8] [9], hope, love, and luck. Four-leaf clovers are not as [10] as three-leaf clovers, so finding a four-leaf clover is a good [11]. The number seven is thought to represent [12] in some western cultures. The number seven is in many things that are whole. For example, a full rainbow has seven colors and a whole week has seven days. Some people think it’s good to see this number. People who believe in superstitions also believe that certain numbers bring bad luck. Four is an unlucky number in [13] [14] cultures. The word that means “four” sounds [15] to the word for “death” in some eastern languages. Talking and thinking about negative things like death is believed to bring bad luck into your life. By understanding these superstitions, you can understand other cultures better.",
+        "answers": [["believe"], ["certain"], ["objects"], ["situations"], ["ideas"], ["western"], ["lucky"], ["represent"], ["wealth"], ["common"], ["sign"], ["luck"], ["some"], ["eastern"], ["similar"]]
+      },
+      "unscramble": {
+        "passage": "Many cultures believe that certain objects, things, or situations bring good or bad luck with them. [1] [2] Learning about the superstitions of different cultures can teach us about those cultures. [3] [4] Four-leaf clovers are not as common as three-leaf clovers, so finding a four-leaf clover is a good sign.",
+        "sentences": [
+          {"letter": "A", "chunks": ["clovers with four leaves", "think that", "are lucky.", "Some western people"], "answer": ["Some western people", "think that", "clovers with four leaves", "are lucky."]},
+          {"letter": "B", "chunks": ["have", "different superstitions.", "Different cultures"], "answer": ["Different cultures", "have", "different superstitions."]},
+          {"letter": "C", "chunks": ["and luck.", "the leaves", "They say that", "represent wealth,", "hope, love,"], "answer": ["They say that", "the leaves", "represent wealth,", "hope, love,", "and luck."]},
+          {"letter": "D", "chunks": ["called", "These ideas", "superstitions.", "are"], "answer": ["These ideas", "are", "called", "superstitions."]}
+        ],
+        "placements": ["D", "B", "A", "C"]
+      }
+    },
+    {
+      "number": 5,
+      "title": "Insects as Food",
+      "track": "11",
+      "dictation": {
+        "passage": "The amount of food in the world is [1] and there are [2] millions of people in the world who don’t have enough to eat. Insects are a traditional food in many places and some people think they could be a good way to make enough food for everyone. Insects are [3] of [4], so they are healthy for the human body. They are small and easy to [5], so they are great as a [6]. Insects are found almost [7] and are easy to [8]. [9] for insects are easier to [10] than farm animals or [11]. Insect farms also take up less room and don’t need as much water. Insects can be [12] in many ways. They can be fried, boiled, [13], dried, or made into a powder. Chefs around the world are now cooking with insects. The insects have different tastes. For example, some ants taste like [14], and others are sweet. It may take time, but insects may become a more common [15] of food soon. This is because they are healthy, easy to raise, and delicious.",
+        "answers": [["limited"], ["already"], ["full"], ["protein"], ["raise"], ["food source", "food"], ["everywhere"], ["raise"], ["farms"], ["maintain"], ["vegetables"], ["prepared"], ["steamed"], ["mushrooms"], ["source"]]
+      },
+      "unscramble": {
+        "passage": "Insects are found almost everywhere and are easy to raise. Farms for insects are easier to maintain than farm animals or vegetables. [1] [2] They can be fried, boiled, steamed, dried, or made into a powder. Chefs around the world are now cooking with insects. [3] [4]",
+        "sentences": [
+          {"letter": "A", "chunks": ["tastes.", "The insects", "different", "have"], "answer": ["The insects", "have", "different", "tastes."]},
+          {"letter": "B", "chunks": ["in many ways.", "be prepared", "Insects", "can"], "answer": ["Insects", "can", "be prepared", "in many ways."]},
+          {"letter": "C", "chunks": ["as much water.", "also take up", "and don’t need", "Insect farms", "less room"], "answer": ["Insect farms", "also take up", "less room", "and don’t need", "as much water."]},
+          {"letter": "D", "chunks": ["and others", "taste like mushrooms,", "are sweet.", "For example,", "some ants"], "answer": ["For example,", "some ants", "taste like mushrooms,", "and others", "are sweet."]}
+        ],
+        "placements": ["C", "B", "A", "D"]
+      }
+    },
+    {
+      "number": 6,
+      "title": "World Penguin Day",
+      "track": "13",
+      "dictation": {
+        "passage": "Penguins are [1] birds. There are a number of things that make them unique. For example, they can’t fly like most birds can. However, they are [2] swimmers, and are [3] of swimming underwater. Penguins also don’t mind cold weather like most birds do. Penguins are also larger than many other kinds of birds. [4] there are many differences, there are also some [5]. Like many kinds of birds, penguins [6]. Since penguins usually live in [7], they migrate in [8]. The reason penguins migrate at this time is to [9] the long hours of [10] during Antarctica’s winter [11]. Winter days in Antarctica are very short, and the dark nights are very long. Penguins there do not have enough hours of light to [12] for food. Therefore, they swim hundreds of kilometers north where winter days are a little longer and they have more time to find food. They live on [13] for a few months until spring returns to Antarctica, and then they swim back. To [14] and remember these special birds that live far away, people have [15] April 25th to be World Penguin Day.",
+        "answers": [["interesting"], ["terrific"], ["capable"], ["although"], ["similarities"], ["migrate"], ["Antarctica"], ["April"], ["escape"], ["darkness"], ["season"], ["search"], ["fish", "krill"], ["honor", "celebrate"], ["declared", "chosen"]]
+      },
+      "unscramble": {
+        "passage": "Penguins are interesting birds. [1] [2] However, they are terrific swimmers, and are capable of swimming underwater. [3] Penguins are also larger than many other kinds of birds. Although there are many differences, there are also some similarities. [4] Since penguins usually live in Antarctica, they migrate in April. The reason penguins migrate at this time is to escape the long hours of darkness during Antarctica’s winter season.",
+        "sentences": [
+          {"letter": "A", "chunks": ["like most birds", "also don’t mind", "do.", "cold weather", "Penguins"], "answer": ["Penguins", "also don’t mind", "cold weather", "like most birds", "do."]},
+          {"letter": "B", "chunks": ["Like many kinds", "migrate.", "of birds,", "penguins"], "answer": ["Like many kinds", "of birds,", "penguins", "migrate."]},
+          {"letter": "C", "chunks": ["unique.", "a number of things", "are", "There", "that make them"], "answer": ["There", "are", "a number of things", "that make them", "unique."]},
+          {"letter": "D", "chunks": ["can’t fly", "like most birds", "they", "can.", "For example,"], "answer": ["For example,", "they", "can’t fly", "like most birds", "can."]}
+        ],
+        "placements": ["C", "D", "A", "B"]
+      }
+    },
+    {
+      "number": 7,
+      "title": "The Amazing Cockroach",
+      "track": "15",
+      "dictation": {
+        "passage": "Although they are [1], cockroaches are truly amazing [2]. Cockroaches have been around for over 200 million years. That means they lived at the same time as dinosaurs. Cockroaches are great survivors. Did you know they can live up to a week without their heads? These amazing animals can also last a month without eating. However, they don’t usually have to because they can eat almost anything, even soap and toothpaste. This helps them to survive [3] [4] [5]. Cockroaches are good at avoiding dangerous situations. This bug can run almost three kilometers an hour, which is fast for an insect that cannot fly. Cockroaches are difficult to catch because they have special hairs on the [6] of their bodies that [7] [8], which lets them know when [9] is near. However, cockroaches do have one [10]. For some reason, they can’t escape the power of [11] cleaners. The shaking movement from this machine [12] to [13] them. [14] of speeding away from vacuum cleaners, they [15] right into them and are sucked up. So if you see a cockroach, grab your vacuum cleaner.",
+        "answers": [["ugly", "disgusting", "gross", "scary"], ["insects"], ["in"], ["many", "almost any", "different"], ["places", "environments", "situations", "conditions"], ["bottom"], ["detect"], ["movements"], ["danger"], ["weakness"], ["vacuum"], ["seems"], ["confuse"], ["instead"], ["rush"]]
+      },
+      "unscramble": {
+        "passage": "[1] This bug can run almost three kilometers an hour, which is fast for an insect that cannot fly. Cockroaches are difficult to catch because they have special hairs on the bottom of their bodies that detect movements, which lets them know when danger is near. [2] [3] The shaking movement from this machine seems to confuse them. Instead of speeding away from vacuum cleaners, they rush right into them and are sucked up. [4]",
+        "sentences": [
+          {"letter": "A", "chunks": ["are good at", "dangerous situations.", "Cockroaches", "avoiding"], "answer": ["Cockroaches", "are good at", "avoiding", "dangerous situations."]},
+          {"letter": "B", "chunks": ["one weakness.", "cockroaches", "have", "However,", "do"], "answer": ["However,", "cockroaches", "do", "have", "one weakness."]},
+          {"letter": "C", "chunks": ["grab", "see a cockroach,", "your vacuum cleaner.", "if you", "So"], "answer": ["So", "if you", "see a cockroach,", "grab", "your vacuum cleaner."]},
+          {"letter": "D", "chunks": ["of vacuum cleaners.", "they can’t escape", "the power", "For some reason,"], "answer": ["For some reason,", "they can’t escape", "the power", "of vacuum cleaners."]}
+        ],
+        "placements": ["A", "B", "D", "C"]
+      }
+    },
+    {
+      "number": 8,
+      "title": "Animal Defenses",
+      "track": "17",
+      "dictation": {
+        "passage": "Over time, animals have had to change to survive in their [1]. For example, a [2] has a long neck to eat from tall trees, and a [3] has [4] feet to help it swim. Most animals have [5] ways to [6] themselves from [7], [8] speed, [9], and other defenses. Animals like the giraffe and deer use speed to save themselves. When an enemy [10], these animals run quickly in different [11], and the enemy gets confused. Other animals use camouflage to hide and protect themselves. This means their bodies can change to look the same as the [12] around them. An octopus can change the color and [13] of its skin to look almost [14] like a rock. This camouflage makes the octopus look like it is part of a rock. One of the most interesting animal defenses is the quills on a porcupine. A porcupine can [15] to protect itself. When a porcupine is in danger, it puts its quills up and swings its tail. The quills can stick into a nearby enemy, causing pain. The porcupine’s quills are an amazing example of self-protection.",
+        "answers": [["environment"], ["giraffe"], ["penguin"], ["webbed"], ["many", "different"], ["protect"], ["enemies"], ["including"], ["camouflage"], ["attacks"], ["directions"], ["environment"], ["texture"], ["exactly"], ["transform"]]
+      },
+      "unscramble": {
+        "passage": "[1] When an enemy attacks, these animals run quickly in different directions, and the enemy gets confused. [2] This means their bodies can change to look the same as the environment around them. An octopus can change the color and texture of its skin to look almost exactly like a rock. [3] One of the most interesting animal defenses is the quills on a porcupine. A porcupine can transform to protect itself. When a porcupine is in danger, it puts its quills up and swings its tail. [4]",
+        "sentences": [
+          {"letter": "A", "chunks": ["stick into", "The quills", "can", "a nearby enemy,", "causing pain."], "answer": ["The quills", "can", "stick into", "a nearby enemy,", "causing pain."]},
+          {"letter": "B", "chunks": ["protect themselves.", "Other animals", "use camouflage", "and", "to hide"], "answer": ["Other animals", "use camouflage", "to hide", "and", "protect themselves."]},
+          {"letter": "C", "chunks": ["to save themselves.", "Animals", "and deer use speed", "like the giraffe"], "answer": ["Animals", "like the giraffe", "and deer use speed", "to save themselves."]},
+          {"letter": "D", "chunks": ["part of a rock.", "look like", "makes the octopus", "This camouflage", "it is"], "answer": ["This camouflage", "makes the octopus", "look like", "it is", "part of a rock."]}
+        ],
+        "placements": ["C", "B", "D", "A"]
+      }
+    },
+    {
+      "number": 9,
+      "title": "AI Music",
+      "track": "19",
+      "dictation": {
+        "passage": "Computers today are much smarter than before. The machines today have [1] [2], or AI. AI can learn things from and then copy human [3] and thinking. For example, AI can drive cars. AI can even play and win a game of chess [4] a human [5]. AI is also learning how to be creative. For example, AI can create [6] music. It copies human learning, and this allows it to understand the art of [7] music. First, the AI composer [8] to famous composers [9] as Bach. Then it composes its own classical melodies. It can create and write a [10] of music in minutes. One AI composer is [11] as a composer. It has an album and also has [12]. Its musical pieces can be heard in movies, TV [13], and video games. It has [14] for its music just like a human composer does. AI composers can learn to compose different types of music. Humans and AI will have to work together as a team to create music in the [15].",
+        "answers": [["artificial"], ["intelligence"], ["behavior", "behaviors"], ["against"], ["player"], ["classical"], ["composing"], ["listens"], ["such"], ["piece"], ["registered"], ["customers"], ["advertisements"], ["rights"], ["future"]]
+      },
+      "unscramble": {
+        "passage": "AI is also learning how to be creative. [1] It copies human learning, and then AI can understand the art of composing music. First, the AI composer listens to famous composers such as Bach. [2] It can create and write a piece of music in minutes. One AI composer is registered as a composer. [3] Its musical pieces can be heard in movies, TV advertisements, and video games. [4]",
+        "sentences": [
+          {"letter": "A", "chunks": ["AI can", "classical music", "For example,", "create"], "answer": ["For example,", "AI can", "create", "classical music."]},
+          {"letter": "B", "chunks": ["and", "also has", "It", "has an album", "customers."], "answer": ["It", "has an album", "and", "also has", "customers."]},
+          {"letter": "C", "chunks": ["It", "has rights", "a human composer", "for its music", "just like", "does."], "answer": ["It", "has rights", "for its music", "just like", "a human composer", "does."]},
+          {"letter": "D", "chunks": ["Then it", "its own", "composes", "classical melodies."], "answer": ["Then it", "composes", "its own", "classical melodies."]}
+        ],
+        "placements": ["A", "D", "B", "C"]
+      }
+    },
+    {
+      "number": 10,
+      "title": "Sam Cooke: The King of Soul",
+      "track": "21",
+      "dictation": {
+        "passage": "Sam Cooke is [1] called the King of Soul. He was a musical [2]. He is [3] for his [4] singing voice and his [5] to music. In fact, one musical [6] called Cooke “the [7] of soul music.” During his short life, Cooke was an [8] singer, composer, and a businessman. Sam Cooke started his singing [9] at age six. He was in a singing group with his [10]. By the age of fourteen, he became the leader of another singing group. By age thirty-three, Cooke was one of the most popular singers in the U.S. Some of his most famous songs are “A Change Is Gonna Come,” “Wonderful World,” and “Twistin’ the Night Away.” He was one of the first black musical artists to [11] the business side of his musical career. He founded a record [12] and a [13] company. Cooke’s work also helped some of the world’s most famous soul artists, including Aretha Franklin, Stevie Wonder, and James Brown. Sadly, on December 11th, 1964, Cooke’s life was ended by a [14] act of [15]. But millions of people still celebrate his contributions to music.",
+        "answers": [["often"], ["pioneer"], ["remembered"], ["distinct"], ["contributions"], ["biographer"], ["inventor"], ["influential"], ["career"], ["siblings"], ["manage", "control"], ["label"], ["publishing"], ["violent"], ["violence"]]
+      },
+      "unscramble": {
+        "passage": "Sam Cooke is often called the King of Soul. [1] He is remembered for his distinct singing voice and his contributions to music. [2] During his short life, Cooke was an influential singer, composer, and a businessman. [3] He was in a singing group with his siblings. [4] By age thirty-three, Cooke was one of the most popular singer in the U.S.",
+        "sentences": [
+          {"letter": "A", "chunks": ["his singing career", "Sam Cooke", "at age six.", "started"], "answer": ["Sam Cooke", "started", "his singing career", "at age six."]},
+          {"letter": "B", "chunks": ["one musical biographer", "In fact,", "“the inventor of soul music.”", "called Cooke"], "answer": ["In fact,", "one musical biographer", "called Cooke", "“the inventor of soul music.”"]},
+          {"letter": "C", "chunks": ["he became the leader", "By the age", "of another singing group.", "of fourteen,"], "answer": ["By the age", "of fourteen,", "he became the leader", "of another singing group."]},
+          {"letter": "D", "chunks": ["pioneer.", "was", "musical", "a", "He"], "answer": ["He", "was", "a", "musical", "pioneer."]}
+        ],
+        "placements": ["D", "B", "A", "C"]
+      }
+    },
+    {
+      "number": 11,
+      "title": "Jazz",
+      "track": "23",
+      "dictation": {
+        "passage": "Jazz music is a [1] of music from the city of New Orleans, Louisiana. One of the most famous jazz [2] of all time is Louis Armstrong. He was born into a poor family in New Orleans. He had a hard [3] and spent time in a special home for [4] kids. In the home, he became interested in music and learned the [5]. He was naturally talented and began playing on steamboats that sailed the Mississippi River. At first, Armstrong was famous for his [6] trumpet playing, but later he became known for his [7] voice as well. Sometimes, Louis would [8]. This was new to the music world. Once, in the middle of a song, he dropped his [9] on the floor, but he [10] singing by [11] up [12] in time to the music. This is now called “scat singing.” It is hard to think of jazz music and not think of Louis Armstrong. People still [13] from around the world to New Orleans to listen to jazz [14] and take part in music [15]. Jazz is now famous, thanks to great musicians like Louis Armstrong.",
+        "answers": [["style"], ["musicians"], ["childhood"], ["troubled"], ["trumpet"], ["fantastic"], ["unique"], ["improvise"], ["lyrics"], ["continued"], ["making"], ["sounds"], ["travel"], ["performances", "concerts", "music", "musicians"], ["festivals"]]
+      },
+      "unscramble": {
+        "passage": "Jazz music is a style of music from the city of New Orleans, Louisiana. [1] He was born into a poor family in New Orleans. [2] In the home, he became interested in music and learned the trumpet. He was naturally talented and began playing on steamboats that sailed the Mississippi River. At first, Armstrong was famous for his fantastic trumpet playing, but later he became known for his unique voice as well. [3] This was new to the music world. Once, in the middle of a song, he dropped his lyrics on the floor, but he continued singing by making up sounds in time to the music. [4]",
+        "sentences": [
+          {"letter": "A", "chunks": ["is Louis Armstrong.", "One of the most", "of all time", "famous jazz musicians"], "answer": ["One of the most", "famous jazz musicians", "of all time", "is Louis Armstrong."]},
+          {"letter": "B", "chunks": ["is", "“scat singing.”", "now called", "This"], "answer": ["This", "is", "now called", "“scat singing.”"]},
+          {"letter": "C", "chunks": ["a hard childhood", "for troubled kids.", "He had", "in a special home", "and spent time"], "answer": ["He had", "a hard childhood", "and spent time", "in a special home", "for troubled kids."]},
+          {"letter": "D", "chunks": ["Louis", "Sometimes,", "improvise.", "would"], "answer": ["Sometimes,", "Louis", "would", "improvise."]}
+        ],
+        "placements": ["A", "C", "D", "B"]
+      }
+    },
+    {
+      "number": 12,
+      "title": "Music Therapy",
+      "track": "25",
+      "dictation": {
+        "passage": "Do you [1] listen to music to make [2] feel good? If so, then you [3] [4] know that music is great for the body and mind. Music [5] helps many people feel better. They may have a family problem or a [6] problem. Music can help change a bad mood. It can [7] the [8] of [9]. It can also lower blood [10] and help the heart [11]. Music therapy is usually done by a trained therapist who has studied in an [12] program. People have [13] therapy each week or month. They listen to music as they relax or do an activity. Therapists think about the rhythm and tone of the music to make sure it is right for each [14] patient. In some kinds of music therapy, patients actually make their own music. In other kinds, patients dance or move around to music. [15] music therapy programs began in the 1940s. Today, music therapy helps older people stay active, and it helps kids in school study better. Listening to music can help almost anyone reduce stress and feel calm.",
+        "answers": [["ever"], ["yourself"], ["probably"], ["already"], ["therapy"], ["medical"], ["reduce"], ["pain"], ["cancer"], ["pressure"], ["rate"], ["approved"], ["regular"], ["individual", "particular"], ["early", "first", "formal", "modern"]]
+      },
+      "unscramble": {
+        "passage": "Do you ever listen to music to make yourself feel good? If so, then you probably already believe that music is great for the body and mind. [1] They may have a family problem or a medical problem. [2] It can reduce the pain of cancer patients. [3] Music therapy is usually done by a trained therapist who has studied in an approved program. [4] They listen to music as they relax or do an activity.",
+        "sentences": [
+          {"letter": "A", "chunks": ["Music", "change", "a bad mood.", "can", "help"], "answer": ["Music", "can", "help", "change", "a bad mood."]},
+          {"letter": "B", "chunks": ["have", "People", "regular therapy", "or month.", "each week"], "answer": ["People", "have", "regular therapy", "each week", "or month."]},
+          {"letter": "C", "chunks": ["lower blood pressure", "and", "It", "can also", "help the heart rate."], "answer": ["It", "can also", "lower blood pressure", "and", "help the heart rate."]},
+          {"letter": "D", "chunks": ["many people", "feel better.", "Music therapy", "helps"], "answer": ["Music therapy", "helps", "many people", "feel better."]}
+        ],
+        "placements": ["D", "A", "C", "B"]
+      }
+    },
+    {
+      "number": 13,
+      "title": "Coding Jobs",
+      "track": "27",
+      "dictation": {
+        "passage": "In the past, many jobs [1] [2]. For example, a lot of jobs were in [3]. But today, [4] and robots are [5] people’s labor jobs. So people need to find new jobs. The work that needs to be done now is different than in the [6] because digital [7] is more important now. Coding is a new kind of [8] that is needed in the future. Coding is a way of writing [9] for computers. It is needed for making web pages, apps, and computer software. There are many coding [10] and they are used for different [11]. Some coders are familiar with many of these languages. Coding is important for many [12]. Many businesses have online shops that allow customers to pay for [13] online. They need coders to keep their sites safe and [14]. Jobs that require coding pay well, and today half of the highest paying jobs require coding. A job in coding will be [15] because the number of jobs that require coding grows every year. Coding will give more people better chances. Going forward into the future, coding will create more jobs.",
+        "answers": [["involved", "required", "needed", "were"], ["manual labor", "physical labor", "manual work", "labor-intensive", "different"], ["agriculture"], ["computers"], ["replacing"], ["past"], ["technology"], ["skill"], ["instructions"], ["languages"], ["purposes"], ["fields"], ["purchases"], ["secure"], ["stable"]]
+      },
+      "unscramble": {
+        "passage": "[1] It is needed for making web pages, apps, and computer software. There are many coding languages and they are used for different purposes. [2] Coding is important for many fields. Many businesses have online shops that allow customers to pay for purchases online. [3] Jobs that require coding pay well, and today half of the highest paying jobs require coding. A job in coding will be stable because the number of jobs that require coding grows every year. [4]",
+        "sentences": [
+          {"letter": "A", "chunks": ["their sites", "coders to keep", "They need", "safe and secure."], "answer": ["They need", "coders to keep", "their sites", "safe and secure."]},
+          {"letter": "B", "chunks": ["a way of", "for computers.", "Coding is", "writing instructions"], "answer": ["Coding is", "a way of", "writing instructions", "for computers."]},
+          {"letter": "C", "chunks": ["better chances.", "will give", "more people", "Coding"], "answer": ["Coding", "will give", "more people", "better chances."]},
+          {"letter": "D", "chunks": ["are familiar", "Some coders", "with many", "of these languages."], "answer": ["Some coders", "are familiar", "with many", "of these languages."]}
+        ],
+        "placements": ["B", "D", "A", "C"]
+      }
+    },
+    {
+      "number": 14,
+      "title": "Choosing a Career",
+      "track": "29",
+      "dictation": {
+        "passage": "When thinking about career [1], there are a few important things to [2]. First, think about what you [3] enjoy. If you like to sing or dance, then a career in [4] could be right for you. You may like working with kids, so you could become a teacher. If you like building things, then perhaps a career in [5] would suit you. Next, think about any special skills or [6] you have. If you [7] computers well, they are used in many [8]. If you are good at [9], there are careers in [10] or [11]. Those who are good at science can work at a hospital. If you are [12], [13] athletes may be your option. Finally, you must think about how your career could change your lifestyle. You should consider when you want to work. Most people work during the daytime, but some careers have nighttime hours. In addition, think about how much time it will take to [14] to work. Some companies could be [15] far from your home. These are just a few of the important things you should think about when planning for your career.",
+        "answers": [["options"], ["consider"], ["naturally"], ["entertainment"], ["architecture"], ["talents"], ["handle"], ["fields"], ["writing"], ["journalism"], ["literature"], ["athletic"], ["professional"], ["commute"], ["located", "based"]]
+      },
+      "unscramble": {
+        "passage": "When thinking about career options, there are a few important things to consider. [1] If you like to sing or dance, then a career in entertainment could be right for you. [2] If you like building things, then perhaps a career in architecture would suit you. [3] If you handle computers well, they are used in many fields. If you are good at writing, there are careers in journalism or literature. [4] If you are athletic, professional athletes may be your option.",
+        "sentences": [
+          {"letter": "A", "chunks": ["any special skills", "you have.", "Next,", "or talents", "think about"], "answer": ["Next,", "think about", "any special skills", "or talents", "you have."]},
+          {"letter": "B", "chunks": ["at a hospital.", "who are good", "can work", "Those", "at science"], "answer": ["Those", "who are good", "at science", "can work", "at a hospital."]},
+          {"letter": "C", "chunks": ["First,", "about what", "think", "naturally enjoy.", "you"], "answer": ["First,", "think", "about what", "you", "naturally enjoy."]},
+          {"letter": "D", "chunks": ["You", "could become", "may like", "so you", "a teacher.", "working with kids,"], "answer": ["You", "may like", "working with kids,", "so you", "could become", "a teacher."]}
+        ],
+        "placements": ["C", "D", "A", "B"]
+      }
+    },
+    {
+      "number": 15,
+      "title": "Odd Jobs",
+      "track": "31",
+      "dictation": {
+        "passage": "Hard work moves [1] [2]. We see [3] jobs all around us. However, some people might prefer a different kind of [4]. There are many [5] jobs in the world. Video games are fun and exciting. Video game testers know this better than anyone. They play the games before they are [6] and [7] how good the games are. Then they give the games a [8] and they also [9] ways to improve the games. Deodorant helps people to smell good and is used by many people around the world. People who work in [10] [11] must check that the [12] works well. They ask other people to put the deodorant under their arms. Later, a quality assurance worker checks to see how well the deodorant is working. Ice cream companies need to make sure that their ice creams taste delicious. Taste testers taste many different [13] of ice cream, but it’s not always fun. Ice cream testers must take [14] of their sense of smell and taste. They can’t eat anything that might hurt their taste [15]. Would you like to work in one of these unusual jobs?",
+        "answers": [["society", "the world", "our world"], ["forward"], ["ordinary", "regular", "normal"], ["work"], ["unusual"], ["released"], ["decide"], ["ranking"], ["suggest"], ["quality"], ["assurance"], ["product"], ["types"], ["care"], ["buds"]]
+      },
+      "unscramble": {
+        "passage": "There are many unusual jobs in the world. Video games are fun and exciting. [1] They play the games before they are released and decide how good the games are. [2] Deodorant helps people to smell good and is used by many people around the world. [3] [4] Later, a quality assurance worker checks to see how well the deodorant is working.",
+        "sentences": [
+          {"letter": "A", "chunks": ["Video game testers", "better", "than anyone.", "know this"], "answer": ["Video game testers", "know this", "better", "than anyone."]},
+          {"letter": "B", "chunks": ["under their arms.", "They ask", "to put", "other people", "the deodorant"], "answer": ["They ask", "other people", "to put", "the deodorant", "under their arms."]},
+          {"letter": "C", "chunks": ["and they also suggest", "the games a ranking", "Then they give", "ways to improve", "the games."], "answer": ["Then they give", "the games a ranking", "and they also suggest", "ways to improve", "the games."]},
+          {"letter": "D", "chunks": ["that the product", "in quality assurance", "who work", "must check", "works well.", "People"], "answer": ["People", "who work", "in quality assurance", "must check", "that the product", "works well."]}
+        ],
+        "placements": ["A", "C", "D", "B"]
+      }
+    },
+    {
+      "number": 16,
+      "title": "Changing Careers",
+      "track": "33",
+      "dictation": {
+        "passage": "Carlos Barrios got [1] with his job one day. He was an [2] in Mexico City until he made a change. Now he’s a [3] diver, and he’s always busy. Oddly, Carlos does not dive in the [4]. He dives in the [5] system. Nineteen million people live in Mexico City. Some parts of its sewer system are [6] of years old. These parts get blocked easily. If there is a [7], sewer water [8] [9] out of the sewers. This dirty water can go into the [10] and even into homes. When the city hears of a blockage, they call Carlos. He puts on his diving [11] and dives into the pipes. He swims through the mix of water, [12], and sewage. He finds the problem and [13] whatever is blocking the pipe. Most people would consider this job a [14] one, but Carlos [15]. Over the years, he has found everything from cars to chairs in the sewers. “Without me, the sewer water could back up into the city streets, and I am never bored in this job,” said Carlos. Carlos is glad he changed his career.",
+        "answers": [["bored"], ["accountant"], ["scuba"], ["ocean"], ["sewer"], ["hundreds"], ["blockage"], ["usually"], ["floods"], ["subway"], ["suit"], ["trash", "garbage"], ["removes"], ["disgusting", "unpleasant"], ["loves it", "enjoys it"]]
+      },
+      "unscramble": {
+        "passage": "Carlos Barrios got bored with his job one day. He was an accountant in Mexico City until he made a change. [1] Oddly, Carlos does not dive in the ocean. [2] Nineteen million people live in Mexico City. Some parts of its sewer system are hundreds of years old. [3] If there is a blockage, sewer water usually floods out of the sewers. [4]",
+        "sentences": [
+          {"letter": "A", "chunks": ["he’s a scuba diver,", "and he’s", "Now", "always busy."], "answer": ["Now", "he’s a scuba diver,", "and he’s", "always busy."]},
+          {"letter": "B", "chunks": ["the sewer system.", "dives", "in", "He"], "answer": ["He", "dives", "in", "the sewer system."]},
+          {"letter": "C", "chunks": ["get blocked", "These", "parts", "easily."], "answer": ["These", "parts", "get blocked", "easily."]},
+          {"letter": "D", "chunks": ["can go into", "and even into homes.", "the subway", "This dirty water"], "answer": ["This dirty water", "can go into", "the subway", "and even into homes."]}
+        ],
+        "placements": ["A", "B", "C", "D"]
+      }
+    }
+  ]
+}

@@ -466,7 +466,7 @@ export function App() {
           <SocialProof />
         </LazyMount>
       );
-      // Kid Program grade 5-12 resource pathway; Kid 6 + Kid 11 currently linked.
+      // Kid Program grade 5-12 resource pathway; Kid 6, 7, 8 and 11 have live materials.
       case 'kid-grades': return (
         <LazyMount id="kid-grades" minHeight={640}>
           <KidGradeHub onOpenAuth={() => openMemberAuth('sign-in')} />
