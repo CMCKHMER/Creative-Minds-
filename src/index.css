@@ -321,7 +321,7 @@
   align-items: center;
   min-height: min(860px, calc(100svh - 98px));
   padding: 90px 0 100px;
-  background: #061523;
+  background: #171b17;
 }
 
 .cmc-hero::after {
@@ -363,8 +363,8 @@
   /* Lighter than before: the new artwork ships dark, so the veil only needs
      to guarantee text contrast on the left and calm the top/bottom edges. */
   background:
-    linear-gradient(90deg, rgba(4, 18, 30, 0.97) 0%, rgba(4, 18, 30, 0.9) 25%, rgba(4, 18, 30, 0.6) 48%, rgba(4, 18, 30, 0.1) 100%),
-    linear-gradient(0deg, rgba(4, 18, 30, 0.68) 0%, transparent 30%, transparent 76%, rgba(4, 18, 30, 0.26) 100%);
+    linear-gradient(90deg, rgba(24, 30, 24, 0.97) 0%, rgba(24, 30, 24, 0.9) 25%, rgba(24, 30, 24, 0.6) 48%, rgba(24, 30, 24, 0.1) 100%),
+    linear-gradient(0deg, rgba(24, 30, 24, 0.68) 0%, transparent 30%, transparent 76%, rgba(24, 30, 24, 0.26) 100%);
 }
 
 .cmc-hero-light {
@@ -397,7 +397,7 @@
 
 /* ---- features bento: renaissance workshop photo plane (same art direction as the hero) ---- */
 .cmc-features-scene {
-  background: #061523;
+  background: #171b17;
 }
 
 .cmc-bento-photo-plane {
@@ -422,8 +422,8 @@
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(180deg, rgba(4, 18, 30, 0.9) 0%, rgba(4, 18, 30, 0.6) 22%, rgba(4, 18, 30, 0.64) 55%, rgba(4, 18, 30, 0.88) 100%),
-    linear-gradient(90deg, rgba(4, 18, 30, 0.5) 0%, rgba(4, 18, 30, 0.16) 50%, rgba(4, 18, 30, 0.5) 100%);
+    linear-gradient(180deg, rgba(24, 30, 24, 0.9) 0%, rgba(24, 30, 24, 0.6) 22%, rgba(24, 30, 24, 0.64) 55%, rgba(24, 30, 24, 0.88) 100%),
+    linear-gradient(90deg, rgba(24, 30, 24, 0.5) 0%, rgba(24, 30, 24, 0.16) 50%, rgba(24, 30, 24, 0.5) 100%);
 }
 
 .cmc-bento-glow {
@@ -471,12 +471,12 @@
   z-index: 1;
   display: block;
   color: #f4faff;
-  text-shadow: 0 8px 35px rgba(4, 18, 30, 0.2);
+  text-shadow: 0 8px 35px rgba(24, 30, 24, 0.2);
 }
 
 .cmc-title-row-second .cmc-title-solid {
   color: #f4faff;
-  text-shadow: 0 8px 35px rgba(4, 18, 30, 0.2);
+  text-shadow: 0 8px 35px rgba(24, 30, 24, 0.2);
 }
 
 .cmc-title-outline {
@@ -672,8 +672,8 @@
 
   .cmc-hero-veil {
     background:
-      linear-gradient(90deg, rgba(4, 18, 30, 0.96) 0%, rgba(4, 18, 30, 0.84) 60%, rgba(4, 18, 30, 0.52) 100%),
-      linear-gradient(0deg, rgba(4, 18, 30, 0.78), transparent 43%, rgba(4, 18, 30, 0.42));
+      linear-gradient(90deg, rgba(24, 30, 24, 0.96) 0%, rgba(24, 30, 24, 0.84) 60%, rgba(24, 30, 24, 0.52) 100%),
+      linear-gradient(0deg, rgba(24, 30, 24, 0.78), transparent 43%, rgba(24, 30, 24, 0.42));
   }
 
   .cmc-hero-orbit {
@@ -1039,8 +1039,8 @@ html.light .cmc-hero-orbit { opacity: 0.45; }
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(6, 16, 24, 0.5) 0%, rgba(6, 16, 24, 0.7) 34%, rgba(6, 16, 24, 0.93) 68%, rgba(6, 16, 24, 1) 100%),
-    linear-gradient(90deg, rgba(6, 16, 24, 0.78) 0%, rgba(6, 16, 24, 0.32) 50%, rgba(6, 16, 24, 0.72) 100%);
+    linear-gradient(180deg, rgba(24, 30, 24, 0.5) 0%, rgba(24, 30, 24, 0.7) 34%, rgba(24, 30, 24, 0.93) 68%, rgba(24, 30, 24, 1) 100%),
+    linear-gradient(90deg, rgba(24, 30, 24, 0.78) 0%, rgba(24, 30, 24, 0.32) 50%, rgba(24, 30, 24, 0.72) 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {

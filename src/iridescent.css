@@ -60,15 +60,15 @@
   /* Card face: smoked glass over the page art. */
   --iri-face: linear-gradient(
     160deg,
-    rgba(28, 18, 46, 0.88) 0%,
-    rgba(13, 20, 38, 0.90) 55%,
-    rgba(10, 26, 40, 0.92) 100%
+    rgba(36, 42, 34, 0.92) 0%,
+    rgba(27, 34, 27, 0.94) 55%,
+    rgba(22, 29, 23, 0.96) 100%
   );
   --iri-face-hover: linear-gradient(
     160deg,
-    rgba(38, 22, 60, 0.92) 0%,
-    rgba(17, 26, 48, 0.93) 55%,
-    rgba(12, 34, 50, 0.94) 100%
+    rgba(48, 57, 44, 0.95) 0%,
+    rgba(34, 43, 34, 0.96) 55%,
+    rgba(26, 37, 29, 0.98) 100%
   );
 
   /* The bloom that sits under a hovered/focus card. */
@@ -202,7 +202,7 @@ html.light {
   isolation: isolate;
   border: 1.5px solid transparent !important;
   background:
-    linear-gradient(160deg, rgba(20, 26, 44, 0.9), rgba(12, 20, 36, 0.95)) padding-box,
+    linear-gradient(160deg, rgba(31, 37, 29, 0.9), rgba(20, 27, 21, 0.95)) padding-box,
     var(--iri-edge) border-box !important;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
@@ -371,7 +371,7 @@ html.light .cmc-btn-3d--emerald {
   text-transform: uppercase !important;
   color: var(--iri-ink) !important;
   background:
-    linear-gradient(160deg, rgba(22, 28, 48, 0.82), rgba(13, 20, 36, 0.88)) padding-box,
+    linear-gradient(160deg, rgba(32, 38, 30, 0.82), rgba(20, 27, 21, 0.88)) padding-box,
     var(--iri-edge-soft) border-box !important;
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
@@ -383,7 +383,7 @@ html.light .cmc-btn-3d--emerald {
   --iri-edge-soft: var(--iri-edge);
   border: 1px solid transparent !important;
   background:
-    linear-gradient(160deg, rgba(30, 36, 60, 0.9), rgba(18, 28, 48, 0.92)) padding-box,
+    linear-gradient(160deg, rgba(40, 47, 37, 0.9), rgba(27, 35, 26, 0.92)) padding-box,
     var(--iri-edge) border-box !important;
   box-shadow: var(--iri-lip), var(--iri-bloom);
   transform: translateY(-1px);
@@ -415,7 +415,7 @@ html.light .cmc-btn-ghost:hover {
 .cmc-eyebrow {
   border: 1px solid transparent !important;
   background:
-    linear-gradient(160deg, rgba(20, 26, 44, 0.7), rgba(12, 20, 36, 0.78)) padding-box,
+    linear-gradient(160deg, rgba(31, 37, 29, 0.7), rgba(20, 27, 21, 0.78)) padding-box,
     var(--iri-edge) border-box !important;
   border-radius: 999px !important;
   padding: 0.45rem 0.95rem !important;
@@ -672,7 +672,7 @@ html.light #kid-grades article div[class*='rounded-lg'] {
   border-radius: 999px;
   border: 1.5px solid transparent;
   background:
-    linear-gradient(160deg, rgba(20, 26, 44, 0.9), rgba(12, 20, 36, 0.95)) padding-box,
+    linear-gradient(160deg, rgba(31, 37, 29, 0.9), rgba(20, 27, 21, 0.95)) padding-box,
     var(--iri-edge) border-box;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
@@ -1097,7 +1097,7 @@ html.light .cmc-score-alert {
   white-space: nowrap;
   color: var(--iri-ink);
   background:
-    linear-gradient(160deg, rgba(22, 28, 48, 0.72), rgba(13, 20, 36, 0.8)) padding-box,
+    linear-gradient(160deg, rgba(32, 38, 30, 0.72), rgba(20, 27, 21, 0.8)) padding-box,
     linear-gradient(120deg, color-mix(in srgb, var(--shelf) 62%, transparent), rgba(255, 255, 255, 0.14) 55%, color-mix(in srgb, var(--shelf) 28%, transparent)) border-box;
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
@@ -1113,7 +1113,7 @@ html.light .cmc-score-alert {
   transform: translateY(-1px);
   border: 1px solid transparent;
   background:
-    linear-gradient(160deg, rgba(30, 36, 60, 0.86), rgba(18, 28, 48, 0.9)) padding-box,
+    linear-gradient(160deg, rgba(40, 47, 37, 0.86), rgba(27, 35, 26, 0.9)) padding-box,
     linear-gradient(120deg, var(--shelf), rgba(255, 255, 255, 0.3) 55%, color-mix(in srgb, var(--shelf) 55%, transparent)) border-box;
   box-shadow: var(--iri-lip), 0 14px 30px -18px color-mix(in srgb, var(--shelf) 55%, transparent);
 }
