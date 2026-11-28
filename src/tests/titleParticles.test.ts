@@ -315,16 +315,13 @@ describe('how the effect is wired into the page', () => {
     expect(rule?.[1]).not.toMatch(/display|visibility/);
   });
 
-  it('the planner heading is drawn the same way and keeps its text', () => {
-    // both lines are real text inside the <h2>, each line a span that starts with its text
-    expect(planner).toMatch(/<h2 id="biweek-title" ref=\{titleRef\} className=\{`cmc-h2 cmc-h2-hero\$\{headingAsDots \? ' cmc-dots-on' : ''\}`\}>/);
-    expect(planner).toContain('<span className="cmc-dots-line">TOEFL ITP</span>');
-    expect(planner).toContain('<span className="cmc-dots-line cmc-gradient-text" data-dot-gradient="">Bi-Weekly Planner.</span>');
-    expect(planner).toMatch(/enabled: isTeacher, whenNear: true, letters: '\.cmc-dots-line', gradient: HEADING_DOTS, spacing: smallTitleSpacing/);
-    expect(planner).toContain('{isTeacher && <canvas ref={canvasRef} className="cmc-title-canvas" aria-hidden="true" />}');
-    const rule = css.match(/\.cmc-dots-on \.cmc-dots-line\s*\{([^}]*)\}/);
-    expect(rule?.[1]).toMatch(/opacity:\s*0/);
-    expect(rule?.[1]).not.toMatch(/display|visibility/);
+  it('keeps the planner heading as visible regular text without particle hooks', () => {
+    expect(planner).toContain('<h2 id="biweek-title" className="cmc-h2 cmc-h2-hero">');
+    expect(planner).toContain('<span>TOEFL ITP</span>');
+    expect(planner).toContain('<span>Bi-Weekly Planner.</span>');
+    expect(planner).not.toContain('useTitleParticles');
+    expect(planner).not.toContain('cmc-dots-line');
+    expect(planner).not.toContain('cmc-title-canvas');
   });
 
   it('the planner heading is set in the hero title\'s lettering', () => {
@@ -339,36 +336,22 @@ describe('how the effect is wired into the page', () => {
     expect(css.match(/\.cmc-h2-hero > span:first-child \{([^}]*)\}/)![1]).toMatch(/font-size:\s*0\.62em/);
   });
 
-  it('the planner dots take the colours of the gradient text they stand for', () => {
-    const stops = (block: string) => [...block.matchAll(/(#[0-9a-f]{6}) (\d+)%/g)].map((m) => [Number(m[2]) / 100, m[1]]);
-    // the glass theme (src/glass.css, loaded after index.css) sets the gradient text
+  it('keeps section headings as solid text and scopes dots to the hero title', () => {
     const glass = readFileSync('src/glass.css', 'utf8');
-    const dark = glass.match(/\n\.cmc-gradient-text\s*\{([^}]*)\}/)![1];
-    const light = glass.match(/\nhtml\.light \[data-keep-dark\] \.cmc-gradient-text,\nhtml\.light \.cmc-gradient-text\s*\{([^}]*)\}/)![1];
-    const pick = (name: string) => JSON.parse(planner.match(new RegExp(`${name}: (\\[\\[.*?\\]\\]),`))![1].replace(/'/g, '"'));
-    expect(pick('dark')).toEqual(stops(dark));
-    expect(pick('light')).toEqual(stops(light));
+    expect(glass).toContain('.cmc-title-solid {');
+    expect(glass).toContain('radial-gradient(circle, #e0e1dd 0 1.2px, transparent 1.45px)');
+    expect(glass).toContain('radial-gradient(circle, #b3af8f 0 1.2px, transparent 1.45px)');
+    expect(glass).toContain('.cmc-gradient-text,');
+    expect(glass).toContain('color: var(--g-warm) !important;');
+    expect(glass).not.toContain(':is(.cmc-title-solid, .cmc-section h2');
   });
 
-  it('fills every main section heading with white and gold dots', () => {
-    const glass = readFileSync('src/glass.css', 'utf8');
-    const headingTargets = [
-      '.cmc-title-solid', '.cmc-section h2', '.cmc-page-body h2', '.cmc-directory-title',
-      '.cmc-directory-group-head h3', '.cmc-page-more h3', '.cmc-board-title',
-    ];
-    for (const target of headingTargets) expect(glass).toContain(target);
-    expect(glass).toContain('radial-gradient(circle, #ffffff 0 1.2px, transparent 1.45px)');
-    expect(glass).toContain('radial-gradient(circle, #f2c66d 0 1.2px, transparent 1.45px)');
-  });
-
-  it('connects all section headings to the hero-style pointer dispersion', () => {
-    const manager = readFileSync('src/components/SectionHeadingParticles.tsx', 'utf8');
-    const core = readFileSync('src/lib/titleParticlesCore.ts', 'utf8');
-    expect(manager).toContain("'.cmc-section h2:not(#biweek-title)'");
-    expect(manager).toContain("letters: '*'");
-    expect(manager).toContain("import('../lib/titleParticles')");
-    expect(core).toContain("if (letters === '*')");
-    expect(core).toContain("section.addEventListener('pointermove', onMove");
+  it('does not mount the global particle effect on section headings', () => {
+    const main = readFileSync('src/main.tsx', 'utf8');
+    expect(main).not.toContain('SectionHeadingParticles');
+    expect(main).not.toContain('<SectionHeadingParticles');
+    // The hero still owns its isolated title-particle hook.
+    expect(hero).toContain('useTitleParticles({ section: heroRef, title: titleRef, canvas: titleCanvasRef');
   });
 
   it('the canvas can never swallow a click on the hero buttons', () => {

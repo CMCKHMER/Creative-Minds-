@@ -196,37 +196,22 @@ html.light .cmc-eyebrow {
 }
 .cmc-eyebrow > span[aria-hidden='true'] { background: currentColor; opacity: 0.6; }
 
-/* Section titles use a white-and-gold dotted fill. Keep the legacy accent
-   spans in that same palette so a heading still reads correctly before its
-   optional particle animation starts. */
-.cmc-gradient-text {
-  background: linear-gradient(100deg, #ffffff 0%, #f2c66d 50%, #ffffff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-html.light [data-keep-dark] .cmc-gradient-text,
+/* Only the main page hero title gets the dotted treatment. All section and
+   card headings remain standard, readable text; accent words stay solid gold. */
+.cmc-gradient-text,
 html.light .cmc-gradient-text {
-  background: linear-gradient(100deg, #ffffff 0%, #f2c66d 50%, #ffffff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  background: none !important;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: var(--g-warm) !important;
+  -webkit-text-fill-color: currentColor !important;
 }
-
-/* Main section headings across the home page and section pages. The two
-   offset radial patterns make clean white-and-gold pinpoints clipped to the
-   actual letter shapes, including inline accent spans. */
-:is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title) {
-  color: #ffffff;
-}
+:is(.cmc-title-solid) { color: #e0e1dd; }
 @supports ((background-clip: text) or (-webkit-background-clip: text)) {
-  :is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title),
-  :is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title) :is(span, strong, em),
-  html.light :is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title),
-  html.light :is(.cmc-title-solid, .cmc-section h2, .cmc-page-body h2, .cmc-directory-title, .cmc-directory-group-head h3, .cmc-page-more h3, .cmc-board-title) :is(span, strong, em) {
+  .cmc-title-solid {
     background-image:
-      radial-gradient(circle, #ffffff 0 1.2px, transparent 1.45px),
-      radial-gradient(circle, #f2c66d 0 1.2px, transparent 1.45px) !important;
+      radial-gradient(circle, #e0e1dd 0 1.2px, transparent 1.45px),
+      radial-gradient(circle, #b3af8f 0 1.2px, transparent 1.45px) !important;
     background-size: 7px 7px !important;
     background-position: 0 0, 3.5px 3.5px !important;
     background-repeat: repeat !important;
@@ -234,6 +219,11 @@ html.light .cmc-gradient-text {
     -webkit-background-clip: text !important;
     color: transparent !important;
     -webkit-text-fill-color: transparent !important;
+  }
+  html.light .cmc-title-solid {
+    background-image:
+      radial-gradient(circle, #0d1b2a 0 1.2px, transparent 1.45px),
+      radial-gradient(circle, #8b8057 0 1.2px, transparent 1.45px) !important;
   }
 }
 
